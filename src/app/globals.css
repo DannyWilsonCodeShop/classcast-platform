@@ -1,0 +1,174 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #0065a3;
+  --primary-foreground: #fafafa;
+  --secondary: #6cc3d3;
+  --secondary-foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #9940b6;
+  --accent-foreground: #fafafa;
+  --destructive: #f96464;
+  --destructive-foreground: #fafafa;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #0065a3;
+  --chart-1: #0065a3;
+  --chart-2: #6cc3d3;
+  --chart-3: #9940b6;
+  --chart-4: #f1b313;
+  --chart-5: #f96464;
+  --radius: 0.5rem;
+  --font-geist-sans: "Geist", "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --font-geist-mono: "Geist Mono", "SF Mono", Monaco, Inconsolata, "Roboto Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Courier New", monospace;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* Background image - simplified approach */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  position: relative;
+}
+
+/* Add a subtle overlay to ensure text readability */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Custom scrollbar with Cristo Rey colors */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f8f9fa;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--cristo-rey-blue), var(--cristo-rey-gold));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, var(--cristo-rey-blue-dark), var(--cristo-rey-gold-dark));
+}
+
+/* Enhanced focus states */
+.focus-ring:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--cristo-rey-blue);
+  ring-offset: 2px;
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Cristo Rey color utilities */
+.text-cristo-rey-blue {
+  color: var(--cristo-rey-blue);
+}
+
+.text-cristo-rey-gold {
+  color: var(--cristo-rey-gold);
+}
+
+.bg-cristo-rey-blue {
+  background-color: var(--cristo-rey-blue);
+}
+
+.bg-cristo-rey-gold {
+  background-color: var(--cristo-rey-gold);
+}
+
+.border-cristo-rey-blue {
+  border-color: var(--cristo-rey-blue);
+}
+
+.border-cristo-rey-gold {
+  border-color: var(--cristo-rey-gold);
+}
+
+/* Text gradient utilities with Cristo Rey colors */
+.text-gradient-cristo-rey {
+  background: linear-gradient(135deg, var(--cristo-rey-blue), var(--cristo-rey-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-blue-gold {
+  background: linear-gradient(135deg, var(--cristo-rey-blue), var(--cristo-rey-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Button hover effects with Cristo Rey colors */
+.btn-gradient-cristo-rey {
+  background: linear-gradient(135deg, var(--cristo-rey-blue), var(--cristo-rey-gold));
+  transition: all 0.3s ease;
+}
+
+.btn-gradient-cristo-rey:hover {
+  background: linear-gradient(135deg, var(--cristo-rey-blue-dark), var(--cristo-rey-gold-dark));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 51, 102, 0.3);
+}
+
+/* Cristo Rey specific gradients */
+.bg-gradient-cristo-rey {
+  background: linear-gradient(135deg, var(--cristo-rey-blue), var(--cristo-rey-gold));
+}
+
+.bg-gradient-cristo-rey-reverse {
+  background: linear-gradient(135deg, var(--cristo-rey-gold), var(--cristo-rey-blue));
+}
+
+.bg-gradient-cristo-rey-soft {
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.1), rgba(212, 175, 55, 0.1));
+}
