@@ -1,0 +1,172 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { s3Service } from '../../../lib/s3';
+
+// POST /api/upload - Upload a file to S3
+export async function POST(request: NextRequest) {
+  try {
+    const formData = await request.formData();
+    const file = formData.get('file') as File;
+    const folder = formData.get('folder') as string || 'uploads';
+    const userId = formData.get('userId') as string;
+    const metadata = formData.get('metadata') as string;
+
+    if (!file) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No file provided',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (file.size > maxSize) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'File size exceeds 10MB limit',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+      'application/pdf',
+      'text/plain',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/csv',
+      'application/zip',
+      'application/x-rar-compressed',
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `File type ${file.type} is not allowed`,
+          allowedTypes,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Convert file to buffer
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    // Generate unique file key
+    const fileKey = s3Service.generateFileKey(folder, file.name, userId);
+
+    // Parse metadata if provided
+    let parsedMetadata: Record<string, string> = {};
+    if (metadata) {
+      try {
+        parsedMetadata = JSON.parse(metadata);
+      } catch (error) {
+        console.warn('Invalid metadata JSON provided:', metadata);
+      }
+    }
+
+    // Add default metadata
+    const finalMetadata = {
+      ...parsedMetadata,
+      'original-name': file.name,
+      'file-size': file.size.toString(),
+      'uploaded-by': userId || 'anonymous',
+      'upload-timestamp': new Date().toISOString(),
+    };
+
+    // Upload file to S3
+    const fileUrl = await s3Service.uploadFile(
+      fileKey,
+      buffer,
+      file.type,
+      finalMetadata
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        fileKey,
+        fileUrl,
+        fileName: file.name,
+        fileSize: file.size,
+        contentType: file.type,
+        metadata: finalMetadata,
+      },
+      message: 'File uploaded successfully',
+    });
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to upload file',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// GET /api/upload - Generate presigned upload URL
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const fileName = searchParams.get('fileName');
+    const contentType = searchParams.get('contentType');
+    const folder = searchParams.get('folder') || 'uploads';
+    const userId = searchParams.get('userId');
+    const expiresIn = parseInt(searchParams.get('expiresIn') || '3600');
+
+    if (!fileName || !contentType) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'fileName and contentType are required',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Generate unique file key
+    const fileKey = s3Service.generateFileKey(folder, fileName, userId);
+
+    // Generate presigned upload URL
+    const presignedUrl = await s3Service.generatePresignedUploadUrl(
+      fileKey,
+      contentType,
+      expiresIn
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        fileKey,
+        presignedUrl,
+        expiresIn,
+        uploadMethod: 'presigned-url',
+      },
+      message: 'Presigned upload URL generated successfully',
+    });
+  } catch (error) {
+    console.error('Error generating presigned URL:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to generate presigned URL',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}

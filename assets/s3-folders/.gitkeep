@@ -1,0 +1,2 @@
+# This directory contains the S3 folder structure
+# The CDK will create these folders in the S3 bucket

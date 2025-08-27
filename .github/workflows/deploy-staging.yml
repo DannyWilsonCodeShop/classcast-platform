@@ -1,0 +1,203 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ staging ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+
+env:
+  NODE_VERSION: '18'
+  AWS_REGION: 'us-east-1'
+  STAGING_DOMAIN: 'staging.yourdomain.com'
+
+jobs:
+  # Deploy Infrastructure to Staging
+  deploy-infrastructure:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHubActions-Staging
+          
+      - name: Install CDK dependencies
+        run: |
+          cd cdk
+          npm ci
+          
+      - name: Build CDK
+        run: |
+          cd cdk
+          npm run build
+          
+      - name: Bootstrap CDK (if needed)
+        run: |
+          cd cdk
+          npm run bootstrap
+        continue-on-error: true
+          
+      - name: Deploy infrastructure to staging
+        run: |
+          cd cdk
+          npm run deploy:all
+        env:
+          STAGE: staging
+          ENVIRONMENT: staging
+
+  # Build and Deploy Application
+  deploy-application:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: deploy-infrastructure
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHubActions-Staging
+          
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: demo-project-staging
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster demo-project-staging-cluster \
+            --service demo-project-staging-service \
+            --force-new-deployment
+          
+      - name: Wait for ECS service to stabilize
+        run: |
+          aws ecs wait services-stable \
+            --cluster demo-project-staging-cluster \
+            --services demo-project-staging-service
+
+  # Run Staging Tests
+  staging-tests:
+    name: Staging Tests
+    runs-on: ubuntu-latest
+    needs: deploy-application
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        
+      - name: Wait for application to be ready
+        run: |
+          timeout 300 bash -c 'until curl -s https://${{ env.STAGING_DOMAIN }}/api/health > /dev/null; do sleep 10; done'
+          
+      - name: Run E2E tests against staging
+        run: |
+          E2E_BASE_URL=https://${{ env.STAGING_DOMAIN }} npm run test:e2e
+        env:
+          E2E_BASE_URL: https://${{ env.STAGING_DOMAIN }}
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: staging-test-results
+          path: playwright-report/
+          retention-days: 30
+
+  # Health Check and Monitoring
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    needs: staging-tests
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHubActions-Staging
+          
+      - name: Run health checks
+        run: |
+          # Check application health
+          curl -f https://${{ env.STAGING_DOMAIN }}/api/health || exit 1
+          
+          # Check infrastructure health
+          aws cloudwatch describe-alarms --alarm-names "demo-project-staging-health" --query 'MetricAlarms[0].StateValue' --output text
+          
+      - name: Send deployment notification
+        run: |
+          echo "🚀 Staging deployment completed successfully!"
+          echo "🌐 Application URL: https://${{ env.STAGING_DOMAIN }}"
+          echo "📊 Health Check: https://${{ env.STAGING_DOMAIN }}/api/health"
+        if: success()
+        
+      - name: Send failure notification
+        run: |
+          echo "❌ Staging deployment failed!"
+          echo "Please check the logs for more details."
+        if: failure()

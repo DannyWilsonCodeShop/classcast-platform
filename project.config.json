@@ -1,0 +1,180 @@
+{
+  "name": "DemoProject",
+  "version": "1.0.0",
+  "description": "A modern Next.js application with AWS CDK infrastructure as code",
+  "type": "project",
+  "config": {
+    "nextjs": {
+      "version": "15.4.6",
+      "port": 3000,
+      "output": "standalone",
+      "experimental": {
+        "serverActions": {
+          "allowedOrigins": ["localhost:3000", "*.vercel.app"]
+        }
+      }
+    },
+    "typescript": {
+      "version": "5",
+      "strict": true,
+      "target": "ES2022",
+      "module": "ESNext"
+    },
+    "tailwind": {
+      "version": "4",
+      "config": "tailwind.config.js"
+    },
+    "docker": {
+      "baseImage": "node:18-alpine",
+      "port": 3000,
+      "user": "nextjs",
+      "workdir": "/app"
+    },
+    "aws": {
+      "region": "us-east-1",
+      "account": "auto",
+      "stacks": [
+        "DemoProject-NetworkStack",
+        "DemoProject-DatabaseStack",
+        "DemoProject-ApplicationStack"
+      ],
+      "resources": {
+        "vpc": {
+          "cidr": "10.0.0.0/16",
+          "maxAzs": 2
+        },
+        "rds": {
+          "instanceType": "t3.micro",
+          "storage": 20,
+          "engine": "postgresql-15.4"
+        },
+        "redis": {
+          "instanceType": "cache.t3.micro",
+          "engine": "redis-7"
+        },
+        "ecs": {
+          "cpu": 256,
+          "memory": 512,
+          "minCapacity": 2,
+          "maxCapacity": 10
+        }
+      }
+    },
+    "scripts": {
+      "development": [
+        "npm run dev",
+        "npm run dev:turbo"
+      ],
+      "build": [
+        "npm run build",
+        "npm run build:standalone"
+      ],
+      "quality": [
+        "npm run type-check",
+        "npm run lint",
+        "npm run lint:fix"
+      ],
+      "infrastructure": [
+        "npm run infra:build",
+        "npm run infra:deploy",
+        "npm run infra:destroy"
+      ],
+      "docker": [
+        "npm run docker:build",
+        "npm run docker:run"
+      ]
+    },
+    "environments": {
+      "development": {
+        "NODE_ENV": "development",
+        "PORT": 3000,
+        "LOG_LEVEL": "debug"
+      },
+      "production": {
+        "NODE_ENV": "production",
+        "PORT": 3000,
+        "LOG_LEVEL": "info"
+      }
+    },
+    "dependencies": {
+      "required": [
+        "next",
+        "react",
+        "react-dom"
+      ],
+      "dev": [
+        "typescript",
+        "@types/node",
+        "@types/react",
+        "@types/react-dom",
+        "eslint",
+        "eslint-config-next",
+        "tailwindcss"
+      ],
+      "infrastructure": [
+        "aws-cdk",
+        "aws-cdk-lib",
+        "constructs"
+      ]
+    },
+    "scripts": {
+      "build": {
+        "description": "Build the entire project",
+        "command": "./scripts/build.sh",
+        "windows": "scripts\\build.ps1"
+      },
+      "dev": {
+        "description": "Development workflow",
+        "command": "./scripts/dev-workflow.sh",
+        "windows": "scripts\\dev-workflow.ps1"
+      },
+      "deploy": {
+        "description": "Deploy infrastructure",
+        "command": "./scripts/deploy.sh",
+        "windows": "scripts\\deploy.ps1"
+      }
+    },
+    "linting": {
+      "eslint": {
+        "config": "eslint.config.mjs",
+        "ignore": [".next", "out", "dist", "node_modules"]
+      },
+      "typescript": {
+        "config": "tsconfig.json",
+        "strict": true
+      }
+    },
+    "testing": {
+      "framework": "jest",
+      "coverage": true,
+      "watch": true
+    },
+    "deployment": {
+      "stages": [
+        "development",
+        "staging",
+        "production"
+      ],
+      "autoScaling": {
+        "enabled": true,
+        "minCapacity": 2,
+        "maxCapacity": 10,
+        "targetCpu": 70,
+        "targetMemory": 80
+      },
+      "monitoring": {
+        "cloudwatch": true,
+        "containerInsights": true,
+        "performanceInsights": true
+      }
+    }
+  },
+  "metadata": {
+    "created": "2025-01-16",
+    "author": "Development Team",
+    "license": "MIT",
+    "repository": "https://github.com/your-username/demo-project",
+    "documentation": "./README.md",
+    "changelog": "./CHANGELOG.md"
+  }
+}
