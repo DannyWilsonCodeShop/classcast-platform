@@ -33,8 +33,8 @@ const cognitoClient = new CognitoIdentityProviderClient({
 });
 
 // Configuration from environment variables
-const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || '';
-const USER_POOL_CLIENT_ID = process.env.COGNITO_USER_POOL_CLIENT_ID || '';
+const USER_POOL_ID = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || process.env.COGNITO_USER_POOL_ID || '';
+const USER_POOL_CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID || process.env.COGNITO_USER_POOL_CLIENT_ID || '';
 const USER_POOL_DOMAIN = process.env.COGNITO_USER_POOL_DOMAIN || '';
 
 // User roles
