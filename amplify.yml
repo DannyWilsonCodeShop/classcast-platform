@@ -3,16 +3,10 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "Installing dependencies..."
-        - npm ci
-        - echo "Environment variables:"
-        - echo "NODE_ENV=$NODE_ENV"
-        - echo "NEXT_PUBLIC_APP_ENV=$NEXT_PUBLIC_APP_ENV"
+        - npm install
     build:
       commands:
-        - echo "Building application..."
         - npm run build
-        - echo "Build completed successfully"
   artifacts:
     baseDirectory: .next
     files:

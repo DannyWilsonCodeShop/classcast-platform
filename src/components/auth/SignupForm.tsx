@@ -373,7 +373,6 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
                   </p>
                 )}
               </div>
-            </>
           )}
 
           {/* Email Field */}
