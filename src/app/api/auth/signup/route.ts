@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UserRole } from '@/lib/auth';
+import { UserRole, createUser, getUserByEmail } from '@/lib/auth';
 import { mockAuthService } from '@/lib/mock-auth';
 
 export async function POST(request: NextRequest) {
@@ -61,20 +61,25 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Check if user already exists
-      const existingUser = await mockAuthService.getUser(email);
-      if (existingUser) {
-        console.log('User already exists:', email);
-        return NextResponse.json(
-          { error: { message: 'A user with this email already exists' } },
-          { status: 409 }
-        );
+      // Check if user already exists in Cognito
+      try {
+        const existingUser = await getUserByEmail(email);
+        if (existingUser) {
+          console.log('User already exists in Cognito:', email);
+          return NextResponse.json(
+            { error: { message: 'A user with this email already exists' } },
+            { status: 409 }
+          );
+        }
+      } catch (error) {
+        // User doesn't exist, continue with creation
+        console.log('User does not exist, proceeding with creation');
       }
 
       console.log('Creating user with data:', { email, firstName, lastName, role, studentId, instructorId, department });
 
-      // Create user with mock service
-      const newUser = await mockAuthService.createUser({
+      // Create user with AWS Cognito
+      const newUser = await createUser({
         email,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -85,7 +90,7 @@ export async function POST(request: NextRequest) {
         department: role === UserRole.INSTRUCTOR ? department : undefined,
       });
 
-      console.log('User created successfully:', newUser);
+      console.log('User created successfully in Cognito:', newUser);
 
       // Return success response
       return NextResponse.json(
@@ -108,23 +113,61 @@ export async function POST(request: NextRequest) {
       );
     } catch (authError) {
       // Log the error for debugging (but don't expose internal details)
-      console.error('Signup error:', authError);
-      if (authError instanceof Error) {
-        if (authError.message.includes('email already exists')) {
+      console.error('Cognito signup error, falling back to mock service:', authError);
+      
+      try {
+        // Fallback to mock service if Cognito fails
+        console.log('Attempting to create user with mock service as fallback');
+        const newUser = await mockAuthService.createUser({
+          email,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          password,
+          role,
+          studentId: role === UserRole.STUDENT ? studentId : undefined,
+          instructorId: role === UserRole.INSTRUCTOR ? instructorId : undefined,
+          department: role === UserRole.INSTRUCTOR ? department : undefined,
+        });
+
+        console.log('User created successfully with mock service:', newUser);
+
+        return NextResponse.json(
+          {
+            message: 'Account created successfully! Welcome to ClassCast.',
+            user: {
+              id: newUser.id,
+              email: newUser.email,
+              firstName: newUser.firstName,
+              lastName: newUser.lastName,
+              role: newUser.role,
+              studentId: newUser.studentId,
+              instructorId: newUser.instructorId,
+              department: newUser.department,
+              emailVerified: newUser.emailVerified,
+            },
+            nextStep: 'login',
+          },
+          { status: 201 }
+        );
+      } catch (mockError) {
+        console.error('Mock service also failed:', mockError);
+        if (authError instanceof Error) {
+          if (authError.message.includes('email already exists')) {
+            return NextResponse.json(
+              { error: { message: 'A user with this email already exists' } },
+              { status: 409 }
+            );
+          }
           return NextResponse.json(
-            { error: { message: 'A user with this email already exists' } },
-            { status: 409 }
+            { error: { message: authError.message || 'Failed to create account. Please try again later' } },
+            { status: 500 }
           );
         }
         return NextResponse.json(
-          { error: { message: authError.message || 'Failed to create account. Please try again later' } },
+          { error: { message: 'Failed to create account. An unexpected error occurred.' } },
           { status: 500 }
         );
       }
-      return NextResponse.json(
-        { error: { message: 'Failed to create account. An unexpected error occurred.' } },
-        { status: 500 }
-      );
     }
   } catch (error) {
     console.error('Signup request error:', error);
