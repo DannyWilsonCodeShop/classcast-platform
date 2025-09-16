@@ -182,8 +182,15 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
       if (onSuccess) {
         onSuccess();
       } else {
-        // Default redirect to verification page
-        router.push('/auth/verify');
+        // Redirect to appropriate dashboard based on role
+        if (formData.role === 'instructor') {
+          router.push('/instructor/dashboard');
+        } else if (formData.role === 'student') {
+          router.push('/student/dashboard');
+        } else {
+          // Default redirect to verification page for other roles
+          router.push('/auth/verify');
+        }
       }
     } catch (error) {
       console.error('Signup error:', error);

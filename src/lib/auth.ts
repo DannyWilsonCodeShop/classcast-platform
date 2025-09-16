@@ -455,6 +455,100 @@ export class CognitoAuthService {
     }
   }
 
+  // Get user by email
+  async getUserByEmail(email: string): Promise<CognitoUser | null> {
+    try {
+      const command = new AdminGetUserCommand({
+        UserPoolId: USER_POOL_ID,
+        Username: email,
+      });
+
+      const result = await cognitoClient.send(command);
+      return this.mapCognitoUserToUser(result);
+    } catch (error) {
+      if (error instanceof Error && error.name === 'UserNotFoundException') {
+        return null;
+      }
+      console.error('Error getting user by email:', error);
+      throw error;
+    }
+  }
+
+  // Create user function
+  async createUser(userData: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    password: string;
+    role: UserRole;
+    studentId?: string;
+    instructorId?: string;
+    department?: string;
+  }): Promise<CognitoUser> {
+    try {
+      console.log('Creating user in Cognito:', userData.email);
+      
+      const command = new AdminCreateUserCommand({
+        UserPoolId: USER_POOL_ID,
+        Username: userData.email,
+        UserAttributes: [
+          { Name: 'email', Value: userData.email },
+          { Name: 'email_verified', Value: 'true' },
+          { Name: 'given_name', Value: userData.firstName },
+          { Name: 'family_name', Value: userData.lastName },
+          { Name: 'custom:role', Value: userData.role },
+          ...(userData.studentId ? [{ Name: 'custom:studentId', Value: userData.studentId }] : []),
+          ...(userData.instructorId ? [{ Name: 'custom:instructorId', Value: userData.instructorId }] : []),
+          ...(userData.department ? [{ Name: 'custom:department', Value: userData.department }] : []),
+        ],
+        TemporaryPassword: 'TempPass123!',
+        MessageAction: 'SUPPRESS',
+      });
+
+      const result = await cognitoClient.send(command);
+      console.log('User created in Cognito:', result.User?.Username);
+
+      // Set permanent password
+      await cognitoClient.send(new AdminSetUserPasswordCommand({
+        UserPoolId: USER_POOL_ID,
+        Username: userData.email,
+        Password: userData.password,
+        Permanent: true,
+      }));
+
+      // Add user to appropriate group
+      const groupName = userData.role === UserRole.ADMIN ? 'admin' : userData.role;
+      try {
+        await cognitoClient.send(new AdminAddUserToGroupCommand({
+          UserPoolId: USER_POOL_ID,
+          Username: userData.email,
+          GroupName: groupName,
+        }));
+      } catch (groupError) {
+        console.warn('Could not add user to group:', groupError);
+      }
+
+      // Return the created user
+      return {
+        username: userData.email,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        studentId: userData.studentId,
+        instructorId: userData.instructorId,
+        department: userData.department,
+        status: UserStatus.ACTIVE,
+        enabled: true,
+        createdAt: new Date().toISOString(),
+        lastModifiedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Error creating user in Cognito:', error);
+      throw new Error(`Failed to create user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   // Helper methods
   private mapCognitoUserToUser(cognitoUser: any): CognitoUser {
     const attributes = cognitoUser.Attributes || [];
@@ -512,6 +606,13 @@ export class CognitoAuthService {
 
 // Export singleton instance
 export const cognitoAuthService = new CognitoAuthService();
+
+// Export individual functions for easier use
+export const createUser = (userData: Parameters<CognitoAuthService['createUser']>[0]) => 
+  cognitoAuthService.createUser(userData);
+
+export const getUserByEmail = (email: string) => 
+  cognitoAuthService.getUserByEmail(email);
 
 // Export for use in other modules
 export default cognitoAuthService;
