@@ -1,9 +1,10 @@
-name: Deploy to Production
+# DISABLED - Using AWS Amplify for deployment instead
+# name: Deploy to Production
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+# on:
+#   push:
+#     branches: [ main ]
+#   workflow_dispatch:
     inputs:
       environment:
         description: 'Environment to deploy to'
