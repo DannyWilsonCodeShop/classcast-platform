@@ -114,37 +114,6 @@ export class StorageStack extends cdk.Stack {
 
       // Object ownership - disable ACLs for security
       objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
-
-      // Intelligent tiering for cost optimization
-      intelligentTieringConfigurations: [
-        {
-          id: 'GeneralPurpose',
-          name: 'General Purpose',
-          status: 'Enabled',
-        },
-      ],
-
-      // Metrics and analytics
-      metrics: [
-        {
-          id: 'EntireBucket',
-          name: 'EntireBucket',
-        },
-      ],
-
-      // Inventory configuration
-      inventories: [
-        {
-          id: 'WeeklyInventory',
-          destination: {
-            bucket: this.bucket,
-            prefix: 'inventory/',
-          },
-          format: s3.InventoryFormat.CSV,
-          frequency: s3.InventoryFrequency.WEEKLY,
-          includedObjectVersions: s3.IncludedObjectVersions.ALL,
-        },
-      ],
     });
 
     // Create CloudFront distribution for secure access

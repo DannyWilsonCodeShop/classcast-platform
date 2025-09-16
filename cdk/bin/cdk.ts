@@ -145,7 +145,8 @@ const tags = {
   Owner: 'Development Team',
 };
 
-app.node.applyAspect(new cdk.Tag('Project', tags.Project));
-app.node.applyAspect(new cdk.Tag('Environment', tags.Environment));
-app.node.applyAspect(new cdk.Tag('ManagedBy', tags.ManagedBy));
-app.node.applyAspect(new cdk.Tag('Owner', tags.Owner));
+// Apply tags using the modern approach
+cdk.Tags.of(app).add('Project', tags.Project);
+cdk.Tags.of(app).add('Environment', tags.Environment);
+cdk.Tags.of(app).add('ManagedBy', tags.ManagedBy);
+cdk.Tags.of(app).add('Owner', tags.Owner);

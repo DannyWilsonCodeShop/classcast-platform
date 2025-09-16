@@ -1,6 +1,11 @@
+import { Suspense } from 'react';
 import AuthContainer from '@/components/auth/AuthContainer';
 
 export default function SignupPage() {
-  return <AuthContainer initialView="signup" />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <AuthContainer initialView="signup" />
+    </Suspense>
+  );
 }
 
