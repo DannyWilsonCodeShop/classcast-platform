@@ -12,7 +12,6 @@ export async function POST(request: NextRequest) {
       password, 
       role, 
       studentId, 
-      instructorId, 
       department 
     } = body;
 
@@ -43,10 +42,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (role === UserRole.INSTRUCTOR && (!instructorId || !department)) {
-      console.log('Instructor ID or Department missing for instructor role');
+    if (role === UserRole.INSTRUCTOR && !department) {
+      console.log('Department missing for instructor role');
       return NextResponse.json(
-        { error: { message: 'Instructor ID and Department are required for instructor role' } },
+        { error: { message: 'Department is required for instructor role' } },
         { status: 400 }
       );
     }
@@ -76,7 +75,7 @@ export async function POST(request: NextRequest) {
         console.log('User does not exist, proceeding with creation');
       }
 
-      console.log('Creating user with data:', { email, firstName, lastName, role, studentId, instructorId, department });
+      console.log('Creating user with data:', { email, firstName, lastName, role, studentId, department });
 
       // Create user with AWS Cognito
       const newUser = await createUser({
@@ -86,7 +85,6 @@ export async function POST(request: NextRequest) {
         password,
         role,
         studentId: role === UserRole.STUDENT ? studentId : undefined,
-        instructorId: role === UserRole.INSTRUCTOR ? instructorId : undefined,
         department: role === UserRole.INSTRUCTOR ? department : undefined,
       });
 
@@ -103,7 +101,6 @@ export async function POST(request: NextRequest) {
             lastName: newUser.lastName,
             role: newUser.role,
             studentId: newUser.studentId,
-            instructorId: newUser.instructorId,
             department: newUser.department,
             emailVerified: newUser.emailVerified,
           },
@@ -125,7 +122,6 @@ export async function POST(request: NextRequest) {
           password,
           role,
           studentId: role === UserRole.STUDENT ? studentId : undefined,
-          instructorId: role === UserRole.INSTRUCTOR ? instructorId : undefined,
           department: role === UserRole.INSTRUCTOR ? department : undefined,
         });
 
@@ -141,7 +137,6 @@ export async function POST(request: NextRequest) {
               lastName: newUser.lastName,
               role: newUser.role,
               studentId: newUser.studentId,
-              instructorId: newUser.instructorId,
               department: newUser.department,
               emailVerified: newUser.emailVerified,
             },

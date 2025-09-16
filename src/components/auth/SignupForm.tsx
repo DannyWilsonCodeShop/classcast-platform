@@ -11,7 +11,6 @@ interface SignupFormData {
   confirmPassword: string;
   role: 'student' | 'instructor';
   studentId?: string;
-  instructorId?: string;
   department?: string;
   agreeToTerms: boolean;
 }
@@ -24,7 +23,6 @@ interface SignupFormErrors {
   confirmPassword?: string;
   role?: string;
   studentId?: string;
-  instructorId?: string;
   department?: string;
   agreeToTerms?: string;
   general?: string;
@@ -45,7 +43,6 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
     confirmPassword: '',
     role: 'student',
     studentId: '',
-    instructorId: '',
     department: '',
     agreeToTerms: false,
   });
@@ -104,9 +101,6 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
     if (formData.role === 'student' && !formData.studentId?.trim()) {
       newErrors.studentId = 'Student ID is required for students';
     }
-    if (formData.role === 'instructor' && !formData.instructorId?.trim()) {
-      newErrors.instructorId = 'Instructor ID is required for instructors';
-    }
     if (formData.role === 'instructor' && !formData.department?.trim()) {
       newErrors.department = 'Department is required for instructors';
     }
@@ -155,7 +149,6 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
         role: formData.role,
         ...(formData.role === 'student' && { studentId: formData.studentId }),
         ...(formData.role === 'instructor' && { 
-          instructorId: formData.instructorId,
           department: formData.department 
         }),
       };
@@ -353,36 +346,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
           )}
 
           {formData.role === 'instructor' && (
-            <>
-              <div>
-                <label htmlFor="instructorId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Instructor ID
-                </label>
-                <input
-                  id="instructorId"
-                  name="instructorId"
-                  type="text"
-                  autoComplete="off"
-                  required
-                  value={formData.instructorId}
-                  onChange={handleInputChange}
-                  onKeyPress={handleKeyPress}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
-                    errors.instructorId 
-                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                      : 'border-gray-300 dark:border-gray-600'
-                  } bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
-                  placeholder="Enter your instructor ID"
-                  disabled={isLoading}
-                />
-                {errors.instructorId && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                    {errors.instructorId}
-                  </p>
-                )}
-              </div>
-
-              <div>
+            <div>
                 <label htmlFor="department" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Department
                 </label>

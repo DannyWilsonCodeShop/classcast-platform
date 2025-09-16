@@ -482,7 +482,6 @@ export class CognitoAuthService {
     password: string;
     role: UserRole;
     studentId?: string;
-    instructorId?: string;
     department?: string;
   }): Promise<CognitoUser> {
     try {
@@ -498,7 +497,6 @@ export class CognitoAuthService {
           { Name: 'family_name', Value: userData.lastName },
           { Name: 'custom:role', Value: userData.role },
           ...(userData.studentId ? [{ Name: 'custom:studentId', Value: userData.studentId }] : []),
-          ...(userData.instructorId ? [{ Name: 'custom:instructorId', Value: userData.instructorId }] : []),
           ...(userData.department ? [{ Name: 'custom:department', Value: userData.department }] : []),
         ],
         TemporaryPassword: 'TempPass123!',
@@ -536,7 +534,6 @@ export class CognitoAuthService {
         lastName: userData.lastName,
         role: userData.role,
         studentId: userData.studentId,
-        instructorId: userData.instructorId,
         department: userData.department,
         status: UserStatus.ACTIVE,
         enabled: true,
