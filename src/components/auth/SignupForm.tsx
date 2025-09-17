@@ -161,8 +161,8 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
       // Clear any previous errors
       setErrors({});
       
-      // Small delay to ensure AuthContext state is updated
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Longer delay to ensure AuthContext state is fully updated
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Always redirect to dashboard after successful signup
       if (formData.role === 'instructor') {

@@ -72,8 +72,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      // For now, just set as not authenticated since we're using local state
-      // In a real app, this would check localStorage or cookies
+      // Check localStorage for persisted auth state
+      const storedAuthState = localStorage.getItem('authState');
+      if (storedAuthState) {
+        try {
+          const parsedState = JSON.parse(storedAuthState);
+          if (parsedState.user && parsedState.isAuthenticated) {
+            setAuthState({
+              user: parsedState.user,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+            return;
+          }
+        } catch (parseError) {
+          console.error('Error parsing stored auth state:', parseError);
+          localStorage.removeItem('authState');
+        }
+      }
+      
+      // No valid stored state, set as not authenticated
       setAuthState({
         user: null,
         isAuthenticated: false,
@@ -126,6 +145,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false,
         error: null,
       });
+
+      // Persist auth state to localStorage
+      localStorage.setItem('authState', JSON.stringify({
+        user: userData.user,
+        isAuthenticated: true,
+      }));
 
       // Redirect to main dashboard for all users
       router.push('/dashboard');
@@ -184,8 +209,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: true,
       }));
 
-      // Redirect to main dashboard after signup
-      router.push('/dashboard');
+      // Persist auth state to localStorage
+      localStorage.setItem('authState', JSON.stringify({
+        user: newUser,
+        isAuthenticated: true,
+      }));
+
+      // Don't redirect here - let the SignupForm handle the redirect
+      // This prevents conflicts between AuthContext and SignupForm redirects
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Signup failed';
       setAuthState(prev => ({
@@ -213,6 +244,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading: false,
         error: null,
       });
+
+      // Clear auth state from localStorage
+      localStorage.removeItem('authState');
 
       router.push('/auth/login');
     } catch (error) {
