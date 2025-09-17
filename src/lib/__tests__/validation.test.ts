@@ -412,8 +412,8 @@ describe('Validation System', () => {
 	describe('isFormValid', () => {
 		it('returns true for valid form data', () => {
 			const results = {
-						name: { errors: [], warnings: [], info: [] },
-		email: { errors: [], warnings: [], info: [] },
+						name: { errors: [], warnings: [], info: [], isValid: true },
+		email: { errors: [], warnings: [], info: [], isValid: true },
 			};
 
 			expect(isFormValid(results)).toBe(true);
@@ -422,7 +422,7 @@ describe('Validation System', () => {
 		it('returns false for invalid form data', () => {
 			const results = {
 						name: { errors: ['Required field'], warnings: [], info: [] },
-		email: { errors: [], warnings: [], info: [] },
+		email: { errors: [], warnings: [], info: [], isValid: true },
 			};
 
 			expect(isFormValid(results)).toBe(false);
@@ -434,7 +434,7 @@ describe('Validation System', () => {
 
 		it('returns false when any field has errors', () => {
 			const results = {
-						name: { errors: [], warnings: [], info: [] },
+						name: { errors: [], warnings: [], info: [], isValid: true },
 		email: { errors: ['Invalid email'], warnings: [], info: [] },
 			};
 
@@ -467,8 +467,8 @@ describe('Validation System', () => {
 
 		it('returns empty object for valid result', () => {
 			const validationResult = {
-				name: { errors: [], warnings: [], info: [] },
-				email: { errors: [], warnings: [], info: [] },
+				name: { errors: [], warnings: [], info: [], isValid: true },
+				email: { errors: [], warnings: [], info: [], isValid: true },
 			};
 
 			const errors = getFormErrors(validationResult);
@@ -497,8 +497,8 @@ describe('Validation System', () => {
 
 		it('returns empty object when no warnings', () => {
 			const validationResult = {
-				name: { errors: [], warnings: [], info: [] },
-				email: { errors: [], warnings: [], info: [] },
+				name: { errors: [], warnings: [], info: [], isValid: true },
+				email: { errors: [], warnings: [], info: [], isValid: true },
 			};
 
 			const warnings = getFormWarnings(validationResult);
@@ -522,8 +522,8 @@ describe('Validation System', () => {
 
 		it('returns empty object when no info messages', () => {
 			const validationResult = {
-				name: { errors: [], warnings: [], info: [] },
-				email: { errors: [], warnings: [], info: [] },
+				name: { errors: [], warnings: [], info: [], isValid: true },
+				email: { errors: [], warnings: [], info: [], isValid: true },
 			};
 
 			const info = getFormInfo(validationResult);
@@ -549,7 +549,7 @@ describe('Validation System', () => {
 
 	describe('createDebouncedValidator', () => {
 		it('creates a debounced validator function', async () => {
-			const mockValidator = jest.fn().mockReturnValue({ errors: [], warnings: [], info: [] });
+			const mockValidator = jest.fn().mockReturnValue({ errors: [], warnings: [], info: [], isValid: true });
 			const debouncedValidator = createDebouncedValidator(mockValidator, 100);
 
 			// Call multiple times quickly

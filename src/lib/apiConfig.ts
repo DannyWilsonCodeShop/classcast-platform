@@ -22,7 +22,7 @@ export const tokenManager = new TokenManager(
     set: (tokens) => {
       localStorage.setItem('authTokens', JSON.stringify(tokens));
     },
-    clear: () => {
+    remove: () => {
       localStorage.removeItem('authTokens');
     }
   },

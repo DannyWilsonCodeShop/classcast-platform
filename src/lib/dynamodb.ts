@@ -62,7 +62,7 @@ export class DynamoDBService {
     }
   }
 
-  async putItem<T>(tableName: string, item: T): Promise<void> {
+  async putItem<T extends Record<string, any>>(tableName: string, item: T): Promise<void> {
     try {
       const command = new PutCommand({
         TableName: tableName,

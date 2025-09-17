@@ -196,7 +196,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       formData.append('metadata', JSON.stringify({
         assignmentId,
         courseId,
-        studentId: user.sub,
+        studentId: user.userId,
         videoDuration: selectedFile.duration,
         videoResolution: selectedFile.metadata ? `${selectedFile.metadata.width}x${selectedFile.metadata.height}` : undefined,
         videoFormat: selectedFile.metadata?.format,
@@ -242,7 +242,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         metadata: {
           assignmentId,
           courseId,
-          studentId: user.sub,
+          studentId: user.userId,
           uploadedAt: new Date().toISOString(),
           videoFormat: selectedFile.metadata?.format || 'unknown',
           resolution: selectedFile.metadata ? `${selectedFile.metadata.width}x${selectedFile.metadata.height}` : undefined,

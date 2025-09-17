@@ -149,7 +149,7 @@ describe('ErrorLogger', () => {
 		});
 
 		it('can disable console logging', async () => {
-			const customLogger = new ErrorLogger({ enableConsole: false });
+    const customLogger = new errorLogger({ enableConsole: false });
 			await customLogger.error('Test message');
 			
 			expect(console.error).not.toHaveBeenCalled();
@@ -161,7 +161,7 @@ describe('ErrorLogger', () => {
 			const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
 			mockFetch.mockResolvedValueOnce({ ok: true } as Response);
 			
-			const customLogger = new ErrorLogger({ enableRemote: true });
+    const customLogger = new errorLogger({ enableRemote: true });
 			await customLogger.error('Test error');
 			
 			expect(mockFetch).toHaveBeenCalledWith('/api/errors', {
@@ -177,7 +177,7 @@ describe('ErrorLogger', () => {
 			
 			const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 			
-			const customLogger = new ErrorLogger({ enableRemote: true });
+    const customLogger = new errorLogger({ enableRemote: true });
 			await customLogger.error('Test error');
 			
 			expect(consoleWarnSpy).toHaveBeenCalledWith(
@@ -189,7 +189,7 @@ describe('ErrorLogger', () => {
 		it('only sends errors to remote endpoint', async () => {
 			const mockFetch = fetch as jest.MockedFunction<typeof fetch>;
 			
-			const customLogger = new ErrorLogger({ enableRemote: true });
+    const customLogger = new errorLogger({ enableRemote: true });
 			await customLogger.info('Test info');
 			await customLogger.warn('Test warning');
 			await customLogger.error('Test error');
