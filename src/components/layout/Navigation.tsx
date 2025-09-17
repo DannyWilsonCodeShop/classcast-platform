@@ -47,25 +47,58 @@ export default function Navigation() {
           {/* Desktop Navigation - Hidden on mobile */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              {isAuthenticated && (
+              {isAuthenticated ? (
                 <>
                   <Link
                     href="/dashboard"
                     className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
-                    Dashboard
+                    🏠 Home
                   </Link>
                   <Link
                     href="/assignments"
                     className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
-                    Assignments
+                    📚 Assignments
                   </Link>
                   <Link
                     href="/community"
                     className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
-                    Community
+                    👥 Community
+                  </Link>
+                  <Link
+                    href="/courses"
+                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  >
+                    🎓 Courses
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/products"
+                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  >
+                    Products
+                  </Link>
+                  <Link
+                    href="/customers"
+                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  >
+                    Customers
+                  </Link>
+                  <Link
+                    href="/resources"
+                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  >
+                    Resources
+                  </Link>
+                  <Link
+                    href="/support"
+                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  >
+                    Support
                   </Link>
                 </>
               )}
@@ -156,35 +189,73 @@ export default function Navigation() {
       {/* Mobile menu */}
       <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden bg-white/95 backdrop-blur-sm border-t border-[#0065a3]/20`}>
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <Link
-            href="/"
-            className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-            onClick={closeMenu}
-          >
-            Home
-          </Link>
-          {isAuthenticated && (
+          {isAuthenticated ? (
             <>
               <Link
                 href="/dashboard"
                 className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 onClick={closeMenu}
               >
-                Dashboard
+                🏠 Home
               </Link>
               <Link
                 href="/assignments"
                 className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 onClick={closeMenu}
               >
-                Assignments
+                📚 Assignments
               </Link>
               <Link
                 href="/community"
                 className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 onClick={closeMenu}
               >
-                Community
+                👥 Community
+              </Link>
+              <Link
+                href="/courses"
+                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                onClick={closeMenu}
+              >
+                🎓 Courses
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/"
+                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                onClick={closeMenu}
+              >
+                Home
+              </Link>
+              <Link
+                href="/products"
+                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                onClick={closeMenu}
+              >
+                Products
+              </Link>
+              <Link
+                href="/customers"
+                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                onClick={closeMenu}
+              >
+                Customers
+              </Link>
+              <Link
+                href="/resources"
+                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                onClick={closeMenu}
+              >
+                Resources
+              </Link>
+              <Link
+                href="/support"
+                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                onClick={closeMenu}
+              >
+                Support
               </Link>
             </>
           )}
