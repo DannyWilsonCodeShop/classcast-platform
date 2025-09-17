@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Course } from '@/types/course';
 
 interface CourseCardProps {
@@ -18,6 +19,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   onArchive,
   onPublish,
 }) => {
+  const router = useRouter();
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'published':
@@ -154,6 +156,12 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
         <div className="flex items-center justify-between">
           <div className="flex space-x-2">
+            <button
+              onClick={() => router.push(`/instructor/courses/${course.courseId}`)}
+              className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all duration-300"
+            >
+              View Course
+            </button>
             <button
               onClick={() => onEdit(course)}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"

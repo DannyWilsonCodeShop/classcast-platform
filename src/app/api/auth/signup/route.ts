@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UserRole, createUser, getUserByEmail } from '@/lib/auth';
-import { mockAuthService } from '@/lib/mock-auth';
+import { awsCognitoAuthService } from '@/lib/aws-cognito';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,7 +25,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (role !== UserRole.STUDENT && role !== UserRole.INSTRUCTOR && role !== UserRole.ADMIN) {
+    if (role !== 'student' && role !== 'instructor' && role !== 'admin') {
       console.log('Invalid role:', role);
       return NextResponse.json(
         { error: { message: 'Invalid role specified' } },
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (role === UserRole.STUDENT && !studentId) {
+    if (role === 'student' && !studentId) {
       console.log('Student ID missing for student role');
       return NextResponse.json(
         { error: { message: 'Student ID is required for student role' } },
@@ -42,7 +41,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (role === UserRole.INSTRUCTOR && !department) {
+    if (role === 'instructor' && !department) {
       console.log('Department missing for instructor role');
       return NextResponse.json(
         { error: { message: 'Department is required for instructor role' } },
@@ -60,36 +59,38 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      console.log('Creating user with data:', { email, firstName, lastName, role, studentId, department });
+      console.log('Creating user with AWS Cognito:', { email, firstName, lastName, role, studentId, department });
 
-      // Use mock service for now (Cognito has schema issues)
-      const newUser = await mockAuthService.createUser({
+      // Use AWS Cognito for user creation
+      const result = await awsCognitoAuthService.signup({
         email,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         password,
-        role,
-        studentId: role === UserRole.STUDENT ? studentId : undefined,
-        department: role === UserRole.INSTRUCTOR ? department : undefined,
+        role: role as 'student' | 'instructor' | 'admin',
+        studentId: role === 'student' ? studentId : undefined,
+        instructorId: role === 'instructor' ? `INS-${Date.now()}` : undefined,
+        department: role === 'instructor' ? department : undefined,
       });
 
-      console.log('User created successfully with mock service:', newUser);
+      console.log('User created successfully with AWS Cognito:', result);
 
       // Return success response
       return NextResponse.json(
         {
-          message: 'Account created successfully! Welcome to ClassCast.',
+          message: 'Account created successfully! Please check your email for verification.',
           user: {
-            id: newUser.id,
-            email: newUser.email,
-            firstName: newUser.firstName,
-            lastName: newUser.lastName,
-            role: newUser.role,
-            studentId: newUser.studentId,
-            department: newUser.department,
-            emailVerified: newUser.emailVerified,
+            id: result.userId,
+            email: result.email,
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            role: role,
+            studentId: role === 'student' ? studentId : undefined,
+            instructorId: role === 'instructor' ? `INS-${Date.now()}` : undefined,
+            department: role === 'instructor' ? department : undefined,
+            emailVerified: false, // Will be true after email verification
           },
-          nextStep: 'login',
+          nextStep: 'verify-email',
         },
         { status: 201 }
       );

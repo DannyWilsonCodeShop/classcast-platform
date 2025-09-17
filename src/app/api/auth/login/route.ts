@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { mockAuthService, ensureMockServiceInitialized } from '@/lib/mock-auth';
+import { awsCognitoAuthService } from '@/lib/aws-cognito';
 
 export async function POST(request: NextRequest) {
   try {
     console.log('=== LOGIN API CALLED ===');
     
-    // Ensure mock service is initialized
-    console.log('🔧 Ensuring mock service is initialized...');
-    const authService = ensureMockServiceInitialized();
-    console.log('✅ Mock service initialized:', authService);
+    // Using AWS Cognito for authentication
+    console.log('🔧 Using AWS Cognito for authentication...');
     
     const body = await request.json();
     const { email, password } = body;
@@ -44,16 +42,14 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      console.log('About to call mockAuthService.login...');
-      console.log('mockAuthService object:', mockAuthService);
-      console.log('mockAuthService.login method:', typeof mockAuthService.login);
+      console.log('About to call awsCognitoAuthService.login...');
       
-      // Use mock authentication service for development
-      const authResult = await mockAuthService.login(email, password);
+      // Use AWS Cognito for authentication
+      const authResult = await awsCognitoAuthService.login(email, password);
       console.log('Login successful, auth result:', { 
         userId: authResult.user.id, 
         email: authResult.user.email,
-        hasToken: !!authResult.token 
+        hasToken: !!authResult.tokens.accessToken 
       });
 
       // Set secure HTTP-only cookies for the session
@@ -72,8 +68,9 @@ export async function POST(request: NextRequest) {
             emailVerified: authResult.user.emailVerified,
           },
           tokens: {
-            accessToken: authResult.token,
-            refreshToken: authResult.token, // Mock service uses same token for both
+            accessToken: authResult.tokens.accessToken,
+            refreshToken: authResult.tokens.refreshToken,
+            idToken: authResult.tokens.idToken,
             expiresIn: 3600, // 1 hour
           },
         },
@@ -81,7 +78,7 @@ export async function POST(request: NextRequest) {
       );
 
       // Set secure cookies
-      response.cookies.set('accessToken', authResult.token, {
+      response.cookies.set('accessToken', authResult.tokens.accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -89,7 +86,7 @@ export async function POST(request: NextRequest) {
         path: '/',
       });
 
-      response.cookies.set('refreshToken', authResult.token, {
+      response.cookies.set('refreshToken', authResult.tokens.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -97,10 +94,18 @@ export async function POST(request: NextRequest) {
         path: '/',
       });
 
+      response.cookies.set('idToken', authResult.tokens.idToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 3600, // 1 hour
+        path: '/',
+      });
+
       return response;
     } catch (authError) {
-      // Handle mock authentication errors
-      console.error('Mock auth error:', authError);
+      // Handle AWS Cognito authentication errors
+      console.error('AWS Cognito auth error:', authError);
       
       if (authError instanceof Error) {
         const errorMessage = authError.message.toLowerCase();

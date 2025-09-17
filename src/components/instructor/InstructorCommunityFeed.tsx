@@ -15,7 +15,7 @@ export interface InstructorCommunityFeedProps {
   className?: string;
 }
 
-// Mock data for demonstration
+// TODO: Replace with actual API data
 const mockInstructorSubmissions: InstructorSubmissionData[] = [
   {
     id: 'sub-001',
@@ -146,8 +146,32 @@ export const InstructorCommunityFeed: React.FC<InstructorCommunityFeedProps> = (
   instructorId,
   className = '',
 }) => {
-  const [submissions, setSubmissions] = useState<InstructorSubmissionData[]>(mockInstructorSubmissions);
+  const [submissions, setSubmissions] = useState<InstructorSubmissionData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedSubmissions, setSelectedSubmissions] = useState<Set<string>>(new Set());
+
+  // Load submissions data
+  useEffect(() => {
+    const loadSubmissions = async () => {
+      try {
+        setIsLoading(true);
+        
+        // TODO: Replace with actual API call
+        // const response = await fetch(`/api/instructor/${instructorId}/submissions`);
+        // const data = await response.json();
+        
+        // For now, set empty array until API is implemented
+        setSubmissions([]);
+        
+      } catch (error) {
+        console.error('Error loading submissions:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSubmissions();
+  }, [instructorId]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [courseFilter, setCourseFilter] = useState<string>('all');
