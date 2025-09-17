@@ -79,38 +79,95 @@ export default function VideoInteractions({
     }
   ]);
 
-  const handleLike = () => {
+  const handleLike = async () => {
     const newLiked = !liked;
     setLiked(newLiked);
     setLikes(prev => newLiked ? prev + 1 : prev - 1);
-    onLike(videoId);
-  };
+    
+    try {
+      const response = await fetch(`/api/videos/${videoId}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: 'current-user', // In real app, get from auth context
+          isLiked: newLiked
+        })
+      });
 
-  const handleComment = () => {
-    if (newComment.trim()) {
-      const comment: Comment = {
-        id: Date.now().toString(),
-        author: 'You',
-        authorAvatar: 'U',
-        content: newComment,
-        timestamp: 'Just now',
-        likes: 0,
-        isLiked: false
-      };
-      setCommentList(prev => [comment, ...prev]);
-      setComments(prev => prev + 1);
-      setNewComment('');
-      onComment(videoId, newComment);
+      if (!response.ok) {
+        // Revert on error
+        setLiked(!newLiked);
+        setLikes(prev => newLiked ? prev - 1 : prev + 1);
+        throw new Error('Failed to update like');
+      }
+
+      const data = await response.json();
+      setLikes(data.likes);
+      onLike(videoId);
+    } catch (error) {
+      console.error('Error updating like:', error);
     }
   };
 
-  const handleResponse = () => {
+  const handleComment = async () => {
+    if (newComment.trim()) {
+      try {
+        const response = await fetch(`/api/videos/${videoId}/comments`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: 'current-user', // In real app, get from auth context
+            content: newComment.trim()
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to post comment');
+        }
+
+        const data = await response.json();
+        setCommentList(prev => [data.comment, ...prev]);
+        setComments(prev => prev + 1);
+        setNewComment('');
+        onComment(videoId, newComment);
+      } catch (error) {
+        console.error('Error posting comment:', error);
+        alert('Failed to post comment. Please try again.');
+      }
+    }
+  };
+
+  const handleResponse = async () => {
     if (newResponse.trim()) {
-      // In a real app, this would submit to backend for grading
-      console.log('Graded response submitted:', newResponse);
-      setNewResponse('');
-      setShowResponse(false);
-      onResponse(videoId, newResponse);
+      try {
+        const response = await fetch(`/api/videos/${videoId}/responses`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: 'current-user', // In real app, get from auth context
+            content: newResponse.trim(),
+            assignmentId: 'assignment-1' // In real app, get from context
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to submit response');
+        }
+
+        setNewResponse('');
+        setShowResponse(false);
+        onResponse(videoId, newResponse);
+        alert('Response submitted successfully! Your instructor will review it.');
+      } catch (error) {
+        console.error('Error submitting response:', error);
+        alert('Failed to submit response. Please try again.');
+      }
     }
   };
 
@@ -124,10 +181,32 @@ export default function VideoInteractions({
     }
   };
 
-  const handleStudentShare = (studentIds: string[]) => {
-    console.log('Sharing video with students:', studentIds);
-    setShowStudentShare(false);
-    onShare(videoId, 'internal');
+  const handleStudentShare = async (studentIds: string[]) => {
+    try {
+      const response = await fetch(`/api/videos/${videoId}/share`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: 'current-user', // In real app, get from auth context
+          shareType: 'internal',
+          recipientIds: studentIds,
+          message: 'Check out this video!'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to share video');
+      }
+
+      setShowStudentShare(false);
+      onShare(videoId, 'internal');
+      alert(`Video shared with ${studentIds.length} student(s)!`);
+    } catch (error) {
+      console.error('Error sharing video:', error);
+      alert('Failed to share video. Please try again.');
+    }
   };
 
   const handleCommentLike = (commentId: string) => {

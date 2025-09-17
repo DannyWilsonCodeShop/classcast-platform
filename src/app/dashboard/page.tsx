@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { testDataGenerator, TestCourse, TestAssignment, TestVideoSubmission } from '@/lib/testDataGenerator';
 import Link from 'next/link';
 
 export default function DashboardPage() {
