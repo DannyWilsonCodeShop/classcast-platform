@@ -67,9 +67,21 @@ export default function CoursesPage() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300">
-                + Add Course
-              </button>
+              {user?.role === 'instructor' ? (
+                <button 
+                  onClick={() => router.push('/instructor/courses')}
+                  className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+                >
+                  + Add Course
+                </button>
+              ) : (
+                <button 
+                  onClick={() => router.push('/courses')}
+                  className="px-6 py-3 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+                >
+                  Browse Courses
+                </button>
+              )}
             </div>
           </div>
         </div>
