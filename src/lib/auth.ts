@@ -198,11 +198,11 @@ export class CognitoAuthService {
 
       const response = await this.client.send(command);
       
-      if (!response.User) {
+      if (!response.user) {
         throw new Error('User not found');
       }
 
-      return this.mapCognitoUserToUser(response.User);
+      return this.mapCognitoUserToUser(response.user);
     } catch (error) {
       console.error('Error getting user:', error);
       throw new Error(`Failed to get user: ${error instanceof Error ? error.message : 'Unknown error'}`);

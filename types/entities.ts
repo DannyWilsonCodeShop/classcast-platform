@@ -29,7 +29,6 @@ export interface User {
   sub?: string;
   accessToken?: string;
   token?: string;
-  userId?: string;
   
   // Metadata
   createdAt: Date;

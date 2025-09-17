@@ -192,7 +192,7 @@ export class CognitoAuthService {
   // Decode JWT token
   public decodeToken(token: string): any {
     try {
-      const decoded = JWT.decode(token);
+      const decoded = jwtVerify(token, new TextEncoder().encode('secret'));
       return decoded;
     } catch (error) {
       console.error('Token decode error:', error);

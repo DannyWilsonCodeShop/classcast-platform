@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Course, CreateCourseData } from '@/types/course';
-import { Assignment } from '@/types/entities';
+import { Assignment } from '@/types/dynamodb';
 
 interface InstructorOnboardingWizardProps {
   isOpen: boolean;
