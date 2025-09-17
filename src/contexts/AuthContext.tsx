@@ -13,6 +13,7 @@ export interface User {
   instructorId?: string;
   department?: string;
   emailVerified: boolean;
+  sessionExpiresAt?: number; // Unix timestamp
 }
 
 export interface AuthState {
@@ -42,6 +43,11 @@ interface SignupData {
   department?: string;
 }
 
+// Session TTL constants (in milliseconds)
+const SESSION_DURATION = 8 * 60 * 60 * 1000; // 8 hours
+const REFRESH_THRESHOLD = 30 * 60 * 1000; // 30 minutes before expiry
+const MAX_IDLE_TIME = 2 * 60 * 60 * 1000; // 2 hours of inactivity
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
@@ -66,6 +72,78 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 
   const router = useRouter();
+  const [lastActivity, setLastActivity] = useState<number>(Date.now());
+
+  // Session management functions
+  const isSessionExpired = useCallback((user: User | null): boolean => {
+    if (!user?.sessionExpiresAt) return false;
+    return Date.now() > user.sessionExpiresAt;
+  }, []);
+
+  const isIdleTimeout = useCallback((): boolean => {
+    return Date.now() - lastActivity > MAX_IDLE_TIME;
+  }, [lastActivity]);
+
+  const shouldRefreshSession = useCallback((user: User | null): boolean => {
+    if (!user?.sessionExpiresAt) return false;
+    const timeUntilExpiry = user.sessionExpiresAt - Date.now();
+    return timeUntilExpiry < REFRESH_THRESHOLD;
+  }, []);
+
+  const createSessionExpiry = useCallback((): number => {
+    return Date.now() + SESSION_DURATION;
+  }, []);
+
+  const updateLastActivity = useCallback(() => {
+    setLastActivity(Date.now());
+  }, []);
+
+  // Activity tracking
+  useEffect(() => {
+    const handleActivity = () => {
+      updateLastActivity();
+    };
+
+    // Track user activity
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity, true);
+      });
+    };
+  }, [updateLastActivity]);
+
+  // Session monitoring
+  useEffect(() => {
+    if (!authState.isAuthenticated || !authState.user) return;
+
+    const sessionCheckInterval = setInterval(() => {
+      if (isSessionExpired(authState.user) || isIdleTimeout()) {
+        console.log('Session expired, logging out');
+        logout();
+      } else if (shouldRefreshSession(authState.user)) {
+        console.log('Refreshing session');
+        const updatedUser = {
+          ...authState.user,
+          sessionExpiresAt: createSessionExpiry()
+        };
+        const updatedState = {
+          user: updatedUser,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        };
+        setAuthState(updatedState);
+        localStorage.setItem('authState', JSON.stringify(updatedState));
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(sessionCheckInterval);
+  }, [authState.isAuthenticated, authState.user, isSessionExpired, isIdleTimeout, shouldRefreshSession, createSessionExpiry, logout]);
 
   // Check if user is authenticated on mount
   const checkAuthStatus = useCallback(async () => {
@@ -78,6 +156,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const parsedState = JSON.parse(storedAuthState);
           if (parsedState.user && parsedState.isAuthenticated) {
+            // Check if session is expired
+            if (isSessionExpired(parsedState.user) || isIdleTimeout()) {
+              console.log('Session expired or idle timeout reached');
+              localStorage.removeItem('authState');
+              setAuthState({
+                user: null,
+                isAuthenticated: false,
+                isLoading: false,
+                error: 'Session expired. Please log in again.',
+              });
+              return;
+            }
+
+            // Check if session needs refresh
+            if (shouldRefreshSession(parsedState.user)) {
+              console.log('Session needs refresh');
+              // Update session expiry
+              const updatedUser = {
+                ...parsedState.user,
+                sessionExpiresAt: createSessionExpiry()
+              };
+              const updatedState = {
+                user: updatedUser,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+              };
+              setAuthState(updatedState);
+              localStorage.setItem('authState', JSON.stringify(updatedState));
+              return;
+            }
+
             setAuthState({
               user: parsedState.user,
               isAuthenticated: true,
@@ -139,8 +249,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (jsonError) {
         throw new Error('Login failed - invalid response format');
       }
+      // Add session expiry to user data
+      const userWithSession = {
+        ...userData.user,
+        sessionExpiresAt: createSessionExpiry()
+      };
+
       setAuthState({
-        user: userData.user,
+        user: userWithSession,
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -148,7 +264,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // Persist auth state to localStorage
       localStorage.setItem('authState', JSON.stringify({
-        user: userData.user,
+        user: userWithSession,
         isAuthenticated: true,
       }));
 

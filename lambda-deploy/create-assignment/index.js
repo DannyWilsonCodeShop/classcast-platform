@@ -1,9 +1,9 @@
-import { APIGatewayProxyHandler } from 'aws-lambda';
-import { DynamoDB } from 'aws-sdk';
-import { z } from 'zod';
-import { verifyJwtToken, AuthenticatedUser } from './jwt-verifier';
+const { DynamoDBClient, PutItemCommand, GetItemCommand, UpdateItemCommand } = require('@aws-sdk/client-dynamodb');
+const { marshall, unmarshall } = require('@aws-sdk/util-dynamodb');
+const { z } = require('zod');
+const { verifyJwtToken, AuthenticatedUser } = require('./jwt-verifier');
 
-const dynamodb = new DynamoDB.DocumentClient();
+const dynamodb = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 
 // Environment variables
 const ASSIGNMENTS_TABLE = process.env['ASSIGNMENTS_TABLE'] || 'DemoProject-Assignments';

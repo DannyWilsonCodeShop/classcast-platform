@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
+import PortalIndicator from '@/components/common/PortalIndicator';
+import InstructorOnboardingWizard from '@/components/wizards/InstructorOnboardingWizard';
 
 const InstructorDashboard: React.FC = () => {
+  const [showWizard, setShowWizard] = useState(false);
+
   return (
     <InstructorRoute>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#003366]">Instructor Dashboard</h1>
-          <p className="mt-2 text-gray-600">Manage your courses and student progress</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-[#003366]">Instructor Dashboard</h1>
+              <p className="mt-2 text-gray-600">Manage your courses and student progress</p>
+            </div>
+            <PortalIndicator />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -127,9 +136,18 @@ const InstructorDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Course Overview */}
+        {/* Your Courses Section */}
         <div className="mt-8 bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Course Overview</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-900">Your Courses</h3>
+            <button
+              onClick={() => setShowWizard(true)}
+              className="bg-[#003366] text-white px-4 py-2 rounded-md hover:bg-[#002244] transition-colors flex items-center space-x-2"
+            >
+              <span>➕</span>
+              <span>Setup New Course</span>
+            </button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 border rounded-lg">
               <h4 className="font-medium text-gray-900">React Development</h4>
@@ -154,6 +172,16 @@ const InstructorDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Course Setup Wizard */}
+      <InstructorOnboardingWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onComplete={() => {
+          setShowWizard(false);
+          // Optionally refresh course data or show success message
+        }}
+      />
     </InstructorRoute>
   );
 };
