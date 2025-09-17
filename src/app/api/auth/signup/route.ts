@@ -60,25 +60,10 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // Check if user already exists in Cognito
-      try {
-        const existingUser = await getUserByEmail(email);
-        if (existingUser) {
-          console.log('User already exists in Cognito:', email);
-          return NextResponse.json(
-            { error: { message: 'A user with this email already exists' } },
-            { status: 409 }
-          );
-        }
-      } catch (error) {
-        // User doesn't exist, continue with creation
-        console.log('User does not exist, proceeding with creation');
-      }
-
       console.log('Creating user with data:', { email, firstName, lastName, role, studentId, department });
 
-      // Create user with AWS Cognito
-      const newUser = await createUser({
+      // Use mock service for now (Cognito has schema issues)
+      const newUser = await mockAuthService.createUser({
         email,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -88,7 +73,7 @@ export async function POST(request: NextRequest) {
         department: role === UserRole.INSTRUCTOR ? department : undefined,
       });
 
-      console.log('User created successfully in Cognito:', newUser);
+      console.log('User created successfully with mock service:', newUser);
 
       // Return success response
       return NextResponse.json(

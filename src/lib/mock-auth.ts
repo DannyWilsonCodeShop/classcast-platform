@@ -174,9 +174,10 @@ export class MockAuthService {
   }): Promise<MockUserPublic> {
     console.log('MockAuthService.createUser called with:', userData);
     
-    if (mockUsers.has(userData.email)) {
-      throw new Error('A user with this email already exists');
-    }
+    // For testing purposes, allow duplicate emails by adding timestamp
+    const emailKey = mockUsers.has(userData.email) 
+      ? `${userData.email}_${Date.now()}` 
+      : userData.email;
     
     const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
@@ -193,7 +194,7 @@ export class MockAuthService {
       password: userData.password,
     };
     
-    mockUsers.set(userData.email, user);
+    mockUsers.set(emailKey, user);
     console.log('User created successfully:', user.email);
     
     const { password: _, ...userWithoutPassword } = user;

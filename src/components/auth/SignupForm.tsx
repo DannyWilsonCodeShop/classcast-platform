@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SignupFormData {
   email: string;
@@ -35,6 +36,7 @@ interface SignupFormProps {
 
 export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormProps) {
   const router = useRouter();
+  const { signup } = useAuth();
   const [formData, setFormData] = useState<SignupFormData>({
     email: '',
     firstName: '',
@@ -153,37 +155,28 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
         }),
       };
 
-      // Call the signup API endpoint
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(signupData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || data.message || 'Signup failed');
-      }
+      // Use AuthContext signup method
+      await signup(signupData);
 
       // Clear any previous errors
       setErrors({});
       
-      // Call success callback if provided
+      // Small delay to ensure AuthContext state is updated
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Always redirect to dashboard after successful signup
+      if (formData.role === 'instructor') {
+        router.push('/instructor/dashboard');
+      } else if (formData.role === 'student') {
+        router.push('/student/dashboard');
+      } else {
+        // Default redirect to verification page for other roles
+        router.push('/auth/verify');
+      }
+
+      // Call success callback if provided (after redirect)
       if (onSuccess) {
         onSuccess();
-      } else {
-        // Redirect to appropriate dashboard based on role
-        if (formData.role === 'instructor') {
-          router.push('/instructor/dashboard');
-        } else if (formData.role === 'student') {
-          router.push('/student/dashboard');
-        } else {
-          // Default redirect to verification page for other roles
-          router.push('/auth/verify');
-        }
       }
     } catch (error) {
       console.error('Signup error:', error);

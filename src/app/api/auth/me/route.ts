@@ -4,41 +4,12 @@ import { mockAuthService } from '@/lib/mock-auth';
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken')?.value;
-
-    if (!accessToken) {
-      return NextResponse.json(
-        { error: { message: 'No access token found' } },
-        { status: 401 }
-      );
-    }
-
-    // Get user from mock auth service using token
-    const user = await mockAuthService.getUserFromToken(accessToken);
-    
-    if (!user) {
-      return NextResponse.json(
-        { error: { message: 'Invalid or expired token' } },
-        { status: 401 }
-      );
-    }
-
-    // Return user information
-    return NextResponse.json({
-      success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        studentId: user.studentId,
-        instructorId: user.instructorId,
-        department: user.department,
-        emailVerified: user.emailVerified,
-      },
-    });
+    // For now, return 401 since we're not using session-based auth
+    // The AuthContext will handle authentication state locally
+    return NextResponse.json(
+      { error: { message: 'No active session' } },
+      { status: 401 }
+    );
   } catch (error) {
     console.error('Error in /api/auth/me:', error);
     
