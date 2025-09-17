@@ -20,13 +20,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    // Validate file size (max 100MB for videos, 10MB for other files)
+    const isVideo = file.type.startsWith('video/');
+    const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB for videos, 10MB for others
     if (file.size > maxSize) {
       return NextResponse.json(
         {
           success: false,
-          error: 'File size exceeds 10MB limit',
+          error: `File size exceeds ${isVideo ? '100MB' : '10MB'} limit`,
         },
         { status: 400 }
       );
@@ -34,10 +35,25 @@ export async function POST(request: NextRequest) {
 
     // Validate file type
     const allowedTypes = [
+      // Images
       'image/jpeg',
       'image/png',
       'image/gif',
       'image/webp',
+      // Videos
+      'video/mp4',
+      'video/quicktime',
+      'video/x-msvideo',
+      'video/x-ms-wmv',
+      'video/webm',
+      'video/ogg',
+      // Audio
+      'audio/mpeg',
+      'audio/wav',
+      'audio/mp4',
+      'audio/ogg',
+      'audio/webm',
+      // Documents
       'application/pdf',
       'text/plain',
       'application/msword',
@@ -45,6 +61,7 @@ export async function POST(request: NextRequest) {
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'text/csv',
+      // Archives
       'application/zip',
       'application/x-rar-compressed',
     ];

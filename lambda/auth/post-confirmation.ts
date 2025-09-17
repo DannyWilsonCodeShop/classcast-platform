@@ -3,7 +3,7 @@ import { CognitoIdentityServiceProvider, DynamoDB } from 'aws-sdk';
 
 const cognito = new CognitoIdentityServiceProvider();
 const dynamodb = new DynamoDB.DocumentClient();
-const USERS_TABLE = process.env['USERS_TABLE'] || 'DemoProject-Users';
+const USERS_TABLE = process.env['USERS_TABLE_NAME'] || 'classcast-users';
 const USER_POOL_ID = process.env['USER_POOL_ID'] || '';
 
 export const handler: PostConfirmationTriggerHandler = async (event) => {
