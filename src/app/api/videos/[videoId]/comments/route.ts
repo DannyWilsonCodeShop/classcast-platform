@@ -9,11 +9,11 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { videoId: string } }
 ) {
   try {
     const { userId, content, parentCommentId } = await request.json();
-    const videoId = params.id;
+    const { videoId } = params;
 
     if (!userId || !content) {
       return NextResponse.json(
@@ -78,10 +78,10 @@ export async function POST(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { videoId: string } }
 ) {
   try {
-    const videoId = params.id;
+    const { videoId } = params;
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '50');
     const lastKey = searchParams.get('lastKey');

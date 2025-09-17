@@ -5,6 +5,7 @@ import { Course, CreateCourseData, UpdateCourseData } from '@/types/course';
 import { CourseCard } from './CourseCard';
 import { CourseForm } from './CourseForm';
 import { CourseFilters } from './CourseFilters';
+import BulkEnrollmentWizard from './BulkEnrollmentWizard';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { EmptyState } from '../common/EmptyState';
 
@@ -14,6 +15,8 @@ export const CourseManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [showBulkEnrollment, setShowBulkEnrollment] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [filters, setFilters] = useState({
     department: '',
     semester: '',
@@ -173,6 +176,20 @@ export const CourseManagement: React.FC = () => {
     setPagination(prev => ({ ...prev, page }));
   };
 
+  // Bulk enroll students
+  const handleBulkEnroll = useCallback((course: Course) => {
+    setSelectedCourse(course);
+    setShowBulkEnrollment(true);
+  }, []);
+
+  const handleEnrollmentComplete = useCallback((enrolledCount: number) => {
+    // Refresh courses to update enrollment counts
+    fetchCourses();
+    
+    // Show success message
+    alert(`Successfully enrolled ${enrolledCount} students!`);
+  }, [fetchCourses]);
+
   // Fetch courses when dependencies change
   useEffect(() => {
     fetchCourses();
@@ -247,6 +264,7 @@ export const CourseManagement: React.FC = () => {
               onDelete={handleDeleteCourse}
               onArchive={handleArchiveCourse}
               onPublish={handlePublishCourse}
+              onBulkEnroll={handleBulkEnroll}
             />
           ))}
         </div>
@@ -292,6 +310,20 @@ export const CourseManagement: React.FC = () => {
           course={editingCourse}
           onSubmit={(updateData) => handleUpdateCourse(editingCourse.courseId, updateData)}
           onCancel={() => setEditingCourse(null)}
+        />
+      )}
+
+      {/* Bulk Enrollment Wizard */}
+      {showBulkEnrollment && selectedCourse && (
+        <BulkEnrollmentWizard
+          isOpen={showBulkEnrollment}
+          onClose={() => {
+            setShowBulkEnrollment(false);
+            setSelectedCourse(null);
+          }}
+          courseId={selectedCourse.courseId}
+          courseName={selectedCourse.title}
+          onEnrollmentComplete={handleEnrollmentComplete}
         />
       )}
     </div>

@@ -155,71 +155,67 @@ const StudentCourseDetailPage: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
-        {/* Header */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-yellow-300/30 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => router.push('/courses')}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  <span className="text-2xl">←</span>
-                </button>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                    {course.courseName}
-                  </h1>
-                  <p className="text-gray-600">
-                    {course.courseCode} • {course.instructor.name} • {course.semester} {course.year}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                  course.status === 'published' ? 'bg-green-100 text-green-800' :
-                  course.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
-                </span>
-                <button className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300">
-                  📚 Materials
-                </button>
-              </div>
+      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+        {/* Social Media Style Header */}
+        <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 flex-shrink-0">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => router.push('/student/dashboard')}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <span className="text-xl">←</span>
+            </button>
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              📚
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg font-bold text-gray-900 truncate">
+                {course.courseName}
+              </h1>
+              <p className="text-xs text-gray-600 truncate">
+                {course.courseCode} • {course.instructor.name}
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                course.status === 'published' ? 'bg-green-500 text-white' :
+                course.status === 'draft' ? 'bg-yellow-500 text-white' :
+                'bg-gray-500 text-white'
+              }`}>
+                {course.status === 'published' ? '✅' : course.status === 'draft' ? '📝' : '📦'}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Navigation Tabs */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-lg border-2 border-gray-200/30 mb-8">
-            <div className="flex space-x-1">
-              {[
-                { id: 'overview', label: 'Overview', icon: '📊' },
-                { id: 'assignments', label: 'Assignments', icon: '📝' },
-                { id: 'students', label: 'Classmates', icon: '👥' },
-                { id: 'materials', label: 'Materials', icon: '📚' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex-1 px-4 py-3 rounded-xl font-bold transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? 'bg-gradient-to-r from-yellow-400 to-blue-500 text-white shadow-lg'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <span className="mr-2">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+        {/* Mobile Navigation Tabs */}
+        <div className="bg-white/90 backdrop-blur-sm px-4 py-2 flex-shrink-0">
+          <div className="flex space-x-1">
+            {[
+              { id: 'overview', label: 'Overview', icon: '📊' },
+              { id: 'assignments', label: 'Tasks', icon: '📝' },
+              { id: 'students', label: 'Classmates', icon: '👥' },
+              { id: 'materials', label: 'Files', icon: '📚' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <span className="mr-1">{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
           </div>
+        </div>
 
-          {/* Tab Content */}
-          <div className="space-y-8">
+        {/* Mobile Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4">
             {activeTab === 'overview' && (
               <CourseDetails
                 course={course}

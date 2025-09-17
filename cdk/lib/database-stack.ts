@@ -17,6 +17,9 @@ export class DatabaseStack extends cdk.Stack {
   public readonly usersTable: dynamodb.Table;
   public readonly assignmentsTable: dynamodb.Table;
   public readonly submissionsTable: dynamodb.Table;
+  public readonly videosTable: dynamodb.Table;
+  public readonly videoInteractionsTable: dynamodb.Table;
+  public readonly enrollmentsTable: dynamodb.Table;
 
   constructor(scope: Construct, id: string, props: DatabaseStackProps) {
     super(scope, id, props);
@@ -219,6 +222,101 @@ export class DatabaseStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.KEYS_ONLY,
     });
 
+    // Create DynamoDB Videos table
+    this.videosTable = new dynamodb.Table(this, 'VideosTable', {
+      tableName: 'classcast-videos',
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      pointInTimeRecovery: true,
+      stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      contributorInsightsEnabled: true,
+    });
+
+    // Add GSIs to Videos table
+    this.videosTable.addGlobalSecondaryIndex({
+      indexName: 'CourseIndex',
+      partitionKey: { name: 'courseId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    this.videosTable.addGlobalSecondaryIndex({
+      indexName: 'UserIndex',
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    // Create DynamoDB Video Interactions table
+    this.videoInteractionsTable = new dynamodb.Table(this, 'VideoInteractionsTable', {
+      tableName: 'classcast-video-interactions',
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      pointInTimeRecovery: true,
+      stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      contributorInsightsEnabled: true,
+    });
+
+    // Add GSIs to Video Interactions table
+    this.videoInteractionsTable.addGlobalSecondaryIndex({
+      indexName: 'VideoIndex',
+      partitionKey: { name: 'videoId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    this.videoInteractionsTable.addGlobalSecondaryIndex({
+      indexName: 'UserIndex',
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    this.videoInteractionsTable.addGlobalSecondaryIndex({
+      indexName: 'TypeIndex',
+      partitionKey: { name: 'type', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    // Create DynamoDB Enrollments table
+    this.enrollmentsTable = new dynamodb.Table(this, 'EnrollmentsTable', {
+      tableName: 'classcast-enrollments',
+      partitionKey: { name: 'enrollmentId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      pointInTimeRecovery: true,
+      stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES,
+      encryption: dynamodb.TableEncryption.AWS_MANAGED,
+      contributorInsightsEnabled: true,
+    });
+
+    // Add GSIs to Enrollments table
+    this.enrollmentsTable.addGlobalSecondaryIndex({
+      indexName: 'UserIndex',
+      partitionKey: { name: 'userId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'enrolledAt', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    this.enrollmentsTable.addGlobalSecondaryIndex({
+      indexName: 'CourseIndex',
+      partitionKey: { name: 'courseId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'enrolledAt', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    this.enrollmentsTable.addGlobalSecondaryIndex({
+      indexName: 'StatusIndex',
+      partitionKey: { name: 'status', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'enrolledAt', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
     // Outputs
     new cdk.CfnOutput(this, 'UsersTableName', {
       value: this.usersTable.tableName,
@@ -236,6 +334,24 @@ export class DatabaseStack extends cdk.Stack {
       value: this.submissionsTable.tableName,
       description: 'DynamoDB Submissions table name',
       exportName: 'DemoProject-SubmissionsTableName',
+    });
+
+    new cdk.CfnOutput(this, 'VideosTableName', {
+      value: this.videosTable.tableName,
+      description: 'DynamoDB Videos table name',
+      exportName: 'DemoProject-VideosTableName',
+    });
+
+    new cdk.CfnOutput(this, 'VideoInteractionsTableName', {
+      value: this.videoInteractionsTable.tableName,
+      description: 'DynamoDB Video Interactions table name',
+      exportName: 'DemoProject-VideoInteractionsTableName',
+    });
+
+    new cdk.CfnOutput(this, 'EnrollmentsTableName', {
+      value: this.enrollmentsTable.tableName,
+      description: 'DynamoDB Enrollments table name',
+      exportName: 'DemoProject-EnrollmentsTableName',
     });
 
     new cdk.CfnOutput(this, 'DatabaseEndpoint', {
