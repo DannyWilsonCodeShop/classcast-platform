@@ -1,0 +1,10 @@
+NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_uK50qBrap
+NEXT_PUBLIC_COGNITO_CLIENT_ID=7tbaq74itv3gdda1bt25iqafvh
+NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID=us-east-1:463470937777
+NEXT_PUBLIC_API_GATEWAY_URL=https://785t4qadp8.execute-api.us-east-1.amazonaws.com/prod
+API_GATEWAY_URL=https://785t4qadp8.execute-api.us-east-1.amazonaws.com/prod
+FROM_EMAIL=noreply@myclasscast.com
+REPLY_TO_EMAIL=support@myclasscast.com
+AWS_REGION=us-east-1
+NEXT_PUBLIC_APP_URL=https://myclasscast.com
+NODE_ENV=production

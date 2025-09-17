@@ -6,9 +6,9 @@ const cognitoClient = new CognitoIdentityProviderClient({ region: 'us-east-1' })
 const identityClient = new CognitoIdentityClient({ region: 'us-east-1' });
 
 // Replace with your actual User Pool ID and Client ID
-const USER_POOL_ID = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'us-east-1_XXXXXXXXX';
-const CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || 'your-client-id';
-const IDENTITY_POOL_ID = process.env.NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID || 'your-identity-pool-id';
+const USER_POOL_ID = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'us-east-1_uK50qBrap';
+const CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh';
+const IDENTITY_POOL_ID = process.env.NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID || 'us-east-1:463470937777';
 
 export interface AuthResult {
   accessToken: string;

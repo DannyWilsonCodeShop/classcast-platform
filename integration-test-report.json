@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-09-17T03:14:24.236Z",
+  "configuration": {
+    "userPoolId": "us-east-1_uK50qBrap",
+    "clientId": "7tbaq74itv3gdda1bt25iqafvh",
+    "region": "us-east-1",
+    "fromEmail": "noreply@myclasscast.com"
+  },
+  "results": {
+    "email": {
+      "status": "error",
+      "message": "Email address is not verified. The following identities failed the check in region US-EAST-1: test@example.com, noreply@myclasscast.com"
+    },
+    "cloudwatch": {
+      "status": "success",
+      "message": "Metric sent successfully"
+    },
+    "cognito": {
+      "status": "success",
+      "message": "Cognito accessible and responding"
+    },
+    "overall": "error"
+  },
+  "summary": {
+    "totalTests": 3,
+    "successfulTests": 2,
+    "successRate": "67%"
+  }
+}

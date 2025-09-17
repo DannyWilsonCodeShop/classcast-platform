@@ -1,0 +1,52 @@
+{
+  "timestamp": "2025-09-17T03:15:17.167Z",
+  "environment": "production",
+  "configuration": {
+    "region": "us-east-1",
+    "userPoolId": "us-east-1_uK50qBrap",
+    "clientId": "7tbaq74itv3gdda1bt25iqafvh",
+    "fromEmail": "noreply@myclasscast.com"
+  },
+  "results": {
+    "ses": {
+      "status": "success",
+      "message": "SES is configured and accessible",
+      "details": {
+        "max24HourSend": 200,
+        "maxSendRate": 1,
+        "sentLast24Hours": 3
+      }
+    },
+    "cloudwatch": {
+      "status": "success",
+      "message": "CloudWatch fully operational",
+      "details": {
+        "metricsSent": true,
+        "metricsRetrieved": 0
+      }
+    },
+    "cognito": {
+      "status": "success",
+      "message": "Cognito fully operational",
+      "details": {
+        "userPoolId": "us-east-1_uK50qBrap",
+        "clientId": "7tbaq74itv3gdda1bt25iqafvh",
+        "totalUsers": 1,
+        "paginationToken": "Available"
+      }
+    },
+    "overall": "success"
+  },
+  "summary": {
+    "totalTests": 3,
+    "successfulTests": 3,
+    "successRate": "100%",
+    "productionReady": true
+  },
+  "nextSteps": [
+    "Deploy to production",
+    "Configure monitoring alerts",
+    "Set up backup procedures",
+    "Test user registration flow"
+  ]
+}
