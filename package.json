@@ -54,6 +54,7 @@
     "@tiptap/starter-kit": "^3.2.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/react-datepicker": "^6.2.0",
+    "aws-sdk": "^2.1692.0",
     "jsonwebtoken": "^9.0.2",
     "next": "15.4.6",
     "react": "19.1.0",
@@ -88,10 +89,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/demo-project.git"
+    "url": "git+https://github.com/your-username/demo-project.git"
   },
   "bugs": {
     "url": "https://github.com/your-username/demo-project/issues"
   },
-  "homepage": "https://github.com/your-username/demo-project#readme"
+  "homepage": "https://github.com/your-username/demo-project#readme",
+  "main": "check-dns.js",
+  "directories": {
+    "doc": "docs"
+  }
 }

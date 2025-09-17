@@ -345,10 +345,7 @@ export class AuthStack extends cdk.Stack {
         sms: true,
         otp: true,
       },
-      advancedSecurityMode: cognito.AdvancedSecurityMode.ENFORCED,
-      userPoolAddOns: {
-        advancedSecurityMode: cognito.AdvancedSecurityMode.ENFORCED,
-      },
+      featurePlan: cognito.FeaturePlan.PLUS,
       lambdaTriggers: {
         preTokenGeneration: preTokenGenerationLambda,
         postConfirmation: postConfirmationLambda,
@@ -421,11 +418,6 @@ export class AuthStack extends cdk.Stack {
       accessTokenValidity: cdk.Duration.hours(1),
       idTokenValidity: cdk.Duration.hours(1),
       refreshTokenValidity: cdk.Duration.days(30),
-      tokenValidityUnits: {
-        accessToken: cognito.TimeUnit.HOURS,
-        idToken: cognito.TimeUnit.HOURS,
-        refreshToken: cognito.TimeUnit.DAYS,
-      },
     });
 
     // Create Identity Pool for AWS resource access

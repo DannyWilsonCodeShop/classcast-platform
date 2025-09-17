@@ -75,7 +75,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: 'AWS/ApplicationELB',
             metricName: 'TargetResponseTime',
             dimensionsMap: {
-              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
               TargetGroup: props.applicationStack.service.serviceName,
             },
             statistic: 'Average',
@@ -87,7 +87,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: 'AWS/ApplicationELB',
             metricName: 'RequestCount',
             dimensionsMap: {
-              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
               TargetGroup: props.applicationStack.service.serviceName,
             },
             statistic: 'Sum',
@@ -102,7 +102,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: 'AWS/ApplicationELB',
             metricName: 'HTTPCode_Target_5XX_Count',
             dimensionsMap: {
-              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
               TargetGroup: props.applicationStack.service.serviceName,
             },
             statistic: 'Sum',
@@ -112,7 +112,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: 'AWS/ApplicationELB',
             metricName: 'HTTPCode_Target_4XX_Count',
             dimensionsMap: {
-              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
               TargetGroup: props.applicationStack.service.serviceName,
             },
             statistic: 'Sum',
@@ -325,7 +325,7 @@ export class MonitoringStack extends cdk.Stack {
         namespace: 'AWS/ApplicationELB',
         metricName: 'HTTPCode_Target_5XX_Count',
         dimensionsMap: {
-          LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+          LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
           TargetGroup: props.applicationStack.service.serviceName,
         },
         statistic: 'Sum',
@@ -346,7 +346,7 @@ export class MonitoringStack extends cdk.Stack {
         namespace: 'AWS/ApplicationELB',
         metricName: 'TargetResponseTime',
         dimensionsMap: {
-          LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+          LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
           TargetGroup: props.applicationStack.service.serviceName,
         },
         statistic: 'Average',
@@ -578,7 +578,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: 'AWS/ApplicationELB',
             metricName: 'TargetResponseTime',
             dimensionsMap: {
-              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
               TargetGroup: props.applicationStack.service.serviceName,
             },
             statistic: 'p95',
@@ -588,7 +588,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: 'AWS/ApplicationELB',
             metricName: 'TargetResponseTime',
             dimensionsMap: {
-              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
               TargetGroup: props.applicationStack.service.serviceName,
             },
             statistic: 'p99',
@@ -603,7 +603,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: 'AWS/ApplicationELB',
             metricName: 'RequestCount',
             dimensionsMap: {
-              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
               TargetGroup: props.applicationStack.service.serviceName,
             },
             statistic: 'Sum',
@@ -615,7 +615,7 @@ export class MonitoringStack extends cdk.Stack {
             namespace: 'AWS/ApplicationELB',
             metricName: 'ProcessedBytes',
             dimensionsMap: {
-              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+              LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
               TargetGroup: props.applicationStack.service.serviceName,
             },
             statistic: 'Sum',
@@ -631,7 +631,7 @@ export class MonitoringStack extends cdk.Stack {
         namespace: 'AWS/ApplicationELB',
         metricName: 'TargetResponseTime',
         dimensionsMap: {
-          LoadBalancer: props.applicationStack.loadBalancer.loadBalancerNameSuffix,
+          LoadBalancer: props.applicationStack.loadBalancer.loadBalancerFullName,
           TargetGroup: props.applicationStack.service.serviceName,
         },
         statistic: 'p95',

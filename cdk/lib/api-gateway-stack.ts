@@ -695,31 +695,6 @@ export class ApiGatewayStack extends cdk.Stack {
       authorizationType: apigateway.AuthorizationType.COGNITO,
     });
 
-    // Add OPTIONS method for CORS preflight
-    [healthResource, usersResource, userResource, uploadResource, coursesResource, courseResource].forEach(resource => {
-      resource.addMethod('OPTIONS', new apigateway.MockIntegration({
-        integrationResponses: [{
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Access-Control-Allow-Headers': "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'",
-            'method.response.header.Access-Control-Allow-Methods': "'GET,POST,PUT,DELETE,OPTIONS'",
-            'method.response.header.Access-Control-Allow-Origin': "'*'",
-          },
-        }],
-        passthroughBehavior: apigateway.PassthroughBehavior.WHEN_NO_MATCH,
-        requestTemplates: {
-          'application/json': '{"statusCode": 200}',
-        },
-      }), {
-        methodResponses: [{
-          statusCode: '200',
-          responseParameters: {
-            'method.response.header.Access-Control-Allow-Headers': true,
-            'method.response.header.Access-Control-Allow-Methods': true,
-            'method.response.header.Access-Control-Allow-Origin': true,
-          },
-        }],
-      });
-    });
+    // CORS will be handled by Lambda functions in their responses
   }
 }

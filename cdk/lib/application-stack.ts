@@ -22,9 +22,13 @@ export class ApplicationStack extends cdk.Stack {
   public readonly loadBalancer: elbv2.ApplicationLoadBalancer;
   public readonly service: ecs.FargateService;
   public readonly repository: ecr.Repository;
+  private readonly albSecurityGroup: ec2.SecurityGroup;
 
   constructor(scope: Construct, id: string, props: ApplicationStackProps) {
     super(scope, id, props);
+
+    // Create ALB security group first
+    this.albSecurityGroup = this.createALBSecurityGroup(props.vpc);
 
     // Create ECR repository
     this.repository = new ecr.Repository(this, 'DemoProjectRepository', {
@@ -103,7 +107,7 @@ export class ApplicationStack extends cdk.Stack {
       vpcSubnets: {
         subnets: props.vpc.publicSubnets,
       },
-      securityGroup: this.createALBSecurityGroup(props.vpc),
+      securityGroup: this.albSecurityGroup,
     });
 
     // Add listener
@@ -315,7 +319,7 @@ export class ApplicationStack extends cdk.Stack {
 
     // Allow traffic from ALB
     securityGroup.addIngressRule(
-      ec2.Peer.securityGroupId(this.createALBSecurityGroup(vpc).securityGroupId),
+      ec2.Peer.securityGroupId(this.albSecurityGroup.securityGroupId),
       ec2.Port.tcp(3000),
       'Allow traffic from ALB'
     );

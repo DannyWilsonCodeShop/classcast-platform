@@ -648,14 +648,14 @@ export class ErrorTrackingStack extends cdk.Stack {
     
     // Error reporting endpoint
     new cdk.CfnOutput(this, 'ErrorReportingEndpoint', {
-      value: `https://${props.apiGatewayStack.restApi.restApiId}.execute-api.${this.region}.amazonaws.com/prod/errors`,
+      value: `https://${props.apiGatewayStack.api.restApiId}.execute-api.${this.region}.amazonaws.com/prod/errors`,
       description: 'Error reporting endpoint',
       exportName: `DemoProject-ErrorReportingEndpoint-${props.environment}`,
     });
 
     // Performance monitoring endpoint
     new cdk.CfnOutput(this, 'PerformanceMonitoringEndpoint', {
-      value: `https://${props.apiGatewayStack.restApi.restApiId}.execute-api.${this.region}.amazonaws.com/prod/performance`,
+      value: `https://${props.apiGatewayStack.api.restApiId}.execute-api.${this.region}.amazonaws.com/prod/performance`,
       description: 'Performance monitoring endpoint',
       exportName: `DemoProject-PerformanceMonitoringEndpoint-${props.environment}`,
     });
@@ -666,14 +666,14 @@ export class ErrorTrackingStack extends cdk.Stack {
     
     // Health check endpoint
     new cdk.CfnOutput(this, 'HealthCheckEndpoint', {
-      value: `https://${props.apiGatewayStack.restApi.restApiId}.execute-api.${this.region}.amazonaws.com/prod/health`,
+      value: `https://${props.apiGatewayStack.api.restApiId}.execute-api.${this.region}.amazonaws.com/prod/health`,
       description: 'Health check endpoint',
       exportName: `DemoProject-HealthCheckEndpoint-${props.environment}`,
     });
 
     // Metrics endpoint
     new cdk.CfnOutput(this, 'MetricsEndpoint', {
-      value: `https://${props.apiGatewayStack.restApi.restApiId}.execute-api.${this.region}.amazonaws.com/prod/metrics`,
+      value: `https://${props.apiGatewayStack.api.restApiId}.execute-api.${this.region}.amazonaws.com/prod/metrics`,
       description: 'Metrics endpoint',
       exportName: `DemoProject-MetricsEndpoint-${props.environment}`,
     });

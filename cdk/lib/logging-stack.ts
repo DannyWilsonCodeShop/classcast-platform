@@ -29,6 +29,7 @@ export class LoggingStack extends cdk.Stack {
   public readonly logArchiveBucket: s3.Bucket;
   public readonly logProcessingStream: kinesis.Stream;
   public readonly logProcessingFirehose: firehose.CfnDeliveryStream;
+  private readonly firehoseRole: iam.Role;
 
   constructor(scope: Construct, id: string, props: LoggingStackProps) {
     super(scope, id, props);
@@ -102,16 +103,20 @@ export class LoggingStack extends cdk.Stack {
       retentionPeriod: cdk.Duration.hours(24),
     });
 
+    // Create firehose role after bucket and stream are created
+    this.firehoseRole = this.createFirehoseRole();
+
     // Create Kinesis Firehose for log delivery to S3
     this.logProcessingFirehose = new firehose.CfnDeliveryStream(this, 'LogProcessingFirehose', {
       deliveryStreamName: `DemoProject-LogProcessing-${props.environment}`,
       deliveryStreamType: 'KinesisStreamAsSource',
       kinesisStreamSourceConfiguration: {
         kinesisStreamArn: this.logProcessingStream.streamArn,
-        roleArn: this.createFirehoseRole().roleArn,
+        roleArn: this.firehoseRole.roleArn,
       },
       extendedS3DestinationConfiguration: {
         bucketArn: this.logArchiveBucket.bucketArn,
+        roleArn: this.firehoseRole.roleArn,
         prefix: `logs/${props.environment}/!{timestamp:yyyy/MM/dd/HH}/`,
         errorOutputPrefix: `logs/${props.environment}/errors/!{timestamp:yyyy/MM/dd/HH}/`,
         bufferingHints: {
