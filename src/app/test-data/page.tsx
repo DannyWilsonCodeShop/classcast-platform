@@ -21,6 +21,8 @@ export default function TestDataPage() {
       const result = await response.json();
       if (result.success) {
         setData(result.data);
+      } else {
+        console.error('Failed to generate test data:', result.error);
       }
     } catch (error) {
       console.error('Error generating test data:', error);
@@ -36,6 +38,8 @@ export default function TestDataPage() {
       const result = await response.json();
       if (result.success) {
         setData(result.data);
+      } else {
+        console.error('Failed to load test data:', result.error);
       }
     } catch (error) {
       console.error('Error loading test data:', error);
