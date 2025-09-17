@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { awsCognitoAuthService } from '@/lib/aws-cognito';
+import { mockAuthService } from '@/lib/mock-auth';
 
 export async function POST(request: NextRequest) {
   try {
@@ -107,8 +108,8 @@ export async function POST(request: NextRequest) {
           lastName: lastName.trim(),
           password,
           role,
-          studentId: role === UserRole.STUDENT ? studentId : undefined,
-          department: role === UserRole.INSTRUCTOR ? department : undefined,
+          studentId: role === 'student' ? studentId : undefined,
+          department: role === 'instructor' ? department : undefined,
         });
 
         console.log('User created successfully with mock service:', newUser);

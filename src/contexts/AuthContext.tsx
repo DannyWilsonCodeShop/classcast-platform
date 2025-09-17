@@ -168,6 +168,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Signup function
   const signup = useCallback(async (userData: SignupData) => {
     try {
+      console.log('AuthContext: Starting signup process for:', userData);
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
       const response = await fetch('/api/auth/signup', {
@@ -178,6 +179,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         credentials: 'include',
         body: JSON.stringify(userData),
       });
+
+      console.log('AuthContext: Signup API response status:', response.status);
 
       if (!response.ok) {
         try {
@@ -201,6 +204,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         emailVerified: true, // Mock service users are pre-verified
       };
 
+      console.log('AuthContext: Setting user state:', newUser);
+
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
@@ -214,6 +219,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: newUser,
         isAuthenticated: true,
       }));
+
+      console.log('AuthContext: Signup completed successfully');
 
       // Don't redirect here - let the SignupForm handle the redirect
       // This prevents conflicts between AuthContext and SignupForm redirects
