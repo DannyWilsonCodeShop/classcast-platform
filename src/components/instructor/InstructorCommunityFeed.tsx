@@ -180,7 +180,6 @@ export const InstructorCommunityFeed: React.FC<InstructorCommunityFeedProps> = (
   const [sortBy, setSortBy] = useState<string>('priority');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
-  const [isLoading, setIsLoading] = useState(false);
   const [showGradingModal, setShowGradingModal] = useState(false);
   const [currentGradingSubmission, setCurrentGradingSubmission] = useState<InstructorSubmissionData | null>(null);
 
