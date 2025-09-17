@@ -1,6 +1,6 @@
 import { CognitoIdentityProviderClient, InitiateAuthCommand, SignUpCommand, ConfirmSignUpCommand, ForgotPasswordCommand, ConfirmForgotPasswordCommand, ResendConfirmationCodeCommand, GlobalSignOutCommand } from '@aws-sdk/client-cognito-identity-provider';
 import { CognitoIdentityClient, GetIdCommand, GetCredentialsForIdentityCommand } from '@aws-sdk/client-cognito-identity';
-import { JWT } from 'jose';
+import { jwtVerify } from 'jose';
 
 const cognitoClient = new CognitoIdentityProviderClient({ region: 'us-east-1' });
 const identityClient = new CognitoIdentityClient({ region: 'us-east-1' });
