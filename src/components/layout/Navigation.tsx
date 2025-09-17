@@ -50,10 +50,16 @@ export default function Navigation() {
               {isAuthenticated ? (
                 <>
                   <Link
-                    href="/dashboard"
+                    href="/"
                     className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
                     🏠 Home
+                  </Link>
+                  <Link
+                    href="/dashboard"
+                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  >
+                    📊 Dashboard
                   </Link>
                   <Link
                     href="/assignments"
@@ -76,6 +82,12 @@ export default function Navigation() {
                 </>
               ) : (
                 <>
+                  <Link
+                    href="/"
+                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                  >
+                    🏠 Home
+                  </Link>
                   <Link
                     href="/products"
                     className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
@@ -192,11 +204,18 @@ export default function Navigation() {
           {isAuthenticated ? (
             <>
               <Link
-                href="/dashboard"
+                href="/"
                 className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 onClick={closeMenu}
               >
                 🏠 Home
+              </Link>
+              <Link
+                href="/dashboard"
+                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
+                onClick={closeMenu}
+              >
+                📊 Dashboard
               </Link>
               <Link
                 href="/assignments"
@@ -227,7 +246,7 @@ export default function Navigation() {
                 className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 onClick={closeMenu}
               >
-                Home
+                🏠 Home
               </Link>
               <Link
                 href="/products"

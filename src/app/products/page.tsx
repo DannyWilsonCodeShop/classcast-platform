@@ -119,18 +119,18 @@ export default function ProductsPage() {
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10">
           <div className="text-center">
-            <div className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full text-sm font-bold mb-8">
-              <div className="w-2 h-2 bg-white rounded-full mr-3 animate-bounce"></div>
-              ✨ Super Cool Learning Tools! ✨
-            </div>
+                <div className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full text-sm font-bold mb-8">
+                  <div className="w-2 h-2 bg-white rounded-full mr-3 animate-bounce"></div>
+                  🎓 Advanced Learning Tools! 🎓
+                </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Fun Learning
+              Learning
               <span className="block bg-gradient-to-r from-yellow-200 to-white bg-clip-text text-transparent">
-                Products! 🎉
+                Products! 🚀
               </span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-white/90">
-              Everything you need to learn, create, and have fun with friends! 🌟
+              Everything you need to learn, create, and collaborate with peers! 🌟
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
