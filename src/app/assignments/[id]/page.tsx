@@ -136,6 +136,12 @@ export default function AssignmentDetailPage() {
             totalAssignments: 15,
             averageGrade: 'A-',
             bio: 'Love solving math problems and helping others understand concepts!',
+            videoStats: {
+              totalViews: 1247,
+              totalLikes: 89,
+              totalVideos: 12,
+              publicVideos: 8
+            },
             personalInfo: {
               birthday: '2006-03-15',
               hometown: 'San Francisco, CA',
@@ -160,7 +166,10 @@ export default function AssignmentDetailPage() {
           comments: 5,
           isLiked: false,
           views: 45,
-          rating: 4.8
+          rating: 4.8,
+          isPublic: true,
+          assignmentId: '1',
+          assignmentTitle: 'Math Problem Solving Video'
         },
         {
           id: '2',
@@ -175,6 +184,12 @@ export default function AssignmentDetailPage() {
             totalAssignments: 18,
             averageGrade: 'A',
             bio: 'Future engineer who loves problem-solving and building things!',
+            videoStats: {
+              totalViews: 2156,
+              totalLikes: 156,
+              totalVideos: 15,
+              publicVideos: 12
+            },
             personalInfo: {
               birthday: '2005-11-22',
               hometown: 'Austin, TX',
@@ -199,7 +214,10 @@ export default function AssignmentDetailPage() {
           comments: 8,
           isLiked: true,
           views: 62,
-          rating: 4.9
+          rating: 4.9,
+          isPublic: true,
+          assignmentId: '1',
+          assignmentTitle: 'Math Problem Solving Video'
         },
         {
           id: '3',
@@ -214,6 +232,12 @@ export default function AssignmentDetailPage() {
             totalAssignments: 12,
             averageGrade: 'B+',
             bio: 'Passionate about science and math, always eager to learn!',
+            videoStats: {
+              totalViews: 892,
+              totalLikes: 67,
+              totalVideos: 9,
+              publicVideos: 6
+            },
             personalInfo: {
               birthday: '2006-07-08',
               hometown: 'Seattle, WA',
@@ -238,7 +262,10 @@ export default function AssignmentDetailPage() {
           comments: 3,
           isLiked: false,
           views: 38,
-          rating: 4.6
+          rating: 4.6,
+          isPublic: false,
+          assignmentId: '1',
+          assignmentTitle: 'Math Problem Solving Video'
         }
       ]
     };
@@ -653,6 +680,26 @@ export default function AssignmentDetailPage() {
                 <div className="bg-gray-50 rounded-lg p-3 text-center">
                   <div className="text-2xl font-bold text-green-600">{showProfile.averageGrade}</div>
                   <div className="text-xs text-gray-600">Average Grade</div>
+                </div>
+              </div>
+
+              {/* Video Statistics */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-blue-50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-blue-600">{showProfile.videoStats.totalViews.toLocaleString()}</div>
+                  <div className="text-xs text-gray-600">Total Views</div>
+                </div>
+                <div className="bg-red-50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-red-600">{showProfile.videoStats.totalLikes}</div>
+                  <div className="text-xs text-gray-600">Total Likes</div>
+                </div>
+                <div className="bg-purple-50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-purple-600">{showProfile.videoStats.totalVideos}</div>
+                  <div className="text-xs text-gray-600">Total Videos</div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-3 text-center">
+                  <div className="text-2xl font-bold text-green-600">{showProfile.videoStats.publicVideos}</div>
+                  <div className="text-xs text-gray-600">Public Videos</div>
                 </div>
               </div>
 
