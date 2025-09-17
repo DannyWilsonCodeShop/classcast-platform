@@ -80,7 +80,6 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
           muted={isMuted}
-          volume={volume}
         />
         
         {/* Video Controls Overlay */}

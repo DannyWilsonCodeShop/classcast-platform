@@ -30,7 +30,7 @@ export interface AssignmentFiltersState {
 }
 
 export interface AssignmentSortState {
-  field: 'dueDate' | 'createdAt' | 'title' | 'maxScore' | 'status';
+  field: 'dueDate' | 'createdAt' | 'title' | 'maxScore' | 'status' | 'type';
   order: 'asc' | 'desc';
 }
 

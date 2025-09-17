@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useApi, useOptimisticApi } from './useApi';
 import { ApiClient } from '@/lib/apiClient';
-import { Submission, SubmissionStatus } from '@/types/dynamodb';
+import { AssignmentSubmission as Submission, SubmissionStatus } from '@/types/entities';
 
 // Simple in-memory cache for submissions
 const submissionsCache = new Map<string, any>();

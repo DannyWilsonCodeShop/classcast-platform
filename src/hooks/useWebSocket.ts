@@ -46,7 +46,7 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
     }
 
     try {
-      const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'}/api/websocket?userId=${user.userId}&token=${user.token || 'demo-token'}`;
+      const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'}/api/websocket?userId=${user.userId || user.id || 'demo-user'}&token=${user.token || user.accessToken || 'demo-token'}`;
       const ws = new WebSocket(wsUrl);
       
       ws.onopen = () => {

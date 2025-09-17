@@ -49,6 +49,13 @@ export interface BatchGradeData {
 	gradedBy: string;
 }
 
+export interface GradeStatistics {
+	totalSubmissions: number;
+	gradedSubmissions: number;
+	averageGrade: number;
+	gradeDistribution: { [grade: string]: number };
+}
+
 // Simple in-memory cache for grades
 const gradesCache = new Map<string, any>();
 
@@ -138,9 +145,9 @@ export function useGrades(apiClient: ApiClient) {
 			if (gradesCache.has(cacheKey)) {
 				return gradesCache.get(cacheKey);
 			}
-			const stats = await client.get(`/grades/statistics/${assignmentId}`);
-			gradesCache.set(cacheKey, stats);
-			return stats;
+		const stats = await client.get(`/grades/statistics/${assignmentId}`) as GradeStatistics;
+		gradesCache.set(cacheKey, stats);
+		return stats;
 		},
 		[]
 	);

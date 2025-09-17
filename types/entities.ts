@@ -24,6 +24,13 @@ export interface User {
   bio?: string;
   avatar?: string;
   
+  // Additional properties for compatibility
+  id?: string;
+  sub?: string;
+  accessToken?: string;
+  token?: string;
+  userId?: string;
+  
   // Metadata
   createdAt: Date;
   updatedAt: Date;
@@ -88,6 +95,7 @@ export interface Assignment {
   type: AssignmentType;
   points: number;
   weight: number;
+  maxScore: number; // Added for compatibility
   
   // Timing
   dueDate: Date;
@@ -100,11 +108,14 @@ export interface Assignment {
   allowedFileTypes: string[];
   maxFileSize: number; // in bytes
   individualSubmission: boolean;
+  requirements: string; // Added for compatibility
   
   // Grading
   rubric?: Rubric;
   autoGrade: boolean;
   peerReview: boolean;
+  grade?: number; // Added for compatibility
+  feedback?: string; // Added for compatibility
   
   // Status
   status: AssignmentStatus;
@@ -122,7 +133,7 @@ export interface Assignment {
 
 export type AssignmentType = 'essay' | 'quiz' | 'project' | 'presentation' | 'lab' | 'discussion' | 'other';
 
-export type AssignmentStatus = 'draft' | 'published' | 'active' | 'grading' | 'completed' | 'archived';
+export type AssignmentStatus = 'draft' | 'published' | 'active' | 'grading' | 'completed' | 'archived' | 'not-started' | 'in-progress' | 'submitted' | 'graded';
 
 export type AssignmentVisibility = 'public' | 'private' | 'scheduled';
 
@@ -179,6 +190,7 @@ export interface AssignmentSubmission {
   feedback?: string;
   gradedBy?: string;
   gradedAt?: Date;
+  maxScore?: number; // Added for compatibility
   
   // Late submission handling
   isLate: boolean;

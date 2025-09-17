@@ -1,4 +1,4 @@
-import { errorLogger, ErrorLogger } from '../errorLogger';
+import { errorLogger } from '../errorLogger';
 
 // Mock fetch for remote logging
 global.fetch = jest.fn();
@@ -235,9 +235,10 @@ describe('ErrorLogger', () => {
 
 	describe('Global Error Handling', () => {
 		it('handles unhandled promise rejections', async () => {
-			const unhandledRejectionEvent = new PromiseRejectionEvent('unhandledrejection', {
-				reason: new Error('Promise rejected'),
-			});
+		const unhandledRejectionEvent = new PromiseRejectionEvent('unhandledrejection', {
+			reason: new Error('Promise rejected'),
+			promise: Promise.reject(new Error('Promise rejected')),
+		});
 			
 			window.dispatchEvent(unhandledRejectionEvent);
 			

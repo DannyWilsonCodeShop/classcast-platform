@@ -8,6 +8,9 @@ export interface PaginationProps {
   maxVisiblePages?: number;
   showFirstLast?: boolean;
   showPrevNext?: boolean;
+  showPageNumbers?: boolean;
+  totalItems?: number;
+  itemsPerPage?: number;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
