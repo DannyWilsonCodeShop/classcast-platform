@@ -8,7 +8,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import Link from 'next/link';
 
 export default function DashboardPage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('feed');
 
@@ -102,6 +102,13 @@ export default function DashboardPage() {
                   <span>📹</span>
                   <span className="hidden sm:inline">My Videos</span>
                 </Link>
+                <button
+                  onClick={logout}
+                  className="flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-full font-bold hover:from-red-600 hover:to-orange-600 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                >
+                  <span>🚪</span>
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
               </div>
               <div className="flex items-center justify-center sm:justify-start space-x-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce flex-shrink-0"></div>
