@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { CompactAssignmentList } from '@/components/student/CompactAssignmentList';
 import AITutoringChat from '@/components/ai/AITutoringChat';
@@ -9,6 +9,40 @@ import PlagiarismChecker from '@/components/ai/PlagiarismChecker';
 const StudentDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'ai-tutor' | 'plagiarism-check'>('overview');
   const [showPlagiarismCheck, setShowPlagiarismCheck] = useState(false);
+  const [stats, setStats] = useState({
+    activeCourses: 0,
+    assignmentsDue: 0,
+    completed: 0,
+    averageGrade: 0
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        setIsLoadingStats(true);
+        
+        // TODO: Replace with actual API calls
+        // const coursesResponse = await fetch('/api/student/courses/stats');
+        // const assignmentsResponse = await fetch('/api/student/assignments/stats');
+        
+        // For now, set empty stats until APIs are implemented
+        setStats({
+          activeCourses: 0,
+          assignmentsDue: 0,
+          completed: 0,
+          averageGrade: 0
+        });
+        
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+
+    loadStats();
+  }, []);
 
   return (
     <StudentRoute>
@@ -71,7 +105,9 @@ const StudentDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Active Courses</p>
-                <p className="text-2xl font-semibold text-gray-900">5</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {isLoadingStats ? '...' : stats.activeCourses}
+                </p>
               </div>
             </div>
           </div>
@@ -85,7 +121,9 @@ const StudentDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Assignments Due</p>
-                <p className="text-2xl font-semibold text-gray-900">3</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {isLoadingStats ? '...' : stats.assignmentsDue}
+                </p>
               </div>
             </div>
           </div>
@@ -99,7 +137,9 @@ const StudentDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-semibold text-gray-900">24</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {isLoadingStats ? '...' : stats.completed}
+                </p>
               </div>
             </div>
           </div>
@@ -113,7 +153,9 @@ const StudentDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">GPA</p>
-                <p className="text-2xl font-semibold text-gray-900">3.8</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {isLoadingStats ? '...' : stats.averageGrade.toFixed(1)}
+                </p>
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -8,6 +8,8 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 export default function CoursesPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const [courses, setCourses] = useState([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
 
   useEffect(() => {
     if (isLoading) return;
@@ -16,7 +18,27 @@ export default function CoursesPage() {
       router.push('/auth/login');
       return;
     }
+
+    loadCourses();
   }, [user, isAuthenticated, isLoading, router]);
+
+  const loadCourses = async () => {
+    try {
+      setIsLoadingCourses(true);
+      
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/student/courses');
+      // const data = await response.json();
+      
+      // For now, set empty array until API is implemented
+      setCourses([]);
+      
+    } catch (error) {
+      console.error('Error loading courses:', error);
+    } finally {
+      setIsLoadingCourses(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -28,64 +50,7 @@ export default function CoursesPage() {
     );
   }
 
-  const courses = [
-    {
-      id: 1,
-      name: 'Calculus II',
-      code: 'MATH 201',
-      instructor: 'Dr. Smith',
-      progress: 75,
-      nextClass: 'Tomorrow 10:00 AM',
-      color: 'blue',
-      description: 'Advanced calculus concepts including integration, differential equations, and multivariable calculus.',
-      assignments: 8,
-      completed: 6,
-      grade: 'A-',
-      semester: 'Fall 2024'
-    },
-    {
-      id: 2,
-      name: 'Computer Science 101',
-      code: 'CS 101',
-      instructor: 'Prof. Johnson',
-      progress: 45,
-      nextClass: 'Wednesday 2:00 PM',
-      color: 'green',
-      description: 'Introduction to programming, algorithms, and computer science fundamentals.',
-      assignments: 12,
-      completed: 5,
-      grade: 'B+',
-      semester: 'Fall 2024'
-    },
-    {
-      id: 3,
-      name: 'Physics 101',
-      code: 'PHYS 101',
-      instructor: 'Dr. Brown',
-      progress: 30,
-      nextClass: 'Friday 11:00 AM',
-      color: 'purple',
-      description: 'Fundamental physics concepts including mechanics, thermodynamics, and waves.',
-      assignments: 10,
-      completed: 3,
-      grade: 'B',
-      semester: 'Fall 2024'
-    },
-    {
-      id: 4,
-      name: 'English Literature',
-      code: 'ENG 201',
-      instructor: 'Prof. Davis',
-      progress: 60,
-      nextClass: 'Thursday 1:00 PM',
-      color: 'orange',
-      description: 'Study of classic and contemporary literature with focus on critical analysis.',
-      assignments: 6,
-      completed: 4,
-      grade: 'A',
-      semester: 'Fall 2024'
-    }
-  ];
+  // Courses are now loaded from API in useEffect
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
@@ -141,7 +106,22 @@ export default function CoursesPage() {
 
         {/* Courses Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {courses.map((course) => (
+          {isLoadingCourses ? (
+            <div className="col-span-2 text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+              <p className="text-gray-500 mt-4">Loading courses...</p>
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="col-span-2 text-center py-12">
+              <div className="text-6xl mb-4">📚</div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">No courses yet</h3>
+              <p className="text-gray-500 mb-6">Your enrolled courses will appear here</p>
+              <button className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300">
+                Browse Available Courses
+              </button>
+            </div>
+          ) : (
+            courses.map((course) => (
             <div key={course.id} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30 hover:shadow-xl transition-all duration-300">
               {/* Course Header */}
               <div className="flex items-start justify-between mb-4">
@@ -222,7 +202,8 @@ export default function CoursesPage() {
                 </button>
               </div>
             </div>
-          ))}
+            ))
+          )}
         </div>
 
         {/* Quick Actions */}

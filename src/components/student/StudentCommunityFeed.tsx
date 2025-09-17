@@ -62,142 +62,39 @@ export interface StudentCommunityFeedProps {
   className?: string;
 }
 
-// Mock data for demonstration
-const mockPeerSubmissions: PeerSubmissionData[] = [
-  {
-    submissionId: 'sub-001',
-    studentId: 'student-001',
-    studentName: 'Alex Johnson',
-    assignmentId: 'assign-001',
-    assignmentTitle: 'Video Presentation: Modern Web Development',
-    courseId: 'course-001',
-    courseName: 'Advanced Web Development',
-    status: 'graded',
-    submittedAt: '2024-01-15T10:30:00Z',
-    processedAt: '2024-01-15T10:35:00Z',
-    sharedAt: '2024-01-15T11:00:00Z',
-    grade: 95,
-    maxScore: 100,
-    feedback: 'Excellent presentation with clear explanations and good examples. Video quality is professional.',
-    videoDuration: 180,
-    videoResolution: { width: 1920, height: 1080 },
-    processingDuration: 45,
-    files: [
-      {
-        name: 'presentation.mp4',
-        url: '/videos/presentation.mp4',
-        type: 'video/mp4',
-        size: 25600000,
-        uploadedAt: '2024-01-15T10:30:00Z'
-      },
-      {
-        name: 'slides.pdf',
-        url: '/files/slides.pdf',
-        type: 'application/pdf',
-        size: 2048000,
-        uploadedAt: '2024-01-15T10:30:00Z'
-      }
-    ],
-    likes: [
-      { userId: 'student-002', userName: 'Sarah Chen', createdAt: '2024-01-15T12:00:00Z' },
-      { userId: 'student-003', userName: 'Mike Rodriguez', createdAt: '2024-01-15T14:30:00Z' }
-    ],
-    comments: [
-      {
-        id: 'comment-001',
-        text: 'Great job explaining the concepts! The examples really helped me understand.',
-        authorId: 'student-002',
-        authorName: 'Sarah Chen',
-        createdAt: '2024-01-15T12:00:00Z'
-      }
-    ],
-    peerReviews: [
-      {
-        reviewerId: 'student-004',
-        reviewerName: 'Emily Davis',
-        score: 95,
-        maxScore: 100,
-        feedback: 'Very well structured and informative presentation.',
-        submittedAt: '2024-01-16T09:00:00Z'
-      }
-    ]
-  },
-  {
-    submissionId: 'sub-002',
-    studentId: 'student-002',
-    studentName: 'Sarah Chen',
-    assignmentId: 'assign-001',
-    assignmentTitle: 'Video Presentation: Modern Web Development',
-    courseId: 'course-001',
-    courseName: 'Advanced Web Development',
-    status: 'graded',
-    submittedAt: '2024-01-14T15:45:00Z',
-    processedAt: '2024-01-14T15:50:00Z',
-    sharedAt: '2024-01-14T16:00:00Z',
-    grade: 88,
-    maxScore: 100,
-    feedback: 'Good content and structure. Consider improving video lighting and audio quality for future presentations.',
-    videoDuration: 165,
-    videoResolution: { width: 1280, height: 720 },
-    processingDuration: 38,
-    files: [
-      {
-        name: 'web-dev-presentation.mp4',
-        url: '/videos/web-dev-presentation.mp4',
-        type: 'video/mp4',
-        size: 18900000,
-        uploadedAt: '2024-01-14T15:45:00Z'
-      }
-    ],
-    likes: [
-      { userId: 'student-001', userName: 'Alex Johnson', createdAt: '2024-01-14T16:30:00Z' }
-    ],
-    comments: [],
-    peerReviews: [
-      {
-        reviewerId: 'student-003',
-        reviewerName: 'Mike Rodriguez',
-        score: 88,
-        maxScore: 100,
-        feedback: 'Clear explanations but could benefit from better visual aids.',
-        submittedAt: '2024-01-15T10:00:00Z'
-      }
-    ]
-  },
-  {
-    submissionId: 'sub-003',
-    studentId: 'student-003',
-    studentName: 'Mike Rodriguez',
-    assignmentId: 'assign-001',
-    assignmentTitle: 'Video Presentation: Modern Web Development',
-    courseId: 'course-001',
-    courseName: 'Advanced Web Development',
-    status: 'submitted',
-    submittedAt: '2024-01-16T09:15:00Z',
-    processedAt: '2024-01-16T09:20:00Z',
-    files: [
-      {
-        name: 'web-development-talk.mp4',
-        url: '/videos/web-development-talk.mp4',
-        type: 'video/mp4',
-        size: 32000000,
-        uploadedAt: '2024-01-16T09:15:00Z'
-      }
-    ],
-    likes: [],
-    comments: [],
-    videoDuration: 210,
-    videoResolution: { width: 1920, height: 1080 },
-    processingDuration: 52
-  }
-];
+// TODO: Replace with actual API data
+const mockPeerSubmissions: PeerSubmissionData[] = [];
 
 export const StudentCommunityFeed: React.FC<StudentCommunityFeedProps> = ({
   currentUserId,
   className = '',
 }) => {
-  const [submissions, setSubmissions] = useState<PeerSubmissionData[]>(mockPeerSubmissions);
-  const [filteredSubmissions, setFilteredSubmissions] = useState<PeerSubmissionData[]>(submissions);
+  const [submissions, setSubmissions] = useState<PeerSubmissionData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filteredSubmissions, setFilteredSubmissions] = useState<PeerSubmissionData[]>([]);
+
+  // Load submissions data
+  useEffect(() => {
+    const loadSubmissions = async () => {
+      try {
+        setIsLoading(true);
+        
+        // TODO: Replace with actual API call
+        // const response = await fetch('/api/student/community/submissions');
+        // const data = await response.json();
+        
+        // For now, set empty array until API is implemented
+        setSubmissions([]);
+        
+      } catch (error) {
+        console.error('Error loading submissions:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSubmissions();
+  }, [currentUserId]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [courseFilter, setCourseFilter] = useState<string>('all');
