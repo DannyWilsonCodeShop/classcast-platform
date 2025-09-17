@@ -10,6 +10,16 @@ export default function AssignmentsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [showQuickAccess, setShowQuickAccess] = useState(false);
+  
+  // State for live assignment data
+  const [assignmentStats, setAssignmentStats] = useState({
+    total: 0,
+    pending: 0,
+    graded: 0,
+    overdue: 0
+  });
+  const [recentAssignments, setRecentAssignments] = useState([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
     if (isLoading) return;
@@ -60,16 +70,6 @@ export default function AssignmentsPage() {
       </div>
     );
   }
-
-  // State for live assignment data
-  const [assignmentStats, setAssignmentStats] = useState({
-    total: 0,
-    pending: 0,
-    graded: 0,
-    overdue: 0
-  });
-  const [recentAssignments, setRecentAssignments] = useState([]);
-  const [isLoadingData, setIsLoadingData] = useState(true);
 
   // Load assignment data
   useEffect(() => {
