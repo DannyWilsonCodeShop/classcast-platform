@@ -127,14 +127,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         error: null,
       });
 
-      // Redirect based on role
-      if (userData.user.role === 'admin') {
-        router.push('/admin/dashboard');
-      } else if (userData.user.role === 'instructor') {
-        router.push('/instructor/dashboard');
-      } else {
-        router.push('/student/dashboard');
-      }
+      // Redirect to main dashboard for all users
+      router.push('/dashboard');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setAuthState(prev => ({
@@ -189,6 +183,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user: newUser,
         isAuthenticated: true,
       }));
+
+      // Redirect to main dashboard after signup
+      router.push('/dashboard');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Signup failed';
       setAuthState(prev => ({
