@@ -7,6 +7,8 @@ import { VideoPreview } from './VideoPreview';
 import { VideoUploadProgress } from './VideoUploadProgress';
 import { VideoValidationErrors } from './VideoValidationErrors';
 import LoadingSpinner from '../common/LoadingSpinner';
+import ContentModerationChecker from '../common/ContentModerationChecker';
+import { ContentModerationResult } from '@/lib/contentModeration';
 
 export interface VideoSubmissionProps {
   assignmentId: string;
@@ -70,6 +72,8 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [submissionData, setSubmissionData] = useState<VideoSubmissionData | null>(null);
+  const [moderationResult, setModerationResult] = useState<ContentModerationResult | null>(null);
+  const [isModerating, setIsModerating] = useState(false);
 
   const validateVideoFile = useCallback((file: File): string[] => {
     const errors: string[] = [];
@@ -112,7 +116,39 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
     }
 
     setSelectedFile(videoFile);
-  }, [validateVideoFile, showPreview]);
+    
+    // Start content moderation for the video
+    if (videoFile.previewUrl) {
+      setIsModerating(true);
+      try {
+        const response = await fetch('/api/moderation/video', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            videoUrl: videoFile.previewUrl,
+            metadata: {
+              title: file.name,
+              duration: videoFile.duration || 0,
+              description: `Video submission for assignment ${assignmentId}`
+            },
+            userId: user?.id,
+            contentType: 'assignment_submission'
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setModerationResult(data.result);
+        }
+      } catch (error) {
+        console.error('Content moderation failed:', error);
+      } finally {
+        setIsModerating(false);
+      }
+    }
+  }, [validateVideoFile, showPreview, assignmentId, user?.id]);
 
   const extractVideoMetadata = useCallback((file: File): Promise<{
     duration: number;
@@ -298,6 +334,35 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
 
           {validationErrors.length > 0 && (
             <VideoValidationErrors errors={validationErrors} />
+          )}
+
+          {/* Content Moderation */}
+          {isModerating && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span className="text-sm text-blue-700">Checking video content for appropriateness...</span>
+              </div>
+            </div>
+          )}
+
+          {moderationResult && (
+            <ContentModerationChecker
+              content={selectedFile.previewUrl || ''}
+              type="video"
+              onModerationComplete={() => {}}
+              context={{
+                assignmentId,
+                courseId,
+                studentId: user?.id,
+                userId: user?.id
+              }}
+              autoCheck={false}
+              showGuidelines={false}
+            />
           )}
 
           {selectedFile.status === 'error' && selectedFile.error && (
