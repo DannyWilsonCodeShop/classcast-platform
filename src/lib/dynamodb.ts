@@ -31,9 +31,11 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 // Table names
 export const TABLE_NAMES = {
-  USERS: process.env.USERS_TABLE_NAME || 'DemoProject-Users',
-  ASSIGNMENTS: process.env.ASSIGNMENTS_TABLE_NAME || 'DemoProject-Assignments',
-  SUBMISSIONS: process.env.SUBMISSIONS_TABLE_NAME || 'DemoProject-Submissions',
+  USERS: process.env.USERS_TABLE_NAME || 'classcast-users',
+  ASSIGNMENTS: process.env.ASSIGNMENTS_TABLE_NAME || 'classcast-assignments',
+  SUBMISSIONS: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
+  COURSES: process.env.COURSES_TABLE_NAME || 'classcast-courses',
+  CONTENT_MODERATION: process.env.CONTENT_MODERATION_TABLE_NAME || 'classcast-content-moderation',
 } as const;
 
 // DynamoDB Service Class
