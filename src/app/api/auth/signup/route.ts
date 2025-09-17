@@ -77,10 +77,46 @@ export async function POST(request: NextRequest) {
 
       console.log('User created successfully with AWS Cognito:', result);
 
+      // Create user profile in DynamoDB
+      try {
+        const { DynamoDBService } = await import('@/lib/dynamodb');
+        const dynamoDBService = new DynamoDBService();
+        
+        const userProfile = {
+          userId: result.username, // Use username as userId
+          email: result.email,
+          firstName: result.firstName,
+          lastName: result.lastName,
+          role: result.role,
+          studentId: result.studentId,
+          instructorId: result.instructorId,
+          department: result.department,
+          status: 'active',
+          enabled: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          lastLogin: new Date().toISOString(),
+          preferences: {
+            notifications: {
+              email: true,
+              push: false
+            },
+            theme: 'light',
+            language: 'en'
+          }
+        };
+
+        await dynamoDBService.putItem('classcast-users', userProfile);
+        console.log('User profile created in DynamoDB');
+      } catch (dbError) {
+        console.error('Failed to create user profile in DynamoDB:', dbError);
+        // Continue execution even if profile creation fails
+      }
+
       // Return success response
       return NextResponse.json(
         {
-          message: 'Account created successfully! Please check your email for verification.',
+          message: 'Account created successfully! You can now log in.',
           user: {
             id: result.username,
             email: result.email,
@@ -92,7 +128,7 @@ export async function POST(request: NextRequest) {
             department: result.department,
             emailVerified: result.status === 'ACTIVE',
           },
-          nextStep: 'verify-email',
+          nextStep: 'login',
         },
         { status: 201 }
       );
@@ -114,6 +150,41 @@ export async function POST(request: NextRequest) {
         });
 
         console.log('User created successfully with mock service:', newUser);
+
+        // Create user profile in DynamoDB for mock service too
+        try {
+          const { DynamoDBService } = await import('@/lib/dynamodb');
+          const dynamoDBService = new DynamoDBService();
+          
+          const userProfile = {
+            userId: newUser.id,
+            email: newUser.email,
+            firstName: newUser.firstName,
+            lastName: newUser.lastName,
+            role: newUser.role,
+            studentId: newUser.studentId,
+            department: newUser.department,
+            status: 'active',
+            enabled: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString(),
+            preferences: {
+              notifications: {
+                email: true,
+                push: false
+              },
+              theme: 'light',
+              language: 'en'
+            }
+          };
+
+          await dynamoDBService.putItem('classcast-users', userProfile);
+          console.log('User profile created in DynamoDB (mock service)');
+        } catch (dbError) {
+          console.error('Failed to create user profile in DynamoDB (mock service):', dbError);
+          // Continue execution even if profile creation fails
+        }
 
         return NextResponse.json(
           {
