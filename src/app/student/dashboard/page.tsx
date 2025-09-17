@@ -22,33 +22,33 @@ const StudentDashboard: React.FC = () => {
         <div className="mb-8">
           <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">🤖 AI-Powered Learning Tools</h2>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-2 sm:gap-4">
               <button
                 onClick={() => setActiveTab('overview')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`px-3 py-2 sm:px-4 rounded-lg transition-colors touch-manipulation text-sm sm:text-base ${
                   activeTab === 'overview'
                     ? 'bg-[#003366] text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
                 }`}
               >
                 📊 Overview
               </button>
               <button
                 onClick={() => setActiveTab('ai-tutor')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`px-3 py-2 sm:px-4 rounded-lg transition-colors touch-manipulation text-sm sm:text-base ${
                   activeTab === 'ai-tutor'
                     ? 'bg-[#003366] text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
                 }`}
               >
                 🤖 AI Tutor
               </button>
               <button
                 onClick={() => setActiveTab('plagiarism-check')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
+                className={`px-3 py-2 sm:px-4 rounded-lg transition-colors touch-manipulation text-sm sm:text-base ${
                   activeTab === 'plagiarism-check'
                     ? 'bg-[#003366] text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
                 }`}
               >
                 🔍 Plagiarism Check

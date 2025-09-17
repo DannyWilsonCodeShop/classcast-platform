@@ -100,7 +100,10 @@ const InstructorDashboard: React.FC<InstructorDashboardProps> = ({ className = '
               </div>
             </button>
             
-            <button className="w-full text-left p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
+            <button 
+              onClick={() => setActiveView('ai-tools')}
+              className="w-full text-left p-3 bg-green-50 hover:bg-green-100 active:bg-green-200 rounded-lg transition-colors touch-manipulation"
+            >
               <div className="flex items-center space-x-3">
                 <span className="text-2xl">📊</span>
                 <div>
@@ -110,7 +113,10 @@ const InstructorDashboard: React.FC<InstructorDashboardProps> = ({ className = '
               </div>
             </button>
             
-            <button className="w-full text-left p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
+            <button 
+              onClick={() => setActiveView('submissions')}
+              className="w-full text-left p-3 bg-purple-50 hover:bg-purple-100 active:bg-purple-200 rounded-lg transition-colors touch-manipulation"
+            >
               <div className="flex items-center space-x-3">
                 <span className="text-2xl">👥</span>
                 <div>
@@ -431,19 +437,20 @@ const InstructorDashboard: React.FC<InstructorDashboardProps> = ({ className = '
       {/* Navigation Tabs */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
+          <nav className="flex space-x-2 sm:space-x-8 overflow-x-auto">
             {dashboardViews.map((view) => (
               <button
                 key={view.id}
                 onClick={() => setActiveView(view.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                className={`py-4 px-2 sm:px-1 border-b-2 font-medium text-sm transition-colors touch-manipulation whitespace-nowrap ${
                   activeView === view.id
                     ? 'border-blue-500 text-blue-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                <span className="mr-2">{view.icon}</span>
-                {view.label}
+                <span className="mr-1 sm:mr-2">{view.icon}</span>
+                <span className="hidden sm:inline">{view.label}</span>
+                <span className="sm:hidden">{view.label.split(' ')[0]}</span>
               </button>
             ))}
           </nav>

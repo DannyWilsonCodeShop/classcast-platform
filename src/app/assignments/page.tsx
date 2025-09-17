@@ -266,31 +266,36 @@ export default function AssignmentsPage() {
           
           <div className="space-y-4">
             {recentAssignments.map((assignment) => (
-              <div key={assignment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                    <span className="text-lg">
-                      {assignment.type === 'Project' ? '🎯' : assignment.type === 'Homework' ? '📝' : '📄'}
+              <Link key={assignment.id} href={`/assignments/${assignment.id}`}>
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                      <span className="text-lg">
+                        {assignment.type === 'Project' ? '🎯' : assignment.type === 'Homework' ? '📝' : '📄'}
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{assignment.title}</h3>
+                      <p className="text-sm text-gray-600">{assignment.course} • {assignment.points} points</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(assignment.status)}`}>
+                      {assignment.status}
                     </span>
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{assignment.title}</h3>
-                    <p className="text-sm text-gray-600">{assignment.course} • {assignment.points} points</p>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(assignment.priority)}`}>
+                      {assignment.priority}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      Due {new Date(assignment.dueDate).toLocaleDateString()}
+                    </span>
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
                   </div>
                 </div>
-                
-                <div className="flex items-center space-x-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(assignment.status)}`}>
-                    {assignment.status}
-                  </span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(assignment.priority)}`}>
-                    {assignment.priority}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    Due {new Date(assignment.dueDate).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

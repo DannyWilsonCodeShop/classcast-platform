@@ -154,10 +154,19 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce"></div>
-              <span className="text-sm text-gray-600 font-medium">Online</span>
-            </div>
+                <div className="flex items-center space-x-4">
+                  <Link
+                    href="/profile/edit"
+                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-bold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <span>👤</span>
+                    <span>Edit Profile</span>
+                  </Link>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce"></div>
+                    <span className="text-sm text-gray-600 font-medium">Online</span>
+                  </div>
+                </div>
           </div>
         </div>
       </div>
@@ -330,51 +339,67 @@ export default function DashboardPage() {
             {activeTab === 'assignments' && (
               <div className="space-y-6">
                 {assignments.map((assignment) => (
-                  <div key={assignment.id} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">{assignment.title}</h3>
-                        <p className="text-gray-600 mb-2">{assignment.course} • {assignment.instructor}</p>
-                        <div className="flex items-center space-x-4">
-                          <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                            assignment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                            assignment.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {assignment.status === 'pending' ? '⏰ Due Soon' :
-                             assignment.status === 'in_progress' ? '🔄 In Progress' :
-                             '📋 Not Started'}
-                          </span>
-                          <span className="text-gray-500">Due: {assignment.dueDate}</span>
+                  <Link key={assignment.id} href={`/assignments/${assignment.id}`}>
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30 hover:border-blue-300/50 transition-all duration-300 cursor-pointer">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-gray-800 mb-2">{assignment.title}</h3>
+                          <p className="text-gray-600 mb-2">{assignment.course} • {assignment.instructor}</p>
+                          <div className="flex items-center space-x-4">
+                            <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                              assignment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                              assignment.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {assignment.status === 'pending' ? '⏰ Due Soon' :
+                               assignment.status === 'in_progress' ? '🔄 In Progress' :
+                               '📋 Not Started'}
+                            </span>
+                            <span className="text-gray-500">Due: {assignment.dueDate}</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-blue-500">{assignment.progress}%</div>
+                          <div className="text-sm text-gray-500">Complete</div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-blue-500">{assignment.progress}%</div>
-                        <div className="text-sm text-gray-500">Complete</div>
+                      
+                      <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+                        <div 
+                          className="h-3 rounded-full bg-gradient-to-r from-yellow-400 to-blue-500"
+                          style={{ width: `${assignment.progress}%` }}
+                        ></div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex space-x-2">
+                          <button 
+                            onClick={(e) => e.preventDefault()}
+                            className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+                          >
+                            {assignment.status === 'not_started' ? 'Start Assignment' : 'Continue'}
+                          </button>
+                          <button 
+                            onClick={(e) => e.preventDefault()}
+                            className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300"
+                          >
+                            View Details
+                          </button>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button 
+                            onClick={(e) => e.preventDefault()}
+                            className="text-gray-500 hover:text-gray-700 transition-colors"
+                          >
+                            <span className="text-xl">📎</span>
+                          </button>
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
-                    
-                    <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-                      <div 
-                        className="h-3 rounded-full bg-gradient-to-r from-yellow-400 to-blue-500"
-                        style={{ width: `${assignment.progress}%` }}
-                      ></div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex space-x-2">
-                        <button className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300">
-                          {assignment.status === 'not_started' ? 'Start Assignment' : 'Continue'}
-                        </button>
-                        <button className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300">
-                          View Details
-                        </button>
-                      </div>
-                      <button className="text-gray-500 hover:text-gray-700 transition-colors">
-                        <span className="text-xl">📎</span>
-                      </button>
-                    </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
