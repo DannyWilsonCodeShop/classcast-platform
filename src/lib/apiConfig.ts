@@ -12,8 +12,25 @@ export const apiClient = new ApiClient({
   retryDelayMs: 1000
 });
 
-// Initialize token manager
-export const tokenManager = new TokenManager();
+// Initialize token manager with default implementations
+export const tokenManager = new TokenManager(
+  {
+    get: () => {
+      const tokens = localStorage.getItem('authTokens');
+      return tokens ? JSON.parse(tokens) : null;
+    },
+    set: (tokens) => {
+      localStorage.setItem('authTokens', JSON.stringify(tokens));
+    },
+    clear: () => {
+      localStorage.removeItem('authTokens');
+    }
+  },
+  async () => {
+    // Default token refresher - would need to be implemented based on your auth system
+    throw new Error('Token refresh not implemented');
+  }
+);
 
 // API endpoints configuration
 export const API_ENDPOINTS = {

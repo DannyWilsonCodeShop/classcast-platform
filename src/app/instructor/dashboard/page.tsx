@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import PortalIndicator from '@/components/common/PortalIndicator';
