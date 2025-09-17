@@ -1,0 +1,102 @@
+{
+  "timestamp": "2025-09-17T19:29:19.292Z",
+  "criticalConfig": {
+    "USER_POOL_ID": "us-east-1_uK50qBrap",
+    "USER_POOL_CLIENT_ID": "7tbaq74itv3gdda1bt25iqafvh",
+    "S3_BUCKET": "classcast-videos-463470937777-us-east-1",
+    "DYNAMODB_TABLES": [
+      "classcast-users",
+      "classcast-assignments",
+      "classcast-courses",
+      "classcast-submissions",
+      "classcast-content-moderation"
+    ],
+    "REGION": "us-east-1"
+  },
+  "connectionStatus": {
+    "timestamp": "2025-09-17T19:29:18.136Z",
+    "overall": "unknown",
+    "criticalServices": {
+      "dynamodb": {
+        "status": "healthy",
+        "tables": {
+          "classcast-users": {
+            "status": "healthy",
+            "tableStatus": "ACTIVE",
+            "itemCount": 3,
+            "tableSize": 821
+          },
+          "classcast-assignments": {
+            "status": "healthy",
+            "tableStatus": "ACTIVE",
+            "itemCount": 2,
+            "tableSize": 802
+          },
+          "classcast-courses": {
+            "status": "healthy",
+            "tableStatus": "ACTIVE",
+            "itemCount": 2,
+            "tableSize": 2407
+          },
+          "classcast-submissions": {
+            "status": "healthy",
+            "tableStatus": "ACTIVE",
+            "itemCount": 0,
+            "tableSize": 0
+          },
+          "classcast-content-moderation": {
+            "status": "healthy",
+            "tableStatus": "ACTIVE",
+            "itemCount": 0,
+            "tableSize": 0
+          }
+        }
+      },
+      "cognito": {
+        "userPoolId": "us-east-1_uK50qBrap",
+        "name": "classcast-users",
+        "estimatedNumberOfUsers": 3,
+        "lastModified": "2025-09-17T01:38:50.381Z"
+      },
+      "s3": {
+        "status": "healthy",
+        "bucketName": "classcast-videos-463470937777-us-east-1",
+        "region": "us-east-1"
+      },
+      "environment": {
+        "status": "healthy",
+        "variables": {
+          "NEXT_PUBLIC_COGNITO_USER_POOL_ID": {
+            "status": "correct",
+            "expected": "us-east-1_uK50qBrap",
+            "actual": "us-east-1_uK50qBrap"
+          },
+          "NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID": {
+            "status": "correct",
+            "expected": "7tbaq74itv3gdda1bt25iqafvh",
+            "actual": "7tbaq74itv3gdda1bt25iqafvh"
+          },
+          "AWS_REGION": {
+            "status": "correct",
+            "expected": "us-east-1",
+            "actual": "us-east-1"
+          }
+        }
+      }
+    },
+    "recommendations": [
+      {
+        "priority": "MEDIUM",
+        "issue": "Prevent future disconnections",
+        "solution": "Run this health check regularly and monitor AWS service status",
+        "command": "node connection-safeguards.js"
+      },
+      {
+        "priority": "LOW",
+        "issue": "Backup configuration",
+        "solution": "Keep a backup of your AWS configuration for quick recovery",
+        "command": "cp aws-config-backup.json aws-config-backup-$(date +%Y%m%d).json"
+      }
+    ]
+  }
+}
