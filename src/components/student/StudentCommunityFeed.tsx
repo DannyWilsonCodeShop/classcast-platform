@@ -101,7 +101,6 @@ export const StudentCommunityFeed: React.FC<StudentCommunityFeedProps> = ({
   const [sortBy, setSortBy] = useState<string>('recent');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Filter and sort submissions
   const processedSubmissions = useMemo(() => {
