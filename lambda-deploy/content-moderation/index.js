@@ -1,13 +1,8 @@
-const AWS = require('aws-sdk');
-const OpenAI = require('openai');
+// Note: AWS SDK v3 is built into Lambda runtime
+// For this demo, we'll use a simplified version without external dependencies
 
-// Initialize services
-const dynamodb = new AWS.DynamoDB.DocumentClient();
-const s3 = new AWS.S3();
-
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-}) : null;
+// Simplified content moderation without external dependencies
+// In production, you would use AWS SDK v3 and OpenAI SDK
 
 const MODERATION_TABLE = process.env.MODERATION_TABLE || 'classcast-content-moderation';
 
