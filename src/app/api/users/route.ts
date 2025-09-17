@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     } else {
       // Get all users (use scan for small datasets, consider pagination for large ones)
       const response = await dynamoDBService.scan({
-        TableName: 'DemoProject-Users',
+        TableName: 'classcast-users',
         Limit: limit,
         ProjectionExpression: 'userId, email, firstName, lastName, role, status, createdAt',
       });
