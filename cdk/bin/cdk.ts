@@ -10,6 +10,7 @@ import { ApiGatewayStack } from '../lib/api-gateway-stack';
 import { MonitoringStack } from '../lib/monitoring-stack';
 import { LoggingStack } from '../lib/logging-stack';
 import { ErrorTrackingStack } from '../lib/error-tracking-stack';
+import { VideoInteractionsStack } from '../lib/video-interactions-stack';
 
 const app = new cdk.App();
 
@@ -102,6 +103,12 @@ const errorTrackingStack = new ErrorTrackingStack(app, 'DemoProject-ErrorTrackin
   datadogApiKey: process.env.DATADOG_API_KEY,
   newRelicLicenseKey: process.env.NEW_RELIC_LICENSE_KEY,
   description: 'Error tracking and performance monitoring infrastructure for DemoProject',
+});
+
+// Video Interactions Stack (Video processing, comments, responses, sharing)
+const videoInteractionsStack = new VideoInteractionsStack(app, 'DemoProject-VideoInteractionsStack', {
+  env,
+  description: 'Video interactions infrastructure for DemoProject',
 });
 
 // Add dependencies

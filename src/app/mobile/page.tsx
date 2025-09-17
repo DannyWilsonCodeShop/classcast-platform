@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import VideoInteractions from '@/components/video/VideoInteractions';
+import { testDataGenerator, TestAssignment, TestVideoSubmission, TestUser } from '@/lib/testDataGenerator';
 import Link from 'next/link';
 
 type TabType = 'dashboard' | 'assignments' | 'community' | 'courses' | 'profile';

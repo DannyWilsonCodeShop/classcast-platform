@@ -1,7 +1,3 @@
 {
-  "httpMethod": "GET",
-  "body": "{}",
-  "headers": {
-    "Content-Type": "application/json"
-  }
+  "body": "{\"content\":\"This is a test message\",\"type\":\"text\",\"userId\":\"test-user-123\"}"
 }
