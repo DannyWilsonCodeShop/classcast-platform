@@ -321,6 +321,10 @@ Return a JSON response with:
       const response = await fetch(audioUrl);
       const audioBuffer = await response.arrayBuffer();
       
+      if (!openai) {
+        throw new Error('OpenAI API key not configured');
+      }
+      
       const transcription = await openai.audio.transcriptions.create({
         file: new File([audioBuffer], 'audio.mp3'),
         model: 'whisper-1',
@@ -331,7 +335,12 @@ Return a JSON response with:
       return {
         text: transcription.text,
         confidence: 0.95, // Whisper doesn't provide confidence scores
-        segments: transcription.segments || [],
+        segments: (transcription.segments || []).map(segment => ({
+          start: segment.start,
+          end: segment.end,
+          text: segment.text,
+          confidence: 0.95, // Default confidence since Whisper doesn't provide it
+        })),
         language: transcription.language || language,
         duration: transcription.duration || 0
       };

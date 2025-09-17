@@ -13,17 +13,17 @@ export * from './validation';
 // ============================================================================
 // ZOD VALIDATION SCHEMAS
 // ============================================================================
-export * from './zod-schemas';
+// Note: Zod schemas are available but not re-exported to avoid conflicts with entities
 
 // ============================================================================
 // VALIDATION UTILITIES
 // ============================================================================
-export * from './validation-utils';
+// Note: Validation utilities are available but not re-exported to avoid conflicts
 
 // ============================================================================
 // TRANSFORMATION AND SANITIZATION UTILITIES
 // ============================================================================
-export * from './transform-utils';
+// Note: Transform utilities are available but not re-exported to avoid conflicts
 
 // ============================================================================
 // SERVICE INTERFACES AND IMPLEMENTATIONS

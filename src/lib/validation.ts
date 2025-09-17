@@ -8,6 +8,7 @@ export interface ValidationResult {
 	errors: string[];
 	warnings: string[];
 	info: string[];
+	isValid: boolean;
 }
 
 export interface ValidationSchema<T = any> {
