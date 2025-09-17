@@ -1,8 +1,8 @@
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-});
+}) : null;
 
 export interface TutoringMessage {
   role: 'user' | 'assistant' | 'system';
@@ -113,6 +113,10 @@ export class AIService {
         { role: 'user' as const, content: message }
       ];
 
+      if (!openai) {
+        throw new Error('OpenAI API key not configured');
+      }
+      
       const completion = await openai.chat.completions.create({
         model: 'gpt-4',
         messages,
@@ -183,6 +187,10 @@ Student context:
   ): Promise<EssayGradingResult> {
     try {
       const prompt = this.buildEssayGradingPrompt(essay, rubric, assignmentContext);
+      
+      if (!openai) {
+        throw new Error('OpenAI API key not configured');
+      }
       
       const completion = await openai.chat.completions.create({
         model: 'gpt-4',
@@ -286,6 +294,10 @@ Return a JSON response with:
   "flaggedText": ["flagged phrases"]
 }`;
 
+      if (!openai) {
+        throw new Error('OpenAI API key not configured');
+      }
+      
       const completion = await openai.chat.completions.create({
         model: 'gpt-4',
         messages: [{ role: 'user', content: prompt }],
@@ -342,6 +354,10 @@ Return a JSON response with:
   ): Promise<RecommendationResult> {
     try {
       const prompt = this.buildRecommendationPrompt(userId, type, context);
+      
+      if (!openai) {
+        throw new Error('OpenAI API key not configured');
+      }
       
       const completion = await openai.chat.completions.create({
         model: 'gpt-4',
@@ -416,6 +432,10 @@ Consider factors like:
 - Time management
 - Learning patterns`;
 
+      if (!openai) {
+        throw new Error('OpenAI API key not configured');
+      }
+      
       const completion = await openai.chat.completions.create({
         model: 'gpt-4',
         messages: [{ role: 'user', content: prompt }],
