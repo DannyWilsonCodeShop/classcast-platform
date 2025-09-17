@@ -155,8 +155,12 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
         }),
       };
 
+      console.log('SignupForm: Attempting signup with data:', signupData);
+
       // Use AuthContext signup method
       await signup(signupData);
+      
+      console.log('SignupForm: Signup successful, preparing redirect...');
 
       // Clear any previous errors
       setErrors({});
@@ -165,11 +169,16 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Always redirect to dashboard after successful signup
+      console.log('SignupForm: About to redirect, role:', formData.role);
+      
       if (formData.role === 'instructor') {
+        console.log('SignupForm: Redirecting to instructor dashboard');
         router.push('/instructor/dashboard');
       } else if (formData.role === 'student') {
+        console.log('SignupForm: Redirecting to student dashboard');
         router.push('/student/dashboard');
       } else {
+        console.log('SignupForm: Redirecting to verification page');
         // Default redirect to verification page for other roles
         router.push('/auth/verify');
       }
