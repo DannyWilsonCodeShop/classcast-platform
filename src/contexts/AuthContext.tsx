@@ -89,6 +89,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
         setAuthState(newState);
         localStorage.setItem('authState', JSON.stringify(newState));
+        
+        // Redirect based on user role
+        if (userData.user.role === 'student') {
+          router.push('/student/dashboard');
+        } else if (userData.user.role === 'instructor') {
+          router.push('/instructor/dashboard');
+        } else if (userData.user.role === 'admin') {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/');
+        }
       } else {
         const errorData = await response.json();
         setAuthState(prev => ({
@@ -120,12 +131,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (response.ok) {
-        setAuthState(prev => ({
-          ...prev,
+        const userData = await response.json();
+        const newState = {
+          user: userData.user,
+          isAuthenticated: true,
           isLoading: false,
           error: null,
-        }));
-        router.push('/auth/verify');
+        };
+        setAuthState(newState);
+        localStorage.setItem('authState', JSON.stringify(newState));
+        
+        // Redirect based on user role
+        if (userData.user.role === 'student') {
+          router.push('/student/dashboard');
+        } else if (userData.user.role === 'instructor') {
+          router.push('/instructor/dashboard');
+        } else if (userData.user.role === 'admin') {
+          router.push('/admin/dashboard');
+        } else {
+          router.push('/');
+        }
       } else {
         const errorData = await response.json();
         setAuthState(prev => ({
