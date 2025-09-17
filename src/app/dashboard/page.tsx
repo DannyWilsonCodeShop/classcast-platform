@@ -162,6 +162,13 @@ export default function DashboardPage() {
                     <span>👤</span>
                     <span>Edit Profile</span>
                   </Link>
+                  <Link
+                    href="/profile/videos"
+                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-bold hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl"
+                  >
+                    <span>📹</span>
+                    <span>My Videos</span>
+                  </Link>
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce"></div>
                     <span className="text-sm text-gray-600 font-medium">Online</span>

@@ -14,6 +14,12 @@ interface ProfileData {
   major: string;
   bio: string;
   profilePicture: string | null;
+  videoStats: {
+    totalViews: number;
+    totalLikes: number;
+    totalVideos: number;
+    publicVideos: number;
+  };
   personalInfo: {
     birthday: string;
     hometown: string;
