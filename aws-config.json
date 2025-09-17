@@ -1,0 +1,89 @@
+{
+  "aws": {
+    "region": "us-east-1",
+    "services": {
+      "ses": {
+        "fromEmail": "noreply@myclasscast.com",
+        "replyToEmail": "support@myclasscast.com",
+        "verified": true
+      },
+      "cloudwatch": {
+        "namespace": "ClassCast/Platform",
+        "logGroup": "/classcast/platform",
+        "enabled": true
+      },
+      "cognito": {
+        "region": "us-east-1",
+        "enabled": true
+      }
+    }
+  },
+  "testResults": {
+    "ses": {
+      "status": "success",
+      "details": [
+        {
+          "status": "success",
+          "message": "Email identity noreply@myclasscast.com verified",
+          "timestamp": "2025-09-17T03:12:03.135Z"
+        },
+        {
+          "status": "error",
+          "message": "Failed to send test email: Email address is not verified. The following identities failed the check in region US-EAST-1: test@example.com, noreply@myclasscast.com",
+          "timestamp": "2025-09-17T03:12:03.211Z"
+        }
+      ]
+    },
+    "cloudwatch": {
+      "status": "success",
+      "details": [
+        {
+          "status": "success",
+          "message": "Custom metric sent to CloudWatch",
+          "timestamp": "2025-09-17T03:12:03.392Z"
+        },
+        {
+          "status": "success",
+          "message": "Retrieved metric statistics: 0 datapoints",
+          "timestamp": "2025-09-17T03:12:03.421Z"
+        }
+      ]
+    },
+    "cloudwatchLogs": {
+      "status": "success",
+      "details": [
+        {
+          "status": "warning",
+          "message": "Log group already exists: /classcast/test",
+          "timestamp": "2025-09-17T03:12:03.587Z"
+        },
+        {
+          "status": "success",
+          "message": "Log stream created: test-1758078723421",
+          "timestamp": "2025-09-17T03:12:03.627Z"
+        },
+        {
+          "status": "success",
+          "message": "Test log event sent successfully",
+          "timestamp": "2025-09-17T03:12:03.675Z"
+        }
+      ]
+    },
+    "cognito": {
+      "status": "success",
+      "details": [
+        {
+          "status": "success",
+          "message": "Found 1 user pools",
+          "timestamp": "2025-09-17T03:12:03.798Z"
+        },
+        {
+          "status": "warning",
+          "message": "No ClassCast user pool found. You may need to deploy the CDK stack first.",
+          "timestamp": "2025-09-17T03:12:03.798Z"
+        }
+      ]
+    }
+  },
+  "timestamp": "2025-09-17T03:12:03.798Z"
+}
