@@ -6,13 +6,15 @@ import AssignmentCreationForm from './AssignmentCreationForm';
 import InstructorStats from './InstructorStats';
 import InstructorSubmissionCard from './InstructorSubmissionCard';
 import InstructorCommunityFeed from './InstructorCommunityFeed';
+import AIGradingInterface from '@/components/ai/AIGradingInterface';
+import PlagiarismChecker from '@/components/ai/PlagiarismChecker';
 
 interface InstructorDashboardProps {
   className?: string;
 }
 
 interface DashboardView {
-  id: 'overview' | 'assignments' | 'submissions' | 'community';
+  id: 'overview' | 'assignments' | 'submissions' | 'community' | 'ai-grading' | 'ai-tools';
   label: string;
   icon: string;
 }
@@ -26,7 +28,9 @@ const InstructorDashboard: React.FC<InstructorDashboardProps> = ({ className = '
     { id: 'overview', label: 'Overview', icon: '📊' },
     { id: 'assignments', label: 'Assignments', icon: '📝' },
     { id: 'submissions', label: 'Submissions', icon: '📤' },
-    { id: 'community', label: 'Community', icon: '👥' }
+    { id: 'community', label: 'Community', icon: '👥' },
+    { id: 'ai-grading', label: 'AI Grading', icon: '🤖' },
+    { id: 'ai-tools', label: 'AI Tools', icon: '🔧' }
   ];
 
   const handleCreateAssignment = useCallback(async (assignmentData: Partial<Assignment>) => {
@@ -301,6 +305,88 @@ const InstructorDashboard: React.FC<InstructorDashboardProps> = ({ className = '
     </div>
   );
 
+  const renderAIGrading = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">🤖 AI-Powered Essay Grading</h3>
+        <p className="text-gray-600 mb-6">
+          Use AI to automatically grade student essays with detailed feedback and rubric-based scoring.
+        </p>
+        <AIGradingInterface
+          submissionId="sample-submission-123"
+          assignmentId="sample-assignment-456"
+          studentId="student-789"
+          essay="This is a sample essay that would be graded by AI. The AI will analyze content, structure, grammar, and style to provide comprehensive feedback and scoring."
+          onGradeComplete={(result) => {
+            console.log('AI grading completed:', result);
+          }}
+        />
+      </div>
+    </div>
+  );
+
+  const renderAITools = () => (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">🔧 AI Tools & Utilities</h3>
+        <p className="text-gray-600 mb-6">
+          Access powerful AI tools to enhance your teaching and streamline your workflow.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Plagiarism Detection */}
+          <div className="border rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 mb-2">🔍 Plagiarism Detection</h4>
+            <p className="text-sm text-gray-600 mb-4">
+              Check student submissions for originality and academic integrity.
+            </p>
+            <PlagiarismChecker
+              submissionId="instructor-check-123"
+              assignmentId="assignment-456"
+              text="Enter student text to check for plagiarism..."
+              onCheckComplete={(result) => {
+                console.log('Plagiarism check completed:', result);
+              }}
+            />
+          </div>
+
+          {/* AI Recommendations */}
+          <div className="border rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 mb-2">💡 Smart Recommendations</h4>
+            <p className="text-sm text-gray-600 mb-4">
+              Get AI-powered suggestions for content, study groups, and resources.
+            </p>
+            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+              Get Recommendations
+            </button>
+          </div>
+
+          {/* Predictive Analytics */}
+          <div className="border rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 mb-2">📊 Predictive Analytics</h4>
+            <p className="text-sm text-gray-600 mb-4">
+              Analyze student performance and predict success outcomes.
+            </p>
+            <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors">
+              View Analytics
+            </button>
+          </div>
+
+          {/* AI Transcription */}
+          <div className="border rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 mb-2">🎤 AI Transcription</h4>
+            <p className="text-sm text-gray-600 mb-4">
+              Convert video submissions to text for easier review and analysis.
+            </p>
+            <button className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors">
+              Transcribe Videos
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeView) {
       case 'overview':
@@ -311,6 +397,10 @@ const InstructorDashboard: React.FC<InstructorDashboardProps> = ({ className = '
         return renderSubmissions();
       case 'community':
         return <InstructorCommunityFeed />;
+      case 'ai-grading':
+        return renderAIGrading();
+      case 'ai-tools':
+        return renderAITools();
       default:
         return renderOverview();
     }

@@ -1,10 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { CompactAssignmentList } from '@/components/student/CompactAssignmentList';
+import AITutoringChat from '@/components/ai/AITutoringChat';
+import PlagiarismChecker from '@/components/ai/PlagiarismChecker';
 
 const StudentDashboard: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'ai-tutor' | 'plagiarism-check'>('overview');
+  const [showPlagiarismCheck, setShowPlagiarismCheck] = useState(false);
+
   return (
     <StudentRoute>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -13,9 +18,51 @@ const StudentDashboard: React.FC = () => {
           <p className="mt-2 text-gray-600">Track your progress and manage your assignments</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Stats Cards */}
+        {/* AI Features Navigation */}
+        <div className="mb-8">
           <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">🤖 AI-Powered Learning Tools</h2>
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'overview'
+                    ? 'bg-[#003366] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                📊 Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('ai-tutor')}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'ai-tutor'
+                    ? 'bg-[#003366] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                🤖 AI Tutor
+              </button>
+              <button
+                onClick={() => setActiveTab('plagiarism-check')}
+                className={`px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'plagiarism-check'
+                    ? 'bg-[#003366] text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                🔍 Plagiarism Check
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {/* Stats Cards */}
+              <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="p-2 bg-[#003366]/20 rounded-lg">
                 <svg className="h-6 w-6 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,7 +183,43 @@ const StudentDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </>
+        )}
+
+        {activeTab === 'ai-tutor' && (
+          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">🤖 AI Tutoring Assistant</h3>
+            <p className="text-gray-600 mb-6">
+              Get personalized help with your studies. Ask questions about any subject and get instant, intelligent responses.
+            </p>
+            <AITutoringChat
+              userId="student-123"
+              courseId="course-456"
+              context={{
+                subject: "Computer Science",
+                difficulty: "intermediate",
+                learningGoals: ["Master React", "Understand APIs", "Learn Database Design"]
+              }}
+            />
+          </div>
+        )}
+
+        {activeTab === 'plagiarism-check' && (
+          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">🔍 Plagiarism Detection</h3>
+            <p className="text-gray-600 mb-6">
+              Check your written work for originality and ensure academic integrity before submitting.
+            </p>
+            <PlagiarismChecker
+              submissionId="student-submission-123"
+              assignmentId="assignment-456"
+              text="Enter your essay or assignment text here to check for plagiarism..."
+              onCheckComplete={(result) => {
+                console.log('Plagiarism check completed:', result);
+              }}
+            />
+          </div>
+        )}
       </div>
     </StudentRoute>
   );
