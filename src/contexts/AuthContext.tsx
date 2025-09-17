@@ -64,6 +64,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     error: null,
   });
 
+
   const router = useRouter();
 
   // Check if user is authenticated on mount
@@ -71,36 +72,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const response = await fetch('/api/auth/me', {
-        credentials: 'include',
+      // For now, just set as not authenticated since we're using local state
+      // In a real app, this would check localStorage or cookies
+      setAuthState({
+        user: null,
+        isAuthenticated: false,
+        isLoading: false,
+        error: null,
       });
-
-      if (response.ok) {
-        try {
-          const userData = await response.json();
-          setAuthState({
-            user: userData.user,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-        } catch (jsonError) {
-          console.error('Error parsing JSON response:', jsonError);
-          setAuthState({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: 'Invalid response format from server',
-          });
-        }
-      } else {
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: null,
-        });
-      }
     } catch (error) {
       console.error('Error checking auth status:', error);
       setAuthState({
@@ -190,15 +169,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
 
-      // Don't set authenticated state yet - user needs to verify email
+      // Set authenticated state for mock service (no email verification needed)
+      const newUser = {
+        id: userData.email, // Use email as ID for mock service
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        studentId: userData.studentId,
+        instructorId: userData.instructorId,
+        department: userData.department,
+        emailVerified: true, // Mock service users are pre-verified
+      };
+
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
         error: null,
+        user: newUser,
+        isAuthenticated: true,
       }));
-
-      // Redirect to email verification
-      router.push(`/auth/verify?email=${encodeURIComponent(userData.email)}`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Signup failed';
       setAuthState(prev => ({
