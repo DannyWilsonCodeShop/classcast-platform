@@ -7,50 +7,6 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navigation />
       
-      {/* Kid-Friendly Top Menu Bar */}
-      <div className="bg-gradient-to-r from-yellow-100 to-blue-100 backdrop-blur-md border-b border-yellow-300/30 sticky top-0 z-40 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center space-x-1 sm:space-x-4 py-4">
-            <Link
-              href="/products"
-              className="group relative px-4 py-2 text-sm font-bold text-gray-700 hover:text-cyan-600 transition-all duration-300 rounded-full hover:bg-cyan-100 border border-transparent hover:border-cyan-300"
-            >
-              <span className="relative z-10 flex items-center">
-                <span className="w-2 h-2 bg-cyan-500 rounded-full mr-2 group-hover:animate-bounce"></span>
-                Products
-              </span>
-            </Link>
-            <Link
-              href="/customers"
-              className="group relative px-4 py-2 text-sm font-bold text-gray-700 hover:text-yellow-600 transition-all duration-300 rounded-full hover:bg-yellow-100 border border-transparent hover:border-yellow-300"
-            >
-              <span className="relative z-10 flex items-center">
-                <span className="w-2 h-2 bg-yellow-500 rounded-full mr-2 group-hover:animate-bounce"></span>
-                Customers
-              </span>
-            </Link>
-            <Link
-              href="/resources"
-              className="group relative px-4 py-2 text-sm font-bold text-gray-700 hover:text-blue-600 transition-all duration-300 rounded-full hover:bg-blue-100 border border-transparent hover:border-blue-300"
-            >
-              <span className="relative z-10 flex items-center">
-                <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 group-hover:animate-bounce"></span>
-                Resources
-              </span>
-            </Link>
-            <Link
-              href="/support"
-              className="group relative px-4 py-2 text-sm font-bold text-gray-700 hover:text-purple-600 transition-all duration-300 rounded-full hover:bg-purple-100 border border-transparent hover:border-purple-300"
-            >
-              <span className="relative z-10 flex items-center">
-                <span className="w-2 h-2 bg-purple-500 rounded-full mr-2 group-hover:animate-bounce"></span>
-                Support
-              </span>
-            </Link>
-          </div>
-        </div>
-      </div>
-      
       {/* Kid-Friendly Hero Section */}
       <section className="relative min-h-screen bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50 overflow-hidden">
         {/* Playful Background Pattern */}
@@ -70,10 +26,10 @@ export default function HomePage() {
               {/* Left Column - Kid-Friendly Content */}
               <div className="space-y-8">
                 {/* Fun Status Badge */}
-                <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm border-2 border-yellow-300 rounded-full shadow-lg">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mr-3 animate-bounce"></div>
-                  <span className="text-gray-700 text-sm font-bold">✨ Learning is Fun! ✨</span>
-                </div>
+              <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm border-2 border-yellow-300 rounded-full shadow-lg">
+                <div className="w-3 h-3 bg-green-500 rounded-full mr-3 animate-bounce"></div>
+                <span className="text-gray-700 text-sm font-bold">🎓 Learning Made Engaging! 🎓</span>
+              </div>
                 
                 {/* Main Heading */}
                 <div className="space-y-4">
@@ -86,11 +42,11 @@ export default function HomePage() {
                   <div className="w-24 h-2 bg-gradient-to-r from-yellow-400 to-blue-500 rounded-full"></div>
                 </div>
                 
-                {/* Subtitle */}
-                <p className="text-xl text-gray-600 max-w-lg leading-relaxed font-medium">
-                  Create amazing videos, learn from friends, and have fun while you study! 
-                  Like, comment, and work together on cool projects! 🎉
-                </p>
+              {/* Subtitle */}
+              <p className="text-xl text-gray-600 max-w-lg leading-relaxed font-medium">
+                Create engaging videos, learn from peers, and collaborate on assignments! 
+                Like, comment, and work together on exciting projects! 🚀
+              </p>
                 
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -99,7 +55,7 @@ export default function HomePage() {
                     className="group relative px-8 py-4 bg-gradient-to-r from-yellow-400 to-blue-500 hover:from-yellow-500 hover:to-blue-600 text-white font-bold rounded-full shadow-2xl hover:shadow-yellow-500/25 transform hover:-translate-y-1 transition-all duration-300 text-lg"
                   >
                     <span className="relative z-10 flex items-center justify-center">
-                      🚀 Start Learning!
+                      🚀 Get Started!
                       <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
@@ -113,21 +69,21 @@ export default function HomePage() {
                   </Link>
                 </div>
                 
-                {/* Fun Stats */}
-                <div className="grid grid-cols-3 gap-8 pt-8">
-                  <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
-                    <div className="text-3xl font-bold text-yellow-500">10K+</div>
-                    <div className="text-gray-600 text-sm font-medium">Happy Students! 😊</div>
-                  </div>
-                  <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
-                    <div className="text-3xl font-bold text-blue-500">99.9%</div>
-                    <div className="text-gray-600 text-sm font-medium">Fun Time! 🎉</div>
-                  </div>
-                  <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
-                    <div className="text-3xl font-bold text-purple-500">AI</div>
-                    <div className="text-gray-600 text-sm font-medium">Super Smart! 🧠</div>
-                  </div>
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-8 pt-8">
+                <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
+                  <div className="text-3xl font-bold text-yellow-500">10K+</div>
+                  <div className="text-gray-600 text-sm font-medium">Active Students! 📚</div>
                 </div>
+                <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
+                  <div className="text-3xl font-bold text-blue-500">99.9%</div>
+                  <div className="text-gray-600 text-sm font-medium">Success Rate! 🎯</div>
+                </div>
+                <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
+                  <div className="text-3xl font-bold text-purple-500">AI</div>
+                  <div className="text-gray-600 text-sm font-medium">Powered Learning! 🧠</div>
+                </div>
+              </div>
               </div>
               
               {/* Right Column - Video Learning Interface */}

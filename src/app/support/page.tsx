@@ -14,11 +14,11 @@ export default function SupportPage() {
   });
 
   const categories = [
-    { id: 'general', name: 'General Questions! 💬', icon: '💬' },
-    { id: 'technical', name: 'Tech Help! 🔧', icon: '🔧' },
-    { id: 'billing', name: 'Account & Money! 💳', icon: '💳' },
-    { id: 'feature', name: 'Cool Ideas! 💡', icon: '💡' },
-    { id: 'bug', name: 'Something Broken! 🐛', icon: '🐛' }
+    { id: 'general', name: 'General Questions 💬', icon: '💬' },
+    { id: 'technical', name: 'Technical Support 🔧', icon: '🔧' },
+    { id: 'billing', name: 'Account & Billing 💳', icon: '💳' },
+    { id: 'feature', name: 'Feature Requests 💡', icon: '💡' },
+    { id: 'bug', name: 'Report Issues 🐛', icon: '🐛' }
   ];
 
   const faqs = [
@@ -98,16 +98,30 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-orange-600 to-orange-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white relative overflow-hidden">
+        {/* Fun Background Elements */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-10 left-10 w-32 h-32 bg-white/30 rounded-full blur-xl animate-bounce"></div>
+          <div className="absolute top-20 right-20 w-24 h-24 bg-white/30 rounded-full blur-xl animate-bounce delay-1000"></div>
+          <div className="absolute bottom-10 left-1/3 w-40 h-40 bg-white/30 rounded-full blur-xl animate-bounce delay-2000"></div>
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10">
           <div className="text-center">
+            <div className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full text-sm font-bold mb-8">
+              <div className="w-2 h-2 bg-white rounded-full mr-3 animate-bounce"></div>
+              🆘 Help & Support Center! 🆘
+            </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Support Center
+              <span className="block">Need</span>
+              <span className="block bg-gradient-to-r from-yellow-200 to-white bg-clip-text text-transparent">
+                Help? We're Here! 🎓
+              </span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-orange-100">
-              We're here to help you succeed
+            <p className="text-xl md:text-2xl mb-8 text-white/90">
+              Get the support you need to succeed in your learning journey! 🌟
             </p>
           </div>
         </div>
@@ -117,8 +131,8 @@ export default function SupportPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Support Form */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-lg p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Submit a Support Ticket</h2>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-8 border-2 border-blue-300/30">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">📝 Submit a Support Request</h2>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -223,9 +237,9 @@ export default function SupportPage() {
 
                 <button
                   type="submit"
-                  className="w-full bg-orange-600 text-white py-3 px-6 rounded-md font-semibold hover:bg-orange-700 transition-colors"
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-6 rounded-full font-bold hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 >
-                  Submit Support Ticket
+                  🚀 Submit Request
                 </button>
               </form>
             </div>
@@ -234,8 +248,8 @@ export default function SupportPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Contact Info */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border-2 border-yellow-300/30">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">📞 Contact Information</h3>
               <div className="space-y-3">
                 <div className="flex items-center">
                   <span className="text-orange-600 mr-3">📧</span>
@@ -262,8 +276,8 @@ export default function SupportPage() {
             </div>
 
             {/* Response Times */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Response Times</h3>
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 border-2 border-blue-300/30">
+              <h3 className="text-lg font-bold text-gray-900 mb-4">⏰ Response Times</h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">General Inquiry</span>

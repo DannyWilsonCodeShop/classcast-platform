@@ -96,16 +96,16 @@ export default function CustomersPage() {
           <div className="text-center">
             <div className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-sm rounded-full text-sm font-bold mb-8">
               <div className="w-2 h-2 bg-white rounded-full mr-3 animate-bounce"></div>
-              🌟 Loved by Schools Everywhere! 🌟
+              🎓 Trusted by Schools Everywhere! 🎓
             </div>
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Super Happy
+              Successful
               <span className="block bg-gradient-to-r from-yellow-200 to-white bg-clip-text text-transparent">
-                Schools & Students! 🎉
+                Schools & Students! 🎯
               </span>
             </h1>
             <p className="text-xl md:text-2xl mb-8 text-white/90">
-              See how ClassCast makes learning super fun for everyone! 🌟
+              See how ClassCast makes learning engaging and effective for everyone! 🌟
             </p>
           </div>
         </div>
