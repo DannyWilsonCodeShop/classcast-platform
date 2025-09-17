@@ -14,11 +14,11 @@ export default function SupportPage() {
   });
 
   const categories = [
-    { id: 'general', name: 'General Inquiry', icon: '💬' },
-    { id: 'technical', name: 'Technical Support', icon: '🔧' },
-    { id: 'billing', name: 'Billing & Account', icon: '💳' },
-    { id: 'feature', name: 'Feature Request', icon: '💡' },
-    { id: 'bug', name: 'Bug Report', icon: '🐛' }
+    { id: 'general', name: 'General Questions! 💬', icon: '💬' },
+    { id: 'technical', name: 'Tech Help! 🔧', icon: '🔧' },
+    { id: 'billing', name: 'Account & Money! 💳', icon: '💳' },
+    { id: 'feature', name: 'Cool Ideas! 💡', icon: '💡' },
+    { id: 'bug', name: 'Something Broken! 🐛', icon: '🐛' }
   ];
 
   const faqs = [
