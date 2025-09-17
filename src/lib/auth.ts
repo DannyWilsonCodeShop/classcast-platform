@@ -24,6 +24,7 @@ import {
   VerifyUserAttributeCommand,
   ConfirmSignUpCommand,
   ResendConfirmationCodeCommand,
+  SignUpCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 
 // Cognito client configuration
@@ -79,6 +80,7 @@ export interface CreateUserRequest {
   email: string;
   firstName: string;
   lastName: string;
+  password: string;
   role: UserRole;
   studentId?: string;
   instructorId?: string;
@@ -86,7 +88,6 @@ export interface CreateUserRequest {
   bio?: string;
   avatar?: string;
   phoneNumber?: string;
-  temporaryPassword?: string;
 }
 
 // Update user request
@@ -116,7 +117,7 @@ export class CognitoAuthService {
     this.userPoolClientId = USER_POOL_CLIENT_ID;
   }
 
-  // Create a new user (admin only)
+  // Create a new user (self-registration)
   async createUser(request: CreateUserRequest): Promise<CognitoUser> {
     try {
       // Prepare user attributes
@@ -125,7 +126,6 @@ export class CognitoAuthService {
         { Name: 'given_name', Value: request.firstName },
         { Name: 'family_name', Value: request.lastName },
         { Name: 'custom:role', Value: request.role },
-        { Name: 'email_verified', Value: 'true' },
       ];
 
       if (request.studentId) {
@@ -145,31 +145,43 @@ export class CognitoAuthService {
       }
       if (request.phoneNumber) {
         userAttributes.push({ Name: 'phone_number', Value: request.phoneNumber });
-        userAttributes.push({ Name: 'phone_number_verified', Value: 'false' });
       }
 
-      // Create user
-      const createCommand = new AdminCreateUserCommand({
-        UserPoolId: this.userPoolId,
+      // Create user using SignUpCommand for self-registration
+      const createCommand = new SignUpCommand({
+        ClientId: this.userPoolClientId,
         Username: request.username,
+        Password: request.password,
         UserAttributes: userAttributes,
-        TemporaryPassword: request.temporaryPassword || this.generateTemporaryPassword(),
-        MessageAction: 'SUPPRESS', // Don't send welcome email
-        DesiredDeliveryMediums: ['EMAIL'],
       });
 
       const createResponse = await this.client.send(createCommand);
 
-      if (!createResponse.User) {
+      if (!createResponse.UserSub) {
         throw new Error('Failed to create user');
       }
 
-      // Add user to appropriate group
-      await this.addUserToGroup(request.username, request.role);
+      // Add user to appropriate group (this requires admin privileges, so we'll skip for now)
+      // await this.addUserToGroup(request.username, request.role);
 
-      // Get the created user
-      const user = await this.getUser(request.username);
-      return user;
+      // Return a basic user object since we can't get full details without admin privileges
+      return {
+        username: request.username,
+        email: request.email,
+        firstName: request.firstName,
+        lastName: request.lastName,
+        role: request.role as UserRole,
+        studentId: request.studentId,
+        instructorId: request.instructorId,
+        department: request.department,
+        bio: request.bio,
+        avatar: request.avatar,
+        phoneNumber: request.phoneNumber,
+        status: UserStatus.PENDING, // User needs to verify email
+        enabled: true,
+        createdAt: new Date().toISOString(),
+        lastModifiedAt: new Date().toISOString(),
+      };
     } catch (error) {
       console.error('Error creating user:', error);
       throw new Error(`Failed to create user: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -459,6 +471,72 @@ export class CognitoAuthService {
     }
   }
 
+  // Forgot password method
+  async forgotPassword(email: string): Promise<void> {
+    try {
+      const command = new ForgotPasswordCommand({
+        ClientId: USER_POOL_CLIENT_ID,
+        Username: email,
+      });
+
+      await cognitoClient.send(command);
+    } catch (error) {
+      console.error('Error sending forgot password email:', error);
+      throw error;
+    }
+  }
+
+  // Confirm forgot password method
+  async confirmForgotPassword(email: string, confirmationCode: string, newPassword: string): Promise<void> {
+    try {
+      const command = new ConfirmForgotPasswordCommand({
+        ClientId: USER_POOL_CLIENT_ID,
+        Username: email,
+        ConfirmationCode: confirmationCode,
+        Password: newPassword,
+      });
+
+      await cognitoClient.send(command);
+    } catch (error) {
+      console.error('Error confirming forgot password:', error);
+      throw error;
+    }
+  }
+
+  // Login method
+  async login(email: string, password: string): Promise<{ user: CognitoUser; tokens: any }> {
+    try {
+      const command = new InitiateAuthCommand({
+        ClientId: USER_POOL_CLIENT_ID,
+        AuthFlow: 'USER_PASSWORD_AUTH',
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password,
+        },
+      });
+
+      const response = await cognitoClient.send(command);
+      
+      if (!response.AuthenticationResult) {
+        throw new Error('Authentication failed');
+      }
+
+      // Get user details
+      const user = await this.getUser(email);
+      
+      return {
+        user,
+        tokens: {
+          accessToken: response.AuthenticationResult.AccessToken,
+          refreshToken: response.AuthenticationResult.RefreshToken,
+          idToken: response.AuthenticationResult.IdToken,
+        },
+      };
+    } catch (error) {
+      console.error('Error during login:', error);
+      throw error;
+    }
+  }
 
   // Helper methods
   private mapCognitoUserToUser(cognitoUser: any): CognitoUser {

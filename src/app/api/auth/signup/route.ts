@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { awsCognitoAuthService } from '@/lib/aws-cognito';
+import { cognitoAuthService } from '@/lib/auth';
 import { mockAuthService } from '@/lib/mock-auth';
 
 export async function POST(request: NextRequest) {
@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
       console.log('Creating user with AWS Cognito:', { email, firstName, lastName, role, studentId, department });
 
       // Use AWS Cognito for user creation
-      const result = await awsCognitoAuthService.signup({
+      const result = await cognitoAuthService.createUser({
+        username: email, // Use email as username
         email,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -81,15 +82,15 @@ export async function POST(request: NextRequest) {
         {
           message: 'Account created successfully! Please check your email for verification.',
           user: {
-            id: result.userId,
+            id: result.username,
             email: result.email,
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
-            role: role,
-            studentId: role === 'student' ? studentId : undefined,
-            instructorId: role === 'instructor' ? `INS-${Date.now()}` : undefined,
-            department: role === 'instructor' ? department : undefined,
-            emailVerified: false, // Will be true after email verification
+            firstName: result.firstName,
+            lastName: result.lastName,
+            role: result.role,
+            studentId: result.studentId,
+            instructorId: result.instructorId,
+            department: result.department,
+            emailVerified: result.status === 'ACTIVE',
           },
           nextStep: 'verify-email',
         },
