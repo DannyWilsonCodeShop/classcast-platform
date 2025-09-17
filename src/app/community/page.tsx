@@ -50,14 +50,14 @@ export default function CommunityPage() {
     try {
       setLoading(true);
       
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/community/posts');
-      // const data = await response.json();
-      
-      // For now, set empty array until API is implemented
-      const mockPosts: CommunityPost[] = [];
-      
-      setPosts(mockPosts);
+      // Load posts from API
+      const response = await fetch('/api/community/posts');
+      if (response.ok) {
+        const data = await response.json();
+        setPosts(data);
+      } else {
+        setPosts([]);
+      }
     } catch (error) {
       console.error('Error loading posts:', error);
     } finally {
@@ -70,26 +70,25 @@ export default function CommunityPage() {
     if (!newPost.title.trim() || !newPost.content.trim()) return;
 
     try {
-      // Mock post creation - replace with actual API call
-      const post: CommunityPost = {
-        id: Date.now().toString(),
-        author: user?.firstName + ' ' + user?.lastName || 'Anonymous',
-        authorRole: user?.role || 'student',
-        title: newPost.title,
-        content: newPost.content,
-        timestamp: 'Just now',
-        likes: 0,
-        comments: 0,
-        tags: [],
-        reactions: { like: 0, love: 0, helpful: 0, celebrate: 0 },
-        isLiked: false,
-        isBookmarked: false,
-        trending: false,
-        pinned: false
-      };
+      // Create post via API
+      const response = await fetch('/api/community/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: newPost.title,
+          content: newPost.content,
+        }),
+      });
 
-      setPosts([post, ...posts]);
-      setNewPost({ title: '', content: '' });
+      if (response.ok) {
+        const createdPost = await response.json();
+        setPosts([createdPost, ...posts]);
+        setNewPost({ title: '', content: '' });
+      } else {
+        console.error('Failed to create post');
+      }
     } catch (error) {
       console.error('Error creating post:', error);
     }

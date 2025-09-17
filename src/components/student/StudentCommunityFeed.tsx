@@ -62,8 +62,7 @@ export interface StudentCommunityFeedProps {
   className?: string;
 }
 
-// TODO: Replace with actual API data
-const mockPeerSubmissions: PeerSubmissionData[] = [];
+// Real API data will be loaded from the API
 
 export const StudentCommunityFeed: React.FC<StudentCommunityFeedProps> = ({
   currentUserId,
@@ -79,12 +78,14 @@ export const StudentCommunityFeed: React.FC<StudentCommunityFeedProps> = ({
       try {
         setIsLoading(true);
         
-        // TODO: Replace with actual API call
-        // const response = await fetch('/api/student/community/submissions');
-        // const data = await response.json();
-        
-        // For now, set empty array until API is implemented
-        setSubmissions([]);
+        // Load submissions from API
+        const response = await fetch('/api/student/community/submissions');
+        if (response.ok) {
+          const data = await response.json();
+          setSubmissions(data);
+        } else {
+          setSubmissions([]);
+        }
         
       } catch (error) {
         console.error('Error loading submissions:', error);

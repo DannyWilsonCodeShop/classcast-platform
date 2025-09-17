@@ -26,12 +26,14 @@ export default function CoursesPage() {
     try {
       setIsLoadingCourses(true);
       
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/student/courses');
-      // const data = await response.json();
-      
-      // For now, set empty array until API is implemented
-      setCourses([]);
+      // Load courses from API
+      const response = await fetch('/api/student/courses');
+      if (response.ok) {
+        const data = await response.json();
+        setCourses(data);
+      } else {
+        setCourses([]);
+      }
       
     } catch (error) {
       console.error('Error loading courses:', error);

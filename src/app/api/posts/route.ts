@@ -7,17 +7,17 @@ export async function GET(request: NextRequest) {
     
     // Get user from auth context (you'll need to implement this)
     // For now, we'll return empty array
-    const assignments = [];
+    const posts = [];
 
-    // TODO: Implement real assignments fetching from database
-    // - Query assignments table for user's assignments
-    // - Include assignment details, due dates, status
+    // TODO: Implement real posts fetching from database
+    // - Query posts table for user's posts
+    // - Include post details, engagement metrics
 
-    return NextResponse.json(assignments);
+    return NextResponse.json(posts);
   } catch (error) {
-    console.error('Error fetching assignments:', error);
+    console.error('Error fetching posts:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch assignments' },
+      { error: 'Failed to fetch posts' },
       { status: 500 }
     );
   }

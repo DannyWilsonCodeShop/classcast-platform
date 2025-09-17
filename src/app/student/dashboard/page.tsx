@@ -38,101 +38,44 @@ const StudentDashboard: React.FC = () => {
         setIsLoadingCourses(true);
         setIsLoadingAssignments(true);
         
-        // Load stats
-        // TODO: Replace with actual API calls
-        setStats({
-          activeCourses: 3,
-          assignmentsDue: 5,
-          completed: 12
-        });
+        // Load stats from API
+        const statsResponse = await fetch('/api/student/stats');
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          setStats(statsData);
+        } else {
+          // Fallback to empty stats if API fails
+          setStats({
+            activeCourses: 0,
+            assignmentsDue: 0,
+            completed: 0
+          });
+        }
         
-        // Load courses
-        const mockCourses = [
-          {
-            id: 'cs-101',
-            name: 'Introduction to Computer Science',
-            code: 'CS 101',
-            description: 'Fundamental concepts of computer science and programming',
-            instructor: {
-              name: 'Dr. Smith',
-              avatar: '/api/placeholder/40/40'
-            },
-            thumbnail: '/api/placeholder/300/200',
-            progress: 75,
-            totalAssignments: 8,
-            completedAssignments: 6,
-            upcomingDeadlines: 2,
-            nextDeadline: '2024-12-20',
-            color: 'from-blue-500 to-blue-600'
-          },
-          {
-            id: 'cs-201',
-            name: 'Data Structures and Algorithms',
-            code: 'CS 201',
-            description: 'Advanced programming concepts and algorithm design',
-            instructor: {
-              name: 'Prof. Johnson',
-              avatar: '/api/placeholder/40/40'
-            },
-            thumbnail: '/api/placeholder/300/200',
-            progress: 60,
-            totalAssignments: 10,
-            completedAssignments: 6,
-            upcomingDeadlines: 3,
-            nextDeadline: '2024-12-18',
-            color: 'from-green-500 to-green-600'
-          },
-          {
-            id: 'cs-301',
-            name: 'Software Engineering',
-            code: 'CS 301',
-            description: 'Software development methodologies and practices',
-            instructor: {
-              name: 'Dr. Williams',
-              avatar: '/api/placeholder/40/40'
-            },
-            thumbnail: '/api/placeholder/300/200',
-            progress: 45,
-            totalAssignments: 6,
-            completedAssignments: 3,
-            upcomingDeadlines: 1,
-            nextDeadline: '2024-12-22',
-            color: 'from-purple-500 to-purple-600'
-          }
-        ];
-        setCourses(mockCourses);
+        // Load courses from API
+        const coursesResponse = await fetch('/api/student/courses');
+        if (coursesResponse.ok) {
+          const coursesData = await coursesResponse.json();
+          setCourses(coursesData);
+        } else {
+          setCourses([]);
+        }
         
-        // Load assignments
-        const mockAssignments = [
-          {
-            id: '1',
-            title: 'React Component Design',
-            course: 'CS 101',
-            dueDate: '2024-12-15',
-            status: 'due-soon',
-            priority: 'high'
-          },
-          {
-            id: '2',
-            title: 'API Documentation',
-            course: 'CS 201',
-            dueDate: '2024-12-20',
-            status: 'in-progress',
-            priority: 'medium'
-          },
-          {
-            id: '3',
-            title: 'Database Schema',
-            course: 'CS 301',
-            dueDate: '2024-12-25',
-            status: 'not-started',
-            priority: 'low'
-          }
-        ];
-        setAssignments(mockAssignments);
+        // Load assignments from API
+        const assignmentsResponse = await fetch('/api/student/assignments');
+        if (assignmentsResponse.ok) {
+          const assignmentsData = await assignmentsResponse.json();
+          setAssignments(assignmentsData);
+        } else {
+          setAssignments([]);
+        }
         
       } catch (error) {
         console.error('Error loading dashboard data:', error);
+        // Set empty data on error
+        setStats({ activeCourses: 0, assignmentsDue: 0, completed: 0 });
+        setCourses([]);
+        setAssignments([]);
       } finally {
         setIsLoadingStats(false);
         setIsLoadingCourses(false);
