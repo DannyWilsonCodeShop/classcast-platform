@@ -20,13 +20,23 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/MyClassCast (800 x 200 px).png",
+        url: "/ClassCastLogo.png",
         sizes: "any",
         type: "image/png",
       },
+      {
+        url: "/favicon-16x16.png",
+        sizes: "16x16",
+        type: "image/png",
+      },
+      {
+        url: "/favicon-32x32.png",
+        sizes: "32x32",
+        type: "image/png",
+      },
     ],
-    shortcut: "/MyClassCast (800 x 200 px).png",
-    apple: "/MyClassCast (800 x 200 px).png",
+    shortcut: "/ClassCastLogo.png",
+    apple: "/apple-touch-icon.png",
   },
 };
 
