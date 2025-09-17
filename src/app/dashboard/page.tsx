@@ -139,42 +139,44 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-yellow-300/30 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
                 <span className="text-white font-bold text-lg">
                   {user?.firstName?.charAt(0) || 'U'}
                 </span>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">
+              <div className="min-w-0 flex-1">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-800 truncate">
                   Welcome back, {user?.firstName}! 👋
                 </h1>
-                <p className="text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600">
                   Ready to learn and have fun today? 🌟
                 </p>
               </div>
             </div>
-                <div className="flex items-center space-x-4">
-                  <Link
-                    href="/profile/edit"
-                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-bold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl"
-                  >
-                    <span>👤</span>
-                    <span>Edit Profile</span>
-                  </Link>
-                  <Link
-                    href="/profile/videos"
-                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-bold hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl"
-                  >
-                    <span>📹</span>
-                    <span>My Videos</span>
-                  </Link>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce"></div>
-                    <span className="text-sm text-gray-600 font-medium">Online</span>
-                  </div>
-                </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              <div className="flex space-x-2 sm:space-x-4">
+                <Link
+                  href="/profile/edit"
+                  className="flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full font-bold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                >
+                  <span>👤</span>
+                  <span className="hidden sm:inline">Edit Profile</span>
+                </Link>
+                <Link
+                  href="/profile/videos"
+                  className="flex items-center justify-center space-x-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-bold hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl text-sm sm:text-base"
+                >
+                  <span>📹</span>
+                  <span className="hidden sm:inline">My Videos</span>
+                </Link>
+              </div>
+              <div className="flex items-center justify-center sm:justify-start space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-bounce flex-shrink-0"></div>
+                <span className="text-sm text-gray-600 font-medium">Online</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -264,8 +266,8 @@ export default function DashboardPage() {
                 {/* Create Post */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-yellow-300/30">
                   <div className="flex items-center space-x-4 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold">
+                    <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white font-bold text-sm">
                         {user?.firstName?.charAt(0) || 'U'}
                       </span>
                     </div>
@@ -302,8 +304,8 @@ export default function DashboardPage() {
                 {posts.map((post) => (
                   <div key={post.id} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
                     <div className="flex items-start space-x-4 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold">{post.avatar}</span>
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-white font-bold text-sm">{post.avatar}</span>
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
