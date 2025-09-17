@@ -9,11 +9,11 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { videoId: string } }
 ) {
   try {
     const { userId, isLiked } = await request.json();
-    const videoId = params.id;
+    const { videoId } = params;
 
     if (!userId || typeof isLiked !== 'boolean') {
       return NextResponse.json(

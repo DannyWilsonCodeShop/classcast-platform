@@ -10,6 +10,7 @@ interface CourseCardProps {
   onDelete: (courseId: string) => void;
   onArchive: (courseId: string) => void;
   onPublish: (courseId: string) => void;
+  onBulkEnroll?: (course: Course) => void;
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({
@@ -18,6 +19,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   onDelete,
   onArchive,
   onPublish,
+  onBulkEnroll,
 }) => {
   const router = useRouter();
   const getStatusColor = (status: string) => {
@@ -168,6 +170,19 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             >
               Edit
             </button>
+            
+            {course.status === 'published' && onBulkEnroll && (
+              <button
+                onClick={() => onBulkEnroll(course)}
+                className="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center"
+                title="Bulk enroll students"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                </svg>
+                Add Students
+              </button>
+            )}
             
             {course.status === 'draft' && (
               <button

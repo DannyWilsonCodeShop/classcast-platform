@@ -23,8 +23,7 @@ const StudentDashboard: React.FC = () => {
   const [stats, setStats] = useState({
     activeCourses: 0,
     assignmentsDue: 0,
-    completed: 0,
-    averageGrade: 0
+    completed: 0
   });
   const [courses, setCourses] = useState([]);
   const [assignments, setAssignments] = useState([]);
@@ -44,8 +43,7 @@ const StudentDashboard: React.FC = () => {
         setStats({
           activeCourses: 3,
           assignmentsDue: 5,
-          completed: 12,
-          averageGrade: 88
+          completed: 12
         });
         
         // Load courses
@@ -173,339 +171,222 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
+      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+        {/* Social Media Style Header */}
+        <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-[#003366]">Student Dashboard</h1>
-              <p className="mt-2 text-gray-600">Track your progress and manage your assignments</p>
-            </div>
-            <div className="flex items-center space-x-4">
-              {/* Online Status */}
-              <div className="flex items-center space-x-2">
-                {isOnline ? (
-                  <Wifi className="w-5 h-5 text-green-500" />
-                ) : (
-                  <WifiOff className="w-5 h-5 text-red-500" />
-                )}
-                <span className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-red-600'}`}>
-                  {isOnline ? 'Online' : 'Offline'}
-                </span>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
+                {user?.firstName?.charAt(0) || 'S'}
               </div>
-              
-              {/* Profile Editor Button */}
+              <div>
+                <h1 className="text-lg font-bold text-gray-900">Hey {user?.firstName || 'Student'}! 👋</h1>
+                <div className="flex items-center space-x-2">
+                  {isOnline ? (
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <span className="text-xs text-green-600 font-medium">Live</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                      <span className="text-xs text-gray-500">Offline</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => setShowProfileEditor(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full hover:scale-110 transition-all duration-200 shadow-lg"
+                title="Edit Profile"
               >
-                Edit Profile
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               </button>
-              
-              {/* Logout Button */}
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="p-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full hover:scale-110 transition-all duration-200 shadow-lg"
+                title="Logout"
               >
                 <LogOut className="w-4 h-4" />
-                <span>Logout</span>
               </button>
-              
               <PortalIndicator />
             </div>
           </div>
         </div>
 
-        {/* Video Reels Section */}
-        <div className="mb-8">
-          <VideoReels />
-        </div>
+        {/* Mobile Content - Scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 space-y-4">
 
-        {/* Courses Section */}
-        <div className="mb-8">
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">📚 Your Courses</h2>
-              <button
-                onClick={() => router.push('/student/courses')}
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                View All Courses
-              </button>
+            {/* Social Media Style Stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-4 text-center shadow-lg hover:scale-105 transition-transform duration-200">
+                <div className="text-2xl font-bold text-white">{stats.activeCourses}</div>
+                <div className="text-xs text-blue-100 font-medium">Active Courses 📚</div>
+              </div>
+              <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl p-4 text-center shadow-lg hover:scale-105 transition-transform duration-200">
+                <div className="text-2xl font-bold text-white">{stats.assignmentsDue}</div>
+                <div className="text-xs text-orange-100 font-medium">Due Soon ⏰</div>
+              </div>
+              <div className="bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl p-4 text-center shadow-lg hover:scale-105 transition-transform duration-200">
+                <div className="text-2xl font-bold text-white">{stats.completed}</div>
+                <div className="text-xs text-green-100 font-medium">Completed ✅</div>
+              </div>
             </div>
-            
-            {isLoadingCourses ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="bg-gray-200 rounded-lg h-48 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {courses.map((course) => (
-                  <CourseCard
-                    key={course.id}
-                    course={course}
-                    onClick={() => router.push(`/student/courses/${course.id}`)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Pending Assignments Section */}
-        <div className="mb-8">
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">📝 Pending Assignments</h2>
-              <button
-                onClick={() => router.push('/student/assignments')}
-                className="text-blue-600 hover:text-blue-800 font-medium"
-              >
-                View All Assignments
-              </button>
-            </div>
-            
-            {isLoadingAssignments ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="bg-gray-200 rounded-lg h-20"></div>
+            {/* Social Media Style Video Feed */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+              <div className="p-4 bg-gradient-to-r from-purple-500 to-pink-500">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg">🎬</span>
                   </div>
-                ))}
+                  <h2 className="text-white font-bold text-sm">Trending Now</h2>
+                </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                {assignments.map((assignment) => (
-                  <div
-                    key={assignment.id}
-                    onClick={() => router.push(`/student/assignments/${assignment.id}`)}
-                    className="bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-medium text-gray-900">{assignment.title}</h3>
-                        <p className="text-sm text-gray-600">{assignment.course}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-500">Due: {assignment.dueDate}</p>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          assignment.status === 'due-soon' ? 'bg-red-100 text-red-800' :
-                          assignment.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {assignment.status.replace('-', ' ')}
-                        </span>
-                      </div>
+              <div className="p-4">
+                <VideoReels studentId={user?.id || 'unknown'} />
+              </div>
+            </div>
+
+            {/* Social Media Style Courses Feed */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+              <div className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-white text-lg">📚</span>
                     </div>
+                    <h2 className="text-white font-bold text-sm">My Courses</h2>
                   </div>
-                ))}
+                  <button
+                    onClick={() => router.push('/student/courses')}
+                    className="text-white/80 hover:text-white text-xs font-medium"
+                  >
+                    See All →
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* AI Tutor Section */}
-        <div className="mb-8">
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">🤖 AI Learning Assistant</h2>
-            <AITutoringChat />
-          </div>
-        </div>
-
-        {/* Get Started Section */}
-        <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">🎓 Welcome to ClassCast!</h3>
-              <p className="text-blue-700">Complete your setup to get the most out of your learning experience.</p>
-            </div>
-            <button
-              onClick={() => setShowWizard(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-            >
-              <span>🚀</span>
-              <span>Get Started</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === 'overview' && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {/* Stats Cards */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-[#003366]/20 rounded-lg">
-                <svg className="h-6 w-6 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active Courses</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {isLoadingStats ? '...' : stats.activeCourses}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-[#D4AF37]/20 rounded-lg">
-                <svg className="h-6 w-6 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Assignments Due</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {isLoadingStats ? '...' : stats.assignmentsDue}
-                </p>
+              <div className="p-4">
+                {isLoadingCourses ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl h-20"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {courses.slice(0, 2).map((course) => (
+                      <div
+                        key={course.id}
+                        onClick={() => router.push(`/student/courses/${course.id}`)}
+                        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                            {course.code?.charAt(0) || 'C'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-sm font-bold text-gray-900 truncate">{course.name}</h3>
+                            <p className="text-xs text-gray-600">{course.code}</p>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300" 
+                                  style={{ width: `${course.progress}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs font-bold text-gray-700">{course.progress}%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
 
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-[#003366]/20 rounded-lg">
-                <svg className="h-6 w-6 text-[#003366]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            {/* Social Media Style Assignments Feed */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+              <div className="p-4 bg-gradient-to-r from-orange-500 to-red-500">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                      <span className="text-white text-lg">📝</span>
+                    </div>
+                    <h2 className="text-white font-bold text-sm">Upcoming Tasks</h2>
+                  </div>
+                  <button
+                    onClick={() => router.push('/student/assignments')}
+                    className="text-white/80 hover:text-white text-xs font-medium"
+                  >
+                    See All →
+                  </button>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {isLoadingStats ? '...' : stats.completed}
-                </p>
+              <div className="p-4">
+                {isLoadingAssignments ? (
+                  <div className="space-y-3">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="animate-pulse">
+                        <div className="bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl h-16"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {assignments.slice(0, 3).map((assignment) => (
+                      <div
+                        key={assignment.id}
+                        onClick={() => router.push(`/student/assignments/${assignment.id}`)}
+                        className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-sm font-bold text-gray-900 truncate">{assignment.title}</h3>
+                            <p className="text-xs text-gray-600">{assignment.course}</p>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                              assignment.status === 'due-soon' ? 'bg-red-500 text-white' :
+                              assignment.status === 'in-progress' ? 'bg-yellow-500 text-white' :
+                              'bg-gray-500 text-white'
+                            }`}>
+                              {assignment.status === 'due-soon' ? '🔥' : 
+                               assignment.status === 'in-progress' ? '⚡' : '📋'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
-          </div>
 
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-[#D4AF37]/20 rounded-lg">
-                <svg className="h-6 w-6 text-[#D4AF37]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">GPA</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {isLoadingStats ? '...' : stats.averageGrade.toFixed(1)}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Assignments */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Assignments</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900">React Component Design</h4>
-                  <p className="text-sm text-gray-600">Due: Dec 15, 2024</p>
-                  <p className="text-xs text-gray-500">Computer Science 101</p>
-                </div>
-                <span className="bg-[#003366] text-white px-3 py-1 rounded-md text-sm">
-                  Due Soon
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900">API Documentation</h4>
-                  <p className="text-sm text-gray-600">Due: Dec 20, 2024</p>
-                  <p className="text-xs text-gray-500">Software Engineering</p>
-                </div>
-                <span className="bg-[#D4AF37] text-white px-3 py-1 rounded-md text-sm">
-                  In Progress
-                </span>
-              </div>
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900">Database Schema</h4>
-                  <p className="text-sm text-gray-600">Due: Dec 25, 2024</p>
-                  <p className="text-xs text-gray-500">Database Systems</p>
-                </div>
-                <span className="bg-gray-500 text-white px-3 py-1 rounded-md text-sm">
-                  Not Started
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Upcoming Deadlines */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">Upcoming Deadlines</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900">Advanced React Patterns</h4>
-                  <p className="text-sm text-gray-600">Course: React Development</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-red-600 font-medium">Due in 2 days</p>
-                  <p className="text-xs text-gray-500">Dec 15, 2024</p>
+            {/* Social Media Style AI Chat */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+              <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-500">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg">🤖</span>
+                  </div>
+                  <h2 className="text-white font-bold text-sm">AI Study Buddy</h2>
                 </div>
               </div>
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h4 className="font-medium text-gray-900">API Integration Project</h4>
-                  <p className="text-sm text-gray-600">Course: Backend Development</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-yellow-600 font-medium">Due in 5 days</p>
-                  <p className="text-xs text-gray-500">Dec 18, 2024</p>
-                </div>
+              <div className="p-4">
+                <AITutoringChat />
               </div>
             </div>
           </div>
         </div>
-        </>
-        )}
-
-        {activeTab === 'ai-tutor' && (
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">🤖 AI Tutoring Assistant</h3>
-            <p className="text-gray-600 mb-6">
-              Get personalized help with your studies. Ask questions about any subject and get instant, intelligent responses.
-            </p>
-            <AITutoringChat
-              userId="student-123"
-              courseId="course-456"
-              context={{
-                subject: "Computer Science",
-                difficulty: "intermediate",
-                learningGoals: ["Master React", "Understand APIs", "Learn Database Design"]
-              }}
-            />
-          </div>
-        )}
-
-        {activeTab === 'plagiarism-check' && (
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">🔍 Plagiarism Detection</h3>
-            <p className="text-gray-600 mb-6">
-              Check your written work for originality and ensure academic integrity before submitting.
-            </p>
-            <PlagiarismChecker
-              submissionId="student-submission-123"
-              assignmentId="assignment-456"
-              text="Enter your essay or assignment text here to check for plagiarism..."
-              onCheckComplete={(result) => {
-                console.log('Plagiarism check completed:', result);
-              }}
-            />
-          </div>
-        )}
 
         {/* Profile Editor Modal */}
         {showProfileEditor && (
