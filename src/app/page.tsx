@@ -7,6 +7,38 @@ export default function HomePage() {
     <div className="min-h-screen">
       <Navigation />
       
+      {/* Top Menu Bar */}
+      <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center space-x-8 py-4">
+            <Link
+              href="/products"
+              className="text-gray-700 hover:text-[#0065a3] px-3 py-2 text-sm font-medium transition-colors duration-200"
+            >
+              Products
+            </Link>
+            <Link
+              href="/customers"
+              className="text-gray-700 hover:text-[#0065a3] px-3 py-2 text-sm font-medium transition-colors duration-200"
+            >
+              Customers
+            </Link>
+            <Link
+              href="/resources"
+              className="text-gray-700 hover:text-[#0065a3] px-3 py-2 text-sm font-medium transition-colors duration-200"
+            >
+              Resources
+            </Link>
+            <Link
+              href="/support"
+              className="text-gray-700 hover:text-[#0065a3] px-3 py-2 text-sm font-medium transition-colors duration-200"
+            >
+              Support
+            </Link>
+          </div>
+        </div>
+      </div>
+      
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#0065a3]/5 via-[#6cc3d3]/5 to-[#9940b6]/5 backdrop-blur-sm">
         {/* Background Pattern */}
