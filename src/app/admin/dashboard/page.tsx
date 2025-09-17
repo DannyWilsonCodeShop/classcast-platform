@@ -9,6 +9,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { SystemSettings } from '@/components/admin/SystemSettings';
 import { AdminAnalytics } from '@/components/admin/AdminAnalytics';
 import { RoleManagement } from '@/components/admin/RoleManagement';
+import PortalIndicator from '@/components/common/PortalIndicator';
 
 type AdminView = 'overview' | 'users' | 'settings' | 'analytics' | 'roles';
 

@@ -5,10 +5,13 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { CompactAssignmentList } from '@/components/student/CompactAssignmentList';
 import AITutoringChat from '@/components/ai/AITutoringChat';
 import PlagiarismChecker from '@/components/ai/PlagiarismChecker';
+import PortalIndicator from '@/components/common/PortalIndicator';
+import StudentOnboardingWizard from '@/components/wizards/StudentOnboardingWizard';
 
 const StudentDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'ai-tutor' | 'plagiarism-check'>('overview');
   const [showPlagiarismCheck, setShowPlagiarismCheck] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [stats, setStats] = useState({
     activeCourses: 0,
     assignmentsDue: 0,
@@ -48,8 +51,13 @@ const StudentDashboard: React.FC = () => {
     <StudentRoute>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#003366]">Student Dashboard</h1>
-          <p className="mt-2 text-gray-600">Track your progress and manage your assignments</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-[#003366]">Student Dashboard</h1>
+              <p className="mt-2 text-gray-600">Track your progress and manage your assignments</p>
+            </div>
+            <PortalIndicator />
+          </div>
         </div>
 
         {/* AI Features Navigation */}
@@ -88,6 +96,23 @@ const StudentDashboard: React.FC = () => {
                 🔍 Plagiarism Check
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Get Started Section */}
+        <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-blue-900 mb-2">🎓 Welcome to ClassCast!</h3>
+              <p className="text-blue-700">Complete your setup to get the most out of your learning experience.</p>
+            </div>
+            <button
+              onClick={() => setShowWizard(true)}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            >
+              <span>🚀</span>
+              <span>Get Started</span>
+            </button>
           </div>
         </div>
 
@@ -263,6 +288,16 @@ const StudentDashboard: React.FC = () => {
             />
           </div>
         )}
+
+        {/* Student Onboarding Wizard */}
+        <StudentOnboardingWizard
+          isOpen={showWizard}
+          onClose={() => setShowWizard(false)}
+          onComplete={() => {
+            setShowWizard(false);
+            // Optionally refresh data or show success message
+          }}
+        />
       </div>
     </StudentRoute>
   );

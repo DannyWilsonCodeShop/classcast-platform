@@ -9,7 +9,7 @@ const s3Client = new S3Client({
 });
 
 // Bucket name from environment or default
-const BUCKET_NAME = process.env.STORAGE_BUCKET_NAME || 'demoproject-storage';
+const BUCKET_NAME = process.env.STORAGE_BUCKET_NAME || 'classcast-videos-463470937777-us-east-1';
 
 // CloudFront domain from environment
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Assignment, AssignmentStatus, AssignmentType } from '@/types/dynamodb';
 import AssignmentCreationForm from './AssignmentCreationForm';
 import InstructorStats from './InstructorStats';
@@ -8,6 +8,8 @@ import InstructorSubmissionCard from './InstructorSubmissionCard';
 import InstructorCommunityFeed from './InstructorCommunityFeed';
 import AIGradingInterface from '@/components/ai/AIGradingInterface';
 import PlagiarismChecker from '@/components/ai/PlagiarismChecker';
+import { useAuth } from '@/contexts/AuthContext';
+import { apiHelpers } from '@/lib/apiConfig';
 
 interface InstructorDashboardProps {
   className?: string;
@@ -20,9 +22,13 @@ interface DashboardView {
 }
 
 const InstructorDashboard: React.FC<InstructorDashboardProps> = ({ className = '' }) => {
+  const { user } = useAuth();
   const [activeView, setActiveView] = useState<DashboardView['id']>('overview');
   const [showAssignmentForm, setShowAssignmentForm] = useState(false);
   const [isCreatingAssignment, setIsCreatingAssignment] = useState(false);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [isLoadingAssignments, setIsLoadingAssignments] = useState(false);
+  const [assignmentsError, setAssignmentsError] = useState<string | null>(null);
 
   const dashboardViews: DashboardView[] = [
     { id: 'overview', label: 'Overview', icon: '📊' },
@@ -33,26 +39,68 @@ const InstructorDashboard: React.FC<InstructorDashboardProps> = ({ className = '
     { id: 'ai-tools', label: 'AI Tools', icon: '🔧' }
   ];
 
+  // Fetch assignments when component mounts or when assignments view is selected
+  const fetchAssignments = useCallback(async () => {
+    if (!user?.instructorId) return;
+    
+    setIsLoadingAssignments(true);
+    setAssignmentsError(null);
+    
+    try {
+      const response = await apiHelpers.getAssignments({
+        instructorId: user.instructorId
+      });
+      
+      if (response.success) {
+        setAssignments(response.data || []);
+      } else {
+        setAssignmentsError(response.error || 'Failed to fetch assignments');
+      }
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      setAssignmentsError('Failed to fetch assignments. Please try again.');
+    } finally {
+      setIsLoadingAssignments(false);
+    }
+  }, [user?.instructorId]);
+
+  // Load assignments when component mounts
+  useEffect(() => {
+    fetchAssignments();
+  }, [fetchAssignments]);
+
+  // Load assignments when assignments view is selected
+  useEffect(() => {
+    if (activeView === 'assignments') {
+      fetchAssignments();
+    }
+  }, [activeView, fetchAssignments]);
+
   const handleCreateAssignment = useCallback(async (assignmentData: Partial<Assignment>) => {
     setIsCreatingAssignment(true);
     try {
-      // TODO: Implement API call to create assignment
-      console.log('Creating assignment:', assignmentData);
+      const response = await apiHelpers.createAssignment({
+        ...assignmentData,
+        instructorId: user?.instructorId,
+        courseId: assignmentData.courseId || 'default-course' // You might want to get this from a course selection
+      });
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Close form and show success message
-      setShowAssignmentForm(false);
-      // TODO: Show success notification
+      if (response.success) {
+        // Close form and refresh assignments list
+        setShowAssignmentForm(false);
+        await fetchAssignments();
+        // TODO: Show success notification
+      } else {
+        throw new Error(response.error || 'Failed to create assignment');
+      }
       
     } catch (error) {
       console.error('Failed to create assignment:', error);
-      // TODO: Show error notification
+      setAssignmentsError(error instanceof Error ? error.message : 'Failed to create assignment');
     } finally {
       setIsCreatingAssignment(false);
     }
-  }, []);
+  }, [user?.instructorId, fetchAssignments]);
 
   const handleCancelAssignment = useCallback(() => {
     setShowAssignmentForm(false);
@@ -144,77 +192,120 @@ const InstructorDashboard: React.FC<InstructorDashboardProps> = ({ className = '
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Sample assignments - replace with real data */}
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-          <div className="flex justify-between items-start mb-3">
-            <h3 className="font-semibold text-gray-900">Essay Assignment</h3>
-            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-              Published
-            </span>
-          </div>
-          <p className="text-gray-600 text-sm mb-3">Write a 1000-word essay on modern technology trends.</p>
-          <div className="space-y-2 text-sm text-gray-500">
-            <div>Due: Dec 15, 2024</div>
-            <div>Max Score: 100</div>
-            <div>Submissions: 12/25</div>
-          </div>
-          <div className="mt-4 flex space-x-2">
-            <button className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors">
-              Edit
-            </button>
-            <button className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
-              View
+      {/* Error State */}
+      {assignmentsError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-red-800">{assignmentsError}</p>
+            <button
+              onClick={fetchAssignments}
+              className="ml-auto text-red-600 hover:text-red-800 underline"
+            >
+              Retry
             </button>
           </div>
         </div>
+      )}
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
-          <div className="flex justify-between items-start mb-3">
-            <h3 className="font-semibold text-gray-900">Project Report</h3>
-            <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
-              Draft
-            </span>
-          </div>
-          <p className="text-gray-600 text-sm mb-3">Create a comprehensive project report with analysis.</p>
-          <div className="space-y-2 text-sm text-gray-500">
-            <div>Due: Dec 20, 2024</div>
-            <div>Max Score: 150</div>
-            <div>Submissions: 0/25</div>
-          </div>
-          <div className="mt-4 flex space-x-2">
-            <button className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors">
-              Edit
-            </button>
-            <button className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors">
-              Publish
-            </button>
-          </div>
+      {/* Loading State */}
+      {isLoadingAssignments && (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-gray-600">Loading assignments...</span>
         </div>
+      )}
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-gray-500">
-          <div className="flex justify-between items-start mb-3">
-            <h3 className="font-semibold text-gray-900">Quiz 3</h3>
-            <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
-              Closed
-            </span>
+      {/* Empty State */}
+      {!isLoadingAssignments && !assignmentsError && assignments.length === 0 && (
+        <div className="text-center py-12">
+          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
           </div>
-          <p className="text-gray-600 text-sm mb-3">Multiple choice quiz covering chapters 5-7.</p>
-          <div className="space-y-2 text-sm text-gray-500">
-            <div>Due: Dec 10, 2024</div>
-            <div>Max Score: 50</div>
-            <div>Submissions: 25/25</div>
-          </div>
-          <div className="mt-4 flex space-x-2">
-            <button className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors">
-              View
-            </button>
-            <button className="px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors">
-              Results
-            </button>
-          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No assignments yet</h3>
+          <p className="text-gray-600 mb-4">Create your first assignment to get started.</p>
+          <button
+            onClick={() => setShowAssignmentForm(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Create Assignment
+          </button>
         </div>
-      </div>
+      )}
+
+      {/* Assignments Grid */}
+      {!isLoadingAssignments && !assignmentsError && assignments.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {assignments.map((assignment) => {
+            const getStatusColor = (status: string) => {
+              switch (status) {
+                case 'published': return 'bg-green-100 text-green-800';
+                case 'draft': return 'bg-yellow-100 text-yellow-800';
+                case 'archived': return 'bg-gray-100 text-gray-800';
+                default: return 'bg-gray-100 text-gray-800';
+              }
+            };
+
+            const getBorderColor = (status: string) => {
+              switch (status) {
+                case 'published': return 'border-green-500';
+                case 'draft': return 'border-yellow-500';
+                case 'archived': return 'border-gray-500';
+                default: return 'border-gray-500';
+              }
+            };
+
+            const formatDate = (dateString?: string) => {
+              if (!dateString) return 'No due date';
+              return new Date(dateString).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+              });
+            };
+
+            return (
+              <div key={assignment.assignmentId} className={`bg-white rounded-lg shadow p-6 border-l-4 ${getBorderColor(assignment.status || 'draft')}`}>
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-semibold text-gray-900 truncate">{assignment.title}</h3>
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(assignment.status || 'draft')}`}>
+                    {assignment.status || 'Draft'}
+                  </span>
+                </div>
+                
+                <p className="text-gray-600 text-sm mb-3 line-clamp-2">{assignment.description}</p>
+                
+                <div className="space-y-2 text-sm text-gray-500">
+                  <div>Due: {formatDate(assignment.dueDate)}</div>
+                  <div>Max Score: {assignment.maxScore || 100}</div>
+                  <div>Type: {assignment.type || 'Assignment'}</div>
+                  {assignment.submissionCount !== undefined && (
+                    <div>Submissions: {assignment.submissionCount}</div>
+                  )}
+                </div>
+                
+                <div className="mt-4 flex space-x-2">
+                  <button className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors">
+                    Edit
+                  </button>
+                  <button className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
+                    View
+                  </button>
+                  {assignment.status === 'draft' && (
+                    <button className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors">
+                      Publish
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 
