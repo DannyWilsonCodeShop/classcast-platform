@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-// Removed test data generator - using live data only
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -43,15 +42,31 @@ export default function DashboardPage() {
       try {
         setIsLoadingData(true);
         
-        // TODO: Replace with actual API calls
-        // const postsResponse = await fetch('/api/posts');
-        // const assignmentsResponse = await fetch('/api/assignments');
-        // const coursesResponse = await fetch('/api/courses');
+        // Load data from APIs
+        const postsResponse = await fetch('/api/posts');
+        const assignmentsResponse = await fetch('/api/assignments');
+        const coursesResponse = await fetch('/api/courses');
         
-        // For now, set empty arrays until APIs are implemented
-        setPosts([]);
-        setAssignments([]);
-        setCourses([]);
+        if (postsResponse.ok) {
+          const postsData = await postsResponse.json();
+          setPosts(postsData);
+        } else {
+          setPosts([]);
+        }
+        
+        if (assignmentsResponse.ok) {
+          const assignmentsData = await assignmentsResponse.json();
+          setAssignments(assignmentsData);
+        } else {
+          setAssignments([]);
+        }
+        
+        if (coursesResponse.ok) {
+          const coursesData = await coursesResponse.json();
+          setCourses(coursesData);
+        } else {
+          setCourses([]);
+        }
         
       } catch (error) {
         console.error('Error loading dashboard data:', error);
@@ -366,13 +381,13 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex space-x-2">
                             <button 
-                              onClick={(e) => e.preventDefault()}
+                              onClick={() => router.push(`/student/assignments/${assignment.id}`)}
                               className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
                             >
                               {assignment.status === 'not_started' ? 'Start Assignment' : 'Continue'}
                             </button>
                             <button 
-                              onClick={(e) => e.preventDefault()}
+                              onClick={() => router.push(`/student/assignments/${assignment.id}`)}
                               className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300"
                             >
                               View Details
@@ -380,8 +395,9 @@ export default function DashboardPage() {
                           </div>
                           <div className="flex items-center space-x-2">
                             <button 
-                              onClick={(e) => e.preventDefault()}
+                              onClick={() => router.push(`/student/assignments/${assignment.id}/materials`)}
                               className="text-gray-500 hover:text-gray-700 transition-colors"
+                              title="View Materials"
                             >
                               <span className="text-xl">📎</span>
                             </button>

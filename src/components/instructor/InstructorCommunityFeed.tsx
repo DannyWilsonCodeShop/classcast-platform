@@ -15,132 +15,7 @@ export interface InstructorCommunityFeedProps {
   className?: string;
 }
 
-// TODO: Replace with actual API data
-const mockInstructorSubmissions: InstructorSubmissionData[] = [
-  {
-    id: 'sub-001',
-    studentId: 'student-001',
-    studentName: 'Alex Johnson',
-    studentEmail: 'alex.johnson@university.edu',
-    assignmentId: 'assign-001',
-    assignmentTitle: 'Video Presentation: Modern Web Development',
-    courseId: 'course-001',
-    courseName: 'Advanced Web Development',
-    status: 'submitted',
-    submittedAt: '2024-01-15T10:30:00Z',
-    processedAt: '2024-01-15T10:35:00Z',
-    dueDate: '2024-01-15T23:59:00Z',
-    isLate: false,
-    maxScore: 100,
-    videoDuration: 180,
-    videoResolution: { width: 1920, height: 1080 },
-    processingDuration: 45,
-    priority: 'high',
-    reviewStatus: 'pending',
-    estimatedGradingTime: 15,
-    tags: ['video', 'presentation', 'web-dev'],
-    files: [
-      {
-        name: 'presentation.mp4',
-        url: '/videos/presentation.mp4',
-        type: 'video/mp4',
-        size: 25600000,
-        uploadedAt: '2024-01-15T10:30:00Z'
-      },
-      {
-        name: 'slides.pdf',
-        url: '/files/slides.pdf',
-        type: 'application/pdf',
-        size: 2048000,
-        uploadedAt: '2024-01-15T10:30:00Z'
-      }
-    ],
-    likes: [
-      { userId: 'student-002', userName: 'Sarah Chen', createdAt: '2024-01-15T12:00:00Z' }
-    ],
-    comments: [
-      {
-        id: 'comment-001',
-        text: 'Great job explaining the concepts!',
-        authorId: 'student-002',
-        authorName: 'Sarah Chen',
-        authorType: 'student',
-        createdAt: '2024-01-15T12:00:00Z'
-      }
-    ]
-  },
-  {
-    id: 'sub-002',
-    studentId: 'student-002',
-    studentName: 'Sarah Chen',
-    studentEmail: 'sarah.chen@university.edu',
-    assignmentId: 'assign-001',
-    assignmentTitle: 'Video Presentation: Modern Web Development',
-    courseId: 'course-001',
-    courseName: 'Advanced Web Development',
-    status: 'completed',
-    submittedAt: '2024-01-14T15:45:00Z',
-    processedAt: '2024-01-14T15:50:00Z',
-    dueDate: '2024-01-15T23:59:00Z',
-    isLate: false,
-    grade: 88,
-    maxScore: 100,
-    feedback: 'Good content and structure. Consider improving video lighting and audio quality for future presentations.',
-    instructorNotes: 'Student shows good understanding of concepts. Video quality could be improved.',
-    videoDuration: 165,
-    videoResolution: { width: 1280, height: 720 },
-    processingDuration: 38,
-    priority: 'medium',
-    reviewStatus: 'completed',
-    estimatedGradingTime: 12,
-    tags: ['video', 'presentation'],
-    files: [
-      {
-        name: 'web-dev-presentation.mp4',
-        url: '/videos/web-dev-presentation.mp4',
-        type: 'video/mp4',
-        size: 18900000,
-        uploadedAt: '2024-01-14T15:45:00Z'
-      }
-    ],
-    likes: [],
-    comments: []
-  },
-  {
-    id: 'sub-003',
-    studentId: 'student-003',
-    studentName: 'Mike Rodriguez',
-    studentEmail: 'mike.rodriguez@university.edu',
-    assignmentId: 'assign-001',
-    assignmentTitle: 'Video Presentation: Modern Web Development',
-    courseId: 'course-001',
-    courseName: 'Advanced Web Development',
-    status: 'submitted',
-    submittedAt: '2024-01-16T09:15:00Z',
-    processedAt: '2024-01-16T09:20:00Z',
-    dueDate: '2024-01-15T23:59:00Z',
-    isLate: true,
-    maxScore: 100,
-    videoDuration: 210,
-    videoResolution: { width: 1920, height: 1080 },
-    processingDuration: 52,
-    priority: 'low',
-    reviewStatus: 'pending',
-    estimatedGradingTime: 18,
-    tags: ['video', 'late'],
-    files: [
-      {
-        name: 'web-development-talk.mp4',
-        url: '/videos/web-development-talk.mp4',
-        type: 'video/mp4',
-        size: 32000000,
-        uploadedAt: '2024-01-16T09:15:00Z'
-      }
-    ],
-    likes: [],
-    comments: []
-  }
-];
+// Real API data will be loaded from the API
 
 export const InstructorCommunityFeed: React.FC<InstructorCommunityFeedProps> = ({
   instructorId,
@@ -156,12 +31,14 @@ export const InstructorCommunityFeed: React.FC<InstructorCommunityFeedProps> = (
       try {
         setIsLoading(true);
         
-        // TODO: Replace with actual API call
-        // const response = await fetch(`/api/instructor/${instructorId}/submissions`);
-        // const data = await response.json();
-        
-        // For now, set empty array until API is implemented
-        setSubmissions([]);
+        // Load submissions from API
+        const response = await fetch(`/api/instructor/${instructorId}/submissions`);
+        if (response.ok) {
+          const data = await response.json();
+          setSubmissions(data);
+        } else {
+          setSubmissions([]);
+        }
         
       } catch (error) {
         console.error('Error loading submissions:', error);

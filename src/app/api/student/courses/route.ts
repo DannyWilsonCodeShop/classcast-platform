@@ -7,17 +7,17 @@ export async function GET(request: NextRequest) {
     
     // Get user from auth context (you'll need to implement this)
     // For now, we'll return empty array
-    const assignments = [];
+    const courses = [];
 
-    // TODO: Implement real assignments fetching from database
-    // - Query assignments table for user's assignments
-    // - Include assignment details, due dates, status
+    // TODO: Implement real courses fetching from database
+    // - Query courses table for courses where user is enrolled
+    // - Include course details, progress, instructor info
 
-    return NextResponse.json(assignments);
+    return NextResponse.json(courses);
   } catch (error) {
-    console.error('Error fetching assignments:', error);
+    console.error('Error fetching student courses:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch assignments' },
+      { error: 'Failed to fetch courses' },
       { status: 500 }
     );
   }

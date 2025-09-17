@@ -10,12 +10,12 @@ export async function GET(request: NextRequest) {
     const assignments = [];
 
     // TODO: Implement real assignments fetching from database
-    // - Query assignments table for user's assignments
+    // - Query assignments table for assignments assigned to user
     // - Include assignment details, due dates, status
 
     return NextResponse.json(assignments);
   } catch (error) {
-    console.error('Error fetching assignments:', error);
+    console.error('Error fetching student assignments:', error);
     return NextResponse.json(
       { error: 'Failed to fetch assignments' },
       { status: 500 }
