@@ -61,46 +61,41 @@ export default function AssignmentsPage() {
     );
   }
 
-  const assignmentStats = {
-    admin: { total: 1247, pending: 23, graded: 1204, overdue: 12 },
-    instructor: { total: 45, pending: 8, graded: 37, overdue: 3 },
-    student: { total: 12, pending: 5, graded: 7, overdue: 0 }
-  };
+  // State for live assignment data
+  const [assignmentStats, setAssignmentStats] = useState({
+    total: 0,
+    pending: 0,
+    graded: 0,
+    overdue: 0
+  });
+  const [recentAssignments, setRecentAssignments] = useState([]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
-  const currentStats = assignmentStats[user?.role as keyof typeof assignmentStats] || assignmentStats.student;
+  // Load assignment data
+  useEffect(() => {
+    const loadAssignmentData = async () => {
+      try {
+        setIsLoadingData(true);
+        
+        // TODO: Replace with actual API calls
+        // const statsResponse = await fetch(`/api/assignments/stats?role=${user?.role}`);
+        // const assignmentsResponse = await fetch(`/api/assignments/recent?role=${user?.role}`);
+        
+        // For now, set empty data until APIs are implemented
+        setAssignmentStats({ total: 0, pending: 0, graded: 0, overdue: 0 });
+        setRecentAssignments([]);
+        
+      } catch (error) {
+        console.error('Error loading assignment data:', error);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
 
-  const recentAssignments = [
-    {
-      id: 1,
-      title: 'Machine Learning Project',
-      course: 'CS 229',
-      dueDate: '2024-01-15',
-      status: 'pending',
-      priority: 'high',
-      type: 'Project',
-      points: 100
-    },
-    {
-      id: 2,
-      title: 'Calculus Problem Set 3',
-      course: 'MATH 101',
-      dueDate: '2024-01-12',
-      status: 'submitted',
-      priority: 'medium',
-      type: 'Homework',
-      points: 50
-    },
-    {
-      id: 3,
-      title: 'Literature Analysis Essay',
-      course: 'ENG 201',
-      dueDate: '2024-01-10',
-      status: 'graded',
-      priority: 'low',
-      type: 'Essay',
-      points: 75
+    if (isAuthenticated && user) {
+      loadAssignmentData();
     }
-  ];
+  }, [isAuthenticated, user]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

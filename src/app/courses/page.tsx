@@ -204,10 +204,16 @@ export default function CoursesPage() {
               {/* Action Buttons */}
               <div className="flex items-center justify-between">
                 <div className="flex space-x-2">
-                  <button className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300">
+                  <button 
+                    onClick={() => router.push(`/student/courses/${course.id}`)}
+                    className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+                  >
                     View Course
                   </button>
-                  <button className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300">
+                  <button 
+                    onClick={() => router.push(`/student/courses/${course.id}`)}
+                    className="px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300"
+                  >
                     Materials
                   </button>
                 </div>

@@ -48,89 +48,14 @@ export default function CommunityPage() {
 
   const loadPosts = async () => {
     try {
-      // Mock data for now - replace with actual API call
-      const mockPosts: CommunityPost[] = [
-        {
-          id: '1',
-          author: 'Dr. Sarah Johnson',
-          authorRole: 'instructor',
-          title: 'Welcome to the ClassCast Community! 🎉',
-          content: 'This is a space for students and instructors to connect, share ideas, and collaborate on learning. Feel free to ask questions, share resources, and help each other succeed!',
-          timestamp: '2 hours ago',
-          likes: 12,
-          comments: 5,
-          tags: ['welcome', 'community', 'announcement'],
-          reactions: { like: 8, love: 3, helpful: 1, celebrate: 2 },
-          isLiked: false,
-          isBookmarked: false,
-          trending: true,
-          pinned: true
-        },
-        {
-          id: '2',
-          author: 'Alex Chen',
-          authorRole: 'student',
-          title: 'Study Group for CS 101 - Virtual Meetup Tonight!',
-          content: 'Looking for study partners for the upcoming midterm. We\'re meeting virtually tonight at 7 PM EST. Anyone interested in joining? We\'ll cover algorithms and data structures.',
-          timestamp: '4 hours ago',
-          likes: 8,
-          comments: 3,
-          tags: ['study-group', 'cs101', 'virtual-meetup'],
-          reactions: { like: 5, love: 1, helpful: 2, celebrate: 0 },
-          isLiked: true,
-          isBookmarked: false,
-          trending: true,
-          pinned: false
-        },
-        {
-          id: '3',
-          author: 'Prof. Michael Brown',
-          authorRole: 'instructor',
-          title: 'Assignment Guidelines Reminder 📝',
-          content: 'Just a friendly reminder about the assignment submission guidelines. Please make sure to follow the formatting requirements and submit on time. Late submissions will have a 10% penalty.',
-          timestamp: '1 day ago',
-          likes: 15,
-          comments: 7,
-          tags: ['assignments', 'guidelines', 'reminder'],
-          reactions: { like: 10, love: 2, helpful: 3, celebrate: 0 },
-          isLiked: false,
-          isBookmarked: true,
-          trending: false,
-          pinned: false
-        },
-        {
-          id: '4',
-          author: 'Maria Rodriguez',
-          authorRole: 'student',
-          title: 'AI Tools for Research - What\'s Everyone Using?',
-          content: 'I\'ve been exploring AI tools for my research paper. What tools are you all using? I\'ve tried ChatGPT and Claude, but wondering if there are other options for academic work.',
-          timestamp: '6 hours ago',
-          likes: 23,
-          comments: 12,
-          tags: ['ai-tools', 'research', 'academic', 'technology'],
-          reactions: { like: 15, love: 4, helpful: 4, celebrate: 0 },
-          isLiked: false,
-          isBookmarked: false,
-          trending: true,
-          pinned: false
-        },
-        {
-          id: '5',
-          author: 'Dr. Emily Watson',
-          authorRole: 'instructor',
-          title: 'New Feature: AI-Powered Feedback System',
-          content: 'Excited to announce our new AI-powered feedback system! It provides instant, personalized feedback on assignments. Students, check it out in your latest submissions!',
-          timestamp: '3 days ago',
-          likes: 45,
-          comments: 18,
-          tags: ['ai', 'feedback', 'new-feature', 'announcement'],
-          reactions: { like: 25, love: 12, helpful: 8, celebrate: 15 },
-          isLiked: true,
-          isBookmarked: true,
-          trending: true,
-          pinned: true
-        }
-      ];
+      setLoading(true);
+      
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/community/posts');
+      // const data = await response.json();
+      
+      // For now, set empty array until API is implemented
+      const mockPosts: CommunityPost[] = [];
       
       setPosts(mockPosts);
     } catch (error) {
