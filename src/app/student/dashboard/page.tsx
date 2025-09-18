@@ -165,21 +165,6 @@ const StudentDashboard: React.FC = () => {
         <div className="flex-1 overflow-y-auto">
           <div className="p-4 space-y-4">
 
-            {/* Social Media Style Stats */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-gradient-to-br from-blue-400 to-blue-600 rounded-2xl p-4 text-center shadow-lg hover:scale-105 transition-transform duration-200">
-                <div className="text-2xl font-bold text-white">{stats.activeCourses}</div>
-                <div className="text-xs text-blue-100 font-medium">Active Courses 📚</div>
-              </div>
-              <div className="bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl p-4 text-center shadow-lg hover:scale-105 transition-transform duration-200">
-                <div className="text-2xl font-bold text-white">{stats.assignmentsDue}</div>
-                <div className="text-xs text-orange-100 font-medium">Due Soon ⏰</div>
-              </div>
-              <div className="bg-gradient-to-br from-green-400 to-emerald-600 rounded-2xl p-4 text-center shadow-lg hover:scale-105 transition-transform duration-200">
-                <div className="text-2xl font-bold text-white">{stats.completed}</div>
-                <div className="text-xs text-green-100 font-medium">Completed ✅</div>
-              </div>
-            </div>
 
             {/* Social Media Style Video Feed */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
@@ -325,7 +310,7 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </div>
               <div className="p-4">
-                <AITutoringChat />
+                <AITutoringChat userId={user?.id || 'unknown'} />
               </div>
             </div>
           </div>
