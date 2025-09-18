@@ -69,6 +69,24 @@ export async function POST(request: NextRequest) {
 
       console.log('User created successfully with AWS Cognito:', result);
 
+      // Auto-confirm the user so they can log in immediately
+      try {
+        const { CognitoIdentityProviderClient, AdminConfirmSignUpCommand } = await import('@aws-sdk/client-cognito-identity-provider');
+        const cognitoClient = new CognitoIdentityProviderClient({
+          region: process.env.AWS_REGION || 'us-east-1',
+        });
+
+        await cognitoClient.send(new AdminConfirmSignUpCommand({
+          UserPoolId: process.env.COGNITO_USER_POOL_ID,
+          Username: email,
+        }));
+
+        console.log('User auto-confirmed successfully');
+      } catch (confirmError) {
+        console.warn('Could not auto-confirm user:', confirmError);
+        // Continue anyway - user can still be confirmed manually
+      }
+
       // Create user profile in DynamoDB
       try {
         const { DynamoDBService } = await import('@/lib/dynamodb');
