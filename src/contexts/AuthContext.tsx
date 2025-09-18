@@ -176,18 +176,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } else {
         const errorData = await response.json();
+        const errorMessage = errorData.error?.message || errorData.message || 'Signup failed';
         setAuthState(prev => ({
           ...prev,
           isLoading: false,
-          error: errorData.message || 'Signup failed',
+          error: errorMessage,
         }));
+        // Throw error so SignupForm can catch it
+        throw new Error(errorMessage);
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Network error. Please try again.';
       setAuthState(prev => ({
         ...prev,
         isLoading: false,
-        error: 'Network error. Please try again.',
+        error: errorMessage,
       }));
+      // Re-throw error so SignupForm can catch it
+      throw error;
     }
   }, [router]);
 
