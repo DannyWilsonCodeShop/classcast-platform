@@ -332,20 +332,27 @@ const StudentDashboard: React.FC = () => {
         </div>
 
         {/* Profile Editor Modal */}
-        {showProfileEditor && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <ProfileEditor
-                user={user}
-                onClose={() => setShowProfileEditor(false)}
-                onSave={() => {
-                  setShowProfileEditor(false);
-                  // Refresh user data if needed
-                }}
-              />
-            </div>
-          </div>
-        )}
+        <ProfileEditor
+          profile={{
+            id: user?.id || '',
+            firstName: user?.firstName || '',
+            lastName: user?.lastName || '',
+            email: user?.email || '',
+            avatar: user?.avatar || '',
+            bio: user?.bio || '',
+            major: user?.major || '',
+            year: user?.year || '',
+            phone: user?.phone || '',
+            location: user?.location || '',
+          }}
+          onSave={(updatedProfile) => {
+            setShowProfileEditor(false);
+            // TODO: Update user data in context
+            console.log('Profile updated:', updatedProfile);
+          }}
+          onCancel={() => setShowProfileEditor(false)}
+          isOpen={showProfileEditor}
+        />
 
         {/* Student Onboarding Wizard */}
         <StudentOnboardingWizard
