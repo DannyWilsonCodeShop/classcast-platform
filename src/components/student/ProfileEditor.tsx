@@ -10,7 +10,6 @@ interface ProfileData {
   email: string;
   avatar: string;
   bio: string;
-  studentId: string;
   major: string;
   year: string;
   phone?: string;
@@ -128,9 +127,6 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!editedProfile.studentId.trim()) {
-      newErrors.studentId = 'Student ID is required';
-    }
 
     if (!editedProfile.major.trim()) {
       newErrors.major = 'Major is required';
@@ -265,24 +261,6 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
               )}
             </div>
 
-            {/* Student ID */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Student ID *
-              </label>
-              <input
-                type="text"
-                value={editedProfile.studentId}
-                onChange={(e) => handleInputChange('studentId', e.target.value)}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.studentId ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter your student ID"
-              />
-              {errors.studentId && (
-                <p className="text-sm text-red-600 mt-1">{errors.studentId}</p>
-              )}
-            </div>
 
             {/* Major */}
             <div>

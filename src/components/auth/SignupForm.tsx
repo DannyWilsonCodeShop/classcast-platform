@@ -11,7 +11,6 @@ interface SignupFormData {
   password: string;
   confirmPassword: string;
   role: 'student' | 'instructor';
-  studentId?: string;
   department?: string;
   agreeToTerms: boolean;
 }
@@ -23,7 +22,6 @@ interface SignupFormErrors {
   password?: string;
   confirmPassword?: string;
   role?: string;
-  studentId?: string;
   department?: string;
   agreeToTerms?: string;
   general?: string;
@@ -44,7 +42,6 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
     password: '',
     confirmPassword: '',
     role: 'student',
-    studentId: '',
     department: '',
     agreeToTerms: false,
   });
@@ -100,9 +97,6 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
     }
 
     // Role-specific validation
-    if (formData.role === 'student' && !formData.studentId?.trim()) {
-      newErrors.studentId = 'Student ID is required for students';
-    }
     if (formData.role === 'instructor' && !formData.department?.trim()) {
       newErrors.department = 'Department is required for instructors';
     }
@@ -316,36 +310,6 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
             </div>
           </div>
 
-          {/* Role-specific Fields */}
-          {formData.role === 'student' && (
-            <div>
-              <label htmlFor="studentId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Student ID
-              </label>
-              <input
-                id="studentId"
-                name="studentId"
-                type="text"
-                autoComplete="off"
-                required
-                value={formData.studentId}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
-                  errors.studentId 
-                    ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                    : 'border-gray-300 dark:border-gray-600'
-                } bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
-                placeholder="Enter your student ID"
-                disabled={isLoading}
-              />
-              {errors.studentId && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.studentId}
-                </p>
-              )}
-            </div>
-          )}
 
           {formData.role === 'instructor' && (
             <div>
