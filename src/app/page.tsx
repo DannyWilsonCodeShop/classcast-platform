@@ -1,8 +1,20 @@
 import React from 'react';
 import Link from 'next/link';
 import Navigation from '@/components/layout/Navigation';
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Check if user is authenticated and redirect to appropriate dashboard
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('accessToken');
+  
+  if (accessToken) {
+    // User is authenticated, redirect to dashboard
+    // We'll let the client-side handle the role-based routing
+    redirect('/student/dashboard');
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navigation />
