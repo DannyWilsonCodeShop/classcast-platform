@@ -61,7 +61,6 @@ export interface CognitoUser {
   firstName: string;
   lastName: string;
   role: UserRole;
-  studentId?: string;
   instructorId?: string;
   department?: string;
   bio?: string;
@@ -82,7 +81,6 @@ export interface CreateUserRequest {
   lastName: string;
   password: string;
   role: UserRole;
-  studentId?: string;
   instructorId?: string;
   department?: string;
   bio?: string;
@@ -96,7 +94,6 @@ export interface UpdateUserRequest {
   firstName?: string;
   lastName?: string;
   role?: UserRole;
-  studentId?: string;
   instructorId?: string;
   department?: string;
   bio?: string;
@@ -128,9 +125,6 @@ export class CognitoAuthService {
         { Name: 'custom:role', Value: request.role },
       ];
 
-      if (request.studentId) {
-        userAttributes.push({ Name: 'custom:studentId', Value: request.studentId });
-      }
       if (request.instructorId) {
         userAttributes.push({ Name: 'custom:instructorId', Value: request.instructorId });
       }
@@ -171,7 +165,6 @@ export class CognitoAuthService {
         firstName: request.firstName,
         lastName: request.lastName,
         role: request.role as UserRole,
-        studentId: request.studentId,
         instructorId: request.instructorId,
         department: request.department,
         bio: request.bio,
@@ -225,9 +218,6 @@ export class CognitoAuthService {
       }
       if (updates.role !== undefined) {
         userAttributes.push({ Name: 'custom:role', Value: updates.role });
-      }
-      if (updates.studentId !== undefined) {
-        userAttributes.push({ Name: 'custom:studentId', Value: updates.studentId });
       }
       if (updates.instructorId !== undefined) {
         userAttributes.push({ Name: 'custom:instructorId', Value: updates.instructorId });
@@ -552,7 +542,6 @@ export class CognitoAuthService {
       firstName: attributeMap.given_name || '',
       lastName: attributeMap.family_name || '',
       role: (attributeMap['custom:role'] as UserRole) || UserRole.STUDENT,
-      studentId: attributeMap['custom:studentId'],
       instructorId: attributeMap['custom:instructorId'],
       department: attributeMap['custom:department'],
       bio: attributeMap['custom:bio'],

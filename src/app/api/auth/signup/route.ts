@@ -33,13 +33,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (role === 'student' && !studentId) {
-      console.log('Student ID missing for student role');
-      return NextResponse.json(
-        { error: { message: 'Student ID is required for student role' } },
-        { status: 400 }
-      );
-    }
 
     if (role === 'instructor' && !department) {
       console.log('Department missing for instructor role');
@@ -69,7 +62,7 @@ export async function POST(request: NextRequest) {
         lastName: lastName.trim(),
         password,
         role: role as 'student' | 'instructor' | 'admin',
-        studentId: role === 'student' ? studentId : undefined,
+        studentId: undefined,
         instructorId: role === 'instructor' ? `INS-${Date.now()}` : undefined,
         department: role === 'instructor' ? department : undefined,
       });

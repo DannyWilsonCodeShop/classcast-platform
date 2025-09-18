@@ -10,7 +10,6 @@ export interface User {
   firstName?: string;
   lastName?: string;
   role: 'student' | 'instructor' | 'admin';
-  studentId?: string;
   instructorId?: string;
   department?: string;
   emailVerified?: boolean;
