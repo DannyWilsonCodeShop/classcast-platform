@@ -35,18 +35,24 @@ export const EmailConfirmationModal: React.FC<EmailConfirmationModalProps> = ({
           </div>
 
           {/* Title */}
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Account Created Successfully!
+          <h3 className="text-xl font-semibold text-gray-900 mb-3">
+            🎉 Account Created Successfully!
           </h3>
 
           {/* Message */}
           <div className="text-sm text-gray-600 mb-6">
+            <p className="mb-3 font-medium">
+              <span className="text-blue-600">Email verification required!</span>
+            </p>
             <p className="mb-2">
               We've sent a confirmation email to:
             </p>
-            <p className="font-medium text-gray-900">{email}</p>
+            <p className="font-medium text-gray-900 bg-gray-50 px-3 py-2 rounded border">{email}</p>
             <p className="mt-3">
-              Please check your email and click the confirmation link to verify your account.
+              <strong>Please check your email and click the confirmation link to verify your account.</strong>
+            </p>
+            <p className="mt-2 text-xs text-gray-500">
+              You won't be able to log in until you verify your email address.
             </p>
           </div>
 
@@ -66,7 +72,7 @@ export const EmailConfirmationModal: React.FC<EmailConfirmationModalProps> = ({
               onClick={onClose}
               className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >
-              Got it, thanks!
+              I'll check my email
             </button>
             <button
               onClick={() => {

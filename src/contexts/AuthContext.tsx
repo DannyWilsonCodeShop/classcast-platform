@@ -149,8 +149,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             confirmationEmail: responseData.user.email,
           }));
           
-          // Redirect to login page
-          router.push('/auth/login');
+          // Don't redirect immediately - let the modal show first
+          // The user will be redirected when they close the modal
           return;
         }
         
@@ -271,7 +271,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       showEmailConfirmation: false, 
       confirmationEmail: null 
     }));
-  }, []);
+    // Redirect to login page after closing the modal
+    router.push('/auth/login');
+  }, [router]);
 
   // Check auth status function
   const checkAuthStatus = useCallback(async () => {
