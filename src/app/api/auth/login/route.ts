@@ -43,14 +43,51 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      console.log('About to call awsCognitoAuthService.login...');
+      console.log('About to call direct Cognito authentication...');
       
-      // Use AWS Cognito for authentication
-      const authResult = await simpleCognitoAuthService.login(email, password);
+      // Use direct Cognito authentication
+      const { CognitoIdentityProviderClient, InitiateAuthCommand, GetUserCommand } = await import('@aws-sdk/client-cognito-identity-provider');
+      
+      const cognitoClient = new CognitoIdentityProviderClient({
+        region: process.env.AWS_REGION || 'us-east-1',
+      });
+
+      const USER_POOL_CLIENT_ID = process.env.COGNITO_USER_POOL_CLIENT_ID || process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh';
+
+      // Authenticate with Cognito
+      const authCommand = new InitiateAuthCommand({
+        ClientId: USER_POOL_CLIENT_ID,
+        AuthFlow: 'USER_PASSWORD_AUTH',
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password,
+        },
+      });
+
+      const authResponse = await cognitoClient.send(authCommand);
+
+      if (!authResponse.AuthenticationResult) {
+        throw new Error('Authentication failed');
+      }
+
+      // Get user details
+      const getUserCommand = new GetUserCommand({
+        AccessToken: authResponse.AuthenticationResult.AccessToken!,
+      });
+
+      const userResponse = await cognitoClient.send(getUserCommand);
+
+      // Map user attributes
+      const userAttributes = userResponse.UserAttributes || [];
+      const emailAttr = userAttributes.find(attr => attr.Name === 'email')?.Value || email;
+      const firstNameAttr = userAttributes.find(attr => attr.Name === 'given_name')?.Value || '';
+      const lastNameAttr = userAttributes.find(attr => attr.Name === 'family_name')?.Value || '';
+      const roleAttr = userAttributes.find(attr => attr.Name === 'custom:role')?.Value || 'student';
+
       console.log('Login successful, auth result:', { 
-        userId: authResult.user.username, 
-        email: authResult.user.email,
-        hasToken: !!authResult.accessToken 
+        userId: userResponse.Username, 
+        email: emailAttr,
+        hasToken: !!authResponse.AuthenticationResult.AccessToken 
       });
 
       // Set secure HTTP-only cookies for the session
@@ -58,20 +95,20 @@ export async function POST(request: NextRequest) {
         {
           message: 'Login successful',
           user: {
-            id: authResult.user.username,
-            email: authResult.user.email,
-            firstName: authResult.user.firstName,
-            lastName: authResult.user.lastName,
-            role: authResult.user.role,
-            instructorId: authResult.user.instructorId,
-            department: authResult.user.department,
-            emailVerified: authResult.user.status === 'CONFIRMED',
+            id: userResponse.Username,
+            email: emailAttr,
+            firstName: firstNameAttr,
+            lastName: lastNameAttr,
+            role: roleAttr,
+            instructorId: userAttributes.find(attr => attr.Name === 'custom:instructorId')?.Value,
+            department: userAttributes.find(attr => attr.Name === 'custom:department')?.Value,
+            emailVerified: userAttributes.find(attr => attr.Name === 'email_verified')?.Value === 'true',
           },
           tokens: {
-            accessToken: authResult.accessToken,
-            refreshToken: authResult.refreshToken,
-            idToken: authResult.accessToken, // Use access token as id token for now
-            expiresIn: 3600, // 1 hour
+            accessToken: authResponse.AuthenticationResult.AccessToken,
+            refreshToken: authResponse.AuthenticationResult.RefreshToken,
+            idToken: authResponse.AuthenticationResult.IdToken || authResponse.AuthenticationResult.AccessToken,
+            expiresIn: authResponse.AuthenticationResult.ExpiresIn || 3600,
           },
         },
         { status: 200 }
