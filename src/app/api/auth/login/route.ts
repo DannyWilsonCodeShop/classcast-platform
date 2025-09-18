@@ -48,9 +48,9 @@ export async function POST(request: NextRequest) {
       // Use AWS Cognito for authentication
       const authResult = await simpleCognitoAuthService.login(email, password);
       console.log('Login successful, auth result:', { 
-        userId: authResult.user.id, 
+        userId: authResult.user.username, 
         email: authResult.user.email,
-        hasToken: !!authResult.tokens.accessToken 
+        hasToken: !!authResult.accessToken 
       });
 
       // Set secure HTTP-only cookies for the session
@@ -63,15 +63,14 @@ export async function POST(request: NextRequest) {
             firstName: authResult.user.firstName,
             lastName: authResult.user.lastName,
             role: authResult.user.role,
-            studentId: authResult.user.studentId,
             instructorId: authResult.user.instructorId,
             department: authResult.user.department,
-            emailVerified: authResult.user.status === 'ACTIVE',
+            emailVerified: authResult.user.status === 'CONFIRMED',
           },
           tokens: {
-            accessToken: authResult.tokens.accessToken,
-            refreshToken: authResult.tokens.refreshToken,
-            idToken: authResult.tokens.idToken,
+            accessToken: authResult.accessToken,
+            refreshToken: authResult.refreshToken,
+            idToken: authResult.accessToken, // Use access token as id token for now
             expiresIn: 3600, // 1 hour
           },
         },

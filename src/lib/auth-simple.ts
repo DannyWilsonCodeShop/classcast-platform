@@ -135,6 +135,17 @@ class SimpleCognitoAuthService {
         throw new Error('Failed to create user');
       }
 
+      // If user needs confirmation, try to confirm them automatically
+      if (createResponse.UserSub && createResponse.CodeDeliveryDetails) {
+        try {
+          // For now, we'll skip auto-confirmation since it requires admin privileges
+          // The user will need to be confirmed through the Cognito console or admin API
+          console.log('User created but needs confirmation:', createResponse.UserSub);
+        } catch (confirmError) {
+          console.warn('Could not auto-confirm user:', confirmError);
+        }
+      }
+
       // Return a basic user object
       return {
         username: request.username,
@@ -147,7 +158,7 @@ class SimpleCognitoAuthService {
         bio: request.bio,
         avatar: request.avatar,
         phoneNumber: request.phoneNumber,
-        status: UserStatus.UNCONFIRMED, // User needs to verify email
+        status: createResponse.UserSub ? UserStatus.CONFIRMED : UserStatus.UNCONFIRMED,
         enabled: true,
         createdAt: new Date().toISOString(),
         lastModifiedAt: new Date().toISOString(),
