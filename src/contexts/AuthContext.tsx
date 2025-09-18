@@ -140,22 +140,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const responseData = await response.json();
         
-        // Check if email confirmation is required
-        if (responseData.requiresEmailConfirmation) {
-          setAuthState(prev => ({
-            ...prev,
-            isLoading: false,
-            error: null,
-            showEmailConfirmation: true,
-            confirmationEmail: responseData.user.email,
-          }));
-          
-          // Don't redirect immediately - let the modal show first
-          // The user will be redirected when they close the modal
-          return;
-        }
-        
-        // If no email confirmation required, proceed with normal flow
+        // Skip email confirmation - proceed directly to login
         const newState = {
           user: responseData.user,
           isAuthenticated: true,

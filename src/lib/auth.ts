@@ -141,19 +141,30 @@ export class CognitoAuthService {
         userAttributes.push({ Name: 'phone_number', Value: request.phoneNumber });
       }
 
-      // Create user using SignUpCommand for self-registration
-      const createCommand = new SignUpCommand({
-        ClientId: this.userPoolClientId,
+      // Create user using AdminCreateUserCommand to skip email verification
+      const createCommand = new AdminCreateUserCommand({
+        UserPoolId: this.userPoolId,
         Username: request.username,
-        Password: request.password,
         UserAttributes: userAttributes,
+        TemporaryPassword: request.password,
+        MessageAction: 'SUPPRESS', // Suppress welcome email
       });
 
       const createResponse = await this.client.send(createCommand);
 
-      if (!createResponse.UserSub) {
+      if (!createResponse.User) {
         throw new Error('Failed to create user');
       }
+
+      // Set permanent password to avoid temporary password flow
+      const setPasswordCommand = new AdminSetUserPasswordCommand({
+        UserPoolId: this.userPoolId,
+        Username: request.username,
+        Password: request.password,
+        Permanent: true,
+      });
+
+      await this.client.send(setPasswordCommand);
 
       // Add user to appropriate group (this requires admin privileges, so we'll skip for now)
       // await this.addUserToGroup(request.username, request.role);
@@ -170,7 +181,7 @@ export class CognitoAuthService {
         bio: request.bio,
         avatar: request.avatar,
         phoneNumber: request.phoneNumber,
-        status: UserStatus.PENDING, // User needs to verify email
+        status: UserStatus.CONFIRMED, // User is confirmed (no email verification required)
         enabled: true,
         createdAt: new Date().toISOString(),
         lastModifiedAt: new Date().toISOString(),
