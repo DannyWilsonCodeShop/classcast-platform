@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Assignment } from '@/types/assignment';
 
 interface CourseAssignmentsProps {
@@ -14,6 +15,7 @@ export const CourseAssignments: React.FC<CourseAssignmentsProps> = ({
   assignments, 
   onAssignmentUpdate 
 }) => {
+  const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'submitted' | 'graded'>('all');
   const [sortBy, setSortBy] = useState<'dueDate' | 'title' | 'points'>('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -142,7 +144,8 @@ export const CourseAssignments: React.FC<CourseAssignmentsProps> = ({
           {sortedAssignments.map((assignment) => (
             <div
               key={assignment.assignmentId}
-              className={`bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
+              onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
+              className={`bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 transition-all duration-300 hover:shadow-xl cursor-pointer hover:scale-105 ${
                 isOverdue(assignment.dueDate, assignment.status)
                   ? 'border-red-200 bg-red-50/50'
                   : 'border-gray-200/30'

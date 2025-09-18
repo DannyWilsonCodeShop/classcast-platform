@@ -95,13 +95,107 @@ const StudentCourseDetailPage: React.FC = () => {
       //   credentials: 'include',
       // });
       
-      // For now, show empty state until APIs are implemented
-      setCourse(null);
-      setAssignments([]);
-      setStudents([]);
+      // Mock data for now
+      const mockCourse: Course = {
+        courseId,
+        courseName: 'Introduction to Computer Science',
+        courseCode: 'CS101',
+        description: 'Fundamental concepts of computer science and programming',
+        instructor: {
+          name: 'Dr. Sarah Johnson',
+          email: 'sarah.johnson@university.edu',
+          avatar: '/api/placeholder/40/40'
+        },
+        semester: 'Fall',
+        year: 2024,
+        status: 'published',
+        enrollmentCount: 120,
+        maxEnrollment: 150,
+        credits: 3,
+        schedule: {
+          days: ['Monday', 'Wednesday', 'Friday'],
+          time: '10:00 AM - 11:00 AM',
+          location: 'Room 101'
+        },
+        prerequisites: ['MATH 101'],
+        learningObjectives: [
+          'Understand basic programming concepts',
+          'Learn data structures and algorithms',
+          'Develop problem-solving skills',
+          'Master a programming language'
+        ],
+        gradingPolicy: {
+          assignments: 40,
+          exams: 30,
+          participation: 10,
+          final: 20
+        },
+        createdAt: '2024-08-15T00:00:00Z',
+        updatedAt: '2024-11-20T00:00:00Z'
+      };
+
+      const mockAssignments: Assignment[] = [
+        {
+          assignmentId: '1',
+          title: 'Programming Assignment 1: Hello World',
+          description: 'Create your first program that displays "Hello World"',
+          dueDate: '2024-12-01T23:59:59Z',
+          points: 50,
+          status: 'graded',
+          grade: 45,
+          feedback: 'Good work! Consider adding more comments.',
+          submissionType: 'file',
+          createdAt: '2024-11-15T00:00:00Z'
+        },
+        {
+          assignmentId: '2',
+          title: 'Programming Assignment 2: Variables and Functions',
+          description: 'Implement functions for basic mathematical operations',
+          dueDate: '2024-12-08T23:59:59Z',
+          points: 75,
+          status: 'submitted',
+          submissionType: 'file',
+          createdAt: '2024-11-20T00:00:00Z'
+        },
+        {
+          assignmentId: '3',
+          title: 'Programming Assignment 3: Data Structures',
+          description: 'Implement a binary search tree with basic operations',
+          dueDate: '2024-12-15T23:59:59Z',
+          points: 100,
+          status: 'in-progress',
+          submissionType: 'file',
+          createdAt: '2024-11-25T00:00:00Z'
+        }
+      ];
+
+      const mockStudents: Student[] = [
+        {
+          studentId: '1',
+          name: 'Alice Johnson',
+          email: 'alice.johnson@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-08-15T00:00:00Z',
+          status: 'active',
+          grade: 'A'
+        },
+        {
+          studentId: '2',
+          name: 'Bob Smith',
+          email: 'bob.smith@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-08-15T00:00:00Z',
+          status: 'active',
+          grade: 'B+'
+        }
+      ];
+
+      setCourse(mockCourse);
+      setAssignments(mockAssignments);
+      setStudents(mockStudents);
       
       // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
     } catch (err) {
       console.error('Error fetching course details:', err);
@@ -123,31 +217,39 @@ const StudentCourseDetailPage: React.FC = () => {
     );
   }
 
-  if (error || !course) {
+  if (error) {
     return (
       <StudentRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
           <div className="text-center">
-            <div className="text-6xl mb-4">📚</div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">Course Details Coming Soon</h1>
-            <p className="text-gray-600 mb-6">
-              Course details are not available yet. This feature will be available once you enroll in courses.
-            </p>
+            <div className="text-6xl mb-4">❌</div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">Error Loading Course</h1>
+            <p className="text-gray-600 mb-6">{error}</p>
             <div className="space-y-4">
               <button
-                onClick={() => router.push('/courses')}
-                className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 mr-4"
+                onClick={fetchCourseDetails}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 mr-4"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => router.push('/student/courses')}
+                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300"
               >
                 Back to Courses
               </button>
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300"
-              >
-                Go to Dashboard
-              </button>
             </div>
           </div>
+        </div>
+      </StudentRoute>
+    );
+  }
+
+  if (!course) {
+    return (
+      <StudentRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+          <LoadingSpinner text="Loading course details..." />
         </div>
       </StudentRoute>
     );
