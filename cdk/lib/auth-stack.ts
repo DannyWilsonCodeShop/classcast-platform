@@ -336,9 +336,9 @@ export class AuthStack extends cdk.Stack {
       },
       accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
       userVerification: {
-        emailStyle: cognito.VerificationEmailStyle.CODE,
-        emailSubject: 'Verify your email for DemoProject',
-        emailBody: 'Thanks for signing up! Your verification code is {####}',
+        emailStyle: cognito.VerificationEmailStyle.LINK,
+        emailSubject: 'Verify your ClassCast account',
+        emailBody: 'Welcome to ClassCast! Please click the link below to verify your email address: {##Verify Email##}',
       },
       mfa: cognito.Mfa.OPTIONAL,
       mfaSecondFactor: {
