@@ -16,8 +16,8 @@ const cognitoClient = new CognitoIdentityProviderClient({
 });
 
 // Configuration from environment variables
-const USER_POOL_ID = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || process.env.COGNITO_USER_POOL_ID || '';
-const USER_POOL_CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || process.env.COGNITO_USER_POOL_CLIENT_ID || '';
+const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || '';
+const USER_POOL_CLIENT_ID = process.env.COGNITO_USER_POOL_CLIENT_ID || process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '';
 
 export enum UserRole {
   STUDENT = 'student',
@@ -90,8 +90,21 @@ class SimpleCognitoAuthService {
     this.userPoolId = USER_POOL_ID;
     this.userPoolClientId = USER_POOL_CLIENT_ID;
 
+    console.log('CognitoAuthService initialized with:', {
+      userPoolId: this.userPoolId,
+      userPoolClientId: this.userPoolClientId,
+      region: process.env.AWS_REGION || 'us-east-1'
+    });
+
     if (!this.userPoolId || !this.userPoolClientId) {
-      console.error('Missing required Cognito configuration');
+      console.error('Cognito User Pool ID or Client ID is not configured.');
+      console.error('Available env vars:', {
+        COGNITO_USER_POOL_ID: process.env.COGNITO_USER_POOL_ID,
+        NEXT_PUBLIC_COGNITO_USER_POOL_ID: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID,
+        COGNITO_USER_POOL_CLIENT_ID: process.env.COGNITO_USER_POOL_CLIENT_ID,
+        NEXT_PUBLIC_COGNITO_CLIENT_ID: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID,
+      });
+      throw new Error('Cognito configuration missing.');
     }
   }
 
