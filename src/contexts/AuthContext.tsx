@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { EmailConfirmationModal } from '@/components/auth/EmailConfirmationModal';
 
 export interface User {
   id?: string;
@@ -21,6 +22,8 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  showEmailConfirmation: boolean;
+  confirmationEmail: string | null;
 }
 
 interface AuthContextType extends AuthState {
@@ -30,6 +33,7 @@ interface AuthContextType extends AuthState {
   refreshToken: () => Promise<void>;
   clearError: () => void;
   checkAuthStatus: () => Promise<void>;
+  closeEmailConfirmation: () => void;
 }
 
 interface SignupData {
@@ -63,6 +67,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated: false,
     isLoading: true,
     error: null,
+    showEmailConfirmation: false,
+    confirmationEmail: null,
   });
   const router = useRouter();
 
@@ -131,9 +137,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (response.ok) {
-        const userData = await response.json();
+        const responseData = await response.json();
+        
+        // Check if email confirmation is required
+        if (responseData.requiresEmailConfirmation) {
+          setAuthState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: null,
+            showEmailConfirmation: true,
+            confirmationEmail: responseData.user.email,
+          }));
+          
+          // Redirect to login page
+          router.push('/auth/login');
+          return;
+        }
+        
+        // If no email confirmation required, proceed with normal flow
         const newState = {
-          user: userData.user,
+          user: responseData.user,
           isAuthenticated: true,
           isLoading: false,
           error: null,
@@ -142,11 +165,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('authState', JSON.stringify(newState));
         
         // Redirect based on user role
-        if (userData.user.role === 'student') {
+        if (responseData.user.role === 'student') {
           router.push('/student/dashboard');
-        } else if (userData.user.role === 'instructor') {
+        } else if (responseData.user.role === 'instructor') {
           router.push('/instructor/dashboard');
-        } else if (userData.user.role === 'admin') {
+        } else if (responseData.user.role === 'admin') {
           router.push('/admin/dashboard');
         } else {
           router.push('/');
@@ -242,6 +265,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setAuthState(prev => ({ ...prev, error: null }));
   }, []);
 
+  const closeEmailConfirmation = useCallback(() => {
+    setAuthState(prev => ({ 
+      ...prev, 
+      showEmailConfirmation: false, 
+      confirmationEmail: null 
+    }));
+  }, []);
+
   // Check auth status function
   const checkAuthStatus = useCallback(async () => {
     try {
@@ -302,11 +333,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshToken,
     clearError,
     checkAuthStatus,
+    closeEmailConfirmation,
   };
 
   return (
     <AuthContext.Provider value={value}>
       {children}
+      <EmailConfirmationModal
+        isOpen={authState.showEmailConfirmation}
+        email={authState.confirmationEmail || ''}
+        onClose={closeEmailConfirmation}
+      />
     </AuthContext.Provider>
   );
 };
