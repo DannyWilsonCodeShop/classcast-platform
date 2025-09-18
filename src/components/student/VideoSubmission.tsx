@@ -6,6 +6,7 @@ import { VideoUploadZone } from './VideoUploadZone';
 import { VideoPreview } from './VideoPreview';
 import { VideoUploadProgress } from './VideoUploadProgress';
 import { VideoValidationErrors } from './VideoValidationErrors';
+import { LiveVideoRecorder } from './LiveVideoRecorder';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ContentModerationChecker from '../common/ContentModerationChecker';
 import { ContentModerationResult } from '@/lib/contentModeration';
@@ -19,6 +20,7 @@ export interface VideoSubmissionProps {
   allowedVideoTypes?: string[];
   maxDuration?: number;
   showPreview?: boolean;
+  enableLiveRecording?: boolean;
   className?: string;
 }
 
@@ -63,6 +65,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'],
   maxDuration = 300,
   showPreview = true,
+  enableLiveRecording = true,
   className = '',
 }) => {
   const { user } = useAuth();
@@ -74,6 +77,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   const [submissionData, setSubmissionData] = useState<VideoSubmissionData | null>(null);
   const [moderationResult, setModerationResult] = useState<ContentModerationResult | null>(null);
   const [isModerating, setIsModerating] = useState(false);
+  const [recordingMode, setRecordingMode] = useState<'upload' | 'record'>('upload');
 
   const validateVideoFile = useCallback((file: File): string[] => {
     const errors: string[] = [];
@@ -85,6 +89,75 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
     }
     return errors;
   }, [maxFileSize, allowedVideoTypes]);
+
+  const handleRecordingComplete = useCallback(async (blob: Blob) => {
+    setValidationErrors([]);
+    setSelectedFile(null);
+
+    // Convert blob to file
+    const file = new File([blob], `recording-${Date.now()}.webm`, {
+      type: 'video/webm'
+    });
+
+    const errors = validateVideoFile(file);
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    const videoFile: VideoFile = {
+      file,
+      id: crypto.randomUUID(),
+      status: 'pending',
+      progress: 0,
+    };
+
+    if (showPreview) {
+      videoFile.previewUrl = URL.createObjectURL(file);
+    }
+
+    try {
+      const metadata = await extractVideoMetadata(file);
+      videoFile.metadata = metadata;
+      videoFile.duration = metadata.duration;
+    } catch (error) {
+      console.warn('Failed to extract video metadata:', error);
+    }
+
+    setSelectedFile(videoFile);
+    
+    // Start content moderation for the recorded video
+    if (videoFile.previewUrl) {
+      setIsModerating(true);
+      try {
+        const response = await fetch('/api/moderation/video', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            videoUrl: videoFile.previewUrl,
+            metadata: {
+              title: file.name,
+              duration: videoFile.duration || 0,
+              description: `Video submission for assignment ${assignmentId}`
+            },
+            userId: user?.id,
+            contentType: 'assignment_submission'
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setModerationResult(data.result);
+        }
+      } catch (error) {
+        console.error('Content moderation failed:', error);
+      } finally {
+        setIsModerating(false);
+      }
+    }
+  }, [validateVideoFile, showPreview, assignmentId, user?.id]);
 
   const handleFileSelect = useCallback(async (file: File) => {
     setValidationErrors([]);

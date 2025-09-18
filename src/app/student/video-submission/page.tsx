@@ -1,13 +1,17 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { VideoSubmission } from '@/components/student/VideoSubmission';
 
 const VideoSubmissionPage: React.FC = () => {
+  const router = useRouter();
+
   const handleSubmissionComplete = (submissionData: any) => {
     console.log('Video submission completed:', submissionData);
-    // In a real app, you might redirect to a success page or update the UI
+    // Redirect to dashboard after successful submission
+    router.push('/student/dashboard');
   };
 
   const handleSubmissionError = (error: string) => {
@@ -18,10 +22,22 @@ const VideoSubmissionPage: React.FC = () => {
   return (
     <StudentRoute>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header with Back Button */}
         <div className="mb-8">
+          <div className="flex items-center space-x-4 mb-4">
+            <button
+              onClick={() => router.push('/student/dashboard')}
+              className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span>Back to Dashboard</span>
+            </button>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">Video Submission</h1>
           <p className="mt-2 text-gray-600">
-            Upload your video assignment for review and grading
+            Record or upload your video assignment for review and grading
           </p>
         </div>
 
