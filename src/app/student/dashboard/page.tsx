@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 import { LogOut, Wifi, WifiOff } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'ai-tutor'>('ai-tutor');
   const [showWizard, setShowWizard] = useState(false);
@@ -32,42 +32,57 @@ const StudentDashboard: React.FC = () => {
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
 
   useEffect(() => {
+    // Only load data if user is authenticated
+    if (!isAuthenticated || !user || isLoading) {
+      return;
+    }
+
     const loadDashboardData = async () => {
       try {
         setIsLoadingStats(true);
         setIsLoadingCourses(true);
         setIsLoadingAssignments(true);
         
-        // Load stats from API
-        const statsResponse = await fetch('/api/student/stats');
-        if (statsResponse.ok) {
-          const statsData = await statsResponse.json();
-          setStats(statsData);
-        } else {
-          // Fallback to empty stats if API fails
-          setStats({
-            activeCourses: 0,
-            assignmentsDue: 0,
-            completed: 0
-          });
+        // Set fallback data immediately
+        setStats({
+          activeCourses: 0,
+          assignmentsDue: 0,
+          completed: 0
+        });
+        setCourses([]);
+        setAssignments([]);
+        
+        // Try to load stats from API (with error handling)
+        try {
+          const statsResponse = await fetch('/api/student/stats');
+          if (statsResponse.ok) {
+            const statsData = await statsResponse.json();
+            setStats(statsData);
+          }
+        } catch (error) {
+          console.warn('Stats API not available:', error);
         }
         
-        // Load courses from API
-        const coursesResponse = await fetch('/api/student/courses');
-        if (coursesResponse.ok) {
-          const coursesData = await coursesResponse.json();
-          setCourses(coursesData);
-        } else {
-          setCourses([]);
+        // Try to load courses from API (with error handling)
+        try {
+          const coursesResponse = await fetch('/api/student/courses');
+          if (coursesResponse.ok) {
+            const coursesData = await coursesResponse.json();
+            setCourses(coursesData.courses || coursesData || []);
+          }
+        } catch (error) {
+          console.warn('Courses API not available:', error);
         }
         
-        // Load assignments from API
-        const assignmentsResponse = await fetch('/api/student/assignments');
-        if (assignmentsResponse.ok) {
-          const assignmentsData = await assignmentsResponse.json();
-          setAssignments(assignmentsData);
-        } else {
-          setAssignments([]);
+        // Try to load assignments from API (with error handling)
+        try {
+          const assignmentsResponse = await fetch('/api/student/assignments');
+          if (assignmentsResponse.ok) {
+            const assignmentsData = await assignmentsResponse.json();
+            setAssignments(assignmentsData.assignments || assignmentsData || []);
+          }
+        } catch (error) {
+          console.warn('Assignments API not available:', error);
         }
         
       } catch (error) {
@@ -84,7 +99,7 @@ const StudentDashboard: React.FC = () => {
     };
 
     loadDashboardData();
-  }, []);
+  }, [isAuthenticated, user, isLoading]);
 
   // Monitor online status
   useEffect(() => {
@@ -111,6 +126,34 @@ const StudentDashboard: React.FC = () => {
       console.error('Logout failed:', error);
     }
   };
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <StudentRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </StudentRoute>
+    );
+  }
+
+  // Show loading state if user is not authenticated
+  if (!isAuthenticated || !user) {
+    return (
+      <StudentRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting to login...</p>
+          </div>
+        </div>
+      </StudentRoute>
+    );
+  }
 
   return (
     <StudentRoute>
