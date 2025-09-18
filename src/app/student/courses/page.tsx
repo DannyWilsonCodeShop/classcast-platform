@@ -44,6 +44,7 @@ const StudentCoursesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'upcoming'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchCourses();
@@ -158,8 +159,17 @@ const StudentCoursesPage: React.FC = () => {
   };
 
   const filteredCourses = courses.filter(course => {
-    if (filter === 'all') return true;
-    return course.status === filter;
+    // Apply status filter
+    const statusMatch = filter === 'all' || course.status === filter;
+    
+    // Apply search filter
+    const searchMatch = searchQuery === '' || 
+      course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.instructor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      course.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return statusMatch && searchMatch;
   });
 
   const getStatusColor = (status: string) => {
@@ -211,11 +221,12 @@ const StudentCoursesPage: React.FC = () => {
       <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
         {/* Header */}
         <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 flex-shrink-0">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => router.push('/student/dashboard')}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Back to Dashboard"
               >
                 <span className="text-xl">←</span>
               </button>
@@ -224,7 +235,12 @@ const StudentCoursesPage: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-gray-900">My Courses</h1>
-                <p className="text-xs text-gray-600">{filteredCourses.length} courses</p>
+                <p className="text-xs text-gray-600">
+                  {searchQuery 
+                    ? `${filteredCourses.length} of ${courses.length} courses match "${searchQuery}"`
+                    : `${filteredCourses.length} courses`
+                  }
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -239,6 +255,32 @@ const StudentCoursesPage: React.FC = () => {
                 <option value="upcoming">Upcoming</option>
               </select>
             </div>
+          </div>
+          
+          {/* Search Bar */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search courses by name, code, instructor, or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -258,16 +300,30 @@ const StudentCoursesPage: React.FC = () => {
             </div>
           ) : filteredCourses.length === 0 ? (
             <EmptyState
-              icon="📚"
-              title="No Courses Found"
-              description={`You don't have any ${filter === 'all' ? '' : filter} courses yet.`}
+              icon={searchQuery ? "🔍" : "📚"}
+              title={searchQuery ? "No Courses Found" : "No Courses Found"}
+              description={
+                searchQuery 
+                  ? `No courses match "${searchQuery}". Try adjusting your search or filter.`
+                  : `You don't have any ${filter === 'all' ? '' : filter} courses yet.`
+              }
               action={
-                <button
-                  onClick={() => router.push('/student/dashboard')}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Back to Dashboard
-                </button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      Clear Search
+                    </button>
+                  )}
+                  <button
+                    onClick={() => router.push('/student/dashboard')}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Back to Dashboard
+                  </button>
+                </div>
               }
             />
           ) : (

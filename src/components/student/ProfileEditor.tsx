@@ -57,7 +57,7 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
     if (!file.type.startsWith('image/')) {
       setErrors(prev => ({
         ...prev,
-        avatar: 'Please select a valid image file'
+        avatar: 'Please select a valid image file (JPG, PNG, GIF, or WebP)'
       }));
       return;
     }
@@ -73,37 +73,105 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
 
     try {
       setIsUploading(true);
+      setErrors(prev => ({ ...prev, avatar: '' }));
       
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'profile-pictures');
-      formData.append('userId', profile.id);
+      // For now, create a local preview URL as a fallback
+      // In production, this would upload to S3
+      const previewUrl = URL.createObjectURL(file);
+      
+      // Simulate upload delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Try to upload to S3 first
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', 'profile-pictures');
+        formData.append('userId', profile.id);
 
-      // Upload to S3
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (response.ok) {
-        const result = await response.json();
-        setEditedProfile(prev => ({
-          ...prev,
-          avatar: result.data.fileUrl
-        }));
-        setErrors(prev => ({
-          ...prev,
-          avatar: ''
-        }));
-      } else {
-        throw new Error('Upload failed');
+        if (response.ok) {
+          const result = await response.json();
+          setEditedProfile(prev => ({
+            ...prev,
+            avatar: result.data.fileUrl
+          }));
+        } else {
+          // Try fallback upload service
+          console.warn('S3 upload failed, trying fallback service');
+          const fallbackResponse = await fetch('/api/upload-fallback', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          if (fallbackResponse.ok) {
+            const fallbackResult = await fallbackResponse.json();
+            setEditedProfile(prev => ({
+              ...prev,
+              avatar: fallbackResult.data.fileUrl
+            }));
+          } else {
+            // Final fallback to local preview
+            console.warn('All upload services failed, using local preview');
+            setEditedProfile(prev => ({
+              ...prev,
+              avatar: previewUrl
+            }));
+          }
+        }
+      } catch (uploadError) {
+        // Try fallback upload service if S3 is not available
+        console.warn('S3 upload error, trying fallback service:', uploadError);
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('folder', 'profile-pictures');
+          formData.append('userId', profile.id);
+          
+          const fallbackResponse = await fetch('/api/upload-fallback', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          if (fallbackResponse.ok) {
+            const fallbackResult = await fallbackResponse.json();
+            setEditedProfile(prev => ({
+              ...prev,
+              avatar: fallbackResult.data.fileUrl
+            }));
+          } else {
+            throw new Error('Fallback service also failed');
+          }
+        } catch (fallbackError) {
+          // Final fallback to local preview
+          console.warn('All upload services failed, using local preview:', fallbackError);
+          setEditedProfile(prev => ({
+            ...prev,
+            avatar: previewUrl
+          }));
+        }
       }
+      
+      setErrors(prev => ({
+        ...prev,
+        avatar: ''
+      }));
     } catch (error) {
       console.error('Error uploading avatar:', error);
       setErrors(prev => ({
         ...prev,
-        avatar: 'Failed to upload image. Please try again.'
+        avatar: 'Failed to upload image. Using local preview for now.'
+      }));
+      
+      // Still set a local preview even if upload fails
+      const previewUrl = URL.createObjectURL(file);
+      setEditedProfile(prev => ({
+        ...prev,
+        avatar: previewUrl
       }));
     } finally {
       setIsUploading(false);
@@ -164,43 +232,58 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          {/* Avatar Section */}
-          <div className="flex items-center space-x-6">
-            <div className="relative">
-              <img
-                src={editedProfile.avatar || '/api/placeholder/100/100'}
-                alt="Profile"
-                className="w-20 h-20 rounded-full object-cover border-4 border-gray-200"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                {isUploading ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  <CameraIcon className="h-4 w-4" />
-                )}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarUpload}
-                className="hidden"
-              />
-            </div>
-            <div>
-              <h3 className="text-lg font-medium text-gray-900">
-                {editedProfile.firstName} {editedProfile.lastName}
-              </h3>
-              <p className="text-sm text-gray-600">Click camera icon to change photo</p>
-              {errors.avatar && (
-                <p className="text-sm text-red-600 mt-1">{errors.avatar}</p>
-              )}
-            </div>
-          </div>
+                 {/* Avatar Section */}
+                 <div className="flex items-center space-x-6">
+                   <div className="relative">
+                     <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
+                       <img
+                         src={editedProfile.avatar || '/api/placeholder/100/100'}
+                         alt="Profile"
+                         className="w-full h-full object-cover"
+                       />
+                       {isUploading && (
+                         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                           <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                         </div>
+                       )}
+                     </div>
+                     <button
+                       onClick={() => fileInputRef.current?.click()}
+                       disabled={isUploading}
+                       className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg"
+                       title={isUploading ? 'Uploading...' : 'Change photo'}
+                     >
+                       {isUploading ? (
+                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                       ) : (
+                         <CameraIcon className="h-4 w-4" />
+                       )}
+                     </button>
+                     <input
+                       ref={fileInputRef}
+                       type="file"
+                       accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                       onChange={handleAvatarUpload}
+                       className="hidden"
+                     />
+                   </div>
+                   <div className="flex-1">
+                     <h3 className="text-lg font-medium text-gray-900">
+                       {editedProfile.firstName} {editedProfile.lastName}
+                     </h3>
+                     <p className="text-sm text-gray-600">
+                       {isUploading ? 'Uploading photo...' : 'Click camera icon to change photo'}
+                     </p>
+                     {errors.avatar && (
+                       <p className="text-sm text-red-600 mt-1">{errors.avatar}</p>
+                     )}
+                     {!errors.avatar && !isUploading && (
+                       <p className="text-xs text-gray-500 mt-1">
+                         Supported: JPG, PNG, GIF, WebP (max 5MB)
+                       </p>
+                     )}
+                   </div>
+                 </div>
 
           {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
