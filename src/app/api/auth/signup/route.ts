@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cognitoAuthService } from '@/lib/auth';
+import { simpleCognitoAuthService } from '@/lib/auth-simple';
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       console.log('Creating user with AWS Cognito:', { email, firstName, lastName, role, studentId, department });
 
       // Use AWS Cognito for user creation
-      const result = await cognitoAuthService.createUser({
+      const result = await simpleCognitoAuthService.createUser({
         username: email, // Use email as username
         email,
         firstName: firstName.trim(),
