@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cognitoAuthService } from '@/lib/auth';
+import { simpleCognitoAuthService } from '@/lib/auth-simple';
 import { mockAuthService } from '@/lib/mock-auth';
 
 export async function POST(request: NextRequest) {
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       console.log('About to call awsCognitoAuthService.login...');
       
       // Use AWS Cognito for authentication
-      const authResult = await cognitoAuthService.login(email, password);
+      const authResult = await simpleCognitoAuthService.login(email, password);
       console.log('Login successful, auth result:', { 
         userId: authResult.user.id, 
         email: authResult.user.email,
