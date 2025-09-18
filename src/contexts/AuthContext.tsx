@@ -92,6 +92,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isAuthenticated: true,
           isLoading: false,
           error: null,
+          showEmailConfirmation: false,
+          confirmationEmail: null,
         };
         setAuthState(newState);
         localStorage.setItem('authState', JSON.stringify(newState));
@@ -160,6 +162,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isAuthenticated: true,
           isLoading: false,
           error: null,
+          showEmailConfirmation: false,
+          confirmationEmail: null,
         };
         setAuthState(newState);
         localStorage.setItem('authState', JSON.stringify(newState));
@@ -212,6 +216,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: false,
         isLoading: false,
         error: null,
+        showEmailConfirmation: false,
+        confirmationEmail: null,
       });
 
       localStorage.removeItem('authState');
@@ -223,6 +229,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: false,
         isLoading: false,
         error: null,
+        showEmailConfirmation: false,
+        confirmationEmail: null,
       });
       localStorage.removeItem('authState');
       router.push('/auth/login');
@@ -251,6 +259,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isAuthenticated: false,
           isLoading: false,
           error: 'Session expired. Please login again.',
+          showEmailConfirmation: false,
+          confirmationEmail: null,
         });
         router.push('/auth/login');
       }
@@ -261,6 +271,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: false,
         isLoading: false,
         error: 'Failed to refresh session. Please login again.',
+        showEmailConfirmation: false,
+        confirmationEmail: null,
       });
       router.push('/auth/login');
     }
@@ -298,6 +310,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               isAuthenticated: false,
               isLoading: false,
               error: null,
+              showEmailConfirmation: false,
+              confirmationEmail: null,
             });
           }
         } catch (parseError) {
@@ -307,6 +321,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             isAuthenticated: false,
             isLoading: false,
             error: null,
+            showEmailConfirmation: false,
+            confirmationEmail: null,
           });
         }
       } else {
@@ -315,6 +331,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           isAuthenticated: false,
           isLoading: false,
           error: null,
+          showEmailConfirmation: false,
+          confirmationEmail: null,
         });
       }
     } catch (error) {
@@ -324,6 +342,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthenticated: false,
         isLoading: false,
         error: null,
+        showEmailConfirmation: false,
+        confirmationEmail: null,
       });
     }
   }, []);
