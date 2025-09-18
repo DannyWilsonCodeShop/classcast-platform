@@ -259,3 +259,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Built with ❤️ using Next.js, TypeScript, Tailwind CSS, and AWS CDK**
+# Environment variables updated
