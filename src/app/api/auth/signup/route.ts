@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       // Return success response
       return NextResponse.json(
         {
-          message: 'Account created successfully! You can now log in.',
+          message: 'Account created successfully! Please check your email for a confirmation link to verify your account.',
           user: {
             id: result.username,
             email: result.email,
@@ -127,7 +127,8 @@ export async function POST(request: NextRequest) {
             department: result.department,
             emailVerified: result.status === 'ACTIVE',
           },
-          nextStep: 'login',
+          nextStep: 'verify-email',
+          requiresEmailConfirmation: true,
         },
         { status: 201 }
       );
