@@ -161,156 +161,227 @@ const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4 space-y-4">
-
-
-            {/* Social Media Style Video Feed */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-              <div className="p-4 bg-gradient-to-r from-purple-500 to-pink-500">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg">🎬</span>
-                  </div>
-                  <h2 className="text-white font-bold text-sm">Trending Now</h2>
+        {/* Single Page Content - No Scrolling */}
+        <div className="flex-1 p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 h-full">
+          {/* Video Feed - Top Left */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+            <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">🎬</span>
                 </div>
-              </div>
-              <div className="p-4">
-                <VideoReels studentId={user?.id || 'unknown'} />
+                <h2 className="text-white font-bold text-sm">Trending Now</h2>
               </div>
             </div>
+            <div className="p-3 h-64">
+              <VideoReels studentId={user?.id || 'unknown'} />
+            </div>
+          </div>
 
-            {/* Social Media Style Courses Feed */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-              <div className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                      <span className="text-white text-lg">📚</span>
-                    </div>
-                    <h2 className="text-white font-bold text-sm">My Courses</h2>
+          {/* Courses - Top Center */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+            <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm">📚</span>
                   </div>
-                  <button
-                    onClick={() => router.push('/student/courses')}
-                    className="text-white/80 hover:text-white text-xs font-medium"
-                  >
-                    See All →
-                  </button>
+                  <h2 className="text-white font-bold text-sm">My Courses</h2>
                 </div>
+                <button
+                  onClick={() => router.push('/student/courses')}
+                  className="text-white/80 hover:text-white text-xs font-medium"
+                >
+                  See All →
+                </button>
               </div>
-              <div className="p-4">
-                {isLoadingCourses ? (
-                  <div className="space-y-3">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="animate-pulse">
-                        <div className="bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl h-20"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {courses.slice(0, 2).map((course) => (
-                      <div
-                        key={course.id}
-                        onClick={() => router.push(`/student/courses/${course.id}`)}
-                        className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-4 hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                            {course.code?.charAt(0) || 'C'}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-bold text-gray-900 truncate">{course.name}</h3>
-                            <p className="text-xs text-gray-600">{course.code}</p>
-                            <div className="flex items-center space-x-2 mt-1">
-                              <div className="flex-1 bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300" 
-                                  style={{ width: `${course.progress}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-xs font-bold text-gray-700">{course.progress}%</span>
+            </div>
+            <div className="p-3 h-64 overflow-y-auto">
+              {isLoadingCourses ? (
+                <div className="space-y-2">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl h-16"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {courses.slice(0, 3).map((course) => (
+                    <div
+                      key={course.id}
+                      onClick={() => router.push(`/student/courses/${course.id}`)}
+                      className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-3 hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                          {course.code?.charAt(0) || 'C'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-xs font-bold text-gray-900 truncate">{course.name}</h3>
+                          <p className="text-xs text-gray-600">{course.code}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                              <div 
+                                className="bg-gradient-to-r from-blue-500 to-purple-600 h-1.5 rounded-full transition-all duration-300" 
+                                style={{ width: `${course.progress}%` }}
+                              ></div>
                             </div>
+                            <span className="text-xs font-bold text-gray-700">{course.progress}%</span>
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Social Media Style Assignments Feed */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-              <div className="p-4 bg-gradient-to-r from-orange-500 to-red-500">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                      <span className="text-white text-lg">📝</span>
                     </div>
-                    <h2 className="text-white font-bold text-sm">Upcoming Tasks</h2>
-                  </div>
-                  <button
-                    onClick={() => router.push('/student/assignments')}
-                    className="text-white/80 hover:text-white text-xs font-medium"
-                  >
-                    See All →
-                  </button>
+                  ))}
                 </div>
-              </div>
-              <div className="p-4">
-                {isLoadingAssignments ? (
-                  <div className="space-y-3">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="animate-pulse">
-                        <div className="bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl h-16"></div>
-                      </div>
-                    ))}
+              )}
+            </div>
+          </div>
+
+          {/* Assignments - Top Right */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+            <div className="p-3 bg-gradient-to-r from-orange-500 to-red-500">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm">📝</span>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {assignments.slice(0, 3).map((assignment) => (
-                      <div
-                        key={assignment.id}
-                        onClick={() => router.push(`/student/assignments/${assignment.id}`)}
-                        className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-4 hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-bold text-gray-900 truncate">{assignment.title}</h3>
-                            <p className="text-xs text-gray-600">{assignment.course}</p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                              assignment.status === 'due-soon' ? 'bg-red-500 text-white' :
-                              assignment.status === 'in-progress' ? 'bg-yellow-500 text-white' :
-                              'bg-gray-500 text-white'
-                            }`}>
-                              {assignment.status === 'due-soon' ? '🔥' : 
-                               assignment.status === 'in-progress' ? '⚡' : '📋'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                  <h2 className="text-white font-bold text-sm">Upcoming Tasks</h2>
+                </div>
+                <button
+                  onClick={() => router.push('/student/assignments')}
+                  className="text-white/80 hover:text-white text-xs font-medium"
+                >
+                  See All →
+                </button>
               </div>
             </div>
+            <div className="p-3 h-64 overflow-y-auto">
+              {isLoadingAssignments ? (
+                <div className="space-y-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl h-12"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {assignments.slice(0, 4).map((assignment) => (
+                    <div
+                      key={assignment.id}
+                      onClick={() => router.push(`/student/assignments/${assignment.id}`)}
+                      className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-3 hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-xs font-bold text-gray-900 truncate">{assignment.title}</h3>
+                          <p className="text-xs text-gray-600">{assignment.course}</p>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold ${
+                            assignment.status === 'due-soon' ? 'bg-red-500 text-white' :
+                            assignment.status === 'in-progress' ? 'bg-yellow-500 text-white' :
+                            'bg-gray-500 text-white'
+                          }`}>
+                            {assignment.status === 'due-soon' ? '🔥' : 
+                             assignment.status === 'in-progress' ? '⚡' : '📋'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
 
-            {/* Social Media Style AI Chat */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-              <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-500">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg">🤖</span>
-                  </div>
-                  <h2 className="text-white font-bold text-sm">AI Study Buddy</h2>
+          {/* AI Chat - Bottom Left */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+            <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-500">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">🤖</span>
+                </div>
+                <h2 className="text-white font-bold text-sm">AI Study Buddy</h2>
+              </div>
+            </div>
+            <div className="p-3 h-64">
+              <AITutoringChat userId={user?.id || 'unknown'} />
+            </div>
+          </div>
+
+          {/* Social Analytics - Bottom Center */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+            <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-500">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">📊</span>
+                </div>
+                <h2 className="text-white font-bold text-sm">Social Analytics</h2>
+              </div>
+            </div>
+            <div className="p-3 h-64 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center p-2 bg-blue-50 rounded-lg">
+                  <div className="text-lg font-bold text-blue-600">0</div>
+                  <div className="text-xs text-gray-600">Videos</div>
+                </div>
+                <div className="text-center p-2 bg-green-50 rounded-lg">
+                  <div className="text-lg font-bold text-green-600">0</div>
+                  <div className="text-xs text-gray-600">Views</div>
+                </div>
+                <div className="text-center p-2 bg-red-50 rounded-lg">
+                  <div className="text-lg font-bold text-red-600">0</div>
+                  <div className="text-xs text-gray-600">Likes</div>
+                </div>
+                <div className="text-center p-2 bg-yellow-50 rounded-lg">
+                  <div className="text-lg font-bold text-yellow-600">0</div>
+                  <div className="text-xs text-gray-600">Rating</div>
                 </div>
               </div>
-              <div className="p-4">
-                <AITutoringChat userId={user?.id || 'unknown'} />
+              <div className="mt-3 text-center">
+                <p className="text-xs text-gray-500">Start creating content to see your analytics!</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions - Bottom Right */}
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+            <div className="p-3 bg-gradient-to-r from-pink-500 to-rose-500">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm">⚡</span>
+                </div>
+                <h2 className="text-white font-bold text-sm">Quick Actions</h2>
+              </div>
+            </div>
+            <div className="p-3 h-64">
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  onClick={() => router.push('/student/video-submission')}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                >
+                  📹 Create Video
+                </button>
+                <button
+                  onClick={() => router.push('/student/submissions')}
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                >
+                  📝 View Submissions
+                </button>
+                <button
+                  onClick={() => setShowProfileEditor(true)}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                >
+                  👤 Edit Profile
+                </button>
+                <button
+                  onClick={() => setShowWizard(true)}
+                  className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                >
+                  🎯 Get Started
+                </button>
               </div>
             </div>
           </div>
