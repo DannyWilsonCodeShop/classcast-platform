@@ -41,7 +41,6 @@
     "infra:destroy": "cd cdk && npm run destroy:all",
     "infra:diff": "cd cdk && npm run diff",
     "infra:status": "cd cdk && npm run status",
-    "postinstall": "npm run infra:install",
     "infra:install": "cd cdk && npm install"
   },
   "dependencies": {
