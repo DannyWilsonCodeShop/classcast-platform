@@ -68,9 +68,11 @@ const StudentProfilePage: React.FC = () => {
                 email: user.email || '',
                 avatar: user.avatar || '',
                 bio: user.bio || '',
-                major: user.major || '',
-                year: user.year || '',
-                phone: user.phone || '',
+                careerGoals: user.careerGoals || '',
+                classOf: user.classOf || '',
+                funFact: user.funFact || '',
+                favoriteSubject: user.favoriteSubject || '',
+                hobbies: user.hobbies || '',
                 location: user.location || '',
               }}
               onSave={(updatedProfile) => {
@@ -115,20 +117,20 @@ const StudentProfilePage: React.FC = () => {
                     <h3 className="text-lg font-semibold text-[#333333] mb-4">Personal Information</h3>
                     <div className="space-y-3">
                       <div>
-                        <label className="text-sm font-medium text-gray-600">First Name</label>
-                        <p className="text-[#333333]">{user.firstName || 'Not provided'}</p>
+                        <label className="text-sm font-medium text-gray-600">Favorite Subject</label>
+                        <p className="text-[#333333]">{user.favoriteSubject || 'Not specified'}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Last Name</label>
-                        <p className="text-[#333333]">{user.lastName || 'Not provided'}</p>
+                        <label className="text-sm font-medium text-gray-600">Hobbies & Interests</label>
+                        <p className="text-[#333333]">{user.hobbies || 'Not specified'}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-600">Email</label>
                         <p className="text-[#333333]">{user.email || 'Not provided'}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Phone</label>
-                        <p className="text-[#333333]">{user.phone || 'Not provided'}</p>
+                        <label className="text-sm font-medium text-gray-600">Fun Fact</label>
+                        <p className="text-[#333333]">{user.funFact || 'No fun fact shared yet'}</p>
                       </div>
                     </div>
                   </div>
