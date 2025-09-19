@@ -200,8 +200,6 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </div>
               
-              <PortalIndicator />
-              
               {/* User Welcome */}
               <div className="flex items-center space-x-3">
                 <button
@@ -232,6 +230,7 @@ const StudentDashboard: React.FC = () => {
             
             {/* Right Side - Actions */}
             <div className="flex items-center space-x-2">
+              <PortalIndicator />
               <button
                 onClick={handleLogout}
                 className="p-2 bg-[#FF6F61] text-white rounded-full hover:scale-110 transition-all duration-200 shadow-lg"
