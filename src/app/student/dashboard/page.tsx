@@ -197,6 +197,8 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </div>
               
+              <PortalIndicator />
+              
               {/* User Welcome */}
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-r from-slate-500 to-gray-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
@@ -239,7 +241,6 @@ const StudentDashboard: React.FC = () => {
               >
                 <LogOut className="w-4 h-4" />
               </button>
-              <PortalIndicator />
             </div>
           </div>
         </div>
