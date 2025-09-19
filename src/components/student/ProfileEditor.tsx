@@ -10,9 +10,11 @@ interface ProfileData {
   email: string;
   avatar: string;
   bio: string;
-  major: string;
-  year: string;
-  phone?: string;
+  careerGoals: string;
+  classOf: string;
+  funFact: string;
+  favoriteSubject: string;
+  hobbies: string;
   location?: string;
 }
 
@@ -181,12 +183,12 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!editedProfile.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+    if (!editedProfile.favoriteSubject.trim()) {
+      newErrors.favoriteSubject = 'Favorite subject is required';
     }
 
-    if (!editedProfile.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+    if (!editedProfile.hobbies.trim()) {
+      newErrors.hobbies = 'Hobbies and interests are required';
     }
 
     if (!editedProfile.email.trim()) {
@@ -196,12 +198,12 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
     }
 
 
-    if (!editedProfile.major.trim()) {
-      newErrors.major = 'Major is required';
+    if (!editedProfile.careerGoals.trim()) {
+      newErrors.careerGoals = 'Career goals are required';
     }
 
-    if (!editedProfile.year.trim()) {
-      newErrors.year = 'Academic year is required';
+    if (!editedProfile.classOf.trim()) {
+      newErrors.classOf = 'Class of is required';
     }
 
     setErrors(newErrors);
@@ -287,41 +289,41 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
 
           {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* First Name */}
+            {/* Favorite Subject */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                First Name *
+                Favorite Subject *
               </label>
               <input
                 type="text"
-                value={editedProfile.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                value={editedProfile.favoriteSubject}
+                onChange={(e) => handleInputChange('favoriteSubject', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.firstName ? 'border-red-500' : 'border-gray-300'
+                  errors.favoriteSubject ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="Enter your first name"
+                placeholder="e.g., Math, Science, Art, History"
               />
-              {errors.firstName && (
-                <p className="text-sm text-red-600 mt-1">{errors.firstName}</p>
+              {errors.favoriteSubject && (
+                <p className="text-sm text-red-600 mt-1">{errors.favoriteSubject}</p>
               )}
             </div>
 
-            {/* Last Name */}
+            {/* Hobbies & Interests */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Last Name *
+                Hobbies & Interests *
               </label>
               <input
                 type="text"
-                value={editedProfile.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                value={editedProfile.hobbies}
+                onChange={(e) => handleInputChange('hobbies', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.lastName ? 'border-red-500' : 'border-gray-300'
+                  errors.hobbies ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="Enter your last name"
+                placeholder="e.g., Soccer, Reading, Music, Gaming"
               />
-              {errors.lastName && (
-                <p className="text-sm text-red-600 mt-1">{errors.lastName}</p>
+              {errors.hobbies && (
+                <p className="text-sm text-red-600 mt-1">{errors.hobbies}</p>
               )}
             </div>
 
@@ -345,60 +347,62 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
             </div>
 
 
-            {/* Major */}
+            {/* Career Goals */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Major *
+                Career Goals *
               </label>
               <input
                 type="text"
-                value={editedProfile.major}
-                onChange={(e) => handleInputChange('major', e.target.value)}
+                value={editedProfile.careerGoals}
+                onChange={(e) => handleInputChange('careerGoals', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.major ? 'border-red-500' : 'border-gray-300'
+                  errors.careerGoals ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder="Enter your major"
+                placeholder="What do you want to be when you grow up?"
               />
-              {errors.major && (
-                <p className="text-sm text-red-600 mt-1">{errors.major}</p>
+              {errors.careerGoals && (
+                <p className="text-sm text-red-600 mt-1">{errors.careerGoals}</p>
               )}
             </div>
 
-            {/* Academic Year */}
+            {/* Class Of */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Academic Year *
+                Class Of *
               </label>
               <select
-                value={editedProfile.year}
-                onChange={(e) => handleInputChange('year', e.target.value)}
+                value={editedProfile.classOf}
+                onChange={(e) => handleInputChange('classOf', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.year ? 'border-red-500' : 'border-gray-300'
+                  errors.classOf ? 'border-red-500' : 'border-gray-300'
                 }`}
               >
-                <option value="">Select year</option>
-                <option value="Freshman">Freshman</option>
-                <option value="Sophomore">Sophomore</option>
-                <option value="Junior">Junior</option>
-                <option value="Senior">Senior</option>
-                <option value="Graduate">Graduate</option>
+                <option value="">Select graduation year</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+                <option value="2027">2027</option>
+                <option value="2028">2028</option>
+                <option value="2029">2029</option>
+                <option value="2030">2030</option>
               </select>
-              {errors.year && (
-                <p className="text-sm text-red-600 mt-1">{errors.year}</p>
+              {errors.classOf && (
+                <p className="text-sm text-red-600 mt-1">{errors.classOf}</p>
               )}
             </div>
 
-            {/* Phone */}
+            {/* Fun Fact */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number
+                Fun Fact
               </label>
-              <input
-                type="tel"
-                value={editedProfile.phone || ''}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
+              <textarea
+                value={editedProfile.funFact}
+                onChange={(e) => handleInputChange('funFact', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your phone number"
+                placeholder="Tell us something interesting about yourself!"
+                rows={3}
               />
             </div>
 
