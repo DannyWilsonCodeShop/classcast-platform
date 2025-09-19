@@ -197,7 +197,10 @@ const InstructorDashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
-        )}
+              </div>
+            )}
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Submissions */}
@@ -297,18 +300,17 @@ const InstructorDashboard: React.FC = () => {
             />
           )}
         </div>
-          </div>
-        </div>
 
         {/* Course Setup Wizard */}
-      <InstructorOnboardingWizard
-        isOpen={showWizard}
-        onClose={() => setShowWizard(false)}
-        onComplete={() => {
-          setShowWizard(false);
-          // Optionally refresh course data or show success message
-        }}
-      />
+        <InstructorOnboardingWizard
+          isOpen={showWizard}
+          onClose={() => setShowWizard(false)}
+          onComplete={() => {
+            setShowWizard(false);
+            // Optionally refresh course data or show success message
+          }}
+        />
+      </div>
     </InstructorRoute>
   );
 };
