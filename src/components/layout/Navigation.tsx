@@ -54,12 +54,6 @@ export default function Navigation() {
               {isAuthenticated ? (
                 <>
                   <Link
-                    href="/"
-                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-                  >
-                    🏠 Home
-                  </Link>
-                  <Link
                     href="/student/dashboard"
                     className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
@@ -211,13 +205,6 @@ export default function Navigation() {
               <div className="px-3 py-2">
                 <PortalIndicator />
               </div>
-              <Link
-                href="/"
-                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                onClick={closeMenu}
-              >
-                🏠 Home
-              </Link>
               <Link
                 href="/student/dashboard"
                 className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
