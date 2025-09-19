@@ -123,23 +123,24 @@ export const SubmissionHistory: React.FC<SubmissionHistoryProps> = ({
       queryParams.append('includeVideoUrls', 'true');
       queryParams.append('videoUrlExpiry', '900'); // 15 minutes
 
-      const response = await fetch(`/api/submissions?${queryParams.toString()}`, {
-        headers: {
-          'Authorization': `Bearer ${user.accessToken}`,
-        },
-      });
+      const response = await fetch(`/api/submissions?${queryParams.toString()}`);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch submissions: ${response.statusText}`);
       }
 
       const data = await response.json();
-      setSubmissions(data.submissions || []);
-      setPagination(prev => ({
-        ...prev,
-        totalPages: data.pagination?.totalPages || 1,
-        totalItems: data.pagination?.totalItems || 0,
-      }));
+      
+      if (data.success && data.data) {
+        setSubmissions(data.data.submissions || []);
+        setPagination(prev => ({
+          ...prev,
+          totalPages: data.data.totalPages || 1,
+          totalItems: data.data.totalCount || 0,
+        }));
+      } else {
+        throw new Error(data.error || 'Failed to fetch submissions');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch submissions');
       console.error('Error fetching submissions:', err);
