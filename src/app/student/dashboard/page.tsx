@@ -608,6 +608,18 @@ const StudentDashboard: React.FC = () => {
             <div className="p-3 h-64">
               <div className="grid grid-cols-1 gap-2">
                 <button
+                  onClick={() => setShowWizard(true)}
+                  className="w-full bg-[#FF6F61] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                >
+                  🎯 Get Started
+                </button>
+                <button
+                  onClick={() => router.push('/messaging')}
+                  className="w-full bg-[#9B5DE5] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                >
+                  💬 Messages
+                </button>
+                <button
                   onClick={() => router.push('/student/video-submission')}
                   className="w-full bg-[#4A90E2] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
                 >
@@ -618,18 +630,6 @@ const StudentDashboard: React.FC = () => {
                   className="w-full bg-[#06D6A0] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
                 >
                   📝 View Submissions
-                </button>
-                <button
-                  onClick={() => router.push('/messaging')}
-                  className="w-full bg-[#9B5DE5] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
-                >
-                  💬 Messages
-                </button>
-                <button
-                  onClick={() => setShowWizard(true)}
-                  className="w-full bg-[#FF6F61] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
-                >
-                  🎯 Get Started
                 </button>
               </div>
             </div>
