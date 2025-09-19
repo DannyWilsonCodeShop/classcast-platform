@@ -60,13 +60,13 @@ export default function Navigation() {
                     🏠 Home
                   </Link>
                   <Link
-                    href="/dashboard"
+                    href="/student/dashboard"
                     className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
                     📊 Dashboard
                   </Link>
                   <Link
-                    href="/assignments"
+                    href="/student/assignments"
                     className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
                     📚 Assignments
@@ -78,7 +78,7 @@ export default function Navigation() {
                     👥 Community
                   </Link>
                   <Link
-                    href="/courses"
+                    href="/student/courses"
                     className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
                   >
                     🎓 Courses
@@ -219,14 +219,14 @@ export default function Navigation() {
                 🏠 Home
               </Link>
               <Link
-                href="/dashboard"
+                href="/student/dashboard"
                 className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 onClick={closeMenu}
               >
                 📊 Dashboard
               </Link>
               <Link
-                href="/assignments"
+                href="/student/assignments"
                 className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 onClick={closeMenu}
               >
@@ -240,7 +240,7 @@ export default function Navigation() {
                 👥 Community
               </Link>
               <Link
-                href="/courses"
+                href="/student/courses"
                 className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
                 onClick={closeMenu}
               >
