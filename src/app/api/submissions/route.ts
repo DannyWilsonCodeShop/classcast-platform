@@ -1,68 +1,108 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verifyJwtToken } from '@/lib/jwt-verifier';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get the access token from cookies
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get('accessToken')?.value;
-
-    if (!accessToken) {
-      return NextResponse.json(
-        { error: 'Access token not found' },
-        { status: 401 }
-      );
-    }
-
-    // Verify the JWT token
-    const jwtResult = await verifyJwtToken(accessToken);
-    if (!jwtResult.success || !jwtResult.user) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 401 }
-      );
-    }
-
-    // Get query parameters
     const { searchParams } = new URL(request.url);
-    const queryParams = new URLSearchParams();
-
-    // Forward all query parameters to the Lambda function
-    searchParams.forEach((value, key) => {
-      queryParams.append(key, value);
-    });
-
-    // Ensure studentId is set for student users
-    if (jwtResult.user.role === 'student') {
-      queryParams.set('studentId', jwtResult.user.sub);
-    }
-
-    // Call the Lambda function
-    const lambdaUrl = process.env.FETCH_SUBMISSIONS_LAMBDA_URL || 'http://localhost:3001';
-    const response = await fetch(`${lambdaUrl}/submissions?${queryParams.toString()}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const status = searchParams.get('status');
+    
+    // Mock submissions data
+    const mockSubmissions = [
+      {
+        submissionId: 'sub_1',
+        assignmentId: 'assign_1',
+        assignmentTitle: 'Video Presentation Assignment',
+        studentId: 'student_1',
+        studentName: 'John Doe',
+        status: 'submitted',
+        submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        grade: 85,
+        maxScore: 100,
+        feedback: 'Great presentation! Good use of visual aids and clear delivery. Consider adding more specific examples in the conclusion.',
+        instructorName: 'Dr. Smith',
+        gradedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+        courseId: 'course_1',
+        courseName: 'Introduction to Communication',
+        submissionType: 'video',
+        fileUrl: 'https://example.com/video1.mp4',
+        fileSize: 125000000, // 125MB
+        duration: 320, // 5 minutes 20 seconds
+        isLate: false
       },
-    });
+      {
+        submissionId: 'sub_2',
+        assignmentId: 'assign_2',
+        assignmentTitle: 'Essay on Digital Media',
+        studentId: 'student_1',
+        studentName: 'John Doe',
+        status: 'graded',
+        submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+        grade: 92,
+        maxScore: 85,
+        feedback: 'Excellent analysis! Your arguments are well-supported with evidence. The writing is clear and engaging.',
+        instructorName: 'Dr. Smith',
+        gradedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+        courseId: 'course_1',
+        courseName: 'Introduction to Communication',
+        submissionType: 'document',
+        fileUrl: 'https://example.com/essay1.pdf',
+        fileSize: 2500000, // 2.5MB
+        wordCount: 1050,
+        isLate: false
+      },
+      {
+        submissionId: 'sub_3',
+        assignmentId: 'assign_3',
+        assignmentTitle: 'Group Project Presentation',
+        studentId: 'student_1',
+        studentName: 'John Doe',
+        status: 'returned',
+        submittedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
+        grade: null,
+        maxScore: 120,
+        feedback: 'Good effort, but the presentation needs more depth. Please revise and resubmit with additional research and analysis.',
+        instructorName: 'Dr. Smith',
+        gradedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(), // 4 days ago
+        courseId: 'course_1',
+        courseName: 'Introduction to Communication',
+        submissionType: 'presentation',
+        fileUrl: 'https://example.com/presentation1.pptx',
+        fileSize: 15000000, // 15MB
+        slideCount: 25,
+        isLate: true
+      }
+    ];
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      return NextResponse.json(
-        { error: 'Failed to fetch submissions', details: errorData },
-        { status: response.status }
-      );
+    // Filter by status if specified
+    let filteredSubmissions = mockSubmissions;
+    if (status) {
+      filteredSubmissions = mockSubmissions.filter(submission => submission.status === status);
     }
 
-    const data = await response.json();
-    return NextResponse.json(data);
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedSubmissions = filteredSubmissions.slice(startIndex, endIndex);
 
+    return NextResponse.json({
+      success: true,
+      data: {
+        submissions: paginatedSubmissions,
+        totalCount: filteredSubmissions.length,
+        currentPage: page,
+        totalPages: Math.ceil(filteredSubmissions.length / limit),
+        hasNextPage: endIndex < filteredSubmissions.length,
+        hasPreviousPage: page > 1
+      }
+    });
   } catch (error) {
-    console.error('Error in submissions API route:', error);
+    console.error('Error fetching submissions:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        success: false,
+        error: 'Failed to fetch submissions' 
+      },
       { status: 500 }
     );
   }

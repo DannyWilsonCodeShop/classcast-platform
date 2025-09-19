@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { PlayIcon, PauseIcon, HeartIcon, ChatBubbleLeftIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface VideoReel {
   id: string;
@@ -32,6 +33,7 @@ interface VideoReelsProps {
 
 const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
   const { user } = useAuth();
+  const router = useRouter();
   const [reels, setReels] = useState<VideoReel[]>([]);
   const [currentVideo, setCurrentVideo] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -147,13 +149,13 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
           id: '1',
           title: 'React Hooks Explained',
           description: 'A quick tutorial on React hooks for beginners',
-          thumbnail: '/api/placeholder/300/200',
+          thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=225&fit=crop',
           videoUrl: '/api/placeholder/video1.mp4',
           duration: 120,
           author: {
             id: 'student-1',
             name: 'Sarah Johnson',
-            avatar: '/api/placeholder/40/40',
+            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face',
             course: 'CS 101'
           },
           likes: 24,
@@ -166,13 +168,13 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
           id: '2',
           title: 'Database Design Tips',
           description: 'Best practices for designing efficient databases',
-          thumbnail: '/api/placeholder/300/200',
+          thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=400&h=225&fit=crop',
           videoUrl: '/api/placeholder/video2.mp4',
           duration: 180,
           author: {
             id: 'student-2',
             name: 'Mike Chen',
-            avatar: '/api/placeholder/40/40',
+            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face',
             course: 'CS 201'
           },
           likes: 31,
@@ -185,13 +187,13 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
           id: '3',
           title: 'JavaScript Async/Await',
           description: 'Understanding asynchronous programming in JavaScript',
-          thumbnail: '/api/placeholder/300/200',
+          thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=400&h=225&fit=crop',
           videoUrl: '/api/placeholder/video3.mp4',
           duration: 95,
           author: {
             id: 'student-3',
             name: 'Emily Davis',
-            avatar: '/api/placeholder/40/40',
+            avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face',
             course: 'CS 102'
           },
           likes: 18,
@@ -416,7 +418,10 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
     <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">🎬 Recent Video Reels</h3>
-        <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+        <button 
+          onClick={() => router.push('/student/videos')}
+          className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+        >
           View All
         </button>
       </div>
@@ -453,6 +458,17 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
               </div>
               <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
                 {formatDuration(reel.duration)}
+              </div>
+              {/* Student Avatar Overlay */}
+              <div className="absolute top-2 left-2 flex items-center space-x-2 bg-black bg-opacity-50 rounded-full px-2 py-1">
+                <img
+                  src={reel.author.avatar}
+                  alt={reel.author.name}
+                  className="w-6 h-6 rounded-full border border-white"
+                />
+                <span className="text-white text-xs font-medium truncate max-w-20">
+                  {reel.author.name}
+                </span>
               </div>
             </div>
 

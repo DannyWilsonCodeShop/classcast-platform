@@ -103,37 +103,14 @@ export default function AITutoringChat({
   };
 
   return (
-    <div className="flex flex-col h-96 bg-white rounded-lg shadow-lg">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-lg">
-        <div className="flex items-center">
-          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3">
-            🤖
-          </div>
-          <div>
-            <h3 className="font-semibold">AI Tutoring Assistant</h3>
-            <p className="text-sm text-blue-100">
-              {context?.subject || 'General'} • {context?.difficulty || 'intermediate'}
-            </p>
-          </div>
-        </div>
-      </div>
-
+    <div className="flex flex-col h-full">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-2 space-y-3">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            <div className="text-4xl mb-2">🤖</div>
-            <p>Hi! I'm your AI tutoring assistant. How can I help you learn today?</p>
-            <div className="mt-4 text-sm">
-              <p>I can help with:</p>
-              <ul className="list-disc list-inside text-left max-w-xs mx-auto">
-                <li>Explaining concepts</li>
-                <li>Solving problems</li>
-                <li>Answering questions</li>
-                <li>Providing examples</li>
-              </ul>
-            </div>
+          <div className="text-center text-gray-500 py-4">
+            <div className="text-2xl mb-2">🤖</div>
+            <p className="text-sm">Hi! I'm your AI tutoring assistant.</p>
+            <p className="text-xs mt-2">Ask me anything about your studies!</p>
           </div>
         )}
 
@@ -143,13 +120,13 @@ export default function AITutoringChat({
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+              className={`max-w-xs px-3 py-2 rounded-lg ${
                 message.role === 'user'
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-green-600 text-white'
                   : 'bg-gray-100 text-gray-800'
               }`}
             >
-              <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              <p className="text-xs whitespace-pre-wrap">{message.content}</p>
               <p className="text-xs opacity-70 mt-1">
                 {new Date(message.timestamp).toLocaleTimeString()}
               </p>
@@ -159,10 +136,10 @@ export default function AITutoringChat({
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 text-gray-800 max-w-xs lg:max-w-md px-4 py-2 rounded-lg">
+            <div className="bg-gray-100 text-gray-800 max-w-xs px-3 py-2 rounded-lg">
               <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                <span className="text-sm">Thinking...</span>
+                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-600"></div>
+                <span className="text-xs">Thinking...</span>
               </div>
             </div>
           </div>
@@ -172,7 +149,7 @@ export default function AITutoringChat({
       </div>
 
       {/* Input */}
-      <div className="border-t p-4">
+      <div className="p-2">
         <div className="flex space-x-2">
           <input
             type="text"
@@ -180,13 +157,13 @@ export default function AITutoringChat({
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask me anything about your studies..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
             disabled={isLoading}
           />
           <button
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
           >
             Send
           </button>

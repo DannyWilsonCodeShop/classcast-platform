@@ -1,23 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DynamoDBService } from '@/lib/dynamodb';
 
 export async function GET(request: NextRequest) {
   try {
-    const dynamoDBService = new DynamoDBService();
+    const { searchParams } = new URL(request.url);
+    const courseId = searchParams.get('courseId');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
     
-    // Get user from auth context (you'll need to implement this)
-    // For now, we'll return empty array
-    const assignments = [];
+    // Mock assignments data for now
+    const mockAssignments = [
+      {
+        assignmentId: 'assign_1',
+        title: 'Video Presentation Assignment',
+        description: 'Create a 5-minute video presentation on your chosen topic',
+        assignmentType: 'video',
+        status: 'upcoming',
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+        maxScore: 100,
+        requirements: [
+          'Video must be 5-7 minutes long',
+          'Include introduction and conclusion',
+          'Use clear audio and video quality',
+          'Submit by due date'
+        ],
+        courseId: courseId || 'course_1',
+        courseName: 'Introduction to Communication',
+        instructorName: 'Dr. Smith'
+      },
+      {
+        assignmentId: 'assign_2',
+        title: 'Essay on Digital Media',
+        description: 'Write a 1000-word essay analyzing the impact of digital media on society',
+        assignmentType: 'essay',
+        status: 'in-progress',
+        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+        maxScore: 85,
+        requirements: [
+          'Minimum 1000 words',
+          'Use proper citations',
+          'Include introduction, body, and conclusion',
+          'Submit as PDF document'
+        ],
+        courseId: courseId || 'course_1',
+        courseName: 'Introduction to Communication',
+        instructorName: 'Dr. Smith'
+      },
+      {
+        assignmentId: 'assign_3',
+        title: 'Group Project Presentation',
+        description: 'Collaborate with classmates to create a group presentation',
+        assignmentType: 'presentation',
+        status: 'completed',
+        dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
+        maxScore: 120,
+        requirements: [
+          'Work in groups of 3-4 students',
+          'Present for 15-20 minutes',
+          'Include visual aids',
+          'Submit presentation slides'
+        ],
+        courseId: courseId || 'course_1',
+        courseName: 'Introduction to Communication',
+        instructorName: 'Dr. Smith'
+      }
+    ];
 
-    // TODO: Implement real assignments fetching from database
-    // - Query assignments table for user's assignments
-    // - Include assignment details, due dates, status
+    // Filter by course if specified
+    let filteredAssignments = mockAssignments;
+    if (courseId) {
+      filteredAssignments = mockAssignments.filter(assignment => assignment.courseId === courseId);
+    }
 
-    return NextResponse.json(assignments);
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedAssignments = filteredAssignments.slice(startIndex, endIndex);
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        assignments: paginatedAssignments,
+        totalCount: filteredAssignments.length,
+        currentPage: page,
+        totalPages: Math.ceil(filteredAssignments.length / limit),
+        hasNextPage: endIndex < filteredAssignments.length,
+        hasPreviousPage: page > 1
+      }
+    });
   } catch (error) {
     console.error('Error fetching assignments:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch assignments' },
+      { 
+        success: false,
+        error: 'Failed to fetch assignments' 
+      },
       { status: 500 }
     );
   }
