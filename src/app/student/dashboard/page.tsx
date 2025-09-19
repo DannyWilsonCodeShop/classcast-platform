@@ -27,6 +27,8 @@ const StudentDashboard: React.FC = () => {
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isLoadingCourses, setIsLoadingCourses] = useState(true);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
+  const [communityPosts, setCommunityPosts] = useState([]);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
 
   useEffect(() => {
     // Only load data if user is authenticated
@@ -80,6 +82,20 @@ const StudentDashboard: React.FC = () => {
           }
         } catch (error) {
           console.warn('Assignments API not available:', error);
+        }
+        
+        // Try to load community posts from API (with error handling)
+        try {
+          setIsLoadingPosts(true);
+          const postsResponse = await fetch('/api/community/posts');
+          if (postsResponse.ok) {
+            const postsData = await postsResponse.json();
+            setCommunityPosts(postsData || []);
+          }
+        } catch (error) {
+          console.warn('Community posts API not available:', error);
+        } finally {
+          setIsLoadingPosts(false);
         }
         
       } catch (error) {
@@ -515,10 +531,10 @@ const StudentDashboard: React.FC = () => {
               </div>
             </div>
             <div className="h-64 overflow-y-auto">
-              {/* Community Engagement Section */}
+              {/* Community Posts Section */}
               <div className="p-3 border-b border-gray-100">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-800">Community Engagement</h3>
+                  <h3 className="text-sm font-semibold text-gray-800">Recent Posts</h3>
                   <button 
                     onClick={() => router.push('/community')}
                     className="text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium"
@@ -527,40 +543,50 @@ const StudentDashboard: React.FC = () => {
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {/* Recent Community Activity */}
-                  <div className="flex items-start space-x-2 p-2 bg-gray-50 rounded-lg">
-                    <div className="w-6 h-6 bg-[#4A90E2] rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      A
+                  {isLoadingPosts ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#4A90E2]"></div>
+                      <span className="ml-2 text-xs text-gray-500">Loading posts...</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-600">
-                        <span className="font-medium text-gray-800">Alice</span> liked your video submission
-                      </p>
-                      <p className="text-xs text-gray-500">2 minutes ago</p>
+                  ) : communityPosts.length > 0 ? (
+                    communityPosts.slice(0, 3).map((post) => (
+                      <div key={post.id} className="flex items-start space-x-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                          post.isAnnouncement ? 'bg-[#4A90E2]' : 'bg-[#06D6A0]'
+                        }`}>
+                          {post.author.charAt(0)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center space-x-1 mb-1">
+                            <p className="text-xs font-medium text-gray-800">{post.author}</p>
+                            {post.isAnnouncement && (
+                              <span className="px-1 py-0.5 bg-[#4A90E2] text-white text-xs rounded-full">
+                                📢
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-600 line-clamp-2">{post.title}</p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(post.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span className="text-xs text-gray-400">👍 {post.likes}</span>
+                          <span className="text-xs text-gray-400">💬 {post.comments}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-xs text-gray-500">No posts yet</p>
+                      <button 
+                        onClick={() => router.push('/community')}
+                        className="text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium mt-1"
+                      >
+                        Be the first to post!
+                      </button>
                     </div>
-                  </div>
-                  <div className="flex items-start space-x-2 p-2 bg-gray-50 rounded-lg">
-                    <div className="w-6 h-6 bg-[#06D6A0] rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      B
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-600">
-                        <span className="font-medium text-gray-800">Bob</span> commented on "React Tutorial"
-                      </p>
-                      <p className="text-xs text-gray-500">15 minutes ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-2 p-2 bg-gray-50 rounded-lg">
-                    <div className="w-6 h-6 bg-[#FF6F61] rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      C
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-600">
-                        <span className="font-medium text-gray-800">Carol</span> shared your video
-                      </p>
-                      <p className="text-xs text-gray-500">1 hour ago</p>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
               
