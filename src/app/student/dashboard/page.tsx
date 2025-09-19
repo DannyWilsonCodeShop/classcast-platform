@@ -180,9 +180,9 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100">
+      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-[#F5F5F5] via-[#9B5DE5]/5 to-[#4A90E2]/5">
         {/* Branded Header */}
-        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3">
+        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Left Side - Logo and User Info */}
             <div className="flex items-center space-x-4">
@@ -196,10 +196,10 @@ const StudentDashboard: React.FC = () => {
                   />
                 </div>
                 <div className="hidden sm:block">
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-slate-700 to-gray-800 bg-clip-text text-transparent">
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-[#4A90E2] to-[#9B5DE5] bg-clip-text text-transparent">
                     ClassCast
                   </h1>
-                  <p className="text-xs text-gray-500">Student Portal</p>
+                  <p className="text-xs text-[#333333]">Student Portal</p>
                 </div>
               </div>
               
@@ -207,21 +207,21 @@ const StudentDashboard: React.FC = () => {
               
               {/* User Welcome */}
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-slate-500 to-gray-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-[#4A90E2] to-[#9B5DE5] flex items-center justify-center text-white font-bold text-lg shadow-lg">
                   {user?.firstName?.charAt(0) || 'S'}
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">Hey {user?.firstName || 'Student'}! 👋</h2>
+                  <h2 className="text-lg font-bold text-[#333333]">Hey {user?.firstName || 'Student'}! 👋</h2>
                   <div className="flex items-center space-x-2">
                     {isOnline ? (
                       <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-green-600 font-medium">Live</span>
+                        <div className="w-2 h-2 bg-[#06D6A0] rounded-full animate-pulse"></div>
+                        <span className="text-xs text-[#06D6A0] font-medium">Live</span>
                       </div>
                     ) : (
                       <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                        <span className="text-xs text-gray-500">Offline</span>
+                        <div className="w-2 h-2 bg-[#333333] rounded-full"></div>
+                        <span className="text-xs text-[#333333]">Offline</span>
                       </div>
                     )}
                   </div>
@@ -233,7 +233,7 @@ const StudentDashboard: React.FC = () => {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => setShowProfileEditor(true)}
-                className="p-2 bg-gradient-to-r from-slate-500 to-gray-600 text-white rounded-full hover:scale-110 transition-all duration-200 shadow-lg"
+                className="p-2 bg-gradient-to-r from-[#4A90E2] to-[#9B5DE5] text-white rounded-full hover:scale-110 transition-all duration-200 shadow-lg"
                 title="Edit Profile"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -242,7 +242,7 @@ const StudentDashboard: React.FC = () => {
               </button>
               <button
                 onClick={handleLogout}
-                className="p-2 bg-gradient-to-r from-red-400 to-red-500 text-white rounded-full hover:scale-110 transition-all duration-200 shadow-lg"
+                className="p-2 bg-gradient-to-r from-[#FF6F61] to-[#FFD166] text-white rounded-full hover:scale-110 transition-all duration-200 shadow-lg"
                 title="Logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -252,19 +252,19 @@ const StudentDashboard: React.FC = () => {
         </div>
 
         {/* Branded Status Bar */}
-        <div className="bg-gradient-to-r from-gray-50 to-slate-50 border-b border-white/20 px-4 py-2">
+        <div className="bg-gradient-to-r from-[#F5F5F5] to-[#9B5DE5]/10 border-b border-[#4A90E2]/20 px-4 py-2">
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-green-600 font-medium">System Online</span>
+                <div className="w-2 h-2 bg-[#06D6A0] rounded-full animate-pulse"></div>
+                <span className="text-[#06D6A0] font-medium">System Online</span>
               </div>
               <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-slate-500 rounded-full"></div>
-                <span className="text-slate-600">AI Features Active</span>
+                <div className="w-2 h-2 bg-[#4A90E2] rounded-full"></div>
+                <span className="text-[#4A90E2]">AI Features Active</span>
               </div>
             </div>
-            <div className="text-gray-500">
+            <div className="text-[#333333]">
               Welcome to ClassCast Student Portal
             </div>
           </div>
@@ -274,16 +274,13 @@ const StudentDashboard: React.FC = () => {
         <div className="flex-1 p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 h-full">
           {/* Video Feed - Top Left */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-3 bg-gradient-to-r from-slate-500 to-gray-600">
+            <div className="p-3 bg-gradient-to-r from-[#4A90E2] to-[#9B5DE5]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm">🎬</span>
                   </div>
                   <h2 className="text-white font-bold text-sm">Trending Now</h2>
-                </div>
-                <div className="text-white/80 text-xs">
-                  ClassCast
                 </div>
               </div>
             </div>
@@ -294,7 +291,7 @@ const StudentDashboard: React.FC = () => {
 
           {/* Courses - Top Center */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500">
+            <div className="p-3 bg-gradient-to-r from-[#06D6A0] to-[#4A90E2]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
@@ -354,7 +351,7 @@ const StudentDashboard: React.FC = () => {
 
           {/* Assignments - Top Right */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-3 bg-gradient-to-r from-amber-500 to-orange-500">
+            <div className="p-3 bg-gradient-to-r from-[#FFD166] to-[#FF6F61]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
@@ -475,7 +472,7 @@ const StudentDashboard: React.FC = () => {
 
           {/* AI Study Assistant - Bottom Center */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-3 bg-gradient-to-r from-emerald-500 to-teal-500">
+            <div className="p-3 bg-gradient-to-r from-[#9B5DE5] to-[#4A90E2]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
@@ -519,7 +516,7 @@ const StudentDashboard: React.FC = () => {
 
           {/* Social Analytics - Bottom Right */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-3 bg-gradient-to-r from-slate-500 to-gray-600">
+            <div className="p-3 bg-gradient-to-r from-[#4A90E2] to-[#06D6A0]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
@@ -559,7 +556,7 @@ const StudentDashboard: React.FC = () => {
 
                  {/* Quick Actions - Bottom Right */}
                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-                   <div className="p-3 bg-gradient-to-r from-rose-400 to-pink-500">
+                   <div className="p-3 bg-gradient-to-r from-[#FF6F61] to-[#9B5DE5]">
                      <div className="flex items-center justify-between">
                        <div className="flex items-center space-x-2">
                          <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
@@ -576,31 +573,31 @@ const StudentDashboard: React.FC = () => {
               <div className="grid grid-cols-1 gap-2">
                 <button
                   onClick={() => router.push('/student/video-submission')}
-                  className="w-full bg-gradient-to-r from-slate-500 to-gray-600 text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                  className="w-full bg-gradient-to-r from-[#4A90E2] to-[#9B5DE5] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
                 >
                   📹 Create Video
                 </button>
                 <button
                   onClick={() => router.push('/student/submissions')}
-                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                  className="w-full bg-gradient-to-r from-[#06D6A0] to-[#4A90E2] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
                 >
                   📝 View Submissions
                 </button>
                 <button
                   onClick={() => setShowProfileEditor(true)}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                  className="w-full bg-gradient-to-r from-[#FFD166] to-[#FF6F61] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
                 >
                   👤 Edit Profile
                 </button>
                 <button
                   onClick={() => router.push('/messaging')}
-                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                  className="w-full bg-gradient-to-r from-[#9B5DE5] to-[#4A90E2] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
                 >
                   💬 Messages
                 </button>
                 <button
                   onClick={() => setShowWizard(true)}
-                  className="w-full bg-gradient-to-r from-orange-500 to-red-600 text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                  className="w-full bg-gradient-to-r from-[#FF6F61] to-[#FFD166] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
                 >
                   🎯 Get Started
                 </button>
@@ -610,8 +607,8 @@ const StudentDashboard: React.FC = () => {
         </div>
 
         {/* Branded Footer */}
-        <div className="bg-white/80 backdrop-blur-md border-t border-white/20 px-4 py-2 flex-shrink-0">
-          <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="bg-white/80 backdrop-blur-md border-t border-[#4A90E2]/20 px-4 py-2 flex-shrink-0">
+          <div className="flex items-center justify-between text-xs text-[#333333]">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-1">
                 <div className="w-4 h-4 rounded overflow-hidden">
