@@ -8,11 +8,20 @@ export default async function HomePage() {
   // Check if user is authenticated and redirect to appropriate dashboard
   const cookieStore = await cookies();
   const accessToken = cookieStore.get('accessToken');
+  const refreshToken = cookieStore.get('refreshToken');
+  const userRole = cookieStore.get('userRole');
   
-  if (accessToken) {
-    // User is authenticated, redirect to dashboard
-    // We'll let the client-side handle the role-based routing
-    redirect('/student/dashboard');
+  // If user has any authentication tokens, redirect them away from home page
+  if (accessToken || refreshToken) {
+    // Redirect to appropriate dashboard based on role
+    if (userRole?.value === 'instructor') {
+      redirect('/instructor/dashboard');
+    } else if (userRole?.value === 'admin') {
+      redirect('/admin/dashboard');
+    } else {
+      // Default to student dashboard
+      redirect('/student/dashboard');
+    }
   }
 
   return (

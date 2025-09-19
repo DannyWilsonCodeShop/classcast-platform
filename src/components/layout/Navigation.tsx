@@ -53,30 +53,7 @@ export default function Navigation() {
             <div className="ml-10 flex items-baseline space-x-4">
               {isAuthenticated ? (
                 <>
-                  <Link
-                    href="/student/dashboard"
-                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-                  >
-                    📊 Dashboard
-                  </Link>
-                  <Link
-                    href="/student/assignments"
-                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-                  >
-                    📚 Assignments
-                  </Link>
-                  <Link
-                    href="/community"
-                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-                  >
-                    👥 Community
-                  </Link>
-                  <Link
-                    href="/student/courses"
-                    className="text-[#0065a3] hover:text-[#005a8f] px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200"
-                  >
-                    🎓 Courses
-                  </Link>
+                  {/* Authenticated users are redirected away from home page, so no navigation needed */}
                 </>
               ) : (
                 <>
@@ -205,34 +182,7 @@ export default function Navigation() {
               <div className="px-3 py-2">
                 <PortalIndicator />
               </div>
-              <Link
-                href="/student/dashboard"
-                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                onClick={closeMenu}
-              >
-                📊 Dashboard
-              </Link>
-              <Link
-                href="/student/assignments"
-                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                onClick={closeMenu}
-              >
-                📚 Assignments
-              </Link>
-              <Link
-                href="/community"
-                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                onClick={closeMenu}
-              >
-                👥 Community
-              </Link>
-              <Link
-                href="/student/courses"
-                className="text-[#0065a3] hover:text-[#005a8f] block px-3 py-2 rounded-md text-base font-medium transition-colors duration-200"
-                onClick={closeMenu}
-              >
-                🎓 Courses
-              </Link>
+              {/* Authenticated users are redirected away from home page, so no navigation needed */}
             </>
           ) : (
             <>
