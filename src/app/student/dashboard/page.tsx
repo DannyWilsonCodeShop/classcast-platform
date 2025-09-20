@@ -253,7 +253,7 @@ const StudentDashboard: React.FC = () => {
 
         {/* Status Bar */}
         <div className="bg-[#F5F5F5] border-b border-[#4A90E2]/20 px-4 py-2">
-          <div className="flex items-center justify-center text-sm">
+          <div className="flex items-center text-sm">
             <div className="text-[#333333] font-medium">
               Student Portal
             </div>

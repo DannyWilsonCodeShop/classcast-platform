@@ -90,21 +90,13 @@ export const CourseAssignments: React.FC<CourseAssignmentsProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Assignments</h2>
-          <p className="text-gray-600">Manage your course assignments</p>
+          <h2 className="text-2xl font-bold text-gray-800">Video Assignments</h2>
         </div>
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => router.push('/student/video-submission')}
-            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
-          >
-            <span>🎥</span>
-            <span>Record Assignment</span>
-          </button>
+        <div className="flex items-center space-x-2">
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as any)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
             <option value="all">All Assignments</option>
             <option value="upcoming">Upcoming</option>
@@ -172,7 +164,10 @@ export const CourseAssignments: React.FC<CourseAssignmentsProps> = ({
                     )}
                   </div>
                   
-                  <p className="text-gray-600 mb-4 line-clamp-2">{assignment.description}</p>
+                  <div className="mb-4">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Instructions:</h4>
+                    <p className="text-gray-600 line-clamp-3">{assignment.description}</p>
+                  </div>
                   
                   <div className="flex items-center space-x-6 text-sm text-gray-500">
                     <div className="flex items-center space-x-1">

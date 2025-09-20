@@ -60,7 +60,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'submit' | 'feedback'>('overview');
+  const [activeTab, setActiveTab] = useState<'record' | 'attachments' | 'feedback'>('record');
 
   const assignmentId = params.assignmentId as string;
 
@@ -312,8 +312,8 @@ Implement a complete binary search tree (BST) data structure with the following 
         <div className="bg-white/90 backdrop-blur-sm px-4 py-2 flex-shrink-0">
           <div className="flex space-x-1">
             {[
-              { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'submit', label: 'Submit', icon: '📤' },
+              { id: 'record', label: 'Record Video', icon: '🎥' },
+              { id: 'attachments', label: 'Attachments', icon: '📎' },
               { id: 'feedback', label: 'Feedback', icon: '💬' },
             ].map((tab) => (
               <button
@@ -334,7 +334,7 @@ Implement a complete binary search tree (BST) data structure with the following 
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
-          {activeTab === 'overview' && (
+          {activeTab === 'record' && (
             <div className="space-y-6">
               {/* Assignment Info */}
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
@@ -390,6 +390,24 @@ Implement a complete binary search tree (BST) data structure with the following 
                 </div>
               </div>
 
+              {/* Video Recording Section */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Record Your Video</h3>
+                <div className="text-center py-12">
+                  <div className="text-6xl mb-4">🎥</div>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-2">Video Recording</h4>
+                  <p className="text-gray-600 mb-4">
+                    Record your video assignment using the video submission tool.
+                  </p>
+                  <button
+                    onClick={() => router.push('/student/video-submission')}
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                  >
+                    Start Recording
+                  </button>
+                </div>
+              </div>
+
               {/* Rubric */}
               {assignment.rubric && (
                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
@@ -412,22 +430,19 @@ Implement a complete binary search tree (BST) data structure with the following 
             </div>
           )}
 
-          {activeTab === 'submit' && (
+          {activeTab === 'attachments' && (
             <div className="space-y-6">
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Submit Assignment</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Assignment Attachments</h3>
                 <div className="text-center py-12">
-                  <div className="text-6xl mb-4">📤</div>
-                  <h4 className="text-xl font-semibold text-gray-900 mb-2">Submission Form Coming Soon</h4>
+                  <div className="text-6xl mb-4">📎</div>
+                  <h4 className="text-xl font-semibold text-gray-900 mb-2">Attachments</h4>
                   <p className="text-gray-600 mb-4">
-                    The submission interface will be available here once implemented.
+                    View and download assignment materials and resources.
                   </p>
-                  <button
-                    onClick={() => router.push('/student/video-submission')}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                  >
-                    Go to Video Submission
-                  </button>
+                  <div className="text-sm text-gray-500">
+                    No attachments available for this assignment.
+                  </div>
                 </div>
               </div>
             </div>
