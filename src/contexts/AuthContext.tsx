@@ -336,7 +336,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     // Development mode: Set a mock user for testing
     if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-      const mockUser: User = {
+      // Check if we're on instructor dashboard
+      const isInstructorRoute = window.location.pathname.startsWith('/instructor');
+      
+      const mockUser: User = isInstructorRoute ? {
+        id: 'dev-instructor-001',
+        email: 'instructor@classcast.com',
+        firstName: 'Dr. Sarah',
+        lastName: 'Instructor',
+        role: 'instructor',
+        instructorId: 'inst-001',
+        department: 'Computer Science',
+        emailVerified: true,
+        sessionExpiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+      } : {
         id: 'dev-student-001',
         email: 'student@classcast.com',
         firstName: 'John',
