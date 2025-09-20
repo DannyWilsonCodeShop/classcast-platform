@@ -234,10 +234,10 @@ const StudentDashboard: React.FC = () => {
             <div className="flex items-center space-x-3">
               <button
                 onClick={() => setShowEnrollmentModal(true)}
-                className="flex items-center justify-center bg-[#4A90E2] text-white w-10 h-10 rounded-lg hover:bg-[#9B5DE5] transition-colors shadow-lg hover:shadow-xl"
+                className="text-[#4A90E2] hover:text-[#9B5DE5] transition-colors p-1"
                 title="Join a new class"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-6 h-6" />
               </button>
               <button
                 onClick={() => router.push('/student/profile')}
@@ -381,9 +381,13 @@ const StudentDashboard: React.FC = () => {
                       key={course.id}
                       onClick={() => router.push(`/student/courses/${course.id}`)}
                       className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] group"
+                      style={{ borderLeftColor: course.color, borderLeftWidth: '4px' }}
                     >
                       <div className="flex items-center space-x-4 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                        <div 
+                          className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg"
+                          style={{ backgroundColor: course.color }}
+                        >
                           {course.code?.charAt(0) || 'C'}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -401,14 +405,18 @@ const StudentDashboard: React.FC = () => {
                         
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Progress</span>
-                            <span className="font-semibold text-gray-900">{course.progress}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300" 
-                              style={{ width: `${course.progress}%` }}
-                            ></div>
+                            <span className="text-gray-600">Status</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              course.status === 'up-to-date' ? 'bg-green-100 text-green-800' :
+                              course.status === 'upcoming' ? 'bg-yellow-100 text-yellow-800' :
+                              course.status === 'past-due' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {course.status === 'up-to-date' ? '✅ Up To Date' :
+                               course.status === 'upcoming' ? '⏰ Upcoming Assignments' :
+                               course.status === 'past-due' ? '⚠️ Past Due' :
+                               '📚 Active'}
+                            </span>
                           </div>
                         </div>
                         

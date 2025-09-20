@@ -25,7 +25,23 @@ const VideoSubmissionPage: React.FC = () => {
         {/* Branded Header */}
         <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
           <div className="flex items-center justify-between">
-            {/* Left Side - Home Button */}
+            {/* Left Side - Back Button and MyClassCast Logo */}
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => router.back()}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Go back"
+              >
+                <span className="text-xl">&lt;</span>
+              </button>
+              <img
+                src="/MyClassCast (800 x 200 px).png"
+                alt="MyClassCast"
+                className="h-8 w-auto object-contain"
+              />
+            </div>
+            
+            {/* Right Side - Home Button */}
             <div className="flex items-center">
               <button
                 onClick={() => router.push('/student/dashboard')}
@@ -33,22 +49,6 @@ const VideoSubmissionPage: React.FC = () => {
                 title="Home Dashboard"
               >
                 <span className="text-xl">🏠</span>
-              </button>
-            </div>
-            
-            {/* Right Side - MyClassCast Logo and Back Button */}
-            <div className="flex items-center space-x-3">
-              <img
-                src="/MyClassCast (800 x 200 px).png"
-                alt="MyClassCast"
-                className="h-8 w-auto object-contain"
-              />
-              <button
-                onClick={() => router.back()}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                title="Go back"
-              >
-                <span className="text-xl">&lt;</span>
               </button>
             </div>
           </div>

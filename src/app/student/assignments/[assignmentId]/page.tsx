@@ -288,7 +288,7 @@ Implement a complete binary search tree (BST) data structure with the following 
                 onClick={() => router.push(`/student/courses/${assignment.course.id}`)}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <span className="text-xl">←</span>
+                <span className="text-xl">&lt;</span>
               </button>
               <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
                 📝
@@ -447,52 +447,118 @@ Implement a complete binary search tree (BST) data structure with the following 
           {activeTab === 'feedback' && (
             <div className="space-y-6">
               {assignment.submissions.length > 0 ? (
-                <div className="space-y-4">
-                  {assignment.submissions.map((submission) => (
-                    <div key={submission.id} className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-900">Submission #{submission.id}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                          submission.status === 'graded' ? 'bg-green-100 text-green-800' :
-                          submission.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {submission.status}
-                        </span>
+                <div className="space-y-6">
+                  {/* Instructor Feedback */}
+                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                    <div className="flex items-center mb-4">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
+                        👨‍🏫
                       </div>
-                      
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm text-gray-600">Submitted: {formatDate(submission.submittedAt)}</p>
+                      <h3 className="text-lg font-semibold text-gray-900">Instructor Feedback</h3>
+                    </div>
+                    
+                    {assignment.submissions[0]?.grade && assignment.submissions[0]?.feedback ? (
+                      <div className="space-y-4">
+                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-semibold text-green-800">Grade: {assignment.submissions[0].grade}/{assignment.points}</h4>
+                            <span className="text-sm text-green-600">
+                              {((assignment.submissions[0].grade / assignment.points) * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-green-200 rounded-full h-2">
+                            <div 
+                              className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                              style={{ width: `${(assignment.submissions[0].grade / assignment.points) * 100}%` }}
+                            ></div>
+                          </div>
                         </div>
                         
-                        {submission.grade && (
-                          <div className="p-4 bg-green-50 rounded-lg">
-                            <h4 className="font-semibold text-green-800 mb-2">Grade: {submission.grade}/{assignment.points}</h4>
-                            {submission.feedback && (
-                              <p className="text-green-700">{submission.feedback}</p>
-                            )}
-                          </div>
-                        )}
-                        
-                        {submission.files.length > 0 && (
-                          <div>
-                            <h4 className="font-medium text-gray-900 mb-2">Submitted Files:</h4>
-                            <div className="space-y-2">
-                              {submission.files.map((file, index) => (
-                                <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                  <span className="text-sm text-gray-700">{file.name}</span>
-                                  <span className="text-xs text-gray-500">
-                                    {(file.size / 1024).toFixed(1)} KB
-                                  </span>
-                                </div>
-                              ))}
+                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <h4 className="font-semibold text-blue-800 mb-2">Feedback</h4>
+                          <p className="text-blue-700 whitespace-pre-wrap">{assignment.submissions[0].feedback}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <div className="text-4xl mb-2">⏳</div>
+                        <p className="text-gray-600">Waiting for instructor feedback...</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Peer Feedback */}
+                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                    <div className="flex items-center mb-4">
+                      <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
+                        👥
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">Peer Feedback</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {/* Mock peer feedback data */}
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                              SC
                             </div>
+                            <span className="font-medium text-gray-800">Sarah Chen</span>
                           </div>
-                        )}
+                          <span className="text-sm text-gray-500">2 days ago</span>
+                        </div>
+                        <p className="text-gray-700 text-sm">
+                          "Great work on the implementation! Your code is well-structured and the comments are helpful. 
+                          One suggestion: consider adding error handling for edge cases in the delete function."
+                        </p>
+                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                          <span>👍 3</span>
+                          <span>💬 Reply</span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                              MR
+                            </div>
+                            <span className="font-medium text-gray-800">Marcus Rodriguez</span>
+                          </div>
+                          <span className="text-sm text-gray-500">1 day ago</span>
+                        </div>
+                        <p className="text-gray-700 text-sm">
+                          "Excellent algorithm choice! The time complexity is optimal. I learned a lot from your approach. 
+                          Maybe you could add some test cases to demonstrate the functionality?"
+                        </p>
+                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                          <span>👍 5</span>
+                          <span>💬 Reply</span>
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                              ET
+                            </div>
+                            <span className="font-medium text-gray-800">Emma Thompson</span>
+                          </div>
+                          <span className="text-sm text-gray-500">3 hours ago</span>
+                        </div>
+                        <p className="text-gray-700 text-sm">
+                          "Really impressive work! Your code is clean and easy to follow. The visualization you added 
+                          really helps understand the tree structure. Keep it up!"
+                        </p>
+                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                          <span>👍 2</span>
+                          <span>💬 Reply</span>
+                        </div>
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               ) : (
                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
@@ -503,10 +569,10 @@ Implement a complete binary search tree (BST) data structure with the following 
                       Submit your assignment to see feedback here.
                     </p>
                     <button
-                      onClick={() => setActiveTab('submit')}
+                      onClick={() => setActiveTab('details')}
                       className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
                     >
-                      Submit Assignment
+                      View Assignment Details
                     </button>
                   </div>
                 </div>
