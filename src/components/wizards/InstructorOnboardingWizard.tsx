@@ -8,6 +8,7 @@ interface InstructorOnboardingWizardProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: () => void;
+  isFirstTime?: boolean;
 }
 
 interface WizardStep {
@@ -20,7 +21,8 @@ interface WizardStep {
 const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
   isOpen,
   onClose,
-  onComplete
+  onComplete,
+  isFirstTime = false
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,13 +33,15 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
   const steps: WizardStep[] = [
     {
       id: 'welcome',
-      title: 'Welcome to ClassCast! 🎉',
-      description: 'Let\'s set up your first course and get you started teaching.',
-      component: <WelcomeStep />
+      title: isFirstTime ? 'Welcome to ClassCast! 🎉' : 'Create New Class 📚',
+      description: isFirstTime 
+        ? 'Let\'s set up your first course and get you started teaching.'
+        : 'Let\'s create a new class for your students.',
+      component: <WelcomeStep isFirstTime={isFirstTime} />
     },
     {
       id: 'course-setup',
-      title: 'Create Your First Course 📚',
+      title: isFirstTime ? 'Create Your First Course 📚' : 'Set Up Your Class 📚',
       description: 'Set up your course with basic information and settings.',
       component: <CourseSetupStep 
         data={courseData} 
@@ -55,7 +59,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
     },
     {
       id: 'create-assignment',
-      title: 'Create Your First Assignment 📝',
+      title: isFirstTime ? 'Create Your First Assignment 📝' : 'Create Assignment 📝',
       description: 'Set up an assignment for your students to complete.',
       component: <CreateAssignmentStep 
         data={assignmentData} 
@@ -65,19 +69,24 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
     },
     {
       id: 'publish-course',
-      title: 'Publish Your Course 🚀',
-      description: 'Review and publish your course to make it live.',
+      title: isFirstTime ? 'Publish Your Course 🚀' : 'Publish Your Class 🚀',
+      description: isFirstTime 
+        ? 'Review and publish your course to make it live.'
+        : 'Review and publish your new class.',
       component: <PublishCourseStep 
         courseData={courseData}
         assignmentData={assignmentData}
         students={students}
+        isFirstTime={isFirstTime}
       />
     },
     {
       id: 'complete',
-      title: 'You\'re All Set! 🎯',
-      description: 'Your course is live and ready for students.',
-      component: <CompleteStep />
+      title: isFirstTime ? 'You\'re All Set! 🎯' : 'Class Created! 🎯',
+      description: isFirstTime 
+        ? 'Your course is live and ready for students.'
+        : 'Your new class is ready for students.',
+      component: <CompleteStep isFirstTime={isFirstTime} />
     }
   ];
 
@@ -207,25 +216,33 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
 };
 
 // Step Components
-const WelcomeStep: React.FC = () => (
+interface WelcomeStepProps {
+  isFirstTime?: boolean;
+}
+
+const WelcomeStep: React.FC<WelcomeStepProps> = ({ isFirstTime = false }) => (
   <div className="text-center space-y-6">
     <div className="w-24 h-24 bg-[#4A90E2] rounded-full flex items-center justify-center mx-auto">
       <span className="text-4xl">🎓</span>
     </div>
     <div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-4">Welcome to ClassCast!</h3>
+      <h3 className="text-2xl font-bold text-gray-900 mb-4">
+        {isFirstTime ? 'Welcome to ClassCast!' : 'Create New Class'}
+      </h3>
       <p className="text-gray-600 text-lg leading-relaxed">
-        This wizard will help you set up your first course, add students, and create assignments. 
-        It only takes a few minutes to get everything ready!
+        {isFirstTime 
+          ? 'This wizard will help you set up your first course, add students, and create assignments. It only takes a few minutes to get everything ready!'
+          : 'This wizard will help you create a new class with all the details, generate a class code, and optionally set up an assignment. It only takes a few minutes!'
+        }
       </p>
     </div>
     <div className="bg-[#4A90E2]/10 rounded-lg p-4">
       <h4 className="font-semibold text-[#4A90E2] mb-2">What we'll cover:</h4>
       <ul className="text-[#4A90E2] space-y-1 text-left">
-        <li>• Create your first course with all the details</li>
+        <li>• {isFirstTime ? 'Create your first course' : 'Set up your new class'} with all the details</li>
         <li>• Generate a class code for students to join</li>
-        <li>• Set up your first assignment</li>
-        <li>• Publish everything and start teaching!</li>
+        <li>• {isFirstTime ? 'Set up your first assignment' : 'Optionally create an assignment'}</li>
+        <li>• Publish everything and {isFirstTime ? 'start teaching!' : 'make it available to students!'}</li>
       </ul>
     </div>
   </div>
@@ -611,14 +628,20 @@ interface PublishCourseStepProps {
   courseData: Partial<CreateCourseData>;
   assignmentData: Partial<Assignment>;
   students: Array<{email: string, name: string}>;
+  isFirstTime?: boolean;
 }
 
-const PublishCourseStep: React.FC<PublishCourseStepProps> = ({ courseData, assignmentData, students }) => (
+const PublishCourseStep: React.FC<PublishCourseStepProps> = ({ courseData, assignmentData, students, isFirstTime = false }) => (
   <div className="space-y-6">
     <div className="bg-yellow-50 rounded-lg p-4">
-      <h4 className="font-semibold text-yellow-900 mb-2">Review Your Course</h4>
+      <h4 className="font-semibold text-yellow-900 mb-2">
+        {isFirstTime ? 'Review Your Course' : 'Review Your Class'}
+      </h4>
       <p className="text-yellow-800 text-sm">
-        Review all the information below before publishing your course.
+        {isFirstTime 
+          ? 'Review all the information below before publishing your course.'
+          : 'Review all the information below before publishing your new class.'
+        }
       </p>
     </div>
 
@@ -659,21 +682,30 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({ courseData, assig
   </div>
 );
 
-const CompleteStep: React.FC = () => (
+interface CompleteStepProps {
+  isFirstTime?: boolean;
+}
+
+const CompleteStep: React.FC<CompleteStepProps> = ({ isFirstTime = false }) => (
   <div className="text-center space-y-6">
     <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto">
       <span className="text-4xl">🎉</span>
     </div>
     <div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-4">Congratulations!</h3>
+      <h3 className="text-2xl font-bold text-gray-900 mb-4">
+        {isFirstTime ? 'Congratulations!' : 'Class Created!'}
+      </h3>
       <p className="text-gray-600 text-lg leading-relaxed">
-        Your course is now live and ready for students! You can start teaching and managing your class right away.
+        {isFirstTime 
+          ? 'Your course is now live and ready for students! You can start teaching and managing your class right away.'
+          : 'Your new class is now live and ready for students! You can start managing it right away.'
+        }
       </p>
     </div>
     <div className="bg-green-50 rounded-lg p-4">
       <h4 className="font-semibold text-green-900 mb-2">What's next?</h4>
       <ul className="text-green-800 space-y-1 text-left">
-        <li>• Students will receive email invitations to join your course</li>
+        <li>• {isFirstTime ? 'Students will receive email invitations to join your course' : 'Share the class code with students to join'}</li>
         <li>• You can create more assignments from your dashboard</li>
         <li>• Monitor student progress and submissions in real-time</li>
         <li>• Use AI tools to help with grading and feedback</li>

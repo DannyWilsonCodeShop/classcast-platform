@@ -33,6 +33,8 @@ const InstructorDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [showWizard, setShowWizard] = useState(false);
+  const [showFirstTimeWizard, setShowFirstTimeWizard] = useState(false);
+  const [isFirstTimeWizard, setIsFirstTimeWizard] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats>({
     activeCourses: 0,
@@ -51,6 +53,113 @@ const InstructorDashboard: React.FC = () => {
       console.error('Logout failed:', error);
     }
   };
+
+  // Mock assignments data for each course
+  const getMockAssignmentsForCourse = (courseId: string) => {
+    const assignmentsByCourse: { [key: string]: any[] } = {
+      'cs-101': [
+        {
+          id: 'assign1',
+          title: 'Introduction Video Assignment',
+          dueDate: '2024-01-25T23:59:59Z',
+          status: 'published',
+          submissionsCount: 42
+        },
+        {
+          id: 'assign2',
+          title: 'Algorithm Analysis Project',
+          dueDate: '2024-02-01T23:59:59Z',
+          status: 'grading',
+          submissionsCount: 38
+        },
+        {
+          id: 'assign3',
+          title: 'Data Structures Lab',
+          dueDate: '2024-02-08T23:59:59Z',
+          status: 'draft',
+          submissionsCount: 0
+        }
+      ],
+      'math-201': [
+        {
+          id: 'assign4',
+          title: 'Integration Techniques Quiz',
+          dueDate: '2024-01-28T23:59:59Z',
+          status: 'published',
+          submissionsCount: 35
+        },
+        {
+          id: 'assign5',
+          title: 'Series Convergence Problems',
+          dueDate: '2024-02-05T23:59:59Z',
+          status: 'grading',
+          submissionsCount: 32
+        }
+      ],
+      'eng-102': [
+        {
+          id: 'assign6',
+          title: 'Creative Writing Exercise',
+          dueDate: '2024-01-30T23:59:59Z',
+          status: 'published',
+          submissionsCount: 28
+        },
+        {
+          id: 'assign7',
+          title: 'Poetry Analysis Essay',
+          dueDate: '2024-02-10T23:59:59Z',
+          status: 'draft',
+          submissionsCount: 0
+        }
+      ],
+      'phy-301': [
+        {
+          id: 'assign8',
+          title: 'Quantum Mechanics Problem Set',
+          dueDate: '2024-02-02T23:59:59Z',
+          status: 'published',
+          submissionsCount: 22
+        }
+      ],
+      'bio-150': [
+        {
+          id: 'assign9',
+          title: 'Cell Structure Lab Report',
+          dueDate: '2024-02-03T23:59:59Z',
+          status: 'draft',
+          submissionsCount: 0
+        }
+      ],
+      'hist-201': [
+        {
+          id: 'assign10',
+          title: 'Historical Analysis Paper',
+          dueDate: '2024-02-07T23:59:59Z',
+          status: 'published',
+          submissionsCount: 40
+        }
+      ]
+    };
+    
+    return assignmentsByCourse[courseId] || [];
+  };
+
+  // Check for first-time instructor
+  useEffect(() => {
+    const checkFirstTimeInstructor = () => {
+      const hasSeenWizard = localStorage.getItem('instructor-wizard-seen');
+      const isFirstTime = !hasSeenWizard && courses.length === 0;
+      
+      if (isFirstTime) {
+        setShowFirstTimeWizard(true);
+      }
+    };
+
+    // Check after courses are loaded
+    if (!loading && courses.length >= 0) {
+      checkFirstTimeInstructor();
+    }
+  }, [loading, courses.length]);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -109,7 +218,7 @@ const InstructorDashboard: React.FC = () => {
             {/* Right Side - Create Class Button and Profile Thumbnail */}
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => setShowWizard(true)}
+                onClick={() => router.push('/instructor/classes/create')}
                 className="flex items-center space-x-2 bg-[#4A90E2] text-white px-4 py-2 rounded-lg hover:bg-[#9B5DE5] transition-colors shadow-lg hover:shadow-xl"
                 title="Create a new class"
               >
@@ -247,7 +356,7 @@ const InstructorDashboard: React.FC = () => {
                   <p className="text-red-600">{error}</p>
                 </div>
               ) : (
-                /* Courses Grid */
+                /* Classes Grid */
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {courses.length > 0 ? (
                     courses.map((course) => (
@@ -255,7 +364,7 @@ const InstructorDashboard: React.FC = () => {
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">{course.title}</h3>
-                            <div className="flex items-center space-x-4 text-sm text-gray-600">
+                            <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
                               <span>👥 {course.studentCount} students</span>
                               <span>📝 {course.assignmentsDue} due</span>
                             </div>
@@ -264,18 +373,48 @@ const InstructorDashboard: React.FC = () => {
                             📚
                           </div>
                         </div>
+                        
+                        {/* Assignments List */}
+                        <div className="mb-4">
+                          <h4 className="text-sm font-semibold text-gray-700 mb-2">Recent Assignments</h4>
+                          <div className="space-y-2">
+                            {getMockAssignmentsForCourse(course.id).slice(0, 3).map((assignment) => (
+                              <div key={assignment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-800 truncate">{assignment.title}</p>
+                                  <p className="text-xs text-gray-500">
+                                    Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                                  </p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    assignment.status === 'published' ? 'bg-green-100 text-green-800' :
+                                    assignment.status === 'grading' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {assignment.status}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {assignment.submissionsCount} submissions
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
                         <div className="flex space-x-2">
                           <button 
                             onClick={() => router.push(`/instructor/courses/${course.id}`)}
                             className="flex-1 bg-[#4A90E2] text-white px-3 py-2 rounded-lg hover:bg-[#9B5DE5] transition-colors text-sm font-medium"
                           >
-                            Manage
+                            Manage Class
                           </button>
                           <button 
-                            onClick={() => router.push(`/instructor/courses/${course.id}/assignments`)}
-                            className="flex-1 bg-[#06D6A0] text-white px-3 py-2 rounded-lg hover:bg-[#4ECDC4] transition-colors text-sm font-medium"
+                            onClick={() => router.push(`/instructor/grading/bulk?course=${course.id}`)}
+                            className="flex-1 bg-[#FF6F61] text-white px-3 py-2 rounded-lg hover:bg-[#FF8A80] transition-colors text-sm font-medium"
                           >
-                            Assignments
+                            Grade All
                           </button>
                         </div>
                       </div>
@@ -303,12 +442,73 @@ const InstructorDashboard: React.FC = () => {
         {/* Course Setup Wizard */}
         <InstructorOnboardingWizard
           isOpen={showWizard}
-          onClose={() => setShowWizard(false)}
+          onClose={() => {
+            setShowWizard(false);
+            setIsFirstTimeWizard(false);
+          }}
           onComplete={() => {
             setShowWizard(false);
+            setIsFirstTimeWizard(false);
+            localStorage.setItem('instructor-wizard-seen', 'true');
             // Optionally refresh course data or show success message
           }}
+          isFirstTime={isFirstTimeWizard}
         />
+
+        {/* First-Time Instructor Wizard */}
+        {showFirstTimeWizard && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-[#4A90E2] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl text-white">🎓</span>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to ClassCast!</h2>
+                <p className="text-gray-600">
+                  Let's get you started by creating your first class. We'll guide you through the process step by step.
+                </p>
+              </div>
+              
+              <div className="space-y-4">
+                <button
+                  onClick={() => {
+                    setShowFirstTimeWizard(false);
+                    setIsFirstTimeWizard(true);
+                    setShowWizard(true);
+                  }}
+                  className="w-full bg-[#4A90E2] text-white py-3 px-6 rounded-lg hover:bg-[#9B5DE5] transition-colors font-medium"
+                >
+                  Start Setup Wizard
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setShowFirstTimeWizard(false);
+                    router.push('/instructor/classes/create');
+                  }}
+                  className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                >
+                  Create Class Manually
+                </button>
+                
+                <div className="flex items-center justify-center pt-4">
+                  <label className="flex items-center text-sm text-gray-600">
+                    <input
+                      type="checkbox"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          localStorage.setItem('instructor-wizard-seen', 'true');
+                        }
+                      }}
+                      className="mr-2"
+                    />
+                    Don't show this again
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </InstructorRoute>
   );
