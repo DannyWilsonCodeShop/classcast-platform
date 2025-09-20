@@ -110,29 +110,141 @@ const InstructorCourseDetailPage: React.FC = () => {
         throw new Error(courseData.error || 'Failed to fetch course');
       }
 
-      // Fetch assignments for this course
-      const assignmentsResponse = await fetch(`/api/courses/${courseId}/assignments`, {
-        credentials: 'include',
-      });
-
-      if (assignmentsResponse.ok) {
-        const assignmentsData = await assignmentsResponse.json();
-        if (assignmentsData.success) {
-          setAssignments(assignmentsData.data);
+      // Mock assignments data for demonstration
+      const mockAssignments: Assignment[] = [
+        {
+          assignmentId: 'assign1',
+          title: 'Introduction Video Assignment',
+          description: 'Create a 2-3 minute video introducing yourself and explaining why you chose this course.',
+          dueDate: '2024-01-25T23:59:59Z',
+          points: 100,
+          status: 'published',
+          submissionType: 'video',
+          submissionsCount: 42,
+          gradedCount: 38,
+          averageGrade: 88.5,
+          createdAt: '2024-01-15T10:00:00Z'
+        },
+        {
+          assignmentId: 'assign2',
+          title: 'Algorithm Analysis Project',
+          description: 'Analyze the time and space complexity of three different sorting algorithms.',
+          dueDate: '2024-02-01T23:59:59Z',
+          points: 150,
+          status: 'grading',
+          submissionType: 'file',
+          submissionsCount: 38,
+          gradedCount: 25,
+          averageGrade: 85.3,
+          createdAt: '2024-01-20T14:30:00Z'
+        },
+        {
+          assignmentId: 'assign3',
+          title: 'Data Structures Lab',
+          description: 'Implement a binary search tree with insertion, deletion, and traversal methods.',
+          dueDate: '2024-02-08T23:59:59Z',
+          points: 200,
+          status: 'draft',
+          submissionType: 'file',
+          submissionsCount: 0,
+          gradedCount: 0,
+          averageGrade: undefined,
+          createdAt: '2024-01-25T09:15:00Z'
+        },
+        {
+          assignmentId: 'assign4',
+          title: 'Final Project Presentation',
+          description: 'Present your final project to the class with a 10-minute presentation.',
+          dueDate: '2024-02-15T23:59:59Z',
+          points: 300,
+          status: 'published',
+          submissionType: 'video',
+          submissionsCount: 0,
+          gradedCount: 0,
+          averageGrade: undefined,
+          createdAt: '2024-01-28T16:45:00Z'
         }
-      }
+      ];
+      
+      setAssignments(mockAssignments);
 
-      // Fetch enrolled students
-      const studentsResponse = await fetch(`/api/courses/${courseId}/students`, {
-        credentials: 'include',
-      });
-
-      if (studentsResponse.ok) {
-        const studentsData = await studentsResponse.json();
-        if (studentsData.success) {
-          setStudents(studentsData.data);
+      // Mock students data for demonstration
+      const mockStudents: Student[] = [
+        {
+          studentId: 'stu001',
+          name: 'Alice Johnson',
+          email: 'alice.johnson@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-01-15T10:00:00Z',
+          status: 'active',
+          currentGrade: 92.5,
+          assignmentsSubmitted: 8,
+          assignmentsTotal: 8,
+          lastActivity: '2024-01-22T14:30:00Z'
+        },
+        {
+          studentId: 'stu002',
+          name: 'Bob Smith',
+          email: 'bob.smith@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-01-15T10:30:00Z',
+          status: 'active',
+          currentGrade: 85.7,
+          assignmentsSubmitted: 7,
+          assignmentsTotal: 8,
+          lastActivity: '2024-01-21T16:45:00Z'
+        },
+        {
+          studentId: 'stu003',
+          name: 'Carol Davis',
+          email: 'carol.davis@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-01-16T09:15:00Z',
+          status: 'active',
+          currentGrade: 89.3,
+          assignmentsSubmitted: 8,
+          assignmentsTotal: 8,
+          lastActivity: '2024-01-22T10:20:00Z'
+        },
+        {
+          studentId: 'stu004',
+          name: 'David Wilson',
+          email: 'david.wilson@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-01-16T11:00:00Z',
+          status: 'active',
+          currentGrade: 78.9,
+          assignmentsSubmitted: 6,
+          assignmentsTotal: 8,
+          lastActivity: '2024-01-20T13:15:00Z'
+        },
+        {
+          studentId: 'stu005',
+          name: 'Eva Brown',
+          email: 'eva.brown@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-01-17T14:20:00Z',
+          status: 'active',
+          currentGrade: 91.2,
+          assignmentsSubmitted: 8,
+          assignmentsTotal: 8,
+          lastActivity: '2024-01-22T15:30:00Z'
+        },
+        {
+          studentId: 'stu006',
+          name: 'Frank Miller',
+          email: 'frank.miller@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-01-17T16:45:00Z',
+          status: 'dropped',
+          currentGrade: 65.4,
+          assignmentsSubmitted: 3,
+          assignmentsTotal: 8,
+          lastActivity: '2024-01-19T12:00:00Z'
         }
-      }
+      ];
+      
+      setStudents(mockStudents);
 
     } catch (err) {
       console.error('Error fetching course details:', err);
