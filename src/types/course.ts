@@ -7,6 +7,7 @@ export interface Course {
   credits: number;
   semester: string; // e.g., "Fall 2024", "Spring 2025"
   year: number;
+  backgroundColor: string;
   instructorId: string;
   instructorName: string;
   instructorEmail: string;
@@ -87,6 +88,7 @@ export interface CreateCourseData {
   credits: number;
   semester: string;
   year: number;
+  backgroundColor: string;
   startDate: string;
   endDate: string;
   maxStudents?: number;

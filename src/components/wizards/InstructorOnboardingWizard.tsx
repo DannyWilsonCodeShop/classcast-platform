@@ -46,8 +46,8 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
     },
     {
       id: 'add-students',
-      title: 'Add Your Students 👥',
-      description: 'Invite students to join your course.',
+      title: 'Share Class Code 👥',
+      description: 'Share your class code with students or add them manually.',
       component: <AddStudentsStep 
         students={students} 
         onChange={setStudents} 
@@ -136,7 +136,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+        <div className="bg-[#4A90E2] text-white p-6">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">{steps[currentStep].title}</h2>
@@ -195,7 +195,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
             <button
               onClick={handleNext}
               disabled={isLoading}
-              className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="px-6 py-2 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
             >
               {isLoading ? 'Saving...' : currentStep === steps.length - 1 ? 'Complete' : 'Next'}
             </button>
@@ -209,7 +209,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
 // Step Components
 const WelcomeStep: React.FC = () => (
   <div className="text-center space-y-6">
-    <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto">
+    <div className="w-24 h-24 bg-[#4A90E2] rounded-full flex items-center justify-center mx-auto">
       <span className="text-4xl">🎓</span>
     </div>
     <div>
@@ -219,11 +219,11 @@ const WelcomeStep: React.FC = () => (
         It only takes a few minutes to get everything ready!
       </p>
     </div>
-    <div className="bg-blue-50 rounded-lg p-4">
-      <h4 className="font-semibold text-blue-900 mb-2">What we'll cover:</h4>
-      <ul className="text-blue-800 space-y-1 text-left">
+    <div className="bg-[#4A90E2]/10 rounded-lg p-4">
+      <h4 className="font-semibold text-[#4A90E2] mb-2">What we'll cover:</h4>
+      <ul className="text-[#4A90E2] space-y-1 text-left">
         <li>• Create your first course with all the details</li>
-        <li>• Add students and send them invitations</li>
+        <li>• Generate a class code for students to join</li>
         <li>• Set up your first assignment</li>
         <li>• Publish everything and start teaching!</li>
       </ul>
@@ -241,6 +241,20 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
     onChange({ ...data, [field]: value });
   };
 
+  // Generate a class code when component mounts or course name changes
+  React.useEffect(() => {
+    if (data.courseName && !data.classCode) {
+      const courseCode = data.courseName
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .join('')
+        .substring(0, 3);
+      const randomNum = Math.floor(Math.random() * 9000) + 1000;
+      const generatedCode = `${courseCode}${randomNum}`;
+      handleChange('classCode', generatedCode);
+    }
+  }, [data.courseName]);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -252,7 +266,7 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
             type="text"
             value={data.courseName || ''}
             onChange={(e) => handleChange('courseName', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
             placeholder="e.g., Introduction to Computer Science"
           />
         </div>
@@ -265,10 +279,45 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
             type="text"
             value={data.courseCode || ''}
             onChange={(e) => handleChange('courseCode', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
             placeholder="e.g., CS101"
           />
         </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Class Code (for students to join) *
+        </label>
+        <div className="flex items-center space-x-2">
+          <input
+            type="text"
+            value={data.classCode || ''}
+            onChange={(e) => handleChange('classCode', e.target.value)}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent font-mono text-lg"
+            placeholder="Auto-generated class code"
+            readOnly
+          />
+          <button
+            type="button"
+            onClick={() => {
+              const courseCode = (data.courseName || 'COURSE')
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase())
+                .join('')
+                .substring(0, 3);
+              const randomNum = Math.floor(Math.random() * 9000) + 1000;
+              const generatedCode = `${courseCode}${randomNum}`;
+              handleChange('classCode', generatedCode);
+            }}
+            className="px-3 py-2 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors"
+          >
+            🔄
+          </button>
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          Students will use this code to join your class. Share this with them!
+        </p>
       </div>
 
       <div>
@@ -292,7 +341,7 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
           <select
             value={data.department || ''}
             onChange={(e) => handleChange('department', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
           >
             <option value="">Select Department</option>
             <option value="Computer Science">Computer Science</option>
@@ -313,7 +362,7 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
           <select
             value={data.semester || ''}
             onChange={(e) => handleChange('semester', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
           >
             <option value="">Select Semester</option>
             <option value="Fall">Fall</option>
@@ -331,11 +380,44 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
             type="number"
             value={data.year || new Date().getFullYear()}
             onChange={(e) => handleChange('year', parseInt(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
             min="2020"
             max="2030"
           />
         </div>
+      </div>
+
+      {/* Course Color Selection */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Course Color Theme
+        </label>
+        <div className="grid grid-cols-6 gap-3">
+          {[
+            { name: 'Sky Blue', value: '#4A90E2' },
+            { name: 'Coral', value: '#FF6F61' },
+            { name: 'Golden Yellow', value: '#FFD166' },
+            { name: 'Mint Green', value: '#06D6A0' },
+            { name: 'Lavender', value: '#9B5DE5' },
+            { name: 'Charcoal', value: '#333333' }
+          ].map((color) => (
+            <button
+              key={color.value}
+              type="button"
+              onClick={() => handleChange('backgroundColor', color.value)}
+              className={`w-12 h-12 rounded-lg border-2 transition-all duration-200 ${
+                data.backgroundColor === color.value
+                  ? 'border-gray-800 scale-110 shadow-lg'
+                  : 'border-gray-300 hover:scale-105'
+              }`}
+              style={{ backgroundColor: color.value }}
+              title={color.name}
+            />
+          ))}
+        </div>
+        <p className="text-sm text-gray-500 mt-2">
+          Choose a color theme for your course. This will help students easily identify your class.
+        </p>
       </div>
     </div>
   );
@@ -362,10 +444,10 @@ const AddStudentsStep: React.FC<AddStudentsStepProps> = ({ students, onChange })
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 rounded-lg p-4">
-        <h4 className="font-semibold text-blue-900 mb-2">Add Students to Your Course</h4>
-        <p className="text-blue-800 text-sm">
-          You can add students now or invite them later. Students will receive an email invitation to join your course.
+      <div className="bg-[#4A90E2]/10 rounded-lg p-4">
+        <h4 className="font-semibold text-[#4A90E2] mb-2">Share Your Class Code</h4>
+        <p className="text-[#4A90E2] text-sm">
+          Students can join your class using the class code you generated. You can also add students manually now or they can join later using the code.
         </p>
       </div>
 
@@ -378,7 +460,7 @@ const AddStudentsStep: React.FC<AddStudentsStepProps> = ({ students, onChange })
             type="text"
             value={newStudent.name}
             onChange={(e) => setNewStudent({ ...newStudent, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
             placeholder="Enter student's full name"
           />
         </div>
@@ -391,7 +473,7 @@ const AddStudentsStep: React.FC<AddStudentsStepProps> = ({ students, onChange })
             type="email"
             value={newStudent.email}
             onChange={(e) => setNewStudent({ ...newStudent, email: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
             placeholder="student@example.com"
           />
         </div>
@@ -487,7 +569,7 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
             type="datetime-local"
             value={data.dueDate || ''}
             onChange={(e) => handleChange('dueDate', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
           />
         </div>
 
@@ -499,7 +581,7 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
             type="number"
             value={data.maxScore || 100}
             onChange={(e) => handleChange('maxScore', parseInt(e.target.value))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
             min="1"
             max="1000"
           />
