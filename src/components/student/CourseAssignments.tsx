@@ -16,7 +16,7 @@ export const CourseAssignments: React.FC<CourseAssignmentsProps> = ({
   onAssignmentUpdate 
 }) => {
   const router = useRouter();
-  const [filter, setFilter] = useState<'all' | 'upcoming' | 'submitted' | 'graded'>('all');
+  const [filter, setFilter] = useState<'all' | 'upcoming' | 'submitted' | 'graded'>('upcoming');
   const [sortBy, setSortBy] = useState<'dueDate' | 'title' | 'points'>('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
@@ -94,6 +94,13 @@ export const CourseAssignments: React.FC<CourseAssignmentsProps> = ({
           <p className="text-gray-600">Manage your course assignments</p>
         </div>
         <div className="flex items-center space-x-4">
+          <button
+            onClick={() => router.push('/student/video-submission')}
+            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+          >
+            <span>🎥</span>
+            <span>Record Assignment</span>
+          </button>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as any)}
