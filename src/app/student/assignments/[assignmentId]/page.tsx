@@ -60,7 +60,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'record' | 'attachments' | 'feedback'>('record');
+  const [activeTab, setActiveTab] = useState<'details' | 'attachments' | 'feedback'>('details');
 
   const assignmentId = params.assignmentId as string;
 
@@ -312,7 +312,7 @@ Implement a complete binary search tree (BST) data structure with the following 
         <div className="bg-white/90 backdrop-blur-sm px-4 py-2 flex-shrink-0">
           <div className="flex space-x-1">
             {[
-              { id: 'record', label: 'Record Video', icon: '🎥' },
+              { id: 'details', label: 'Details', icon: '📋' },
               { id: 'attachments', label: 'Attachments', icon: '📎' },
               { id: 'feedback', label: 'Feedback', icon: '💬' },
             ].map((tab) => (
@@ -329,12 +329,19 @@ Implement a complete binary search tree (BST) data structure with the following 
                 {tab.label}
               </button>
             ))}
+            <button
+              onClick={() => router.push('/student/video-submission')}
+              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-xs hover:shadow-lg transition-all duration-200"
+            >
+              <span className="mr-1">🎥</span>
+              Record Video
+            </button>
           </div>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4">
-          {activeTab === 'record' && (
+          {activeTab === 'details' && (
             <div className="space-y-6">
               {/* Assignment Info */}
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
@@ -390,23 +397,6 @@ Implement a complete binary search tree (BST) data structure with the following 
                 </div>
               </div>
 
-              {/* Video Recording Section */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Record Your Video</h3>
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🎥</div>
-                  <h4 className="text-xl font-semibold text-gray-900 mb-2">Video Recording</h4>
-                  <p className="text-gray-600 mb-4">
-                    Record your video assignment using the video submission tool.
-                  </p>
-                  <button
-                    onClick={() => router.push('/student/video-submission')}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                  >
-                    Start Recording
-                  </button>
-                </div>
-              </div>
 
               {/* Rubric */}
               {assignment.rubric && (
