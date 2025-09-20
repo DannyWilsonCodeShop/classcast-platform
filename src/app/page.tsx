@@ -1,27 +1,44 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import Navigation from '@/components/layout/Navigation';
-import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
-export default async function HomePage() {
-  // Check if user is authenticated and redirect to appropriate dashboard
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get('accessToken');
-  const refreshToken = cookieStore.get('refreshToken');
-  const userRole = cookieStore.get('userRole');
-  
-  // If user has any authentication tokens, redirect them away from home page
-  if (accessToken || refreshToken) {
-    // Redirect to appropriate dashboard based on role
-    if (userRole?.value === 'instructor') {
-      redirect('/instructor/dashboard');
-    } else if (userRole?.value === 'admin') {
-      redirect('/admin/dashboard');
-    } else {
-      // Default to student dashboard
-      redirect('/student/dashboard');
+export default function HomePage() {
+  const router = useRouter();
+  const { isAuthenticated, user, isLoading } = useAuth();
+
+  // Redirect authenticated users to their appropriate dashboard
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      if (user.role === 'instructor') {
+        router.push('/instructor/dashboard');
+      } else if (user.role === 'admin') {
+        router.push('/admin/dashboard');
+      } else {
+        // Default to student dashboard
+        router.push('/student/dashboard');
+      }
     }
+  }, [isAuthenticated, user, isLoading, router]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render the landing page if user is authenticated
+  if (isAuthenticated && user) {
+    return null;
   }
 
   return (
