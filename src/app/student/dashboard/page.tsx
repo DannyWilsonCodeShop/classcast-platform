@@ -33,7 +33,9 @@ const StudentDashboard: React.FC = () => {
 
   useEffect(() => {
     // Only load data if user is authenticated
+    console.log('Auth state:', { isAuthenticated, user, isLoading });
     if (!isAuthenticated || !user || isLoading) {
+      console.log('Not loading data - not authenticated or still loading');
       return;
     }
 
@@ -67,7 +69,10 @@ const StudentDashboard: React.FC = () => {
 
           if (coursesResponse.ok) {
             const coursesData = await coursesResponse.json();
+            console.log('Courses API response:', coursesData);
             setCourses(coursesData.courses || []);
+          } else {
+            console.error('Courses API failed:', coursesResponse.status, coursesResponse.statusText);
           }
 
           if (assignmentsResponse.ok) {
