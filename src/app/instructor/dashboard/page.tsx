@@ -182,7 +182,12 @@ const InstructorDashboard: React.FC = () => {
 
         if (coursesResponse.ok) {
           const coursesData = await coursesResponse.json();
-          setCourses(coursesData.courses || []);
+          console.log('Courses API response:', coursesData);
+          // Handle both formats: direct courses array or nested data.courses
+          const coursesArray = coursesData.courses || coursesData.data?.courses || [];
+          setCourses(coursesArray);
+        } else {
+          console.error('Courses API failed:', coursesResponse.status, coursesResponse.statusText);
         }
 
         if (submissionsResponse.ok) {
