@@ -75,7 +75,7 @@ const StudentCourseDetailPage: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'assignments' | 'students' | 'materials'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'assignments' | 'students' | 'materials'>('assignments');
 
   const courseId = params.courseId as string;
 
@@ -298,7 +298,7 @@ const StudentCourseDetailPage: React.FC = () => {
           <div className="flex space-x-1">
             {[
               { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'assignments', label: 'Tasks', icon: '📝' },
+              { id: 'assignments', label: 'Assignments', icon: '📝' },
               { id: 'students', label: 'Classmates', icon: '👥' },
               { id: 'materials', label: 'Files', icon: '📚' },
             ].map((tab) => (
