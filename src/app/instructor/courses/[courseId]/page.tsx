@@ -105,7 +105,37 @@ const InstructorCourseDetailPage: React.FC = () => {
 
       const courseData = await courseResponse.json();
       if (courseData.success) {
-        setCourse(courseData.data);
+        const apiCourse = courseData.data;
+        // Transform API response to match expected interface
+        const transformedCourse = {
+          courseId: apiCourse.courseId || apiCourse.id,
+          courseName: apiCourse.courseName || apiCourse.title,
+          courseCode: apiCourse.courseCode || apiCourse.code,
+          description: apiCourse.description,
+          instructor: apiCourse.instructor,
+          semester: apiCourse.semester || 'Fall',
+          year: apiCourse.year || 2024,
+          status: apiCourse.status || 'published',
+          enrollmentCount: apiCourse.currentEnrollment || apiCourse.enrollmentCount || 0,
+          maxEnrollment: apiCourse.maxStudents || apiCourse.maxEnrollment,
+          credits: apiCourse.credits || 3,
+          schedule: apiCourse.schedule || {
+            days: ['Monday', 'Wednesday', 'Friday'],
+            time: '10:00 AM - 11:00 AM',
+            location: 'TBD'
+          },
+          prerequisites: apiCourse.prerequisites || [],
+          learningObjectives: apiCourse.learningObjectives || [],
+          gradingPolicy: apiCourse.gradingPolicy || {
+            assignments: 40,
+            exams: 30,
+            participation: 10,
+            final: 20
+          },
+          createdAt: apiCourse.createdAt || new Date().toISOString(),
+          updatedAt: apiCourse.updatedAt || new Date().toISOString()
+        };
+        setCourse(transformedCourse);
       } else {
         throw new Error(courseData.error || 'Failed to fetch course');
       }
