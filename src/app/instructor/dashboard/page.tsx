@@ -185,7 +185,12 @@ const InstructorDashboard: React.FC = () => {
           console.log('Courses API response:', coursesData);
           // Handle both formats: direct courses array or nested data.courses
           const coursesArray = coursesData.courses || coursesData.data?.courses || [];
-          setCourses(coursesArray);
+          // Map courseId to id for compatibility
+          const mappedCourses = coursesArray.map((course: any) => ({
+            ...course,
+            id: course.courseId || course.id
+          }));
+          setCourses(mappedCourses);
         } else {
           console.error('Courses API failed:', coursesResponse.status, coursesResponse.statusText);
         }
