@@ -277,34 +277,37 @@ const StudentDashboard: React.FC = () => {
               </div>
             </div>
 
-        {/* Single Page Content - No Scrolling */}
-        <div className="flex-1 p-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 h-full">
-          {/* Video Feed - Top Left */}
+        {/* Mobile-First Responsive Content */}
+        <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
+          <div className="max-w-7xl mx-auto">
+            {/* Mobile: Single column, Desktop: Multi-column grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+          {/* Video Feed - Mobile Optimized */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-3 bg-[#4A90E2]">
+            <div className="p-2 sm:p-3 bg-[#4A90E2]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm">🎬</span>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs sm:text-sm">🎬</span>
                   </div>
-                  <h2 className="text-white font-bold text-sm">Trending Now</h2>
+                  <h2 className="text-white font-bold text-xs sm:text-sm">Trending Now</h2>
                 </div>
               </div>
             </div>
-            <div className="p-3 h-64">
+            <div className="p-2 sm:p-3 h-48 sm:h-64">
                 <VideoReels studentId={user?.id || 'unknown'} />
               </div>
             </div>
 
-          {/* Courses - Top Center */}
+          {/* Courses - Mobile Optimized */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-3 bg-[#06D6A0]">
+            <div className="p-2 sm:p-3 bg-[#06D6A0]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm">📚</span>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs sm:text-sm">📚</span>
                     </div>
-                    <h2 className="text-white font-bold text-sm">My Courses</h2>
+                    <h2 className="text-white font-bold text-xs sm:text-sm">My Courses</h2>
                   </div>
                   <button
                     onClick={() => router.push('/student/courses')}
@@ -314,7 +317,7 @@ const StudentDashboard: React.FC = () => {
                   </button>
                 </div>
               </div>
-            <div className="p-3 h-64 overflow-y-auto">
+            <div className="p-2 sm:p-3 h-48 sm:h-64 overflow-y-auto">
                 {isLoadingCourses ? (
                 <div className="space-y-2">
                     {[1, 2].map((i) => (
@@ -329,19 +332,19 @@ const StudentDashboard: React.FC = () => {
                       <div
                         key={course.id}
                         onClick={() => router.push(`/student/courses/${course.id}`)}
-                      className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-3 hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
+                      className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg sm:rounded-xl p-2 sm:p-3 hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
                       >
-                        <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-lg">
                             {course.code?.charAt(0) || 'C'}
                           </div>
                           <div className="flex-1 min-w-0">
                           <h3 className="text-xs font-bold text-gray-900 truncate">{course.name}</h3>
                             <p className="text-xs text-gray-600">{course.code}</p>
                             <div className="flex items-center space-x-2 mt-1">
-                            <div className="flex-1 bg-gray-200 rounded-full h-1.5">
+                            <div className="flex-1 bg-gray-200 rounded-full h-1 sm:h-1.5">
                                 <div 
-                                className="bg-gradient-to-r from-blue-500 to-purple-600 h-1.5 rounded-full transition-all duration-300" 
+                                className="bg-gradient-to-r from-blue-500 to-purple-600 h-1 sm:h-1.5 rounded-full transition-all duration-300" 
                                   style={{ width: `${course.progress}%` }}
                                 ></div>
                               </div>
@@ -356,15 +359,15 @@ const StudentDashboard: React.FC = () => {
               </div>
             </div>
 
-          {/* Assignments - Top Right */}
+          {/* Assignments - Mobile Optimized */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-3 bg-[#FFD166]">
+            <div className="p-2 sm:p-3 bg-[#FFD166]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm">📝</span>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs sm:text-sm">📝</span>
                     </div>
-                  <h2 className="text-white font-bold text-sm">Assignments</h2>
+                  <h2 className="text-white font-bold text-xs sm:text-sm">Assignments</h2>
                   </div>
                   <button
                     onClick={() => router.push('/student/assignments')}
@@ -374,7 +377,7 @@ const StudentDashboard: React.FC = () => {
                   </button>
                 </div>
               </div>
-            <div className="p-3 h-64 overflow-y-auto">
+            <div className="p-2 sm:p-3 h-48 sm:h-64 overflow-y-auto">
                 {isLoadingAssignments ? (
                 <div className="space-y-2">
                   {[1, 2, 3].map((i) => (
@@ -398,10 +401,10 @@ const StudentDashboard: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
                               <h4 className="text-xs font-bold text-gray-900 truncate">{assignment.title}</h4>
-                            <p className="text-xs text-gray-600">{assignment.course}</p>
+                            <p className="text-xs text-gray-600 truncate">{assignment.course}</p>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-[#4A90E2] text-white">
+                            <div className="flex items-center space-x-1 ml-2">
+                              <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold bg-[#4A90E2] text-white">
                                 📅 {assignment.dueDate}
                               </span>
                             </div>
@@ -424,10 +427,10 @@ const StudentDashboard: React.FC = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
                               <h4 className="text-xs font-bold text-gray-900 truncate">{assignment.title}</h4>
-                              <p className="text-xs text-gray-600">{assignment.course}</p>
+                              <p className="text-xs text-gray-600 truncate">{assignment.course}</p>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-[#FF6F61] text-white">
+                            <div className="flex items-center space-x-1 ml-2">
+                              <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold bg-[#FF6F61] text-white">
                                 🔥 {assignment.dueDate}
                             </span>
                           </div>
@@ -452,8 +455,8 @@ const StudentDashboard: React.FC = () => {
                               <h4 className="text-xs font-bold text-gray-900 truncate">{assignment.title}</h4>
                               <p className="text-xs text-gray-600">{assignment.course}</p>
                             </div>
-                            <div className="flex items-center space-x-1">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-[#06D6A0] text-white">
+                            <div className="flex items-center space-x-1 ml-2">
+                              <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold bg-[#06D6A0] text-white">
                                 ✓ {assignment.dueDate}
                               </span>
                             </div>
@@ -477,38 +480,38 @@ const StudentDashboard: React.FC = () => {
             </div>
 
 
-          {/* AI Study Assistant - Bottom Center */}
+          {/* AI Study Assistant - Mobile Optimized */}
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-3 bg-[#9B5DE5]">
+            <div className="p-2 sm:p-3 bg-[#9B5DE5]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm">🤖</span>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs sm:text-sm">🤖</span>
                   </div>
-                  <h2 className="text-white font-bold text-sm">AI Tutor Buddy</h2>
+                  <h2 className="text-white font-bold text-xs sm:text-sm">AI Tutor Buddy</h2>
                 </div>
               </div>
             </div>
-            <div className="p-3 h-64 flex flex-col">
+            <div className="p-2 sm:p-3 h-48 sm:h-64 flex flex-col">
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-[#9B5DE5] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#9B5DE5] rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Tutor Buddy</h3>
-                  <p className="text-sm text-gray-600 mb-4">Get instant help with your studies</p>
+                  <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2">AI Tutor Buddy</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">Get instant help with your studies</p>
                   <div className="space-y-2">
                     <button
                       onClick={() => router.push('/messaging')}
-                      className="w-full bg-[#9B5DE5] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                      className="w-full bg-[#9B5DE5] text-white px-3 sm:px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
                     >
                       💬 Ask a Question
                     </button>
                     <button
                       onClick={() => router.push('/ai-tutoring')}
-                      className="w-full bg-[#4A90E2] text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                      className="w-full bg-[#4A90E2] text-white px-3 sm:px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
                     >
                       🎓 Start Tutoring Session
                     </button>
@@ -518,23 +521,23 @@ const StudentDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Social Analytics - Bottom Right */}
+          {/* Social Analytics - Mobile Optimized */}
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-3 bg-[#4A90E2]">
+            <div className="p-2 sm:p-3 bg-[#4A90E2]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm">📊</span>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs sm:text-sm">📊</span>
                   </div>
-                  <h2 className="text-white font-bold text-sm">Socials</h2>
+                  <h2 className="text-white font-bold text-xs sm:text-sm">Socials</h2>
                 </div>
               </div>
             </div>
-            <div className="h-64 overflow-y-auto">
+            <div className="h-48 sm:h-64 overflow-y-auto">
               {/* Community Posts Section */}
-              <div className="p-3 border-b border-gray-100">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-800">Recent Posts</h3>
+              <div className="p-2 sm:p-3 border-b border-gray-100">
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <h3 className="text-xs sm:text-sm font-semibold text-gray-800">Recent Posts</h3>
                   <button 
                     onClick={() => router.push('/community')}
                     className="text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium"
@@ -551,16 +554,16 @@ const StudentDashboard: React.FC = () => {
                   ) : communityPosts.length > 0 ? (
                     communityPosts.slice(0, 3).map((post) => (
                       <div key={post.id} className="flex items-start space-x-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                        <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
                           post.isAnnouncement ? 'bg-[#4A90E2]' : 'bg-[#06D6A0]'
                         }`}>
                           {post.author.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-1 mb-1">
-                            <p className="text-xs font-medium text-gray-800">{post.author}</p>
+                            <p className="text-xs font-medium text-gray-800 truncate">{post.author}</p>
                             {post.isAnnouncement && (
-                              <span className="px-1 py-0.5 bg-[#4A90E2] text-white text-xs rounded-full">
+                              <span className="px-1 py-0.5 bg-[#4A90E2] text-white text-xs rounded-full flex-shrink-0">
                                 📢
                               </span>
                             )}
@@ -570,7 +573,7 @@ const StudentDashboard: React.FC = () => {
                             {new Date(post.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-1 flex-shrink-0">
                           <span className="text-xs text-gray-400">👍 {post.likes}</span>
                           <span className="text-xs text-gray-400">💬 {post.comments}</span>
                         </div>
@@ -591,71 +594,73 @@ const StudentDashboard: React.FC = () => {
               </div>
               
               {/* Analytics Section */}
-              <div className="p-3">
-                <h3 className="text-sm font-semibold text-gray-800 mb-3">Your Analytics</h3>
-                <div className="grid grid-cols-2 gap-3">
+              <div className="p-2 sm:p-3">
+                <h3 className="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3">Your Analytics</h3>
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   <div className="text-center p-2 bg-blue-50 rounded-lg">
-                    <div className="text-lg font-bold text-blue-600">0</div>
+                    <div className="text-sm sm:text-lg font-bold text-blue-600">0</div>
                     <div className="text-xs text-gray-600">Videos</div>
                   </div>
                   <div className="text-center p-2 bg-green-50 rounded-lg">
-                    <div className="text-lg font-bold text-green-600">0</div>
+                    <div className="text-sm sm:text-lg font-bold text-green-600">0</div>
                     <div className="text-xs text-gray-600">Views</div>
                   </div>
                   <div className="text-center p-2 bg-red-50 rounded-lg">
-                    <div className="text-lg font-bold text-red-600">0</div>
+                    <div className="text-sm sm:text-lg font-bold text-red-600">0</div>
                     <div className="text-xs text-gray-600">Likes</div>
                   </div>
                   <div className="text-center p-2 bg-yellow-50 rounded-lg">
-                    <div className="text-lg font-bold text-yellow-600">0</div>
+                    <div className="text-sm sm:text-lg font-bold text-yellow-600">0</div>
                     <div className="text-xs text-gray-600">Rating</div>
                   </div>
                 </div>
-                <div className="mt-3 text-center">
+                <div className="mt-2 sm:mt-3 text-center">
                   <p className="text-xs text-gray-500">Start creating content to see your analytics!</p>
                 </div>
               </div>
             </div>
           </div>
 
-                 {/* Quick Actions - Bottom Right */}
+                 {/* Quick Actions - Mobile Optimized */}
                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-                   <div className="p-3 bg-[#FF6F61]">
+                   <div className="p-2 sm:p-3 bg-[#FF6F61]">
                      <div className="flex items-center justify-between">
                        <div className="flex items-center space-x-2">
-                         <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                           <span className="text-white text-sm">⚡</span>
+                         <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
+                           <span className="text-white text-xs sm:text-sm">⚡</span>
                          </div>
-                         <h2 className="text-white font-bold text-sm">Quick Actions</h2>
+                         <h2 className="text-white font-bold text-xs sm:text-sm">Quick Actions</h2>
                        </div>
                      </div>
                    </div>
-            <div className="p-3 h-64">
+            <div className="p-2 sm:p-3 h-48 sm:h-64">
               <div className="grid grid-cols-1 gap-2">
                 <button
                   onClick={() => setShowWizard(true)}
-                  className="w-full bg-[#FF6F61] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                  className="w-full bg-[#FF6F61] text-white p-2 sm:p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
                 >
                   🎯 Get Started
                 </button>
                 <button
                   onClick={() => router.push('/messaging')}
-                  className="w-full bg-[#9B5DE5] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                  className="w-full bg-[#9B5DE5] text-white p-2 sm:p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
                 >
                   💬 Messages
                 </button>
                 <button
                   onClick={() => router.push('/student/video-submission')}
-                  className="w-full bg-[#4A90E2] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                  className="w-full bg-[#4A90E2] text-white p-2 sm:p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
                 >
                   📹 Create Video
                 </button>
                 <button
                   onClick={() => router.push('/student/submissions')}
-                  className="w-full bg-[#06D6A0] text-white p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-sm font-medium"
+                  className="w-full bg-[#06D6A0] text-white p-2 sm:p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
                 >
                   📝 View Submissions
                 </button>
+              </div>
+            </div>
               </div>
             </div>
           </div>
