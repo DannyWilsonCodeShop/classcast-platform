@@ -50,7 +50,7 @@ const BulkGradingPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Comprehensive mock data for video submissions
+    // Comprehensive mock data for video submissions with realistic student data
     const mockSubmissions: Submission[] = [
       {
         id: 'sub1',
@@ -93,7 +93,7 @@ const BulkGradingPage: React.FC = () => {
         submittedAt: '2024-01-21T10:45:00Z',
         status: 'graded',
         grade: 92,
-        feedback: 'Outstanding explanation! Your real-world examples made complex concepts accessible.',
+        feedback: 'Outstanding explanation! Your real-world examples made complex concepts accessible. The visual demonstrations were particularly effective.',
         fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg',
         duration: 420,
@@ -125,7 +125,7 @@ const BulkGradingPage: React.FC = () => {
         submittedAt: '2024-01-20T14:10:00Z',
         status: 'graded',
         grade: 95,
-        feedback: 'Excellent work! Your explanation of the substitution method was very clear.',
+        feedback: 'Excellent work! Your explanation of the substitution method was very clear and the step-by-step approach was perfect for learning.',
         fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg',
         duration: 350,
@@ -157,7 +157,7 @@ const BulkGradingPage: React.FC = () => {
         submittedAt: '2024-01-19T15:45:00Z',
         status: 'graded',
         grade: 88,
-        feedback: 'Good technical content and clear explanations. Consider improving the visual presentation.',
+        feedback: 'Good technical content and clear explanations. Consider improving the visual presentation and adding more examples.',
         fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerMeltdowns.jpg',
         duration: 400,
@@ -177,6 +177,72 @@ const BulkGradingPage: React.FC = () => {
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/Sintel.jpg',
         duration: 310,
         fileSize: 43000000
+      },
+      {
+        id: 'sub9',
+        studentName: 'Ryan O\'Connor',
+        studentId: 'student_009',
+        assignmentTitle: 'Basic Programming Concepts - Video Assessment',
+        assignmentId: 'assignment_3',
+        courseName: 'Introduction to Computer Science',
+        courseCode: 'CS101',
+        submittedAt: '2024-01-18T09:15:00Z',
+        status: 'graded',
+        grade: 78,
+        feedback: 'Good effort! Your code examples were clear, but try to explain your thought process more thoroughly. Keep practicing!',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/TearsOfSteel.jpg',
+        duration: 280,
+        fileSize: 39000000
+      },
+      {
+        id: 'sub10',
+        studentName: 'Priya Patel',
+        studentId: 'student_010',
+        assignmentTitle: 'Data Visualization Techniques - Video Lesson',
+        assignmentId: 'assignment_4',
+        courseName: 'Data Science Fundamentals',
+        courseCode: 'DS201',
+        submittedAt: '2024-01-22T08:30:00Z',
+        status: 'graded',
+        grade: 96,
+        feedback: 'Exceptional work! Your data visualization examples were outstanding and your explanations were crystal clear. This is graduate-level quality.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/WeAreGoingOnBullrun.jpg',
+        duration: 450,
+        fileSize: 68000000
+      },
+      {
+        id: 'sub11',
+        studentName: 'Alex Thompson',
+        studentId: 'student_001',
+        assignmentTitle: 'Integration by Parts - Video Assessment',
+        assignmentId: 'assignment_13',
+        courseName: 'Introduction to Calculus',
+        courseCode: 'MATH101',
+        submittedAt: '2024-01-21T16:45:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/WhatCarCanYouGetForAGrand.jpg',
+        duration: 340,
+        fileSize: 47000000
+      },
+      {
+        id: 'sub12',
+        studentName: 'Maria Rodriguez',
+        studentId: 'student_002',
+        assignmentTitle: 'Machine Learning Algorithms - Video Discussion',
+        assignmentId: 'assignment_14',
+        courseName: 'Data Structures & Algorithms',
+        courseCode: 'CS301',
+        submittedAt: '2024-01-20T14:20:00Z',
+        status: 'graded',
+        grade: 91,
+        feedback: 'Excellent analysis of machine learning algorithms! Your comparison between different approaches was insightful and well-structured.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/VolkswagenGTIReview.jpg',
+        duration: 520,
+        fileSize: 75000000
       }
     ];
 
@@ -397,13 +463,15 @@ const BulkGradingPage: React.FC = () => {
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 >
                   <option value="all">All Courses</option>
-                  <option value="calculus">Introduction to Calculus</option>
-                  <option value="computer">Data Structures & Algorithms</option>
-                  <option value="physics">Physics for Engineers</option>
-                  <option value="history">World History</option>
-                  <option value="biology">Cell Biology</option>
-                  <option value="english">Technical Writing</option>
-                  <option value="psychology">Introduction to Psychology</option>
+                  <option value="calculus">Introduction to Calculus (MATH101)</option>
+                  <option value="computer">Data Structures & Algorithms (CS301)</option>
+                  <option value="physics">Physics for Engineers (PHYS201)</option>
+                  <option value="history">World History (HIST201)</option>
+                  <option value="biology">Cell Biology (BIO150)</option>
+                  <option value="english">Technical Writing (ENG101)</option>
+                  <option value="psychology">Introduction to Psychology (PSYC101)</option>
+                  <option value="science">Introduction to Computer Science (CS101)</option>
+                  <option value="data">Data Science Fundamentals (DS201)</option>
                 </select>
                 
                 {/* Auto-advance toggle */}
