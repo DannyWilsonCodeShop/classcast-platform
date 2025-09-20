@@ -230,8 +230,16 @@ const StudentDashboard: React.FC = () => {
               />
             </div>
             
-            {/* Right Side - Profile Thumbnail */}
-            <div className="flex items-center">
+            {/* Right Side - Join Class Button and Profile Thumbnail */}
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setShowEnrollmentModal(true)}
+                className="flex items-center space-x-2 bg-[#4A90E2] text-white px-4 py-2 rounded-lg hover:bg-[#9B5DE5] transition-colors shadow-lg hover:shadow-xl"
+                title="Join a new class"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="font-medium text-sm">Join Class</span>
+              </button>
               <button
                 onClick={() => router.push('/student/profile')}
                 className="w-12 h-12 rounded-full bg-[#4A90E2] flex items-center justify-center text-white font-bold text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
@@ -243,21 +251,11 @@ const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Branded Status Bar */}
+        {/* Status Bar */}
         <div className="bg-[#F5F5F5] border-b border-[#4A90E2]/20 px-4 py-2">
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-[#06D6A0] rounded-full animate-pulse"></div>
-                <span className="text-[#06D6A0] font-medium">System Online</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <div className="w-2 h-2 bg-[#4A90E2] rounded-full"></div>
-                <span className="text-[#4A90E2]">AI Features Active</span>
-              </div>
-            </div>
-            <div className="text-[#333333]">
-              Welcome to ClassCast Home
+          <div className="flex items-center justify-center text-sm">
+            <div className="text-[#333333] font-medium">
+              Student Portal
             </div>
           </div>
         </div>
@@ -349,20 +347,8 @@ const StudentDashboard: React.FC = () => {
             <div className="max-w-6xl mx-auto">
               {/* Classes Header */}
               <div className="mb-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-2xl font-bold text-[#333333] mb-2">My Classes</h1>
-                    <p className="text-gray-600">Manage your courses and track your progress</p>
-                  </div>
-                  <button
-                    onClick={() => setShowEnrollmentModal(true)}
-                    className="flex items-center space-x-2 bg-[#4A90E2] text-white px-4 py-3 rounded-lg hover:bg-[#9B5DE5] transition-colors shadow-lg hover:shadow-xl"
-                    title="Join a new class"
-                  >
-                    <Plus className="w-5 h-5" />
-                    <span className="font-medium">Join Class</span>
-                  </button>
-                </div>
+                <h1 className="text-2xl font-bold text-[#333333] mb-2">My Classes</h1>
+                <p className="text-gray-600">Manage your courses and track your progress</p>
               </div>
 
               {/* Classes Grid */}
