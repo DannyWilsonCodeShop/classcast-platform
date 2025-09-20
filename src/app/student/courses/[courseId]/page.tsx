@@ -268,7 +268,7 @@ const StudentCourseDetailPage: React.FC = () => {
               onClick={() => router.push('/student/dashboard')}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <span className="text-xl">←</span>
+              <span className="text-xl">&lt;</span>
             </button>
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
               📚
@@ -282,13 +282,13 @@ const StudentCourseDetailPage: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center space-x-2">
-              <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                course.status === 'published' ? 'bg-green-500 text-white' :
-                course.status === 'draft' ? 'bg-yellow-500 text-white' :
-                'bg-gray-500 text-white'
-              }`}>
-                {course.status === 'published' ? '✅' : course.status === 'draft' ? '📝' : '📦'}
-              </span>
+              <button
+                onClick={() => router.push('/student/dashboard')}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Home Dashboard"
+              >
+                <span className="text-xl">🏠</span>
+              </button>
             </div>
           </div>
         </div>
@@ -297,10 +297,10 @@ const StudentCourseDetailPage: React.FC = () => {
         <div className="bg-white/90 backdrop-blur-sm px-4 py-2 flex-shrink-0">
           <div className="flex space-x-1">
             {[
-              { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'assignments', label: 'Assignments', icon: '📝' },
-              { id: 'students', label: 'Classmates', icon: '👥' },
               { id: 'materials', label: 'Files', icon: '📚' },
+              { id: 'overview', label: 'Overview', icon: '📊' },
+              { id: 'students', label: 'Classmates', icon: '👥' },
             ].map((tab) => (
               <button
                 key={tab.id}

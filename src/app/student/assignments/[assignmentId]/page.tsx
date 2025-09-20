@@ -366,7 +366,16 @@ Implement a complete binary search tree (BST) data structure with the following 
 
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Description</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
+                    <div className="prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap text-gray-700 font-sans">
+                        {assignment.instructions}
+                      </pre>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Details</h3>
                     <p className="text-gray-700">{assignment.description}</p>
                   </div>
 
@@ -384,16 +393,6 @@ Implement a complete binary search tree (BST) data structure with the following 
                       </p>
                     )}
                   </div>
-                </div>
-              </div>
-
-              {/* Instructions */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Instructions</h3>
-                <div className="prose prose-sm max-w-none">
-                  <pre className="whitespace-pre-wrap text-gray-700 font-sans">
-                    {assignment.instructions}
-                  </pre>
                 </div>
               </div>
 
