@@ -80,8 +80,6 @@ export const CourseStudents: React.FC<CourseStudentsProps> = ({ students, course
   };
 
   const activeStudents = students.filter(s => s.status === 'active').length;
-  const completedStudents = students.filter(s => s.status === 'completed').length;
-  const droppedStudents = students.filter(s => s.status === 'dropped').length;
 
   return (
     <div className="space-y-6">
@@ -104,27 +102,6 @@ export const CourseStudents: React.FC<CourseStudentsProps> = ({ students, course
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-green-200/30">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-green-500 mb-2">{activeStudents}</div>
-            <div className="text-gray-600 font-medium">Active Students</div>
-          </div>
-        </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-blue-200/30">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-blue-500 mb-2">{completedStudents}</div>
-            <div className="text-gray-600 font-medium">Completed</div>
-          </div>
-        </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-red-200/30">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-red-500 mb-2">{droppedStudents}</div>
-            <div className="text-gray-600 font-medium">Dropped</div>
-          </div>
-        </div>
-      </div>
 
       {/* Sort Controls */}
       <div className="flex items-center space-x-4">
@@ -177,11 +154,6 @@ export const CourseStudents: React.FC<CourseStudentsProps> = ({ students, course
                 </div>
                 
                 <div className="flex items-center space-x-4">
-                  {student.grade && (
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-gray-800">Grade: {student.grade}</p>
-                    </div>
-                  )}
                   <span className={`px-3 py-1 rounded-full text-sm font-bold ${getStatusColor(student.status)}`}>
                     {getStatusText(student.status)}
                   </span>
@@ -195,42 +167,6 @@ export const CourseStudents: React.FC<CourseStudentsProps> = ({ students, course
         </div>
       )}
 
-      {/* Course Enrollment Info */}
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Course Enrollment</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium text-gray-700 mb-2">Enrollment Capacity</h4>
-            <div className="flex items-center space-x-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-3">
-                <div 
-                  className="bg-gradient-to-r from-blue-400 to-purple-500 h-3 rounded-full"
-                  style={{ 
-                    width: `${course.maxEnrollment 
-                      ? (activeStudents / course.maxEnrollment) * 100 
-                      : 0
-                    }%` 
-                  }}
-                ></div>
-              </div>
-              <span className="text-sm font-medium text-gray-600">
-                {activeStudents}{course.maxEnrollment ? `/${course.maxEnrollment}` : ''}
-              </span>
-            </div>
-          </div>
-          <div>
-            <h4 className="font-medium text-gray-700 mb-2">Enrollment Status</h4>
-            <p className="text-sm text-gray-600">
-              {course.maxEnrollment && activeStudents >= course.maxEnrollment
-                ? 'Course is full'
-                : course.maxEnrollment
-                ? `${course.maxEnrollment - activeStudents} spots remaining`
-                : 'No enrollment limit'
-              }
-            </p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

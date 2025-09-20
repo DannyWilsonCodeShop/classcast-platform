@@ -664,7 +664,7 @@ export default function AssignmentDetailPage() {
                 )}
               </div>
               <h4 className="text-xl font-bold text-gray-800">{showProfile.name}</h4>
-              <p className="text-gray-600">{showProfile.grade} • {showProfile.major}</p>
+              <p className="text-gray-600">{showProfile.major}</p>
             </div>
             
             <div className="space-y-4">
@@ -675,14 +675,10 @@ export default function AssignmentDetailPage() {
               </div>
               
               {/* Personal Info */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="bg-gray-50 rounded-lg p-3 text-center">
                   <div className="text-2xl font-bold text-blue-600">{showProfile.totalAssignments}</div>
                   <div className="text-xs text-gray-600">Assignments</div>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-center">
-                  <div className="text-2xl font-bold text-green-600">{showProfile.averageGrade}</div>
-                  <div className="text-xs text-gray-600">Average Grade</div>
                 </div>
               </div>
 
