@@ -7,31 +7,34 @@ const StudentSubmissionsPage: React.FC = () => {
   return (
     <StudentRoute>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100">
-        {/* Header with Back Button */}
+        {/* Header with Back Button, Logo, and Home Button */}
         <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
+            {/* Left Side - Back Button and Logo */}
             <div className="flex items-center space-x-4">
               <Link
                 href="/student/dashboard"
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
                 title="Back to Home"
               >
-                <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
+                <span className="text-xl">&lt;</span>
               </Link>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  📝
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold text-gray-900">My Submissions</h1>
-                  <p className="text-xs text-gray-600">View your video submission history</p>
-                </div>
-              </div>
+              <img
+                src="/MyClassCast (800 x 200 px).png"
+                alt="MyClassCast"
+                className="h-8 w-auto object-contain"
+              />
             </div>
-            <div className="text-xs text-gray-500">
-              ClassCast
+            
+            {/* Right Side - Home Button */}
+            <div className="flex items-center">
+              <Link
+                href="/student/dashboard"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
+                title="Home Dashboard"
+              >
+                <span className="text-xl">🏠</span>
+              </Link>
             </div>
           </div>
         </div>

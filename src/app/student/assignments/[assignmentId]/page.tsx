@@ -304,6 +304,13 @@ Implement a complete binary search tree (BST) data structure with the following 
               <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(assignment.status)}`}>
                 {getStatusIcon(assignment.status)} {assignment.status.replace('-', ' ')}
               </span>
+              <button
+                onClick={() => router.push('/student/dashboard')}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Home Dashboard"
+              >
+                <span className="text-xl">🏠</span>
+              </button>
             </div>
           </div>
         </div>
