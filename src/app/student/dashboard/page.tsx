@@ -5,14 +5,13 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { CompactAssignmentList } from '@/components/student/CompactAssignmentList';
 import VideoReels from '@/components/student/VideoReels';
 import CourseCard from '@/components/student/CourseCard';
-import PortalIndicator from '@/components/common/PortalIndicator';
 import StudentOnboardingWizard from '@/components/wizards/StudentOnboardingWizard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { LogOut, Wifi, WifiOff } from 'lucide-react';
+import { Wifi, WifiOff } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
-  const { user, logout, isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'ai-tutor'>('ai-tutor');
   const [showWizard, setShowWizard] = useState(false);
@@ -131,19 +130,11 @@ const StudentDashboard: React.FC = () => {
     };
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.push('/auth/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
 
   // Show loading state while checking authentication
   if (isLoading) {
-    return (
-      <StudentRoute>
+  return (
+    <StudentRoute>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100">
           <div className="text-center">
             <div className="flex items-center justify-center mb-6">
@@ -154,14 +145,14 @@ const StudentDashboard: React.FC = () => {
                   className="w-full h-full object-contain"
                 />
               </div>
-            </div>
+                    </div>
             <h2 className="text-2xl font-bold text-[#4A90E2] mb-2">
               ClassCast
             </h2>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A90E2] mx-auto mb-4"></div>
             <p className="text-[#333333]">Loading your dashboard...</p>
-          </div>
-        </div>
+                    </div>
+                </div>
       </StudentRoute>
     );
   }
@@ -198,61 +189,23 @@ const StudentDashboard: React.FC = () => {
         {/* Branded Header */}
         <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
           <div className="flex items-center justify-between">
-            {/* Left Side - Logo and User Info */}
-            <div className="flex items-center space-x-4">
-              {/* ClassCast Logo */}
-              <div className="flex items-center space-x-2">
-                <div className="w-10 h-10 rounded-xl shadow-lg overflow-hidden">
-                  <img 
-                    src="/UpdatedCCLogo.png" 
-                    alt="ClassCast Logo" 
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                <div className="hidden sm:block">
-                  <h1 className="text-xl font-bold text-[#4A90E2]">
-                    ClassCast
-                  </h1>
-                </div>
-              </div>
-              
-              {/* User Welcome */}
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => router.push('/student/profile')}
-                  className="w-10 h-10 rounded-full bg-[#4A90E2] flex items-center justify-center text-white font-bold text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
-                  title="View Profile"
-                >
-                  {user?.firstName?.charAt(0) || 'S'}
-                </button>
-              <div>
-                  <h2 className="text-lg font-bold text-[#333333]">Hey {user?.firstName || 'Student'}! 👋</h2>
-                <div className="flex items-center space-x-2">
-                  {isOnline ? (
-                    <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-[#06D6A0] rounded-full animate-pulse"></div>
-                        <span className="text-xs text-[#06D6A0] font-medium">Live</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-1">
-                        <div className="w-2 h-2 bg-[#333333] rounded-full"></div>
-                        <span className="text-xs text-[#333333]">Offline</span>
-                    </div>
-                  )}
-                  </div>
-                </div>
-              </div>
+            {/* Left Side - MyClassCast Logo */}
+            <div className="flex items-center">
+              <img
+                src="/MyClassCast (800 x 200 px).png"
+                alt="MyClassCast"
+                className="h-8 w-auto object-contain"
+              />
             </div>
             
-            {/* Right Side - Actions */}
-            <div className="flex items-center space-x-2">
-              <PortalIndicator />
+            {/* Right Side - Profile Thumbnail */}
+            <div className="flex items-center">
               <button
-                onClick={handleLogout}
-                className="p-2 bg-[#FF6F61] text-white rounded-full hover:scale-110 transition-all duration-200 shadow-lg"
-                title="Logout"
+                onClick={() => router.push('/student/profile')}
+                className="w-12 h-12 rounded-full bg-[#4A90E2] flex items-center justify-center text-white font-bold text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
+                title="View Profile"
               >
-                <LogOut className="w-4 h-4" />
+                {user?.firstName?.charAt(0) || 'S'}
               </button>
             </div>
           </div>
