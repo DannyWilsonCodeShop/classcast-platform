@@ -110,137 +110,198 @@ const InstructorCourseDetailPage: React.FC = () => {
         throw new Error(courseData.error || 'Failed to fetch course');
       }
 
-      // Mock assignments data for demonstration
+      // Comprehensive mock assignments data for demonstration
       const mockAssignments: Assignment[] = [
         {
-          assignmentId: 'assign1',
-          title: 'Introduction Video Assignment',
-          description: 'Create a 2-3 minute video introducing yourself and explaining why you chose this course.',
+          assignmentId: 'assignment_1',
+          title: 'Derivatives and Limits - Video Lesson',
+          description: 'Create a 5-minute video explaining the concept of derivatives and limits. Use visual aids and work through 3 example problems step by step.',
           dueDate: '2024-01-25T23:59:59Z',
           points: 100,
           status: 'published',
           submissionType: 'video',
-          submissionsCount: 42,
-          gradedCount: 38,
+          submissionsCount: 28,
+          gradedCount: 25,
           averageGrade: 88.5,
-          createdAt: '2024-01-15T10:00:00Z'
+          createdAt: '2024-01-15T09:00:00Z'
         },
         {
-          assignmentId: 'assign2',
-          title: 'Algorithm Analysis Project',
-          description: 'Analyze the time and space complexity of three different sorting algorithms.',
-          dueDate: '2024-02-01T23:59:59Z',
+          assignmentId: 'assignment_2',
+          title: 'Integration Techniques - Video Assessment',
+          description: 'Solve the integration problems using substitution and integration by parts. Record yourself explaining your solution process.',
+          dueDate: '2024-01-20T23:59:59Z',
+          points: 120,
+          status: 'completed',
+          submissionType: 'video',
+          submissionsCount: 30,
+          gradedCount: 30,
+          averageGrade: 92.3,
+          createdAt: '2024-01-10T09:00:00Z'
+        },
+        {
+          assignmentId: 'assignment_3',
+          title: 'Chain Rule Discussion - Video Discussion',
+          description: 'Record a 3-minute video discussing when and how to apply the chain rule. Include examples from different contexts.',
+          dueDate: '2024-01-30T23:59:59Z',
+          points: 80,
+          status: 'published',
+          submissionType: 'video',
+          submissionsCount: 15,
+          gradedCount: 12,
+          averageGrade: 85.7,
+          createdAt: '2024-01-18T14:00:00Z'
+        },
+        {
+          assignmentId: 'assignment_4',
+          title: 'Optimization Problems - Video Assessment',
+          description: 'Solve 5 optimization problems and create a video walkthrough of your solutions with clear explanations.',
+          dueDate: '2024-02-05T23:59:59Z',
           points: 150,
           status: 'grading',
-          submissionType: 'file',
-          submissionsCount: 38,
-          gradedCount: 25,
-          averageGrade: 85.3,
-          createdAt: '2024-01-20T14:30:00Z'
+          submissionType: 'video',
+          submissionsCount: 22,
+          gradedCount: 18,
+          averageGrade: 89.1,
+          createdAt: '2024-01-22T10:30:00Z'
         },
         {
-          assignmentId: 'assign3',
-          title: 'Data Structures Lab',
-          description: 'Implement a binary search tree with insertion, deletion, and traversal methods.',
-          dueDate: '2024-02-08T23:59:59Z',
-          points: 200,
+          assignmentId: 'assignment_5',
+          title: 'Series Convergence - Video Lesson',
+          description: 'Create a comprehensive video lesson explaining different tests for series convergence with examples.',
+          dueDate: '2024-02-10T23:59:59Z',
+          points: 130,
           status: 'draft',
-          submissionType: 'file',
-          submissionsCount: 0,
-          gradedCount: 0,
-          averageGrade: undefined,
-          createdAt: '2024-01-25T09:15:00Z'
-        },
-        {
-          assignmentId: 'assign4',
-          title: 'Final Project Presentation',
-          description: 'Present your final project to the class with a 10-minute presentation.',
-          dueDate: '2024-02-15T23:59:59Z',
-          points: 300,
-          status: 'published',
           submissionType: 'video',
           submissionsCount: 0,
           gradedCount: 0,
           averageGrade: undefined,
-          createdAt: '2024-01-28T16:45:00Z'
+          createdAt: '2024-01-25T16:45:00Z'
         }
       ];
       
       setAssignments(mockAssignments);
 
-      // Mock students data for demonstration
+      // Comprehensive mock students data for demonstration
       const mockStudents: Student[] = [
         {
-          studentId: 'stu001',
-          name: 'Alice Johnson',
-          email: 'alice.johnson@university.edu',
+          studentId: 'student_001',
+          name: 'Alex Thompson',
+          email: 'alex.thompson@university.edu',
           avatar: '/api/placeholder/40/40',
           enrollmentDate: '2024-01-15T10:00:00Z',
           status: 'active',
-          currentGrade: 92.5,
-          assignmentsSubmitted: 8,
-          assignmentsTotal: 8,
+          currentGrade: 88.5,
+          assignmentsSubmitted: 4,
+          assignmentsTotal: 5,
           lastActivity: '2024-01-22T14:30:00Z'
         },
         {
-          studentId: 'stu002',
-          name: 'Bob Smith',
-          email: 'bob.smith@university.edu',
+          studentId: 'student_002',
+          name: 'Maria Rodriguez',
+          email: 'maria.rodriguez@university.edu',
           avatar: '/api/placeholder/40/40',
           enrollmentDate: '2024-01-15T10:30:00Z',
           status: 'active',
-          currentGrade: 85.7,
-          assignmentsSubmitted: 7,
-          assignmentsTotal: 8,
-          lastActivity: '2024-01-21T16:45:00Z'
+          currentGrade: 91.2,
+          assignmentsSubmitted: 5,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-22T12:15:00Z'
         },
         {
-          studentId: 'stu003',
-          name: 'Carol Davis',
-          email: 'carol.davis@university.edu',
+          studentId: 'student_003',
+          name: 'James Wilson',
+          email: 'james.wilson@university.edu',
           avatar: '/api/placeholder/40/40',
           enrollmentDate: '2024-01-16T09:15:00Z',
           status: 'active',
-          currentGrade: 89.3,
-          assignmentsSubmitted: 8,
-          assignmentsTotal: 8,
-          lastActivity: '2024-01-22T10:20:00Z'
+          currentGrade: 85.8,
+          assignmentsSubmitted: 4,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-21T10:45:00Z'
         },
         {
-          studentId: 'stu004',
-          name: 'David Wilson',
-          email: 'david.wilson@university.edu',
+          studentId: 'student_004',
+          name: 'Sarah Kim',
+          email: 'sarah.kim@university.edu',
           avatar: '/api/placeholder/40/40',
           enrollmentDate: '2024-01-16T11:00:00Z',
           status: 'active',
-          currentGrade: 78.9,
-          assignmentsSubmitted: 6,
-          assignmentsTotal: 8,
-          lastActivity: '2024-01-20T13:15:00Z'
+          currentGrade: 89.3,
+          assignmentsSubmitted: 5,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-21T16:20:00Z'
         },
         {
-          studentId: 'stu005',
-          name: 'Eva Brown',
-          email: 'eva.brown@university.edu',
+          studentId: 'student_005',
+          name: 'David Chen',
+          email: 'david.chen@university.edu',
           avatar: '/api/placeholder/40/40',
           enrollmentDate: '2024-01-17T14:20:00Z',
           status: 'active',
-          currentGrade: 91.2,
-          assignmentsSubmitted: 8,
-          assignmentsTotal: 8,
-          lastActivity: '2024-01-22T15:30:00Z'
+          currentGrade: 87.1,
+          assignmentsSubmitted: 5,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-20T14:10:00Z'
         },
         {
-          studentId: 'stu006',
-          name: 'Frank Miller',
-          email: 'frank.miller@university.edu',
+          studentId: 'student_006',
+          name: 'Emma Johnson',
+          email: 'emma.johnson@university.edu',
           avatar: '/api/placeholder/40/40',
           enrollmentDate: '2024-01-17T16:45:00Z',
-          status: 'dropped',
-          currentGrade: 65.4,
+          status: 'active',
+          currentGrade: 84.6,
+          assignmentsSubmitted: 4,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-20T11:30:00Z'
+        },
+        {
+          studentId: 'student_007',
+          name: 'Michael Brown',
+          email: 'michael.brown@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-01-18T09:15:00Z',
+          status: 'active',
+          currentGrade: 82.9,
+          assignmentsSubmitted: 4,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-19T15:45:00Z'
+        },
+        {
+          studentId: 'student_008',
+          name: 'Lisa Garcia',
+          email: 'lisa.garcia@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-01-18T11:30:00Z',
+          status: 'active',
+          currentGrade: 90.1,
+          assignmentsSubmitted: 5,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-19T13:20:00Z'
+        },
+        {
+          studentId: 'student_009',
+          name: 'Ryan Davis',
+          email: 'ryan.davis@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-01-19T14:20:00Z',
+          status: 'active',
+          currentGrade: 79.8,
           assignmentsSubmitted: 3,
-          assignmentsTotal: 8,
-          lastActivity: '2024-01-19T12:00:00Z'
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-18T09:15:00Z'
+        },
+        {
+          studentId: 'student_010',
+          name: 'Jessica Lee',
+          email: 'jessica.lee@university.edu',
+          avatar: '/api/placeholder/40/40',
+          enrollmentDate: '2024-01-19T16:45:00Z',
+          status: 'dropped',
+          currentGrade: 75.2,
+          assignmentsSubmitted: 2,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-17T16:30:00Z'
         }
       ];
       
