@@ -6,15 +6,17 @@ import { CompactAssignmentList } from '@/components/student/CompactAssignmentLis
 import VideoReels from '@/components/student/VideoReels';
 import CourseCard from '@/components/student/CourseCard';
 import StudentOnboardingWizard from '@/components/wizards/StudentOnboardingWizard';
+import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { Wifi, WifiOff } from 'lucide-react';
+import { Wifi, WifiOff, Plus } from 'lucide-react';
 
 const StudentDashboard: React.FC = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'ai-tutor'>('ai-tutor');
   const [showWizard, setShowWizard] = useState(false);
+  const [showEnrollmentModal, setShowEnrollmentModal] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [stats, setStats] = useState({
     activeCourses: 0,
@@ -47,54 +49,33 @@ const StudentDashboard: React.FC = () => {
             assignmentsDue: 0,
             completed: 0
           });
-        setCourses([]);
-        setAssignments([]);
-        
-        // Try to load stats from API (with error handling)
+          setCourses([]);
+          setAssignments([]);
+
+        // Try to fetch real data
         try {
-          const statsResponse = await fetch('/api/student/stats');
+          const [statsResponse, coursesResponse, assignmentsResponse] = await Promise.all([
+            fetch('/api/student/stats', { credentials: 'include' }),
+            fetch('/api/student/courses', { credentials: 'include' }),
+            fetch('/api/student/assignments', { credentials: 'include' })
+          ]);
+
           if (statsResponse.ok) {
             const statsData = await statsResponse.json();
             setStats(statsData);
           }
-        } catch (error) {
-          console.warn('Stats API not available:', error);
-        }
-        
-        // Try to load courses from API (with error handling)
-        try {
-        const coursesResponse = await fetch('/api/student/courses');
-        if (coursesResponse.ok) {
-          const coursesData = await coursesResponse.json();
-            setCourses(coursesData.courses || coursesData || []);
+
+          if (coursesResponse.ok) {
+            const coursesData = await coursesResponse.json();
+            setCourses(coursesData.courses || []);
           }
-        } catch (error) {
-          console.warn('Courses API not available:', error);
-        }
-        
-        // Try to load assignments from API (with error handling)
-        try {
-        const assignmentsResponse = await fetch('/api/student/assignments');
-        if (assignmentsResponse.ok) {
-          const assignmentsData = await assignmentsResponse.json();
-            setAssignments(assignmentsData.assignments || assignmentsData || []);
+
+          if (assignmentsResponse.ok) {
+            const assignmentsData = await assignmentsResponse.json();
+            setAssignments(assignmentsData.assignments || []);
           }
-        } catch (error) {
-          console.warn('Assignments API not available:', error);
-        }
-        
-        // Try to load community posts from API (with error handling)
-        try {
-          setIsLoadingPosts(true);
-          const postsResponse = await fetch('/api/community/posts');
-          if (postsResponse.ok) {
-            const postsData = await postsResponse.json();
-            setCommunityPosts(postsData || []);
-          }
-        } catch (error) {
-          console.warn('Community posts API not available:', error);
-        } finally {
-          setIsLoadingPosts(false);
+        } catch (apiError) {
+          console.warn('API calls failed, using fallback data:', apiError);
         }
         
       } catch (error) {
@@ -113,6 +94,28 @@ const StudentDashboard: React.FC = () => {
     loadDashboardData();
   }, [isAuthenticated, user, isLoading]);
 
+  // Load community posts
+  useEffect(() => {
+    const loadCommunityPosts = async () => {
+      setIsLoadingPosts(true);
+      try {
+        const response = await fetch('/api/community/posts', { credentials: 'include' });
+        if (response.ok) {
+          const data = await response.json();
+          setCommunityPosts(data.posts || []);
+        }
+      } catch (error) {
+        console.warn('Failed to load community posts:', error);
+      } finally {
+        setIsLoadingPosts(false);
+      }
+    };
+
+    if (isAuthenticated && user) {
+      loadCommunityPosts();
+    }
+  }, [isAuthenticated, user]);
+
   // Monitor online status
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -130,11 +133,40 @@ const StudentDashboard: React.FC = () => {
     };
   }, []);
 
+  // Handle class enrollment
+  const handleClassEnrollment = async (classCode: string) => {
+    try {
+      const response = await fetch('/api/student/enroll', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ classCode }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to enroll in class');
+      }
+
+      // Add the new class to the courses list
+      setCourses(prevCourses => [...prevCourses, data.class]);
+      
+      // Show success message (you could add a toast notification here)
+      console.log('Successfully enrolled in class:', data.class.name);
+      
+    } catch (error) {
+      console.error('Enrollment error:', error);
+      throw error;
+    }
+  };
 
   // Show loading state while checking authentication
   if (isLoading) {
-  return (
-    <StudentRoute>
+    return (
+      <StudentRoute>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100">
           <div className="text-center">
             <div className="flex items-center justify-center mb-6">
@@ -145,14 +177,14 @@ const StudentDashboard: React.FC = () => {
                   className="w-full h-full object-contain"
                 />
               </div>
-                    </div>
+            </div>
             <h2 className="text-2xl font-bold text-[#4A90E2] mb-2">
               ClassCast
             </h2>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A90E2] mx-auto mb-4"></div>
             <p className="text-[#333333]">Loading your home...</p>
-                    </div>
-                </div>
+          </div>
+        </div>
       </StudentRoute>
     );
   }
@@ -227,393 +259,207 @@ const StudentDashboard: React.FC = () => {
             <div className="text-[#333333]">
               Welcome to ClassCast Home
             </div>
-              </div>
-            </div>
+          </div>
+        </div>
 
-        {/* Mobile-First Responsive Content */}
-        <div className="flex-1 p-2 sm:p-4 overflow-y-auto">
-          <div className="max-w-7xl mx-auto">
-            {/* Mobile: Single column, Desktop: Multi-column grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
-          {/* Video Feed - Mobile Optimized */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-2 sm:p-3 bg-[#4A90E2]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs sm:text-sm">🎬</span>
-                  </div>
-                  <h2 className="text-white font-bold text-xs sm:text-sm">Trending Now</h2>
-                </div>
+        {/* Main Content Layout */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Sidebar - Videos and Socials */}
+          <div className="hidden lg:block w-80 bg-white/90 backdrop-blur-sm border-r border-[#4A90E2]/20 flex flex-col">
+            {/* Recently Posted Videos */}
+            <div className="flex-1 p-4 border-b border-gray-200">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Recently Posted</h3>
+                <p className="text-sm text-gray-600">Latest videos from your peers</p>
               </div>
-            </div>
-            <div className="p-2 sm:p-3 h-48 sm:h-64">
+              <div className="h-64 overflow-y-auto">
                 <VideoReels studentId={user?.id || 'unknown'} />
               </div>
             </div>
-
-          {/* Courses - Mobile Optimized */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-2 sm:p-3 bg-[#06D6A0]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs sm:text-sm">📚</span>
-                    </div>
-                    <h2 className="text-white font-bold text-xs sm:text-sm">My Courses</h2>
-                  </div>
-                  <button
-                    onClick={() => router.push('/student/courses')}
-                    className="text-white/80 hover:text-white text-xs font-medium"
-                  >
-                    See All →
-                  </button>
-                </div>
+            
+            {/* Socials/Community */}
+            <div className="flex-1 p-4">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Community</h3>
+                <p className="text-sm text-gray-600">Connect with classmates</p>
               </div>
-            <div className="p-2 sm:p-3 h-48 sm:h-64 overflow-y-auto">
-                {isLoadingCourses ? (
-                <div className="space-y-2">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="animate-pulse">
-                      <div className="bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl h-16"></div>
-                      </div>
-                    ))}
+              <div className="h-64 overflow-y-auto">
+                {isLoadingPosts ? (
+                  <div className="flex items-center justify-center py-4">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#4A90E2]"></div>
+                    <span className="ml-2 text-xs text-gray-500">Loading posts...</span>
                   </div>
-                ) : (
-                <div className="space-y-2">
-                  {courses.slice(0, 3).map((course) => (
-                      <div
-                        key={course.id}
-                        onClick={() => router.push(`/student/courses/${course.id}`)}
-                      className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg sm:rounded-xl p-2 sm:p-3 hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-[1.02]"
-                      >
-                        <div className="flex items-center space-x-2 sm:space-x-3">
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm shadow-lg">
-                            {course.code?.charAt(0) || 'C'}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                          <h3 className="text-xs font-bold text-gray-900 truncate">{course.name}</h3>
-                            <p className="text-xs text-gray-600">{course.code}</p>
-                            <div className="flex items-center space-x-2 mt-1">
-                            <div className="flex-1 bg-gray-200 rounded-full h-1 sm:h-1.5">
-                                <div 
-                                className="bg-gradient-to-r from-blue-500 to-purple-600 h-1 sm:h-1.5 rounded-full transition-all duration-300" 
-                                  style={{ width: `${course.progress}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-xs font-bold text-gray-700">{course.progress}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-          {/* Assignments - Mobile Optimized */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-2 sm:p-3 bg-[#FFD166]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs sm:text-sm">📝</span>
-                    </div>
-                  <h2 className="text-white font-bold text-xs sm:text-sm">Assignments</h2>
-                  </div>
-                  <button
-                    onClick={() => router.push('/student/assignments')}
-                    className="text-white/80 hover:text-white text-xs font-medium"
-                  >
-                    See All →
-                  </button>
-                </div>
-              </div>
-            <div className="p-2 sm:p-3 h-48 sm:h-64 overflow-y-auto">
-                {isLoadingAssignments ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map((i) => (
-                      <div key={i} className="animate-pulse">
-                      <div className="bg-gradient-to-r from-gray-200 to-gray-300 rounded-xl h-12"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
+                ) : communityPosts.length > 0 ? (
                   <div className="space-y-3">
-                  {/* Upcoming Assignments */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Upcoming</h3>
-                    <div className="space-y-2">
-                      {assignments.filter(a => a.status === 'upcoming' || a.status === 'in-progress').slice(0, 2).map((assignment) => (
-                      <div
-                        key={assignment.id}
-                        onClick={() => router.push(`/student/assignments/${assignment.id}`)}
-                          className="bg-[#F5F5F5] rounded-lg p-2 hover:shadow-md cursor-pointer transition-all duration-200 border border-gray-200"
-                      >
-                        <div className="flex items-center justify-between">
+                    {communityPosts.slice(0, 5).map((post) => (
+                      <div key={post.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-start space-x-2">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                            post.isAnnouncement ? 'bg-[#4A90E2]' : 'bg-[#06D6A0]'
+                          }`}>
+                            {post.author.charAt(0)}
+                          </div>
                           <div className="flex-1 min-w-0">
-                              <h4 className="text-xs font-bold text-gray-900 truncate">{assignment.title}</h4>
-                            <p className="text-xs text-gray-600 truncate">{assignment.course}</p>
+                            <div className="flex items-center space-x-1 mb-1">
+                              <p className="text-xs font-medium text-gray-800 truncate">{post.author}</p>
+                              {post.isAnnouncement && (
+                                <span className="px-1 py-0.5 bg-[#4A90E2] text-white text-xs rounded-full flex-shrink-0">
+                                  📢
+                                </span>
+                              )}
                             </div>
-                            <div className="flex items-center space-x-1 ml-2">
-                              <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold bg-[#4A90E2] text-white">
-                                📅 {assignment.dueDate}
+                            <p className="text-xs text-gray-600 line-clamp-2">{post.title}</p>
+                            <div className="flex items-center justify-between mt-2">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs text-gray-400">👍 {post.likes}</span>
+                                <span className="text-xs text-gray-400">💬 {post.comments}</span>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {new Date(post.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Past Due Assignments */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Past Due</h3>
-                    <div className="space-y-2">
-                      {assignments.filter(a => a.status === 'due-soon' || a.status === 'overdue').slice(0, 1).map((assignment) => (
-                        <div
-                          key={assignment.id}
-                          onClick={() => router.push(`/student/assignments/${assignment.id}`)}
-                          className="bg-red-50 rounded-lg p-2 hover:shadow-md cursor-pointer transition-all duration-200 border border-red-200"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-xs font-bold text-gray-900 truncate">{assignment.title}</h4>
-                              <p className="text-xs text-gray-600 truncate">{assignment.course}</p>
-                            </div>
-                            <div className="flex items-center space-x-1 ml-2">
-                              <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold bg-[#FF6F61] text-white">
-                                🔥 {assignment.dueDate}
-                            </span>
                           </div>
                         </div>
                       </div>
                     ))}
-                    </div>
-                  </div>
-
-                  {/* Completed Assignments */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Completed</h3>
-                    <div className="space-y-2">
-                      {assignments.filter(a => a.status === 'completed').slice(0, 1).map((assignment) => (
-                        <div
-                          key={assignment.id}
-                          onClick={() => router.push(`/student/assignments/${assignment.id}`)}
-                          className="bg-green-50 rounded-lg p-2 hover:shadow-md cursor-pointer transition-all duration-200 border border-green-200"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-xs font-bold text-gray-900 truncate">{assignment.title}</h4>
-                              <p className="text-xs text-gray-600">{assignment.course}</p>
-                            </div>
-                            <div className="flex items-center space-x-1 ml-2">
-                              <span className="inline-flex items-center px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-bold bg-[#06D6A0] text-white">
-                                ✓ {assignment.dueDate}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {assignments.length > 4 && (
                     <button 
-                      onClick={() => router.push('/student/assignments')}
-                      className="w-full text-center text-xs text-orange-600 hover:text-orange-800 py-2 border-t border-gray-200 mt-2"
+                      onClick={() => router.push('/community')}
+                      className="w-full text-center text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium py-2 border border-[#4A90E2] rounded-lg hover:bg-[#4A90E2]/5 transition-colors"
                     >
-                      View all {assignments.length} assignments
+                      View All Posts →
                     </button>
-                  )}
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-xs text-gray-500 mb-2">No posts yet</p>
+                    <button 
+                      onClick={() => router.push('/community')}
+                      className="text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium"
+                    >
+                      Be the first to post!
+                    </button>
                   </div>
                 )}
-              </div>
-            </div>
-
-
-          {/* AI Study Assistant - Mobile Optimized */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-2 sm:p-3 bg-[#9B5DE5]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs sm:text-sm">🤖</span>
-                  </div>
-                  <h2 className="text-white font-bold text-xs sm:text-sm">AI Tutor Buddy</h2>
-                </div>
-              </div>
-            </div>
-            <div className="p-2 sm:p-3 h-48 sm:h-64 flex flex-col">
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#9B5DE5] rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2">AI Tutor Buddy</h3>
-                  <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">Get instant help with your studies</p>
-                  <div className="space-y-2">
-                    <button
-                      onClick={() => router.push('/messaging')}
-                      className="w-full bg-[#9B5DE5] text-white px-3 sm:px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
-                    >
-                      💬 Ask a Question
-                    </button>
-                    <button
-                      onClick={() => router.push('/ai-tutoring')}
-                      className="w-full bg-[#4A90E2] text-white px-3 sm:px-4 py-2 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
-                    >
-                      🎓 Start Tutoring Session
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
 
-          {/* Social Analytics - Mobile Optimized */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-            <div className="p-2 sm:p-3 bg-[#4A90E2]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs sm:text-sm">📊</span>
+          {/* Main Content - Classes */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="max-w-6xl mx-auto">
+              {/* Classes Header */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-2xl font-bold text-[#333333] mb-2">My Classes</h1>
+                    <p className="text-gray-600">Manage your courses and track your progress</p>
                   </div>
-                  <h2 className="text-white font-bold text-xs sm:text-sm">Socials</h2>
-                </div>
-              </div>
-            </div>
-            <div className="h-48 sm:h-64 overflow-y-auto">
-              {/* Community Posts Section */}
-              <div className="p-2 sm:p-3 border-b border-gray-100">
-                <div className="flex items-center justify-between mb-2 sm:mb-3">
-                  <h3 className="text-xs sm:text-sm font-semibold text-gray-800">Recent Posts</h3>
-                  <button 
-                    onClick={() => router.push('/community')}
-                    className="text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium"
+                  <button
+                    onClick={() => setShowEnrollmentModal(true)}
+                    className="flex items-center space-x-2 bg-[#4A90E2] text-white px-4 py-3 rounded-lg hover:bg-[#9B5DE5] transition-colors shadow-lg hover:shadow-xl"
+                    title="Join a new class"
                   >
-                    View All →
+                    <Plus className="w-5 h-5" />
+                    <span className="font-medium">Join Class</span>
                   </button>
                 </div>
-                <div className="space-y-2">
-                  {isLoadingPosts ? (
-                    <div className="flex items-center justify-center py-4">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#4A90E2]"></div>
-                      <span className="ml-2 text-xs text-gray-500">Loading posts...</span>
+              </div>
+
+              {/* Classes Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {isLoadingCourses ? (
+                  // Loading state for classes
+                  <div className="col-span-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <div key={i} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 animate-pulse">
+                          <div className="flex items-center space-x-4 mb-4">
+                            <div className="w-12 h-12 bg-gray-300 rounded-xl"></div>
+                            <div className="flex-1">
+                              <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                              <div className="h-3 bg-gray-300 rounded w-2/3"></div>
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="h-3 bg-gray-300 rounded"></div>
+                            <div className="h-3 bg-gray-300 rounded w-3/4"></div>
+                            <div className="h-2 bg-gray-300 rounded"></div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ) : communityPosts.length > 0 ? (
-                    communityPosts.slice(0, 3).map((post) => (
-                      <div key={post.id} className="flex items-start space-x-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                          post.isAnnouncement ? 'bg-[#4A90E2]' : 'bg-[#06D6A0]'
-                        }`}>
-                          {post.author.charAt(0)}
+                  </div>
+                ) : courses.length > 0 ? (
+                  // Display classes
+                  courses.map((course) => (
+                    <div
+                      key={course.id}
+                      onClick={() => router.push(`/student/courses/${course.id}`)}
+                      className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl cursor-pointer transition-all duration-200 hover:scale-[1.02] group"
+                    >
+                      <div className="flex items-center space-x-4 mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                          {course.code?.charAt(0) || 'C'}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-1 mb-1">
-                            <p className="text-xs font-medium text-gray-800 truncate">{post.author}</p>
-                            {post.isAnnouncement && (
-                              <span className="px-1 py-0.5 bg-[#4A90E2] text-white text-xs rounded-full flex-shrink-0">
-                                📢
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-600 line-clamp-2">{post.title}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(post.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-1 flex-shrink-0">
-                          <span className="text-xs text-gray-400">👍 {post.likes}</span>
-                          <span className="text-xs text-gray-400">💬 {post.comments}</span>
+                          <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-[#4A90E2] transition-colors">
+                            {course.name}
+                          </h3>
+                          <p className="text-sm text-gray-600">{course.code}</p>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-xs text-gray-500">No posts yet</p>
-                      <button 
-                        onClick={() => router.push('/community')}
-                        className="text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium mt-1"
+                      
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600 line-clamp-2">
+                          {course.description || 'No description available'}
+                        </p>
+                        
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Progress</span>
+                            <span className="font-semibold text-gray-900">{course.progress}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300" 
+                              style={{ width: `${course.progress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between pt-2">
+                          <div className="flex items-center space-x-4 text-sm text-gray-600">
+                            <span>📚 {course.assignmentCount || 0} assignments</span>
+                          </div>
+                          <div className="text-[#4A90E2] group-hover:text-[#9B5DE5] transition-colors">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  // Empty state for classes
+                  <div className="col-span-full">
+                    <div className="text-center py-12">
+                      <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">No Classes Yet</h3>
+                      <p className="text-gray-600 mb-6">You haven't enrolled in any classes yet. Contact your instructor to get started!</p>
+                      <button
+                        onClick={() => router.push('/student/courses')}
+                        className="bg-[#4A90E2] text-white px-6 py-3 rounded-lg hover:bg-[#9B5DE5] transition-colors font-medium"
                       >
-                        Be the first to post!
+                        Browse Available Classes
                       </button>
                     </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Analytics Section */}
-              <div className="p-2 sm:p-3">
-                <h3 className="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3">Your Analytics</h3>
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  <div className="text-center p-2 bg-blue-50 rounded-lg">
-                    <div className="text-sm sm:text-lg font-bold text-blue-600">0</div>
-                    <div className="text-xs text-gray-600">Videos</div>
                   </div>
-                  <div className="text-center p-2 bg-green-50 rounded-lg">
-                    <div className="text-sm sm:text-lg font-bold text-green-600">0</div>
-                    <div className="text-xs text-gray-600">Views</div>
-                  </div>
-                  <div className="text-center p-2 bg-red-50 rounded-lg">
-                    <div className="text-sm sm:text-lg font-bold text-red-600">0</div>
-                    <div className="text-xs text-gray-600">Likes</div>
-                  </div>
-                  <div className="text-center p-2 bg-yellow-50 rounded-lg">
-                    <div className="text-sm sm:text-lg font-bold text-yellow-600">0</div>
-                    <div className="text-xs text-gray-600">Rating</div>
-                  </div>
-                </div>
-                <div className="mt-2 sm:mt-3 text-center">
-                  <p className="text-xs text-gray-500">Start creating content to see your analytics!</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-                 {/* Quick Actions - Mobile Optimized */}
-                 <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-                   <div className="p-2 sm:p-3 bg-[#FF6F61]">
-                     <div className="flex items-center justify-between">
-                       <div className="flex items-center space-x-2">
-                         <div className="w-5 h-5 sm:w-6 sm:h-6 bg-white/20 rounded-full flex items-center justify-center">
-                           <span className="text-white text-xs sm:text-sm">⚡</span>
-                         </div>
-                         <h2 className="text-white font-bold text-xs sm:text-sm">Quick Actions</h2>
-                       </div>
-                     </div>
-                   </div>
-            <div className="p-2 sm:p-3 h-48 sm:h-64">
-              <div className="grid grid-cols-1 gap-2">
-                <button
-                  onClick={() => setShowWizard(true)}
-                  className="w-full bg-[#FF6F61] text-white p-2 sm:p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
-                >
-                  🎯 Get Started
-                </button>
-                <button
-                  onClick={() => router.push('/messaging')}
-                  className="w-full bg-[#9B5DE5] text-white p-2 sm:p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
-                >
-                  💬 Messages
-                </button>
-                <button
-                  onClick={() => router.push('/student/video-submission')}
-                  className="w-full bg-[#4A90E2] text-white p-2 sm:p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
-                >
-                  📹 Create Video
-                </button>
-                <button
-                  onClick={() => router.push('/student/submissions')}
-                  className="w-full bg-[#06D6A0] text-white p-2 sm:p-3 rounded-lg hover:shadow-lg transition-all duration-200 text-xs sm:text-sm font-medium"
-                >
-                  📝 View Submissions
-                </button>
-              </div>
-            </div>
+                )}
               </div>
             </div>
           </div>
@@ -644,7 +490,6 @@ const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
-
         {/* Student Onboarding Wizard */}
         <StudentOnboardingWizard
           isOpen={showWizard}
@@ -653,6 +498,13 @@ const StudentDashboard: React.FC = () => {
             setShowWizard(false);
             // Optionally refresh data or show success message
           }}
+        />
+
+        {/* Class Enrollment Modal */}
+        <ClassEnrollmentModal
+          isOpen={showEnrollmentModal}
+          onClose={() => setShowEnrollmentModal(false)}
+          onEnroll={handleClassEnrollment}
         />
       </div>
     </StudentRoute>
