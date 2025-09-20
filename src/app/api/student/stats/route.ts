@@ -5,12 +5,11 @@ export async function GET(request: NextRequest) {
   try {
     const dynamoDBService = new DynamoDBService();
     
-    // Get user from auth context (you'll need to implement this)
-    // For now, we'll return mock stats structure
+    // Mock stats data for demonstration
     const stats = {
-      activeCourses: 0,
-      assignmentsDue: 0,
-      completed: 0
+      activeCourses: 4,
+      assignmentsDue: 3,
+      completed: 2
     };
 
     // TODO: Implement real stats calculation from database
