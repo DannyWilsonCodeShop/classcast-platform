@@ -32,8 +32,8 @@ export const InstructorCourseAssignments: React.FC<InstructorCourseAssignmentsPr
 }) => {
   const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'draft' | 'published' | 'grading' | 'completed'>('all');
-  const [sortBy, setSortBy] = useState<'dueDate' | 'title' | 'points' | 'createdAt'>('dueDate');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState<'dueDate' | 'title' | 'points' | 'createdAt'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [editingAssignment, setEditingAssignment] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Assignment>>({});
 
@@ -303,6 +303,10 @@ export const InstructorCourseAssignments: React.FC<InstructorCourseAssignmentsPr
                           <span>Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
                         </div>
                         <div className="flex items-center space-x-1">
+                          <span>📝</span>
+                          <span>Created {new Date(assignment.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
                           <span>⭐</span>
                           <span>{assignment.points} points</span>
                         </div>
@@ -312,12 +316,20 @@ export const InstructorCourseAssignments: React.FC<InstructorCourseAssignmentsPr
                         </div>
                         <div className="flex items-center space-x-1">
                           <span>👥</span>
-                          <span>{assignment.submissionsCount} submissions</span>
+                          <span>{assignment.submissionsCount} total</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <span>✅</span>
                           <span>{assignment.gradedCount} graded</span>
                         </div>
+                        {assignment.submissionsCount > assignment.gradedCount && (
+                          <div className="flex items-center space-x-1">
+                            <span>⏳</span>
+                            <span className="text-orange-600 font-medium">
+                              {assignment.submissionsCount - assignment.gradedCount} pending
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {assignment.averageGrade !== undefined && (

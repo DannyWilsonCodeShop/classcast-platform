@@ -370,7 +370,11 @@ const InstructorDashboard: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {courses.length > 0 ? (
                     courses.map((course) => (
-                      <div key={course.id} className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl transition-all duration-300">
+                      <button
+                        key={course.id}
+                        onClick={() => router.push(`/instructor/courses/${course.id}`)}
+                        className="w-full text-left bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#4A90E2]/20"
+                      >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">{course.title}</h3>
@@ -413,21 +417,13 @@ const InstructorDashboard: React.FC = () => {
                           </div>
                         </div>
                         
-                        <div className="flex space-x-2">
-                          <button 
-                            onClick={() => router.push(`/instructor/courses/${course.id}`)}
-                            className="flex-1 bg-[#4A90E2] text-white px-3 py-2 rounded-lg hover:bg-[#9B5DE5] transition-colors text-sm font-medium"
-                          >
-                            Manage Class
-                          </button>
-                          <button 
-                            onClick={() => router.push(`/instructor/grading/bulk?course=${course.id}`)}
-                            className="flex-1 bg-[#FF6F61] text-white px-3 py-2 rounded-lg hover:bg-[#FF8A80] transition-colors text-sm font-medium"
-                          >
-                            Grade All
-                          </button>
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-gray-600">Click to manage class</span>
+                            <span className="text-[#4A90E2] font-medium">→</span>
+                          </div>
                         </div>
-                      </div>
+                      </button>
                     ))
                   ) : (
                     <div className="col-span-full">
