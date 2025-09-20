@@ -398,14 +398,18 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
   if (isLoading) {
     return (
       <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">🎬 Recent Video Reels</h3>
-        <div className="flex space-x-4 overflow-x-auto pb-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex-shrink-0 w-64 bg-gray-200 rounded-lg animate-pulse">
-              <div className="h-40 bg-gray-300 rounded-t-lg"></div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">🎬 Recently Posted</h3>
+        <div className="flex space-x-3 overflow-x-auto pb-2">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex-shrink-0 w-48 bg-gray-200 rounded-xl animate-pulse">
+              <div className="h-32 bg-gray-300 rounded-t-xl"></div>
               <div className="p-3">
                 <div className="h-4 bg-gray-300 rounded mb-2"></div>
-                <div className="h-3 bg-gray-300 rounded w-2/3"></div>
+                <div className="h-3 bg-gray-300 rounded w-2/3 mb-2"></div>
+                <div className="flex items-center space-x-2">
+                  <div className="w-5 h-5 bg-gray-300 rounded-full"></div>
+                  <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+                </div>
               </div>
             </div>
           ))}
@@ -417,20 +421,21 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
   return (
     <div className="bg-white/70 backdrop-blur-sm rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">🎬 Recent Video Reels</h3>
+        <h3 className="text-lg font-semibold text-gray-900">🎬 Recently Posted</h3>
         <button 
           onClick={() => router.push('/student/videos')}
-          className="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
+          className="text-sm text-[#4A90E2] hover:text-[#9B5DE5] font-medium transition-colors"
         >
-          View All
+          View All →
         </button>
       </div>
       
-      <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
+      {/* Horizontal Scrolling Grid */}
+      <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
         {reels.map((reel, index) => (
           <div
             key={reel.id}
-            className="flex-shrink-0 w-64 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+            className="flex-shrink-0 w-48 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-200 cursor-pointer group"
             onClick={() => handleVideoClick(reel)}
           >
             {/* Video Thumbnail */}
@@ -438,69 +443,55 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
               <img
                 src={reel.thumbnail}
                 alt={reel.title}
-                className="w-full h-40 object-cover rounded-t-lg"
+                className="w-full h-32 object-cover rounded-t-xl"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsPlaying(!isPlaying);
                     setCurrentVideo(index);
                   }}
-                  className="bg-white bg-opacity-90 rounded-full p-2 hover:bg-opacity-100 transition-all"
+                  className="bg-white bg-opacity-0 group-hover:bg-opacity-90 rounded-full p-2 transition-all duration-200"
                 >
                   {isPlaying && currentVideo === index ? (
-                    <PauseIcon className="h-6 w-6 text-gray-800" />
+                    <PauseIcon className="h-5 w-5 text-gray-800" />
                   ) : (
-                    <PlayIcon className="h-6 w-6 text-gray-800" />
+                    <PlayIcon className="h-5 w-5 text-gray-800" />
                   )}
                 </button>
               </div>
               <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
                 {formatDuration(reel.duration)}
               </div>
-              {/* Student Avatar Overlay */}
-              <div className="absolute top-2 left-2 flex items-center space-x-2 bg-black bg-opacity-50 rounded-full px-2 py-1">
-                <img
-                  src={reel.author.avatar}
-                  alt={reel.author.name}
-                  className="w-6 h-6 rounded-full border border-white"
-                />
-                <span className="text-white text-xs font-medium truncate max-w-20">
-                  {reel.author.name}
-                </span>
-              </div>
             </div>
 
             {/* Video Info */}
             <div className="p-3">
-              <h4 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">
+              <h4 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2 group-hover:text-[#4A90E2] transition-colors">
                 {reel.title}
               </h4>
-              <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                {reel.description}
-              </p>
               
               {/* Author Info */}
-              <div className="flex items-center space-x-2 mb-3">
+              <div className="flex items-center space-x-2 mb-2">
                 <img
                   src={reel.author.avatar}
                   alt={reel.author.name}
-                  className="w-6 h-6 rounded-full"
+                  className="w-5 h-5 rounded-full"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-gray-900 truncate">
                     {reel.author.name}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {reel.author.course} • {formatTimeAgo(reel.createdAt)}
+                    {formatTimeAgo(reel.createdAt)}
                   </p>
                 </div>
               </div>
 
               {/* Actions */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -509,9 +500,9 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
                     className="flex items-center space-x-1 text-xs text-gray-600 hover:text-red-600 transition-colors"
                   >
                     {reel.isLiked ? (
-                      <HeartSolidIcon className="h-4 w-4 text-red-500" />
+                      <HeartSolidIcon className="h-3 w-3 text-red-500" />
                     ) : (
-                      <HeartIcon className="h-4 w-4" />
+                      <HeartIcon className="h-3 w-3" />
                     )}
                     <span>{reel.likes}</span>
                   </button>
@@ -523,7 +514,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
                     }}
                     className="flex items-center space-x-1 text-xs text-gray-600 hover:text-blue-600 transition-colors"
                   >
-                    <ChatBubbleLeftIcon className="h-4 w-4" />
+                    <ChatBubbleLeftIcon className="h-3 w-3" />
                     <span>{reel.comments}</span>
                   </button>
                 </div>
@@ -537,13 +528,6 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
                   title="Rate this content creator"
                 >
                   ⭐
-                </button>
-                
-                <button
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-xs text-gray-600 hover:text-blue-600 transition-colors"
-                >
-                  <ShareIcon className="h-4 w-4" />
                 </button>
               </div>
             </div>

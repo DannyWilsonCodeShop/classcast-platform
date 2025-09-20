@@ -20,7 +20,7 @@ interface Course {
   semester: string;
   year: number;
   status: 'active' | 'completed' | 'upcoming';
-  progress: number;
+  backgroundColor: string;
   enrollmentCount: number;
   credits: number;
   schedule: {
@@ -78,7 +78,7 @@ const StudentCoursesPage: React.FC = () => {
             semester: 'Fall',
             year: 2024,
             status: 'active',
-            progress: 75,
+            backgroundColor: '#4A90E2',
             enrollmentCount: 120,
             credits: 3,
             schedule: {
@@ -107,7 +107,7 @@ const StudentCoursesPage: React.FC = () => {
             semester: 'Fall',
             year: 2024,
             status: 'active',
-            progress: 60,
+            backgroundColor: '#06D6A0',
             enrollmentCount: 85,
             credits: 4,
             schedule: {
@@ -136,7 +136,7 @@ const StudentCoursesPage: React.FC = () => {
             semester: 'Fall',
             year: 2024,
             status: 'completed',
-            progress: 100,
+            backgroundColor: '#FF6F61',
             enrollmentCount: 95,
             credits: 3,
             schedule: {
@@ -333,6 +333,7 @@ const StudentCoursesPage: React.FC = () => {
                   key={course.id}
                   onClick={() => router.push(`/student/courses/${course.id}`)}
                   className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl cursor-pointer transition-all duration-300 hover:scale-105"
+                  style={{ borderLeftColor: course.backgroundColor, borderLeftWidth: '4px' }}
                 >
                   {/* Course Header */}
                   <div className="flex items-start justify-between mb-4">
@@ -350,20 +351,6 @@ const StudentCoursesPage: React.FC = () => {
 
                   {/* Course Description */}
                   <p className="text-sm text-gray-700 mb-4 line-clamp-2">{course.description}</p>
-
-                  {/* Progress Bar */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                      <span>Progress</span>
-                      <span>{course.progress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${course.progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
 
                   {/* Course Details */}
                   <div className="space-y-2 text-xs text-gray-600">
