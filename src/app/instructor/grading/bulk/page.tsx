@@ -26,6 +26,16 @@ const BulkGradingPage: React.FC = () => {
   const [bulkFeedback, setBulkFeedback] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isGrading, setIsGrading] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<string>('all');
+
+  useEffect(() => {
+    // Get course filter from URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseFilter = urlParams.get('course');
+    if (courseFilter) {
+      setSelectedCourse(courseFilter);
+    }
+  }, []);
 
   useEffect(() => {
     // Mock data for submissions
@@ -103,13 +113,17 @@ const BulkGradingPage: React.FC = () => {
 
   const handleSelectAll = () => {
     const pendingSubmissions = submissions
-      .filter(sub => sub.status === 'pending')
+      .filter(sub => sub.status === 'pending' && (selectedCourse === 'all' || sub.courseId === selectedCourse))
       .map(sub => sub.id);
     
     setSelectedSubmissions(prev => 
       prev.length === pendingSubmissions.length ? [] : pendingSubmissions
     );
   };
+
+  const filteredSubmissions = submissions.filter(submission => {
+    return selectedCourse === 'all' || submission.courseId === selectedCourse;
+  });
 
   const handleBulkGrade = async () => {
     if (selectedSubmissions.length === 0 || !bulkGrade) return;
@@ -229,19 +243,38 @@ const BulkGradingPage: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Bulk Actions</h2>
             
-            <div className="flex items-center space-x-4 mb-4">
-              <button
-                onClick={handleSelectAll}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                {selectedSubmissions.length === submissions.filter(s => s.status === 'pending').length 
-                  ? 'Deselect All' 
-                  : 'Select All Pending'
-                }
-              </button>
-              <span className="text-sm text-gray-600">
-                {submissions.filter(s => s.status === 'pending').length} pending submissions
-              </span>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={handleSelectAll}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  {selectedSubmissions.length === filteredSubmissions.filter(s => s.status === 'pending').length 
+                    ? 'Deselect All' 
+                    : 'Select All Pending'
+                  }
+                </button>
+                <span className="text-sm text-gray-600">
+                  {filteredSubmissions.filter(s => s.status === 'pending').length} pending submissions
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                <label className="text-sm font-medium text-gray-700">Filter by Course:</label>
+                <select
+                  value={selectedCourse}
+                  onChange={(e) => setSelectedCourse(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">All Courses</option>
+                  <option value="cs-101">Introduction to Computer Science</option>
+                  <option value="math-201">Calculus II</option>
+                  <option value="eng-102">Creative Writing Workshop</option>
+                  <option value="phy-301">Quantum Physics</option>
+                  <option value="bio-150">Cell Biology</option>
+                  <option value="hist-201">World History</option>
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -279,7 +312,7 @@ const BulkGradingPage: React.FC = () => {
             <h2 className="text-xl font-bold text-gray-800 mb-6">Submissions</h2>
             
             <div className="space-y-4">
-              {submissions.map((submission) => (
+              {filteredSubmissions.map((submission) => (
                 <div
                   key={submission.id}
                   className={`p-4 rounded-lg border-2 transition-all duration-200 ${

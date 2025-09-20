@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
+import AutoGradingSystem from '@/components/instructor/AutoGradingSystem';
 
 interface AIFeature {
   id: string;
@@ -19,6 +20,7 @@ const AIAssistantPage: React.FC = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<Array<{role: 'user' | 'ai', message: string}>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showAutoGrading, setShowAutoGrading] = useState(false);
 
   const aiFeatures: AIFeature[] = [
     {
@@ -27,7 +29,7 @@ const AIAssistantPage: React.FC = () => {
       description: 'Automatically grade video assignments using AI analysis',
       icon: '🤖',
       status: 'available',
-      action: () => setSelectedFeature('auto-grade')
+      action: () => setShowAutoGrading(true)
     },
     {
       id: 'feedback-generator',
@@ -100,15 +102,138 @@ const AIAssistantPage: React.FC = () => {
   };
 
   const generateAIResponse = (message: string): string => {
-    const responses = [
-      "Based on your question, I'd recommend focusing on clear learning objectives and providing regular feedback to students.",
-      "That's a great question! Consider using peer review activities to increase student engagement.",
-      "I suggest breaking down complex topics into smaller, manageable chunks for better student comprehension.",
-      "You might want to try incorporating multimedia elements to cater to different learning styles.",
-      "Based on best practices, I recommend setting clear expectations and providing rubrics for assignments."
-    ];
+    const lowerMessage = message.toLowerCase();
     
-    return responses[Math.floor(Math.random() * responses.length)];
+    // Assignment ideas based on subject/topic
+    if (lowerMessage.includes('math') || lowerMessage.includes('calculus') || lowerMessage.includes('algebra')) {
+      return `Great! Here are some engaging math assignment ideas for your students:
+
+📊 **Video Problem-Solving Assignment**
+- Students record themselves solving 3-5 problems step-by-step
+- Include explanation of their thought process and methodology
+- 10-15 minutes per video, due in 1 week
+
+📈 **Real-World Application Project**
+- Find a real-world scenario that uses the math concept
+- Create a 5-minute video explaining the application
+- Include visual aids and examples
+
+🎯 **Peer Teaching Challenge**
+- Students teach a concept to their classmates via video
+- Must include examples and practice problems
+- 8-12 minutes, with Q&A session
+
+Would you like me to elaborate on any of these or suggest specific problems for your topic?`;
+    }
+    
+    if (lowerMessage.includes('science') || lowerMessage.includes('biology') || lowerMessage.includes('chemistry') || lowerMessage.includes('physics')) {
+      return `Excellent! Here are some creative science assignment ideas:
+
+🔬 **Lab Demonstration Video**
+- Students perform a lab experiment and explain the process
+- Include hypothesis, procedure, observations, and conclusions
+- 10-15 minutes with clear audio and visuals
+
+🌍 **Scientific Concept Explainer**
+- Choose a complex scientific concept and break it down
+- Use analogies, diagrams, and real-world examples
+- 8-12 minutes, suitable for peer learning
+
+📊 **Data Analysis Presentation**
+- Analyze experimental data and present findings
+- Include graphs, charts, and statistical analysis
+- 10-15 minutes with clear explanations
+
+Would you like specific experiment ideas or help structuring any of these assignments?`;
+    }
+    
+    if (lowerMessage.includes('english') || lowerMessage.includes('writing') || lowerMessage.includes('literature')) {
+      return `Perfect! Here are some engaging English assignment ideas:
+
+📝 **Literary Analysis Video**
+- Students analyze a text and present their interpretation
+- Include quotes, analysis, and personal insights
+- 8-12 minutes with clear structure
+
+✍️ **Creative Writing Showcase**
+- Students read their creative work and explain their process
+- Include inspiration, techniques used, and revision process
+- 5-10 minutes per piece
+
+🎭 **Character Study Presentation**
+- Deep dive into a character's development and motivations
+- Use visual aids and textual evidence
+- 10-15 minutes with engaging delivery
+
+Would you like help with specific texts or writing prompts for your class?`;
+    }
+    
+    if (lowerMessage.includes('history') || lowerMessage.includes('social studies')) {
+      return `Great choice! Here are some dynamic history assignment ideas:
+
+📚 **Historical Documentary**
+- Students create a mini-documentary about a historical event
+- Include primary sources, analysis, and historical context
+- 10-15 minutes with engaging visuals
+
+🎭 **Historical Role-Play**
+- Students take on historical personas and explain their perspective
+- Include period-appropriate context and motivations
+- 8-12 minutes per character
+
+📊 **Timeline Analysis**
+- Create an interactive timeline with video explanations
+- Connect events and show cause-and-effect relationships
+- 10-15 minutes with clear chronological flow
+
+Would you like specific historical periods or events to focus on?`;
+    }
+    
+    if (lowerMessage.includes('computer') || lowerMessage.includes('programming') || lowerMessage.includes('coding')) {
+      return `Awesome! Here are some tech-focused assignment ideas:
+
+💻 **Code Walkthrough Video**
+- Students explain their code line by line
+- Include problem-solving process and debugging
+- 10-15 minutes with screen recording
+
+🛠️ **Project Showcase**
+- Demonstrate a completed project and explain the development process
+- Include challenges faced and solutions implemented
+- 8-12 minutes with live demo
+
+📊 **Algorithm Explanation**
+- Break down complex algorithms in simple terms
+- Use visual aids and step-by-step examples
+- 10-15 minutes with clear explanations
+
+Would you like help with specific programming languages or project ideas?`;
+    }
+    
+    // General assignment ideas for any subject
+    return `Here are some versatile assignment ideas that work for any subject:
+
+🎯 **Concept Explanation Video**
+- Students teach a key concept to their peers
+- Include examples, analogies, and visual aids
+- 8-12 minutes with clear structure
+
+📊 **Research Presentation**
+- Students research a topic and present findings
+- Include sources, analysis, and personal insights
+- 10-15 minutes with engaging delivery
+
+🤝 **Peer Interview Project**
+- Students interview each other about course topics
+- Include thoughtful questions and follow-ups
+- 5-8 minutes per interview
+
+💡 **Problem-Solving Challenge**
+- Present a real-world problem related to your subject
+- Students explain their solution process
+- 8-12 minutes with step-by-step breakdown
+
+What specific topic or skill would you like your students to focus on? I can provide more targeted suggestions!`;
   };
 
   const getStatusColor = (status: string) => {
@@ -153,10 +278,10 @@ const AIAssistantPage: React.FC = () => {
                 </button>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                    AI Assistant
+                    Assignment Ideas AI
                   </h1>
                   <p className="text-gray-600">
-                    Leverage AI to enhance your teaching and streamline grading
+                    Get creative assignment ideas tailored to your subject and student needs
                   </p>
                 </div>
               </div>
@@ -228,14 +353,14 @@ const AIAssistantPage: React.FC = () => {
 
             {/* Chat Assistant */}
             <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">AI Chat Assistant</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">Assignment Ideas Generator</h2>
               
               {/* Chat History */}
               <div className="h-96 overflow-y-auto mb-4 space-y-4">
                 {chatHistory.length === 0 ? (
                   <div className="text-center text-gray-500 py-8">
                     <div className="text-4xl mb-2">🤖</div>
-                    <p>Ask me anything about teaching, grading, or course management!</p>
+                    <p>Need assignment ideas? I'm here to help! What topic are your students working on?</p>
                   </div>
                 ) : (
                   chatHistory.map((message, index) => (
@@ -274,7 +399,7 @@ const AIAssistantPage: React.FC = () => {
                   type="text"
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
-                  placeholder="Ask me anything about teaching..."
+                  placeholder="What topic are your students working on?"
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isLoading}
                 />
@@ -289,6 +414,14 @@ const AIAssistantPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Auto-Grading System Modal */}
+        {showAutoGrading && (
+          <AutoGradingSystem
+            courseId="course-1" // In real app, this would come from props or context
+            onClose={() => setShowAutoGrading(false)}
+          />
+        )}
       </div>
     </InstructorRoute>
   );
