@@ -374,11 +374,50 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         </div>
       </div>
 
-      {!selectedFile && (
+      {/* Mode Selection */}
+      {enableLiveRecording && !selectedFile && (
+        <div className="flex justify-center">
+          <div className="bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setRecordingMode('upload')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                recordingMode === 'upload'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              📁 Upload Video
+            </button>
+            <button
+              onClick={() => setRecordingMode('record')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                recordingMode === 'record'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              🎥 Record Live
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!selectedFile && recordingMode === 'upload' && (
         <VideoUploadZone
           onFileSelect={handleFileSelect}
           allowedTypes={allowedVideoTypes}
           maxFileSize={maxFileSize}
+        />
+      )}
+
+      {!selectedFile && recordingMode === 'record' && enableLiveRecording && (
+        <LiveVideoRecorder
+          onRecordingComplete={handleRecordingComplete}
+          onError={(error) => {
+            console.error('Recording error:', error);
+            onSubmissionError?.(error);
+          }}
+          maxDuration={maxDuration}
         />
       )}
 
