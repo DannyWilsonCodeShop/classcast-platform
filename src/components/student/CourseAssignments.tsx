@@ -249,7 +249,7 @@ export const CourseAssignments: React.FC<CourseAssignmentsProps> = ({
                 : '0'
               }%
             </div>
-            <div className="text-sm text-gray-600">Average Grade</div>
+            <div className="text-sm text-gray-600">Average Video Assignment Grade</div>
           </div>
         </div>
       </div>
