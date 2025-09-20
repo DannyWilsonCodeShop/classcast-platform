@@ -2,13 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    // For now, return empty stats since we don't have real data yet
-    // In the future, this would fetch from DynamoDB
+    // Sample stats data for demonstration
     const stats = {
-      activeCourses: 0,
-      totalStudents: 0,
-      pendingReviews: 0,
-      averageRating: 0,
+      activeCourses: 6,
+      ungradedAssignments: 23,
+      messages: 15,
     };
 
     return NextResponse.json(stats);

@@ -14,34 +14,53 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const dynamoDBService = new DynamoDBService();
+    // Sample social analytics data for demonstration
+    const analytics: SocialAnalytics = {
+      userId,
+      totalVideos: 12,
+      totalViews: 1247,
+      totalLikes: 89,
+      totalComments: 34,
+      totalShares: 15,
+      averageRating: 4.2,
+      totalRatings: 23,
+      followers: 45,
+      following: 38,
+      engagementRate: 0.11,
+      recentActivity: [
+        {
+          id: 'activity_1',
+          type: 'view',
+          videoId: 'video_1',
+          value: 1,
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          description: 'Video viewed'
+        },
+        {
+          id: 'activity_2',
+          type: 'like',
+          videoId: 'video_2',
+          value: 1,
+          timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          description: 'Video liked'
+        },
+        {
+          id: 'activity_3',
+          type: 'comment',
+          videoId: 'video_1',
+          value: 1,
+          timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+          description: 'Comment received'
+        }
+      ],
+      monthlyStats: [
+        { month: '2024-11', videos: 3, views: 234, likes: 18, comments: 7 },
+        { month: '2024-12', videos: 9, views: 1013, likes: 71, comments: 27 }
+      ],
+      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
     
-    // Get user's social analytics
-    const analytics = await dynamoDBService.getItem('classcast-social-analytics', { userId });
-    
-    if (!analytics) {
-      // Return default analytics for new users
-      const defaultAnalytics: SocialAnalytics = {
-        userId,
-        totalVideos: 0,
-        totalViews: 0,
-        totalLikes: 0,
-        totalComments: 0,
-        totalShares: 0,
-        averageRating: 0,
-        totalRatings: 0,
-        followers: 0,
-        following: 0,
-        engagementRate: 0,
-        recentActivity: [],
-        monthlyStats: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      
-      return NextResponse.json(defaultAnalytics);
-    }
-
     return NextResponse.json(analytics);
   } catch (error) {
     console.error('Error fetching social analytics:', error);
