@@ -226,7 +226,7 @@ const StudentCoursesPage: React.FC = () => {
               <button
                 onClick={() => router.push('/student/dashboard')}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                title="Back to Dashboard"
+                title="Back to Home"
               >
                 <span className="text-xl">←</span>
               </button>
@@ -321,7 +321,7 @@ const StudentCoursesPage: React.FC = () => {
                     onClick={() => router.push('/student/dashboard')}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    Back to Dashboard
+                    Back to Home
                   </button>
                 </div>
               }

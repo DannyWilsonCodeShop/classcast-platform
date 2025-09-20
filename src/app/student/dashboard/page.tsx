@@ -150,7 +150,7 @@ const StudentDashboard: React.FC = () => {
               ClassCast
             </h2>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A90E2] mx-auto mb-4"></div>
-            <p className="text-[#333333]">Loading your dashboard...</p>
+            <p className="text-[#333333]">Loading your home...</p>
                     </div>
                 </div>
       </StudentRoute>
@@ -225,7 +225,7 @@ const StudentDashboard: React.FC = () => {
               </div>
             </div>
             <div className="text-[#333333]">
-              Welcome to ClassCast Student Portal
+              Welcome to ClassCast Home
             </div>
               </div>
             </div>
