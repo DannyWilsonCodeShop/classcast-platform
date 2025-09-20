@@ -15,7 +15,7 @@ interface ProfileData {
   funFact: string;
   favoriteSubject: string;
   hobbies: string;
-  location?: string;
+  schoolName?: string;
 }
 
 interface ProfileEditorProps {
@@ -406,17 +406,17 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
               />
             </div>
 
-            {/* Location */}
+            {/* School Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Location
+                School Name
               </label>
               <input
                 type="text"
-                value={editedProfile.location || ''}
-                onChange={(e) => handleInputChange('location', e.target.value)}
+                value={editedProfile.schoolName || ''}
+                onChange={(e) => handleInputChange('schoolName', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Enter your location"
+                placeholder="Enter your school name"
               />
             </div>
           </div>

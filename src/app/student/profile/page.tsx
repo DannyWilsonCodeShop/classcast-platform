@@ -8,7 +8,7 @@ import Link from 'next/link';
 import ProfileEditor from '@/components/student/ProfileEditor';
 
 const StudentProfilePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -51,8 +51,16 @@ const StudentProfilePage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="text-xs text-[#333333]">
-              ClassCast
+            <div className="flex items-center space-x-3">
+              <div className="text-xs text-[#333333]">
+                ClassCast
+              </div>
+              <button
+                onClick={logout}
+                className="px-3 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
@@ -73,7 +81,7 @@ const StudentProfilePage: React.FC = () => {
                 funFact: user.funFact || '',
                 favoriteSubject: user.favoriteSubject || '',
                 hobbies: user.hobbies || '',
-                location: user.location || '',
+                schoolName: user.schoolName || '',
               }}
               onSave={(updatedProfile) => {
                 setIsEditing(false);
@@ -140,16 +148,16 @@ const StudentProfilePage: React.FC = () => {
                     <h3 className="text-lg font-semibold text-[#333333] mb-4">Academic Information</h3>
                     <div className="space-y-3">
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Major</label>
-                        <p className="text-[#333333]">{user.major || 'Not specified'}</p>
+                        <label className="text-sm font-medium text-gray-600">Favorite Subject</label>
+                        <p className="text-[#333333]">{user.favoriteSubject || 'Not specified'}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Year</label>
-                        <p className="text-[#333333]">{user.year || 'Not specified'}</p>
+                        <label className="text-sm font-medium text-gray-600">Class of</label>
+                        <p className="text-[#333333]">{user.classOf || 'Not specified'}</p>
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-gray-600">Location</label>
-                        <p className="text-[#333333]">{user.location || 'Not specified'}</p>
+                        <label className="text-sm font-medium text-gray-600">School Name</label>
+                        <p className="text-[#333333]">{user.schoolName || 'Not specified'}</p>
                       </div>
                     </div>
                   </div>

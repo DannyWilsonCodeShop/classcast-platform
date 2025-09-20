@@ -394,7 +394,7 @@ const StudentDashboard: React.FC = () => {
                           <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-[#4A90E2] transition-colors">
                             {course.name}
                           </h3>
-                          <p className="text-sm text-gray-600">{course.code}</p>
+                          <p className="text-sm text-gray-600">Class Code: {course.code}</p>
                         </div>
                       </div>
                       
