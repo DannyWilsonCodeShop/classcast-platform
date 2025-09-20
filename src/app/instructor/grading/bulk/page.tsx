@@ -30,6 +30,7 @@ const BulkGradingPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isGrading, setIsGrading] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<string>('all');
+  const [selectedAssignment, setSelectedAssignment] = useState<string>('all');
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -41,11 +42,16 @@ const BulkGradingPage: React.FC = () => {
   const [isAutoAdvance, setIsAutoAdvance] = useState(false);
 
   useEffect(() => {
-    // Get course filter from URL params
+    // Get filters from URL params
     const urlParams = new URLSearchParams(window.location.search);
     const courseFilter = urlParams.get('course');
+    const assignmentFilter = urlParams.get('assignment');
+    
     if (courseFilter) {
       setSelectedCourse(courseFilter);
+    }
+    if (assignmentFilter) {
+      setSelectedAssignment(assignmentFilter);
     }
   }, []);
 
@@ -354,7 +360,9 @@ const BulkGradingPage: React.FC = () => {
   };
 
   const filteredSubmissions = submissions.filter(submission => {
-    return selectedCourse === 'all' || submission.courseName.toLowerCase().includes(selectedCourse.toLowerCase());
+    const courseMatch = selectedCourse === 'all' || submission.courseName.toLowerCase().includes(selectedCourse.toLowerCase());
+    const assignmentMatch = selectedAssignment === 'all' || submission.assignmentId === selectedAssignment;
+    return courseMatch && assignmentMatch;
   });
 
   const currentSubmission = filteredSubmissions[currentSubmissionIndex];
@@ -472,6 +480,27 @@ const BulkGradingPage: React.FC = () => {
                   <option value="psychology">Introduction to Psychology (PSYC101)</option>
                   <option value="science">Introduction to Computer Science (CS101)</option>
                   <option value="data">Data Science Fundamentals (DS201)</option>
+                </select>
+                
+                {/* Assignment Filter */}
+                <select
+                  value={selectedAssignment}
+                  onChange={(e) => setSelectedAssignment(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="all">All Assignments</option>
+                  <option value="assignment_1">Derivatives and Limits - Video Lesson</option>
+                  <option value="assignment_2">Integration Techniques - Video Assessment</option>
+                  <option value="assignment_3">Basic Programming Concepts - Video Assessment</option>
+                  <option value="assignment_4">Data Visualization Techniques - Video Lesson</option>
+                  <option value="assignment_5">Thermodynamics Concepts - Video Lesson</option>
+                  <option value="assignment_6">Binary Tree Implementation - Video Assessment</option>
+                  <option value="assignment_8">Technical Documentation - Video Lesson</option>
+                  <option value="assignment_10">Renaissance Period Analysis - Video Discussion</option>
+                  <option value="assignment_11">Mitosis Process - Video Lesson</option>
+                  <option value="assignment_12">Memory Systems - Video Discussion</option>
+                  <option value="assignment_13">Integration by Parts - Video Assessment</option>
+                  <option value="assignment_14">Machine Learning Algorithms - Video Discussion</option>
                 </select>
                 
                 {/* Auto-advance toggle */}

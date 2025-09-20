@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Assignment {
   assignmentId: string;
@@ -29,6 +30,7 @@ export const InstructorCourseAssignments: React.FC<InstructorCourseAssignmentsPr
   onAssignmentUpdate,
   onAssignmentCreate 
 }) => {
+  const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'draft' | 'published' | 'grading' | 'completed'>('all');
   const [sortBy, setSortBy] = useState<'dueDate' | 'title' | 'points' | 'createdAt'>('dueDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -118,6 +120,11 @@ export const InstructorCourseAssignments: React.FC<InstructorCourseAssignmentsPr
   const handleCancel = () => {
     setEditingAssignment(null);
     setEditData({});
+  };
+
+  const handleGradeSubmissions = (assignmentId: string) => {
+    // Navigate to grading interface with assignment filter
+    router.push(`/instructor/grading/bulk?assignment=${assignmentId}&course=${courseId}`);
   };
 
   const handleStatusChange = async (assignmentId: string, newStatus: Assignment['status']) => {
@@ -358,6 +365,16 @@ export const InstructorCourseAssignments: React.FC<InstructorCourseAssignmentsPr
                           className="px-3 py-1 bg-purple-100 text-purple-700 rounded-md text-sm hover:bg-purple-200 transition-colors"
                         >
                           Complete
+                        </button>
+                      )}
+                      
+                      {/* Grade Submissions Button - Show for assignments with submissions */}
+                      {assignment.submissionsCount > 0 && (
+                        <button
+                          onClick={() => handleGradeSubmissions(assignment.assignmentId)}
+                          className="px-3 py-1 bg-orange-100 text-orange-700 rounded-md text-sm hover:bg-orange-200 transition-colors"
+                        >
+                          Grade Submissions ({assignment.submissionsCount - assignment.gradedCount} pending)
                         </button>
                       )}
                     </div>
