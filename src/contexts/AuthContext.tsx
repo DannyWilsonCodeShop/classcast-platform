@@ -334,6 +334,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check auth status on mount
   useEffect(() => {
+    // Development mode: Set a mock user for testing
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+      const mockUser: User = {
+        id: 'dev-student-001',
+        email: 'student@classcast.com',
+        firstName: 'John',
+        lastName: 'Student',
+        role: 'student',
+        emailVerified: true,
+        sessionExpiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
+      };
+      
+      const mockAuthState: AuthState = {
+        user: mockUser,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+        showEmailConfirmation: false,
+        confirmationEmail: null,
+      };
+      
+      setAuthState(mockAuthState);
+      localStorage.setItem('authState', JSON.stringify(mockAuthState));
+      return;
+    }
+    
     checkAuthStatus();
   }, [checkAuthStatus]);
 
