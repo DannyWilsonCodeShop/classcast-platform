@@ -74,6 +74,196 @@ const BulkGradingPage: React.FC = () => {
         fileSize: 45000000
       },
       {
+        id: 'sub13',
+        studentName: 'Jennifer Martinez',
+        studentId: 'student_013',
+        assignmentTitle: 'Calculus Problem Solving - Video Assessment',
+        assignmentId: 'assignment_1',
+        courseName: 'Introduction to Calculus',
+        courseCode: 'MATH101',
+        submittedAt: '2024-01-23T09:15:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg',
+        duration: 180,
+        fileSize: 28000000
+      },
+      {
+        id: 'sub14',
+        studentName: 'Kevin Park',
+        studentId: 'student_014',
+        assignmentTitle: 'Derivatives and Limits - Video Lesson',
+        assignmentId: 'assignment_1',
+        courseName: 'Introduction to Calculus',
+        courseCode: 'MATH101',
+        submittedAt: '2024-01-22T16:45:00Z',
+        status: 'graded',
+        grade: 88,
+        feedback: 'Good understanding of the concepts! Your explanation of the limit definition was clear. Consider adding more visual examples to help other students understand.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Toshiba_Canvio_Advance.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/Toshiba_Canvio_Advance.jpg',
+        duration: 240,
+        fileSize: 35000000
+      },
+      {
+        id: 'sub15',
+        studentName: 'Rachel Green',
+        studentId: 'student_015',
+        assignmentTitle: 'Derivatives and Limits - Video Lesson',
+        assignmentId: 'assignment_1',
+        courseName: 'Introduction to Calculus',
+        courseCode: 'MATH101',
+        submittedAt: '2024-01-21T13:20:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/VolkswagenGTIReview.jpg',
+        duration: 520,
+        fileSize: 75000000
+      },
+      {
+        id: 'sub16',
+        studentName: 'Marcus Johnson',
+        studentId: 'student_016',
+        assignmentTitle: 'Binary Tree Implementation - Video Assessment',
+        assignmentId: 'assignment_6',
+        courseName: 'Data Structures & Algorithms',
+        courseCode: 'CS301',
+        submittedAt: '2024-01-23T11:30:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/WhatCarCanYouGetForAGrand.jpg',
+        duration: 340,
+        fileSize: 47000000
+      },
+      {
+        id: 'sub17',
+        studentName: 'Sophie Chen',
+        studentId: 'student_017',
+        assignmentTitle: 'Binary Tree Implementation - Video Assessment',
+        assignmentId: 'assignment_6',
+        courseName: 'Data Structures & Algorithms',
+        courseCode: 'CS301',
+        submittedAt: '2024-01-22T15:45:00Z',
+        status: 'graded',
+        grade: 94,
+        feedback: 'Excellent implementation! Your code is clean and well-commented. The explanation of the traversal algorithms was particularly impressive.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/WeAreGoingOnBullrun.jpg',
+        duration: 450,
+        fileSize: 68000000
+      },
+      {
+        id: 'sub18',
+        studentName: 'Tyler Williams',
+        studentId: 'student_018',
+        assignmentTitle: 'Thermodynamics Concepts - Video Lesson',
+        assignmentId: 'assignment_5',
+        courseName: 'Physics for Engineers',
+        courseCode: 'PHYS201',
+        submittedAt: '2024-01-23T08:20:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/TearsOfSteel.jpg',
+        duration: 280,
+        fileSize: 39000000
+      },
+      {
+        id: 'sub19',
+        studentName: 'Isabella Rodriguez',
+        studentId: 'student_019',
+        assignmentTitle: 'Renaissance Period Analysis - Video Discussion',
+        assignmentId: 'assignment_10',
+        courseName: 'World History',
+        courseCode: 'HIST201',
+        submittedAt: '2024-01-22T19:15:00Z',
+        status: 'graded',
+        grade: 91,
+        feedback: 'Outstanding analysis! Your connection between Renaissance art and social change was insightful. The historical context you provided was excellent.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/Sintel.jpg',
+        duration: 310,
+        fileSize: 43000000
+      },
+      {
+        id: 'sub20',
+        studentName: 'Noah Anderson',
+        studentId: 'student_020',
+        assignmentTitle: 'Mitosis Process - Video Lesson',
+        assignmentId: 'assignment_11',
+        courseName: 'Cell Biology',
+        courseCode: 'BIO150',
+        submittedAt: '2024-01-23T14:00:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerMeltdowns.jpg',
+        duration: 400,
+        fileSize: 55000000
+      },
+      {
+        id: 'sub21',
+        studentName: 'Olivia Taylor',
+        studentId: 'student_021',
+        assignmentTitle: 'Memory Systems - Video Discussion',
+        assignmentId: 'assignment_12',
+        courseName: 'Introduction to Psychology',
+        courseCode: 'PSYC101',
+        submittedAt: '2024-01-22T12:30:00Z',
+        status: 'graded',
+        grade: 87,
+        feedback: 'Good understanding of memory systems! Your examples were relevant and well-explained. Consider diving deeper into the neurological aspects next time.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerJoyrides.jpg',
+        duration: 290,
+        fileSize: 41000000
+      },
+      {
+        id: 'sub22',
+        studentName: 'Ethan Brown',
+        studentId: 'student_022',
+        assignmentTitle: 'Technical Documentation - Video Lesson',
+        assignmentId: 'assignment_8',
+        courseName: 'Technical Writing',
+        courseCode: 'ENG101',
+        submittedAt: '2024-01-23T10:45:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg',
+        duration: 350,
+        fileSize: 48000000
+      },
+      {
+        id: 'sub23',
+        studentName: 'Ava Wilson',
+        studentId: 'student_023',
+        assignmentTitle: 'Data Visualization Techniques - Video Lesson',
+        assignmentId: 'assignment_4',
+        courseName: 'Data Science Fundamentals',
+        courseCode: 'DS201',
+        submittedAt: '2024-01-21T17:30:00Z',
+        status: 'graded',
+        grade: 96,
+        feedback: 'Exceptional work! Your data visualization examples were outstanding and your explanations were crystal clear. This is graduate-level quality.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg',
+        duration: 380,
+        fileSize: 52000000
+      },
+      {
+        id: 'sub24',
+        studentName: 'Liam Davis',
+        studentId: 'student_024',
+        assignmentTitle: 'Basic Programming Concepts - Video Assessment',
+        assignmentId: 'assignment_3',
+        courseName: 'Introduction to Computer Science',
+        courseCode: 'CS101',
+        submittedAt: '2024-01-23T13:15:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg',
+        duration: 420,
+        fileSize: 58000000
+      },
+      {
         id: 'sub2',
         studentName: 'Maria Rodriguez',
         studentId: 'student_002',
@@ -526,19 +716,33 @@ const BulkGradingPage: React.FC = () => {
             <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-white/20 p-6">
               {currentSubmission ? (
                 <div className="h-full flex flex-col">
-                  {/* Video Player */}
-                  <div className="flex-1 bg-black rounded-lg overflow-hidden mb-4">
-                    <video
-                      ref={videoRef}
-                      src={currentSubmission.fileUrl}
-                      className="w-full h-full object-contain"
-                      onTimeUpdate={handleTimeUpdate}
-                      onLoadedMetadata={handleLoadedMetadata}
-                      onPlay={() => setIsPlaying(true)}
-                      onPause={() => setIsPlaying(false)}
-                      onEnded={() => setIsPlaying(false)}
-                    />
-                  </div>
+                      {/* Video Player */}
+                      <div className="flex-1 bg-black rounded-lg overflow-hidden mb-4 relative">
+                        <video
+                          ref={videoRef}
+                          src={currentSubmission.fileUrl}
+                          className="w-full h-full object-contain"
+                          onTimeUpdate={handleTimeUpdate}
+                          onLoadedMetadata={handleLoadedMetadata}
+                          onPlay={() => setIsPlaying(true)}
+                          onPause={() => setIsPlaying(false)}
+                          onEnded={() => setIsPlaying(false)}
+                        />
+                        
+                        {/* Video Overlay Info */}
+                        <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm">
+                          <div className="flex items-center space-x-4">
+                            <span>📹 {formatTime(duration)}</span>
+                            <span>📊 {formatFileSize(currentSubmission.fileSize)}</span>
+                            <span>👤 {currentSubmission.studentName}</span>
+                          </div>
+                        </div>
+                        
+                        {/* Video Quality Indicator */}
+                        <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm">
+                          <span>HD 1080p</span>
+                        </div>
+                      </div>
                   
                   {/* Video Controls */}
                   <div className="space-y-4">
@@ -602,26 +806,51 @@ const BulkGradingPage: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6">
               {currentSubmission ? (
                 <div className="h-full flex flex-col">
-                  {/* Submission Info */}
-                  <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-800 mb-2">
-                      {currentSubmission.studentName}
-                    </h2>
-                    <p className="text-sm text-gray-600 mb-1">
-                      {currentSubmission.assignmentTitle}
-                    </p>
-                    <p className="text-xs text-gray-500 mb-3">
-                      {currentSubmission.courseName} ({currentSubmission.courseCode})
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(currentSubmission.status)}`}>
-                        {getStatusText(currentSubmission.status)}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(currentSubmission.submittedAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
+                      {/* Submission Info */}
+                      <div className="mb-6">
+                        <h2 className="text-lg font-bold text-gray-800 mb-2">
+                          {currentSubmission.studentName}
+                        </h2>
+                        <p className="text-sm text-gray-600 mb-1">
+                          {currentSubmission.assignmentTitle}
+                        </p>
+                        <p className="text-xs text-gray-500 mb-3">
+                          {currentSubmission.courseName} ({currentSubmission.courseCode})
+                        </p>
+                        
+                        {/* Video Metadata */}
+                        <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="flex items-center space-x-2">
+                              <span>⏱️</span>
+                              <span>{formatTime(currentSubmission.duration)}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span>📊</span>
+                              <span>{formatFileSize(currentSubmission.fileSize)}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span>📅</span>
+                              <span>{new Date(currentSubmission.submittedAt).toLocaleDateString()}</span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span>🎥</span>
+                              <span>HD 1080p</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(currentSubmission.status)}`}>
+                            {getStatusText(currentSubmission.status)}
+                          </span>
+                          {currentSubmission.grade && (
+                            <span className="text-sm font-bold text-green-600">
+                              Grade: {currentSubmission.grade}%
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
                   {/* Grading Form */}
                   <div className="flex-1 space-y-4">
@@ -681,31 +910,35 @@ const BulkGradingPage: React.FC = () => {
                       </button>
                     </div>
                     
-                    {/* Submission List */}
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {filteredSubmissions.map((submission, index) => (
-                        <button
-                          key={submission.id}
-                          onClick={() => goToSubmission(index)}
-                          className={`w-full text-left p-2 rounded-lg text-sm transition-colors ${
-                            index === currentSubmissionIndex
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="truncate">{submission.studentName}</span>
-                            <span className={`px-2 py-1 rounded text-xs ${
-                              submission.status === 'graded' ? 'bg-green-100 text-green-800' :
-                              submission.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {submission.grade ? `${submission.grade}%` : submission.status}
-                            </span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
+                        {/* Submission List */}
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {filteredSubmissions.map((submission, index) => (
+                            <button
+                              key={submission.id}
+                              onClick={() => goToSubmission(index)}
+                              className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${
+                                index === currentSubmissionIndex
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="font-medium truncate">{submission.studentName}</span>
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  submission.status === 'graded' ? 'bg-green-100 text-green-800' :
+                                  submission.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {submission.grade ? `${submission.grade}%` : submission.status}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between text-xs text-gray-500">
+                                <span>{formatTime(submission.duration)}</span>
+                                <span>{formatFileSize(submission.fileSize)}</span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
                   </div>
                 </div>
               ) : (
