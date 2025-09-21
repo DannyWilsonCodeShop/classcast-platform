@@ -5,10 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { InstructorCourseDetails } from '@/components/instructor/InstructorCourseDetails';
-import { InstructorCourseAssignments } from '@/components/instructor/InstructorCourseAssignments';
-import { InstructorCourseStudents } from '@/components/instructor/InstructorCourseStudents';
-import { InstructorCourseAnalytics } from '@/components/instructor/InstructorCourseAnalytics';
+// Removed unused component imports since we're using a grid layout instead of tabs
 
 interface Course {
   courseId: string;
@@ -79,7 +76,6 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'assignments' | 'students' | 'analytics'>('overview');
 
   const courseId = params.courseId as string;
 
@@ -470,62 +466,108 @@ const InstructorCourseDetailPage: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Navigation Tabs */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-2 shadow-lg border-2 border-gray-200/30 mb-8">
-            <div className="flex space-x-1">
-              {[
-                { id: 'overview', label: 'Overview', icon: '📊' },
-                { id: 'assignments', label: 'Assignments', icon: '📝' },
-                { id: 'students', label: 'Students', icon: '👥' },
-                { id: 'analytics', label: 'Analytics', icon: '📈' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex-1 px-4 py-3 rounded-xl font-bold transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? 'bg-gradient-to-r from-yellow-400 to-blue-500 text-white shadow-lg'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <span className="mr-2">{tab.icon}</span>
-                  {tab.label}
-                </button>
-              ))}
+          {/* Course Stats */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-gray-200/30 p-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-[#4A90E2] mb-2">{assignments.length}</div>
+                <div className="text-sm text-gray-600">Total Assignments</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-[#9B5DE5] mb-2">{course.enrollmentCount}</div>
+                <div className="text-sm text-gray-600">Students Enrolled</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-[#FF6F61] mb-2">
+                  {assignments.reduce((sum, assignment) => sum + assignment.submissionsCount, 0)}
+                </div>
+                <div className="text-sm text-gray-600">Total Submissions</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-[#06D6A0] mb-2">
+                  {assignments.reduce((sum, assignment) => sum + assignment.gradedCount, 0)}
+                </div>
+                <div className="text-sm text-gray-600">Graded Submissions</div>
+              </div>
             </div>
           </div>
 
-          {/* Tab Content */}
-          <div className="space-y-8">
-            {activeTab === 'overview' && (
-              <InstructorCourseDetails
-                course={course}
-                assignments={assignments}
-                students={students}
-                onCourseUpdate={handleCourseUpdate}
-              />
-            )}
-            {activeTab === 'assignments' && (
-              <InstructorCourseAssignments
-                courseId={courseId}
-                assignments={assignments}
-                onAssignmentUpdate={handleAssignmentUpdate}
-                onAssignmentCreate={() => fetchCourseDetails()}
-              />
-            )}
-            {activeTab === 'students' && (
-              <InstructorCourseStudents
-                students={students}
-                course={course}
-                onStudentUpdate={() => fetchCourseDetails()}
-              />
-            )}
-            {activeTab === 'analytics' && (
-              <InstructorCourseAnalytics
-                course={course}
-                assignments={assignments}
-                students={students}
-              />
+          {/* Assignments Grid */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">Assignments</h2>
+              <button className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300">
+                + Create Assignment
+              </button>
+            </div>
+            
+            {assignments.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {assignments.map((assignment) => (
+                  <button
+                    key={assignment.assignmentId}
+                    onClick={() => router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`)}
+                    className="w-full text-left bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#4A90E2]/20"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{assignment.title}</h3>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
+                          <span>📅 Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
+                          <span>⭐ {assignment.points} pts</span>
+                        </div>
+                      </div>
+                      <div className="w-8 h-8 bg-[#4A90E2] rounded-full flex items-center justify-center text-white text-sm font-bold">
+                        📝
+                      </div>
+                    </div>
+                    
+                    <p className="text-gray-600 mb-4 line-clamp-2 text-sm">{assignment.description}</p>
+                    
+                    {/* Submission Stats */}
+                    <div className="mb-4">
+                      <div className="flex items-center justify-between text-sm mb-2">
+                        <span className="text-gray-600">Submissions</span>
+                        <span className="font-medium">{assignment.submissionsCount} total</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm mb-2">
+                        <span className="text-gray-600">Graded</span>
+                        <span className="font-medium text-green-600">{assignment.gradedCount}</span>
+                      </div>
+                      {assignment.submissionsCount > assignment.gradedCount && (
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600">Pending</span>
+                          <span className="font-medium text-orange-600">
+                            {assignment.submissionsCount - assignment.gradedCount}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="flex items-center justify-between">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        assignment.status === 'published' ? 'bg-green-100 text-green-800' :
+                        assignment.status === 'grading' ? 'bg-yellow-100 text-yellow-800' :
+                        assignment.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
+                      </span>
+                      <span className="text-[#4A90E2] font-medium text-sm">Click to grade →</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">📝</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Assignments Yet</h3>
+                <p className="text-gray-600 mb-6">Create your first assignment to get started with this course.</p>
+                <button className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300">
+                  Create Your First Assignment
+                </button>
+              </div>
             )}
           </div>
         </div>
