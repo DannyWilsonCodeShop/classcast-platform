@@ -20,22 +20,24 @@ import {
   DynamoDBResponse 
 } from '../types/dynamodb';
 
+import { awsConfig } from './aws-config';
+
 // DynamoDB client configuration
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: awsConfig.region,
   // For local development, you can use:
   // endpoint: 'http://localhost:8000',
 });
 
 const docClient = DynamoDBDocumentClient.from(client);
 
-// Table names
+// Table names from unified configuration
 export const TABLE_NAMES = {
-  USERS: process.env.USERS_TABLE_NAME || 'classcast-users',
-  ASSIGNMENTS: process.env.ASSIGNMENTS_TABLE_NAME || 'classcast-assignments',
-  SUBMISSIONS: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
-  COURSES: process.env.COURSES_TABLE_NAME || 'classcast-courses',
-  CONTENT_MODERATION: process.env.CONTENT_MODERATION_TABLE_NAME || 'classcast-content-moderation',
+  USERS: awsConfig.dynamodb.tables.users,
+  ASSIGNMENTS: awsConfig.dynamodb.tables.assignments,
+  SUBMISSIONS: awsConfig.dynamodb.tables.submissions,
+  COURSES: awsConfig.dynamodb.tables.courses,
+  CONTENT_MODERATION: awsConfig.dynamodb.tables.contentModeration,
 } as const;
 
 // DynamoDB Service Class

@@ -2,13 +2,15 @@ import { CognitoIdentityProviderClient, InitiateAuthCommand, SignUpCommand, Conf
 import { CognitoIdentityClient, GetIdCommand, GetCredentialsForIdentityCommand } from '@aws-sdk/client-cognito-identity';
 import { jwtVerify } from 'jose';
 
-const cognitoClient = new CognitoIdentityProviderClient({ region: 'us-east-1' });
-const identityClient = new CognitoIdentityClient({ region: 'us-east-1' });
+import { awsConfig } from './aws-config';
 
-// Replace with your actual User Pool ID and Client ID
-const USER_POOL_ID = process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'us-east-1_uK50qBrap';
-const CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh';
-const IDENTITY_POOL_ID = process.env.NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID || 'us-east-1:463470937777';
+const cognitoClient = new CognitoIdentityProviderClient({ region: awsConfig.region });
+const identityClient = new CognitoIdentityClient({ region: awsConfig.region });
+
+// Use unified configuration
+const USER_POOL_ID = awsConfig.cognito.userPoolId;
+const CLIENT_ID = awsConfig.cognito.clientId;
+const IDENTITY_POOL_ID = awsConfig.cognito.identityPoolId;
 
 export interface AuthResult {
   accessToken: string;

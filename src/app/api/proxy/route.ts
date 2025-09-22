@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { awsConfig } from '@/lib/aws-config';
 
-const API_GATEWAY_URL = 'https://785t4qadp8.execute-api.us-east-1.amazonaws.com/prod';
+const API_GATEWAY_URL = awsConfig.apiGateway.url;
 
 export async function GET(request: NextRequest) {
   return proxyRequest(request, 'GET');
