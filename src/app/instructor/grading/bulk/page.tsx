@@ -47,20 +47,20 @@ const BulkGradingPage: React.FC = () => {
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // AI Grading state
-  const [isAIAnalyzing, setIsAIAnalyzing] = useState(false);
-  const [aiSuggestions, setAiSuggestions] = useState<{
+  const [isAIAnalyzing, setIsAIAnalyzing] = useState<{[key: string]: boolean}>({});
+  const [aiSuggestions, setAiSuggestions] = useState<{[key: string]: {
     suggestedGrade: number | null;
     suggestedFeedback: string;
-    analysis: {
-      contentQuality: number;
-      presentation: number;
-      technicalAspects: number;
-      engagement: number;
+    rubric: {
+      contentQuality: { earned: number; possible: number };
+      presentation: { earned: number; possible: number };
+      technicalAspects: { earned: number; possible: number };
+      engagement: { earned: number; possible: number };
     };
     strengths: string[];
     improvements: string[];
-  } | null>(null);
-  const [showAIPanel, setShowAIPanel] = useState(false);
+  }}>({});
+  const [showAIPanel, setShowAIPanel] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     // Get filters from URL params - only run on client side
@@ -800,33 +800,39 @@ const BulkGradingPage: React.FC = () => {
 
   // AI Analysis function
   const analyzeWithAI = async (submission: Submission) => {
-    setIsAIAnalyzing(true);
-    setAiSuggestions(null);
+    setIsAIAnalyzing(prev => ({ ...prev, [submission.id]: true }));
     
     try {
       // Simulate AI analysis with realistic delay
       await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // Generate realistic AI suggestions based on submission data
+      // Generate rubric-based scoring (4 out of 5 points for each category)
+      const rubric = {
+        contentQuality: { earned: 4, possible: 5 },
+        presentation: { earned: 4, possible: 5 },
+        technicalAspects: { earned: 4, possible: 5 },
+        engagement: { earned: 4, possible: 5 },
+      };
+      
+      // Calculate total grade based on rubric
+      const totalEarned = Object.values(rubric).reduce((sum, category) => sum + category.earned, 0);
+      const totalPossible = Object.values(rubric).reduce((sum, category) => sum + category.possible, 0);
+      const suggestedGrade = Math.round((totalEarned / totalPossible) * 100);
+      
       const mockAnalysis = {
-        suggestedGrade: Math.floor(Math.random() * 30) + 70, // 70-100 range
+        suggestedGrade,
         suggestedFeedback: generateAIFeedback(submission),
-        analysis: {
-          contentQuality: Math.floor(Math.random() * 20) + 80,
-          presentation: Math.floor(Math.random() * 20) + 75,
-          technicalAspects: Math.floor(Math.random() * 25) + 70,
-          engagement: Math.floor(Math.random() * 20) + 80,
-        },
+        rubric,
         strengths: generateStrengths(),
         improvements: generateImprovements(),
       };
       
-      setAiSuggestions(mockAnalysis);
-      setShowAIPanel(true);
+      setAiSuggestions(prev => ({ ...prev, [submission.id]: mockAnalysis }));
+      setShowAIPanel(prev => ({ ...prev, [submission.id]: true }));
     } catch (error) {
       console.error('AI analysis failed:', error);
     } finally {
-      setIsAIAnalyzing(false);
+      setIsAIAnalyzing(prev => ({ ...prev, [submission.id]: false }));
     }
   };
 
@@ -882,14 +888,15 @@ const BulkGradingPage: React.FC = () => {
   };
 
   // Apply AI suggestions
-  const applyAISuggestions = () => {
-    if (aiSuggestions) {
-      setCurrentGrade(aiSuggestions.suggestedGrade || '');
-      setCurrentFeedback(aiSuggestions.suggestedFeedback);
+  const applyAISuggestions = (submissionId: string) => {
+    const suggestions = aiSuggestions[submissionId];
+    if (suggestions) {
+      setCurrentGrade(suggestions.suggestedGrade || '');
+      setCurrentFeedback(suggestions.suggestedFeedback);
       
       // Auto-save the AI suggestions
-      if (currentSubmission && aiSuggestions.suggestedGrade) {
-        debouncedAutoSave(currentSubmission.id, aiSuggestions.suggestedGrade, aiSuggestions.suggestedFeedback);
+      if (suggestions.suggestedGrade) {
+        debouncedAutoSave(submissionId, suggestions.suggestedGrade, suggestions.suggestedFeedback);
       }
     }
   };
@@ -1027,26 +1034,6 @@ const BulkGradingPage: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-4">
-                {/* AI Analysis Button */}
-                {currentSubmission && (
-                  <button
-                    onClick={() => analyzeWithAI(currentSubmission)}
-                    disabled={isAIAnalyzing}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                  >
-                    {isAIAnalyzing ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                        <span>AI Analyzing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>🤖</span>
-                        <span>AI Analysis</span>
-                      </>
-                    )}
-                  </button>
-                )}
                 
                 {/* Course Filter */}
                 <select
@@ -1196,9 +1183,24 @@ const BulkGradingPage: React.FC = () => {
                           </p>
                           
                           <div className="flex items-center justify-between mb-4">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
-                              {getStatusText(submission.status)}
-                            </span>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => analyzeWithAI(submission)}
+                                disabled={isAIAnalyzing[submission.id]}
+                                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                                title="AI Analysis"
+                              >
+                                {isAIAnalyzing[submission.id] ? (
+                                  <div className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                  <span>🤖</span>
+                                )}
+                                <span>AI</span>
+                              </button>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
+                                {getStatusText(submission.status)}
+                              </span>
+                            </div>
                             {submission.grade && (
                               <span className="text-sm font-bold text-green-600">
                                 Grade: {submission.grade}%
@@ -1218,20 +1220,20 @@ const BulkGradingPage: React.FC = () => {
                                 <h3 className="text-lg font-semibold text-gray-800">AI Grading Assistant</h3>
                               </div>
                               <button
-                                onClick={() => setShowAIPanel(!showAIPanel)}
+                                onClick={() => setShowAIPanel(prev => ({ ...prev, [submission.id]: !prev[submission.id] }))}
                                 className="text-sm text-purple-600 hover:text-purple-800 font-medium"
                               >
-                                {showAIPanel ? 'Hide Analysis' : 'Show Analysis'}
+                                {showAIPanel[submission.id] ? 'Hide Analysis' : 'Show Analysis'}
                               </button>
                             </div>
                             
                             <div className="flex space-x-2 mb-4">
                               <button
                                 onClick={() => analyzeWithAI(submission)}
-                                disabled={isAIAnalyzing}
+                                disabled={isAIAnalyzing[submission.id]}
                                 className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                               >
-                                {isAIAnalyzing ? (
+                                {isAIAnalyzing[submission.id] ? (
                                   <>
                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                     <span>Analyzing...</span>
@@ -1244,9 +1246,9 @@ const BulkGradingPage: React.FC = () => {
                                 )}
                               </button>
                               
-                              {aiSuggestions && (
+                              {aiSuggestions[submission.id] && (
                                 <button
-                                  onClick={applyAISuggestions}
+                                  onClick={() => applyAISuggestions(submission.id)}
                                   className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors flex items-center space-x-2"
                                 >
                                   <span>✓</span>
@@ -1256,24 +1258,32 @@ const BulkGradingPage: React.FC = () => {
                             </div>
 
                             {/* AI Analysis Panel */}
-                            {showAIPanel && aiSuggestions && (
+                            {showAIPanel[submission.id] && aiSuggestions[submission.id] && (
                               <div className="space-y-4">
-                                {/* AI Analysis Scores */}
+                                {/* Rubric-based Scoring */}
                                 <div className="grid grid-cols-2 gap-4">
                                   <div className="text-center p-3 bg-white rounded-lg">
-                                    <div className="text-2xl font-bold text-blue-600">{aiSuggestions.analysis.contentQuality}%</div>
+                                    <div className="text-2xl font-bold text-blue-600">
+                                      {aiSuggestions[submission.id].rubric.contentQuality.earned}/{aiSuggestions[submission.id].rubric.contentQuality.possible}
+                                    </div>
                                     <div className="text-xs text-gray-600">Content Quality</div>
                                   </div>
                                   <div className="text-center p-3 bg-white rounded-lg">
-                                    <div className="text-2xl font-bold text-green-600">{aiSuggestions.analysis.presentation}%</div>
+                                    <div className="text-2xl font-bold text-green-600">
+                                      {aiSuggestions[submission.id].rubric.presentation.earned}/{aiSuggestions[submission.id].rubric.presentation.possible}
+                                    </div>
                                     <div className="text-xs text-gray-600">Presentation</div>
                                   </div>
                                   <div className="text-center p-3 bg-white rounded-lg">
-                                    <div className="text-2xl font-bold text-purple-600">{aiSuggestions.analysis.technicalAspects}%</div>
+                                    <div className="text-2xl font-bold text-purple-600">
+                                      {aiSuggestions[submission.id].rubric.technicalAspects.earned}/{aiSuggestions[submission.id].rubric.technicalAspects.possible}
+                                    </div>
                                     <div className="text-xs text-gray-600">Technical</div>
                                   </div>
                                   <div className="text-center p-3 bg-white rounded-lg">
-                                    <div className="text-2xl font-bold text-orange-600">{aiSuggestions.analysis.engagement}%</div>
+                                    <div className="text-2xl font-bold text-orange-600">
+                                      {aiSuggestions[submission.id].rubric.engagement.earned}/{aiSuggestions[submission.id].rubric.engagement.possible}
+                                    </div>
                                     <div className="text-xs text-gray-600">Engagement</div>
                                   </div>
                                 </div>
@@ -1282,7 +1292,7 @@ const BulkGradingPage: React.FC = () => {
                                 <div className="p-3 bg-white rounded-lg border-l-4 border-blue-500">
                                   <div className="flex items-center justify-between">
                                     <span className="font-medium text-gray-700">AI Suggested Grade:</span>
-                                    <span className="text-2xl font-bold text-blue-600">{aiSuggestions.suggestedGrade}%</span>
+                                    <span className="text-2xl font-bold text-blue-600">{aiSuggestions[submission.id].suggestedGrade}%</span>
                                   </div>
                                 </div>
 
@@ -1291,7 +1301,7 @@ const BulkGradingPage: React.FC = () => {
                                   <div>
                                     <h4 className="font-medium text-green-700 mb-2">Strengths</h4>
                                     <ul className="space-y-1">
-                                      {aiSuggestions.strengths.map((strength, idx) => (
+                                      {aiSuggestions[submission.id].strengths.map((strength, idx) => (
                                         <li key={idx} className="text-sm text-gray-600 flex items-start space-x-2">
                                           <span className="text-green-500 mt-1">✓</span>
                                           <span>{strength}</span>
@@ -1302,7 +1312,7 @@ const BulkGradingPage: React.FC = () => {
                                   <div>
                                     <h4 className="font-medium text-orange-700 mb-2">Improvements</h4>
                                     <ul className="space-y-1">
-                                      {aiSuggestions.improvements.map((improvement, idx) => (
+                                      {aiSuggestions[submission.id].improvements.map((improvement, idx) => (
                                         <li key={idx} className="text-sm text-gray-600 flex items-start space-x-2">
                                           <span className="text-orange-500 mt-1">•</span>
                                           <span>{improvement}</span>
@@ -1315,7 +1325,7 @@ const BulkGradingPage: React.FC = () => {
                                 {/* AI Generated Feedback Preview */}
                                 <div className="p-3 bg-gray-50 rounded-lg">
                                   <h4 className="font-medium text-gray-700 mb-2">AI Generated Feedback:</h4>
-                                  <p className="text-sm text-gray-600 italic">"{aiSuggestions.suggestedFeedback}"</p>
+                                  <p className="text-sm text-gray-600 italic">"{aiSuggestions[submission.id].suggestedFeedback}"</p>
                                 </div>
                               </div>
                             )}
