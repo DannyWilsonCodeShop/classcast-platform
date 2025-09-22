@@ -42,22 +42,25 @@ const BulkGradingPage: React.FC = () => {
   const [isAutoAdvance, setIsAutoAdvance] = useState(false);
 
   useEffect(() => {
-    // Get filters from URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const courseFilter = urlParams.get('course');
-    const assignmentFilter = urlParams.get('assignment');
-    
-    if (courseFilter) {
-      setSelectedCourse(courseFilter);
-    }
-    if (assignmentFilter) {
-      setSelectedAssignment(assignmentFilter);
+    // Get filters from URL params - only run on client side
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const courseFilter = urlParams.get('course');
+      const assignmentFilter = urlParams.get('assignment');
+      
+      console.log('URL Parameters:', { courseFilter, assignmentFilter });
+      
+      if (courseFilter) {
+        setSelectedCourse(courseFilter);
+      }
+      if (assignmentFilter) {
+        setSelectedAssignment(assignmentFilter);
+      }
     }
   }, []);
 
-  useEffect(() => {
-    // Comprehensive mock data for video submissions with realistic student data
-    const mockSubmissions: Submission[] = [
+  // Comprehensive mock data for video submissions with realistic student data
+  const mockSubmissions: Submission[] = [
       {
         id: 'sub1',
         studentName: 'Alex Thompson',
@@ -619,6 +622,10 @@ const BulkGradingPage: React.FC = () => {
       }
     ];
 
+  // Set submissions directly
+  useEffect(() => {
+    console.log('Loaded submissions:', mockSubmissions.length);
+    console.log('Sample submission:', mockSubmissions[0]);
     setSubmissions(mockSubmissions);
     setIsLoading(false);
   }, []);
@@ -726,13 +733,22 @@ const BulkGradingPage: React.FC = () => {
     }
   };
 
-  const filteredSubmissions = submissions.filter(submission => {
+  // Use mockSubmissions directly for filtering to avoid state issues
+  const submissionsToFilter = submissions.length > 0 ? submissions : mockSubmissions;
+  
+  const filteredSubmissions = submissionsToFilter.filter(submission => {
     const courseMatch = selectedCourse === 'all' || 
       submission.courseName.toLowerCase().includes(selectedCourse.toLowerCase()) ||
       submission.courseCode.toLowerCase().includes(selectedCourse.toLowerCase());
     const assignmentMatch = selectedAssignment === 'all' || submission.assignmentId === selectedAssignment;
+    
     return courseMatch && assignmentMatch;
   });
+  
+  console.log('Filtered submissions count:', filteredSubmissions.length);
+  console.log('Selected course:', selectedCourse);
+  console.log('Selected assignment:', selectedAssignment);
+  console.log('Total submissions:', submissionsToFilter.length);
 
   const currentSubmission = filteredSubmissions[currentSubmissionIndex];
 
@@ -795,13 +811,29 @@ const BulkGradingPage: React.FC = () => {
           <div className="text-center">
             <div className="text-6xl mb-4">📹</div>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">No Submissions Found</h1>
-            <p className="text-gray-600 mb-6">No video submissions match your current filter.</p>
-            <button
-              onClick={() => router.back()}
-              className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
-            >
-              ← Back to Dashboard
-            </button>
+            <p className="text-gray-600 mb-4">No video submissions match your current filter.</p>
+            <div className="text-sm text-gray-500 mb-6">
+              <p>Course: {selectedCourse}</p>
+              <p>Assignment: {selectedAssignment}</p>
+              <p>Total submissions: {submissions.length}</p>
+            </div>
+            <div className="space-x-4">
+              <button
+                onClick={() => {
+                  setSelectedCourse('all');
+                  setSelectedAssignment('all');
+                }}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                Show All Submissions
+              </button>
+              <button
+                onClick={() => router.back()}
+                className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+              >
+                ← Back to Dashboard
+              </button>
+            </div>
           </div>
         </div>
       </InstructorRoute>
