@@ -231,9 +231,9 @@ export const CourseManagement: React.FC = () => {
                 className="h-8 w-auto"
               />
               <div>
-                <h1 className="text-4xl font-bold text-gray-800 mb-2">My Courses</h1>
+                <h1 className="text-4xl font-bold text-gray-800 mb-2">My Classes</h1>
                 <p className="text-gray-600">
-                  {courses.length} course{courses.length !== 1 ? 's' : ''} total
+                  {courses.length} class{courses.length !== 1 ? 'es' : ''} total
                 </p>
               </div>
             </div>
@@ -241,7 +241,7 @@ export const CourseManagement: React.FC = () => {
               onClick={() => setShowForm(true)}
               className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
             >
-              + Create Course
+              + Create Class
             </button>
           </div>
         </div>
@@ -258,13 +258,13 @@ export const CourseManagement: React.FC = () => {
         {courses.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-6xl mb-4">📚</div>
-            <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Courses Yet</h3>
-            <p className="text-gray-600 mb-8">Create your first course to get started teaching.</p>
+            <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Classes Yet</h3>
+            <p className="text-gray-600 mb-8">Create your first class to get started teaching.</p>
             <button
               onClick={() => setShowForm(true)}
               className="px-8 py-4 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
             >
-              Create Your First Course
+              Create Your First Class
             </button>
           </div>
         ) : (
