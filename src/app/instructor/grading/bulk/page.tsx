@@ -52,8 +52,9 @@ const BulkGradingPage: React.FC = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const courseFilter = urlParams.get('course');
       const assignmentFilter = urlParams.get('assignment');
+      const submissionFilter = urlParams.get('submission');
       
-      console.log('URL Parameters:', { courseFilter, assignmentFilter });
+      console.log('URL Parameters:', { courseFilter, assignmentFilter, submissionFilter });
       
       if (courseFilter) {
         setSelectedCourse(courseFilter);
@@ -634,6 +635,22 @@ const BulkGradingPage: React.FC = () => {
     setSubmissions(mockSubmissions);
     setIsLoading(false);
   }, []);
+
+  // Navigate to specific submission if provided in URL
+  useEffect(() => {
+    if (typeof window !== 'undefined' && submissions.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const submissionFilter = urlParams.get('submission');
+      
+      if (submissionFilter) {
+        // Use mockSubmissions directly to avoid dependency issues
+        const submissionIndex = mockSubmissions.findIndex(sub => sub.id === submissionFilter);
+        if (submissionIndex !== -1) {
+          setCurrentSubmissionIndex(submissionIndex);
+        }
+      }
+    }
+  }, [submissions.length]);
 
   // Video controls
   const handlePlayPause = () => {
