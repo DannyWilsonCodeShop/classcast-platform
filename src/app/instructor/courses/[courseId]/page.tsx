@@ -467,9 +467,9 @@ const InstructorCourseDetailPage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-yellow-300/30 sticky top-0 z-40">
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -506,7 +506,7 @@ const InstructorCourseDetailPage: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Course Stats */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-2 border-gray-200/30 p-6 mb-8">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className="text-3xl font-bold text-[#4A90E2] mb-2">{assignments.length}</div>
@@ -535,7 +535,7 @@ const InstructorCourseDetailPage: React.FC = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-800">Assignments</h2>
-              <button className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300">
+              <button className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors">
                 + Create Assignment
               </button>
             </div>
@@ -545,7 +545,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 {assignments.map((assignment) => (
                   <div
                     key={assignment.assignmentId}
-                    className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl transition-all duration-300"
+                    className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
@@ -604,7 +604,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                       </button>
                       <button
                         onClick={() => router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`)}
-                        className="flex-1 px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 text-sm"
+                        className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
                       >
                         Start Grading
                       </button>
@@ -617,7 +617,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 <div className="text-6xl mb-4">📝</div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">No Assignments Yet</h3>
                 <p className="text-gray-600 mb-6">Create your first assignment to get started with this course.</p>
-                <button className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300">
+                <button className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors">
                   Create Your First Assignment
                 </button>
               </div>
