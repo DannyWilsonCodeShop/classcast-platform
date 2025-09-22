@@ -136,7 +136,7 @@ const InstructorCourseDetailPage: React.FC = () => {
         throw new Error(courseData.error || 'Failed to fetch course');
       }
 
-      // Comprehensive mock assignments data for demonstration
+      // Comprehensive mock assignments data with detailed video submission information
       const mockAssignments: Assignment[] = [
         {
           assignmentId: 'assignment_1',
@@ -146,8 +146,8 @@ const InstructorCourseDetailPage: React.FC = () => {
           points: 100,
           status: 'published',
           submissionType: 'video',
-          submissionsCount: 28,
-          gradedCount: 25,
+          submissionsCount: 24,
+          gradedCount: 18,
           averageGrade: 88.5,
           createdAt: '2024-01-15T09:00:00Z'
         },
@@ -159,8 +159,8 @@ const InstructorCourseDetailPage: React.FC = () => {
           points: 120,
           status: 'completed',
           submissionType: 'video',
-          submissionsCount: 30,
-          gradedCount: 30,
+          submissionsCount: 28,
+          gradedCount: 28,
           averageGrade: 92.3,
           createdAt: '2024-01-10T09:00:00Z'
         },
@@ -172,7 +172,7 @@ const InstructorCourseDetailPage: React.FC = () => {
           points: 80,
           status: 'published',
           submissionType: 'video',
-          submissionsCount: 15,
+          submissionsCount: 19,
           gradedCount: 12,
           averageGrade: 85.7,
           createdAt: '2024-01-18T14:00:00Z'
@@ -186,7 +186,7 @@ const InstructorCourseDetailPage: React.FC = () => {
           status: 'grading',
           submissionType: 'video',
           submissionsCount: 22,
-          gradedCount: 18,
+          gradedCount: 15,
           averageGrade: 89.1,
           createdAt: '2024-01-22T10:30:00Z'
         },
@@ -196,12 +196,51 @@ const InstructorCourseDetailPage: React.FC = () => {
           description: 'Create a comprehensive video lesson explaining different tests for series convergence with examples.',
           dueDate: '2024-02-10T23:59:59Z',
           points: 130,
-          status: 'draft',
+          status: 'published',
           submissionType: 'video',
-          submissionsCount: 0,
-          gradedCount: 0,
-          averageGrade: undefined,
+          submissionsCount: 16,
+          gradedCount: 8,
+          averageGrade: 87.2,
           createdAt: '2024-01-25T16:45:00Z'
+        },
+        {
+          assignmentId: 'assignment_6',
+          title: 'L\'Hôpital\'s Rule - Video Assessment',
+          description: 'Demonstrate L\'Hôpital\'s Rule with 5 different limit problems. Show your work clearly and explain each step.',
+          dueDate: '2024-02-15T23:59:59Z',
+          points: 110,
+          status: 'published',
+          submissionType: 'video',
+          submissionsCount: 21,
+          gradedCount: 14,
+          averageGrade: 91.4,
+          createdAt: '2024-01-28T11:20:00Z'
+        },
+        {
+          assignmentId: 'assignment_7',
+          title: 'Related Rates Problems - Video Discussion',
+          description: 'Choose 3 related rates problems and create a video explaining your solution process and reasoning.',
+          dueDate: '2024-02-20T23:59:59Z',
+          points: 95,
+          status: 'grading',
+          submissionType: 'video',
+          submissionsCount: 17,
+          gradedCount: 9,
+          averageGrade: 86.8,
+          createdAt: '2024-01-30T14:15:00Z'
+        },
+        {
+          assignmentId: 'assignment_8',
+          title: 'Fundamental Theorem of Calculus - Video Lesson',
+          description: 'Create an educational video explaining both parts of the Fundamental Theorem of Calculus with visual examples.',
+          dueDate: '2024-02-25T23:59:59Z',
+          points: 125,
+          status: 'published',
+          submissionType: 'video',
+          submissionsCount: 13,
+          gradedCount: 6,
+          averageGrade: 89.7,
+          createdAt: '2024-02-01T09:45:00Z'
         }
       ];
       
