@@ -70,145 +70,72 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:scale-105">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-start justify-between">
+      <div className="p-6">
+        <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
               {course.title}
             </h3>
-            <p className="text-sm text-gray-600 mb-2">
-              {course.code} • {course.department}
+            <p className="text-sm text-gray-600 mb-3">
+              {course.code} • {course.semester} {course.year}
             </p>
-            <div className="flex items-center space-x-2">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(course.status)}`}>
+            <div className="flex items-center space-x-3">
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(course.status)}`}>
                 {getStatusIcon(course.status)}
                 <span className="ml-1 capitalize">{course.status}</span>
               </span>
-              <span className="text-xs text-gray-500">
-                {course.credits} credits
+              <span className="text-sm text-gray-600">
+                {course.currentEnrollment} students
               </span>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="p-6">
-        <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-          {course.description}
-        </p>
-
-        {/* Course Details */}
-        <div className="space-y-2 mb-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-            </svg>
-            {course.semester} {course.year}
-          </div>
-          
-          <div className="flex items-center text-sm text-gray-600">
-            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 8v6h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-            </svg>
-            {course.currentEnrollment} / {course.maxStudents || '∞'} students
-          </div>
-
-          <div className="flex items-center text-sm text-gray-600">
-            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-            </svg>
-            {course.schedule.location}
-          </div>
-
-          <div className="flex items-center text-sm text-gray-600">
-            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-            </svg>
-            {course.schedule.days.join(', ')} • {course.schedule.time}
-          </div>
-        </div>
-
-        {/* Statistics */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="text-center">
-            <div className="text-lg font-semibold text-gray-900">
+            <div className="text-2xl font-bold text-[#4A90E2]">
               {course.statistics.totalAssignments}
             </div>
             <div className="text-xs text-gray-500">Assignments</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-semibold text-gray-900">
-              {course.statistics.averageGrade.toFixed(1)}%
+            <div className="text-2xl font-bold text-[#9B5DE5]">
+              {course.statistics.averageGrade.toFixed(0)}%
             </div>
             <div className="text-xs text-gray-500">Avg Grade</div>
           </div>
+          <div className="text-center">
+            <div className="text-2xl font-bold text-[#06D6A0]">
+              {course.credits}
+            </div>
+            <div className="text-xs text-gray-500">Credits</div>
+          </div>
         </div>
 
-        {/* Dates */}
-        <div className="text-xs text-gray-500 mb-4">
-          <div>Start: {formatDate(course.startDate)}</div>
-          <div>End: {formatDate(course.endDate)}</div>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        {/* Primary Action */}
         <div className="flex items-center justify-between">
-          <div className="flex space-x-2">
-            <button
-              onClick={() => router.push(`/instructor/courses/${course.courseId}`)}
-              className="px-3 py-1 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all duration-300"
-            >
-              View Course
-            </button>
+          <button
+            onClick={() => router.push(`/instructor/courses/${course.courseId}`)}
+            className="flex-1 px-4 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+          >
+            View Course →
+          </button>
+          
+          {/* Quick Actions Menu */}
+          <div className="ml-3 relative">
             <button
               onClick={() => onEdit(course)}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              title="Edit Course"
             >
-              Edit
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
             </button>
-            
-            {course.status === 'published' && onBulkEnroll && (
-              <button
-                onClick={() => onBulkEnroll(course)}
-                className="text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center"
-                title="Bulk enroll students"
-              >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                </svg>
-                Add Students
-              </button>
-            )}
-            
-            {course.status === 'draft' && (
-              <button
-                onClick={() => onPublish(course.courseId)}
-                className="text-green-600 hover:text-green-800 text-sm font-medium"
-              >
-                Publish
-              </button>
-            )}
-            
-            {course.status === 'published' && (
-              <button
-                onClick={() => onArchive(course.courseId)}
-                className="text-yellow-600 hover:text-yellow-800 text-sm font-medium"
-              >
-                Archive
-              </button>
-            )}
           </div>
-
-          <button
-            onClick={() => onDelete(course.courseId)}
-            className="text-red-600 hover:text-red-800 text-sm font-medium"
-          >
-            Delete
-          </button>
         </div>
       </div>
     </div>
