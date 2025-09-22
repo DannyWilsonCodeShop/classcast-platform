@@ -360,13 +360,94 @@ const BulkGradingPage: React.FC = () => {
         fileSize: 68000000
       },
       {
+        id: 'sub31',
+        studentName: 'Alex Chen',
+        studentId: 'student_031',
+        assignmentTitle: 'Binary Tree Implementation - Video Assessment',
+        assignmentId: 'assignment_1',
+        courseName: 'Introduction to Computer Science',
+        courseCode: 'CS101',
+        submittedAt: '2024-01-23T10:30:00Z',
+        status: 'graded',
+        grade: 87,
+        feedback: 'Good implementation! Your explanation of the traversal methods was clear. Consider adding more comments to your code for better readability.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg',
+        duration: 420,
+        fileSize: 58000000
+      },
+      {
+        id: 'sub32',
+        studentName: 'Sofia Martinez',
+        studentId: 'student_032',
+        assignmentTitle: 'Binary Tree Implementation - Video Assessment',
+        assignmentId: 'assignment_1',
+        courseName: 'Introduction to Computer Science',
+        courseCode: 'CS101',
+        submittedAt: '2024-01-23T14:45:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg',
+        duration: 380,
+        fileSize: 52000000
+      },
+      {
+        id: 'sub33',
+        studentName: 'Daniel Kim',
+        studentId: 'student_033',
+        assignmentTitle: 'Binary Tree Implementation - Video Assessment',
+        assignmentId: 'assignment_1',
+        courseName: 'Introduction to Computer Science',
+        courseCode: 'CS101',
+        submittedAt: '2024-01-24T09:15:00Z',
+        status: 'graded',
+        grade: 92,
+        feedback: 'Excellent work! Your code is clean and well-structured. The visual representation of the tree was particularly helpful.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg',
+        duration: 350,
+        fileSize: 48000000
+      },
+      {
+        id: 'sub34',
+        studentName: 'Emma Wilson',
+        studentId: 'student_034',
+        assignmentTitle: 'Binary Tree Implementation - Video Assessment',
+        assignmentId: 'assignment_1',
+        courseName: 'Introduction to Computer Science',
+        courseCode: 'CS101',
+        submittedAt: '2024-01-24T16:20:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerJoyrides.jpg',
+        duration: 290,
+        fileSize: 41000000
+      },
+      {
+        id: 'sub35',
+        studentName: 'Ryan O\'Connor',
+        studentId: 'student_035',
+        assignmentTitle: 'Binary Tree Implementation - Video Assessment',
+        assignmentId: 'assignment_1',
+        courseName: 'Introduction to Computer Science',
+        courseCode: 'CS101',
+        submittedAt: '2024-01-25T11:30:00Z',
+        status: 'graded',
+        grade: 85,
+        feedback: 'Good effort! Your implementation works correctly, but try to explain your thought process more clearly in future videos.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerMeltdowns.jpg',
+        duration: 400,
+        fileSize: 55000000
+      },
+      {
         id: 'sub2',
         studentName: 'Maria Rodriguez',
         studentId: 'student_002',
         assignmentTitle: 'Binary Tree Implementation - Video Assessment',
-        assignmentId: 'assignment_6',
-        courseName: 'Data Structures & Algorithms',
-        courseCode: 'CS301',
+        assignmentId: 'assignment_1',
+        courseName: 'Introduction to Computer Science',
+        courseCode: 'CS101',
         submittedAt: '2024-01-22T12:15:00Z',
         status: 'pending',
         fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
@@ -646,7 +727,9 @@ const BulkGradingPage: React.FC = () => {
   };
 
   const filteredSubmissions = submissions.filter(submission => {
-    const courseMatch = selectedCourse === 'all' || submission.courseName.toLowerCase().includes(selectedCourse.toLowerCase());
+    const courseMatch = selectedCourse === 'all' || 
+      submission.courseName.toLowerCase().includes(selectedCourse.toLowerCase()) ||
+      submission.courseCode.toLowerCase().includes(selectedCourse.toLowerCase());
     const assignmentMatch = selectedAssignment === 'all' || submission.assignmentId === selectedAssignment;
     return courseMatch && assignmentMatch;
   });
