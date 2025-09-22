@@ -29,6 +29,16 @@ interface RecentSubmission {
   submittedAt: string;
 }
 
+interface Student {
+  id: string;
+  name: string;
+  email: string;
+  enrollmentDate: string;
+  lastActive: string;
+  submissionsCount: number;
+  averageGrade: number;
+}
+
 const InstructorDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -44,6 +54,8 @@ const InstructorDashboard: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [recentSubmissions, setRecentSubmissions] = useState<RecentSubmission[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [showStudentList, setShowStudentList] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
 
   const handleLogout = async () => {
     try {
@@ -52,6 +64,40 @@ const InstructorDashboard: React.FC = () => {
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  // Mock student data for each course
+  const getMockStudentsForCourse = (courseId: string): Student[] => {
+    const studentsByCourse: { [key: string]: Student[] } = {
+      'cs-101': [
+        { id: 's1', name: 'Alice Johnson', email: 'alice.johnson@email.com', enrollmentDate: '2024-01-15', lastActive: '2024-01-20', submissionsCount: 3, averageGrade: 87 },
+        { id: 's2', name: 'Bob Smith', email: 'bob.smith@email.com', enrollmentDate: '2024-01-15', lastActive: '2024-01-19', submissionsCount: 2, averageGrade: 92 },
+        { id: 's3', name: 'Carol Davis', email: 'carol.davis@email.com', enrollmentDate: '2024-01-16', lastActive: '2024-01-20', submissionsCount: 4, averageGrade: 78 },
+        { id: 's4', name: 'David Wilson', email: 'david.wilson@email.com', enrollmentDate: '2024-01-15', lastActive: '2024-01-18', submissionsCount: 1, averageGrade: 85 },
+        { id: 's5', name: 'Eva Brown', email: 'eva.brown@email.com', enrollmentDate: '2024-01-17', lastActive: '2024-01-20', submissionsCount: 3, averageGrade: 90 }
+      ],
+      'math-201': [
+        { id: 's6', name: 'Frank Miller', email: 'frank.miller@email.com', enrollmentDate: '2024-01-10', lastActive: '2024-01-20', submissionsCount: 2, averageGrade: 88 },
+        { id: 's7', name: 'Grace Lee', email: 'grace.lee@email.com', enrollmentDate: '2024-01-10', lastActive: '2024-01-19', submissionsCount: 3, averageGrade: 95 },
+        { id: 's8', name: 'Henry Taylor', email: 'henry.taylor@email.com', enrollmentDate: '2024-01-12', lastActive: '2024-01-20', submissionsCount: 1, averageGrade: 82 }
+      ],
+      'eng-102': [
+        { id: 's9', name: 'Ivy Chen', email: 'ivy.chen@email.com', enrollmentDate: '2024-01-08', lastActive: '2024-01-20', submissionsCount: 2, averageGrade: 91 },
+        { id: 's10', name: 'Jack Anderson', email: 'jack.anderson@email.com', enrollmentDate: '2024-01-08', lastActive: '2024-01-19', submissionsCount: 1, averageGrade: 76 }
+      ],
+      'phy-301': [
+        { id: 's11', name: 'Kate Rodriguez', email: 'kate.rodriguez@email.com', enrollmentDate: '2024-01-05', lastActive: '2024-01-20', submissionsCount: 1, averageGrade: 89 }
+      ],
+      'bio-150': [
+        { id: 's12', name: 'Liam Thompson', email: 'liam.thompson@email.com', enrollmentDate: '2024-01-14', lastActive: '2024-01-18', submissionsCount: 0, averageGrade: 0 }
+      ],
+      'hist-201': [
+        { id: 's13', name: 'Maya Patel', email: 'maya.patel@email.com', enrollmentDate: '2024-01-12', lastActive: '2024-01-20', submissionsCount: 1, averageGrade: 93 },
+        { id: 's14', name: 'Noah Garcia', email: 'noah.garcia@email.com', enrollmentDate: '2024-01-12', lastActive: '2024-01-19', submissionsCount: 1, averageGrade: 87 }
+      ]
+    };
+    
+    return studentsByCourse[courseId] || [];
   };
 
   // Mock assignments data for each course
@@ -379,8 +425,16 @@ const InstructorDashboard: React.FC = () => {
                           <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">{course.title}</h3>
                             <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                              <span>👥 {course.studentCount} students</span>
-                              <span>📝 {course.assignmentsDue} due</span>
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedCourse(course);
+                                  setShowStudentList(true);
+                                }}
+                                className="hover:text-[#4A90E2] transition-colors"
+                              >
+                                👥 {course.studentCount} students
+                              </button>
                             </div>
                           </div>
                           <div className="w-8 h-8 bg-[#4A90E2] rounded-full flex items-center justify-center text-white text-sm font-bold">
@@ -510,6 +564,85 @@ const InstructorDashboard: React.FC = () => {
                     />
                     Don't show this again
                   </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Student List Modal */}
+        {showStudentList && selectedCourse && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800">Students Enrolled</h2>
+                  <p className="text-gray-600">{selectedCourse.title}</p>
+                </div>
+                <button
+                  onClick={() => setShowStudentList(false)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Student List */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {getMockStudentsForCourse(selectedCourse.id).map((student) => (
+                    <div key={student.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-10 h-10 bg-[#4A90E2] rounded-full flex items-center justify-center text-white font-bold">
+                          {student.name.charAt(0)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-800 truncate">{student.name}</h3>
+                          <p className="text-sm text-gray-600 truncate">{student.email}</p>
+                          <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                            <span>📅 Enrolled: {new Date(student.enrollmentDate).toLocaleDateString()}</span>
+                            <span>📊 {student.submissionsCount} submissions</span>
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-gray-500">
+                              Last active: {new Date(student.lastActive).toLocaleDateString()}
+                            </span>
+                            {student.averageGrade > 0 && (
+                              <span className="text-xs font-medium text-[#4A90E2]">
+                                Avg: {student.averageGrade}%
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {getMockStudentsForCourse(selectedCourse.id).length === 0 && (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-4">👥</div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">No Students Enrolled</h3>
+                    <p className="text-gray-600">This class doesn't have any enrolled students yet.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">
+                    Total: {getMockStudentsForCourse(selectedCourse.id).length} students
+                  </span>
+                  <button
+                    onClick={() => setShowStudentList(false)}
+                    className="px-4 py-2 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </div>
