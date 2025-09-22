@@ -433,7 +433,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   if (loading) {
     return (
       <InstructorRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <LoadingSpinner text="Loading course details..." />
           </div>
@@ -445,14 +445,14 @@ const InstructorCourseDetailPage: React.FC = () => {
   if (error || !course) {
     return (
       <InstructorRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <div className="text-6xl mb-4">😞</div>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Course Not Found</h1>
             <p className="text-gray-600 mb-6">{error || 'The course you are looking for does not exist.'}</p>
             <button
               onClick={() => router.push('/instructor/courses')}
-              className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+              className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -503,7 +503,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 }`}>
                   {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
                 </span>
-                <button className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300">
+                <button className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors">
                   ⚙️ Settings
                 </button>
               </div>
