@@ -708,68 +708,18 @@ const BulkGradingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
-            
-            {/* Video Player - Left Side */}
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-white/20 p-6">
-              {currentSubmission ? (
-                <div className="h-full flex flex-col">
-                      {/* Video Player */}
-                      <div className="flex-1 bg-black rounded-lg overflow-hidden mb-4 relative">
-                        <video
-                          ref={videoRef}
-                          src={currentSubmission.fileUrl}
-                          className="w-full h-full object-contain"
-                          onTimeUpdate={handleTimeUpdate}
-                          onLoadedMetadata={handleLoadedMetadata}
-                          onPlay={() => setIsPlaying(true)}
-                          onPause={() => setIsPlaying(false)}
-                          onEnded={() => setIsPlaying(false)}
-                        />
-                        
-                        {/* Video Overlay Info */}
-                        <div className="absolute top-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm">
-                          <div className="flex items-center space-x-4">
-                            <span>📹 {formatTime(duration)}</span>
-                            <span>📊 {formatFileSize(currentSubmission.fileSize)}</span>
-                            <span>👤 {currentSubmission.studentName}</span>
-                          </div>
-                        </div>
-                        
-                        {/* Video Quality Indicator */}
-                        <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-2 rounded-lg text-sm">
-                          <span>HD 1080p</span>
-                        </div>
-                      </div>
-                  
-                  {/* Video Controls */}
-                  <div className="space-y-4">
-                    {/* Progress Bar */}
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-600 w-12">{formatTime(currentTime)}</span>
-                      <div className="flex-1 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-500 h-2 rounded-full transition-all duration-200"
-                          style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-gray-600 w-12">{formatTime(duration)}</span>
-                    </div>
-                    
-                    {/* Control Buttons */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <button
-                          onClick={handlePlayPause}
-                          className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors"
-                        >
-                          {isPlaying ? '⏸️' : '▶️'}
-                        </button>
-                        
+            {/* Main Content */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+                
+                {/* Video List - Left Side */}
+                <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-white/20 p-6">
+                  <div className="h-full flex flex-col">
+                    {/* Global Playback Speed Control */}
+                    <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">Global Playback Speed:</span>
                         <div className="flex items-center space-x-2">
-                          <span className="text-sm text-gray-600">Speed:</span>
                           {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map(speed => (
                             <button
                               key={speed}
@@ -785,27 +735,115 @@ const BulkGradingPage: React.FC = () => {
                           ))}
                         </div>
                       </div>
-                      
-                      <div className="text-sm text-gray-600">
-                        {formatFileSize(currentSubmission.fileSize)} • {formatTime(currentSubmission.duration)}
-                      </div>
+                    </div>
+
+                    {/* Video List */}
+                    <div className="flex-1 overflow-y-auto space-y-4">
+                      {filteredSubmissions.map((submission, index) => (
+                        <div
+                          key={submission.id}
+                          className={`p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
+                            index === currentSubmissionIndex
+                              ? 'border-blue-500 bg-blue-50'
+                              : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
+                          }`}
+                          onClick={() => goToSubmission(index)}
+                        >
+                          <div className="flex items-start space-x-4">
+                            {/* Video Thumbnail */}
+                            <div className="flex-shrink-0">
+                              <div className="w-32 h-20 bg-black rounded-lg overflow-hidden relative">
+                                <img
+                                  src={submission.thumbnailUrl}
+                                  alt="Video thumbnail"
+                                  className="w-full h-full object-cover"
+                                />
+                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                  <span className="text-white text-xs font-medium">
+                                    {formatTime(submission.duration)}
+                                  </span>
+                                </div>
+                                <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                                  HD
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Video Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between mb-2">
+                                <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                  {submission.studentName}
+                                </h3>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  submission.status === 'graded' ? 'bg-green-100 text-green-800' :
+                                  submission.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {submission.grade ? `${submission.grade}%` : submission.status}
+                                </span>
+                              </div>
+                              
+                              <p className="text-sm text-gray-600 mb-2">
+                                {submission.assignmentTitle}
+                              </p>
+                              
+                              <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                <span>📅 {new Date(submission.submittedAt).toLocaleDateString()}</span>
+                                <span>📊 {formatFileSize(submission.fileSize)}</span>
+                                <span>🎥 {submission.courseCode}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-500">
-                  <div className="text-center">
-                    <div className="text-4xl mb-2">📹</div>
-                    <p>No submission selected</p>
-                  </div>
-                </div>
-              )}
-            </div>
 
-            {/* Grading Panel - Right Side */}
-            <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6">
-              {currentSubmission ? (
-                <div className="h-full flex flex-col">
+                {/* Grading Panel - Right Side */}
+                <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6">
+                  {currentSubmission ? (
+                    <div className="h-full flex flex-col">
+                      {/* Current Video Player */}
+                      <div className="mb-6">
+                        <div className="bg-black rounded-lg overflow-hidden mb-4 relative">
+                          <video
+                            ref={videoRef}
+                            src={currentSubmission.fileUrl}
+                            className="w-full h-48 object-contain"
+                            onTimeUpdate={handleTimeUpdate}
+                            onLoadedMetadata={handleLoadedMetadata}
+                            onPlay={() => setIsPlaying(true)}
+                            onPause={() => setIsPlaying(false)}
+                            onEnded={() => setIsPlaying(false)}
+                          />
+                          
+                          {/* Video Controls Overlay */}
+                          <div className="absolute bottom-4 left-4 right-4">
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={handlePlayPause}
+                                className="w-8 h-8 bg-black/70 text-white rounded-full flex items-center justify-center hover:bg-black/90 transition-colors"
+                              >
+                                {isPlaying ? '⏸️' : '▶️'}
+                              </button>
+                              
+                              <div className="flex-1 bg-gray-200 rounded-full h-1">
+                                <div 
+                                  className="bg-blue-500 h-1 rounded-full transition-all duration-200"
+                                  style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                                />
+                              </div>
+                              
+                              <span className="text-white text-xs">
+                                {formatTime(currentTime)} / {formatTime(duration)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
                       {/* Submission Info */}
                       <div className="mb-6">
                         <h2 className="text-lg font-bold text-gray-800 mb-2">
@@ -817,28 +855,6 @@ const BulkGradingPage: React.FC = () => {
                         <p className="text-xs text-gray-500 mb-3">
                           {currentSubmission.courseName} ({currentSubmission.courseCode})
                         </p>
-                        
-                        {/* Video Metadata */}
-                        <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div className="flex items-center space-x-2">
-                              <span>⏱️</span>
-                              <span>{formatTime(currentSubmission.duration)}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span>📊</span>
-                              <span>{formatFileSize(currentSubmission.fileSize)}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span>📅</span>
-                              <span>{new Date(currentSubmission.submittedAt).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span>🎥</span>
-                              <span>HD 1080p</span>
-                            </div>
-                          </div>
-                        </div>
                         
                         <div className="flex items-center justify-between">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(currentSubmission.status)}`}>
@@ -852,106 +868,56 @@ const BulkGradingPage: React.FC = () => {
                         </div>
                       </div>
 
-                  {/* Grading Form */}
-                  <div className="flex-1 space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Grade (0-100)
-                      </label>
-                      <input
-                        type="number"
-                        value={currentGrade}
-                        onChange={(e) => setCurrentGrade(e.target.value ? Number(e.target.value) : '')}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        min="0"
-                        max="100"
-                        placeholder="Enter grade"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Feedback
-                      </label>
-                      <textarea
-                        value={currentFeedback}
-                        onChange={(e) => setCurrentFeedback(e.target.value)}
-                        rows={4}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter detailed feedback for the student..."
-                      />
-                    </div>
-                    
-                    <button
-                      onClick={handleGradeSubmission}
-                      disabled={!currentGrade || isGrading}
-                      className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isGrading ? 'Grading...' : 'Grade Submission'}
-                    </button>
-                  </div>
-
-                  {/* Navigation */}
-                  <div className="mt-6 pt-4 border-t border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <button
-                        onClick={goToPreviousSubmission}
-                        disabled={currentSubmissionIndex === 0}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        ← Previous
-                      </button>
-                      <button
-                        onClick={goToNextSubmission}
-                        disabled={currentSubmissionIndex === filteredSubmissions.length - 1}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        Next →
-                      </button>
-                    </div>
-                    
-                        {/* Submission List */}
-                        <div className="space-y-2 max-h-40 overflow-y-auto">
-                          {filteredSubmissions.map((submission, index) => (
-                            <button
-                              key={submission.id}
-                              onClick={() => goToSubmission(index)}
-                              className={`w-full text-left p-3 rounded-lg text-sm transition-colors ${
-                                index === currentSubmissionIndex
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium truncate">{submission.studentName}</span>
-                                <span className={`px-2 py-1 rounded text-xs ${
-                                  submission.status === 'graded' ? 'bg-green-100 text-green-800' :
-                                  submission.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {submission.grade ? `${submission.grade}%` : submission.status}
-                                </span>
-                              </div>
-                              <div className="flex items-center justify-between text-xs text-gray-500">
-                                <span>{formatTime(submission.duration)}</span>
-                                <span>{formatFileSize(submission.fileSize)}</span>
-                              </div>
-                            </button>
-                          ))}
+                      {/* Grading Form */}
+                      <div className="flex-1 space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Grade (0-100)
+                          </label>
+                          <input
+                            type="number"
+                            value={currentGrade}
+                            onChange={(e) => setCurrentGrade(e.target.value ? Number(e.target.value) : '')}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            min="0"
+                            max="100"
+                            placeholder="Enter grade"
+                          />
                         </div>
-                  </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Feedback
+                          </label>
+                          <textarea
+                            value={currentFeedback}
+                            onChange={(e) => setCurrentFeedback(e.target.value)}
+                            rows={6}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            placeholder="Enter detailed feedback for the student..."
+                          />
+                        </div>
+                        
+                        <button
+                          onClick={handleGradeSubmission}
+                          disabled={!currentGrade || isGrading}
+                          className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isGrading ? 'Grading...' : 'Grade Submission'}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-gray-500">
+                      <div className="text-center">
+                        <div className="text-4xl mb-2">📝</div>
+                        <p>Select a submission to grade</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-500">
-                  <div className="text-center">
-                    <div className="text-4xl mb-2">📝</div>
-                    <p>Select a submission to grade</p>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
-          </div>
-        </div>
       </div>
     </InstructorRoute>
   );
