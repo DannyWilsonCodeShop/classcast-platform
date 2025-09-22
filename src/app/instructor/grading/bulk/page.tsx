@@ -40,6 +40,11 @@ const BulkGradingPage: React.FC = () => {
   const [currentGrade, setCurrentGrade] = useState<number | ''>('');
   const [currentFeedback, setCurrentFeedback] = useState('');
   const [isAutoAdvance, setIsAutoAdvance] = useState(false);
+  
+  // Auto-save state
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Get filters from URL params - only run on client side
@@ -689,47 +694,74 @@ const BulkGradingPage: React.FC = () => {
 
   const goToSubmission = (index: number) => {
     setCurrentSubmissionIndex(index);
-    setCurrentGrade('');
-    setCurrentFeedback('');
+    
+    // Load existing grade and feedback if available
+    const submission = filteredSubmissions[index];
+    if (submission) {
+      setCurrentGrade(submission.grade || '');
+      setCurrentFeedback(submission.feedback || '');
+    } else {
+      setCurrentGrade('');
+      setCurrentFeedback('');
+    }
+    
     setIsPlaying(false);
+    setSaveStatus('saved'); // Reset save status when switching
   };
 
-  // Grading functions
-  const handleGradeSubmission = async () => {
-    if (!currentGrade || currentSubmissionIndex >= filteredSubmissions.length) return;
-
-    setIsGrading(true);
+  // Auto-save function
+  const autoSave = async (submissionId: string, grade: number | '', feedback: string) => {
+    if (!grade) return; // Don't save if no grade is provided
     
+    setSaveStatus('saving');
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Update submission with grade
       setSubmissions(prev => prev.map(sub => 
-        sub.id === filteredSubmissions[currentSubmissionIndex].id
+        sub.id === submissionId
           ? {
               ...sub,
               status: 'graded' as const,
-              grade: Number(currentGrade),
-              feedback: currentFeedback || 'Graded'
+              grade: Number(grade),
+              feedback: feedback || 'Graded'
             }
           : sub
       ));
       
-      setCurrentGrade('');
-      setCurrentFeedback('');
-      
-      // Auto-advance to next submission if enabled
-      if (isAutoAdvance && currentSubmissionIndex < filteredSubmissions.length - 1) {
-        setTimeout(() => {
-          goToNextSubmission();
-        }, 1000);
-      }
+      setSaveStatus('saved');
+      setLastSaved(new Date());
     } catch (error) {
-      console.error('Error grading submission:', error);
-      alert('Error grading submission. Please try again.');
-    } finally {
-      setIsGrading(false);
+      setSaveStatus('error');
+      console.error('Error auto-saving:', error);
+    }
+  };
+
+  // Debounced auto-save
+  const debouncedAutoSave = (submissionId: string, grade: number | '', feedback: string) => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      autoSave(submissionId, grade, feedback);
+    }, 1000); // Save after 1 second of inactivity
+  };
+
+  // Handle grade change with auto-save
+  const handleGradeChange = (grade: number | '') => {
+    setCurrentGrade(grade);
+    if (currentSubmission && grade) {
+      debouncedAutoSave(currentSubmission.id, grade, currentFeedback);
+    }
+  };
+
+  // Handle feedback change with auto-save
+  const handleFeedbackChange = (feedback: string) => {
+    setCurrentFeedback(feedback);
+    if (currentSubmission && currentGrade) {
+      debouncedAutoSave(currentSubmission.id, currentGrade, feedback);
     }
   };
 
@@ -1036,7 +1068,7 @@ const BulkGradingPage: React.FC = () => {
                               value={index === currentSubmissionIndex ? currentGrade : ''}
                               onChange={(e) => {
                                 if (index === currentSubmissionIndex) {
-                                  setCurrentGrade(e.target.value ? Number(e.target.value) : '');
+                                  handleGradeChange(e.target.value ? Number(e.target.value) : '');
                                 }
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1054,7 +1086,7 @@ const BulkGradingPage: React.FC = () => {
                               value={index === currentSubmissionIndex ? currentFeedback : ''}
                               onChange={(e) => {
                                 if (index === currentSubmissionIndex) {
-                                  setCurrentFeedback(e.target.value);
+                                  handleFeedbackChange(e.target.value);
                                 }
                               }}
                               rows={4}
@@ -1063,26 +1095,46 @@ const BulkGradingPage: React.FC = () => {
                             />
                           </div>
                           
-                          <button
-                            onClick={() => {
-                              if (index === currentSubmissionIndex) {
-                                handleGradeSubmission();
-                              } else {
-                                goToSubmission(index);
-                              }
-                            }}
-                            disabled={index === currentSubmissionIndex ? (!currentGrade || isGrading) : false}
-                            className={`w-full px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                              index === currentSubmissionIndex
-                                ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed'
-                                : 'bg-gray-500 text-white hover:bg-gray-600'
-                            }`}
-                          >
-                            {index === currentSubmissionIndex 
-                              ? (isGrading ? 'Grading...' : 'Grade Submission')
-                              : 'Select This Submission'
-                            }
-                          </button>
+                          {/* Save Status Indicator */}
+                          {index === currentSubmissionIndex && (
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-2">
+                                {saveStatus === 'saving' && (
+                                  <>
+                                    <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                                    <span className="text-blue-600">Saving...</span>
+                                  </>
+                                )}
+                                {saveStatus === 'saved' && (
+                                  <>
+                                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                    <span className="text-green-600">Saved</span>
+                                  </>
+                                )}
+                                {saveStatus === 'error' && (
+                                  <>
+                                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                                    <span className="text-red-600">Save failed</span>
+                                  </>
+                                )}
+                              </div>
+                              {lastSaved && (
+                                <span className="text-gray-500 text-xs">
+                                  Last saved: {lastSaved.toLocaleTimeString()}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Selection Button for Non-Active Submissions */}
+                          {index !== currentSubmissionIndex && (
+                            <button
+                              onClick={() => goToSubmission(index)}
+                              className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors"
+                            >
+                              Select This Submission
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
