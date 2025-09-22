@@ -45,6 +45,22 @@ const BulkGradingPage: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // AI Grading state
+  const [isAIAnalyzing, setIsAIAnalyzing] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<{
+    suggestedGrade: number | null;
+    suggestedFeedback: string;
+    analysis: {
+      contentQuality: number;
+      presentation: number;
+      technicalAspects: number;
+      engagement: number;
+    };
+    strengths: string[];
+    improvements: string[];
+  } | null>(null);
+  const [showAIPanel, setShowAIPanel] = useState(false);
 
   useEffect(() => {
     // Get filters from URL params - only run on client side
@@ -782,6 +798,102 @@ const BulkGradingPage: React.FC = () => {
     }
   };
 
+  // AI Analysis function
+  const analyzeWithAI = async (submission: Submission) => {
+    setIsAIAnalyzing(true);
+    setAiSuggestions(null);
+    
+    try {
+      // Simulate AI analysis with realistic delay
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Generate realistic AI suggestions based on submission data
+      const mockAnalysis = {
+        suggestedGrade: Math.floor(Math.random() * 30) + 70, // 70-100 range
+        suggestedFeedback: generateAIFeedback(submission),
+        analysis: {
+          contentQuality: Math.floor(Math.random() * 20) + 80,
+          presentation: Math.floor(Math.random() * 20) + 75,
+          technicalAspects: Math.floor(Math.random() * 25) + 70,
+          engagement: Math.floor(Math.random() * 20) + 80,
+        },
+        strengths: generateStrengths(),
+        improvements: generateImprovements(),
+      };
+      
+      setAiSuggestions(mockAnalysis);
+      setShowAIPanel(true);
+    } catch (error) {
+      console.error('AI analysis failed:', error);
+    } finally {
+      setIsAIAnalyzing(false);
+    }
+  };
+
+  // Generate AI feedback based on submission
+  const generateAIFeedback = (submission: Submission): string => {
+    const feedbackTemplates = [
+      `Great work on ${submission.assignmentTitle}! Your explanation was clear and well-structured. The video quality is excellent and your presentation skills are strong. Consider adding more examples to further illustrate your points.`,
+      `Solid submission for ${submission.assignmentTitle}. You demonstrated good understanding of the concepts. The technical aspects were well-executed. To improve, try to engage more with the audience and provide more detailed explanations.`,
+      `Excellent presentation of ${submission.assignmentTitle}! Your content was comprehensive and your delivery was engaging. The video production quality is professional. Keep up the great work!`,
+      `Good effort on ${submission.assignmentTitle}. You covered the main points well. The presentation was clear and your understanding of the material is evident. Consider adding more visual aids to enhance the learning experience.`,
+      `Outstanding work on ${submission.assignmentTitle}! Your explanation was thorough and your presentation was very engaging. The technical execution was flawless. This is exactly what we're looking for in video submissions.`
+    ];
+    
+    return feedbackTemplates[Math.floor(Math.random() * feedbackTemplates.length)];
+  };
+
+  const generateStrengths = (): string[] => {
+    const allStrengths = [
+      "Clear and articulate presentation",
+      "Excellent video quality and production",
+      "Well-structured content organization",
+      "Strong understanding of the material",
+      "Engaging delivery style",
+      "Good use of visual aids",
+      "Comprehensive coverage of topics",
+      "Professional presentation skills",
+      "Clear audio quality",
+      "Effective time management"
+    ];
+    
+    return allStrengths
+      .sort(() => Math.random() - 0.5)
+      .slice(0, Math.floor(Math.random() * 3) + 3);
+  };
+
+  const generateImprovements = (): string[] => {
+    const allImprovements = [
+      "Add more specific examples to illustrate concepts",
+      "Consider using more visual aids or diagrams",
+      "Practice speaking at a slightly slower pace",
+      "Include more interactive elements",
+      "Provide more detailed explanations for complex topics",
+      "Consider adding a summary or conclusion",
+      "Improve lighting for better video quality",
+      "Add captions or subtitles for accessibility",
+      "Include more real-world applications",
+      "Practice more before recording"
+    ];
+    
+    return allImprovements
+      .sort(() => Math.random() - 0.5)
+      .slice(0, Math.floor(Math.random() * 3) + 2);
+  };
+
+  // Apply AI suggestions
+  const applyAISuggestions = () => {
+    if (aiSuggestions) {
+      setCurrentGrade(aiSuggestions.suggestedGrade || '');
+      setCurrentFeedback(aiSuggestions.suggestedFeedback);
+      
+      // Auto-save the AI suggestions
+      if (currentSubmission && aiSuggestions.suggestedGrade) {
+        debouncedAutoSave(currentSubmission.id, aiSuggestions.suggestedGrade, aiSuggestions.suggestedFeedback);
+      }
+    }
+  };
+
   // Use mockSubmissions directly for filtering to avoid state issues
   const submissionsToFilter = submissions.length > 0 ? submissions : mockSubmissions;
   
@@ -915,6 +1027,27 @@ const BulkGradingPage: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-4">
+                {/* AI Analysis Button */}
+                {currentSubmission && (
+                  <button
+                    onClick={() => analyzeWithAI(currentSubmission)}
+                    disabled={isAIAnalyzing}
+                    className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    {isAIAnalyzing ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>AI Analyzing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🤖</span>
+                        <span>AI Analysis</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                
                 {/* Course Filter */}
                 <select
                   value={selectedCourse}
@@ -1073,6 +1206,121 @@ const BulkGradingPage: React.FC = () => {
                             )}
                           </div>
                         </div>
+
+                        {/* AI Grading Section */}
+                        {index === currentSubmissionIndex && (
+                          <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                                  <span className="text-white text-sm">🤖</span>
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-800">AI Grading Assistant</h3>
+                              </div>
+                              <button
+                                onClick={() => setShowAIPanel(!showAIPanel)}
+                                className="text-sm text-purple-600 hover:text-purple-800 font-medium"
+                              >
+                                {showAIPanel ? 'Hide Analysis' : 'Show Analysis'}
+                              </button>
+                            </div>
+                            
+                            <div className="flex space-x-2 mb-4">
+                              <button
+                                onClick={() => analyzeWithAI(submission)}
+                                disabled={isAIAnalyzing}
+                                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                              >
+                                {isAIAnalyzing ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    <span>Analyzing...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>🤖</span>
+                                    <span>Analyze with AI</span>
+                                  </>
+                                )}
+                              </button>
+                              
+                              {aiSuggestions && (
+                                <button
+                                  onClick={applyAISuggestions}
+                                  className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors flex items-center space-x-2"
+                                >
+                                  <span>✓</span>
+                                  <span>Apply Suggestions</span>
+                                </button>
+                              )}
+                            </div>
+
+                            {/* AI Analysis Panel */}
+                            {showAIPanel && aiSuggestions && (
+                              <div className="space-y-4">
+                                {/* AI Analysis Scores */}
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="text-center p-3 bg-white rounded-lg">
+                                    <div className="text-2xl font-bold text-blue-600">{aiSuggestions.analysis.contentQuality}%</div>
+                                    <div className="text-xs text-gray-600">Content Quality</div>
+                                  </div>
+                                  <div className="text-center p-3 bg-white rounded-lg">
+                                    <div className="text-2xl font-bold text-green-600">{aiSuggestions.analysis.presentation}%</div>
+                                    <div className="text-xs text-gray-600">Presentation</div>
+                                  </div>
+                                  <div className="text-center p-3 bg-white rounded-lg">
+                                    <div className="text-2xl font-bold text-purple-600">{aiSuggestions.analysis.technicalAspects}%</div>
+                                    <div className="text-xs text-gray-600">Technical</div>
+                                  </div>
+                                  <div className="text-center p-3 bg-white rounded-lg">
+                                    <div className="text-2xl font-bold text-orange-600">{aiSuggestions.analysis.engagement}%</div>
+                                    <div className="text-xs text-gray-600">Engagement</div>
+                                  </div>
+                                </div>
+
+                                {/* AI Suggested Grade */}
+                                <div className="p-3 bg-white rounded-lg border-l-4 border-blue-500">
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium text-gray-700">AI Suggested Grade:</span>
+                                    <span className="text-2xl font-bold text-blue-600">{aiSuggestions.suggestedGrade}%</span>
+                                  </div>
+                                </div>
+
+                                {/* Strengths and Improvements */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div>
+                                    <h4 className="font-medium text-green-700 mb-2">Strengths</h4>
+                                    <ul className="space-y-1">
+                                      {aiSuggestions.strengths.map((strength, idx) => (
+                                        <li key={idx} className="text-sm text-gray-600 flex items-start space-x-2">
+                                          <span className="text-green-500 mt-1">✓</span>
+                                          <span>{strength}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-orange-700 mb-2">Improvements</h4>
+                                    <ul className="space-y-1">
+                                      {aiSuggestions.improvements.map((improvement, idx) => (
+                                        <li key={idx} className="text-sm text-gray-600 flex items-start space-x-2">
+                                          <span className="text-orange-500 mt-1">•</span>
+                                          <span>{improvement}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                </div>
+
+                                {/* AI Generated Feedback Preview */}
+                                <div className="p-3 bg-gray-50 rounded-lg">
+                                  <h4 className="font-medium text-gray-700 mb-2">AI Generated Feedback:</h4>
+                                  <p className="text-sm text-gray-600 italic">"{aiSuggestions.suggestedFeedback}"</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {/* Grading Form */}
                         <div className="space-y-4">
