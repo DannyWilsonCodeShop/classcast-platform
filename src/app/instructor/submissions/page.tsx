@@ -184,9 +184,9 @@ const SubmissionsListContent: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/30">
+        <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -205,7 +205,7 @@ const SubmissionsListContent: React.FC = () => {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => router.push(`/instructor/grading/bulk?assignment=${selectedAssignment}&course=${selectedCourse}`)}
-                  className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+                  className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
                 >
                   Start Grading →
                 </button>
@@ -216,7 +216,7 @@ const SubmissionsListContent: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Filters */}
-          <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200/30 mb-6">
+          <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200 mb-6">
             <div className="flex items-center space-x-4">
               <div className="flex-1">
                 <input
