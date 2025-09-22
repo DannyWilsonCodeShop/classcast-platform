@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 
 interface Submission {
@@ -11,126 +11,122 @@ interface Submission {
   assignmentTitle: string;
   assignmentId: string;
   courseName: string;
-  courseId: string;
+  courseCode: string;
   submittedAt: string;
   status: 'pending' | 'graded' | 'returned';
   grade?: number;
   feedback?: string;
-  fileUrl?: string;
-  thumbnailUrl?: string;
-  duration?: number; // in seconds
-  fileSize?: number; // in bytes
+  fileUrl: string;
+  thumbnailUrl: string;
+  duration: number; // in seconds
+  fileSize: number; // in bytes
 }
 
-const SubmissionsPage: React.FC = () => {
+const SubmissionsListContent: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'graded' | 'returned'>('all');
-  const [sortBy, setSortBy] = useState<'submittedAt' | 'studentName' | 'assignmentTitle' | 'grade'>('submittedAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState<string>('all');
+  const [selectedAssignment, setSelectedAssignment] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
-    // Mock submissions data
+    // Get filters from URL params
+    const courseFilter = searchParams.get('course');
+    const assignmentFilter = searchParams.get('assignment');
+    
+    if (courseFilter) {
+      setSelectedCourse(courseFilter);
+    }
+    if (assignmentFilter) {
+      setSelectedAssignment(assignmentFilter);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    // Comprehensive mock data for video submissions
     const mockSubmissions: Submission[] = [
       {
         id: 'sub1',
-        studentName: 'Alice Johnson',
-        studentId: 'stu001',
-        assignmentTitle: 'Introduction Video Assignment',
-        assignmentId: 'assign1',
+        studentName: 'Alex Thompson',
+        studentId: 'student_001',
+        assignmentTitle: 'Derivatives and Limits - Video Lesson',
+        assignmentId: 'assignment_1',
         courseName: 'Introduction to Computer Science',
-        courseId: 'cs-101',
-        submittedAt: '2024-01-22T14:30:00Z',
-        status: 'pending',
-        fileUrl: '/api/placeholder/video',
-        thumbnailUrl: '/api/placeholder/150/100',
-        duration: 180,
-        fileSize: 15728640
+        courseCode: 'CS101',
+        submittedAt: '2024-01-15T10:30:00Z',
+        status: 'graded',
+        grade: 85,
+        feedback: 'Good work on explaining the concepts clearly.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
+        duration: 120,
+        fileSize: 15000000
       },
       {
         id: 'sub2',
-        studentName: 'Bob Smith',
-        studentId: 'stu002',
-        assignmentTitle: 'Introduction Video Assignment',
-        assignmentId: 'assign1',
+        studentName: 'Sarah Chen',
+        studentId: 'student_002',
+        assignmentTitle: 'Derivatives and Limits - Video Lesson',
+        assignmentId: 'assignment_1',
         courseName: 'Introduction to Computer Science',
-        courseId: 'cs-101',
-        submittedAt: '2024-01-22T15:45:00Z',
+        courseCode: 'CS101',
+        submittedAt: '2024-01-15T14:20:00Z',
         status: 'graded',
-        grade: 85,
-        feedback: 'Good work! Consider adding more examples in your explanation.',
-        fileUrl: '/api/placeholder/video',
-        thumbnailUrl: '/api/placeholder/150/100',
-        duration: 195,
-        fileSize: 20971520
+        grade: 92,
+        feedback: 'Excellent explanation and clear presentation.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg',
+        duration: 180,
+        fileSize: 22000000
       },
       {
         id: 'sub3',
-        studentName: 'Carol Davis',
-        studentId: 'stu003',
-        assignmentTitle: 'Algorithm Analysis Project',
-        assignmentId: 'assign2',
+        studentName: 'Marcus Johnson',
+        studentId: 'student_003',
+        assignmentTitle: 'Derivatives and Limits - Video Lesson',
+        assignmentId: 'assignment_1',
         courseName: 'Introduction to Computer Science',
-        courseId: 'cs-101',
-        submittedAt: '2024-01-21T16:20:00Z',
-        status: 'graded',
-        grade: 92,
-        feedback: 'Excellent analysis! Your time complexity explanation was very clear.',
-        fileUrl: '/api/placeholder/video',
-        thumbnailUrl: '/api/placeholder/150/100',
-        duration: 240,
-        fileSize: 25165824
+        courseCode: 'CS101',
+        submittedAt: '2024-01-16T09:15:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg',
+        duration: 95,
+        fileSize: 12000000
       },
       {
         id: 'sub4',
-        studentName: 'David Wilson',
-        studentId: 'stu004',
-        assignmentTitle: 'Introduction Video Assignment',
-        assignmentId: 'assign1',
+        studentName: 'Emily Rodriguez',
+        studentId: 'student_004',
+        assignmentTitle: 'Derivatives and Limits - Video Lesson',
+        assignmentId: 'assignment_1',
         courseName: 'Introduction to Computer Science',
-        courseId: 'cs-101',
-        submittedAt: '2024-01-22T17:10:00Z',
-        status: 'pending',
-        fileUrl: '/api/placeholder/video',
-        thumbnailUrl: '/api/placeholder/150/100',
-        duration: 165,
-        fileSize: 12582912
+        courseCode: 'CS101',
+        submittedAt: '2024-01-16T16:45:00Z',
+        status: 'graded',
+        grade: 78,
+        feedback: 'Good effort, but could improve on clarity.',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg',
+        duration: 140,
+        fileSize: 18000000
       },
       {
         id: 'sub5',
-        studentName: 'Eva Brown',
-        studentId: 'stu005',
-        assignmentTitle: 'Creative Writing Exercise',
-        assignmentId: 'assign3',
-        courseName: 'Creative Writing Workshop',
-        courseId: 'eng-102',
-        submittedAt: '2024-01-22T18:30:00Z',
-        status: 'returned',
-        grade: 78,
-        feedback: 'Good start! Try to develop your characters more deeply.',
-        fileUrl: '/api/placeholder/video',
-        thumbnailUrl: '/api/placeholder/150/100',
-        duration: 210,
-        fileSize: 18874368
-      },
-      {
-        id: 'sub6',
-        studentName: 'Frank Miller',
-        studentId: 'stu006',
-        assignmentTitle: 'Calculus Problem Set',
-        assignmentId: 'assign4',
-        courseName: 'Calculus II',
-        courseId: 'math-201',
-        submittedAt: '2024-01-21T19:15:00Z',
-        status: 'graded',
-        grade: 88,
-        feedback: 'Well done! Check your work on problem 3.',
-        fileUrl: '/api/placeholder/video',
-        thumbnailUrl: '/api/placeholder/150/100',
-        duration: 300,
-        fileSize: 31457280
+        studentName: 'David Kim',
+        studentId: 'student_005',
+        assignmentTitle: 'Derivatives and Limits - Video Lesson',
+        assignmentId: 'assignment_1',
+        courseName: 'Introduction to Computer Science',
+        courseCode: 'CS101',
+        submittedAt: '2024-01-17T11:30:00Z',
+        status: 'pending',
+        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg',
+        duration: 200,
+        fileSize: 25000000
       }
     ];
 
@@ -139,42 +135,33 @@ const SubmissionsPage: React.FC = () => {
   }, []);
 
   const filteredSubmissions = submissions.filter(submission => {
-    const matchesFilter = filter === 'all' || submission.status === filter;
-    const matchesSearch = searchTerm === '' || 
-      submission.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      submission.assignmentTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      submission.courseName.toLowerCase().includes(searchTerm.toLowerCase());
+    const courseMatch = selectedCourse === 'all' || 
+      submission.courseName.toLowerCase().includes(selectedCourse.toLowerCase()) ||
+      submission.courseCode.toLowerCase().includes(selectedCourse.toLowerCase()) ||
+      submission.courseCode.toLowerCase().replace('-', '').includes(selectedCourse.toLowerCase().replace('-', ''));
+    const assignmentMatch = selectedAssignment === 'all' || submission.assignmentId === selectedAssignment;
+    const statusMatch = statusFilter === 'all' || submission.status === statusFilter;
     
-    return matchesFilter && matchesSearch;
+    return courseMatch && assignmentMatch && statusMatch;
   });
 
-  const sortedSubmissions = [...filteredSubmissions].sort((a, b) => {
-    let comparison = 0;
-    
-    switch (sortBy) {
-      case 'submittedAt':
-        comparison = new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
-        break;
-      case 'studentName':
-        comparison = a.studentName.localeCompare(b.studentName);
-        break;
-      case 'assignmentTitle':
-        comparison = a.assignmentTitle.localeCompare(b.assignmentTitle);
-        break;
-      case 'grade':
-        comparison = (a.grade || 0) - (b.grade || 0);
-        break;
-    }
-    
-    return sortOrder === 'asc' ? comparison : -comparison;
-  });
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    const mb = bytes / (1024 * 1024);
+    return `${mb.toFixed(1)} MB`;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
       case 'graded':
         return 'bg-green-100 text-green-800';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800';
       case 'returned':
         return 'bg-blue-100 text-blue-800';
       default:
@@ -182,45 +169,13 @@ const SubmissionsPage: React.FC = () => {
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'Pending Review';
-      case 'graded':
-        return 'Graded';
-      case 'returned':
-        return 'Returned';
-      default:
-        return status;
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const handleGradeSubmission = (submissionId: string) => {
-    // Navigate to grading page
-    router.push(`/instructor/submissions/${submissionId}/grade`);
-  };
-
   if (isLoading) {
     return (
       <InstructorRoute>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="text-gray-500 mt-4">Loading submissions...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading submissions...</p>
           </div>
         </div>
       </InstructorRoute>
@@ -231,197 +186,149 @@ const SubmissionsPage: React.FC = () => {
     <InstructorRoute>
       <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-yellow-300/30 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => router.back()}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <span className="text-2xl">←</span>
+                  ←
                 </button>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-800 mb-2">
-                    Student Submissions
-                  </h1>
-                  <p className="text-gray-600">
-                    Review and grade student submissions
-                  </p>
+                  <h1 className="text-2xl font-bold text-gray-800">Video Submissions</h1>
+                  <p className="text-gray-600">Review and manage student video submissions</p>
                 </div>
               </div>
-              <div className="flex items-center space-x-3">
+              
+              <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => router.push('/instructor/grading/bulk')}
-                  className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+                  onClick={() => router.push(`/instructor/grading/bulk?assignment=${selectedAssignment}&course=${selectedCourse}`)}
+                  className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
                 >
-                  Bulk Grade
+                  Start Grading →
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Filters and Search */}
-          <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
-            <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex space-x-2">
-                  {(['all', 'pending', 'graded', 'returned'] as const).map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => setFilter(status)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        filter === status
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
-                    </button>
-                  ))}
-                </div>
-                
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="submittedAt">Sort by Date</option>
-                  <option value="studentName">Sort by Student</option>
-                  <option value="assignmentTitle">Sort by Assignment</option>
-                  <option value="grade">Sort by Grade</option>
-                </select>
-                
-                <button
-                  onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
-                  className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  {sortOrder === 'asc' ? '↑' : '↓'}
-                </button>
-              </div>
-              
-              <div className="flex-1 max-w-md">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Filters */}
+          <div className="bg-white/80 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-gray-200/30 mb-6">
+            <div className="flex items-center space-x-4">
+              <div className="flex-1">
                 <input
                   type="text"
                   placeholder="Search submissions..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="graded">Graded</option>
+                <option value="returned">Returned</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 text-center">
+              <div className="text-2xl font-bold text-[#4A90E2]">{filteredSubmissions.length}</div>
+              <div className="text-sm text-gray-600">Total Submissions</div>
+            </div>
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 text-center">
+              <div className="text-2xl font-bold text-[#9B5DE5]">
+                {filteredSubmissions.filter(s => s.status === 'pending').length}
+              </div>
+              <div className="text-sm text-gray-600">Pending</div>
+            </div>
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 text-center">
+              <div className="text-2xl font-bold text-[#06D6A0]">
+                {filteredSubmissions.filter(s => s.status === 'graded').length}
+              </div>
+              <div className="text-sm text-gray-600">Graded</div>
+            </div>
+            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 text-center">
+              <div className="text-2xl font-bold text-[#FF6F61]">
+                {filteredSubmissions.filter(s => s.status === 'graded').reduce((sum, s) => sum + (s.grade || 0), 0) / 
+                 Math.max(filteredSubmissions.filter(s => s.status === 'graded').length, 1)}
+              </div>
+              <div className="text-sm text-gray-600">Avg Grade</div>
             </div>
           </div>
 
           {/* Submissions List */}
           <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-800">
-                {filteredSubmissions.length} Submissions
-              </h2>
-            </div>
-            
             <div className="space-y-4">
-              {sortedSubmissions.map((submission) => (
+              {filteredSubmissions.map((submission) => (
                 <div
                   key={submission.id}
-                  className="p-6 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-gray-300 hover:shadow-md transition-all duration-300"
                 >
                   <div className="flex items-start space-x-4">
-                    <div className="w-32 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={submission.thumbnailUrl}
-                        alt="Video thumbnail"
-                        className="w-full h-full object-cover"
-                      />
+                    {/* Video Thumbnail */}
+                    <div className="flex-shrink-0">
+                      <div className="w-32 h-20 bg-black rounded-lg overflow-hidden relative">
+                        <img
+                          src={submission.thumbnailUrl}
+                          alt="Video thumbnail"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <span className="text-white text-xs font-medium">
+                            {formatTime(submission.duration)}
+                          </span>
+                        </div>
+                        <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
+                          HD
+                        </div>
+                      </div>
                     </div>
-                    
+
+                    {/* Video Info */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-semibold text-gray-800 text-lg">
-                            {submission.studentName}
-                          </h3>
-                          <p className="text-gray-600 font-medium">
-                            {submission.assignmentTitle}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {submission.courseName}
-                          </p>
-                        </div>
-                        
-                        <div className="flex items-center space-x-3">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(submission.status)}`}>
-                            {getStatusText(submission.status)}
-                          </span>
-                          
-                          {submission.grade && (
-                            <span className="text-xl font-bold text-gray-800">
-                              {submission.grade}%
-                            </span>
-                          )}
-                        </div>
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">
+                          {submission.studentName}
+                        </h3>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
+                          {submission.grade ? `${submission.grade}%` : submission.status}
+                        </span>
                       </div>
                       
-                      <div className="mt-3 flex items-center justify-between">
-                        <div className="flex items-center space-x-6 text-sm text-gray-500">
-                          <span>
-                            Submitted: {new Date(submission.submittedAt).toLocaleDateString()}
-                          </span>
-                          {submission.duration && (
-                            <span>Duration: {formatDuration(submission.duration)}</span>
-                          )}
-                          {submission.fileSize && (
-                            <span>Size: {formatFileSize(submission.fileSize)}</span>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => {
-                              // Navigate to submission detail
-                              console.log('View submission:', submission.id);
-                            }}
-                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
-                          >
-                            View
-                          </button>
-                          
-                          {submission.status === 'pending' && (
-                            <button
-                              onClick={() => handleGradeSubmission(submission.id)}
-                              className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
-                            >
-                              Grade
-                            </button>
-                          )}
-                        </div>
-                      </div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {submission.assignmentTitle}
+                      </p>
                       
-                      {submission.feedback && (
-                        <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
-                          <p className="text-sm text-gray-700">
-                            <span className="font-medium">Feedback:</span> {submission.feedback}
-                          </p>
-                        </div>
-                      )}
+                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <span>📅 {new Date(submission.submittedAt).toLocaleDateString()}</span>
+                        <span>📊 {formatFileSize(submission.fileSize)}</span>
+                        <span>🎥 {submission.courseCode}</span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex-shrink-0">
+                      <button
+                        onClick={() => router.push(`/instructor/grading/bulk?assignment=${submission.assignmentId}&course=${submission.courseCode.toLowerCase()}&submission=${submission.id}`)}
+                        className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300"
+                      >
+                        Grade
+                      </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            
-            {sortedSubmissions.length === 0 && (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">📝</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Submissions Found</h3>
-                <p className="text-gray-600">
-                  {searchTerm ? 'No submissions match your search criteria.' : 'No submissions available for the selected filter.'}
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -429,4 +336,21 @@ const SubmissionsPage: React.FC = () => {
   );
 };
 
-export default SubmissionsPage;
+const SubmissionsListPage: React.FC = () => {
+  return (
+    <Suspense fallback={
+      <InstructorRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </InstructorRoute>
+    }>
+      <SubmissionsListContent />
+    </Suspense>
+  );
+};
+
+export default SubmissionsListPage;

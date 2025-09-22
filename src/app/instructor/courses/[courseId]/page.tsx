@@ -543,10 +543,9 @@ const InstructorCourseDetailPage: React.FC = () => {
             {assignments.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {assignments.map((assignment) => (
-                  <button
+                  <div
                     key={assignment.assignmentId}
-                    onClick={() => router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`)}
-                    className="w-full text-left bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#4A90E2]/20"
+                    className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl transition-all duration-300"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
@@ -584,7 +583,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                     </div>
 
                     {/* Status Badge */}
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                         assignment.status === 'published' ? 'bg-green-100 text-green-800' :
                         assignment.status === 'grading' ? 'bg-yellow-100 text-yellow-800' :
@@ -593,9 +592,24 @@ const InstructorCourseDetailPage: React.FC = () => {
                       }`}>
                         {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
                       </span>
-                      <span className="text-[#4A90E2] font-medium text-sm">Click to grade →</span>
                     </div>
-                  </button>
+
+                    {/* Action Buttons */}
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => router.push(`/instructor/submissions?assignment=${assignment.assignmentId}&course=${courseId}`)}
+                        className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors text-sm"
+                      >
+                        View Submissions
+                      </button>
+                      <button
+                        onClick={() => router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`)}
+                        className="flex-1 px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 text-sm"
+                      >
+                        Start Grading
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
