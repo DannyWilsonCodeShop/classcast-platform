@@ -1,15 +1,16 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { awsConfig } from './aws-config';
 
 // S3 client configuration
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: awsConfig.region,
   // For local development, you can use:
   // endpoint: 'http://localhost:9000',
 });
 
-// Bucket name from environment or default
-const BUCKET_NAME = process.env.STORAGE_BUCKET_NAME || 'classcast-videos-463470937777-us-east-1';
+// Bucket name from unified configuration
+const BUCKET_NAME = awsConfig.s3.buckets.videos;
 
 // CloudFront domain from environment
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;

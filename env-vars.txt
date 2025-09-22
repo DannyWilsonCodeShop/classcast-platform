@@ -1,10 +1,39 @@
+# AWS Configuration
+AWS_REGION=us-east-1
+
+# Cognito Configuration
 NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_uK50qBrap
 NEXT_PUBLIC_COGNITO_CLIENT_ID=7tbaq74itv3gdda1bt25iqafvh
 NEXT_PUBLIC_COGNITO_IDENTITY_POOL_ID=us-east-1:463470937777
+
+# API Gateway Configuration
 NEXT_PUBLIC_API_GATEWAY_URL=https://785t4qadp8.execute-api.us-east-1.amazonaws.com/prod
 API_GATEWAY_URL=https://785t4qadp8.execute-api.us-east-1.amazonaws.com/prod
+
+# DynamoDB Configuration
+USERS_TABLE_NAME=classcast-users
+ASSIGNMENTS_TABLE_NAME=classcast-assignments
+SUBMISSIONS_TABLE_NAME=classcast-submissions
+COURSES_TABLE_NAME=classcast-courses
+CONTENT_MODERATION_TABLE_NAME=classcast-content-moderation
+
+# S3 Configuration
+S3_VIDEOS_BUCKET=classcast-videos-463470937777-us-east-1
+S3_ASSETS_BUCKET=cdk-hnb659fds-assets-463470937777-us-east-1
+
+# Email Configuration
 FROM_EMAIL=noreply@myclasscast.com
 REPLY_TO_EMAIL=support@myclasscast.com
-AWS_REGION=us-east-1
-NEXT_PUBLIC_APP_URL=https://myclasscast.com
+
+# Application Configuration
+NEXT_PUBLIC_APP_URL=https://main.d166bugwfgjggz.amplifyapp.com
 NODE_ENV=production
+
+# JWT Configuration (for local development)
+JWT_SECRET=your-secure-jwt-secret-key-for-development-only
+
+# Database Configuration (if using RDS)
+DATABASE_URL=postgresql://username:password@hostname:5432/classcast
+
+# Redis Configuration (if using ElastiCache)
+REDIS_URL=redis://hostname:6379
