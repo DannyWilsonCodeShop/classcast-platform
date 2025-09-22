@@ -920,215 +920,177 @@ const BulkGradingPage: React.FC = () => {
         </div>
 
             {/* Main Content */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
-                
-                {/* Video List - Left Side */}
-                <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-white/20 p-6">
-                  <div className="h-full flex flex-col">
-                    {/* Global Playback Speed Control */}
-                    <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">Global Playback Speed:</span>
-                        <div className="flex items-center space-x-2">
-                          {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map(speed => (
-                            <button
-                              key={speed}
-                              onClick={() => handleSpeedChange(speed)}
-                              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                                playbackSpeed === speed
-                                  ? 'bg-blue-500 text-white'
-                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                              }`}
-                            >
-                              {speed}x
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Video List */}
-                    <div className="flex-1 overflow-y-auto space-y-4">
-                      {filteredSubmissions.map((submission, index) => (
-                        <div
-                          key={submission.id}
-                          className={`p-4 rounded-lg border-2 transition-all duration-300 cursor-pointer ${
-                            index === currentSubmissionIndex
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
-                          }`}
-                          onClick={() => goToSubmission(index)}
-                        >
-                          <div className="flex items-start space-x-4">
-                            {/* Video Thumbnail */}
-                            <div className="flex-shrink-0">
-                              <div className="w-32 h-20 bg-black rounded-lg overflow-hidden relative">
-                                <img
-                                  src={submission.thumbnailUrl}
-                                  alt="Video thumbnail"
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                                  <span className="text-white text-xs font-medium">
-                                    {formatTime(submission.duration)}
-                                  </span>
-                                </div>
-                                <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs">
-                                  HD
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Video Info */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between mb-2">
-                                <h3 className="text-lg font-semibold text-gray-900 truncate">
-                                  {submission.studentName}
-                                </h3>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  submission.status === 'graded' ? 'bg-green-100 text-green-800' :
-                                  submission.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {submission.grade ? `${submission.grade}%` : submission.status}
-                                </span>
-                              </div>
-                              
-                              <p className="text-sm text-gray-600 mb-2">
-                                {submission.assignmentTitle}
-                              </p>
-                              
-                              <div className="flex items-center space-x-4 text-xs text-gray-500">
-                                <span>📅 {new Date(submission.submittedAt).toLocaleDateString()}</span>
-                                <span>📊 {formatFileSize(submission.fileSize)}</span>
-                                <span>🎥 {submission.courseCode}</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6 h-[calc(100vh-200px)]">
+            <div className="h-full flex flex-col">
+              {/* Global Playback Speed Control */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-700">Global Playback Speed:</span>
+                  <div className="flex items-center space-x-2">
+                    {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map(speed => (
+                      <button
+                        key={speed}
+                        onClick={() => handleSpeedChange(speed)}
+                        className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                          playbackSpeed === speed
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        {speed}x
+                      </button>
+                    ))}
                   </div>
                 </div>
+              </div>
 
-                {/* Grading Panel - Right Side */}
-                <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6">
-                  {currentSubmission ? (
-                    <div className="h-full flex flex-col">
-                      {/* Current Video Player */}
-                      <div className="mb-6">
+              {/* Video List - Vertical Scrolling */}
+              <div className="flex-1 overflow-y-auto space-y-6">
+                {filteredSubmissions.map((submission, index) => (
+                  <div
+                    key={submission.id}
+                    className={`p-6 rounded-lg border-2 transition-all duration-300 ${
+                      index === currentSubmissionIndex
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
+                    }`}
+                  >
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Video Player */}
+                      <div>
                         <div className="bg-black rounded-lg overflow-hidden mb-4 relative">
                           <video
-                            ref={videoRef}
-                            src={currentSubmission.fileUrl}
-                            className="w-full h-48 object-contain"
-                            onTimeUpdate={handleTimeUpdate}
-                            onLoadedMetadata={handleLoadedMetadata}
-                            onPlay={() => setIsPlaying(true)}
-                            onPause={() => setIsPlaying(false)}
-                            onEnded={() => setIsPlaying(false)}
+                            ref={index === currentSubmissionIndex ? videoRef : null}
+                            src={submission.fileUrl}
+                            className="w-full h-64 object-contain"
+                            onTimeUpdate={index === currentSubmissionIndex ? handleTimeUpdate : undefined}
+                            onLoadedMetadata={index === currentSubmissionIndex ? handleLoadedMetadata : undefined}
+                            onPlay={() => index === currentSubmissionIndex && setIsPlaying(true)}
+                            onPause={() => index === currentSubmissionIndex && setIsPlaying(false)}
+                            onEnded={() => index === currentSubmissionIndex && setIsPlaying(false)}
                           />
                           
                           {/* Video Controls Overlay */}
-                          <div className="absolute bottom-4 left-4 right-4">
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={handlePlayPause}
-                                className="w-8 h-8 bg-black/70 text-white rounded-full flex items-center justify-center hover:bg-black/90 transition-colors"
-                              >
-                                {isPlaying ? '⏸️' : '▶️'}
-                              </button>
-                              
-                              <div className="flex-1 bg-gray-200 rounded-full h-1">
-                                <div 
-                                  className="bg-blue-500 h-1 rounded-full transition-all duration-200"
-                                  style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                                />
+                          {index === currentSubmissionIndex && (
+                            <div className="absolute bottom-4 left-4 right-4">
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={handlePlayPause}
+                                  className="w-8 h-8 bg-black/70 text-white rounded-full flex items-center justify-center hover:bg-black/90 transition-colors"
+                                >
+                                  {isPlaying ? '⏸️' : '▶️'}
+                                </button>
+                                
+                                <div className="flex-1 bg-gray-200 rounded-full h-1">
+                                  <div 
+                                    className="bg-blue-500 h-1 rounded-full transition-all duration-200"
+                                    style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
+                                  />
+                                </div>
+                                
+                                <span className="text-white text-xs">
+                                  {formatTime(currentTime)} / {formatTime(duration)}
+                                </span>
                               </div>
-                              
-                              <span className="text-white text-xs">
-                                {formatTime(currentTime)} / {formatTime(duration)}
-                              </span>
                             </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Submission Info */}
-                      <div className="mb-6">
-                        <h2 className="text-lg font-bold text-gray-800 mb-2">
-                          {currentSubmission.studentName}
-                        </h2>
-                        <p className="text-sm text-gray-600 mb-1">
-                          {currentSubmission.assignmentTitle}
-                        </p>
-                        <p className="text-xs text-gray-500 mb-3">
-                          {currentSubmission.courseName} ({currentSubmission.courseCode})
-                        </p>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(currentSubmission.status)}`}>
-                            {getStatusText(currentSubmission.status)}
-                          </span>
-                          {currentSubmission.grade && (
-                            <span className="text-sm font-bold text-green-600">
-                              Grade: {currentSubmission.grade}%
-                            </span>
                           )}
                         </div>
                       </div>
 
-                      {/* Grading Form */}
-                      <div className="flex-1 space-y-4">
+                      {/* Submission Info and Grading Form */}
+                      <div className="space-y-4">
+                        {/* Submission Info */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Grade (0-100)
-                          </label>
-                          <input
-                            type="number"
-                            value={currentGrade}
-                            onChange={(e) => setCurrentGrade(e.target.value ? Number(e.target.value) : '')}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            min="0"
-                            max="100"
-                            placeholder="Enter grade"
-                          />
+                          <h2 className="text-xl font-bold text-gray-800 mb-2">
+                            {submission.studentName}
+                          </h2>
+                          <p className="text-sm text-gray-600 mb-1">
+                            {submission.assignmentTitle}
+                          </p>
+                          <p className="text-xs text-gray-500 mb-3">
+                            {submission.courseName} ({submission.courseCode})
+                          </p>
+                          
+                          <div className="flex items-center justify-between mb-4">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
+                              {getStatusText(submission.status)}
+                            </span>
+                            {submission.grade && (
+                              <span className="text-sm font-bold text-green-600">
+                                Grade: {submission.grade}%
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Feedback
-                          </label>
-                          <textarea
-                            value={currentFeedback}
-                            onChange={(e) => setCurrentFeedback(e.target.value)}
-                            rows={6}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter detailed feedback for the student..."
-                          />
+
+                        {/* Grading Form */}
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Grade (0-100)
+                            </label>
+                            <input
+                              type="number"
+                              value={index === currentSubmissionIndex ? currentGrade : ''}
+                              onChange={(e) => {
+                                if (index === currentSubmissionIndex) {
+                                  setCurrentGrade(e.target.value ? Number(e.target.value) : '');
+                                }
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              min="0"
+                              max="100"
+                              placeholder="Enter grade"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Feedback
+                            </label>
+                            <textarea
+                              value={index === currentSubmissionIndex ? currentFeedback : ''}
+                              onChange={(e) => {
+                                if (index === currentSubmissionIndex) {
+                                  setCurrentFeedback(e.target.value);
+                                }
+                              }}
+                              rows={4}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Enter detailed feedback for the student..."
+                            />
+                          </div>
+                          
+                          <button
+                            onClick={() => {
+                              if (index === currentSubmissionIndex) {
+                                handleGradeSubmission();
+                              } else {
+                                goToSubmission(index);
+                              }
+                            }}
+                            disabled={index === currentSubmissionIndex ? (!currentGrade || isGrading) : false}
+                            className={`w-full px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                              index === currentSubmissionIndex
+                                ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed'
+                                : 'bg-gray-500 text-white hover:bg-gray-600'
+                            }`}
+                          >
+                            {index === currentSubmissionIndex 
+                              ? (isGrading ? 'Grading...' : 'Grade Submission')
+                              : 'Select This Submission'
+                            }
+                          </button>
                         </div>
-                        
-                        <button
-                          onClick={handleGradeSubmission}
-                          disabled={!currentGrade || isGrading}
-                          className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isGrading ? 'Grading...' : 'Grade Submission'}
-                        </button>
                       </div>
                     </div>
-                  ) : (
-                    <div className="h-full flex items-center justify-center text-gray-500">
-                      <div className="text-center">
-                        <div className="text-4xl mb-2">📝</div>
-                        <p>Select a submission to grade</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
+        </div>
       </div>
     </InstructorRoute>
   );
