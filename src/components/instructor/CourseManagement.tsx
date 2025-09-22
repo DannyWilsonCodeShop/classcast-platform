@@ -219,81 +219,90 @@ export const CourseManagement: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Course Management</h1>
-          <p className="mt-2 text-gray-600">
-            Create and manage your courses
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800 mb-2">My Courses</h1>
+              <p className="text-gray-600">
+                {courses.length} course{courses.length !== 1 ? 's' : ''} total
+              </p>
+            </div>
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+            >
+              + Create Course
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="bg-[#003366] text-white px-4 py-2 rounded-lg hover:bg-[#003366]/90 transition-colors"
-        >
-          Create New Course
-        </button>
+
+        {/* Filters */}
+        <div className="mb-8">
+          <CourseFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+          />
+        </div>
+
+        {/* Course Grid */}
+        {courses.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">📚</div>
+            <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Courses Yet</h3>
+            <p className="text-gray-600 mb-8">Create your first course to get started teaching.</p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-8 py-4 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+            >
+              Create Your First Course
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            {courses.map((course) => (
+              <CourseCard
+                key={course.courseId}
+                course={course}
+                onEdit={(course) => setEditingCourse(course)}
+                onDelete={handleDeleteCourse}
+                onArchive={handleArchiveCourse}
+                onPublish={handlePublishCourse}
+                onBulkEnroll={handleBulkEnroll}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {pagination.totalPages > 1 && (
+          <div className="mt-12 flex justify-center">
+            <div className="flex items-center space-x-2 bg-white rounded-xl shadow-lg border border-gray-200/30 p-2">
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                ← Previous
+              </button>
+              
+              <span className="px-4 py-2 text-sm text-gray-700 font-medium">
+                Page {pagination.page} of {pagination.totalPages}
+              </span>
+              
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Filters */}
-      <CourseFilters
-        filters={filters}
-        onFilterChange={handleFilterChange}
-      />
-
-      {/* Course Grid */}
-      {courses.length === 0 ? (
-        <EmptyState
-          title="No Courses Found"
-          description="Create your first course to get started"
-          icon="course"
-          action={{
-            label: 'Create Course',
-            onClick: () => setShowForm(true),
-            variant: 'primary',
-          }}
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courses.map((course) => (
-            <CourseCard
-              key={course.courseId}
-              course={course}
-              onEdit={(course) => setEditingCourse(course)}
-              onDelete={handleDeleteCourse}
-              onArchive={handleArchiveCourse}
-              onPublish={handlePublishCourse}
-              onBulkEnroll={handleBulkEnroll}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Pagination */}
-      {pagination.totalPages > 1 && (
-        <div className="flex justify-center items-center space-x-2">
-          <button
-            onClick={() => handlePageChange(pagination.page - 1)}
-            disabled={pagination.page === 1}
-            className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            Previous
-          </button>
-          
-          <span className="px-4 py-2 text-sm text-gray-700">
-            Page {pagination.page} of {pagination.totalPages}
-          </span>
-          
-          <button
-            onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={pagination.page === pagination.totalPages}
-            className="px-3 py-2 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-          >
-            Next
-          </button>
-        </div>
-      )}
 
       {/* Course Form Modal */}
       {showForm && (
