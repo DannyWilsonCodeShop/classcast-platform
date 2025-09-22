@@ -1011,9 +1011,9 @@ const BulkGradingPage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-sm border-b border-yellow-300/30 sticky top-0 z-40">
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -1091,7 +1091,7 @@ const BulkGradingPage: React.FC = () => {
 
             {/* Main Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6 h-[calc(100vh-200px)]">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 h-[calc(100vh-200px)]">
             <div className="h-full flex flex-col">
               {/* Global Playback Speed Control */}
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
@@ -1209,112 +1209,114 @@ const BulkGradingPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* AI Grading Section */}
+                        {/* AI Grading Section - Compact */}
                         {index === currentSubmissionIndex && (
-                          <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-200">
-                            <div className="flex items-center justify-between mb-4">
+                          <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex items-center justify-between mb-3">
                               <div className="flex items-center space-x-2">
-                                <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                                  <span className="text-white text-sm">🤖</span>
+                                <div className="w-6 h-6 bg-purple-500 rounded flex items-center justify-center">
+                                  <span className="text-white text-xs">🤖</span>
                                 </div>
-                                <h3 className="text-lg font-semibold text-gray-800">AI Grading Assistant</h3>
+                                <span className="text-sm font-medium text-gray-700">AI Assistant</span>
                               </div>
-                              <button
-                                onClick={() => setShowAIPanel(prev => ({ ...prev, [submission.id]: !prev[submission.id] }))}
-                                className="text-sm text-purple-600 hover:text-purple-800 font-medium"
-                              >
-                                {showAIPanel[submission.id] ? 'Hide Analysis' : 'Show Analysis'}
-                              </button>
-                            </div>
-                            
-                            <div className="flex space-x-2 mb-4">
-                              <button
-                                onClick={() => analyzeWithAI(submission)}
-                                disabled={isAIAnalyzing[submission.id]}
-                                className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-                              >
-                                {isAIAnalyzing[submission.id] ? (
-                                  <>
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    <span>Analyzing...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span>🤖</span>
-                                    <span>Analyze with AI</span>
-                                  </>
-                                )}
-                              </button>
-                              
-                              {aiSuggestions[submission.id] && (
+                              <div className="flex items-center space-x-2">
                                 <button
-                                  onClick={() => applyAISuggestions(submission.id)}
-                                  className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors flex items-center space-x-2"
+                                  onClick={() => analyzeWithAI(submission)}
+                                  disabled={isAIAnalyzing[submission.id]}
+                                  className="px-3 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
                                 >
-                                  <span>✓</span>
-                                  <span>Apply Suggestions</span>
+                                  {isAIAnalyzing[submission.id] ? (
+                                    <>
+                                      <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                                      <span>Analyzing...</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span>🤖</span>
+                                      <span>Analyze</span>
+                                    </>
+                                  )}
                                 </button>
-                              )}
+                                
+                                {aiSuggestions[submission.id] && (
+                                  <button
+                                    onClick={() => applyAISuggestions(submission.id)}
+                                    className="px-3 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition-colors flex items-center space-x-1"
+                                  >
+                                    <span>✓</span>
+                                    <span>Apply</span>
+                                  </button>
+                                )}
+                                
+                                {aiSuggestions[submission.id] && (
+                                  <button
+                                    onClick={() => setShowAIPanel(prev => ({ ...prev, [submission.id]: !prev[submission.id] }))}
+                                    className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800"
+                                  >
+                                    {showAIPanel[submission.id] ? '▼' : '▶'}
+                                  </button>
+                                )}
+                              </div>
                             </div>
 
-                            {/* AI Analysis Panel */}
+                            {/* Compact AI Analysis Panel */}
                             {showAIPanel[submission.id] && aiSuggestions[submission.id] && (
-                              <div className="space-y-4">
-                                {/* Rubric-based Scoring */}
-                                <div className="grid grid-cols-2 gap-4">
-                                  <div className="text-center p-3 bg-white rounded-lg">
-                                    <div className="text-2xl font-bold text-blue-600">
+                              <div className="space-y-3">
+                                {/* Compact Rubric Scores */}
+                                <div className="grid grid-cols-4 gap-2">
+                                  <div className="text-center p-2 bg-white rounded border">
+                                    <div className="text-lg font-bold text-blue-600">
                                       {aiSuggestions[submission.id].rubric.contentQuality.earned}/{aiSuggestions[submission.id].rubric.contentQuality.possible}
                                     </div>
-                                    <div className="text-xs text-gray-600">Content Quality</div>
+                                    <div className="text-xs text-gray-500">Content</div>
                                   </div>
-                                  <div className="text-center p-3 bg-white rounded-lg">
-                                    <div className="text-2xl font-bold text-green-600">
+                                  <div className="text-center p-2 bg-white rounded border">
+                                    <div className="text-lg font-bold text-green-600">
                                       {aiSuggestions[submission.id].rubric.presentation.earned}/{aiSuggestions[submission.id].rubric.presentation.possible}
                                     </div>
-                                    <div className="text-xs text-gray-600">Presentation</div>
+                                    <div className="text-xs text-gray-500">Presentation</div>
                                   </div>
-                                  <div className="text-center p-3 bg-white rounded-lg">
-                                    <div className="text-2xl font-bold text-purple-600">
+                                  <div className="text-center p-2 bg-white rounded border">
+                                    <div className="text-lg font-bold text-purple-600">
                                       {aiSuggestions[submission.id].rubric.technicalAspects.earned}/{aiSuggestions[submission.id].rubric.technicalAspects.possible}
                                     </div>
-                                    <div className="text-xs text-gray-600">Technical</div>
+                                    <div className="text-xs text-gray-500">Technical</div>
                                   </div>
-                                  <div className="text-center p-3 bg-white rounded-lg">
-                                    <div className="text-2xl font-bold text-orange-600">
+                                  <div className="text-center p-2 bg-white rounded border">
+                                    <div className="text-lg font-bold text-orange-600">
                                       {aiSuggestions[submission.id].rubric.engagement.earned}/{aiSuggestions[submission.id].rubric.engagement.possible}
                                     </div>
-                                    <div className="text-xs text-gray-600">Engagement</div>
+                                    <div className="text-xs text-gray-500">Engagement</div>
                                   </div>
                                 </div>
 
-                                {/* AI Suggested Grade */}
-                                <div className="p-3 bg-white rounded-lg border-l-4 border-blue-500">
+                                {/* Compact Grade Suggestion */}
+                                <div className="p-2 bg-white rounded border-l-2 border-blue-500">
                                   <div className="flex items-center justify-between">
-                                    <span className="font-medium text-gray-700">AI Suggested Grade:</span>
-                                    <span className="text-2xl font-bold text-blue-600">{aiSuggestions[submission.id].suggestedGrade}%</span>
+                                    <span className="text-sm font-medium text-gray-700">Suggested Grade:</span>
+                                    <span className="text-lg font-bold text-blue-600">{aiSuggestions[submission.id].suggestedGrade}%</span>
                                   </div>
                                 </div>
 
-                                {/* Strengths and Improvements */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Compact Strengths and Improvements */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                   <div>
-                                    <h4 className="font-medium text-green-700 mb-2">Strengths</h4>
+                                    <h4 className="text-xs font-medium text-green-700 mb-1">Strengths</h4>
                                     <ul className="space-y-1">
-                                      {aiSuggestions[submission.id].strengths.map((strength, idx) => (
-                                        <li key={idx} className="text-sm text-gray-600 flex items-start space-x-2">
-                                          <span className="text-green-500 mt-1">✓</span>
+                                      {aiSuggestions[submission.id].strengths.slice(0, 3).map((strength, idx) => (
+                                        <li key={idx} className="text-xs text-gray-600 flex items-start space-x-1">
+                                          <span className="text-green-500 mt-0.5">✓</span>
                                           <span>{strength}</span>
                                         </li>
                                       ))}
                                     </ul>
                                   </div>
                                   <div>
-                                    <h4 className="font-medium text-orange-700 mb-2">Improvements</h4>
+                                    <h4 className="text-xs font-medium text-orange-700 mb-1">Improvements</h4>
                                     <ul className="space-y-1">
-                                      {aiSuggestions[submission.id].improvements.map((improvement, idx) => (
-                                        <li key={idx} className="text-sm text-gray-600 flex items-start space-x-2">
-                                          <span className="text-orange-500 mt-1">•</span>
+                                      {aiSuggestions[submission.id].improvements.slice(0, 3).map((improvement, idx) => (
+                                        <li key={idx} className="text-xs text-gray-600 flex items-start space-x-1">
+                                          <span className="text-orange-500 mt-0.5">•</span>
                                           <span>{improvement}</span>
                                         </li>
                                       ))}
@@ -1322,10 +1324,10 @@ const BulkGradingPage: React.FC = () => {
                                   </div>
                                 </div>
 
-                                {/* AI Generated Feedback Preview */}
-                                <div className="p-3 bg-gray-50 rounded-lg">
-                                  <h4 className="font-medium text-gray-700 mb-2">AI Generated Feedback:</h4>
-                                  <p className="text-sm text-gray-600 italic">"{aiSuggestions[submission.id].suggestedFeedback}"</p>
+                                {/* Compact Feedback Preview */}
+                                <div className="p-2 bg-gray-100 rounded">
+                                  <h4 className="text-xs font-medium text-gray-700 mb-1">AI Feedback:</h4>
+                                  <p className="text-xs text-gray-600 italic line-clamp-2">"{aiSuggestions[submission.id].suggestedFeedback}"</p>
                                 </div>
                               </div>
                             )}
