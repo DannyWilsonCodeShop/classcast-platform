@@ -70,48 +70,16 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300 hover:scale-105">
-      {/* Header */}
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition-all duration-300">
       <div className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <h3 className="text-xl font-bold text-gray-900 mb-2">
               {course.title}
             </h3>
-            <p className="text-sm text-gray-600 mb-3">
+            <p className="text-sm text-gray-600">
               {course.code} • {course.semester} {course.year}
             </p>
-            <div className="flex items-center space-x-3">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(course.status)}`}>
-                {getStatusIcon(course.status)}
-                <span className="ml-1 capitalize">{course.status}</span>
-              </span>
-              <span className="text-sm text-gray-600">
-                {course.currentEnrollment} students
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-[#4A90E2]">
-              {course.statistics.totalAssignments}
-            </div>
-            <div className="text-xs text-gray-500">Assignments</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-[#9B5DE5]">
-              {course.statistics.averageGrade.toFixed(0)}%
-            </div>
-            <div className="text-xs text-gray-500">Avg Grade</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-[#06D6A0]">
-              {course.credits}
-            </div>
-            <div className="text-xs text-gray-500">Credits</div>
           </div>
         </div>
 
@@ -121,7 +89,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             onClick={() => router.push(`/instructor/courses/${course.courseId}`)}
             className="flex-1 px-4 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
           >
-            View Course →
+            View Class →
           </button>
           
           {/* Quick Actions Menu */}
@@ -129,7 +97,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
             <button
               onClick={() => onEdit(course)}
               className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-              title="Edit Course"
+              title="Edit Class"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
