@@ -1018,18 +1018,25 @@ const BulkGradingPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => router.back()}
+                  onClick={() => router.push('/instructor/dashboard')}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  <span className="text-2xl">←</span>
+                  <span className="text-2xl">&lt;</span>
                 </button>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-800 mb-1">
-                    Video Grading Interface
-                  </h1>
-                  <p className="text-gray-600 text-sm">
-                    {currentSubmissionIndex + 1} of {filteredSubmissions.length} submissions
-                  </p>
+                <div className="flex items-center space-x-4">
+                  <img 
+                    src="/MyClassCast (800 x 200 px).png" 
+                    alt="ClassCast Logo" 
+                    className="h-8 w-auto"
+                  />
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-800 mb-1">
+                      Video Grading Interface
+                    </h1>
+                    <p className="text-gray-600 text-sm">
+                      {currentSubmissionIndex + 1} of {filteredSubmissions.length} submissions
+                    </p>
+                  </div>
                 </div>
               </div>
               
