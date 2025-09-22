@@ -241,24 +241,24 @@ const SubmissionsListContent: React.FC = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 text-center">
-              <div className="text-2xl font-bold text-[#4A90E2]">{filteredSubmissions.length}</div>
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 text-center">
+              <div className="text-2xl font-bold text-blue-600">{filteredSubmissions.length}</div>
               <div className="text-sm text-gray-600">Total Submissions</div>
             </div>
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 text-center">
-              <div className="text-2xl font-bold text-[#9B5DE5]">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 text-center">
+              <div className="text-2xl font-bold text-purple-600">
                 {filteredSubmissions.filter(s => s.status === 'pending').length}
               </div>
               <div className="text-sm text-gray-600">Pending</div>
             </div>
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 text-center">
-              <div className="text-2xl font-bold text-[#06D6A0]">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 text-center">
+              <div className="text-2xl font-bold text-green-600">
                 {filteredSubmissions.filter(s => s.status === 'graded').length}
               </div>
               <div className="text-sm text-gray-600">Graded</div>
             </div>
-            <div className="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-4 text-center">
-              <div className="text-2xl font-bold text-[#FF6F61]">
+            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 text-center">
+              <div className="text-2xl font-bold text-orange-600">
                 {filteredSubmissions.filter(s => s.status === 'graded').reduce((sum, s) => sum + (s.grade || 0), 0) / 
                  Math.max(filteredSubmissions.filter(s => s.status === 'graded').length, 1)}
               </div>
@@ -267,7 +267,7 @@ const SubmissionsListContent: React.FC = () => {
           </div>
 
           {/* Submissions List */}
-          <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
             <div className="space-y-4">
               {filteredSubmissions.map((submission) => (
                 <div
@@ -320,7 +320,7 @@ const SubmissionsListContent: React.FC = () => {
                     <div className="flex-shrink-0">
                       <button
                         onClick={() => router.push(`/instructor/grading/bulk?assignment=${submission.assignmentId}&course=${submission.courseCode.toLowerCase()}&submission=${submission.id}`)}
-                        className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-300"
+                        className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
                       >
                         Grade
                       </button>
