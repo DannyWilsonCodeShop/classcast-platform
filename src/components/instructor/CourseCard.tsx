@@ -119,7 +119,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         <div className="flex items-center justify-between">
           <button
             onClick={() => router.push(`/instructor/courses/${course.courseId}`)}
-            className="flex-1 px-4 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+            className="flex-1 px-4 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
           >
             View Course →
           </button>

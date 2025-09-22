@@ -191,14 +191,21 @@ const SubmissionsListContent: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => router.back()}
+                  onClick={() => router.push('/instructor/dashboard')}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  ←
+                  <span className="text-2xl">&lt;</span>
                 </button>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-800">Video Submissions</h1>
-                  <p className="text-gray-600">Review and manage student video submissions</p>
+                <div className="flex items-center space-x-4">
+                  <img 
+                    src="/MyClassCast (800 x 200 px).png" 
+                    alt="ClassCast Logo" 
+                    className="h-8 w-auto"
+                  />
+                  <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Video Submissions</h1>
+                    <p className="text-gray-600">Review and manage student video submissions</p>
+                  </div>
                 </div>
               </div>
               
