@@ -283,6 +283,20 @@ export const LiveVideoRecorder: React.FC<LiveVideoRecorderProps> = ({
             )}
           </div>
         )}
+        
+        {/* Quick Recording Tips - Always visible */}
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <h4 className="text-xs font-semibold text-blue-800 mb-2 flex items-center">
+            <span className="mr-1">💡</span>
+            Quick Tips
+          </h4>
+          <div className="grid grid-cols-2 gap-2 text-xs text-blue-700">
+            <div>• Good lighting</div>
+            <div>• Clear audio</div>
+            <div>• Look at camera</div>
+            <div>• Speak clearly</div>
+          </div>
+        </div>
       </div>
     </div>
   );
