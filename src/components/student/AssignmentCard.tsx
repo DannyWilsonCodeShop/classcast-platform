@@ -62,22 +62,12 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
   // Get type icon and color
   const getTypeInfo = (type: AssignmentType) => {
     switch (type) {
-      case AssignmentType.ESSAY:
-        return { icon: '📝', color: 'bg-blue-100 text-blue-800', text: 'Essay' };
-      case AssignmentType.QUIZ:
-        return { icon: '📋', color: 'bg-green-100 text-green-800', text: 'Quiz' };
-      case AssignmentType.PROJECT:
-        return { icon: '💻', color: 'bg-purple-100 text-purple-800', text: 'Project' };
-      case AssignmentType.PRESENTATION:
-        return { icon: '🎤', color: 'bg-yellow-100 text-yellow-800', text: 'Presentation' };
-      case AssignmentType.LAB:
-        return { icon: '🧪', color: 'bg-red-100 text-red-800', text: 'Lab' };
-      case AssignmentType.EXAM:
-        return { icon: '📚', color: 'bg-indigo-100 text-indigo-800', text: 'Exam' };
-      case AssignmentType.DISCUSSION:
-        return { icon: '💬', color: 'bg-pink-100 text-pink-800', text: 'Discussion' };
-      case AssignmentType.PEER_REVIEW:
-        return { icon: '👥', color: 'bg-orange-100 text-orange-800', text: 'Peer Review' };
+      case AssignmentType.VIDEO_ASSIGNMENT:
+        return { icon: '🎥', color: 'bg-blue-100 text-blue-800', text: 'Video Assignment' };
+      case AssignmentType.VIDEO_DISCUSSION:
+        return { icon: '💬', color: 'bg-green-100 text-green-800', text: 'Video Discussion' };
+      case AssignmentType.VIDEO_ASSESSMENT:
+        return { icon: '📝', color: 'bg-purple-100 text-purple-800', text: 'Video Assessment' };
       default:
         return { icon: '📄', color: 'bg-gray-100 text-gray-800', text: type };
     }
@@ -113,9 +103,14 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
       }`}>
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-gray-900 truncate">
-              {assignment.title}
-            </h3>
+            <div className="flex items-center space-x-2">
+              {assignment.emoji && (
+                <span className="text-lg">{assignment.emoji}</span>
+              )}
+              <h3 className="text-sm font-medium text-gray-900 truncate">
+                {assignment.title}
+              </h3>
+            </div>
             {showCourseInfo && (
               <p className="text-xs text-gray-500 mt-1">
                 {assignment.courseId}
@@ -184,9 +179,14 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-            {assignment.title}
-          </h3>
+          <div className="flex items-center space-x-2 mb-2">
+            {assignment.emoji && (
+              <span className="text-2xl">{assignment.emoji}</span>
+            )}
+            <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
+              {assignment.title}
+            </h3>
+          </div>
           <p className="text-sm text-gray-600 line-clamp-3">
             {assignment.description}
           </p>
@@ -200,6 +200,17 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
           </span>
         </div>
       </div>
+
+      {/* Cover Photo */}
+      {assignment.coverPhoto && (
+        <div className="mb-4">
+          <img
+            src={assignment.coverPhoto}
+            alt="Assignment cover"
+            className="w-full h-32 object-cover rounded-lg"
+          />
+        </div>
+      )}
 
       {/* Course and Instructor Info */}
       {(showCourseInfo || showInstructorInfo) && (
@@ -294,6 +305,15 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
             </svg>
             <span className="text-gray-600">Submissions:</span>
             <span className="ml-2 font-medium text-gray-900">{assignment.maxSubmissions}</span>
+          </div>
+        )}
+        {assignment.requireLiveRecording && (
+          <div className="flex items-center">
+            <svg className="h-4 w-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span className="text-gray-600">Live Recording:</span>
+            <span className="ml-2 font-medium text-red-600">Required</span>
           </div>
         )}
       </div>

@@ -60,6 +60,14 @@ export interface Assignment {
   instructorId: string;
   status: AssignmentStatus;
   
+  // Visual Identity
+  coverPhoto?: string; // URL to cover photo
+  emoji?: string; // Emoji for assignment
+  color?: string; // Hex color code for assignment theme
+  
+  // Recording Settings
+  requireLiveRecording?: boolean; // Force students to record live instead of uploading files
+  
   // Timestamps
   createdAt: string;
   updatedAt: string;
@@ -69,7 +77,6 @@ export interface Assignment {
   
   // Grading
   maxScore: number;
-  weight?: number; // Percentage weight in course
   rubric?: GradingRubric[];
   
   // Requirements
@@ -162,14 +169,9 @@ export enum UserStatus {
 }
 
 export enum AssignmentType {
-  ESSAY = 'essay',
-  QUIZ = 'quiz',
-  PROJECT = 'project',
-  PRESENTATION = 'presentation',
-  LAB = 'lab',
-  EXAM = 'exam',
-  DISCUSSION = 'discussion',
-  PEER_REVIEW = 'peer_review',
+  VIDEO_ASSIGNMENT = 'video_assignment',
+  VIDEO_DISCUSSION = 'video_discussion',
+  VIDEO_ASSESSMENT = 'video_assessment',
 }
 
 export enum AssignmentStatus {

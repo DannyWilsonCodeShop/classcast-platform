@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProfileEditor from '@/components/student/ProfileEditor';
+import { PeerInteractionStats } from '@/components/student/PeerInteractionStats';
 
 const StudentProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -204,6 +205,14 @@ const StudentProfilePage: React.FC = () => {
                     <p className="text-[#333333] leading-relaxed">{user.bio}</p>
                   </div>
                 )}
+
+                {/* Peer Interaction Stats */}
+                <div className="mt-6">
+                  <PeerInteractionStats 
+                    studentId={user.id || ''} 
+                    className="w-full"
+                  />
+                </div>
 
                 {/* Quick Actions */}
                 <div className="mt-8 pt-6 border-t border-gray-200">

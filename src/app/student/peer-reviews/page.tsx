@@ -19,6 +19,10 @@ interface PeerVideo {
   assignmentTitle: string;
   courseId: string;
   courseName: string;
+  likes: number;
+  averageRating: number;
+  userLiked: boolean;
+  userRating: number | null;
 }
 
 interface PeerResponse {
@@ -89,6 +93,11 @@ const PeerReviewsContent: React.FC = () => {
   const [responseType, setResponseType] = useState<'text' | 'video' | 'mixed'>('text');
   const [isRecording, setIsRecording] = useState(false);
   const [recordedVideo, setRecordedVideo] = useState<string | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
   const [responseStats, setResponseStats] = useState({
     totalResponses: 0,
@@ -96,8 +105,86 @@ const PeerReviewsContent: React.FC = () => {
     remainingRequired: 0
   });
 
+  // Like and rating functions
+  const handleLike = async (videoId: string) => {
+    try {
+      const response = await fetch('/api/peer-interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoId: videoId,
+          studentId: 'current_student_id', // In production, get from auth context
+          action: 'like'
+        })
+      });
+
+      if (response.ok) {
+        setPeerVideos(prev => prev.map(video => 
+          video.id === videoId 
+            ? { 
+                ...video, 
+                userLiked: !video.userLiked,
+                likes: video.userLiked ? video.likes - 1 : video.likes + 1
+              }
+            : video
+        ));
+      }
+    } catch (error) {
+      console.error('Error liking video:', error);
+    }
+  };
+
+  const handleRating = async (videoId: string, rating: number) => {
+    try {
+      const response = await fetch('/api/peer-interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          videoId: videoId,
+          studentId: 'current_student_id', // In production, get from auth context
+          action: 'rate',
+          rating: rating
+        })
+      });
+
+      if (response.ok) {
+        setPeerVideos(prev => prev.map(video => 
+          video.id === videoId 
+            ? { 
+                ...video, 
+                userRating: rating,
+                averageRating: calculateNewAverageRating(video.averageRating, video.userRating, rating)
+              }
+            : video
+        ));
+      }
+    } catch (error) {
+      console.error('Error rating video:', error);
+    }
+  };
+
+  const calculateNewAverageRating = (currentAverage: number, oldRating: number | null, newRating: number): number => {
+    // This is a simplified calculation - in production, you'd want to track total ratings and count
+    if (oldRating === null) {
+      return (currentAverage + newRating) / 2; // Simplified for demo
+    }
+    return currentAverage + (newRating - oldRating) / 10; // Simplified for demo
+  };
+
   const assignmentId = searchParams.get('assignment');
   const courseId = searchParams.get('course');
+
+  // Cleanup media recorder on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        if ((mediaRecorder as any).durationInterval) {
+          clearInterval((mediaRecorder as any).durationInterval);
+        }
+      }
+    };
+  }, [mediaRecorder, isRecording]);
 
   // Mock data - in production, this would come from API
   useEffect(() => {
@@ -148,7 +235,11 @@ const PeerReviewsContent: React.FC = () => {
           assignmentId: assignmentId,
           assignmentTitle: mockAssignment.title,
           courseId: courseId,
-          courseName: mockAssignment.courseName
+          courseName: mockAssignment.courseName,
+          likes: 12,
+          averageRating: 4.2,
+          userLiked: false,
+          userRating: null
         },
         {
           id: 'video_2',
@@ -164,7 +255,11 @@ const PeerReviewsContent: React.FC = () => {
           assignmentId: assignmentId,
           assignmentTitle: mockAssignment.title,
           courseId: courseId,
-          courseName: mockAssignment.courseName
+          courseName: mockAssignment.courseName,
+          likes: 8,
+          averageRating: 4.5,
+          userLiked: true,
+          userRating: 5
         },
         {
           id: 'video_3',
@@ -180,7 +275,11 @@ const PeerReviewsContent: React.FC = () => {
           assignmentId: assignmentId,
           assignmentTitle: mockAssignment.title,
           courseId: courseId,
-          courseName: mockAssignment.courseName
+          courseName: mockAssignment.courseName,
+          likes: 15,
+          averageRating: 3.8,
+          userLiked: false,
+          userRating: null
         },
         {
           id: 'video_4',
@@ -196,7 +295,11 @@ const PeerReviewsContent: React.FC = () => {
           assignmentId: assignmentId,
           assignmentTitle: mockAssignment.title,
           courseId: courseId,
-          courseName: mockAssignment.courseName
+          courseName: mockAssignment.courseName,
+          likes: 6,
+          averageRating: 4.0,
+          userLiked: false,
+          userRating: 4
         },
         {
           id: 'video_5',
@@ -212,7 +315,11 @@ const PeerReviewsContent: React.FC = () => {
           assignmentId: assignmentId,
           assignmentTitle: mockAssignment.title,
           courseId: courseId,
-          courseName: mockAssignment.courseName
+          courseName: mockAssignment.courseName,
+          likes: 9,
+          averageRating: 4.3,
+          userLiked: true,
+          userRating: null
         },
         {
           id: 'video_6',
@@ -228,7 +335,11 @@ const PeerReviewsContent: React.FC = () => {
           assignmentId: assignmentId,
           assignmentTitle: mockAssignment.title,
           courseId: courseId,
-          courseName: mockAssignment.courseName
+          courseName: mockAssignment.courseName,
+          likes: 11,
+          averageRating: 4.6,
+          userLiked: false,
+          userRating: 5
         }
       ];
 
@@ -343,6 +454,299 @@ const PeerReviewsContent: React.FC = () => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  // Video recording functions
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 }
+        }, 
+        audio: true 
+      });
+      
+      const recorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9,opus'
+      });
+      
+      const chunks: Blob[] = [];
+      
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunks.push(event.data);
+        }
+      };
+      
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const videoUrl = URL.createObjectURL(blob);
+        setRecordedVideo(videoUrl);
+        setRecordedChunks(chunks);
+        
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      recorder.start(1000); // Collect data every second
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+      setRecordingDuration(0);
+      
+      // Start duration timer
+      const durationInterval = setInterval(() => {
+        setRecordingDuration(prev => prev + 1);
+      }, 1000);
+      
+      // Store interval ID for cleanup
+      (recorder as any).durationInterval = durationInterval;
+      
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      alert('Unable to access camera and microphone. Please check permissions.');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isRecording) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+      
+      // Clear duration interval
+      if ((mediaRecorder as any).durationInterval) {
+        clearInterval((mediaRecorder as any).durationInterval);
+      }
+    }
+  };
+
+  const generateThumbnail = async (videoBlob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      video.onloadedmetadata = () => {
+        // Set canvas dimensions for thumbnail (16:9 aspect ratio, max 320px width)
+        const maxWidth = 320;
+        const maxHeight = 180;
+        let { videoWidth, videoHeight } = video;
+        
+        const ratio = Math.min(maxWidth / videoWidth, maxHeight / videoHeight);
+        const thumbWidth = videoWidth * ratio;
+        const thumbHeight = videoHeight * ratio;
+        
+        canvas.width = thumbWidth;
+        canvas.height = thumbHeight;
+        
+        // Seek to 25% of video duration for thumbnail
+        video.currentTime = video.duration * 0.25;
+      };
+      
+      video.onseeked = () => {
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+          resolve(thumbnailDataUrl);
+        } else {
+          resolve('');
+        }
+      };
+      
+      video.onerror = () => resolve('');
+      video.src = URL.createObjectURL(videoBlob);
+    });
+  };
+
+  const compressVideo = async (videoBlob: Blob): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      video.onloadedmetadata = () => {
+        // Set canvas dimensions (max 720p for compression)
+        const maxWidth = 1280;
+        const maxHeight = 720;
+        let { videoWidth, videoHeight } = video;
+        
+        if (videoWidth > maxWidth || videoHeight > maxHeight) {
+          const ratio = Math.min(maxWidth / videoWidth, maxHeight / videoHeight);
+          videoWidth *= ratio;
+          videoHeight *= ratio;
+        }
+        
+        canvas.width = videoWidth;
+        canvas.height = videoHeight;
+        
+        video.currentTime = 0;
+        video.play();
+      };
+      
+      video.onseeked = () => {
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          
+          canvas.toBlob((compressedBlob) => {
+            if (compressedBlob) {
+              // If compression resulted in larger file, use original
+              const compressionRatio = compressedBlob.size / videoBlob.size;
+              if (compressionRatio < 0.9) {
+                resolve(compressedBlob);
+              } else {
+                resolve(videoBlob);
+              }
+            } else {
+              resolve(videoBlob);
+            }
+          }, 'video/webm', 0.8); // 80% quality
+        } else {
+          resolve(videoBlob);
+        }
+      };
+      
+      video.onerror = () => resolve(videoBlob);
+      video.src = URL.createObjectURL(videoBlob);
+    });
+  };
+
+  const uploadRecordedVideo = async (videoBlob: Blob): Promise<{videoUrl: string, thumbnailUrl: string}> => {
+    setIsUploading(true);
+    setUploadProgress(0);
+    
+    try {
+      // Generate thumbnail
+      setUploadProgress(5);
+      const thumbnailDataUrl = await generateThumbnail(videoBlob);
+      setUploadProgress(10);
+      
+      // Compress video if it's larger than 10MB
+      let finalBlob = videoBlob;
+      if (videoBlob.size > 10 * 1024 * 1024) {
+        setUploadProgress(15);
+        finalBlob = await compressVideo(videoBlob);
+        setUploadProgress(35);
+      }
+      
+      // Upload video
+      const videoFormData = new FormData();
+      videoFormData.append('file', finalBlob, `peer-response-${Date.now()}.webm`);
+      videoFormData.append('folder', 'peer-responses');
+      videoFormData.append('userId', 'current_student_id'); // In production, get from auth context
+      videoFormData.append('metadata', JSON.stringify({
+        assignmentId: assignmentId,
+        courseId: courseId,
+        responseType: 'video',
+        recordedAt: new Date().toISOString(),
+        originalSize: videoBlob.size,
+        compressedSize: finalBlob.size,
+        compressionRatio: (finalBlob.size / videoBlob.size).toFixed(2)
+      }));
+
+      setUploadProgress(40);
+
+      const videoResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: videoFormData,
+      });
+
+      if (!videoResponse.ok) {
+        throw new Error('Video upload failed');
+      }
+
+      const videoResult = await videoResponse.json();
+      setUploadProgress(70);
+      
+      // Upload thumbnail if generated
+      let thumbnailUrl = '';
+      if (thumbnailDataUrl) {
+        const thumbnailBlob = await fetch(thumbnailDataUrl).then(r => r.blob());
+        const thumbnailFormData = new FormData();
+        thumbnailFormData.append('file', thumbnailBlob, `thumbnail-${Date.now()}.jpg`);
+        thumbnailFormData.append('folder', 'peer-responses/thumbnails');
+        thumbnailFormData.append('userId', 'current_student_id');
+        thumbnailFormData.append('metadata', JSON.stringify({
+          assignmentId: assignmentId,
+          courseId: courseId,
+          responseType: 'thumbnail',
+          generatedAt: new Date().toISOString()
+        }));
+
+        setUploadProgress(80);
+
+        const thumbnailResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: thumbnailFormData,
+        });
+
+        if (thumbnailResponse.ok) {
+          const thumbnailResult = await thumbnailResponse.json();
+          thumbnailUrl = thumbnailResult.data.fileUrl;
+        }
+      }
+
+      setUploadProgress(100);
+      return {
+        videoUrl: videoResult.data.fileUrl,
+        thumbnailUrl: thumbnailUrl
+      };
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      throw error;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleVideoResponseSubmit = async () => {
+    if (!recordedVideo || recordedChunks.length === 0) return;
+
+    try {
+      const videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+      const { videoUrl, thumbnailUrl } = await uploadRecordedVideo(videoBlob);
+      
+      // Create response with video
+      const response: PeerResponse = {
+        id: `response_${currentVideo.id}_${Date.now()}`,
+        reviewerId: 'current_student_id',
+        reviewerName: 'Current Student',
+        videoId: currentVideo.id,
+        content: currentResponse,
+        submittedAt: new Date().toISOString(),
+        lastSavedAt: new Date().toISOString(),
+        isSubmitted: true,
+        wordCount: currentResponse.trim().split(/\s+/).length,
+        characterCount: currentResponse.length,
+        responseType: responseType,
+        videoResponse: {
+          videoUrl: videoUrl,
+          thumbnailUrl: thumbnailUrl,
+          duration: recordingDuration,
+          fileSize: videoBlob.size
+        }
+      };
+
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setResponses(prev => {
+        const newResponses = new Map(prev);
+        newResponses.set(currentVideo.id, response);
+        updateResponseStats(newResponses);
+        return newResponses;
+      });
+
+      setCurrentResponse('');
+      setRecordedVideo(null);
+      setRecordedChunks([]);
+      setShowResponseForm(false);
+      setSaveStatus('saved');
+    } catch (error) {
+      console.error('Error submitting video response:', error);
+      alert('Failed to upload video. Please try again.');
+    }
+  };
+
   const handleResponseChange = (content: string) => {
     setCurrentResponse(content);
     debouncedAutoSave(content);
@@ -395,10 +799,27 @@ const PeerReviewsContent: React.FC = () => {
   };
 
   const handleSubmitResponse = async () => {
-    if (!currentVideo || !currentResponse.trim()) return;
+    if (!currentVideo) return;
+    
+    // Check if we have content to submit
+    const hasTextContent = currentResponse.trim().length > 0;
+    const hasVideoContent = recordedVideo && recordedChunks.length > 0;
+    
+    if (!hasTextContent && !hasVideoContent) return;
 
     setIsSubmitting(true);
     try {
+      let videoUrl = '';
+      let thumbnailUrl = '';
+      
+      // Upload video if present
+      if (hasVideoContent && recordedChunks.length > 0) {
+        const videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+        const uploadResult = await uploadRecordedVideo(videoBlob);
+        videoUrl = uploadResult.videoUrl;
+        thumbnailUrl = uploadResult.thumbnailUrl;
+      }
+
       const response: PeerResponse = {
         id: `response_${currentVideo.id}_${Date.now()}`,
         reviewerId: 'current_student_id',
@@ -409,7 +830,14 @@ const PeerReviewsContent: React.FC = () => {
         lastSavedAt: new Date().toISOString(),
         isSubmitted: true,
         wordCount: currentResponse.trim().split(/\s+/).length,
-        characterCount: currentResponse.length
+        characterCount: currentResponse.length,
+        responseType: responseType,
+        videoResponse: hasVideoContent ? {
+          videoUrl: videoUrl,
+          thumbnailUrl: thumbnailUrl,
+          duration: recordingDuration,
+          fileSize: recordedChunks.length > 0 ? new Blob(recordedChunks).size : 0
+        } : undefined
       };
 
       // Mock API call
@@ -423,10 +851,13 @@ const PeerReviewsContent: React.FC = () => {
       });
 
       setCurrentResponse('');
+      setRecordedVideo(null);
+      setRecordedChunks([]);
       setShowResponseForm(false);
       setSaveStatus('saved');
     } catch (error) {
       console.error('Error submitting response:', error);
+      alert('Failed to submit response. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -562,7 +993,41 @@ const PeerReviewsContent: React.FC = () => {
                   <span>⏱️ {formatTime(currentVideo.duration)}</span>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-4">
+                {/* Like Button */}
+                <button
+                  onClick={() => handleLike(currentVideo.id)}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                    currentVideo.userLiked
+                      ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  <span className="text-lg">{currentVideo.userLiked ? '❤️' : '🤍'}</span>
+                  <span className="text-sm font-medium">{currentVideo.likes}</span>
+                </button>
+
+                {/* Rating Stars */}
+                <div className="flex items-center space-x-1">
+                  <span className="text-sm text-gray-600 mr-2">Rate:</span>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      onClick={() => handleRating(currentVideo.id, star)}
+                      className={`text-lg transition-colors ${
+                        currentVideo.userRating && star <= currentVideo.userRating
+                          ? 'text-yellow-400'
+                          : 'text-gray-300 hover:text-yellow-300'
+                      }`}
+                    >
+                      ⭐
+                    </button>
+                  ))}
+                  <span className="text-sm text-gray-500 ml-2">
+                    ({currentVideo.averageRating.toFixed(1)})
+                  </span>
+                </div>
+
                 <button
                   onClick={() => setShowResponseForm(!showResponseForm)}
                   className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
@@ -668,24 +1133,61 @@ const PeerReviewsContent: React.FC = () => {
                           controls
                           src={recordedVideo}
                         />
-                        <button
-                          onClick={() => setRecordedVideo(null)}
-                          className="text-sm text-red-600 hover:text-red-800"
-                        >
-                          Remove Video
-                        </button>
+                        <div className="flex items-center justify-between">
+                          <div className="text-sm text-gray-600">
+                            Duration: {formatTime(recordingDuration)} | 
+                            Size: {(new Blob(recordedChunks).size / (1024 * 1024)).toFixed(1)} MB
+                          </div>
+                          <button
+                            onClick={() => {
+                              setRecordedVideo(null);
+                              setRecordedChunks([]);
+                              setRecordingDuration(0);
+                            }}
+                            className="text-sm text-red-600 hover:text-red-800"
+                          >
+                            Remove Video
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                        <button
-                          onClick={() => {/* Handle video recording */}}
-                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                        >
-                          Record Video Response
-                        </button>
-                        <p className="text-sm text-gray-500 mt-2">
-                          Record a video to explain your perspective
-                        </p>
+                        {isRecording ? (
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-center space-x-2">
+                              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                              <span className="text-red-600 font-medium">Recording...</span>
+                              <span className="text-gray-600">{formatTime(recordingDuration)}</span>
+                            </div>
+                            <button
+                              onClick={stopRecording}
+                              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                              Stop Recording
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <button
+                              onClick={startRecording}
+                              disabled={isUploading}
+                              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                            >
+                              {isUploading ? 'Uploading...' : 'Record Video Response'}
+                            </button>
+                            <p className="text-sm text-gray-500">
+                              Record a video to explain your perspective
+                            </p>
+                            {isUploading && (
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${uploadProgress}%` }}
+                                ></div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -698,10 +1200,10 @@ const PeerReviewsContent: React.FC = () => {
                 </div>
                 <button
                   onClick={handleSubmitResponse}
-                  disabled={(!currentResponse.trim() && !recordedVideo) || isSubmitting}
+                  disabled={(!currentResponse.trim() && !recordedVideo) || isSubmitting || isUploading}
                   className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Response'}
+                  {isSubmitting ? 'Submitting...' : isUploading ? 'Uploading...' : 'Submit Response'}
                 </button>
               </div>
             </div>
@@ -764,10 +1266,16 @@ const PeerReviewsContent: React.FC = () => {
                     <p className="text-xs text-gray-600 truncate">
                       {video.studentName}
                     </p>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-xs text-gray-500">
-                        {formatTime(video.duration)}
-                      </span>
+                    <div className="flex items-center justify-between mt-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-500">
+                          {formatTime(video.duration)}
+                        </span>
+                        <div className="flex items-center space-x-1">
+                          <span className="text-xs">❤️ {video.likes}</span>
+                          <span className="text-xs">⭐ {video.averageRating.toFixed(1)}</span>
+                        </div>
+                      </div>
                       {responses.has(video.id) && (
                         <span className="text-xs text-green-600 font-medium">
                           ✓ Responded
