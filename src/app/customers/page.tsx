@@ -96,8 +96,13 @@ export default function CustomersPage() {
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 relative z-10">
-          {/* Home Button */}
-          <div className="absolute top-4 right-4">
+          {/* Header with Logo and Home Button */}
+          <div className="absolute top-4 right-4 flex items-center space-x-4">
+            <img
+              src="/MyClassCast (800 x 200 px).png"
+              alt="MyClassCast"
+              className="h-8 w-auto object-contain"
+            />
             <button
               onClick={() => router.push('/')}
               className="w-10 h-10 bg-white/90 backdrop-blur-sm hover:bg-white text-gray-600 hover:text-gray-800 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center"
