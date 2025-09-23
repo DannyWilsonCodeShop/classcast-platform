@@ -99,7 +99,7 @@ const InstructorProfilePage: React.FC = () => {
                   onClick={() => router.back()}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  <span className="text-2xl">←</span>
+                  <span className="text-2xl">&lt;</span>
                 </button>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800">Instructor Profile</h1>
