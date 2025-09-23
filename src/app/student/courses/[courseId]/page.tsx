@@ -282,6 +282,11 @@ const StudentCourseDetailPage: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center space-x-2">
+              <img
+                src="/MyClassCast (800 x 200 px).png"
+                alt="MyClassCast"
+                className="h-6 w-auto object-contain"
+              />
               <button
                 onClick={() => router.push('/student/dashboard')}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"

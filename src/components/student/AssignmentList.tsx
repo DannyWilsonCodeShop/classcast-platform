@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Assignment } from '@/types/dynamodb';
 import { AssignmentCard } from './AssignmentCard';
 import { AssignmentFilters } from './AssignmentFilters';
@@ -42,6 +43,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   showPagination = true,
   maxItems = 50,
 }) => {
+  const router = useRouter();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -329,8 +331,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
             key={assignment.assignmentId}
             assignment={assignment}
             onViewDetails={() => {
-              // Handle view details - could navigate to assignment detail page
-              console.log('View assignment:', assignment.assignmentId);
+              router.push(`/student/assignments/${assignment.assignmentId}`);
             }}
           />
         ))}

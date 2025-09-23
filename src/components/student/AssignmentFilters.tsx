@@ -124,14 +124,9 @@ export const AssignmentFilters: React.FC<AssignmentFiltersProps> = ({
               className="block w-full px-3 py-2 border border-gray-300 rounded-md leading-5 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             >
               <option value="">All Types</option>
-              <option value={AssignmentType.ESSAY}>Essay</option>
-              <option value={AssignmentType.QUIZ}>Quiz</option>
-              <option value={AssignmentType.PROJECT}>Project</option>
-              <option value={AssignmentType.PRESENTATION}>Presentation</option>
-              <option value={AssignmentType.LAB}>Lab</option>
-              <option value={AssignmentType.EXAM}>Exam</option>
-              <option value={AssignmentType.DISCUSSION}>Discussion</option>
-              <option value={AssignmentType.PEER_REVIEW}>Peer Review</option>
+              <option value={AssignmentType.VIDEO_ASSIGNMENT}>Video Assignment</option>
+              <option value={AssignmentType.VIDEO_DISCUSSION}>Video Discussion</option>
+              <option value={AssignmentType.VIDEO_ASSESSMENT}>Video Assessment</option>
             </select>
           </div>
 
