@@ -353,15 +353,51 @@ const InstructorDashboard: React.FC = () => {
             <div className="text-[#333333] font-medium">
               Instructor Portal
             </div>
+            </div>
           </div>
-        </div>
 
         {/* Main Content Layout */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left Sidebar - Recent Submissions and Community */}
+          {/* Left Sidebar - Quick Actions and Recent Submissions */}
           <div className="hidden lg:block w-80 bg-white/90 backdrop-blur-sm border-r border-[#4A90E2]/20 flex flex-col">
-            {/* Recent Submissions */}
+            {/* Quick Actions */}
             <div className="flex-1 p-4 border-b border-gray-200">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Quick Actions</h3>
+                <p className="text-sm text-gray-600">Common instructor tasks</p>
+              </div>
+              <div className="h-64 overflow-y-auto">
+                <div className="space-y-2">
+                  <button 
+                    onClick={() => router.push('/instructor/assignments/create')}
+                    className="w-full text-left p-3 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors text-sm font-medium"
+                  >
+                    📝 Create Assignment
+                  </button>
+                  <button 
+                    onClick={() => router.push('/instructor/grading/bulk')}
+                    className="w-full text-left p-3 bg-[#FF6F61] text-white rounded-lg hover:bg-[#FF8A80] transition-colors text-sm font-medium"
+                  >
+                    ⚡ Bulk Grade
+                  </button>
+                  <button 
+                    onClick={() => router.push('/instructor/ai-assistant')}
+                    className="w-full text-left p-3 bg-[#9B5DE5] text-white rounded-lg hover:bg-[#B794F6] transition-colors text-sm font-medium"
+                  >
+                    🤖 AI Assistant
+                  </button>
+                  <button 
+                    onClick={() => router.push('/instructor/analytics')}
+                    className="w-full text-left p-3 bg-[#06D6A0] text-white rounded-lg hover:bg-[#4ECDC4] transition-colors text-sm font-medium"
+                  >
+                    📊 Analytics
+                  </button>
+                </div>
+            </div>
+          </div>
+
+            {/* Recent Submissions */}
+            <div className="flex-1 p-4">
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Recent Submissions</h3>
                 <p className="text-sm text-gray-600">Latest student work to review</p>
@@ -408,42 +444,6 @@ const InstructorDashboard: React.FC = () => {
                     </button>
                   </div>
                 )}
-              </div>
-            </div>
-            
-            {/* Quick Actions */}
-            <div className="flex-1 p-4">
-              <div className="mb-4">
-                <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Quick Actions</h3>
-                <p className="text-sm text-gray-600">Common instructor tasks</p>
-              </div>
-              <div className="h-64 overflow-y-auto">
-                <div className="space-y-2">
-                  <button 
-                    onClick={() => router.push('/instructor/assignments/create')}
-                    className="w-full text-left p-3 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors text-sm font-medium"
-                  >
-                    📝 Create Assignment
-                  </button>
-                  <button 
-                    onClick={() => router.push('/instructor/grading/bulk')}
-                    className="w-full text-left p-3 bg-[#FF6F61] text-white rounded-lg hover:bg-[#FF8A80] transition-colors text-sm font-medium"
-                  >
-                    ⚡ Bulk Grade
-                  </button>
-                  <button 
-                    onClick={() => router.push('/instructor/ai-assistant')}
-                    className="w-full text-left p-3 bg-[#9B5DE5] text-white rounded-lg hover:bg-[#B794F6] transition-colors text-sm font-medium"
-                  >
-                    🤖 AI Assistant
-                  </button>
-                  <button 
-                    onClick={() => router.push('/instructor/analytics')}
-                    className="w-full text-left p-3 bg-[#06D6A0] text-white rounded-lg hover:bg-[#4ECDC4] transition-colors text-sm font-medium"
-                  >
-                    📊 Analytics
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -547,7 +547,7 @@ const InstructorDashboard: React.FC = () => {
                       />
                     </div>
                   )}
-                </div>
+              </div>
               )}
             </div>
           </div>
@@ -653,14 +653,14 @@ const InstructorDashboard: React.FC = () => {
                       <div className="flex items-start space-x-3">
                         <div className="w-10 h-10 bg-[#4A90E2] rounded-full flex items-center justify-center text-white font-bold">
                           {student.name.charAt(0)}
-                        </div>
+            </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-gray-800 truncate">{student.name}</h3>
                           <p className="text-sm text-gray-600 truncate">{student.email}</p>
                           <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
                             <span>📅 Enrolled: {new Date(student.enrollmentDate).toLocaleDateString()}</span>
                             <span>📊 {student.submissionsCount} submissions</span>
-                          </div>
+          </div>
                           <div className="flex items-center justify-between mt-2">
                             <span className="text-xs text-gray-500">
                               Last active: {new Date(student.lastActive).toLocaleDateString()}
@@ -670,13 +670,13 @@ const InstructorDashboard: React.FC = () => {
                                 Avg: {student.averageGrade}%
                               </span>
                             )}
-                          </div>
-                        </div>
+            </div>
+          </div>
                       </div>
                     </div>
                   ))}
-                </div>
-                
+        </div>
+
                 {getMockStudentsForCourse(selectedCourse.id).length === 0 && (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">👥</div>
@@ -692,14 +692,14 @@ const InstructorDashboard: React.FC = () => {
                   <span className="text-sm text-gray-600">
                     Total: {getMockStudentsForCourse(selectedCourse.id).length} students
                   </span>
-                  <button
+            <button
                     onClick={() => setShowStudentList(false)}
                     className="px-4 py-2 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors"
-                  >
+            >
                     Close
-                  </button>
-                </div>
-              </div>
+            </button>
+          </div>
+            </div>
             </div>
           </div>
         )}
