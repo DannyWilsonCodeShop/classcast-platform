@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
         assignmentId: 'assign_1',
         title: 'Video Presentation Assignment',
         description: 'Create a 5-minute video presentation on your chosen topic',
-        assignmentType: 'video',
+        assignmentType: 'video_assignment',
         status: 'upcoming',
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
         responseDueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
@@ -36,47 +36,72 @@ export async function GET(request: NextRequest) {
         isPinned: true,
         isHighlighted: true,
         pinnedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        highlightedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+        highlightedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        emoji: '🎥',
+        color: '#3B82F6',
+        coverPhoto: 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=200&fit=crop',
+        requireLiveRecording: false,
+        allowedFileTypes: ['mp4', 'webm', 'mov', 'avi'],
+        maxFileSize: 100 * 1024 * 1024 // 100MB
       },
       {
         assignmentId: 'assign_2',
-        title: 'Essay on Digital Media',
-        description: 'Write a 1000-word essay analyzing the impact of digital media on society',
-        assignmentType: 'essay',
+        title: 'Digital Media Discussion',
+        description: 'Create a video discussing the impact of digital media on society and respond to peers',
+        assignmentType: 'video_discussion',
         status: 'in-progress',
         dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
+        responseDueDate: new Date(Date.now() + 17 * 24 * 60 * 60 * 1000).toISOString(), // 17 days from now
         createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
         maxScore: 85,
         requirements: [
-          'Minimum 1000 words',
-          'Use proper citations',
-          'Include introduction, body, and conclusion',
-          'Submit as PDF document'
+          'Create 3-5 minute video discussing digital media impact',
+          'Respond to at least 2 peer videos',
+          'Use clear audio and video quality',
+          'Engage meaningfully with peer responses'
         ],
         courseId: courseId || 'course_1',
         courseName: 'Introduction to Communication',
         instructorName: 'Dr. Smith',
+        enablePeerResponses: true,
+        minResponsesRequired: 2,
+        maxResponsesPerVideo: 4,
+        responseWordLimit: 100,
+        responseCharacterLimit: 800,
         isPinned: true,
-        pinnedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+        pinnedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        emoji: '💬',
+        color: '#10B981',
+        coverPhoto: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=200&fit=crop',
+        requireLiveRecording: true,
+        allowedFileTypes: ['mp4', 'webm', 'mov', 'avi'],
+        maxFileSize: 100 * 1024 * 1024 // 100MB
       },
       {
         assignmentId: 'assign_3',
-        title: 'Group Project Presentation',
-        description: 'Collaborate with classmates to create a group presentation',
-        assignmentType: 'presentation',
+        title: 'Communication Skills Assessment',
+        description: 'Complete a video-based assessment of your communication skills',
+        assignmentType: 'video_assessment',
         status: 'completed',
         dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
         createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days ago
         maxScore: 120,
         requirements: [
-          'Work in groups of 3-4 students',
-          'Present for 15-20 minutes',
-          'Include visual aids',
-          'Submit presentation slides'
+          'Record 10-15 minute video demonstrating communication skills',
+          'Answer all assessment questions clearly',
+          'Use professional presentation style',
+          'Submit by due date'
         ],
         courseId: courseId || 'course_1',
         courseName: 'Introduction to Communication',
-        instructorName: 'Dr. Smith'
+        instructorName: 'Dr. Smith',
+        enablePeerResponses: false,
+        emoji: '📝',
+        color: '#8B5CF6',
+        coverPhoto: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=200&fit=crop',
+        requireLiveRecording: true,
+        allowedFileTypes: ['mp4', 'webm', 'mov', 'avi'],
+        maxFileSize: 100 * 1024 * 1024 // 100MB
       }
     ];
 

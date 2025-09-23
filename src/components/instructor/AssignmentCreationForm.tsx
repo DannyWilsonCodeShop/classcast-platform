@@ -27,7 +27,6 @@ interface FormData {
   dueDate: Date | null;
   responseDueDate: Date | null;
   maxScore: number;
-  weight: number;
   requirements: string[];
   allowLateSubmission: boolean;
   latePenalty: number;
@@ -41,6 +40,14 @@ interface FormData {
   maxResponsesPerVideo: number;
   responseWordLimit: number;
   responseCharacterLimit: number;
+  coverPhoto: string;
+  emoji: string;
+  color: string;
+  requireLiveRecording: boolean;
+  rubricType: 'none' | 'upload' | 'ai_generated';
+  rubricFile: File | null;
+  aiGeneratedRubric: any;
+  customRubric: any;
 }
 
 const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
@@ -53,28 +60,37 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
   const [formData, setFormData] = useState<FormData>({
     title: initialData?.title || '',
     description: initialData?.description || '',
-    assignmentType: initialData?.assignmentType || AssignmentType.ESSAY,
+    assignmentType: initialData?.assignmentType || AssignmentType.VIDEO_ASSIGNMENT,
     dueDate: initialData?.dueDate ? new Date(initialData.dueDate) : null,
     responseDueDate: initialData?.responseDueDate ? new Date(initialData.responseDueDate) : null,
     maxScore: initialData?.maxScore || 100,
-    weight: initialData?.weight || 10,
     requirements: initialData?.requirements || [''],
     allowLateSubmission: initialData?.allowLateSubmission || false,
     latePenalty: initialData?.latePenalty || 10,
     maxSubmissions: initialData?.maxSubmissions || 1,
     groupAssignment: initialData?.groupAssignment || false,
     maxGroupSize: initialData?.maxGroupSize || 2,
-    allowedFileTypes: initialData?.allowedFileTypes || ['pdf', 'doc', 'docx'],
-    maxFileSize: initialData?.maxFileSize || 10 * 1024 * 1024, // 10MB
+    allowedFileTypes: initialData?.allowedFileTypes || ['mp4', 'webm', 'mov', 'avi'],
+    maxFileSize: initialData?.maxFileSize || 100 * 1024 * 1024, // 100MB for videos
     enablePeerResponses: initialData?.enablePeerResponses || false,
     minResponsesRequired: initialData?.minResponsesRequired || 2,
     maxResponsesPerVideo: initialData?.maxResponsesPerVideo || 3,
     responseWordLimit: initialData?.responseWordLimit || 50,
-    responseCharacterLimit: initialData?.responseCharacterLimit || 500
+    responseCharacterLimit: initialData?.responseCharacterLimit || 500,
+    coverPhoto: initialData?.coverPhoto || '',
+    emoji: initialData?.emoji || '🎥',
+    color: initialData?.color || '#3B82F6',
+    requireLiveRecording: initialData?.requireLiveRecording || false,
+    rubricType: 'none',
+    rubricFile: null,
+    aiGeneratedRubric: null,
+    customRubric: null
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [newRequirement, setNewRequirement] = useState('');
+  const [isGeneratingRubric, setIsGeneratingRubric] = useState(false);
+  const [showRubricPreview, setShowRubricPreview] = useState(false);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
@@ -110,10 +126,6 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
       newErrors.maxScore = 'Maximum score must be greater than 0';
     }
 
-    if (formData.weight <= 0 || formData.weight > 100) {
-      newErrors.weight = 'Weight must be between 1 and 100';
-    }
-
     if (formData.maxSubmissions < 1) {
       newErrors.maxSubmissions = 'Maximum submissions must be at least 1';
     }
@@ -145,7 +157,6 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         dueDate: formData.dueDate?.toISOString() || '',
         responseDueDate: formData.responseDueDate?.toISOString(),
         maxScore: formData.maxScore,
-        weight: formData.weight,
         requirements: formData.requirements.filter(req => req.trim()),
         allowLateSubmission: formData.allowLateSubmission,
         latePenalty: formData.latePenalty,
@@ -159,6 +170,13 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         maxResponsesPerVideo: formData.enablePeerResponses ? formData.maxResponsesPerVideo : undefined,
         responseWordLimit: formData.enablePeerResponses ? formData.responseWordLimit : undefined,
         responseCharacterLimit: formData.enablePeerResponses ? formData.responseCharacterLimit : undefined,
+        coverPhoto: formData.coverPhoto,
+        emoji: formData.emoji,
+        color: formData.color,
+        requireLiveRecording: formData.requireLiveRecording,
+        rubric: formData.rubricType === 'ai_generated' ? formData.aiGeneratedRubric : 
+                formData.rubricType === 'upload' ? { type: 'uploaded', file: formData.rubricFile } : 
+                undefined,
         status: AssignmentStatus.DRAFT
       };
 
@@ -216,6 +234,62 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const generateAIRubric = async () => {
+    setIsGeneratingRubric(true);
+    try {
+      const response = await fetch('/api/ai/rubric-generator', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.description,
+          assignmentType: formData.assignmentType,
+          maxScore: formData.maxScore,
+          requirements: formData.requirements.filter(req => req.trim())
+        })
+      });
+
+      if (response.ok) {
+        const rubric = await response.json();
+        setFormData(prev => ({ 
+          ...prev, 
+          aiGeneratedRubric: rubric,
+          rubricType: 'ai_generated'
+        }));
+        setShowRubricPreview(true);
+      } else {
+        throw new Error('Failed to generate rubric');
+      }
+    } catch (error) {
+      console.error('Error generating rubric:', error);
+      alert('Failed to generate rubric. Please try again.');
+    } finally {
+      setIsGeneratingRubric(false);
+    }
+  };
+
+  const handleRubricFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ 
+        ...prev, 
+        rubricFile: file,
+        rubricType: 'upload'
+      }));
+    }
+  };
+
+  const removeRubric = () => {
+    setFormData(prev => ({ 
+      ...prev, 
+      rubricType: 'none',
+      rubricFile: null,
+      aiGeneratedRubric: null,
+      customRubric: null
+    }));
+    setShowRubricPreview(false);
+  };
+
   return (
     <div className={`bg-white rounded-lg shadow-lg p-6 ${className}`}>
       <div className="mb-6">
@@ -254,11 +328,9 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
               onChange={(e) => setFormData(prev => ({ ...prev, assignmentType: e.target.value as AssignmentType }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             >
-              {Object.values(AssignmentType).map(type => (
-                <option key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ')}
-                </option>
-              ))}
+              <option value={AssignmentType.VIDEO_ASSIGNMENT}>🎥 Video Assignment</option>
+              <option value={AssignmentType.VIDEO_DISCUSSION}>💬 Video Discussion</option>
+              <option value={AssignmentType.VIDEO_ASSESSMENT}>📝 Video Assessment</option>
             </select>
           </div>
         </div>
@@ -279,8 +351,111 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
         </div>
 
+        {/* Visual Identity */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <span className="mr-2">🎨</span>
+            Visual Identity
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Emoji Selection */}
+            <div>
+              <label htmlFor="emoji" className="block text-sm font-medium text-gray-700 mb-2">
+                Assignment Emoji
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="text"
+                  id="emoji"
+                  value={formData.emoji}
+                  onChange={(e) => setFormData(prev => ({ ...prev, emoji: e.target.value }))}
+                  className="w-16 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-2xl"
+                  placeholder="🎥"
+                  maxLength={2}
+                />
+                <div className="text-sm text-gray-500">
+                  Choose an emoji that represents this assignment
+                </div>
+              </div>
+            </div>
+
+            {/* Color Selection */}
+            <div>
+              <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-2">
+                Assignment Color
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="color"
+                  id="color"
+                  value={formData.color}
+                  onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                  className="w-12 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <input
+                  type="text"
+                  value={formData.color}
+                  onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                  placeholder="#3B82F6"
+                />
+              </div>
+            </div>
+
+            {/* Cover Photo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Cover Photo
+              </label>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        setFormData(prev => ({ ...prev, coverPhoto: event.target?.result as string }));
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                  className="hidden"
+                  id="coverPhoto"
+                />
+                <label
+                  htmlFor="coverPhoto"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 cursor-pointer transition-colors"
+                >
+                  Upload Photo
+                </label>
+                {formData.coverPhoto && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, coverPhoto: '' }))}
+                    className="px-2 py-1 text-red-600 hover:text-red-800 text-sm"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+              {formData.coverPhoto && (
+                <div className="mt-2">
+                  <img
+                    src={formData.coverPhoto}
+                    alt="Cover preview"
+                    className="w-20 h-12 object-cover rounded border"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Due Dates and Scoring */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-2">
               Video Due Date *
@@ -321,7 +496,10 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
             />
             {errors.responseDueDate && <p className="mt-1 text-sm text-red-600">{errors.responseDueDate}</p>}
           </div>
+        </div>
 
+        {/* Maximum Score */}
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
           <div>
             <label htmlFor="maxScore" className="block text-sm font-medium text-gray-700 mb-2">
               Maximum Score *
@@ -338,25 +516,6 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
               step="1"
             />
             {errors.maxScore && <p className="mt-1 text-sm text-red-600">{errors.maxScore}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="weight" className="block text-sm font-medium text-gray-700 mb-2">
-              Course Weight (%) *
-            </label>
-            <input
-              type="number"
-              id="weight"
-              value={formData.weight}
-              onChange={(e) => setFormData(prev => ({ ...prev, weight: parseInt(e.target.value) || 0 }))}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.weight ? 'border-red-500' : 'border-gray-300'
-              }`}
-              min="1"
-              max="100"
-              step="1"
-            />
-            {errors.weight && <p className="mt-1 text-sm text-red-600">{errors.weight}</p>}
           </div>
         </div>
 
@@ -520,24 +679,47 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                 Allowed File Types
               </label>
               <div className="space-y-2">
-                {formData.allowedFileTypes.map((fileType) => (
-                  <div key={fileType} className="flex items-center space-x-2">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-md">
-                      {fileType.toUpperCase()}
-                    </span>
+                {/* Preset file type buttons */}
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {['mp4', 'webm', 'mov', 'avi', 'pdf', 'doc', 'docx', 'txt'].map((type) => (
                     <button
+                      key={type}
                       type="button"
-                      onClick={() => removeFileType(fileType)}
-                      className="text-red-600 hover:text-red-800 text-sm"
+                      onClick={() => addFileType(type)}
+                      className={`px-3 py-1 text-sm rounded-md border transition-colors ${
+                        formData.allowedFileTypes.includes(type)
+                          ? 'bg-blue-100 text-blue-800 border-blue-300'
+                          : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                      }`}
                     >
-                      ×
+                      {type.toUpperCase()}
                     </button>
-                  </div>
-                ))}
+                  ))}
+                </div>
+                
+                {/* Selected file types */}
+                <div className="space-y-1">
+                  {formData.allowedFileTypes.map((fileType) => (
+                    <div key={fileType} className="flex items-center space-x-2">
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-md">
+                        {fileType.toUpperCase()}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeFileType(fileType)}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Custom file type input */}
                 <div className="flex items-center space-x-2">
                   <input
                     type="text"
-                    placeholder="Add file type (e.g., pdf)"
+                    placeholder="Add custom file type (e.g., zip)"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     onKeyPress={(e) => {
                       if (e.key === 'Enter') {
@@ -551,7 +733,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      const input = document.querySelector('input[placeholder="Add file type (e.g., pdf)"]') as HTMLInputElement;
+                      const input = document.querySelector('input[placeholder="Add custom file type (e.g., zip)"]') as HTMLInputElement;
                       if (input) {
                         addFileType(input.value);
                         input.value = '';
@@ -563,6 +745,97 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Assignment Type Specific Settings */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <span className="mr-2">
+              {formData.assignmentType === AssignmentType.VIDEO_ASSIGNMENT && '🎥'}
+              {formData.assignmentType === AssignmentType.VIDEO_DISCUSSION && '💬'}
+              {formData.assignmentType === AssignmentType.VIDEO_ASSESSMENT && '📝'}
+            </span>
+            {formData.assignmentType === AssignmentType.VIDEO_ASSIGNMENT && 'Video Assignment Settings'}
+            {formData.assignmentType === AssignmentType.VIDEO_DISCUSSION && 'Video Discussion Settings'}
+            {formData.assignmentType === AssignmentType.VIDEO_ASSESSMENT && 'Video Assessment Settings'}
+          </h3>
+          
+          <div className="space-y-4">
+            {formData.assignmentType === AssignmentType.VIDEO_ASSIGNMENT && (
+              <div className="text-sm text-gray-600">
+                <p className="mb-2">Students will create and submit video presentations or demonstrations.</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Perfect for presentations, tutorials, or demonstrations</li>
+                  <li>Students can upload video files directly</li>
+                  <li>Instructors can provide detailed feedback</li>
+                </ul>
+              </div>
+            )}
+            
+            {formData.assignmentType === AssignmentType.VIDEO_DISCUSSION && (
+              <div className="text-sm text-gray-600">
+                <p className="mb-2">Students will engage in video-based discussions and peer interactions.</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Students post video responses to discussion topics</li>
+                  <li>Peer-to-peer video interactions and feedback</li>
+                  <li>Encourages collaborative learning</li>
+                </ul>
+              </div>
+            )}
+            
+            {formData.assignmentType === AssignmentType.VIDEO_ASSESSMENT && (
+              <div className="text-sm text-gray-600">
+                <p className="mb-2">Students will complete video-based assessments or evaluations.</p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Video-based quizzes, tests, or evaluations</li>
+                  <li>Students record their responses to questions</li>
+                  <li>Formal assessment with structured grading</li>
+                </ul>
+              </div>
+            )}
+            
+            {/* Live Recording Option */}
+            <div className="border-t border-blue-200 pt-4">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="requireLiveRecording"
+                  checked={formData.requireLiveRecording}
+                  onChange={(e) => setFormData(prev => ({ ...prev, requireLiveRecording: e.target.checked }))}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <div className="flex-1">
+                  <label htmlFor="requireLiveRecording" className="text-sm font-medium text-gray-700">
+                    Require Live Video Recording
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Students must record their video live using the browser camera. File uploads will be disabled.
+                  </p>
+                </div>
+              </div>
+              
+              {formData.requireLiveRecording && (
+                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <span className="text-yellow-400">⚠️</span>
+                    </div>
+                    <div className="ml-3">
+                      <h4 className="text-sm font-medium text-yellow-800">Live Recording Requirements</h4>
+                      <div className="mt-1 text-sm text-yellow-700">
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Students will need to grant camera and microphone permissions</li>
+                          <li>Videos are recorded directly in the browser and uploaded automatically</li>
+                          <li>No pre-recorded video files can be uploaded</li>
+                          <li>Recording quality depends on student's device and internet connection</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -661,6 +934,204 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                   <p className="mt-1 text-xs text-gray-500">Maximum characters allowed per response</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Rubric Settings */}
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <span className="mr-2">📋</span>
+            Grading Rubric
+          </h3>
+          
+          <div className="space-y-4">
+            {/* Rubric Type Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                Choose Rubric Option
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, rubricType: 'none' }))}
+                  className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                    formData.rubricType === 'none'
+                      ? 'border-purple-500 bg-purple-100'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="text-2xl mb-2">❌</div>
+                  <div className="font-medium">No Rubric</div>
+                  <div className="text-sm text-gray-600">Grade without structured criteria</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, rubricType: 'upload' }))}
+                  className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                    formData.rubricType === 'upload'
+                      ? 'border-purple-500 bg-purple-100'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="text-2xl mb-2">📄</div>
+                  <div className="font-medium">Upload Rubric</div>
+                  <div className="text-sm text-gray-600">Upload your own rubric file</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, rubricType: 'ai_generated' }))}
+                  className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                    formData.rubricType === 'ai_generated'
+                      ? 'border-purple-500 bg-purple-100'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="text-2xl mb-2">🤖</div>
+                  <div className="font-medium">AI Generated</div>
+                  <div className="text-sm text-gray-600">Generate rubric with AI</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Upload Rubric Section */}
+            {formData.rubricType === 'upload' && (
+              <div className="border border-gray-200 rounded-lg p-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload Rubric File
+                </label>
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    onChange={handleRubricFileUpload}
+                    className="hidden"
+                    id="rubricFile"
+                  />
+                  <label
+                    htmlFor="rubricFile"
+                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 cursor-pointer transition-colors"
+                  >
+                    Choose File
+                  </label>
+                  {formData.rubricFile && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-600">
+                        {formData.rubricFile.name} ({formatFileSize(formData.rubricFile.size)})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={removeRubric}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Supported formats: PDF, DOC, DOCX, TXT (max 10MB)
+                </p>
+              </div>
+            )}
+
+            {/* AI Generated Rubric Section */}
+            {formData.rubricType === 'ai_generated' && (
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="font-medium text-gray-900">AI-Generated Rubric</h4>
+                    <p className="text-sm text-gray-600">
+                      AI will create a rubric based on your assignment details
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={generateAIRubric}
+                    disabled={isGeneratingRubric || !formData.title.trim() || !formData.description.trim()}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isGeneratingRubric ? 'Generating...' : 'Generate Rubric'}
+                  </button>
+                </div>
+
+                {isGeneratingRubric && (
+                  <div className="flex items-center space-x-2 text-purple-600">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                    <span className="text-sm">AI is analyzing your assignment and generating a rubric...</span>
+                  </div>
+                )}
+
+                {formData.aiGeneratedRubric && (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700">Generated Rubric Preview</span>
+                      <div className="space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowRubricPreview(!showRubricPreview)}
+                          className="text-sm text-purple-600 hover:text-purple-800"
+                        >
+                          {showRubricPreview ? 'Hide' : 'Preview'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={removeRubric}
+                          className="text-sm text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {showRubricPreview && (
+                      <div className="bg-white border border-gray-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+                        <div className="space-y-4">
+                          {formData.aiGeneratedRubric.criteria?.map((criterion: any, index: number) => (
+                            <div key={index} className="border-b border-gray-100 pb-3 last:border-b-0">
+                              <div className="font-medium text-gray-900 mb-2">
+                                {criterion.name} ({criterion.points} points)
+                              </div>
+                              <div className="text-sm text-gray-600 mb-2">{criterion.description}</div>
+                              <div className="text-xs text-gray-500">
+                                <div className="grid grid-cols-4 gap-2">
+                                  {criterion.levels?.map((level: any, levelIndex: number) => (
+                                    <div key={levelIndex} className="text-center">
+                                      <div className="font-medium">{level.name}</div>
+                                      <div className="text-gray-500">{level.points} pts</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!formData.aiGeneratedRubric && !isGeneratingRubric && (
+                  <div className="text-sm text-gray-500 italic">
+                    Click "Generate Rubric" to create an AI-powered rubric based on your assignment details.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Current Rubric Status */}
+            {formData.rubricType !== 'none' && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="flex items-center">
+                  <span className="text-green-400 mr-2">✅</span>
+                  <span className="text-sm text-green-800">
+                    {formData.rubricType === 'upload' && 'Rubric file uploaded successfully'}
+                    {formData.rubricType === 'ai_generated' && 'AI-generated rubric ready'}
+                  </span>
                 </div>
               </div>
             )}
