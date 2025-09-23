@@ -30,24 +30,50 @@ const InstructorProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<ProfileData>({
     id: user?.id || '',
-    firstName: user?.firstName || 'John',
-    lastName: user?.lastName || 'Doe',
-    email: user?.email || 'john.doe@university.edu',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
     avatar: user?.avatar || '/api/placeholder/150/150',
-    bio: 'Experienced computer science instructor with a passion for teaching and research.',
-    department: 'Computer Science',
-    title: 'Associate Professor',
-    officeLocation: 'Building A, Room 205',
-    officeHours: 'Mon/Wed 2:00-4:00 PM',
-    phoneNumber: '(555) 123-4567',
-    website: 'https://johndoe.university.edu',
-    researchInterests: 'Machine Learning, Data Structures, Algorithms',
-    education: 'Ph.D. in Computer Science, Stanford University (2015)\nM.S. in Computer Science, MIT (2012)\nB.S. in Computer Science, UC Berkeley (2010)',
-    experience: 'Associate Professor, University of Technology (2015-Present)\nResearch Scientist, Google (2013-2015)\nSoftware Engineer, Microsoft (2010-2013)',
-    certifications: 'AWS Certified Solutions Architect\nGoogle Cloud Professional\nCertified Scrum Master'
+    bio: user?.bio || '',
+    department: user?.department || '',
+    title: user?.title || '',
+    officeLocation: user?.officeLocation || '',
+    officeHours: user?.officeHours || '',
+    phoneNumber: user?.phoneNumber || '',
+    website: user?.website || '',
+    researchInterests: user?.researchInterests || '',
+    education: user?.education || '',
+    experience: user?.experience || '',
+    certifications: user?.certifications || ''
   });
 
   const [editedProfile, setEditedProfile] = useState<ProfileData>(profile);
+
+  // Update profile when user data changes
+  React.useEffect(() => {
+    if (user) {
+      const updatedProfile = {
+        id: user.id || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        avatar: user.avatar || '/api/placeholder/150/150',
+        bio: user.bio || '',
+        department: user.department || '',
+        title: user.title || '',
+        officeLocation: user.officeLocation || '',
+        officeHours: user.officeHours || '',
+        phoneNumber: user.phoneNumber || '',
+        website: user.website || '',
+        researchInterests: user.researchInterests || '',
+        education: user.education || '',
+        experience: user.experience || '',
+        certifications: user.certifications || ''
+      };
+      setProfile(updatedProfile);
+      setEditedProfile(updatedProfile);
+    }
+  }, [user]);
 
   const handleInputChange = (field: keyof ProfileData, value: string) => {
     setEditedProfile(prev => ({ ...prev, [field]: value }));
@@ -146,13 +172,20 @@ const InstructorProfilePage: React.FC = () => {
 
       if (response.ok) {
         const result = await response.json();
-        // Update with the S3 URL immediately
-        handleInputChange('avatar', result.data.fileUrl);
-        console.log('Avatar uploaded successfully:', result.data.fileUrl);
+        console.log('Upload response:', result);
+        
+        if (result.success && result.data && result.data.fileUrl) {
+          // Update with the S3 URL immediately
+          handleInputChange('avatar', result.data.fileUrl);
+          console.log('Avatar uploaded successfully:', result.data.fileUrl);
+        } else {
+          console.error('Invalid upload response structure:', result);
+          alert('Invalid response from upload service. Please try again.');
+        }
       } else {
         const error = await response.json();
         console.error('Avatar upload failed:', error);
-        alert('Failed to upload avatar. Please try again.');
+        alert(`Failed to upload avatar: ${error.error || 'Unknown error'}. Please try again.`);
       }
     } catch (error) {
       console.error('Avatar upload error:', error);
