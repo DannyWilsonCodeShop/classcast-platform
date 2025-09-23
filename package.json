@@ -16,6 +16,7 @@
     "dev": "next dev",
     "dev:turbo": "next dev --turbopack",
     "dev:regular": "next dev",
+    "dev:test": "next dev -p 3001",
     "build": "next build",
     "build:standalone": "next build && next export",
     "monitor": "node connection-safeguards.js",
