@@ -176,6 +176,15 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
     // Apply sorting
     filtered.sort((a, b) => {
+      // First, sort by pinned status (pinned assignments go to top)
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      
+      // Then, sort by highlighted status (highlighted assignments go next)
+      if (a.isHighlighted && !b.isHighlighted) return -1;
+      if (!a.isHighlighted && b.isHighlighted) return 1;
+      
+      // Finally, apply the regular sorting
       let aValue: any;
       let bValue: any;
 
