@@ -33,15 +33,58 @@ export const CommunityInteractions: React.FC<CommunityInteractionsProps> = ({
 
     setIsSubmitting(true);
     try {
+      // Validate peer response if this is a peer response (not just a comment)
+      const isPeerResponse = submission.assignmentId && submission.courseId;
+      
+      if (isPeerResponse) {
+        // Get assignment data for validation
+        const assignmentResponse = await fetch(`/api/assignments?assignmentId=${submission.assignmentId}`);
+        const assignmentData = await assignmentResponse.json();
+        
+        if (assignmentData?.assignment) {
+          // Validate peer response
+          const validationResponse = await fetch('/api/peer-responses/validate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              assignmentId: submission.assignmentId,
+              videoId: submission.submissionId,
+              studentId: 'current-user-id', // In real app, get from auth context
+              content: newComment.trim(),
+              assignment: assignmentData.assignment
+            }),
+          });
+          
+          const validation = await validationResponse.json();
+          
+          if (!validation.validation.canSubmit) {
+            alert(`Cannot submit response: ${validation.validation.errors.join(', ')}`);
+            setIsSubmitting(false);
+            return;
+          }
+          
+          if (validation.validation.warnings.length > 0) {
+            const proceed = confirm(`Warning: ${validation.validation.warnings.join(', ')}\n\nDo you want to continue?`);
+            if (!proceed) {
+              setIsSubmitting(false);
+              return;
+            }
+          }
+        }
+      }
+      
       await onComment(submission.submissionId, newComment.trim());
       setNewComment('');
       setShowComments(true);
     } catch (error) {
       console.error('Failed to submit comment:', error);
+      alert('Failed to submit response. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
-  }, [newComment, isSubmitting, onComment, submission.submissionId]);
+  }, [newComment, isSubmitting, onComment, submission.submissionId, submission.assignmentId, submission.courseId]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -172,15 +215,22 @@ export const CommunityInteractions: React.FC<CommunityInteractionsProps> = ({
                   disabled={isSubmitting}
                 />
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-xs text-gray-500">
-                    Press Enter to submit, Shift+Enter for new line
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500">
+                      Press Enter to submit, Shift+Enter for new line
+                    </span>
+                    {submission.assignmentId && (
+                      <div className="text-xs text-gray-400 mt-1">
+                        {newComment.trim().split(/\s+/).length} words • {newComment.length} characters
+                      </div>
+                    )}
+                  </div>
                   <button
                     onClick={handleSubmitComment}
                     disabled={!newComment.trim() || isSubmitting}
                     className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {isSubmitting ? 'Posting...' : 'Post Comment'}
+                    {isSubmitting ? 'Posting...' : 'Post Response'}
                   </button>
                 </div>
               </div>

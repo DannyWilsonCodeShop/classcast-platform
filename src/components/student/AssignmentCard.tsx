@@ -130,14 +130,21 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
         </div>
         
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span className={`font-medium ${
-            urgencyLevel === 'overdue' ? 'text-red-600' :
-            urgencyLevel === 'high' ? 'text-orange-600' :
-            urgencyLevel === 'medium' ? 'text-yellow-600' :
-            'text-green-600'
-          }`}>
-            {formatDueDate(assignment.dueDate)}
-          </span>
+          <div className="flex flex-col">
+            <span className={`font-medium ${
+              urgencyLevel === 'overdue' ? 'text-red-600' :
+              urgencyLevel === 'high' ? 'text-orange-600' :
+              urgencyLevel === 'medium' ? 'text-yellow-600' :
+              'text-green-600'
+            }`}>
+              Video: {formatDueDate(assignment.dueDate)}
+            </span>
+            {assignment.enablePeerResponses && assignment.responseDueDate && (
+              <span className="text-xs text-gray-500 mt-1">
+                Responses: {formatDueDate(assignment.responseDueDate)}
+              </span>
+            )}
+          </div>
           <span className="font-medium">
             {assignment.maxScore} pts
           </span>
@@ -242,15 +249,27 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <svg className="h-4 w-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-gray-600">Due:</span>
-          <span className={`ml-2 font-medium ${
-            urgencyLevel === 'overdue' ? 'text-red-600' :
-            urgencyLevel === 'high' ? 'text-orange-600' :
-            urgencyLevel === 'medium' ? 'text-yellow-600' :
-            'text-green-600'
-          }`}>
-            {formatDueDate(assignment.dueDate)}
-          </span>
+          <div className="flex flex-col">
+            <div className="flex items-center">
+              <span className="text-gray-600">Video:</span>
+              <span className={`ml-2 font-medium ${
+                urgencyLevel === 'overdue' ? 'text-red-600' :
+                urgencyLevel === 'high' ? 'text-orange-600' :
+                urgencyLevel === 'medium' ? 'text-yellow-600' :
+                'text-green-600'
+              }`}>
+                {formatDueDate(assignment.dueDate)}
+              </span>
+            </div>
+            {assignment.enablePeerResponses && assignment.responseDueDate && (
+              <div className="flex items-center mt-1">
+                <span className="text-gray-500 text-xs">Responses:</span>
+                <span className="ml-2 text-xs text-gray-500">
+                  {formatDueDate(assignment.responseDueDate)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex items-center">
           <svg className="h-4 w-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
