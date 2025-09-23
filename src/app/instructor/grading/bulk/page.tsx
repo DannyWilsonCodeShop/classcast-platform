@@ -104,6 +104,29 @@ const BulkGradingPage: React.FC = () => {
     }
   }, []);
 
+  // Function to determine if submission is late
+  const isSubmissionLate = (submission: Submission, assignmentDueDate?: string) => {
+    if (!assignmentDueDate) return false;
+    
+    const dueDate = new Date(assignmentDueDate);
+    const submittedDate = new Date(submission.submittedAt);
+    
+    return submittedDate > dueDate;
+  };
+
+  // Function to get submission timing status
+  const getSubmissionTimingStatus = (submission: Submission, assignmentDueDate?: string) => {
+    if (!assignmentDueDate) return { status: 'unknown', color: 'gray', text: 'No due date' };
+    
+    const isLate = isSubmissionLate(submission, assignmentDueDate);
+    
+    if (isLate) {
+      return { status: 'late', color: 'yellow', text: 'Late' };
+    } else {
+      return { status: 'ontime', color: 'green', text: 'On Time' };
+    }
+  };
+
   // Function to get mock peer responses for a specific student
   const getMockPeerResponsesForStudent = (studentId: string) => {
     const mockResponses = [
@@ -225,6 +248,9 @@ const BulkGradingPage: React.FC = () => {
     return mockResponses.filter(response => response.reviewerId === studentId);
   };
 
+  // Mock assignment due date for timing calculations
+  const assignmentDueDate = '2024-01-20T23:59:00Z'; // Due date for assignment_1
+
   // Comprehensive mock data for video submissions with realistic student data
   const mockSubmissions: Submission[] = [
       {
@@ -269,7 +295,7 @@ const BulkGradingPage: React.FC = () => {
         assignmentId: 'assignment_1',
         courseName: 'Introduction to Computer Science',
         courseCode: 'CS101',
-        submittedAt: '2024-01-23T09:15:00Z',
+        submittedAt: '2024-01-19T15:30:00Z', // On-time submission
         status: 'pending',
         fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg',
@@ -1353,7 +1379,15 @@ const BulkGradingPage: React.FC = () => {
                         ? 'border-yellow-300 bg-yellow-50 shadow-md'
                         : submission.isHighlighted
                         ? 'border-orange-300 bg-orange-50 shadow-md'
-                        : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
+                        : (() => {
+                            const timingStatus = getSubmissionTimingStatus(submission, assignmentDueDate);
+                            if (timingStatus.status === 'late') {
+                              return 'border-yellow-400 bg-yellow-50 hover:border-yellow-500 hover:shadow-md';
+                            } else if (timingStatus.status === 'ontime') {
+                              return 'border-green-300 bg-green-50 hover:border-green-400 hover:shadow-md';
+                            }
+                            return 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md';
+                          })()
                     }`}
                   >
                     {/* Pin/Highlight Indicators */}
@@ -1429,12 +1463,31 @@ const BulkGradingPage: React.FC = () => {
                           <p className="text-xs text-gray-500 mb-1">
                             {submission.courseName} ({submission.courseCode})
                           </p>
-                          <p className="text-xs text-gray-500 mb-3">
-                            Video Due: {new Date(submission.submittedAt).toLocaleDateString()}
-                            {submission.assignment?.enablePeerResponses && submission.assignment?.responseDueDate && (
-                              <> • Responses Due: {new Date(submission.assignment.responseDueDate).toLocaleDateString()}</>
-                            )}
-                          </p>
+                          <div className="flex items-center space-x-4 mb-3">
+                            <p className="text-xs text-gray-500">
+                              Video Due: {new Date(assignmentDueDate).toLocaleDateString()}
+                              {submission.assignment?.enablePeerResponses && submission.assignment?.responseDueDate && (
+                                <> • Responses Due: {new Date(submission.assignment.responseDueDate).toLocaleDateString()}</>
+                              )}
+                            </p>
+                            
+                            {/* Timing Status with Icon */}
+                            {(() => {
+                              const timingStatus = getSubmissionTimingStatus(submission, assignmentDueDate);
+                              return (
+                                <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
+                                  timingStatus.color === 'green' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : timingStatus.color === 'yellow'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  <span>{timingStatus.color === 'green' ? '✓' : timingStatus.color === 'yellow' ? '⚠️' : '?'}</span>
+                                  <span>{timingStatus.text}</span>
+                                </div>
+                              );
+                            })()}
+                          </div>
                           {submission.assignment?.enablePeerResponses && (
                             <div className="text-xs text-blue-600 mb-3 bg-blue-50 px-2 py-1 rounded">
                               Peer Responses: {submission.assignment.minResponsesRequired || 2} required, max {submission.assignment.maxResponsesPerVideo || 3} per video
@@ -1488,6 +1541,22 @@ const BulkGradingPage: React.FC = () => {
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
                                 {getStatusText(submission.status)}
                               </span>
+                              
+                              {/* Timing Status Indicator */}
+                              {(() => {
+                                const timingStatus = getSubmissionTimingStatus(submission, assignmentDueDate);
+                                return (
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    timingStatus.color === 'green' 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : timingStatus.color === 'yellow'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {timingStatus.text}
+                                  </span>
+                                );
+                              })()}
                             </div>
                             {submission.grade && (
                               <span className="text-sm font-bold text-green-600">
