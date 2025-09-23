@@ -21,6 +21,7 @@ export interface VideoSubmissionProps {
   maxDuration?: number;
   showPreview?: boolean;
   enableLiveRecording?: boolean;
+  assignmentRequirements?: string[];
   className?: string;
 }
 
@@ -66,6 +67,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   maxDuration = 300,
   showPreview = true,
   enableLiveRecording = true,
+  assignmentRequirements = [],
   className = '',
 }) => {
   const { user } = useAuth();
@@ -402,6 +404,24 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         </div>
       )}
 
+      {/* Assignment Requirements - Always visible for reference */}
+      {assignmentRequirements.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <h3 className="text-sm font-semibold text-blue-800 mb-3 flex items-center">
+            <span className="mr-2">📋</span>
+            Assignment Requirements
+          </h3>
+          <div className="space-y-2">
+            {assignmentRequirements.map((requirement, index) => (
+              <div key={index} className="flex items-start space-x-2 text-sm text-blue-700">
+                <span className="text-blue-500 mt-0.5">•</span>
+                <span>{requirement}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {!selectedFile && recordingMode === 'upload' && (
         <VideoUploadZone
           onFileSelect={handleFileSelect}
@@ -411,14 +431,37 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       )}
 
       {!selectedFile && recordingMode === 'record' && enableLiveRecording && (
-        <LiveVideoRecorder
-          onRecordingComplete={handleRecordingComplete}
-          onError={(error) => {
-            console.error('Recording error:', error);
-            onSubmissionError?.(error);
-          }}
-          maxDuration={maxDuration}
-        />
+        <div className="relative">
+          <LiveVideoRecorder
+            onRecordingComplete={handleRecordingComplete}
+            onError={(error) => {
+              console.error('Recording error:', error);
+              onSubmissionError?.(error);
+            }}
+            maxDuration={maxDuration}
+          />
+          
+          {/* Floating Requirements Panel - Always visible during recording */}
+          <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm border border-gray-200 rounded-lg p-3 shadow-lg max-w-xs max-h-80 overflow-y-auto">
+            <h4 className="text-xs font-semibold text-gray-800 mb-2 flex items-center">
+              <span className="mr-1">📋</span>
+              Assignment Requirements
+            </h4>
+            <div className="space-y-1 text-xs text-gray-600">
+              {assignmentRequirements.slice(0, 5).map((requirement, index) => (
+                <div key={index} className="flex items-start">
+                  <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 mt-1.5 flex-shrink-0"></span>
+                  <span className="leading-tight">{requirement}</span>
+                </div>
+              ))}
+              {assignmentRequirements.length > 5 && (
+                <div className="text-xs text-gray-500 italic">
+                  +{assignmentRequirements.length - 5} more requirements
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
 
       {selectedFile && (

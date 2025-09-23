@@ -1566,117 +1566,6 @@ const BulkGradingPage: React.FC = () => {
                           </div>
                         </div>
 
-            {/* Peer Response Analytics */}
-            {submission.peerResponses && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                <h3 className="text-sm font-semibold text-blue-800 mb-3 flex items-center">
-                  <span className="mr-2">👥</span>
-                  Peer Response Analytics
-                </h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-blue-700 font-medium">Responses Given:</span>
-                    <span className="ml-2 text-blue-900">
-                      {submission.peerResponses.submittedResponses}/{submission.peerResponses.totalResponses}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-blue-700 font-medium">Avg. Length:</span>
-                    <span className="ml-2 text-blue-900">
-                      {submission.peerResponses.averageResponseLength} words
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-blue-700 font-medium">Quality:</span>
-                    <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
-                      submission.peerResponses.responseQuality === 'excellent' 
-                        ? 'bg-green-100 text-green-800'
-                        : submission.peerResponses.responseQuality === 'good'
-                        ? 'bg-blue-100 text-blue-800'
-                        : submission.peerResponses.responseQuality === 'adequate'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {submission.peerResponses.responseQuality.replace('_', ' ')}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-blue-700 font-medium">Last Response:</span>
-                    <span className="ml-2 text-blue-900">
-                      {submission.peerResponses.lastResponseDate 
-                        ? new Date(submission.peerResponses.lastResponseDate).toLocaleDateString()
-                        : 'N/A'
-                      }
-                    </span>
-                  </div>
-                </div>
-                {submission.peerResponses.submittedResponses < 2 && (
-                  <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-                    ⚠️ Student needs to complete more peer responses (minimum 2 required)
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Student's Peer Responses */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center">
-                <span className="mr-2">💬</span>
-                Student's Peer Responses
-              </h3>
-              <div className="space-y-3">
-                {getMockPeerResponsesForStudent(submission.studentId).map((response, index) => (
-                  <div key={response.id} className="bg-white rounded-lg p-3 border border-gray-200">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs font-medium text-gray-600">
-                          Response to: {response.reviewedStudentName}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(response.submittedAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        response.isSubmitted 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {response.isSubmitted ? 'Submitted' : 'Draft'}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {response.content}
-                    </p>
-                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <span>{response.wordCount} words</span>
-                        <span>{response.characterCount} characters</span>
-                        {response.qualityScore && (
-                          <span className="font-medium">
-                            Quality: {response.qualityScore}/5
-                          </span>
-                        )}
-                      </div>
-                      {response.aiGrade && (
-                        <div className="flex items-center space-x-1 text-xs">
-                          <span className="text-gray-500">AI Grade:</span>
-                          <span className="font-medium text-blue-600">
-                            {response.aiGrade.overallGrade}%
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                
-                {getMockPeerResponsesForStudent(submission.studentId).length === 0 && (
-                  <div className="text-center py-4 text-gray-500 text-sm">
-                    <span className="mr-2">📝</span>
-                    No peer responses submitted yet
-                  </div>
-                )}
-              </div>
-            </div>
 
                         {/* AI Grading Section - Compact */}
                         {index === currentSubmissionIndex && (
@@ -1882,6 +1771,148 @@ const BulkGradingPage: React.FC = () => {
                             </button>
                           )}
                         </div>
+
+                        {/* Peer Response Analytics - Only show for current submission */}
+                        {index === currentSubmissionIndex && submission.peerResponses && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="text-sm font-semibold text-blue-800 flex items-center">
+                                <span className="mr-2">👥</span>
+                                Peer Response Analytics
+                              </h3>
+                              <button
+                                onClick={() => analyzePeerResponsesWithAI(submission)}
+                                disabled={isAIAnalyzing[`peer-${submission.id}`]}
+                                className="px-2 py-1 text-xs bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                                title="AI Analysis for Peer Responses"
+                              >
+                                {isAIAnalyzing[`peer-${submission.id}`] ? (
+                                  <>
+                                    <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                                    <span>Analyzing...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span>🤖</span>
+                                    <span>AI Assist</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="text-blue-700 font-medium">Responses Given:</span>
+                                <span className="ml-2 text-blue-900">
+                                  {submission.peerResponses.submittedResponses}/{submission.peerResponses.totalResponses}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-blue-700 font-medium">Avg. Length:</span>
+                                <span className="ml-2 text-blue-900">
+                                  {submission.peerResponses.averageResponseLength} words
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-blue-700 font-medium">Quality:</span>
+                                <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                                  submission.peerResponses.responseQuality === 'excellent' 
+                                    ? 'bg-green-100 text-green-800'
+                                    : submission.peerResponses.responseQuality === 'good'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : submission.peerResponses.responseQuality === 'adequate'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {submission.peerResponses.responseQuality.replace('_', ' ')}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-blue-700 font-medium">Last Response:</span>
+                                <span className="ml-2 text-blue-900">
+                                  {submission.peerResponses.lastResponseDate 
+                                    ? new Date(submission.peerResponses.lastResponseDate).toLocaleDateString()
+                                    : 'N/A'
+                                  }
+                                </span>
+                              </div>
+                            </div>
+                            {submission.peerResponses.submittedResponses < 2 && (
+                              <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                                ⚠️ Student needs to complete more peer responses (minimum 2 required)
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Student's Peer Responses - Only show for current submission */}
+                        {index === currentSubmissionIndex && (
+                          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                            <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                              <span className="mr-2">💬</span>
+                              Student's Peer Responses
+                            </h3>
+                            <div className="space-y-3">
+                              {getMockPeerResponsesForStudent(submission.studentId).map((response, responseIndex) => (
+                                <div key={response.id} className="bg-white rounded-lg p-3 border border-gray-200">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-xs font-medium text-gray-600">
+                                        Response to: {response.reviewedStudentName}
+                                      </span>
+                                      <span className="text-xs text-gray-500">
+                                        {new Date(response.submittedAt).toLocaleDateString()}
+                                      </span>
+                                      {/* Video Link */}
+                                      <a
+                                        href={`/instructor/grading/bulk?assignment=${submission.assignmentId}&course=${submission.courseCode}&submission=${response.reviewedStudentId}`}
+                                        className="text-xs text-blue-600 hover:text-blue-800 underline"
+                                        title="View the video this response is about"
+                                      >
+                                        📹 View Video
+                                      </a>
+                                    </div>
+                                    <span className={`px-2 py-1 rounded-full text-xs ${
+                                      response.isSubmitted 
+                                        ? 'bg-green-100 text-green-800' 
+                                        : 'bg-yellow-100 text-yellow-800'
+                                    }`}>
+                                      {response.isSubmitted ? 'Submitted' : 'Draft'}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-gray-700 leading-relaxed">
+                                    {response.content}
+                                  </p>
+                                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                      <span>{response.wordCount} words</span>
+                                      <span>{response.characterCount} characters</span>
+                                      {response.qualityScore && (
+                                        <span className="font-medium">
+                                          Quality: {response.qualityScore}/5
+                                        </span>
+                                      )}
+                                    </div>
+                                    {response.aiGrade && (
+                                      <div className="flex items-center space-x-1 text-xs">
+                                        <span className="text-gray-500">AI Grade:</span>
+                                        <span className="font-medium text-blue-600">
+                                          {response.aiGrade.overallGrade}%
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                              
+                              {getMockPeerResponsesForStudent(submission.studentId).length === 0 && (
+                                <div className="text-center py-4 text-gray-500 text-sm">
+                                  <span className="mr-2">📝</span>
+                                  No peer responses submitted yet
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
