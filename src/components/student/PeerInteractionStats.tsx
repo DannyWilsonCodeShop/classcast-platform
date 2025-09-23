@@ -7,9 +7,10 @@ export interface PeerInteractionStats {
   averageRating: number;
   totalVideos: number;
   totalResponses: number;
+  totalViews: number;
   recentActivity: {
     date: string;
-    type: 'like' | 'rating' | 'video' | 'response';
+    type: 'like' | 'rating' | 'video' | 'response' | 'view';
     description: string;
   }[];
 }
@@ -56,6 +57,7 @@ export const PeerInteractionStats: React.FC<PeerInteractionStatsProps> = ({
           averageRating: 4.2,
           totalVideos: 5,
           totalResponses: 8,
+          totalViews: 156,
           recentActivity: [
             {
               date: new Date().toISOString(),
@@ -71,6 +73,11 @@ export const PeerInteractionStats: React.FC<PeerInteractionStatsProps> = ({
               date: new Date(Date.now() - 172800000).toISOString(),
               type: 'video',
               description: 'Posted "Web Development Best Practices"'
+            },
+            {
+              date: new Date(Date.now() - 259200000).toISOString(),
+              type: 'view',
+              description: 'Your video "React Hooks Tutorial" reached 50 views!'
             }
           ]
         });
@@ -119,7 +126,7 @@ export const PeerInteractionStats: React.FC<PeerInteractionStatsProps> = ({
       </h3>
 
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div className="text-center">
           <div className="text-2xl font-bold text-red-600">{stats.totalLikes}</div>
           <div className="text-sm text-gray-600">Total Likes</div>
@@ -138,6 +145,10 @@ export const PeerInteractionStats: React.FC<PeerInteractionStatsProps> = ({
           <div className="text-2xl font-bold text-green-600">{stats.totalResponses}</div>
           <div className="text-sm text-gray-600">Peer Responses</div>
         </div>
+        <div className="text-center">
+          <div className="text-2xl font-bold text-purple-600">{stats.totalViews}</div>
+          <div className="text-sm text-gray-600">Total Views</div>
+        </div>
       </div>
 
       {/* Recent Activity */}
@@ -152,6 +163,7 @@ export const PeerInteractionStats: React.FC<PeerInteractionStatsProps> = ({
                   {activity.type === 'rating' && '⭐'}
                   {activity.type === 'video' && '🎥'}
                   {activity.type === 'response' && '💬'}
+                  {activity.type === 'view' && '👁️'}
                 </span>
                 <span className="flex-1">{activity.description}</span>
                 <span className="text-xs text-gray-500">

@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
     
     let totalLikesReceived = 0;
     let totalRatingsReceived = 0;
+    let totalViewsReceived = 0;
     let ratingSum = 0;
     const ratingDistribution = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
 
@@ -81,8 +82,20 @@ export async function GET(request: NextRequest) {
         }
       });
 
+      const viewsResult = await dynamodbService.query({
+        TableName: 'classcast-peer-interactions',
+        IndexName: 'video-index',
+        KeyConditionExpression: 'videoId = :videoId',
+        FilterExpression: 'action = :action',
+        ExpressionAttributeValues: {
+          ':videoId': videoId,
+          ':action': 'view'
+        }
+      });
+
       totalLikesReceived += likesResult.Count || 0;
       totalRatingsReceived += ratingsResult.Count || 0;
+      totalViewsReceived += viewsResult.Count || 0;
 
       // Process ratings
       (ratingsResult.Items || []).forEach(rating => {
@@ -174,6 +187,7 @@ export async function GET(request: NextRequest) {
       totalVideosSubmitted,
       totalLikesReceived,
       totalRatingsReceived,
+      totalViewsReceived,
       averageRating: Math.round(averageRating * 10) / 10,
       ratingDistribution,
       totalResponsesGiven,
@@ -191,6 +205,7 @@ export async function GET(request: NextRequest) {
       averageRating: peerProfile.averageRating,
       totalVideos: peerProfile.totalVideosSubmitted,
       totalResponses: peerProfile.totalResponsesGiven,
+      totalViews: peerProfile.totalViewsReceived,
       recentActivity: peerProfile.recentActivity.map(activity => ({
         date: activity.timestamp,
         type: activity.type === 'video_submitted' ? 'video' : 'response',

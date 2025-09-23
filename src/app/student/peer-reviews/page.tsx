@@ -430,12 +430,33 @@ const PeerReviewsContent: React.FC = () => {
     }
   };
 
+  const trackView = async (videoId: string) => {
+    try {
+      await fetch('/api/videos/track-view', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          videoId: videoId,
+          userId: 'current_student_id' // In real app, get from auth context
+        }),
+      });
+    } catch (error) {
+      console.error('Error tracking view:', error);
+    }
+  };
+
   const handlePlayPause = () => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
         videoRef.current.play();
+        // Track view when video starts playing
+        if (currentVideo) {
+          trackView(currentVideo.id);
+        }
       }
       setIsPlaying(!isPlaying);
     }
@@ -939,7 +960,13 @@ const PeerReviewsContent: React.FC = () => {
               className="w-full h-64 sm:h-96 object-cover"
               onLoadedMetadata={handleVideoLoad}
               onTimeUpdate={handleTimeUpdate}
-              onPlay={() => setIsPlaying(true)}
+              onPlay={() => {
+                setIsPlaying(true);
+                // Track view when video starts playing
+                if (currentVideo) {
+                  trackView(currentVideo.id);
+                }
+              }}
               onPause={() => setIsPlaying(false)}
               poster={currentVideo.thumbnailUrl}
             >
