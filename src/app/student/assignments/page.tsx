@@ -17,7 +17,7 @@ const StudentAssignmentsPage: React.FC = () => {
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
                 title="Back to Home"
               >
-                <span className="text-xl">+</span>
+                <span className="text-xl">&lt;</span>
               </Link>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
@@ -31,9 +31,11 @@ const StudentAssignmentsPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="text-xs text-gray-500">
-              ClassCast
-            </div>
+            <img
+              src="/MyClassCast (800 x 200 px).png"
+              alt="MyClassCast"
+              className="h-6 w-auto object-contain"
+            />
           </div>
         </div>
 

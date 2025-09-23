@@ -72,9 +72,9 @@ export default function HomePage() {
                 {/* Main Heading */}
                 <div className="space-y-4">
                   <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-gray-800 leading-tight">
-                    <span className="block">Learn</span>
+                    <span className="block">AI-Enhanced</span>
                     <span className="block bg-gradient-to-r from-yellow-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
-                      Together!
+                      Video Learning
                     </span>
                   </h1>
                   <div className="w-24 h-2 bg-gradient-to-r from-yellow-400 to-blue-500 rounded-full"></div>
@@ -82,8 +82,8 @@ export default function HomePage() {
                 
               {/* Subtitle */}
               <p className="text-xl text-gray-600 max-w-lg leading-relaxed font-medium">
-                Create engaging videos, learn from peers, and collaborate on assignments! 
-                Like, comment, and work together on exciting projects! 🚀
+                Create video assignments, engage in peer discussions, and get AI-powered feedback! 
+                Transform education with collaborative video learning and intelligent assessment! 🚀
               </p>
                 
                 {/* CTA Buttons */}
@@ -110,16 +110,16 @@ export default function HomePage() {
               {/* Stats */}
               <div className="grid grid-cols-3 gap-8 pt-8">
                 <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
-                  <div className="text-3xl font-bold text-yellow-500">10K+</div>
-                  <div className="text-gray-600 text-sm font-medium">Active Students! 📚</div>
+                  <div className="text-3xl font-bold text-yellow-500">3</div>
+                  <div className="text-gray-600 text-sm font-medium">Assignment Types! 📝</div>
                 </div>
                 <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
-                  <div className="text-3xl font-bold text-blue-500">99.9%</div>
-                  <div className="text-gray-600 text-sm font-medium">Success Rate! 🎯</div>
+                  <div className="text-3xl font-bold text-blue-500">AI</div>
+                  <div className="text-gray-600 text-sm font-medium">Auto-Grading! 🤖</div>
                 </div>
                 <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
-                  <div className="text-3xl font-bold text-purple-500">AI</div>
-                  <div className="text-gray-600 text-sm font-medium">Powered Learning! 🧠</div>
+                  <div className="text-3xl font-bold text-purple-500">Live</div>
+                  <div className="text-gray-600 text-sm font-medium">Recording! 🎥</div>
                 </div>
               </div>
               </div>
@@ -157,7 +157,7 @@ export default function HomePage() {
                       {/* Video Overlay Info */}
                       <div className="absolute bottom-4 left-4 right-4">
                         <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border-2 border-yellow-300">
-                          <div className="text-gray-800 text-sm font-bold mb-1">"Fun Math with Friends! 📚"</div>
+                          <div className="text-gray-800 text-sm font-bold mb-1">"AI-Graded Video Assignment 📚"</div>
                           <div className="text-gray-600 text-xs">by @sarah_math • 2.3K views • 2 hours ago</div>
                         </div>
                       </div>
@@ -238,13 +238,13 @@ export default function HomePage() {
               ✨ Super Cool Features! ✨
             </div>
             <h2 className="text-5xl sm:text-6xl font-black text-gray-800 mb-6">
-              Learn & Play
+              Video-First
               <span className="block bg-gradient-to-r from-yellow-400 to-blue-500 bg-clip-text text-transparent">
-                Together! 🎉
+                Learning Platform! 🎉
               </span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto font-medium">
-              Fun learning features that make studying exciting! Create videos, make friends, and learn together! 🌟
+              Transform education with AI-powered video assignments, peer discussions, and intelligent feedback! 🌟
             </p>
           </div>
           
@@ -267,9 +267,9 @@ export default function HomePage() {
                       <div className="text-sm text-gray-500">VIDEOS</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Peer Video Learning</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Video Assignments & Discussions</h3>
                   <p className="text-gray-600 leading-relaxed mb-6">
-                    Students create and share tutorial videos, learn from peers, and build knowledge through collaborative video assignments.
+                    Create video assignments, discussions, and assessments. Students record live videos, engage in peer reviews, and participate in threaded discussions.
                   </p>
                   <div className="flex items-center text-yellow-600 font-semibold group-hover:text-yellow-700">
                     <span>Explore</span>
@@ -295,9 +295,9 @@ export default function HomePage() {
                       <div className="text-sm text-gray-500">SOCIAL</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Social Learning</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">Peer Interactions & Community</h3>
                   <p className="text-gray-600 leading-relaxed mb-6">
-                    Like, comment, rate, and follow creators. Build learning communities through group projects and peer collaboration.
+                    Like, rate, and comment on peer videos. Build learning communities with threaded discussions, peer responses, and collaborative feedback.
                   </p>
                   <div className="flex items-center text-blue-600 font-semibold group-hover:text-blue-700">
                     <span>Explore</span>
@@ -323,9 +323,9 @@ export default function HomePage() {
                       <div className="text-sm text-gray-500">AI FEEDBACK</div>
                     </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">AI-Powered Feedback</h3>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">AI Grading & Rubric System</h3>
                   <p className="text-gray-600 leading-relaxed mb-6">
-                    Intelligent video analysis provides instant feedback, auto-grading, and personalized learning recommendations.
+                    AI-powered grading with rubric-based scoring, auto-generated feedback, content moderation, and intelligent peer response analysis.
                   </p>
                   <div className="flex items-center text-cyan-600 font-semibold group-hover:text-cyan-700">
                     <span>Explore</span>
@@ -340,20 +340,20 @@ export default function HomePage() {
             {/* Bottom Stats Row */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200">
-                <div className="text-3xl font-bold text-yellow-500 mb-2">98%</div>
-                <div className="text-gray-600 text-sm">Accuracy Rate</div>
+                <div className="text-3xl font-bold text-yellow-500 mb-2">Live</div>
+                <div className="text-gray-600 text-sm">Video Recording</div>
               </div>
               <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200">
-                <div className="text-3xl font-bold text-blue-500 mb-2">24/7</div>
-                <div className="text-gray-600 text-sm">AI Availability</div>
+                <div className="text-3xl font-bold text-blue-500 mb-2">Mobile</div>
+                <div className="text-gray-600 text-sm">Responsive</div>
               </div>
               <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200">
-                <div className="text-3xl font-bold text-cyan-500 mb-2">5ms</div>
-                <div className="text-gray-600 text-sm">Response Time</div>
+                <div className="text-3xl font-bold text-cyan-500 mb-2">Auto</div>
+                <div className="text-gray-600 text-sm">Save & Sync</div>
               </div>
               <div className="text-center p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200">
-                <div className="text-3xl font-bold text-blue-600 mb-2">∞</div>
-                <div className="text-gray-600 text-sm">Scalability</div>
+                <div className="text-3xl font-bold text-blue-600 mb-2">Email</div>
+                <div className="text-gray-600 text-sm">Verification</div>
               </div>
             </div>
           </div>
@@ -398,19 +398,19 @@ export default function HomePage() {
                 <ul className="space-y-4 text-gray-600 mb-8">
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></div>
-                    <span>AI tutoring assistant for instant help</span>
+                    <span>Video assignments, discussions & assessments</span>
                   </li>
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></div>
-                    <span>Smart video submission with auto-feedback</span>
+                    <span>Live video recording with compression</span>
                   </li>
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></div>
-                    <span>Personalized learning recommendations</span>
+                    <span>Peer video reviews and interactions</span>
                   </li>
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-2 flex-shrink-0"></div>
-                    <span>Real-time collaboration with peers</span>
+                    <span>To-do list with pending assignments</span>
                   </li>
                 </ul>
                 <Link 
@@ -443,19 +443,19 @@ export default function HomePage() {
                 <ul className="space-y-4 text-gray-600 mb-8">
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-purple-500 rounded-full mr-3 mt-2 flex-shrink-0"></div>
-                    <span>AI-powered grading and feedback</span>
+                    <span>AI-powered grading with rubrics</span>
                   </li>
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-purple-500 rounded-full mr-3 mt-2 flex-shrink-0"></div>
-                    <span>Smart content recommendations</span>
+                    <span>Assignment creation with visual elements</span>
                   </li>
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-purple-500 rounded-full mr-3 mt-2 flex-shrink-0"></div>
-                    <span>Predictive student analytics</span>
+                    <span>Peer response analytics & moderation</span>
                   </li>
                   <li className="flex items-start">
                     <div className="w-2 h-2 bg-purple-500 rounded-full mr-3 mt-2 flex-shrink-0"></div>
-                    <span>Automated assignment creation</span>
+                    <span>Class management with unique codes</span>
                   </li>
                 </ul>
                 <Link 
@@ -537,12 +537,12 @@ export default function HomePage() {
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
               Ready to Transform
               <span className="block bg-gradient-to-r from-yellow-400 to-pink-400 bg-clip-text text-transparent">
-                Education?
+                Video Learning?
               </span>
             </h2>
             
             <p className="text-xl text-purple-100 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Experience the future of learning with AI-powered features that adapt to every student's needs and help instructors create engaging content.
+              Join the future of education with AI-powered video assignments, peer discussions, live recording, and intelligent grading that makes learning engaging and effective.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12">
@@ -600,7 +600,7 @@ export default function HomePage() {
                 <span className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">ClassCast</span>
               </div>
               <p className="text-gray-300 mb-8 max-w-md leading-relaxed">
-                Empowering educators and learners with AI-powered technology to create engaging, effective learning experiences that adapt to every student's needs.
+                The complete AI-enhanced video learning platform for modern education. Create video assignments, engage in peer discussions, and get intelligent feedback that transforms how students learn and instructors teach.
               </p>
               <div className="flex space-x-4">
                 <a href="#" className="w-12 h-12 bg-gray-700/50 hover:bg-blue-600 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110">
