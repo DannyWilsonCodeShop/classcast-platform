@@ -185,9 +185,23 @@ export async function GET(request: NextRequest) {
       achievements
     };
 
+    // Format the response to match what the component expects
+    const stats = {
+      totalLikes: peerProfile.totalLikesReceived,
+      averageRating: peerProfile.averageRating,
+      totalVideos: peerProfile.totalVideosSubmitted,
+      totalResponses: peerProfile.totalResponsesGiven,
+      recentActivity: peerProfile.recentActivity.map(activity => ({
+        date: activity.timestamp,
+        type: activity.type === 'video_submitted' ? 'video' : 'response',
+        description: activity.description
+      }))
+    };
+
     return NextResponse.json({
       success: true,
-      data: peerProfile
+      stats: stats,
+      data: peerProfile // Keep the full data for other uses
     });
   } catch (error) {
     console.error('Error fetching student peer profile:', error);

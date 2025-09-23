@@ -83,12 +83,28 @@ export async function POST(request: NextRequest) {
       const firstNameAttr = userAttributes.find(attr => attr.Name === 'given_name')?.Value || '';
       const lastNameAttr = userAttributes.find(attr => attr.Name === 'family_name')?.Value || '';
       const roleAttr = userAttributes.find(attr => attr.Name === 'custom:role')?.Value || 'student';
+      const emailVerified = userAttributes.find(attr => attr.Name === 'email_verified')?.Value === 'true';
 
       console.log('Login successful, auth result:', { 
         userId: userResponse.Username, 
         email: emailAttr,
+        emailVerified: emailVerified,
         hasToken: !!authResponse.AuthenticationResult.AccessToken 
       });
+
+      // Check if email is verified
+      if (!emailVerified) {
+        return NextResponse.json(
+          { 
+            error: { 
+              message: 'Email not verified',
+              code: 'EMAIL_NOT_VERIFIED',
+              email: emailAttr
+            } 
+          },
+          { status: 403 }
+        );
+      }
 
       // Set secure HTTP-only cookies for the session
       const response = NextResponse.json(

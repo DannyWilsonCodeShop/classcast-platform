@@ -98,6 +98,7 @@ export interface Assignment {
   maxResponsesPerVideo?: number; // Maximum responses allowed per video
   responseWordLimit?: number; // Minimum word count for responses
   responseCharacterLimit?: number; // Maximum character count for responses
+  hidePeerVideosUntilInstructorPosts?: boolean; // Hide peer videos until instructor posts their own
   
   // Instructor Features
   isPinned?: boolean;

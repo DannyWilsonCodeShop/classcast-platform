@@ -109,10 +109,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } else {
         const errorData = await response.json();
+        
+        // Handle email verification error
+        if (errorData.error?.code === 'EMAIL_NOT_VERIFIED') {
+          setAuthState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: null,
+            showEmailConfirmation: true,
+            confirmationEmail: errorData.error.email,
+          }));
+          // Store email for verification page
+          localStorage.setItem('pendingVerificationEmail', errorData.error.email);
+          router.push(`/verify-email?email=${encodeURIComponent(errorData.error.email)}`);
+          return;
+        }
+        
         setAuthState(prev => ({
           ...prev,
           isLoading: false,
-          error: errorData.message || 'Login failed',
+          error: errorData.error?.message || errorData.message || 'Login failed',
         }));
       }
     } catch (error) {
@@ -140,7 +156,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const responseData = await response.json();
         
-        // Skip email confirmation - proceed directly to login
+        // Check if user needs email verification
+        if (responseData.needsVerification) {
+          setAuthState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: null,
+            showEmailConfirmation: true,
+            confirmationEmail: userData.email,
+          }));
+          // Store email for verification page
+          localStorage.setItem('pendingVerificationEmail', userData.email);
+          router.push(`/verify-email?email=${encodeURIComponent(userData.email)}`);
+          return;
+        }
+        
+        // If no verification needed, proceed directly to login
         const newState = {
           user: responseData.user,
           isAuthenticated: true,

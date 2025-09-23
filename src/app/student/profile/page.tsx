@@ -53,9 +53,11 @@ const StudentProfilePage: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="text-xs text-[#333333]">
-                ClassCast
-              </div>
+              <img
+                src="/MyClassCast (800 x 200 px).png"
+                alt="MyClassCast"
+                className="h-6 w-auto object-contain"
+              />
               <button
                 onClick={logout}
                 className="px-3 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition-colors"

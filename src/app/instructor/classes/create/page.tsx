@@ -33,6 +33,7 @@ const CreateClassPage: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [formData, setFormData] = useState<ClassFormData>({
     title: '',
     description: '',
@@ -66,8 +67,48 @@ const CreateClassPage: React.FC = () => {
     { value: '#E91E63', label: 'Pink', preview: 'bg-pink-500' }
   ];
 
-  const generateClassCode = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const generateClassCode = async () => {
+    setIsGeneratingCode(true);
+    try {
+      const response = await fetch('/api/classes/generate-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          existingCodes: [], // In a real app, you'd fetch existing codes
+          options: {
+            length: 6,
+            includeLetters: true,
+            includeNumbers: true,
+            excludeSimilar: true
+          }
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setFormData(prev => ({ ...prev, classCode: data.code }));
+        } else {
+          // Fallback to local generation
+          generateLocalClassCode();
+        }
+      } else {
+        // Fallback to local generation
+        generateLocalClassCode();
+      }
+    } catch (error) {
+      console.error('Error generating class code:', error);
+      // Fallback to local generation
+      generateLocalClassCode();
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
+
+  const generateLocalClassCode = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude similar characters
     let result = '';
     for (let i = 0; i < 6; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -159,9 +200,17 @@ const CreateClassPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={generateClassCode}
-                      className="ml-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                      disabled={isGeneratingCode}
+                      className="ml-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                     >
-                      Generate
+                      {isGeneratingCode ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <span>Generate</span>
+                      )}
                     </button>
                   </div>
                 </div>

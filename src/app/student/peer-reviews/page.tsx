@@ -896,45 +896,47 @@ const PeerReviewsContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="bg-white border-b border-gray-200 px-2 sm:px-6 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
             <button
               onClick={() => router.push('/student/dashboard')}
-              className="text-gray-600 hover:text-gray-800 transition-colors"
+              className="text-gray-600 hover:text-gray-800 transition-colors flex-shrink-0"
             >
-              <span className="text-2xl">&lt;</span>
+              <span className="text-xl sm:text-2xl">&lt;</span>
             </button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">Peer Video Reviews</h1>
-              <p className="text-gray-600">{assignment.title}</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Peer Video Reviews</h1>
+              <p className="text-sm sm:text-base text-gray-600 truncate">{assignment.title}</p>
             </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
+            <div className="hidden sm:block text-sm text-gray-600">
               {responseStats.submittedResponses}/{assignment.minResponsesRequired} responses submitted
             </div>
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <Image
+            <div className="flex items-center space-x-2">
+              <img
                 src="/MyClassCast (800 x 200 px).png"
-                alt="ClassCast"
-                width={32}
-                height={32}
-                className="h-8 w-auto"
+                alt="MyClassCast"
+                className="h-6 sm:h-8 w-auto object-contain max-w-[120px] sm:max-w-none"
               />
             </div>
           </div>
         </div>
+        {/* Mobile response counter */}
+        <div className="sm:hidden mt-2 text-xs text-gray-600 text-center">
+          {responseStats.submittedResponses}/{assignment.minResponsesRequired} responses submitted
+        </div>
       </div>
 
-      <div className="flex h-[calc(100vh-80px)]">
+      <div className="flex flex-col lg:flex-row h-[calc(100vh-80px)]">
         {/* Video Player Section */}
         <div className="flex-1 flex flex-col">
           {/* Video Player */}
           <div className="bg-black relative">
             <video
               ref={videoRef}
-              className="w-full h-96 object-cover"
+              className="w-full h-64 sm:h-96 object-cover"
               onLoadedMetadata={handleVideoLoad}
               onTimeUpdate={handleTimeUpdate}
               onPlay={() => setIsPlaying(true)}
@@ -980,41 +982,41 @@ const PeerReviewsContent: React.FC = () => {
           </div>
 
           {/* Video Info */}
-          <div className="bg-white p-6 border-b border-gray-200">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold text-gray-800 mb-2">
+          <div className="bg-white p-3 sm:p-6 border-b border-gray-200">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
+              <div className="flex-1 mb-4 lg:mb-0">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
                   {currentVideo.title}
                 </h2>
-                <p className="text-gray-600 mb-4">{currentVideo.description}</p>
-                <div className="flex items-center space-x-6 text-sm text-gray-500">
+                <p className="text-sm sm:text-base text-gray-600 mb-4">{currentVideo.description}</p>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-500">
                   <span>👤 {currentVideo.studentName}</span>
                   <span>📅 {new Date(currentVideo.submittedAt).toLocaleDateString()}</span>
                   <span>⏱️ {formatTime(currentVideo.duration)}</span>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
                 {/* Like Button */}
                 <button
                   onClick={() => handleLike(currentVideo.id)}
-                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
+                  className={`flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-lg transition-colors ${
                     currentVideo.userLiked
                       ? 'bg-red-100 text-red-600 hover:bg-red-200'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
-                  <span className="text-lg">{currentVideo.userLiked ? '❤️' : '🤍'}</span>
-                  <span className="text-sm font-medium">{currentVideo.likes}</span>
+                  <span className="text-base sm:text-lg">{currentVideo.userLiked ? '❤️' : '🤍'}</span>
+                  <span className="text-xs sm:text-sm font-medium">{currentVideo.likes}</span>
                 </button>
 
                 {/* Rating Stars */}
                 <div className="flex items-center space-x-1">
-                  <span className="text-sm text-gray-600 mr-2">Rate:</span>
+                  <span className="hidden sm:inline text-sm text-gray-600 mr-2">Rate:</span>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
                       onClick={() => handleRating(currentVideo.id, star)}
-                      className={`text-lg transition-colors ${
+                      className={`text-base sm:text-lg transition-colors ${
                         currentVideo.userRating && star <= currentVideo.userRating
                           ? 'text-yellow-400'
                           : 'text-gray-300 hover:text-yellow-300'
@@ -1023,7 +1025,7 @@ const PeerReviewsContent: React.FC = () => {
                       ⭐
                     </button>
                   ))}
-                  <span className="text-sm text-gray-500 ml-2">
+                  <span className="text-xs sm:text-sm text-gray-500 ml-1 sm:ml-2">
                     ({currentVideo.averageRating.toFixed(1)})
                   </span>
                 </div>

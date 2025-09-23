@@ -30,6 +30,12 @@ const StudentDashboard: React.FC = () => {
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
   const [communityPosts, setCommunityPosts] = useState([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [todoStats, setTodoStats] = useState({
+    pendingAssignments: 0,
+    pendingReviews: 0,
+    nextDueAssignment: null
+  });
+  const [isLoadingTodoStats, setIsLoadingTodoStats] = useState(true);
 
   useEffect(() => {
     // Only load data if user is authenticated
@@ -107,7 +113,7 @@ const StudentDashboard: React.FC = () => {
         const response = await fetch('/api/community/posts', { credentials: 'include' });
         if (response.ok) {
           const data = await response.json();
-          setCommunityPosts(data.posts || []);
+          setCommunityPosts(data || []);
         }
       } catch (error) {
         console.warn('Failed to load community posts:', error);
@@ -118,6 +124,41 @@ const StudentDashboard: React.FC = () => {
 
     if (isAuthenticated && user) {
       loadCommunityPosts();
+    }
+  }, [isAuthenticated, user]);
+
+  // Load todo stats
+  useEffect(() => {
+    const loadTodoStats = async () => {
+      setIsLoadingTodoStats(true);
+      try {
+        // Mock data for now - in real implementation, this would come from APIs
+        const mockTodoStats = {
+          pendingAssignments: 3,
+          pendingReviews: 2,
+          nextDueAssignment: {
+            title: 'Video Presentation Assignment',
+            dueDate: 'Jan 25'
+          }
+        };
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setTodoStats(mockTodoStats);
+      } catch (error) {
+        console.warn('Failed to load todo stats:', error);
+        setTodoStats({
+          pendingAssignments: 0,
+          pendingReviews: 0,
+          nextDueAssignment: null
+        });
+      } finally {
+        setIsLoadingTodoStats(false);
+      }
+    };
+
+    if (isAuthenticated && user) {
+      loadTodoStats();
     }
   }, [isAuthenticated, user]);
 
@@ -224,29 +265,29 @@ const StudentDashboard: React.FC = () => {
     <StudentRoute>
       <div className="h-screen overflow-hidden flex flex-col bg-[#F5F5F5]">
         {/* Branded Header */}
-        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
+        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-2 sm:px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Left Side - MyClassCast Logo */}
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0 flex-1">
               <img
                 src="/MyClassCast (800 x 200 px).png"
                 alt="MyClassCast"
-                className="h-8 w-auto object-contain"
+                className="h-6 sm:h-8 w-auto object-contain max-w-[200px] sm:max-w-none"
               />
             </div>
             
             {/* Right Side - Join Class Button and Profile Thumbnail */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
               <button
                 onClick={() => setShowEnrollmentModal(true)}
-                className="text-[#4A90E2] hover:text-[#9B5DE5] transition-colors p-1"
+                className="text-[#4A90E2] hover:text-[#9B5DE5] transition-colors p-1 sm:p-2"
                 title="Join a new class"
               >
-                <Plus className="w-6 h-6" />
+                <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
               <button
                 onClick={() => router.push('/student/profile')}
-                className="w-12 h-12 rounded-full bg-[#4A90E2] flex items-center justify-center text-white font-bold text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
+                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-[#4A90E2] flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
                 title="View Profile"
               >
                 {user?.firstName?.charAt(0) || 'S'}
@@ -265,7 +306,7 @@ const StudentDashboard: React.FC = () => {
         </div>
 
         {/* Main Content Layout */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Left Sidebar - Videos and Socials */}
           <div className="hidden lg:block w-80 bg-white/90 backdrop-blur-sm border-r border-[#4A90E2]/20 flex flex-col">
             {/* Recently Posted Videos */}
@@ -355,56 +396,102 @@ const StudentDashboard: React.FC = () => {
                 <p className="text-gray-600">Manage your courses and track your progress</p>
               </div>
 
-              {/* Peer Review Section */}
-              <div className="mb-8">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-800 mb-1">Peer Video Reviews</h2>
-                      <p className="text-gray-600 text-sm">Watch and respond to your classmates' video submissions</p>
-                    </div>
-                    <div className="text-4xl">👥</div>
+              {/* To-Do List */}
+              <div className="mb-6">
+                <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+                      <span className="mr-2">📋</span>
+                      To-Do List
+                    </h2>
+                    <span className="text-sm text-gray-500">Quick overview</span>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="bg-white rounded-lg p-4 border border-blue-100">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-2xl">📝</span>
-                        <span className="font-semibold text-gray-800">Active Reviews</span>
-                      </div>
-                      <p className="text-2xl font-bold text-blue-600">3</p>
-                      <p className="text-xs text-gray-500">Assignments pending review</p>
+                  {isLoadingTodoStats ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[1, 2].map((i) => (
+                        <div key={i} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg animate-pulse">
+                          <div className="w-10 h-10 bg-gray-300 rounded-lg"></div>
+                          <div className="flex-1">
+                            <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                            <div className="h-3 bg-gray-300 rounded w-2/3"></div>
+                          </div>
+                          <div className="w-4 h-4 bg-gray-300 rounded"></div>
+                        </div>
+                      ))}
                     </div>
-                    
-                    <div className="bg-white rounded-lg p-4 border border-blue-100">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-2xl">✅</span>
-                        <span className="font-semibold text-gray-800">Completed</span>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Pending Assignments */}
+                      <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors cursor-pointer"
+                           onClick={() => router.push('/student/assignments')}>
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white text-lg">📝</span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-gray-800">Pending Assignments</h3>
+                            <span className="text-lg font-bold text-orange-600">{todoStats.pendingAssignments}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">Due this week</p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
                       </div>
-                      <p className="text-2xl font-bold text-green-600">7</p>
-                      <p className="text-xs text-gray-500">Reviews submitted</p>
-                    </div>
-                    
-                    <div className="bg-white rounded-lg p-4 border border-blue-100">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-2xl">⭐</span>
-                        <span className="font-semibold text-gray-800">Quality Score</span>
+
+                      {/* Pending Reviews */}
+                      <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer"
+                           onClick={() => router.push('/student/peer-reviews')}>
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white text-lg">👥</span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-sm font-medium text-gray-800">Pending Reviews</h3>
+                            <span className="text-lg font-bold text-blue-600">{todoStats.pendingReviews}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 mt-1">Peer videos to review</p>
+                        </div>
+                        <div className="flex-shrink-0">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
                       </div>
-                      <p className="text-2xl font-bold text-yellow-600">4.2</p>
-                      <p className="text-xs text-gray-500">Average response quality</p>
                     </div>
-                  </div>
+                  )}
                   
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
-                      <span className="font-medium">Next due:</span> Video Presentation Assignment - Due Jan 25
+                  {/* Quick Actions */}
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between text-xs text-gray-500">
+                      <span>
+                        {todoStats.nextDueAssignment 
+                          ? `Next due: ${todoStats.nextDueAssignment.title} - ${todoStats.nextDueAssignment.dueDate}`
+                          : 'No upcoming assignments'
+                        }
+                      </span>
+                      <div className="flex space-x-3">
+                        <button 
+                          onClick={() => router.push('/student/assignments')}
+                          className="text-orange-600 hover:text-orange-700 font-medium"
+                        >
+                          View All Assignments
+                        </button>
+                        <button 
+                          onClick={() => router.push('/student/peer-reviews')}
+                          className="text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          Start Reviewing
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => router.push('/student/peer-reviews?assignment=assignment_1&course=cs-101')}
-                      className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
-                    >
-                      Start Reviewing
-                    </button>
                   </div>
                 </div>
               </div>
