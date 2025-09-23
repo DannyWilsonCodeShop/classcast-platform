@@ -171,8 +171,8 @@ const PeerReviewsContent: React.FC = () => {
     return currentAverage + (newRating - oldRating) / 10; // Simplified for demo
   };
 
-  const assignmentId = searchParams.get('assignment');
-  const courseId = searchParams.get('course');
+  const assignmentId = searchParams.get('assignment') || 'assignment_1';
+  const courseId = searchParams.get('course') || 'cs-101';
 
   // Cleanup media recorder on unmount
   useEffect(() => {
@@ -188,7 +188,8 @@ const PeerReviewsContent: React.FC = () => {
 
   // Mock data - in production, this would come from API
   useEffect(() => {
-    if (assignmentId && courseId) {
+    // Always load data, use defaults if no URL params
+    const loadData = async () => {
       // Mock assignment data
       const mockAssignment: Assignment = {
         id: assignmentId,
@@ -348,7 +349,9 @@ const PeerReviewsContent: React.FC = () => {
       
       // Load existing responses
       loadExistingResponses(assignmentId);
-    }
+    };
+
+    loadData();
   }, [assignmentId, courseId]);
 
   const loadExistingResponses = async (assignmentId: string) => {
