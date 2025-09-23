@@ -53,11 +53,53 @@ const InstructorProfilePage: React.FC = () => {
     setEditedProfile(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    setProfile(editedProfile);
-    setIsEditing(false);
-    // In a real app, this would save to the backend
-    console.log('Profile updated:', editedProfile);
+  const handleSave = async () => {
+    try {
+      // Save profile to backend
+      const response = await fetch('/api/profile/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          firstName: editedProfile.firstName,
+          lastName: editedProfile.lastName,
+          email: editedProfile.email,
+          avatar: editedProfile.avatar,
+          bio: editedProfile.bio,
+          department: editedProfile.department,
+          title: editedProfile.title,
+          officeLocation: editedProfile.officeLocation,
+          officeHours: editedProfile.officeHours,
+          phoneNumber: editedProfile.phoneNumber,
+          website: editedProfile.website,
+          researchInterests: editedProfile.researchInterests,
+          education: editedProfile.education,
+          experience: editedProfile.experience,
+          certifications: editedProfile.certifications,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setProfile(result.data);
+        setIsEditing(false);
+        
+        // Update user context with new avatar
+        if (user && result.data.avatar) {
+          // This would typically update the user context
+          console.log('Profile saved successfully:', result.data);
+        }
+      } else {
+        const error = await response.json();
+        console.error('Failed to save profile:', error);
+        alert('Failed to save profile. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Error saving profile. Please try again.');
+    }
   };
 
   const handleCancel = () => {
@@ -74,16 +116,46 @@ const InstructorProfilePage: React.FC = () => {
     }
   };
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // In a real app, this would upload to a server
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        handleInputChange('avatar', result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select a valid image file (JPG, PNG, GIF, or WebP)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    try {
+      // Create a preview URL for immediate display
+      const previewUrl = URL.createObjectURL(file);
+      handleInputChange('avatar', previewUrl);
+
+      // Upload to S3
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'profile-pictures');
+      formData.append('userId', user?.id || 'anonymous');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        handleInputChange('avatar', result.data.fileUrl);
+      } else {
+        console.warn('Avatar upload failed, using local preview');
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error);
     }
   };
 

@@ -83,10 +83,44 @@ const StudentProfilePage: React.FC = () => {
                 hobbies: user.hobbies || '',
                 schoolName: user.schoolName || '',
               }}
-              onSave={(updatedProfile) => {
-                setIsEditing(false);
-                // TODO: Update user data in context
-                console.log('Profile updated:', updatedProfile);
+              onSave={async (updatedProfile) => {
+                try {
+                  // Save profile to backend
+                  const response = await fetch('/api/profile/save', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      userId: user?.id,
+                      firstName: updatedProfile.firstName,
+                      lastName: updatedProfile.lastName,
+                      email: updatedProfile.email,
+                      avatar: updatedProfile.avatar,
+                      bio: updatedProfile.bio,
+                      careerGoals: updatedProfile.careerGoals,
+                      classOf: updatedProfile.classOf,
+                      funFact: updatedProfile.funFact,
+                      favoriteSubject: updatedProfile.favoriteSubject,
+                      hobbies: updatedProfile.hobbies,
+                      schoolName: updatedProfile.schoolName,
+                    }),
+                  });
+
+                  if (response.ok) {
+                    const result = await response.json();
+                    setIsEditing(false);
+                    // TODO: Update user context with new data
+                    console.log('Profile saved successfully:', result.data);
+                  } else {
+                    const error = await response.json();
+                    console.error('Failed to save profile:', error);
+                    alert('Failed to save profile. Please try again.');
+                  }
+                } catch (error) {
+                  console.error('Error saving profile:', error);
+                  alert('Error saving profile. Please try again.');
+                }
               }}
               onCancel={() => setIsEditing(false)}
               isOpen={true}
