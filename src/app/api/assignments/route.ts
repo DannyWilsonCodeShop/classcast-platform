@@ -26,7 +26,11 @@ export async function GET(request: NextRequest) {
         ],
         courseId: courseId || 'course_1',
         courseName: 'Introduction to Communication',
-        instructorName: 'Dr. Smith'
+        instructorName: 'Dr. Smith',
+        isPinned: true,
+        isHighlighted: true,
+        pinnedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        highlightedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         assignmentId: 'assign_2',
@@ -45,7 +49,9 @@ export async function GET(request: NextRequest) {
         ],
         courseId: courseId || 'course_1',
         courseName: 'Introduction to Communication',
-        instructorName: 'Dr. Smith'
+        instructorName: 'Dr. Smith',
+        isPinned: true,
+        pinnedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
       },
       {
         assignmentId: 'assign_3',

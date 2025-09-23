@@ -102,7 +102,15 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
 
   if (compact) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow">
+      <div className={`rounded-lg border-2 p-4 transition-all duration-200 ${
+        assignment.isPinned && assignment.isHighlighted
+          ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-400 shadow-lg'
+          : assignment.isPinned
+          ? 'bg-yellow-50 border-yellow-300 shadow-md'
+          : assignment.isHighlighted
+          ? 'bg-orange-50 border-orange-300 shadow-md'
+          : 'bg-white border-gray-200 hover:shadow-md'
+      }`}>
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
             <h3 className="text-sm font-medium text-gray-900 truncate">
@@ -139,7 +147,33 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 hover:border-blue-300">
+    <div className={`rounded-lg border-2 p-6 transition-all duration-200 ${
+      assignment.isPinned && assignment.isHighlighted
+        ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-400 shadow-lg'
+        : assignment.isPinned
+        ? 'bg-yellow-50 border-yellow-300 shadow-md'
+        : assignment.isHighlighted
+        ? 'bg-orange-50 border-orange-300 shadow-md'
+        : 'bg-white border-gray-200 hover:shadow-lg hover:border-blue-300'
+    }`}>
+      {/* Pin/Highlight Indicators */}
+      {(assignment.isPinned || assignment.isHighlighted) && (
+        <div className="flex items-center space-x-2 mb-4">
+          {assignment.isPinned && (
+            <div className="flex items-center space-x-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+              <span>📌</span>
+              <span>Pinned</span>
+            </div>
+          )}
+          {assignment.isHighlighted && (
+            <div className="flex items-center space-x-1 px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+              <span>⭐</span>
+              <span>Highlighted</span>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">

@@ -84,6 +84,12 @@ export interface Assignment {
   groupAssignment?: boolean;
   maxGroupSize?: number;
   
+  // Instructor Features
+  isPinned?: boolean;
+  isHighlighted?: boolean;
+  pinnedAt?: string;
+  highlightedAt?: string;
+  
   // TTL for automatic cleanup
   ttl?: number;
 }

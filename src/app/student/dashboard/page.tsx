@@ -355,6 +355,60 @@ const StudentDashboard: React.FC = () => {
                 <p className="text-gray-600">Manage your courses and track your progress</p>
               </div>
 
+              {/* Peer Review Section */}
+              <div className="mb-8">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-800 mb-1">Peer Video Reviews</h2>
+                      <p className="text-gray-600 text-sm">Watch and respond to your classmates' video submissions</p>
+                    </div>
+                    <div className="text-4xl">👥</div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="bg-white rounded-lg p-4 border border-blue-100">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className="text-2xl">📝</span>
+                        <span className="font-semibold text-gray-800">Active Reviews</span>
+                      </div>
+                      <p className="text-2xl font-bold text-blue-600">3</p>
+                      <p className="text-xs text-gray-500">Assignments pending review</p>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg p-4 border border-blue-100">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className="text-2xl">✅</span>
+                        <span className="font-semibold text-gray-800">Completed</span>
+                      </div>
+                      <p className="text-2xl font-bold text-green-600">7</p>
+                      <p className="text-xs text-gray-500">Reviews submitted</p>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg p-4 border border-blue-100">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className="text-2xl">⭐</span>
+                        <span className="font-semibold text-gray-800">Quality Score</span>
+                      </div>
+                      <p className="text-2xl font-bold text-yellow-600">4.2</p>
+                      <p className="text-xs text-gray-500">Average response quality</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-600">
+                      <span className="font-medium">Next due:</span> Video Presentation Assignment - Due Jan 25
+                    </div>
+                    <button
+                      onClick={() => router.push('/student/peer-reviews?assignment=assignment_1&course=cs-101')}
+                      className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+                    >
+                      Start Reviewing
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Classes Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {isLoadingCourses ? (

@@ -20,6 +20,17 @@ interface Submission {
   thumbnailUrl: string;
   duration: number; // in seconds
   fileSize: number; // in bytes
+  isPinned?: boolean;
+  isHighlighted?: boolean;
+  pinnedAt?: string;
+  highlightedAt?: string;
+  peerResponses?: {
+    totalResponses: number;
+    submittedResponses: number;
+    averageResponseLength: number;
+    responseQuality: 'excellent' | 'good' | 'adequate' | 'needs_improvement';
+    lastResponseDate?: string;
+  };
 }
 
 const BulkGradingPage: React.FC = () => {
@@ -61,6 +72,10 @@ const BulkGradingPage: React.FC = () => {
     improvements: string[];
   }}>({});
   const [showAIPanel, setShowAIPanel] = useState<{[key: string]: boolean}>({});
+  
+  // Pin/Highlight state
+  const [pinnedSubmissions, setPinnedSubmissions] = useState<Set<string>>(new Set());
+  const [highlightedSubmissions, setHighlightedSubmissions] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // Get filters from URL params - only run on client side
@@ -96,7 +111,18 @@ const BulkGradingPage: React.FC = () => {
         fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
         duration: 320,
-        fileSize: 45000000
+        fileSize: 45000000,
+    peerResponses: {
+      totalResponses: 3,
+      submittedResponses: 2,
+      averageResponseLength: 245,
+      responseQuality: 'good',
+      lastResponseDate: '2024-01-23T10:15:00Z'
+    },
+    isPinned: true,
+    isHighlighted: true,
+    pinnedAt: '2024-01-22T16:30:00Z',
+    highlightedAt: '2024-01-22T16:30:00Z'
       },
       {
         id: 'sub13',
@@ -111,7 +137,14 @@ const BulkGradingPage: React.FC = () => {
         fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg',
         duration: 180,
-        fileSize: 28000000
+        fileSize: 28000000,
+        peerResponses: {
+          totalResponses: 2,
+          submittedResponses: 2,
+          averageResponseLength: 180,
+          responseQuality: 'excellent',
+          lastResponseDate: '2024-01-23T14:30:00Z'
+        }
       },
       {
         id: 'sub14',
@@ -901,6 +934,53 @@ const BulkGradingPage: React.FC = () => {
     }
   };
 
+  // Pin/Highlight functions
+  const togglePin = (submissionId: string) => {
+    setPinnedSubmissions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(submissionId)) {
+        newSet.delete(submissionId);
+      } else {
+        newSet.add(submissionId);
+      }
+      return newSet;
+    });
+    
+    // Update submission in state
+    setSubmissions(prev => prev.map(sub => 
+      sub.id === submissionId 
+        ? { 
+            ...sub, 
+            isPinned: !sub.isPinned,
+            pinnedAt: !sub.isPinned ? new Date().toISOString() : undefined
+          }
+        : sub
+    ));
+  };
+
+  const toggleHighlight = (submissionId: string) => {
+    setHighlightedSubmissions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(submissionId)) {
+        newSet.delete(submissionId);
+      } else {
+        newSet.add(submissionId);
+      }
+      return newSet;
+    });
+    
+    // Update submission in state
+    setSubmissions(prev => prev.map(sub => 
+      sub.id === submissionId 
+        ? { 
+            ...sub, 
+            isHighlighted: !sub.isHighlighted,
+            highlightedAt: !sub.isHighlighted ? new Date().toISOString() : undefined
+          }
+        : sub
+    ));
+  };
+
   // Use mockSubmissions directly for filtering to avoid state issues
   const submissionsToFilter = submissions.length > 0 ? submissions : mockSubmissions;
   
@@ -1130,9 +1210,33 @@ const BulkGradingPage: React.FC = () => {
                     className={`p-6 rounded-lg border-2 transition-all duration-300 ${
                       index === currentSubmissionIndex
                         ? 'border-blue-500 bg-blue-50'
+                        : submission.isPinned && submission.isHighlighted
+                        ? 'border-yellow-400 bg-gradient-to-r from-yellow-50 to-orange-50 shadow-lg'
+                        : submission.isPinned
+                        ? 'border-yellow-300 bg-yellow-50 shadow-md'
+                        : submission.isHighlighted
+                        ? 'border-orange-300 bg-orange-50 shadow-md'
                         : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
                     }`}
                   >
+                    {/* Pin/Highlight Indicators */}
+                    {(submission.isPinned || submission.isHighlighted) && (
+                      <div className="flex items-center space-x-2 mb-4">
+                        {submission.isPinned && (
+                          <div className="flex items-center space-x-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                            <span>📌</span>
+                            <span>Pinned</span>
+                          </div>
+                        )}
+                        {submission.isHighlighted && (
+                          <div className="flex items-center space-x-1 px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                            <span>⭐</span>
+                            <span>Highlighted</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Video Player */}
                       <div>
@@ -1204,6 +1308,35 @@ const BulkGradingPage: React.FC = () => {
                                 )}
                                 <span>AI</span>
                               </button>
+                              
+                              {/* Pin Button */}
+                              <button
+                                onClick={() => togglePin(submission.id)}
+                                className={`px-2 py-1 text-xs rounded-md transition-colors flex items-center space-x-1 ${
+                                  submission.isPinned 
+                                    ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' 
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                                title={submission.isPinned ? 'Unpin submission' : 'Pin submission to top'}
+                              >
+                                <span>{submission.isPinned ? '📌' : '📍'}</span>
+                                <span>{submission.isPinned ? 'Pinned' : 'Pin'}</span>
+                              </button>
+                              
+                              {/* Highlight Button */}
+                              <button
+                                onClick={() => toggleHighlight(submission.id)}
+                                className={`px-2 py-1 text-xs rounded-md transition-colors flex items-center space-x-1 ${
+                                  submission.isHighlighted 
+                                    ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                                title={submission.isHighlighted ? 'Remove highlight' : 'Highlight submission'}
+                              >
+                                <span>{submission.isHighlighted ? '⭐' : '☆'}</span>
+                                <span>{submission.isHighlighted ? 'Highlighted' : 'Highlight'}</span>
+                              </button>
+                              
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
                                 {getStatusText(submission.status)}
                               </span>
@@ -1215,6 +1348,58 @@ const BulkGradingPage: React.FC = () => {
                             )}
                           </div>
                         </div>
+
+                        {/* Peer Response Analytics */}
+                        {submission.peerResponses && (
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <h3 className="text-sm font-semibold text-blue-800 mb-3 flex items-center">
+                              <span className="mr-2">👥</span>
+                              Peer Response Analytics
+                            </h3>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="text-blue-700 font-medium">Responses Given:</span>
+                                <span className="ml-2 text-blue-900">
+                                  {submission.peerResponses.submittedResponses}/{submission.peerResponses.totalResponses}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-blue-700 font-medium">Avg. Length:</span>
+                                <span className="ml-2 text-blue-900">
+                                  {submission.peerResponses.averageResponseLength} words
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-blue-700 font-medium">Quality:</span>
+                                <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                                  submission.peerResponses.responseQuality === 'excellent' 
+                                    ? 'bg-green-100 text-green-800'
+                                    : submission.peerResponses.responseQuality === 'good'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : submission.peerResponses.responseQuality === 'adequate'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {submission.peerResponses.responseQuality.replace('_', ' ')}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-blue-700 font-medium">Last Response:</span>
+                                <span className="ml-2 text-blue-900">
+                                  {submission.peerResponses.lastResponseDate 
+                                    ? new Date(submission.peerResponses.lastResponseDate).toLocaleDateString()
+                                    : 'N/A'
+                                  }
+                                </span>
+                              </div>
+                            </div>
+                            {submission.peerResponses.submittedResponses < 2 && (
+                              <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                                ⚠️ Student needs to complete more peer responses (minimum 2 required)
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {/* AI Grading Section - Compact */}
                         {index === currentSubmissionIndex && (
