@@ -234,6 +234,23 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
 
         {/* Content */}
         <div className="p-6 space-y-6">
+          {/* Save/Cancel Buttons - Moved to Top */}
+          <div className="flex justify-end space-x-4 mb-6 pb-4 border-b border-gray-200">
+            <button
+              onClick={onCancel}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            >
+              <CheckIcon className="h-4 w-4" />
+              <span>Save Changes</span>
+            </button>
+          </div>
+          
                  {/* Avatar Section */}
                  <div className="flex items-center space-x-6">
                    <div className="relative">
@@ -436,22 +453,6 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-          >
-            <CheckIcon className="h-4 w-4" />
-            <span>Save Changes</span>
-          </button>
-        </div>
       </div>
     </div>
   );

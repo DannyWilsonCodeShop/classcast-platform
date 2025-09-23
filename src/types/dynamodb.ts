@@ -65,6 +65,7 @@ export interface Assignment {
   updatedAt: string;
   publishedAt?: string;
   dueDate: string;
+  responseDueDate?: string; // Separate due date for peer responses
   
   // Grading
   maxScore: number;
@@ -83,6 +84,13 @@ export interface Assignment {
   maxSubmissions?: number;
   groupAssignment?: boolean;
   maxGroupSize?: number;
+  
+  // Peer Response Settings
+  enablePeerResponses?: boolean;
+  minResponsesRequired?: number; // Minimum responses each student must make
+  maxResponsesPerVideo?: number; // Maximum responses allowed per video
+  responseWordLimit?: number; // Minimum word count for responses
+  responseCharacterLimit?: number; // Maximum character count for responses
   
   // Instructor Features
   isPinned?: boolean;

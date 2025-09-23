@@ -25,6 +25,7 @@ interface FormData {
   description: string;
   assignmentType: AssignmentType;
   dueDate: Date | null;
+  responseDueDate: Date | null;
   maxScore: number;
   weight: number;
   requirements: string[];
@@ -35,6 +36,11 @@ interface FormData {
   maxGroupSize: number;
   allowedFileTypes: string[];
   maxFileSize: number;
+  enablePeerResponses: boolean;
+  minResponsesRequired: number;
+  maxResponsesPerVideo: number;
+  responseWordLimit: number;
+  responseCharacterLimit: number;
 }
 
 const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
@@ -49,6 +55,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     description: initialData?.description || '',
     assignmentType: initialData?.assignmentType || AssignmentType.ESSAY,
     dueDate: initialData?.dueDate ? new Date(initialData.dueDate) : null,
+    responseDueDate: initialData?.responseDueDate ? new Date(initialData.responseDueDate) : null,
     maxScore: initialData?.maxScore || 100,
     weight: initialData?.weight || 10,
     requirements: initialData?.requirements || [''],
@@ -58,7 +65,12 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     groupAssignment: initialData?.groupAssignment || false,
     maxGroupSize: initialData?.maxGroupSize || 2,
     allowedFileTypes: initialData?.allowedFileTypes || ['pdf', 'doc', 'docx'],
-    maxFileSize: initialData?.maxFileSize || 10 * 1024 * 1024 // 10MB
+    maxFileSize: initialData?.maxFileSize || 10 * 1024 * 1024, // 10MB
+    enablePeerResponses: initialData?.enablePeerResponses || false,
+    minResponsesRequired: initialData?.minResponsesRequired || 2,
+    maxResponsesPerVideo: initialData?.maxResponsesPerVideo || 3,
+    responseWordLimit: initialData?.responseWordLimit || 50,
+    responseCharacterLimit: initialData?.responseCharacterLimit || 500
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -81,6 +93,17 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
       newErrors.dueDate = 'Due date is required';
     } else if (formData.dueDate < new Date()) {
       newErrors.dueDate = 'Due date must be in the future';
+    }
+
+    // Validate response due date if peer responses are enabled
+    if (formData.enablePeerResponses) {
+      if (!formData.responseDueDate) {
+        newErrors.responseDueDate = 'Response due date is required when peer responses are enabled';
+      } else if (formData.responseDueDate < new Date()) {
+        newErrors.responseDueDate = 'Response due date must be in the future';
+      } else if (formData.dueDate && formData.responseDueDate <= formData.dueDate) {
+        newErrors.responseDueDate = 'Response due date must be after video due date';
+      }
     }
 
     if (formData.maxScore <= 0) {
@@ -120,6 +143,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         description: formData.description.trim(),
         assignmentType: formData.assignmentType,
         dueDate: formData.dueDate?.toISOString() || '',
+        responseDueDate: formData.responseDueDate?.toISOString(),
         maxScore: formData.maxScore,
         weight: formData.weight,
         requirements: formData.requirements.filter(req => req.trim()),
@@ -130,6 +154,11 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         maxGroupSize: formData.groupAssignment ? formData.maxGroupSize : undefined,
         allowedFileTypes: formData.allowedFileTypes,
         maxFileSize: formData.maxFileSize,
+        enablePeerResponses: formData.enablePeerResponses,
+        minResponsesRequired: formData.enablePeerResponses ? formData.minResponsesRequired : undefined,
+        maxResponsesPerVideo: formData.enablePeerResponses ? formData.maxResponsesPerVideo : undefined,
+        responseWordLimit: formData.enablePeerResponses ? formData.responseWordLimit : undefined,
+        responseCharacterLimit: formData.enablePeerResponses ? formData.responseCharacterLimit : undefined,
         status: AssignmentStatus.DRAFT
       };
 
@@ -250,11 +279,11 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
         </div>
 
-        {/* Due Date and Scoring */}
+        {/* Due Dates and Scoring */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label htmlFor="dueDate" className="block text-sm font-medium text-gray-700 mb-2">
-              Due Date *
+              Video Due Date *
             </label>
             <DatePicker
               selected={formData.dueDate}
@@ -267,9 +296,30 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
               className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.dueDate ? 'border-red-500' : 'border-gray-300'
               }`}
-              placeholderText="Select due date and time"
+              placeholderText="Select video due date"
             />
             {errors.dueDate && <p className="mt-1 text-sm text-red-600">{errors.dueDate}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="responseDueDate" className="block text-sm font-medium text-gray-700 mb-2">
+              Response Due Date
+            </label>
+            <DatePicker
+              selected={formData.responseDueDate}
+              onChange={(date) => setFormData(prev => ({ ...prev, responseDueDate: date }))}
+              showTimeSelect
+              timeFormat="HH:mm"
+              timeIntervals={15}
+              dateFormat="MMMM d, yyyy h:mm aa"
+              minDate={formData.dueDate || new Date()}
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.responseDueDate ? 'border-red-500' : 'border-gray-300'
+              }`}
+              placeholderText="Select response due date"
+              disabled={!formData.enablePeerResponses}
+            />
+            {errors.responseDueDate && <p className="mt-1 text-sm text-red-600">{errors.responseDueDate}</p>}
           </div>
 
           <div>
@@ -514,6 +564,106 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Peer Response Settings */}
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <span className="mr-2">💬</span>
+            Peer Response Settings
+          </h3>
+          
+          <div className="space-y-6">
+            {/* Enable Peer Responses */}
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="enablePeerResponses"
+                checked={formData.enablePeerResponses}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  enablePeerResponses: e.target.checked,
+                  responseDueDate: e.target.checked ? prev.responseDueDate : null
+                }))}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="enablePeerResponses" className="ml-2 text-sm font-medium text-gray-700">
+                Enable peer responses for this assignment
+              </label>
+            </div>
+
+            {formData.enablePeerResponses && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Minimum Responses Required */}
+                <div>
+                  <label htmlFor="minResponsesRequired" className="block text-sm font-medium text-gray-700 mb-2">
+                    Minimum Responses Required per Student
+                  </label>
+                  <input
+                    type="number"
+                    id="minResponsesRequired"
+                    min="1"
+                    max="10"
+                    value={formData.minResponsesRequired}
+                    onChange={(e) => setFormData(prev => ({ ...prev, minResponsesRequired: parseInt(e.target.value) || 2 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">How many peer responses each student must submit</p>
+                </div>
+
+                {/* Maximum Responses Per Video */}
+                <div>
+                  <label htmlFor="maxResponsesPerVideo" className="block text-sm font-medium text-gray-700 mb-2">
+                    Maximum Responses Per Video
+                  </label>
+                  <input
+                    type="number"
+                    id="maxResponsesPerVideo"
+                    min="1"
+                    max="20"
+                    value={formData.maxResponsesPerVideo}
+                    onChange={(e) => setFormData(prev => ({ ...prev, maxResponsesPerVideo: parseInt(e.target.value) || 3 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Limit responses per video to ensure fair distribution</p>
+                </div>
+
+                {/* Response Word Limit */}
+                <div>
+                  <label htmlFor="responseWordLimit" className="block text-sm font-medium text-gray-700 mb-2">
+                    Minimum Word Count
+                  </label>
+                  <input
+                    type="number"
+                    id="responseWordLimit"
+                    min="10"
+                    max="1000"
+                    value={formData.responseWordLimit}
+                    onChange={(e) => setFormData(prev => ({ ...prev, responseWordLimit: parseInt(e.target.value) || 50 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Minimum words required for each response</p>
+                </div>
+
+                {/* Response Character Limit */}
+                <div>
+                  <label htmlFor="responseCharacterLimit" className="block text-sm font-medium text-gray-700 mb-2">
+                    Maximum Character Count
+                  </label>
+                  <input
+                    type="number"
+                    id="responseCharacterLimit"
+                    min="100"
+                    max="5000"
+                    value={formData.responseCharacterLimit}
+                    onChange={(e) => setFormData(prev => ({ ...prev, responseCharacterLimit: parseInt(e.target.value) || 500 }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Maximum characters allowed per response</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

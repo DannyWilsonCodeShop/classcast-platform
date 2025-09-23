@@ -20,6 +20,14 @@ interface Submission {
   thumbnailUrl: string;
   duration: number; // in seconds
   fileSize: number; // in bytes
+  assignment?: {
+    enablePeerResponses?: boolean;
+    responseDueDate?: string;
+    minResponsesRequired?: number;
+    maxResponsesPerVideo?: number;
+    responseWordLimit?: number;
+    responseCharacterLimit?: number;
+  };
   isPinned?: boolean;
   isHighlighted?: boolean;
   pinnedAt?: string;
@@ -96,6 +104,127 @@ const BulkGradingPage: React.FC = () => {
     }
   }, []);
 
+  // Function to get mock peer responses for a specific student
+  const getMockPeerResponsesForStudent = (studentId: string) => {
+    const mockResponses = [
+      {
+        id: 'response_1',
+        reviewerId: 'student_001',
+        reviewerName: 'Alex Thompson',
+        reviewedStudentId: 'student_002',
+        reviewedStudentName: 'Sarah Chen',
+        videoId: 'video_2',
+        assignmentId: 'assignment_1',
+        content: 'Great explanation of the data structures! I really liked how you broke down the complexity analysis step by step. One suggestion would be to add more examples of real-world applications where these structures are used.',
+        wordCount: 35,
+        characterCount: 245,
+        isSubmitted: true,
+        submittedAt: '2024-01-23T10:15:00Z',
+        qualityScore: 4,
+        aiGrade: {
+          overallGrade: 85,
+          rubricScores: {
+            contentQuality: { earned: 4, possible: 5, feedback: 'Good content analysis' },
+            engagement: { earned: 4, possible: 5, feedback: 'Engaging and helpful' },
+            criticalThinking: { earned: 3, possible: 5, feedback: 'Could be more critical' },
+            communication: { earned: 4, possible: 5, feedback: 'Clear communication' }
+          }
+        }
+      },
+      {
+        id: 'response_2',
+        reviewerId: 'student_001',
+        reviewerName: 'Alex Thompson',
+        reviewedStudentId: 'student_003',
+        reviewedStudentName: 'Michael Rodriguez',
+        videoId: 'video_3',
+        assignmentId: 'assignment_1',
+        content: 'Your presentation was very clear and well-structured. The visual aids really helped me understand the concepts. However, I think you could have gone deeper into the practical implementation details.',
+        wordCount: 28,
+        characterCount: 198,
+        isSubmitted: true,
+        submittedAt: '2024-01-22T14:30:00Z',
+        qualityScore: 4,
+        aiGrade: {
+          overallGrade: 82,
+          rubricScores: {
+            contentQuality: { earned: 4, possible: 5, feedback: 'Good structure' },
+            engagement: { earned: 4, possible: 5, feedback: 'Engaging presentation' },
+            criticalThinking: { earned: 3, possible: 5, feedback: 'Needs more depth' },
+            communication: { earned: 4, possible: 5, feedback: 'Clear delivery' }
+          }
+        }
+      },
+      {
+        id: 'response_3',
+        reviewerId: 'student_001',
+        reviewerName: 'Alex Thompson',
+        reviewedStudentId: 'student_004',
+        reviewedStudentName: 'Emily Davis',
+        videoId: 'video_4',
+        assignmentId: 'assignment_1',
+        content: 'Excellent work on the algorithm explanation! I particularly appreciated the step-by-step walkthrough. One area for improvement could be discussing the time and space complexity more thoroughly.',
+        wordCount: 32,
+        characterCount: 220,
+        isSubmitted: false,
+        submittedAt: '2024-01-24T09:45:00Z',
+        qualityScore: 5,
+        aiGrade: null
+      },
+      {
+        id: 'response_4',
+        reviewerId: 'student_002',
+        reviewerName: 'Sarah Chen',
+        reviewedStudentId: 'student_001',
+        reviewedStudentName: 'Alex Thompson',
+        videoId: 'video_1',
+        assignmentId: 'assignment_1',
+        content: 'Really impressive work on the machine learning concepts! Your explanation of neural networks was very clear and easy to follow. I especially liked the visual diagrams you used.',
+        wordCount: 28,
+        characterCount: 195,
+        isSubmitted: true,
+        submittedAt: '2024-01-23T11:20:00Z',
+        qualityScore: 5,
+        aiGrade: {
+          overallGrade: 92,
+          rubricScores: {
+            contentQuality: { earned: 5, possible: 5, feedback: 'Excellent content' },
+            engagement: { earned: 5, possible: 5, feedback: 'Very engaging' },
+            criticalThinking: { earned: 4, possible: 5, feedback: 'Good analysis' },
+            communication: { earned: 5, possible: 5, feedback: 'Clear communication' }
+          }
+        }
+      },
+      {
+        id: 'response_5',
+        reviewerId: 'student_003',
+        reviewerName: 'Michael Rodriguez',
+        reviewedStudentId: 'student_001',
+        reviewedStudentName: 'Alex Thompson',
+        videoId: 'video_1',
+        assignmentId: 'assignment_1',
+        content: 'Good job overall! The technical content was solid, but I think you could have provided more practical examples or code snippets to illustrate the concepts.',
+        wordCount: 25,
+        characterCount: 180,
+        isSubmitted: true,
+        submittedAt: '2024-01-22T16:45:00Z',
+        qualityScore: 3,
+        aiGrade: {
+          overallGrade: 75,
+          rubricScores: {
+            contentQuality: { earned: 3, possible: 5, feedback: 'Good but needs examples' },
+            engagement: { earned: 3, possible: 5, feedback: 'Could be more engaging' },
+            criticalThinking: { earned: 3, possible: 5, feedback: 'Basic analysis' },
+            communication: { earned: 4, possible: 5, feedback: 'Clear but basic' }
+          }
+        }
+      }
+    ];
+
+    // Return responses for the specific student, or empty array if no responses
+    return mockResponses.filter(response => response.reviewerId === studentId);
+  };
+
   // Comprehensive mock data for video submissions with realistic student data
   const mockSubmissions: Submission[] = [
       {
@@ -112,17 +241,25 @@ const BulkGradingPage: React.FC = () => {
         thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
         duration: 320,
         fileSize: 45000000,
-    peerResponses: {
-      totalResponses: 3,
-      submittedResponses: 2,
-      averageResponseLength: 245,
-      responseQuality: 'good',
-      lastResponseDate: '2024-01-23T10:15:00Z'
-    },
-    isPinned: true,
-    isHighlighted: true,
-    pinnedAt: '2024-01-22T16:30:00Z',
-    highlightedAt: '2024-01-22T16:30:00Z'
+        assignment: {
+          enablePeerResponses: true,
+          responseDueDate: '2024-02-20T23:59:00Z',
+          minResponsesRequired: 2,
+          maxResponsesPerVideo: 3,
+          responseWordLimit: 50,
+          responseCharacterLimit: 500
+        },
+        peerResponses: {
+          totalResponses: 3,
+          submittedResponses: 2,
+          averageResponseLength: 245,
+          responseQuality: 'good',
+          lastResponseDate: '2024-01-23T10:15:00Z'
+        },
+        isPinned: true,
+        isHighlighted: true,
+        pinnedAt: '2024-01-22T16:30:00Z',
+        highlightedAt: '2024-01-22T16:30:00Z'
       },
       {
         id: 'sub13',
@@ -1289,9 +1426,20 @@ const BulkGradingPage: React.FC = () => {
                           <p className="text-sm text-gray-600 mb-1">
                             {submission.assignmentTitle}
                           </p>
-                          <p className="text-xs text-gray-500 mb-3">
+                          <p className="text-xs text-gray-500 mb-1">
                             {submission.courseName} ({submission.courseCode})
                           </p>
+                          <p className="text-xs text-gray-500 mb-3">
+                            Video Due: {new Date(submission.submittedAt).toLocaleDateString()}
+                            {submission.assignment?.enablePeerResponses && submission.assignment?.responseDueDate && (
+                              <> • Responses Due: {new Date(submission.assignment.responseDueDate).toLocaleDateString()}</>
+                            )}
+                          </p>
+                          {submission.assignment?.enablePeerResponses && (
+                            <div className="text-xs text-blue-600 mb-3 bg-blue-50 px-2 py-1 rounded">
+                              Peer Responses: {submission.assignment.minResponsesRequired || 2} required, max {submission.assignment.maxResponsesPerVideo || 3} per video
+                            </div>
+                          )}
                           
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center space-x-2">
@@ -1349,57 +1497,117 @@ const BulkGradingPage: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Peer Response Analytics */}
-                        {submission.peerResponses && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                            <h3 className="text-sm font-semibold text-blue-800 mb-3 flex items-center">
-                              <span className="mr-2">👥</span>
-                              Peer Response Analytics
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="text-blue-700 font-medium">Responses Given:</span>
-                                <span className="ml-2 text-blue-900">
-                                  {submission.peerResponses.submittedResponses}/{submission.peerResponses.totalResponses}
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-blue-700 font-medium">Avg. Length:</span>
-                                <span className="ml-2 text-blue-900">
-                                  {submission.peerResponses.averageResponseLength} words
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-blue-700 font-medium">Quality:</span>
-                                <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
-                                  submission.peerResponses.responseQuality === 'excellent' 
-                                    ? 'bg-green-100 text-green-800'
-                                    : submission.peerResponses.responseQuality === 'good'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : submission.peerResponses.responseQuality === 'adequate'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                  {submission.peerResponses.responseQuality.replace('_', ' ')}
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-blue-700 font-medium">Last Response:</span>
-                                <span className="ml-2 text-blue-900">
-                                  {submission.peerResponses.lastResponseDate 
-                                    ? new Date(submission.peerResponses.lastResponseDate).toLocaleDateString()
-                                    : 'N/A'
-                                  }
-                                </span>
-                              </div>
-                            </div>
-                            {submission.peerResponses.submittedResponses < 2 && (
-                              <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-                                ⚠️ Student needs to complete more peer responses (minimum 2 required)
-                              </div>
-                            )}
-                          </div>
+            {/* Peer Response Analytics */}
+            {submission.peerResponses && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <h3 className="text-sm font-semibold text-blue-800 mb-3 flex items-center">
+                  <span className="mr-2">👥</span>
+                  Peer Response Analytics
+                </h3>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-blue-700 font-medium">Responses Given:</span>
+                    <span className="ml-2 text-blue-900">
+                      {submission.peerResponses.submittedResponses}/{submission.peerResponses.totalResponses}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700 font-medium">Avg. Length:</span>
+                    <span className="ml-2 text-blue-900">
+                      {submission.peerResponses.averageResponseLength} words
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700 font-medium">Quality:</span>
+                    <span className={`ml-2 px-2 py-1 rounded-full text-xs ${
+                      submission.peerResponses.responseQuality === 'excellent' 
+                        ? 'bg-green-100 text-green-800'
+                        : submission.peerResponses.responseQuality === 'good'
+                        ? 'bg-blue-100 text-blue-800'
+                        : submission.peerResponses.responseQuality === 'adequate'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {submission.peerResponses.responseQuality.replace('_', ' ')}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-blue-700 font-medium">Last Response:</span>
+                    <span className="ml-2 text-blue-900">
+                      {submission.peerResponses.lastResponseDate 
+                        ? new Date(submission.peerResponses.lastResponseDate).toLocaleDateString()
+                        : 'N/A'
+                      }
+                    </span>
+                  </div>
+                </div>
+                {submission.peerResponses.submittedResponses < 2 && (
+                  <div className="mt-3 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                    ⚠️ Student needs to complete more peer responses (minimum 2 required)
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Student's Peer Responses */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+              <h3 className="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                <span className="mr-2">💬</span>
+                Student's Peer Responses
+              </h3>
+              <div className="space-y-3">
+                {getMockPeerResponsesForStudent(submission.studentId).map((response, index) => (
+                  <div key={response.id} className="bg-white rounded-lg p-3 border border-gray-200">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs font-medium text-gray-600">
+                          Response to: {response.reviewedStudentName}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(response.submittedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        response.isSubmitted 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {response.isSubmitted ? 'Submitted' : 'Draft'}
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {response.content}
+                    </p>
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <span>{response.wordCount} words</span>
+                        <span>{response.characterCount} characters</span>
+                        {response.qualityScore && (
+                          <span className="font-medium">
+                            Quality: {response.qualityScore}/5
+                          </span>
                         )}
+                      </div>
+                      {response.aiGrade && (
+                        <div className="flex items-center space-x-1 text-xs">
+                          <span className="text-gray-500">AI Grade:</span>
+                          <span className="font-medium text-blue-600">
+                            {response.aiGrade.overallGrade}%
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                
+                {getMockPeerResponsesForStudent(submission.studentId).length === 0 && (
+                  <div className="text-center py-4 text-gray-500 text-sm">
+                    <span className="mr-2">📝</span>
+                    No peer responses submitted yet
+                  </div>
+                )}
+              </div>
+            </div>
 
                         {/* AI Grading Section - Compact */}
                         {index === currentSubmissionIndex && (
@@ -1619,3 +1827,4 @@ const BulkGradingPage: React.FC = () => {
 };
 
 export default BulkGradingPage;
+

@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
         assignmentType: 'video',
         status: 'upcoming',
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        responseDueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(), // 10 days from now
         createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
         maxScore: 100,
         requirements: [
@@ -27,6 +28,11 @@ export async function GET(request: NextRequest) {
         courseId: courseId || 'course_1',
         courseName: 'Introduction to Communication',
         instructorName: 'Dr. Smith',
+        enablePeerResponses: true,
+        minResponsesRequired: 2,
+        maxResponsesPerVideo: 3,
+        responseWordLimit: 50,
+        responseCharacterLimit: 500,
         isPinned: true,
         isHighlighted: true,
         pinnedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),

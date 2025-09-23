@@ -133,11 +133,7 @@ const InstructorProfilePage: React.FC = () => {
     }
 
     try {
-      // Create a preview URL for immediate display
-      const previewUrl = URL.createObjectURL(file);
-      handleInputChange('avatar', previewUrl);
-
-      // Upload to S3
+      // Upload to S3 first
       const formData = new FormData();
       formData.append('file', file);
       formData.append('folder', 'profile-pictures');
@@ -150,12 +146,17 @@ const InstructorProfilePage: React.FC = () => {
 
       if (response.ok) {
         const result = await response.json();
+        // Update with the S3 URL immediately
         handleInputChange('avatar', result.data.fileUrl);
+        console.log('Avatar uploaded successfully:', result.data.fileUrl);
       } else {
-        console.warn('Avatar upload failed, using local preview');
+        const error = await response.json();
+        console.error('Avatar upload failed:', error);
+        alert('Failed to upload avatar. Please try again.');
       }
     } catch (error) {
       console.error('Avatar upload error:', error);
+      alert('Error uploading avatar. Please try again.');
     }
   };
 
@@ -232,6 +233,22 @@ const InstructorProfilePage: React.FC = () => {
 
                 {isEditing ? (
                   <div className="mt-6 space-y-4">
+                    {/* Save/Cancel Buttons - Moved to Top */}
+                    <div className="flex justify-end space-x-4 mb-6 pb-4 border-b border-gray-200">
+                      <button
+                        onClick={handleCancel}
+                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSave}
+                        className="px-6 py-3 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors font-medium"
+                      >
+                        Save Changes
+                      </button>
+                    </div>
+                    
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         First Name
@@ -433,23 +450,6 @@ const InstructorProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Save/Cancel Buttons */}
-              {isEditing && (
-                <div className="flex justify-end space-x-4">
-                  <button
-                    onClick={handleCancel}
-                    className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    className="px-6 py-3 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors font-medium"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
