@@ -49,6 +49,7 @@ interface FormData {
   rubricFile: File | null;
   aiGeneratedRubric: any;
   customRubric: any;
+  customRubricCategories: Array<{ name: string; points: number; description: string }>;
 }
 
 const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
@@ -86,7 +87,13 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     rubricType: 'none',
     rubricFile: null,
     aiGeneratedRubric: null,
-    customRubric: null
+    customRubric: null,
+    customRubricCategories: [
+      { name: 'Content Quality', points: 25, description: 'Depth, accuracy, and relevance of content' },
+      { name: 'Presentation Skills', points: 25, description: 'Clarity, organization, and delivery' },
+      { name: 'Technical Accuracy', points: 25, description: 'Correctness of technical concepts' },
+      { name: 'Creativity & Innovation', points: 25, description: 'Originality and creative approach' }
+    ]
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -248,7 +255,8 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
           description: formData.description,
           assignmentType: formData.assignmentType,
           maxScore: formData.maxScore,
-          requirements: formData.requirements.filter(req => req.trim())
+          requirements: formData.requirements.filter(req => req.trim()),
+          customCategories: formData.customRubricCategories
         })
       });
 
@@ -291,6 +299,32 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
       customRubric: null
     }));
     setShowRubricPreview(false);
+  };
+
+  const addRubricCategory = () => {
+    setFormData(prev => ({
+      ...prev,
+      customRubricCategories: [
+        ...prev.customRubricCategories,
+        { name: '', points: 0, description: '' }
+      ]
+    }));
+  };
+
+  const updateRubricCategory = (index: number, field: 'name' | 'points' | 'description', value: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      customRubricCategories: prev.customRubricCategories.map((category, i) => 
+        i === index ? { ...category, [field]: value } : category
+      )
+    }));
+  };
+
+  const removeRubricCategory = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      customRubricCategories: prev.customRubricCategories.filter((_, i) => i !== index)
+    }));
   };
 
   return (
@@ -1090,17 +1124,102 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                   <div>
                     <h4 className="font-medium text-gray-900">AI-Generated Rubric</h4>
                     <p className="text-sm text-gray-600">
-                      AI will create a rubric based on your assignment details
+                      Define your rubric categories and AI will generate detailed criteria
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={generateAIRubric}
-                    disabled={isGeneratingRubric || !formData.title.trim() || !formData.description.trim()}
+                    disabled={isGeneratingRubric || !formData.title.trim() || !formData.description.trim() || formData.customRubricCategories.some(cat => !cat.name.trim() || cat.points <= 0)}
                     className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                   >
                     {isGeneratingRubric ? 'Generating...' : 'Generate Rubric'}
                   </button>
+                </div>
+
+                {/* Custom Categories Input */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Rubric Categories
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addRubricCategory}
+                      className="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    >
+                      + Add Category
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {formData.customRubricCategories.map((category, index) => (
+                      <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                        <div className="md:col-span-4">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Category Name
+                          </label>
+                          <input
+                            type="text"
+                            value={category.name}
+                            onChange={(e) => updateRubricCategory(index, 'name', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            placeholder="e.g., Content Quality"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Points
+                          </label>
+                          <input
+                            type="number"
+                            value={category.points}
+                            onChange={(e) => updateRubricCategory(index, 'points', parseInt(e.target.value) || 0)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            min="1"
+                            step="1"
+                          />
+                        </div>
+                        <div className="md:col-span-5">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Description
+                          </label>
+                          <input
+                            type="text"
+                            value={category.description}
+                            onChange={(e) => updateRubricCategory(index, 'description', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            placeholder="Brief description of this category"
+                          />
+                        </div>
+                        <div className="md:col-span-1">
+                          <button
+                            type="button"
+                            onClick={() => removeRubricCategory(index)}
+                            disabled={formData.customRubricCategories.length <= 1}
+                            className="w-full px-2 py-2 text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                            title="Remove category"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="flex items-center">
+                      <span className="text-blue-600 mr-2">ℹ️</span>
+                      <div className="text-sm text-blue-800">
+                        <strong>Total Points:</strong> {formData.customRubricCategories.reduce((sum, cat) => sum + cat.points, 0)} / {formData.maxScore}
+                        {formData.customRubricCategories.reduce((sum, cat) => sum + cat.points, 0) !== formData.maxScore && (
+                          <span className="text-red-600 ml-2">
+                            (Points don't match max score)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {isGeneratingRubric && (
