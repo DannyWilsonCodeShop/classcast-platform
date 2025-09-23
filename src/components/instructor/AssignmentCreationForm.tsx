@@ -40,6 +40,7 @@ interface FormData {
   maxResponsesPerVideo: number;
   responseWordLimit: number;
   responseCharacterLimit: number;
+  hidePeerVideosUntilInstructorPosts: boolean;
   coverPhoto: string;
   emoji: string;
   color: string;
@@ -77,6 +78,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     maxResponsesPerVideo: initialData?.maxResponsesPerVideo || 3,
     responseWordLimit: initialData?.responseWordLimit || 50,
     responseCharacterLimit: initialData?.responseCharacterLimit || 500,
+    hidePeerVideosUntilInstructorPosts: initialData?.hidePeerVideosUntilInstructorPosts || false,
     coverPhoto: initialData?.coverPhoto || '',
     emoji: initialData?.emoji || '🎥',
     color: initialData?.color || '#3B82F6',
@@ -170,6 +172,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         maxResponsesPerVideo: formData.enablePeerResponses ? formData.maxResponsesPerVideo : undefined,
         responseWordLimit: formData.enablePeerResponses ? formData.responseWordLimit : undefined,
         responseCharacterLimit: formData.enablePeerResponses ? formData.responseCharacterLimit : undefined,
+        hidePeerVideosUntilInstructorPosts: formData.enablePeerResponses ? formData.hidePeerVideosUntilInstructorPosts : undefined,
         coverPhoto: formData.coverPhoto,
         emoji: formData.emoji,
         color: formData.color,
@@ -865,6 +868,43 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                 Enable peer responses for this assignment
               </label>
             </div>
+
+            {/* Hide Peer Videos Until Instructor Posts */}
+            {formData.enablePeerResponses && (
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="hidePeerVideosUntilInstructorPosts"
+                  checked={formData.hidePeerVideosUntilInstructorPosts}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    hidePeerVideosUntilInstructorPosts: e.target.checked
+                  }))}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="hidePeerVideosUntilInstructorPosts" className="ml-2 text-sm font-medium text-gray-700">
+                  Hide peer videos until instructor posts their own video
+                </label>
+              </div>
+            )}
+
+            {/* Hide Peer Videos Info */}
+            {formData.enablePeerResponses && formData.hidePeerVideosUntilInstructorPosts && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0">
+                    <span className="text-blue-400 text-lg">ℹ️</span>
+                  </div>
+                  <div className="ml-3">
+                    <h4 className="text-sm font-medium text-blue-800">Instructor Video Required</h4>
+                    <p className="mt-1 text-sm text-blue-700">
+                      Students will not be able to see peer videos until you post your own video submission. 
+                      This ensures students see your example first before viewing their peers' work.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {formData.enablePeerResponses && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

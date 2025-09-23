@@ -315,30 +315,30 @@ const InstructorDashboard: React.FC = () => {
     <InstructorRoute>
       <div className="h-screen overflow-hidden flex flex-col bg-[#F5F5F5]">
         {/* Branded Header */}
-        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
+        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-2 sm:px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Left Side - MyClassCast Logo */}
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0 flex-1">
               <img
                 src="/MyClassCast (800 x 200 px).png"
                 alt="MyClassCast"
-                className="h-8 w-auto object-contain"
+                className="h-6 sm:h-8 w-auto object-contain max-w-[200px] sm:max-w-none"
               />
             </div>
             
             {/* Right Side - Create Class Button and Profile Thumbnail */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
               <button
                 onClick={() => router.push('/instructor/classes/create')}
-                className="flex items-center space-x-2 bg-[#4A90E2] text-white px-4 py-2 rounded-lg hover:bg-[#9B5DE5] transition-colors shadow-lg hover:shadow-xl"
+                className="flex items-center space-x-1 sm:space-x-2 bg-[#4A90E2] text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-[#9B5DE5] transition-colors shadow-lg hover:shadow-xl"
                 title="Create a new class"
               >
-                <span className="text-lg">+</span>
-                <span className="font-medium text-sm">Create Class</span>
+                <span className="text-base sm:text-lg">+</span>
+                <span className="font-medium text-xs sm:text-sm hidden sm:inline">Create Class</span>
               </button>
               <button
                 onClick={() => router.push('/instructor/profile')}
-                className="w-12 h-12 rounded-full bg-[#4A90E2] flex items-center justify-center text-white font-bold text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
+                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-[#4A90E2] flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
                 title="View Profile"
               >
                 {user?.firstName?.charAt(0) || 'I'}

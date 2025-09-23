@@ -69,23 +69,8 @@ export async function POST(request: NextRequest) {
 
       console.log('User created successfully with AWS Cognito:', result);
 
-      // Auto-confirm the user so they can log in immediately
-      try {
-        const { CognitoIdentityProviderClient, AdminConfirmSignUpCommand } = await import('@aws-sdk/client-cognito-identity-provider');
-        const cognitoClient = new CognitoIdentityProviderClient({
-          region: process.env.AWS_REGION || 'us-east-1',
-        });
-
-        await cognitoClient.send(new AdminConfirmSignUpCommand({
-          UserPoolId: process.env.COGNITO_USER_POOL_ID,
-          Username: email,
-        }));
-
-        console.log('User auto-confirmed successfully');
-      } catch (confirmError) {
-        console.warn('Could not auto-confirm user:', confirmError);
-        // Continue anyway - user can still be confirmed manually
-      }
+      // Check if user needs email verification
+      const needsVerification = result.status === 'UNCONFIRMED';
 
       // Create user profile in DynamoDB
       try {
@@ -126,7 +111,9 @@ export async function POST(request: NextRequest) {
       // Return success response
       return NextResponse.json(
         {
-          message: 'Account created successfully! You can now log in.',
+          message: needsVerification 
+            ? 'Account created successfully! Please check your email to verify your account.' 
+            : 'Account created successfully! You can now log in.',
           user: {
             id: result.username,
             email: result.email,
@@ -135,10 +122,11 @@ export async function POST(request: NextRequest) {
             role: result.role,
             instructorId: result.instructorId,
             department: result.department,
-            emailVerified: true, // Set to true since we're skipping verification
+            emailVerified: !needsVerification,
           },
-          nextStep: 'login',
-          requiresEmailConfirmation: false,
+          nextStep: needsVerification ? 'verify-email' : 'login',
+          needsVerification: needsVerification,
+          requiresEmailConfirmation: needsVerification,
         },
         { status: 201 }
       );

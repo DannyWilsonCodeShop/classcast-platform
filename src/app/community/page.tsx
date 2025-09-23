@@ -140,8 +140,40 @@ export default function CommunityPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Branded Header */}
+      <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
+        <div className="flex items-center justify-between max-w-4xl mx-auto">
+          {/* Left Side - Back Button and MyClassCast Logo */}
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => router.back()}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              title="Go back"
+            >
+              <span className="text-xl">&lt;</span>
+            </button>
+            <img
+              src="/MyClassCast (800 x 200 px).png"
+              alt="MyClassCast"
+              className="h-8 w-auto object-contain"
+            />
+          </div>
+          
+          {/* Right Side - Home Button */}
+          <div className="flex items-center">
+            <button
+              onClick={() => router.push('/student/dashboard')}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              title="Home Dashboard"
+            >
+              <span className="text-xl">🏠</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {/* Page Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Community</h1>
           <p className="text-gray-600 mt-2">Stay updated with announcements from instructors and connect with fellow students</p>
