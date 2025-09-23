@@ -479,26 +479,6 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
             {errors.dueDate && <p className="mt-1 text-sm text-red-600">{errors.dueDate}</p>}
           </div>
 
-          <div>
-            <label htmlFor="responseDueDate" className="block text-sm font-medium text-gray-700 mb-2">
-              Response Due Date
-            </label>
-            <DatePicker
-              selected={formData.responseDueDate}
-              onChange={(date) => setFormData(prev => ({ ...prev, responseDueDate: date }))}
-              showTimeSelect
-              timeFormat="HH:mm"
-              timeIntervals={15}
-              dateFormat="MMMM d, yyyy h:mm aa"
-              minDate={formData.dueDate || new Date()}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.responseDueDate ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholderText="Select response due date"
-              disabled={!formData.enablePeerResponses}
-            />
-            {errors.responseDueDate && <p className="mt-1 text-sm text-red-600">{errors.responseDueDate}</p>}
-          </div>
         </div>
 
         {/* Maximum Score */}
@@ -868,6 +848,30 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                 Enable peer responses for this assignment
               </label>
             </div>
+
+            {/* Response Due Date */}
+            {formData.enablePeerResponses && (
+              <div>
+                <label htmlFor="responseDueDate" className="block text-sm font-medium text-gray-700 mb-2">
+                  Response Due Date
+                </label>
+                <DatePicker
+                  selected={formData.responseDueDate}
+                  onChange={(date) => setFormData(prev => ({ ...prev, responseDueDate: date }))}
+                  showTimeSelect
+                  timeFormat="HH:mm"
+                  timeIntervals={15}
+                  dateFormat="MMMM d, yyyy h:mm aa"
+                  minDate={formData.dueDate || new Date()}
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                    errors.responseDueDate ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholderText="Select response due date"
+                />
+                {errors.responseDueDate && <p className="mt-1 text-sm text-red-600">{errors.responseDueDate}</p>}
+                <p className="mt-1 text-xs text-gray-500">When peer responses are due (must be after video due date)</p>
+              </div>
+            )}
 
             {/* Hide Peer Videos Until Instructor Posts */}
             {formData.enablePeerResponses && (
