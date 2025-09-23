@@ -20,6 +20,8 @@ interface Course {
   title: string;
   studentCount: number;
   assignmentsDue: number;
+  icon?: string;
+  subject?: string;
 }
 
 interface RecentSubmission {
@@ -64,6 +66,59 @@ const InstructorDashboard: React.FC = () => {
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  // Get appropriate icon for course based on subject or title
+  const getCourseIcon = (course: Course): string => {
+    if (course.icon) {
+      return course.icon;
+    }
+
+    const title = course.title.toLowerCase();
+    const subject = course.subject?.toLowerCase() || '';
+    
+    // Subject-based icons
+    if (subject.includes('computer') || subject.includes('programming') || subject.includes('software')) {
+      return '💻';
+    } else if (subject.includes('math') || subject.includes('calculus') || subject.includes('algebra')) {
+      return '🔢';
+    } else if (subject.includes('english') || subject.includes('writing') || subject.includes('literature')) {
+      return '📝';
+    } else if (subject.includes('physics') || subject.includes('science')) {
+      return '⚛️';
+    } else if (subject.includes('biology') || subject.includes('chemistry')) {
+      return '🧬';
+    } else if (subject.includes('history') || subject.includes('social')) {
+      return '📜';
+    } else if (subject.includes('art') || subject.includes('design')) {
+      return '🎨';
+    } else if (subject.includes('music')) {
+      return '🎵';
+    } else if (subject.includes('business') || subject.includes('economics')) {
+      return '💼';
+    } else if (subject.includes('psychology')) {
+      return '🧠';
+    } else if (subject.includes('language') || subject.includes('foreign')) {
+      return '🌍';
+    }
+    
+    // Title-based fallback icons
+    if (title.includes('computer') || title.includes('programming') || title.includes('software') || title.includes('cs-')) {
+      return '💻';
+    } else if (title.includes('math') || title.includes('calculus') || title.includes('algebra') || title.includes('math-')) {
+      return '🔢';
+    } else if (title.includes('english') || title.includes('writing') || title.includes('literature') || title.includes('eng-')) {
+      return '📝';
+    } else if (title.includes('physics') || title.includes('science') || title.includes('phy-')) {
+      return '⚛️';
+    } else if (title.includes('biology') || title.includes('chemistry') || title.includes('bio-')) {
+      return '🧬';
+    } else if (title.includes('history') || title.includes('social') || title.includes('hist-')) {
+      return '📜';
+    }
+    
+    // Default icon
+    return '📚';
   };
 
   // Mock student data for each course
