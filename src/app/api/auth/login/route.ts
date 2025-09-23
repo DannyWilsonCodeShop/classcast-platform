@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       );
 
       // Set secure cookies
-      response.cookies.set('accessToken', authResult.tokens.accessToken, {
+      response.cookies.set('accessToken', authResponse.AuthenticationResult.AccessToken!, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
         path: '/',
       });
 
-      response.cookies.set('refreshToken', authResult.tokens.refreshToken, {
+      response.cookies.set('refreshToken', authResponse.AuthenticationResult.RefreshToken!, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -147,7 +147,7 @@ export async function POST(request: NextRequest) {
         path: '/',
       });
 
-      response.cookies.set('idToken', authResult.tokens.idToken, {
+      response.cookies.set('idToken', authResponse.AuthenticationResult.IdToken || authResponse.AuthenticationResult.AccessToken!, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',

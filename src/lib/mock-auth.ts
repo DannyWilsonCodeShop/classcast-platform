@@ -29,7 +29,45 @@ export interface CreateUserData {
 
 // In-memory storage for demo purposes
 // In production, this would be a database
-const users: MockUser[] = [];
+const users: MockUser[] = [
+  // Default test users
+  {
+    id: 'test-student-1',
+    email: 'student@example.com',
+    firstName: 'John',
+    lastName: 'Student',
+    role: 'student',
+    studentId: 'STU001',
+    emailVerified: true,
+    password: 'password123',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'test-instructor-1',
+    email: 'instructor@example.com',
+    firstName: 'Jane',
+    lastName: 'Instructor',
+    role: 'instructor',
+    instructorId: 'INST001',
+    department: 'Computer Science',
+    emailVerified: true,
+    password: 'password123',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: 'test-admin-1',
+    email: 'admin@example.com',
+    firstName: 'Admin',
+    lastName: 'User',
+    role: 'admin',
+    emailVerified: true,
+    password: 'password123',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+];
 
 export const mockAuthService = {
   // Create a new user
