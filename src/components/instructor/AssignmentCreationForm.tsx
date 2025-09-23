@@ -428,7 +428,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                   id="color"
                   value={formData.color}
                   onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-                  className="w-12 h-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-16 h-12 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 <input
                   type="text"
@@ -501,7 +501,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
               selected={formData.dueDate}
               onChange={(date) => setFormData(prev => ({ ...prev, dueDate: date }))}
               showTimeSelect
-              timeFormat="HH:mm"
+              timeFormat="h:mm aa"
               timeIntervals={15}
               dateFormat="MMMM d, yyyy h:mm aa"
               minDate={new Date()}
@@ -893,7 +893,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                   selected={formData.responseDueDate}
                   onChange={(date) => setFormData(prev => ({ ...prev, responseDueDate: date }))}
                   showTimeSelect
-                  timeFormat="HH:mm"
+                  timeFormat="h:mm aa"
                   timeIntervals={15}
                   dateFormat="MMMM d, yyyy h:mm aa"
                   minDate={formData.dueDate || new Date()}

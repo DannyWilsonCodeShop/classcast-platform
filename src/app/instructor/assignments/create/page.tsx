@@ -62,7 +62,7 @@ const CreateAssignmentPage: React.FC = () => {
                   onClick={() => router.back()}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  <span className="text-2xl">←</span>
+                  <span className="text-2xl">&lt;</span>
                 </button>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-800 mb-2">
@@ -72,6 +72,19 @@ const CreateAssignmentPage: React.FC = () => {
                     Set up a new assignment for your students
                   </p>
                 </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <img
+                  src="/MyClassCast (800 x 200 px).png"
+                  alt="MyClassCast"
+                  className="h-8 w-auto object-contain"
+                />
+                <button
+                  onClick={() => router.push('/instructor/dashboard')}
+                  className="px-3 py-1 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Home
+                </button>
               </div>
             </div>
           </div>
