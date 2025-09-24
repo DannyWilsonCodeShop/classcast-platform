@@ -12,6 +12,7 @@ interface SignupFormData {
   confirmPassword: string;
   role: 'student' | 'instructor';
   department?: string;
+  instructorCode?: string;
   agreeToTerms: boolean;
 }
 
@@ -23,6 +24,7 @@ interface SignupFormErrors {
   confirmPassword?: string;
   role?: string;
   department?: string;
+  instructorCode?: string;
   agreeToTerms?: string;
   general?: string;
 }
@@ -43,12 +45,14 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
     confirmPassword: '',
     role: 'student',
     department: '',
+    instructorCode: '',
     agreeToTerms: false,
   });
   const [errors, setErrors] = useState<SignupFormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [roleSwitchNotification, setRoleSwitchNotification] = useState<string>('');
 
   const validateForm = (): boolean => {
     const newErrors: SignupFormErrors = {};
@@ -97,8 +101,15 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
     }
 
     // Role-specific validation
-    if (formData.role === 'instructor' && !formData.department?.trim()) {
-      newErrors.department = 'Department is required for instructors';
+    if (formData.role === 'instructor') {
+      if (!formData.department?.trim()) {
+        newErrors.department = 'Department is required for instructors';
+      }
+      if (!formData.instructorCode?.trim()) {
+        newErrors.instructorCode = 'Instructor code is required';
+      } else if (formData.instructorCode !== '5555') {
+        newErrors.instructorCode = 'Invalid instructor code. Please contact your administrator.';
+      }
     }
 
     // Terms agreement validation
@@ -114,10 +125,29 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
     
-    setFormData(prev => ({ 
-      ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
-    }));
+    setFormData(prev => {
+      const newData = { 
+        ...prev, 
+        [name]: type === 'checkbox' ? checked : value 
+      };
+      
+      // Clear notification when role is manually changed
+      if (name === 'role') {
+        setRoleSwitchNotification('');
+      }
+      
+      // If instructor code is entered and it's not 5555, switch to student role
+      if (name === 'instructorCode' && value !== '5555' && value.length > 0) {
+        newData.role = 'student';
+        newData.instructorCode = '';
+        newData.department = '';
+        setRoleSwitchNotification('Invalid instructor code. Switched to student registration.');
+        // Clear notification after 5 seconds
+        setTimeout(() => setRoleSwitchNotification(''), 5000);
+      }
+      
+      return newData;
+    });
     
     // Clear field-specific error when user starts typing
     if (errors[name as keyof SignupFormErrors]) {
@@ -249,6 +279,18 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
                 {errors.role}
               </p>
             )}
+            {formData.role === 'instructor' && (
+              <p className="mt-1 text-sm text-blue-600 dark:text-blue-400">
+                💡 Instructor access requires a special code. Contact your administrator if you don't have one.
+              </p>
+            )}
+            {roleSwitchNotification && (
+              <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p className="text-sm text-yellow-800">
+                  ⚠️ {roleSwitchNotification}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Name Fields */}
@@ -338,7 +380,37 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
                     {errors.department}
                   </p>
                 )}
-              </div>
+            </div>
+          )}
+
+          {formData.role === 'instructor' && (
+            <div>
+                <label htmlFor="instructorCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Instructor Code
+                </label>
+                <input
+                  id="instructorCode"
+                  name="instructorCode"
+                  type="text"
+                  autoComplete="off"
+                  required
+                  value={formData.instructorCode}
+                  onChange={handleInputChange}
+                  onKeyPress={handleKeyPress}
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
+                    errors.instructorCode 
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                      : 'border-gray-300 dark:border-gray-600'
+                  } bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+                  placeholder="Enter instructor code"
+                  disabled={isLoading}
+                />
+                {errors.instructorCode && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {errors.instructorCode}
+                  </p>
+                )}
+            </div>
           )}
 
           {/* Email Field */}
