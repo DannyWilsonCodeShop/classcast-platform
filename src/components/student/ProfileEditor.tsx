@@ -151,8 +151,14 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
   };
 
   const handleSave = () => {
+    console.log('ProfileEditor handleSave clicked');
+    console.log('Form validation result:', validateForm());
+    console.log('Edited profile data:', editedProfile);
     if (validateForm()) {
+      console.log('Validation passed, calling onSave');
       onSave(editedProfile);
+    } else {
+      console.log('Validation failed, not calling onSave');
     }
   };
 
