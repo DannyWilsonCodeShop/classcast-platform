@@ -91,6 +91,7 @@ const StudentProfilePage: React.FC = () => {
                     };
                     
                     console.log('Saving profile:', profileData);
+                    console.log('Making API call to /api/profile/save');
                     
                     const response = await fetch('/api/profile/save', {
                       method: 'POST',
@@ -101,6 +102,7 @@ const StudentProfilePage: React.FC = () => {
                     });
                     
                     console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
                     
                     if (response.ok) {
                       const result = await response.json();
@@ -113,8 +115,13 @@ const StudentProfilePage: React.FC = () => {
                       alert('Failed to save profile. Please try again.');
                     }
                   } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error saving profile. Please try again.');
+                    console.error('Error saving profile:', error);
+                    console.error('Error details:', {
+                      message: error instanceof Error ? error.message : 'Unknown error',
+                      stack: error instanceof Error ? error.stack : undefined,
+                      error: error
+                    });
+                    alert(`Error saving profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
                   }
                 }}>
                   <div className="space-y-4">
