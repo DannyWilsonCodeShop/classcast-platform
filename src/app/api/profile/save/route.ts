@@ -84,9 +84,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Prepare updated profile data
+    // Prepare updated profile data (exclude userId as it's the primary key)
     const updatedProfile = {
-      ...existingUser,
       firstName: firstName || existingUser.firstName,
       lastName: lastName || existingUser.lastName,
       email: email || existingUser.email,

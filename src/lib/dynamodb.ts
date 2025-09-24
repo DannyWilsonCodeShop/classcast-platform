@@ -282,12 +282,14 @@ export class DynamoDBService {
   async updateUser(userId: string, email: string, updates: Partial<User>): Promise<void> {
     const updateExpression = this.buildUpdateExpression(updates);
     const expressionAttributeValues = this.buildExpressionAttributeValues(updates);
+    const expressionAttributeNames = this.buildExpressionAttributeNames(updates);
     
     await this.updateItem(
       TABLE_NAMES.USERS,
-      { userId, email },
+      { userId },
       updateExpression,
-      expressionAttributeValues
+      expressionAttributeValues,
+      expressionAttributeNames
     );
   }
 
@@ -416,6 +418,18 @@ export class DynamoDBService {
     });
 
     return expressionAttributeValues;
+  }
+
+  private buildExpressionAttributeNames(updates: Record<string, any>): Record<string, string> {
+    const expressionAttributeNames: Record<string, string> = {};
+    
+    Object.keys(updates).forEach(key => {
+      if (updates[key] !== undefined) {
+        expressionAttributeNames[`#${key}`] = key;
+      }
+    });
+
+    return expressionAttributeNames;
   }
 
   // Health Check

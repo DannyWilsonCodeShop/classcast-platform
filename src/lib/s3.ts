@@ -240,7 +240,7 @@ export class S3Service {
     file: Buffer,
     contentType: string
   ): Promise<string> {
-    const key = this.generateFileKey('avatars', `avatar_${userId}.jpg`, userId);
+    const key = this.generateFileKey('profile-pictures', `avatar_${userId}.jpg`, userId);
     return this.uploadFile(key, file, contentType, {
       'user-id': userId,
       'file-type': 'avatar',
