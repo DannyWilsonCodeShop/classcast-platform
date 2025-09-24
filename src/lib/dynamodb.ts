@@ -31,7 +31,10 @@ const client = new DynamoDBClient({
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     },
-  } : {}),
+  } : {
+    // Force use of default credential provider chain in production
+    credentials: undefined,
+  }),
   // For local development, you can use:
   // endpoint: 'http://localhost:8000',
 });

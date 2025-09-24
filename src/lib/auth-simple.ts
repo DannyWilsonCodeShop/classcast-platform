@@ -1,5 +1,4 @@
 import {
-  CognitoIdentityProviderClient,
   SignUpCommand,
   InitiateAuthCommand,
   RespondToAuthChallengeCommand,
@@ -9,18 +8,10 @@ import {
   ConfirmSignUpCommand,
   ResendConfirmationCodeCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
+import { createCognitoClient, getEnvironmentInfo } from './aws-client-factory';
 
 // Cognito client configuration
-const cognitoClient = new CognitoIdentityProviderClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  // In production (Amplify), use IAM role; in development, use explicit credentials
-  ...(process.env.NODE_ENV !== 'production' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
-  } : {}),
-});
+const cognitoClient = createCognitoClient();
 
 // Configuration from environment variables
 const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || '';
@@ -100,7 +91,8 @@ class SimpleCognitoAuthService {
     console.log('CognitoAuthService initialized with:', {
       userPoolId: this.userPoolId,
       userPoolClientId: this.userPoolClientId,
-      region: process.env.AWS_REGION || 'us-east-1'
+      region: process.env.AWS_REGION || 'us-east-1',
+      environment: getEnvironmentInfo()
     });
 
     if (!this.userPoolId || !this.userPoolClientId) {
