@@ -5,7 +5,6 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import ProfileEditor from '@/components/student/ProfileEditor';
 import { PeerInteractionStats } from '@/components/student/PeerInteractionStats';
 
 const StudentProfilePage: React.FC = () => {
@@ -70,88 +69,113 @@ const StudentProfilePage: React.FC = () => {
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto p-6">
-          {console.log('Profile page rendering, isEditing:', isEditing)}
           {isEditing ? (
-            <ProfileEditor
-              profile={{
-                id: user.id || '',
-                firstName: user.firstName || '',
-                lastName: user.lastName || '',
-                email: user.email || '',
-                avatar: user.avatar || '',
-                bio: user.bio || '',
-                careerGoals: user.careerGoals || '',
-                classOf: user.classOf || '',
-                funFact: user.funFact || '',
-                favoriteSubject: user.favoriteSubject || '',
-                hobbies: user.hobbies || '',
-                schoolName: user.schoolName || '',
-              }}
-              onSave={async (updatedProfile) => {
-                console.log('ProfileEditor onSave called with:', updatedProfile);
-                try {
-                  // Save profile to backend
-                  console.log('Making API call to /api/profile/save');
-                  const requestData = {
-                    userId: user?.id || user?.userId || 'test-user-123',
-                    firstName: updatedProfile.firstName,
-                    lastName: updatedProfile.lastName,
-                    email: updatedProfile.email,
-                    avatar: updatedProfile.avatar,
-                    bio: updatedProfile.bio,
-                    careerGoals: updatedProfile.careerGoals,
-                    classOf: updatedProfile.classOf,
-                    funFact: updatedProfile.funFact,
-                    favoriteSubject: updatedProfile.favoriteSubject,
-                    hobbies: updatedProfile.hobbies,
-                    schoolName: updatedProfile.schoolName,
-                  };
-                  console.log('Request data:', requestData);
+            <div className="bg-white rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+              {/* Simple Edit Form */}
+              <div className="p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Profile</h2>
+                
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  console.log('Form submitted!');
                   
-                  const response = await fetch('/api/profile/save', {
-                    method: 'POST',
-                    headers: {
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestData),
-                  });
-                  
-                  console.log('Response status:', response.status);
-                  console.log('Response headers:', response.headers);
-
-                  if (response.ok) {
-                    const result = await response.json();
-                    setIsEditing(false);
-                    // Update user context with new data including S3 avatar URL
-                    if (result.data.avatar) {
-                      // Update the user object with the new avatar URL from S3
-                      user.avatar = result.data.avatar;
+                  try {
+                    const formData = new FormData(e.currentTarget);
+                    const profileData = {
+                      userId: user?.id || user?.userId || 'test-user-123',
+                      firstName: formData.get('firstName') as string,
+                      lastName: formData.get('lastName') as string,
+                      email: formData.get('email') as string,
+                      bio: formData.get('bio') as string,
+                    };
+                    
+                    console.log('Saving profile:', profileData);
+                    
+                    const response = await fetch('/api/profile/save', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(profileData),
+                    });
+                    
+                    console.log('Response status:', response.status);
+                    
+                    if (response.ok) {
+                      const result = await response.json();
+                      console.log('Profile saved successfully:', result);
+                      alert('Profile saved successfully!');
+                      setIsEditing(false);
+                    } else {
+                      const error = await response.text();
+                      console.error('Save failed:', error);
+                      alert('Failed to save profile. Please try again.');
                     }
-                    console.log('Profile saved successfully:', result.data);
-                    alert('Profile saved successfully!');
-                  } else {
-                    const errorText = await response.text();
-                    console.error('Failed to save profile:', response.status, errorText);
-                    try {
-                      const error = JSON.parse(errorText);
-                      alert(`Failed to save profile: ${error.error || 'Unknown error'}`);
-                    } catch {
-                      alert(`Failed to save profile: ${response.status} ${response.statusText}`);
-                    }
+                  } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error saving profile. Please try again.');
                   }
-                } catch (error) {
-                  console.error('Error saving profile:', error);
-                  console.error('Error details:', {
-                    message: error instanceof Error ? error.message : 'Unknown error',
-                    stack: error instanceof Error ? error.stack : undefined,
-                    error: error
-                  });
-                  alert(`Error saving profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
-                }
-              }}
-              onCancel={() => setIsEditing(false)}
-              isOpen={true}
-            />
+                }}>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">First Name</label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        defaultValue={user.firstName || ''}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        defaultValue={user.lastName || ''}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        defaultValue={user.email || ''}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Bio</label>
+                      <textarea
+                        name="bio"
+                        defaultValue={user.bio || ''}
+                        rows={3}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-4 mt-6">
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(false)}
+                      className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-xl border border-white/20 overflow-hidden">
               {/* Profile Header */}
