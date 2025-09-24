@@ -181,6 +181,82 @@ class SimpleCognitoAuthService {
     }
   }
 
+  async createUserAutoConfirmed(request: CreateUserRequest): Promise<CognitoUser> {
+    try {
+      // Import admin commands for server-side use
+      const { AdminCreateUserCommand, AdminSetUserPasswordCommand } = await import('@aws-sdk/client-cognito-identity-provider');
+      
+      // Prepare user attributes
+      const userAttributes = [
+        { Name: 'email', Value: request.email },
+        { Name: 'given_name', Value: request.firstName },
+        { Name: 'family_name', Value: request.lastName },
+        { Name: 'custom:role', Value: request.role },
+        { Name: 'email_verified', Value: 'true' }, // Auto-verify email
+      ];
+
+      if (request.instructorId) {
+        userAttributes.push({ Name: 'custom:instructorId', Value: request.instructorId });
+      }
+      if (request.department) {
+        userAttributes.push({ Name: 'custom:department', Value: request.department });
+      }
+      if (request.bio) {
+        userAttributes.push({ Name: 'custom:bio', Value: request.bio });
+      }
+      if (request.avatar) {
+        userAttributes.push({ Name: 'custom:avatar', Value: request.avatar });
+      }
+      if (request.phoneNumber) {
+        userAttributes.push({ Name: 'phone_number', Value: request.phoneNumber });
+      }
+
+      // Create user with admin command (auto-confirmed)
+      const createCommand = new AdminCreateUserCommand({
+        UserPoolId: this.userPoolId,
+        Username: request.username,
+        UserAttributes: userAttributes,
+        TemporaryPassword: request.password,
+        MessageAction: 'SUPPRESS', // Don't send welcome email
+      });
+
+      const createResponse = await this.client.send(createCommand);
+      console.log('User created with AdminCreateUser:', createResponse.User?.Username);
+
+      // Set permanent password
+      const setPasswordCommand = new AdminSetUserPasswordCommand({
+        UserPoolId: this.userPoolId,
+        Username: request.username,
+        Password: request.password,
+        Permanent: true,
+      });
+
+      await this.client.send(setPasswordCommand);
+      console.log('Permanent password set for user:', request.username);
+
+      // Return a confirmed user object
+      return {
+        username: request.username,
+        email: request.email,
+        firstName: request.firstName,
+        lastName: request.lastName,
+        role: request.role as UserRole,
+        instructorId: request.instructorId,
+        department: request.department,
+        bio: request.bio,
+        avatar: request.avatar,
+        phoneNumber: request.phoneNumber,
+        status: UserStatus.CONFIRMED, // Always confirmed
+        enabled: true,
+        createdAt: new Date().toISOString(),
+        lastModifiedAt: new Date().toISOString(),
+      };
+    } catch (error) {
+      console.error('Error creating auto-confirmed user:', error);
+      throw new Error(`Failed to create auto-confirmed user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
   async confirmUser(username: string, confirmationCode: string): Promise<void> {
     try {
       const command = new ConfirmSignUpCommand({
