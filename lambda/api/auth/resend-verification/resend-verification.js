@@ -49,7 +49,7 @@ exports.handler = async (event) => {
     try {
       // Resend the confirmation code
       const resendCommand = new ResendConfirmationCodeCommand({
-        ClientId: process.env.COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh',
+        ClientId: process.env.COGNITO_USER_POOL_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh',
         Username: email
       });
 
