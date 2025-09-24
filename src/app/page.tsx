@@ -29,7 +29,7 @@ export default function HomePage() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading...</p>
         </div>
       </div>
@@ -45,8 +45,8 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <Navigation />
       
-      {/* Kid-Friendly Hero Section */}
-      <section className="relative min-h-screen bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50 overflow-hidden">
+      {/* Sophisticated Hero Section */}
+      <section className="relative min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 overflow-hidden">
         {/* Playful Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%220%200%2040%2040%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22%23fbbf24%22%20fill-opacity%3D%220.3%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%222%22/%3E%3C/g%3E%3C/svg%3E')] animate-pulse"></div>
@@ -64,8 +64,8 @@ export default function HomePage() {
               {/* Left Column - Kid-Friendly Content */}
               <div className="space-y-8">
                 {/* Fun Status Badge */}
-              <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm border-2 border-yellow-300 rounded-full shadow-lg">
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-3 animate-bounce"></div>
+              <div className="inline-flex items-center px-6 py-3 bg-white/80 backdrop-blur-sm border-2 border-amber-300 rounded-full shadow-lg">
+                <div className="w-3 h-3 bg-emerald-500 rounded-full mr-3 animate-bounce"></div>
                 <span className="text-gray-700 text-sm font-bold">🎓 Learning Made Engaging! 🎓</span>
               </div>
                 
@@ -73,11 +73,11 @@ export default function HomePage() {
                 <div className="space-y-4">
                   <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-gray-800 leading-tight">
                     <span className="block">AI-Enhanced</span>
-                    <span className="block bg-gradient-to-r from-yellow-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">
+                    <span className="block bg-gradient-to-r from-amber-500 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                       Video Learning
                     </span>
                   </h1>
-                  <div className="w-24 h-2 bg-gradient-to-r from-yellow-400 to-blue-500 rounded-full"></div>
+                  <div className="w-24 h-2 bg-gradient-to-r from-amber-500 to-indigo-600 rounded-full"></div>
                 </div>
                 
               {/* Subtitle */}
@@ -90,7 +90,7 @@ export default function HomePage() {
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link 
                     href="/auth/signup"
-                    className="group relative px-8 py-4 bg-gradient-to-r from-yellow-400 to-blue-500 hover:from-yellow-500 hover:to-blue-600 text-white font-bold rounded-full shadow-2xl hover:shadow-yellow-500/25 transform hover:-translate-y-1 transition-all duration-300 text-lg"
+                    className="group relative px-8 py-4 bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white font-bold rounded-full shadow-2xl hover:shadow-amber-500/25 transform hover:-translate-y-1 transition-all duration-300 text-lg"
                   >
                     <span className="relative z-10 flex items-center justify-center">
                       🚀 Get Started!
@@ -110,15 +110,15 @@ export default function HomePage() {
               {/* Stats */}
               <div className="grid grid-cols-3 gap-8 pt-8">
                 <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
-                  <div className="text-3xl font-bold text-yellow-500">3</div>
+                  <div className="text-3xl font-bold text-amber-500">3</div>
                   <div className="text-gray-600 text-sm font-medium">Assignment Types! 📝</div>
                 </div>
                 <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
-                  <div className="text-3xl font-bold text-blue-500">AI</div>
+                  <div className="text-3xl font-bold text-indigo-600">AI</div>
                   <div className="text-gray-600 text-sm font-medium">Auto-Grading! 🤖</div>
                 </div>
                 <div className="text-center bg-white/60 rounded-2xl p-4 shadow-lg">
-                  <div className="text-3xl font-bold text-purple-500">Live</div>
+                  <div className="text-3xl font-bold text-purple-600">Live</div>
                   <div className="text-gray-600 text-sm font-medium">Recording! 🎥</div>
                 </div>
               </div>
@@ -138,17 +138,17 @@ export default function HomePage() {
                       </div>
                       <div className="text-gray-700 text-sm font-bold">🎥 ClassCast Video</div>
                       <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-bounce"></div>
-                        <span className="text-green-600 text-xs font-bold">LIVE</span>
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
+                        <span className="text-emerald-600 text-xs font-bold">LIVE</span>
                       </div>
                     </div>
                     
                     {/* Video Content Area */}
-                    <div className="relative h-64 bg-gradient-to-br from-yellow-200 to-blue-200 flex items-center justify-center">
+                    <div className="relative h-64 bg-gradient-to-br from-amber-200 to-indigo-200 flex items-center justify-center">
                       {/* Mock Video Thumbnail */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/40 to-blue-400/40 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-gradient-to-br from-amber-300/40 to-indigo-400/40 flex items-center justify-center">
                         <div className="w-20 h-20 bg-white/80 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg">
-                          <svg className="w-10 h-10 text-blue-500" fill="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-10 h-10 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z"/>
                           </svg>
                         </div>
@@ -156,7 +156,7 @@ export default function HomePage() {
                       
                       {/* Video Overlay Info */}
                       <div className="absolute bottom-4 left-4 right-4">
-                        <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border-2 border-yellow-300">
+                        <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 shadow-lg border-2 border-amber-300">
                           <div className="text-gray-800 text-sm font-bold mb-1">"AI-Graded Video Assignment 📚"</div>
                           <div className="text-gray-600 text-xs">by @sarah_math • 2.3K views • 2 hours ago</div>
                         </div>
@@ -182,10 +182,10 @@ export default function HomePage() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <button className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center hover:bg-yellow-500 transition-colors shadow-lg">
+                          <button className="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center hover:bg-amber-500 transition-colors shadow-lg">
                             <span className="text-lg">⭐</span>
                           </button>
-                          <button className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors shadow-lg">
+                          <button className="w-8 h-8 bg-indigo-400 rounded-full flex items-center justify-center hover:bg-indigo-500 transition-colors shadow-lg">
                             <span className="text-lg">💖</span>
                           </button>
                         </div>
@@ -193,14 +193,14 @@ export default function HomePage() {
                       
                       {/* Creator Info */}
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg">
+                        <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
                           <span className="text-white text-sm font-bold">SM</span>
                         </div>
                         <div className="flex-1">
                           <div className="text-gray-800 text-sm font-bold">Sarah Math 👩‍🏫</div>
                           <div className="text-gray-600 text-xs">2.1K friends following!</div>
                         </div>
-                        <button className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-blue-500 text-white text-xs font-bold rounded-full hover:from-yellow-500 hover:to-blue-600 transition-all shadow-lg">
+                        <button className="px-4 py-2 bg-gradient-to-r from-amber-500 to-indigo-600 text-white text-xs font-bold rounded-full hover:from-amber-600 hover:to-indigo-700 transition-all shadow-lg">
                           👋 Follow
                         </button>
                       </div>
@@ -233,13 +233,13 @@ export default function HomePage() {
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center px-6 py-3 bg-white text-gray-700 rounded-full text-sm font-bold mb-8 shadow-lg border-2 border-yellow-300">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-bounce"></div>
+            <div className="inline-flex items-center px-6 py-3 bg-white text-gray-700 rounded-full text-sm font-bold mb-8 shadow-lg border-2 border-amber-300">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full mr-3 animate-bounce"></div>
               ✨ Super Cool Features! ✨
             </div>
             <h2 className="text-5xl sm:text-6xl font-black text-gray-800 mb-6">
               Video-First
-              <span className="block bg-gradient-to-r from-yellow-400 to-blue-500 bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-amber-500 to-indigo-600 bg-clip-text text-transparent">
                 Learning Platform! 🎉
               </span>
             </h2>
@@ -254,10 +254,10 @@ export default function HomePage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
               {/* Card 1 - AI Tutor */}
               <div className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-blue-500 rounded-3xl transform rotate-2 group-hover:rotate-3 transition-transform duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-indigo-600 rounded-3xl transform rotate-2 group-hover:rotate-3 transition-transform duration-500"></div>
                 <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 transform group-hover:-translate-y-2 transition-all duration-500">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
                       <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                       </svg>
@@ -282,10 +282,10 @@ export default function HomePage() {
 
               {/* Card 2 - Video Analysis */}
               <div className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl transform -rotate-1 group-hover:-rotate-2 transition-transform duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-teal-500 rounded-3xl transform -rotate-1 group-hover:-rotate-2 transition-transform duration-500"></div>
                 <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 transform group-hover:-translate-y-2 transition-all duration-500">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
                       <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                       </svg>
@@ -310,10 +310,10 @@ export default function HomePage() {
 
               {/* Card 3 - Analytics */}
               <div className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-3xl transform rotate-1 group-hover:rotate-2 transition-transform duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-500 to-indigo-700 rounded-3xl transform rotate-1 group-hover:rotate-2 transition-transform duration-500"></div>
                 <div className="relative bg-white rounded-3xl p-8 shadow-2xl border border-gray-200 transform group-hover:-translate-y-2 transition-all duration-500">
                   <div className="flex items-center justify-between mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-indigo-700 rounded-2xl flex items-center justify-center shadow-lg">
                       <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>

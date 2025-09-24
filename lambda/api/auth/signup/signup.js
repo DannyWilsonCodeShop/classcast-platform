@@ -1,4 +1,4 @@
-const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand, ResendConfirmationCodeCommand } = require('@aws-sdk/client-cognito-identity-provider');
 const { DynamoDBClient, PutItemCommand } = require('@aws-sdk/client-dynamodb');
 const { marshall } = require('@aws-sdk/util-dynamodb');
 
@@ -141,7 +141,7 @@ exports.handler = async (event) => {
         Username: email,
         UserAttributes: userAttributes,
         TemporaryPassword: password,
-        MessageAction: role === 'instructor' ? 'SUPPRESS' : 'RESEND', // Send verification email for students
+        MessageAction: 'SUPPRESS', // Always suppress initial message, we'll handle verification separately
       });
 
       const createResponse = await cognitoClient.send(createCommand);
@@ -157,6 +157,21 @@ exports.handler = async (event) => {
 
       await cognitoClient.send(setPasswordCommand);
       console.log('Permanent password set for user:', email);
+
+      // For students, send verification email after user is created
+      if (role === 'student') {
+        try {
+          const resendCommand = new ResendConfirmationCodeCommand({
+            ClientId: process.env.COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh',
+            Username: email
+          });
+          await cognitoClient.send(resendCommand);
+          console.log('Verification email sent to student:', email);
+        } catch (resendError) {
+          console.error('Failed to send verification email:', resendError);
+          // Continue execution even if verification email fails
+        }
+      }
 
       // Create user profile in DynamoDB
       try {
