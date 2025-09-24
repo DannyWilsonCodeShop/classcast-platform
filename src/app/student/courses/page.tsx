@@ -43,7 +43,6 @@ const StudentCoursesPage: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'upcoming'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -159,43 +158,15 @@ const StudentCoursesPage: React.FC = () => {
   };
 
   const filteredCourses = courses.filter(course => {
-    // Apply status filter
-    const statusMatch = filter === 'all' || course.status === filter;
-    
     // Apply search filter
     const searchMatch = searchQuery === '' || 
       course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.instructor.name.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return statusMatch && searchMatch;
+    return searchMatch;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'completed':
-        return 'bg-blue-100 text-blue-800';
-      case 'upcoming':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active':
-        return '🟢';
-      case 'completed':
-        return '✅';
-      case 'upcoming':
-        return '⏳';
-      default:
-        return '📚';
-    }
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -241,18 +212,6 @@ const StudentCoursesPage: React.FC = () => {
                   }
                 </p>
               </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value as any)}
-                className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="all">All Courses</option>
-                <option value="active">Active</option>
-                <option value="completed">Completed</option>
-                <option value="upcoming">Upcoming</option>
-              </select>
             </div>
           </div>
           
@@ -303,8 +262,8 @@ const StudentCoursesPage: React.FC = () => {
               title={searchQuery ? "No Courses Found" : "No Courses Found"}
               description={
                 searchQuery 
-                  ? `No courses match "${searchQuery}". Try adjusting your search or filter.`
-                  : `You don't have any ${filter === 'all' ? '' : filter} courses yet.`
+                  ? `No courses match "${searchQuery}". Try adjusting your search.`
+                  : `You don't have any courses yet.`
               }
               action={
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -341,11 +300,6 @@ const StudentCoursesPage: React.FC = () => {
                       <p className="text-sm text-gray-600">{course.code}</p>
                       <p className="text-xs text-gray-500 mt-1">{course.instructor.name}</p>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${getStatusColor(course.status)}`}>
-                        {getStatusIcon(course.status)} {course.status}
-                      </span>
-                    </div>
                   </div>
 
                   {/* Course Details */}
@@ -363,21 +317,6 @@ const StudentCoursesPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Next Assignment */}
-                  {course.nextAssignment && (
-                    <div className="mt-4 p-3 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-semibold text-orange-800">Next Assignment</p>
-                          <p className="text-sm text-orange-700 truncate">{course.nextAssignment.title}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-orange-600">Due {formatDate(course.nextAssignment.dueDate)}</p>
-                          <p className="text-xs text-orange-600">{course.nextAssignment.points} pts</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>

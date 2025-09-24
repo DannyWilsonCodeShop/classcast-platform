@@ -544,33 +544,11 @@ const StudentDashboard: React.FC = () => {
                         </div>
                       </div>
                       
-                      <div className="space-y-3">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Status</span>
-                            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                              course.status === 'up-to-date' ? 'bg-green-100 text-green-800' :
-                              course.status === 'upcoming' ? 'bg-yellow-100 text-yellow-800' :
-                              course.status === 'past-due' ? 'bg-red-100 text-red-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {course.status === 'up-to-date' ? '✅ Up To Date' :
-                               course.status === 'upcoming' ? '⏰ Upcoming Assignments' :
-                               course.status === 'past-due' ? '⚠️ Past Due' :
-                               '📚 Active'}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between pt-2">
-                          <div className="flex items-center space-x-4 text-sm text-gray-600">
-                            <span>📚 {course.assignmentCount || 0} assignments</span>
-                          </div>
-                          <div className="text-[#4A90E2] group-hover:text-[#9B5DE5] transition-colors">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </div>
+                      <div className="flex items-center justify-end pt-2">
+                        <div className="text-[#4A90E2] group-hover:text-[#9B5DE5] transition-colors">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
                         </div>
                       </div>
                     </div>
