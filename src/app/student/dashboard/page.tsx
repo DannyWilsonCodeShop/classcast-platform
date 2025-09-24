@@ -224,11 +224,11 @@ const StudentDashboard: React.FC = () => {
                 />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-[#4A90E2] mb-2">
+            <h2 className="text-display text-indigo-600 mb-2">
               ClassCast
             </h2>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A90E2] mx-auto mb-4"></div>
-            <p className="text-[#333333]">Loading your home...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-800">Loading your home...</p>
           </div>
         </div>
       </StudentRoute>
@@ -250,11 +250,11 @@ const StudentDashboard: React.FC = () => {
                 />
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-[#4A90E2] mb-2">
+            <h2 className="text-2xl font-bold text-indigo-600 mb-2">
               ClassCast
             </h2>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A90E2] mx-auto mb-4"></div>
-            <p className="text-[#333333]">Redirecting to login...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-800">Redirecting to login...</p>
           </div>
         </div>
       </StudentRoute>
@@ -263,9 +263,9 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="h-screen overflow-hidden flex flex-col bg-[#F5F5F5]">
+      <div className="h-screen overflow-hidden flex flex-col bg-gray-50">
         {/* Branded Header */}
-        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-2 sm:px-4 py-3">
+        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-indigo-600/20 px-2 sm:px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Left Side - MyClassCast Logo */}
             <div className="flex items-center min-w-0 flex-1">
@@ -280,14 +280,14 @@ const StudentDashboard: React.FC = () => {
             <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
               <button
                 onClick={() => setShowEnrollmentModal(true)}
-                className="text-[#4A90E2] hover:text-[#9B5DE5] transition-colors p-1 sm:p-2"
+                className="text-indigo-600 hover:text-purple-600 transition-colors p-1 sm:p-2"
                 title="Join a new class"
               >
                 <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
               <button
                 onClick={() => router.push('/student/profile')}
-                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-[#4A90E2] flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
+                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
                 title="View Profile"
               >
                 {user?.firstName?.charAt(0) || 'S'}
@@ -297,9 +297,9 @@ const StudentDashboard: React.FC = () => {
         </div>
 
         {/* Status Bar */}
-        <div className="bg-[#F5F5F5] border-b border-[#4A90E2]/20 px-4 py-2">
+        <div className="bg-gray-50 border-b border-indigo-600/20 px-4 py-2">
           <div className="flex items-center text-sm">
-            <div className="text-[#333333] font-medium">
+            <div className="text-gray-800 font-medium">
               Student Portal
             </div>
           </div>
@@ -308,11 +308,11 @@ const StudentDashboard: React.FC = () => {
         {/* Main Content Layout */}
         <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
           {/* Left Sidebar - Videos and Socials */}
-          <div className="hidden lg:block w-80 bg-white/90 backdrop-blur-sm border-r border-[#4A90E2]/20 flex flex-col">
+          <div className="hidden lg:block w-80 bg-white/90 backdrop-blur-sm border-r border-indigo-600/20 flex flex-col">
             {/* Recently Posted Videos */}
             <div className="flex-1 p-4 border-b border-gray-200">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Recently Posted</h3>
+                <h3 className="text-lg font-bold text-indigo-600 mb-2">Recently Posted</h3>
               </div>
               <div className="h-64 overflow-y-auto">
                 <VideoReels studentId={user?.id || 'unknown'} />
@@ -322,12 +322,12 @@ const StudentDashboard: React.FC = () => {
             {/* Socials/Community */}
             <div className="flex-1 p-4">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Community</h3>
+                <h3 className="text-lg font-bold text-indigo-600 mb-2">Community</h3>
               </div>
               <div className="h-64 overflow-y-auto">
                 {isLoadingPosts ? (
                   <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#4A90E2]"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
                     <span className="ml-2 text-xs text-gray-500">Loading posts...</span>
                   </div>
                 ) : communityPosts.length > 0 ? (
@@ -336,7 +336,7 @@ const StudentDashboard: React.FC = () => {
                       <div key={post.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                         <div className="flex items-start space-x-2">
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                            post.isAnnouncement ? 'bg-[#4A90E2]' : 'bg-[#06D6A0]'
+                            post.isAnnouncement ? 'bg-indigo-600' : 'bg-emerald-600'
                           }`}>
                             {post.author.charAt(0)}
                           </div>
@@ -344,7 +344,7 @@ const StudentDashboard: React.FC = () => {
                             <div className="flex items-center space-x-1 mb-1">
                               <p className="text-xs font-medium text-gray-800 truncate">{post.author}</p>
                               {post.isAnnouncement && (
-                                <span className="px-1 py-0.5 bg-[#4A90E2] text-white text-xs rounded-full flex-shrink-0">
+                                <span className="px-1 py-0.5 bg-indigo-600 text-white text-xs rounded-full flex-shrink-0">
                                   📢
                                 </span>
                               )}
@@ -365,7 +365,7 @@ const StudentDashboard: React.FC = () => {
                     ))}
                     <button 
                       onClick={() => router.push('/community')}
-                      className="w-full text-center text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium py-2 border border-[#4A90E2] rounded-lg hover:bg-[#4A90E2]/5 transition-colors"
+                      className="w-full text-center text-xs text-indigo-600 hover:text-purple-600 font-medium py-2 border border-indigo-600 rounded-lg hover:bg-indigo-600/5 transition-colors"
                     >
                       View All Posts →
                     </button>
@@ -375,7 +375,7 @@ const StudentDashboard: React.FC = () => {
                     <p className="text-xs text-gray-500 mb-2">No posts yet</p>
                     <button 
                       onClick={() => router.push('/community')}
-                      className="text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium"
+                      className="text-xs text-indigo-600 hover:text-purple-600 font-medium"
                     >
                       Be the first to post!
                     </button>
@@ -390,7 +390,7 @@ const StudentDashboard: React.FC = () => {
             <div className="max-w-6xl mx-auto">
               {/* Classes Header */}
               <div className="mb-6">
-                <h1 className="text-2xl font-bold text-[#333333] mb-2">My Classes</h1>
+                <h1 className="text-heading text-gray-800 mb-2">My Classes</h1>
               </div>
 
               {/* To-Do List */}
@@ -531,7 +531,7 @@ const StudentDashboard: React.FC = () => {
                           {course.code?.charAt(0) || 'C'}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-[#4A90E2] transition-colors">
+                          <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
                             {course.name}
                           </h3>
                           <p className="text-sm text-gray-600">Class Code: {course.code}</p>
@@ -539,7 +539,7 @@ const StudentDashboard: React.FC = () => {
                       </div>
                       
                       <div className="flex items-center justify-end pt-2">
-                        <div className="text-[#4A90E2] group-hover:text-[#9B5DE5] transition-colors">
+                        <div className="text-indigo-600 group-hover:text-purple-600 transition-colors">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
@@ -560,7 +560,7 @@ const StudentDashboard: React.FC = () => {
                       <p className="text-gray-600 mb-6">You haven't enrolled in any classes yet. Contact your instructor to get started!</p>
                       <button
                         onClick={() => router.push('/student/courses')}
-                        className="bg-[#4A90E2] text-white px-6 py-3 rounded-lg hover:bg-[#9B5DE5] transition-colors font-medium"
+                        className="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors font-medium"
                       >
                         Browse Available Classes
                       </button>
@@ -573,8 +573,8 @@ const StudentDashboard: React.FC = () => {
         </div>
 
         {/* Branded Footer */}
-        <div className="bg-white/80 backdrop-blur-md border-t border-[#4A90E2]/20 px-4 py-2 flex-shrink-0">
-          <div className="flex items-center justify-between text-xs text-[#333333]">
+        <div className="bg-white/80 backdrop-blur-md border-t border-indigo-600/20 px-4 py-2 flex-shrink-0">
+          <div className="flex items-center justify-between text-xs text-gray-800">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-1">
                 <div className="w-4 h-4 rounded overflow-hidden">

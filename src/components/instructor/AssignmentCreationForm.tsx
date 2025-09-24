@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Assignment, AssignmentType, AssignmentStatus } from '@/types/dynamodb';
+import { CLASS_COLORS, getClassColorById, getDefaultClassColor } from '@/lib/class-colors';
 
 // Dynamically import TipTapEditor to avoid SSR issues
 const TipTapEditor = dynamic(() => import('./TipTapEditor'), {
@@ -82,7 +83,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     hidePeerVideosUntilInstructorPosts: initialData?.hidePeerVideosUntilInstructorPosts || false,
     coverPhoto: initialData?.coverPhoto || '',
     emoji: initialData?.emoji || '🎥',
-    color: initialData?.color || '#3B82F6',
+    color: initialData?.color || getDefaultClassColor().value,
     requireLiveRecording: initialData?.requireLiveRecording || false,
     rubricType: 'none',
     rubricFile: null,
@@ -419,24 +420,35 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
 
             {/* Color Selection */}
             <div>
-              <label htmlFor="color" className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Assignment Color
               </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="color"
-                  id="color"
-                  value={formData.color}
-                  onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-                  className="w-16 h-12 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <input
-                  type="text"
-                  value={formData.color}
-                  onChange={(e) => setFormData(prev => ({ ...prev, color: e.target.value }))}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
-                  placeholder="#3B82F6"
-                />
+              <div className="grid grid-cols-5 gap-3">
+                {CLASS_COLORS.map((colorOption) => (
+                  <button
+                    key={colorOption.id}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, color: colorOption.value }))}
+                    className={`relative w-full h-12 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                      formData.color === colorOption.value
+                        ? 'border-gray-900 ring-2 ring-gray-300'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                    style={{ backgroundColor: colorOption.value }}
+                    title={colorOption.description}
+                  >
+                    {formData.color === colorOption.value && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                Choose a sophisticated color that represents your assignment
               </div>
             </div>
 

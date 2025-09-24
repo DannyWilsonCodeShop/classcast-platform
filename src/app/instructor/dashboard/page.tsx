@@ -313,9 +313,9 @@ const InstructorDashboard: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="h-screen overflow-hidden flex flex-col bg-[#F5F5F5]">
+      <div className="h-screen overflow-hidden flex flex-col bg-gray-50">
         {/* Branded Header */}
-        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-2 sm:px-4 py-3">
+        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-indigo-600/20 px-2 sm:px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Left Side - MyClassCast Logo */}
             <div className="flex items-center min-w-0 flex-1">
@@ -330,7 +330,7 @@ const InstructorDashboard: React.FC = () => {
             <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
               <button
                 onClick={() => router.push('/instructor/classes/create')}
-                className="flex items-center space-x-1 sm:space-x-2 bg-[#4A90E2] text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-[#9B5DE5] transition-colors shadow-lg hover:shadow-xl"
+                className="flex items-center space-x-1 sm:space-x-2 bg-indigo-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors shadow-lg hover:shadow-xl"
                 title="Create a new class"
               >
                 <span className="text-base sm:text-lg">+</span>
@@ -338,7 +338,7 @@ const InstructorDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => router.push('/instructor/profile')}
-                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-[#4A90E2] flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
+                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
                 title="View Profile"
               >
                 {user?.firstName?.charAt(0) || 'I'}
@@ -348,9 +348,9 @@ const InstructorDashboard: React.FC = () => {
         </div>
 
         {/* Status Bar */}
-        <div className="bg-[#F5F5F5] border-b border-[#4A90E2]/20 px-4 py-2">
+        <div className="bg-gray-50 border-b border-indigo-600/20 px-4 py-2">
           <div className="flex items-center text-sm">
-            <div className="text-[#333333] font-medium">
+            <div className="text-gray-800 font-medium">
               Instructor Portal
             </div>
             </div>
@@ -359,18 +359,18 @@ const InstructorDashboard: React.FC = () => {
         {/* Main Content Layout */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left Sidebar - Quick Actions and Recent Submissions */}
-          <div className="hidden lg:block w-80 bg-white/90 backdrop-blur-sm border-r border-[#4A90E2]/20 flex flex-col">
+          <div className="hidden lg:block w-80 bg-white/90 backdrop-blur-sm border-r border-indigo-600/20 flex flex-col">
             {/* Quick Actions */}
             <div className="flex-1 p-4 border-b border-gray-200">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Quick Actions</h3>
+                <h3 className="text-lg font-bold text-indigo-600 mb-2">Quick Actions</h3>
                 <p className="text-sm text-gray-600">Common instructor tasks</p>
               </div>
               <div className="h-64 overflow-y-auto">
                 <div className="space-y-2">
                   <button 
                     onClick={() => router.push('/instructor/assignments/create')}
-                    className="w-full text-left p-3 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors text-sm font-medium"
+                    className="w-full text-left p-3 bg-indigo-600 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium"
                   >
                     📝 Create Assignment
                   </button>
@@ -382,13 +382,13 @@ const InstructorDashboard: React.FC = () => {
                   </button>
                   <button 
                     onClick={() => router.push('/instructor/ai-assistant')}
-                    className="w-full text-left p-3 bg-[#9B5DE5] text-white rounded-lg hover:bg-[#B794F6] transition-colors text-sm font-medium"
+                    className="w-full text-left p-3 bg-purple-600 text-white rounded-lg hover:bg-[#B794F6] transition-colors text-sm font-medium"
                   >
                     🤖 AI Assistant
                   </button>
                   <button 
                     onClick={() => router.push('/instructor/analytics')}
-                    className="w-full text-left p-3 bg-[#06D6A0] text-white rounded-lg hover:bg-[#4ECDC4] transition-colors text-sm font-medium"
+                    className="w-full text-left p-3 bg-emerald-600 text-white rounded-lg hover:bg-teal-500 transition-colors text-sm font-medium"
                   >
                     📊 Analytics
                   </button>
@@ -399,7 +399,7 @@ const InstructorDashboard: React.FC = () => {
             {/* Recent Submissions */}
             <div className="flex-1 p-4">
               <div className="mb-4">
-                <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Recent Submissions</h3>
+                <h3 className="text-lg font-bold text-indigo-600 mb-2">Recent Submissions</h3>
                 <p className="text-sm text-gray-600">Latest student work to review</p>
               </div>
               <div className="h-64 overflow-y-auto">
@@ -408,7 +408,7 @@ const InstructorDashboard: React.FC = () => {
                     {recentSubmissions.slice(0, 5).map((submission) => (
                       <div key={submission.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                         <div className="flex items-start space-x-2">
-                          <div className="w-6 h-6 rounded-full bg-[#4A90E2] flex items-center justify-center text-white text-xs font-bold">
+                          <div className="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold">
                             {submission.studentName.charAt(0)}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -418,7 +418,7 @@ const InstructorDashboard: React.FC = () => {
                               <span className="text-xs text-gray-500">
                                 {new Date(submission.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
-                              <button className="text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium">
+                              <button className="text-xs text-indigo-600 hover:text-purple-600 font-medium">
                                 Review →
                               </button>
                             </div>
@@ -428,7 +428,7 @@ const InstructorDashboard: React.FC = () => {
                     ))}
                     <button 
                       onClick={() => router.push('/instructor/submissions')}
-                      className="w-full text-center text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium py-2 border border-[#4A90E2] rounded-lg hover:bg-[#4A90E2]/5 transition-colors"
+                      className="w-full text-center text-xs text-indigo-600 hover:text-purple-600 font-medium py-2 border border-indigo-600 rounded-lg hover:bg-indigo-600/5 transition-colors"
                     >
                       View All Submissions →
                     </button>
@@ -438,7 +438,7 @@ const InstructorDashboard: React.FC = () => {
                     <p className="text-xs text-gray-500 mb-2">No recent submissions</p>
                     <button 
                       onClick={() => router.push('/instructor/assignments')}
-                      className="text-xs text-[#4A90E2] hover:text-[#9B5DE5] font-medium"
+                      className="text-xs text-indigo-600 hover:text-purple-600 font-medium"
                     >
                       Create assignments to get started!
                     </button>
@@ -453,7 +453,7 @@ const InstructorDashboard: React.FC = () => {
             <div className="max-w-6xl mx-auto">
               {/* Courses Header */}
               <div className="mb-6">
-                <h1 className="text-2xl font-bold text-[#333333] mb-2">My Classes</h1>
+                <h1 className="text-2xl font-bold text-gray-800 mb-2">My Classes</h1>
                 <p className="text-gray-600">Manage your courses and track student progress</p>
               </div>
 
@@ -474,7 +474,7 @@ const InstructorDashboard: React.FC = () => {
                       <button
                         key={course.id}
                         onClick={() => router.push(`/instructor/courses/${course.id}`)}
-                        className="w-full text-left bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[#4A90E2]/20"
+                        className="w-full text-left bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[indigo-600]/20"
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
@@ -486,13 +486,13 @@ const InstructorDashboard: React.FC = () => {
                                   setSelectedCourse(course);
                                   setShowStudentList(true);
                                 }}
-                                className="hover:text-[#4A90E2] transition-colors"
+                                className="hover:text-indigo-600 transition-colors"
                               >
                                 👥 {course.studentCount} students
                               </button>
                             </div>
                           </div>
-                          <div className="w-8 h-8 bg-[#4A90E2] rounded-full flex items-center justify-center text-white text-sm font-bold">
+                          <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
                             📚
                           </div>
                         </div>
@@ -529,7 +529,7 @@ const InstructorDashboard: React.FC = () => {
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-gray-600">Click to manage class</span>
-                            <span className="text-[#4A90E2] font-medium">→</span>
+                            <span className="text-indigo-600 font-medium">→</span>
                           </div>
                         </div>
                       </button>
@@ -575,7 +575,7 @@ const InstructorDashboard: React.FC = () => {
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-[#4A90E2] rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl text-white">🎓</span>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to ClassCast!</h2>
@@ -591,7 +591,7 @@ const InstructorDashboard: React.FC = () => {
                     setIsFirstTimeWizard(true);
                     setShowWizard(true);
                   }}
-                  className="w-full bg-[#4A90E2] text-white py-3 px-6 rounded-lg hover:bg-[#9B5DE5] transition-colors font-medium"
+                  className="w-full bg-indigo-600 text-white py-3 px-6 rounded-lg hover:bg-purple-600 transition-colors font-medium"
                 >
                   Start Setup Wizard
                 </button>
@@ -651,7 +651,7 @@ const InstructorDashboard: React.FC = () => {
                   {getMockStudentsForCourse(selectedCourse.id).map((student) => (
                     <div key={student.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
                       <div className="flex items-start space-x-3">
-                        <div className="w-10 h-10 bg-[#4A90E2] rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
                           {student.name.charAt(0)}
             </div>
                         <div className="flex-1 min-w-0">
@@ -666,7 +666,7 @@ const InstructorDashboard: React.FC = () => {
                               Last active: {new Date(student.lastActive).toLocaleDateString()}
                             </span>
                             {student.averageGrade > 0 && (
-                              <span className="text-xs font-medium text-[#4A90E2]">
+                              <span className="text-xs font-medium text-indigo-600">
                                 Avg: {student.averageGrade}%
                               </span>
                             )}
@@ -694,7 +694,7 @@ const InstructorDashboard: React.FC = () => {
                   </span>
             <button
                     onClick={() => setShowStudentList(false)}
-                    className="px-4 py-2 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors"
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-purple-600 transition-colors"
             >
                     Close
             </button>

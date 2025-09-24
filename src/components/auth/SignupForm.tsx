@@ -288,7 +288,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
               name="role"
               value={formData.role}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[slate-800] focus:border-slate-800 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               disabled={isLoading}
             >
               <option value="student">Student</option>
@@ -328,7 +328,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
                 value={formData.firstName}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
+                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[slate-800] focus:border-slate-800 ${
                   errors.firstName 
                     ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
@@ -356,7 +356,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
                 value={formData.lastName}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
+                className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[slate-800] focus:border-slate-800 ${
                   errors.lastName 
                     ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
@@ -387,7 +387,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
                   value={formData.department}
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[slate-800] focus:border-slate-800 ${
                     errors.department 
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                       : 'border-gray-300 dark:border-gray-600'
@@ -417,7 +417,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
                   value={formData.instructorCode}
                   onChange={handleInputChange}
                   onKeyPress={handleKeyPress}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[slate-800] focus:border-slate-800 ${
                     errors.instructorCode 
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                       : 'border-gray-300 dark:border-gray-600'
@@ -447,7 +447,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
               value={formData.email}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
+              className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[slate-800] focus:border-slate-800 ${
                 errors.email 
                   ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                   : 'border-gray-300 dark:border-gray-600'
@@ -477,7 +477,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
                 value={formData.password}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
-                className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
+                className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[slate-800] focus:border-slate-800 ${
                   errors.password 
                     ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
@@ -527,7 +527,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
-                className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
+                className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[slate-800] focus:border-slate-800 ${
                   errors.confirmPassword 
                     ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
@@ -569,18 +569,18 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
                 type="checkbox"
                 checked={formData.agreeToTerms}
                 onChange={handleInputChange}
-                className="h-4 w-4 text-[#003366] focus:ring-[#003366] border-gray-300 rounded"
+                className="h-4 w-4 text-slate-800 focus:ring-[slate-800] border-gray-300 rounded"
                 disabled={isLoading}
               />
             </div>
             <div className="ml-3 text-sm">
               <label htmlFor="agreeToTerms" className="text-gray-700 dark:text-gray-300">
                 I agree to the{' '}
-                <a href="/terms" className="text-[#003366] hover:text-[#002244] dark:text-[#003366] dark:hover:text-[#002244]">
+                <a href="/terms" className="text-slate-800 hover:text-[#002244] dark:text-slate-800 dark:hover:text-[#002244]">
                   Terms and Conditions
                 </a>{' '}
                 and{' '}
-                <a href="/privacy" className="text-[#003366] hover:text-[#002244] dark:text-[#003366] dark:hover:text-[#002244]">
+                <a href="/privacy" className="text-slate-800 hover:text-[#002244] dark:text-slate-800 dark:hover:text-[#002244]">
                   Privacy Policy
                 </a>
               </label>
@@ -596,7 +596,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#003366] hover:bg-[#002244] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#003366] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-800 hover:bg-[#002244] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[slate-800] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             {isLoading ? (
               <div className="flex items-center">
@@ -620,7 +620,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
               <button
                 type="button"
                 onClick={onSwitchToLogin}
-                className="font-medium text-[#003366] hover:text-[#002244] dark:text-[#003366] dark:hover:text-[#002244]"
+                className="font-medium text-slate-800 hover:text-[#002244] dark:text-slate-800 dark:hover:text-[#002244]"
                 disabled={isLoading}
               >
                 Sign in

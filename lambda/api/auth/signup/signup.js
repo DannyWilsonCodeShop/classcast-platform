@@ -141,7 +141,7 @@ exports.handler = async (event) => {
         Username: email,
         UserAttributes: userAttributes,
         TemporaryPassword: password,
-        MessageAction: role === 'instructor' ? 'SUPPRESS' : 'SEND', // Send verification email for students
+        MessageAction: role === 'instructor' ? 'SUPPRESS' : 'RESEND', // Send verification email for students
       });
 
       const createResponse = await cognitoClient.send(createCommand);
