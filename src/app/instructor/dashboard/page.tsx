@@ -79,17 +79,17 @@ const InstructorDashboard: React.FC = () => {
     
     // Subject-based icons
     if (subject.includes('computer') || subject.includes('programming') || subject.includes('software')) {
-      return '💻';
+      return '⚙️';
     } else if (subject.includes('math') || subject.includes('calculus') || subject.includes('algebra')) {
       return '🔢';
     } else if (subject.includes('english') || subject.includes('writing') || subject.includes('literature')) {
-      return '📝';
+      return '📖';
     } else if (subject.includes('physics') || subject.includes('science')) {
-      return '⚛️';
+      return '🔬';
     } else if (subject.includes('biology') || subject.includes('chemistry')) {
       return '🧬';
     } else if (subject.includes('history') || subject.includes('social')) {
-      return '📜';
+      return '📚';
     } else if (subject.includes('art') || subject.includes('design')) {
       return '🎨';
     } else if (subject.includes('music')) {
@@ -376,13 +376,13 @@ const InstructorDashboard: React.FC = () => {
                   </button>
                   <button 
                     onClick={() => router.push('/instructor/grading/bulk')}
-                    className="w-full text-left p-3 bg-[#FF6F61] text-white rounded-lg hover:bg-[#FF8A80] transition-colors text-sm font-medium"
+                    className="w-full text-left p-3 bg-rose-500 text-white rounded-lg hover:bg-rose-400 transition-colors text-sm font-medium"
                   >
                     ⚡ Bulk Grade
                   </button>
                   <button 
                     onClick={() => router.push('/instructor/ai-assistant')}
-                    className="w-full text-left p-3 bg-purple-600 text-white rounded-lg hover:bg-[#B794F6] transition-colors text-sm font-medium"
+                    className="w-full text-left p-3 bg-purple-600 text-white rounded-lg hover:bg-purple-400 transition-colors text-sm font-medium"
                   >
                     🤖 AI Assistant
                   </button>
@@ -474,7 +474,7 @@ const InstructorDashboard: React.FC = () => {
                       <button
                         key={course.id}
                         onClick={() => router.push(`/instructor/courses/${course.id}`)}
-                        className="w-full text-left bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-[indigo-600]/20"
+                        className="w-full text-left bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/20"
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
