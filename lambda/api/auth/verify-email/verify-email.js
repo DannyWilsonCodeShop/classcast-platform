@@ -8,6 +8,8 @@ const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || 'us-east-1_uK50qBrap';
 
 exports.handler = async (event) => {
   console.log('Verify email Lambda called with event:', JSON.stringify(event, null, 2));
+  console.log('Event type:', typeof event);
+  console.log('Event keys:', Object.keys(event));
   
   // Handle CORS preflight request
   if (event.httpMethod === 'OPTIONS') {
@@ -49,7 +51,7 @@ exports.handler = async (event) => {
     try {
       // Confirm the signup with the verification code
       const confirmCommand = new ConfirmSignUpCommand({
-        ClientId: process.env.COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh',
+        ClientId: process.env.COGNITO_USER_POOL_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh',
         Username: email,
         ConfirmationCode: code
       });
@@ -72,8 +74,12 @@ exports.handler = async (event) => {
       };
     } catch (confirmError) {
       console.error('Email verification error:', confirmError);
+      console.error('Error name:', confirmError.name);
+      console.error('Error type:', confirmError.__type);
+      console.error('Error code:', confirmError.code);
+      console.error('Full error object:', JSON.stringify(confirmError, null, 2));
       
-      if (confirmError.name === 'CodeMismatchException') {
+      if (confirmError.name === 'CodeMismatchException' || confirmError.__type === 'CodeMismatchException' || confirmError.code === 'CodeMismatchException') {
         return {
           statusCode: 400,
           headers: {
@@ -86,7 +92,7 @@ exports.handler = async (event) => {
             error: { message: 'Invalid verification code. Please check and try again.' }
           })
         };
-      } else if (confirmError.name === 'ExpiredCodeException') {
+      } else if (confirmError.name === 'ExpiredCodeException' || confirmError.__type === 'ExpiredCodeException' || confirmError.code === 'ExpiredCodeException') {
         return {
           statusCode: 400,
           headers: {
@@ -99,7 +105,11 @@ exports.handler = async (event) => {
             error: { message: 'Verification code has expired. Please request a new one.' }
           })
         };
-      } else if (confirmError.name === 'NotAuthorizedException') {
+      } else if (confirmError.name === 'NotAuthorizedException' || confirmError.__type === 'NotAuthorizedException' || confirmError.code === 'NotAuthorizedException') {
+        console.log('Handling NotAuthorizedException - returning 400 response');
+        console.log('confirmError.name:', confirmError.name);
+        console.log('confirmError.__type:', confirmError.__type);
+        console.log('confirmError.code:', confirmError.code);
         return {
           statusCode: 400,
           headers: {
@@ -113,6 +123,8 @@ exports.handler = async (event) => {
           })
         };
       } else {
+        console.error('Unhandled error type:', confirmError.name, confirmError.__type, confirmError.code);
+        console.error('This should not happen - all error types should be handled');
         return {
           statusCode: 500,
           headers: {
@@ -129,6 +141,7 @@ exports.handler = async (event) => {
     }
   } catch (error) {
     console.error('Unexpected error:', error);
+    console.error('Error stack:', error.stack);
     return {
       statusCode: 500,
       headers: {
@@ -138,7 +151,7 @@ exports.handler = async (event) => {
         'Access-Control-Allow-Methods': 'POST, OPTIONS'
       },
       body: JSON.stringify({
-        error: { message: 'Internal server error' }
+        error: { message: 'Internal server error', details: error.message }
       })
     };
   }

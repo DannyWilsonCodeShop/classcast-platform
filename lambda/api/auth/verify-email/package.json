@@ -4,6 +4,8 @@
   "description": "Email verification Lambda function",
   "main": "verify-email.js",
   "dependencies": {
-    "@aws-sdk/client-cognito-identity-provider": "^3.0.0"
+    "@aws-sdk/client-cognito-identity-provider": "^3.0.0",
+    "oidc-client-ts": "^3.3.0",
+    "react-oidc-context": "^3.3.0"
   }
 }
