@@ -77,7 +77,7 @@ const StudentCoursesPage: React.FC = () => {
             semester: 'Fall',
             year: 2024,
             status: 'active',
-            backgroundColor: '#4A90E2',
+            backgroundColor: 'indigo-600',
             enrollmentCount: 120,
             credits: 3,
             schedule: {
@@ -106,7 +106,7 @@ const StudentCoursesPage: React.FC = () => {
             semester: 'Fall',
             year: 2024,
             status: 'active',
-            backgroundColor: '#06D6A0',
+            backgroundColor: 'emerald-600',
             enrollmentCount: 85,
             credits: 4,
             schedule: {
