@@ -95,7 +95,7 @@ const StudentProfilePage: React.FC = () => {
                       'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                      userId: user?.id,
+                      userId: user?.id || user?.userId || 'test-user-123',
                       firstName: updatedProfile.firstName,
                       lastName: updatedProfile.lastName,
                       email: updatedProfile.email,
@@ -115,10 +115,16 @@ const StudentProfilePage: React.FC = () => {
                     setIsEditing(false);
                     // TODO: Update user context with new data
                     console.log('Profile saved successfully:', result.data);
+                    alert('Profile saved successfully!');
                   } else {
-                    const error = await response.json();
-                    console.error('Failed to save profile:', error);
-                    alert('Failed to save profile. Please try again.');
+                    const errorText = await response.text();
+                    console.error('Failed to save profile:', response.status, errorText);
+                    try {
+                      const error = JSON.parse(errorText);
+                      alert(`Failed to save profile: ${error.error || 'Unknown error'}`);
+                    } catch {
+                      alert(`Failed to save profile: ${response.status} ${response.statusText}`);
+                    }
                   }
                 } catch (error) {
                   console.error('Error saving profile:', error);
