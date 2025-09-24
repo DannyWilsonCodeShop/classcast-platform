@@ -13,6 +13,13 @@ import {
 // Cognito client configuration
 const cognitoClient = new CognitoIdentityProviderClient({
   region: process.env.AWS_REGION || 'us-east-1',
+  // In production (Amplify), use IAM role; in development, use explicit credentials
+  ...(process.env.NODE_ENV !== 'production' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  } : {}),
 });
 
 // Configuration from environment variables

@@ -5,6 +5,13 @@ import { awsConfig } from './aws-config';
 // S3 client configuration
 const s3Client = new S3Client({
   region: awsConfig.region,
+  // In production (Amplify), use IAM role; in development, use explicit credentials
+  ...(process.env.NODE_ENV !== 'production' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+  } : {}),
   // For local development, you can use:
   // endpoint: 'http://localhost:9000',
 });
