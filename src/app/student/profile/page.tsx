@@ -115,7 +115,11 @@ const StudentProfilePage: React.FC = () => {
                   if (response.ok) {
                     const result = await response.json();
                     setIsEditing(false);
-                    // TODO: Update user context with new data
+                    // Update user context with new data including S3 avatar URL
+                    if (result.data.avatar) {
+                      // Update the user object with the new avatar URL from S3
+                      user.avatar = result.data.avatar;
+                    }
                     console.log('Profile saved successfully:', result.data);
                     alert('Profile saved successfully!');
                   } else {
