@@ -10,6 +10,20 @@ const USER_POOL_CLIENT_ID = process.env.COGNITO_USER_POOL_CLIENT_ID || '7tbaq74i
 exports.handler = async (event) => {
   console.log('Login Lambda called with event:', JSON.stringify(event, null, 2));
   
+  // Handle CORS preflight request
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+        'Access-Control-Max-Age': '86400'
+      },
+      body: ''
+    };
+  }
+  
   try {
     // Parse the request body
     const body = JSON.parse(event.body);
