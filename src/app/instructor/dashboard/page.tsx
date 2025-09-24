@@ -155,95 +155,6 @@ const InstructorDashboard: React.FC = () => {
     return studentsByCourse[courseId] || [];
   };
 
-  // Mock assignments data for each course
-  const getMockAssignmentsForCourse = (courseId: string) => {
-    const assignmentsByCourse: { [key: string]: any[] } = {
-      'cs-101': [
-        {
-          id: 'assign1',
-          title: 'Introduction Video Assignment',
-          dueDate: '2024-01-25T23:59:59Z',
-          status: 'published',
-          submissionsCount: 42
-        },
-        {
-          id: 'assign2',
-          title: 'Algorithm Analysis Project',
-          dueDate: '2024-02-01T23:59:59Z',
-          status: 'grading',
-          submissionsCount: 38
-        },
-        {
-          id: 'assign3',
-          title: 'Data Structures Lab',
-          dueDate: '2024-02-08T23:59:59Z',
-          status: 'draft',
-          submissionsCount: 0
-        }
-      ],
-      'math-201': [
-        {
-          id: 'assign4',
-          title: 'Integration Techniques Quiz',
-          dueDate: '2024-01-28T23:59:59Z',
-          status: 'published',
-          submissionsCount: 35
-        },
-        {
-          id: 'assign5',
-          title: 'Series Convergence Problems',
-          dueDate: '2024-02-05T23:59:59Z',
-          status: 'grading',
-          submissionsCount: 32
-        }
-      ],
-      'eng-102': [
-        {
-          id: 'assign6',
-          title: 'Creative Writing Exercise',
-          dueDate: '2024-01-30T23:59:59Z',
-          status: 'published',
-          submissionsCount: 28
-        },
-        {
-          id: 'assign7',
-          title: 'Poetry Analysis Essay',
-          dueDate: '2024-02-10T23:59:59Z',
-          status: 'draft',
-          submissionsCount: 0
-        }
-      ],
-      'phy-301': [
-        {
-          id: 'assign8',
-          title: 'Quantum Mechanics Problem Set',
-          dueDate: '2024-02-02T23:59:59Z',
-          status: 'published',
-          submissionsCount: 22
-        }
-      ],
-      'bio-150': [
-        {
-          id: 'assign9',
-          title: 'Cell Structure Lab Report',
-          dueDate: '2024-02-03T23:59:59Z',
-          status: 'draft',
-          submissionsCount: 0
-        }
-      ],
-      'hist-201': [
-        {
-          id: 'assign10',
-          title: 'Historical Analysis Paper',
-          dueDate: '2024-02-07T23:59:59Z',
-          status: 'published',
-          submissionsCount: 40
-        }
-      ]
-    };
-    
-    return assignmentsByCourse[courseId] || [];
-  };
 
   // Check for first-time instructor
   useEffect(() => {
@@ -352,7 +263,7 @@ const InstructorDashboard: React.FC = () => {
           <div className="flex items-center text-sm">
             <div className="text-gray-800 font-medium">
               Instructor Portal
-            </div>
+              </div>
             </div>
           </div>
 
@@ -364,7 +275,6 @@ const InstructorDashboard: React.FC = () => {
             <div className="flex-1 p-4 border-b border-gray-200">
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-indigo-600 mb-2">Quick Actions</h3>
-                <p className="text-sm text-gray-600">Common instructor tasks</p>
               </div>
               <div className="h-64 overflow-y-auto">
                 <div className="space-y-2">
@@ -392,7 +302,7 @@ const InstructorDashboard: React.FC = () => {
                   >
                     📊 Analytics
                   </button>
-                </div>
+              </div>
             </div>
           </div>
 
@@ -400,7 +310,6 @@ const InstructorDashboard: React.FC = () => {
             <div className="flex-1 p-4">
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-indigo-600 mb-2">Recent Submissions</h3>
-                <p className="text-sm text-gray-600">Latest student work to review</p>
               </div>
               <div className="h-64 overflow-y-auto">
                 {recentSubmissions.length > 0 ? (
@@ -497,34 +406,6 @@ const InstructorDashboard: React.FC = () => {
                           </div>
                         </div>
                         
-                        {/* Assignments List */}
-                        <div className="mb-4">
-                          <h4 className="text-sm font-semibold text-gray-700 mb-2">Recent Assignments</h4>
-                          <div className="space-y-2">
-                            {getMockAssignmentsForCourse(course.id).slice(0, 3).map((assignment) => (
-                              <div key={assignment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-gray-800 truncate">{assignment.title}</p>
-                                  <p className="text-xs text-gray-500">
-                                    Due: {new Date(assignment.dueDate).toLocaleDateString()}
-                                  </p>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    assignment.status === 'published' ? 'bg-green-100 text-green-800' :
-                                    assignment.status === 'grading' ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-gray-100 text-gray-800'
-                                  }`}>
-                                    {assignment.status}
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    {assignment.submissionsCount} submissions
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
                         
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="flex items-center justify-between text-sm">
