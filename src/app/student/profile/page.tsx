@@ -69,6 +69,7 @@ const StudentProfilePage: React.FC = () => {
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto p-6">
+          {console.log('Rendering profile page, isEditing:', isEditing)}
           {isEditing ? (
             <div className="bg-white rounded-2xl shadow-xl border border-white/20 overflow-hidden">
               {/* Simple Edit Form */}
@@ -193,15 +194,17 @@ const StudentProfilePage: React.FC = () => {
                       <p className="text-white/60 text-sm">Student</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => {
-                      console.log('Edit Profile button clicked');
-                      setIsEditing(true);
-                    }}
-                    className="px-4 py-2 bg-white text-[#4A90E2] rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Edit Profile
-                  </button>
+                        <button
+                          onClick={() => {
+                            console.log('Edit Profile button clicked');
+                            console.log('Current isEditing state:', isEditing);
+                            setIsEditing(true);
+                            console.log('Set isEditing to true');
+                          }}
+                          className="px-4 py-2 bg-white text-[#4A90E2] rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                        >
+                          Edit Profile
+                        </button>
                 </div>
               </div>
 
