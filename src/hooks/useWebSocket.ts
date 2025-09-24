@@ -41,6 +41,10 @@ export function useWebSocket(options: UseWebSocketOptions = {}) {
   } = options;
 
   const connect = useCallback(() => {
+    // Disable WebSocket connections for now to prevent errors
+    console.log('WebSocket connections are temporarily disabled');
+    return;
+    
     if (!user || !isAuthenticated || wsRef.current?.readyState === WebSocket.OPEN) {
       return;
     }
