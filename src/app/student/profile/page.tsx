@@ -80,18 +80,30 @@ const StudentProfilePage: React.FC = () => {
                   e.preventDefault();
                   console.log('Form submitted!');
                   
+                  // Disable the form to prevent multiple submissions
+                  const form = e.currentTarget;
+                  const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+                  if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Saving...';
+                  }
+                  
                   try {
-                    const formData = new FormData(e.currentTarget);
+                    const formData = new FormData(form);
                     const profileData = {
                       userId: user?.id || user?.userId || 'test-user-123',
-                      firstName: formData.get('firstName') as string,
-                      lastName: formData.get('lastName') as string,
-                      email: formData.get('email') as string,
-                      bio: formData.get('bio') as string,
+                      firstName: formData.get('firstName') as string || '',
+                      lastName: formData.get('lastName') as string || '',
+                      email: formData.get('email') as string || '',
+                      bio: formData.get('bio') as string || '',
                     };
                     
                     console.log('Saving profile:', profileData);
                     console.log('Making API call to /api/profile/save');
+                    
+                    // Add timeout to prevent hanging
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
                     
                     const response = await fetch('/api/profile/save', {
                       method: 'POST',
@@ -99,10 +111,12 @@ const StudentProfilePage: React.FC = () => {
                         'Content-Type': 'application/json',
                       },
                       body: JSON.stringify(profileData),
+                      signal: controller.signal,
                     });
                     
+                    clearTimeout(timeoutId);
+                    
                     console.log('Response status:', response.status);
-                    console.log('Response headers:', response.headers);
                     
                     if (response.ok) {
                       const result = await response.json();
@@ -110,18 +124,19 @@ const StudentProfilePage: React.FC = () => {
                       alert('Profile saved successfully!');
                       setIsEditing(false);
                     } else {
-                      const error = await response.text();
-                      console.error('Save failed:', error);
-                      alert('Failed to save profile. Please try again.');
+                      const errorText = await response.text();
+                      console.error('Save failed:', response.status, errorText);
+                      alert(`Failed to save profile (${response.status}). Please try again.`);
                     }
                   } catch (error) {
                     console.error('Error saving profile:', error);
-                    console.error('Error details:', {
-                      message: error instanceof Error ? error.message : 'Unknown error',
-                      stack: error instanceof Error ? error.stack : undefined,
-                      error: error
-                    });
-                    alert(`Error saving profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    alert(`Error saving profile. Please try again.`);
+                  } finally {
+                    // Re-enable the form
+                    if (submitButton) {
+                      submitButton.disabled = false;
+                      submitButton.textContent = 'Save Changes';
+                    }
                   }
                 }}>
                   <div className="space-y-4">
