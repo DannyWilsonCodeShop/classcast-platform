@@ -77,7 +77,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
       // Use Lambda function in production, Amplify serverless function in development
-      const loginUrl = process.env.NODE_ENV === 'production' 
+      const loginUrl = window.location.hostname.includes('amplifyapp.com') 
         ? 'https://belixlmhba.execute-api.us-east-1.amazonaws.com/prod/auth/login'
         : '/api/auth/login';
       
@@ -151,7 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
       // Use Lambda function in production, Amplify serverless function in development
-      const signupUrl = process.env.NODE_ENV === 'production' 
+      const signupUrl = window.location.hostname.includes('amplifyapp.com') 
         ? 'https://belixlmhba.execute-api.us-east-1.amazonaws.com/prod/auth/signup'
         : '/api/auth/signup';
       
