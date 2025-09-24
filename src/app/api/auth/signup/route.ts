@@ -54,63 +54,18 @@ export async function POST(request: NextRequest) {
     try {
       console.log('Creating user with AWS Cognito (auto-confirmed):', { email, firstName, lastName, role, studentId, department });
 
-      // Use direct Cognito admin commands to create and auto-confirm user
-      const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand, AdminUpdateUserAttributesCommand } = await import('@aws-sdk/client-cognito-identity-provider');
-      
-      const cognitoClient = new CognitoIdentityProviderClient({
-        region: process.env.AWS_REGION || 'us-east-1',
-      });
-
-      const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'us-east-1_uK50qBrap';
-
-      // Prepare user attributes
-      const userAttributes = [
-        { Name: 'email', Value: email },
-        { Name: 'given_name', Value: firstName.trim() },
-        { Name: 'family_name', Value: lastName.trim() },
-        { Name: 'custom:role', Value: role },
-        { Name: 'email_verified', Value: 'true' }, // Auto-verify email
-      ];
-
-      if (role === 'instructor' && department) {
-        userAttributes.push({ Name: 'custom:department', Value: department });
-        userAttributes.push({ Name: 'custom:instructorId', Value: `INS-${Date.now()}` });
-      }
-
-      // Create user with admin command (auto-confirmed)
-      const createCommand = new AdminCreateUserCommand({
-        UserPoolId: USER_POOL_ID,
-        Username: email,
-        UserAttributes: userAttributes,
-        TemporaryPassword: password,
-        MessageAction: 'SUPPRESS', // Don't send welcome email
-      });
-
-      const createResponse = await cognitoClient.send(createCommand);
-      console.log('User created with AdminCreateUser:', createResponse.User?.Username);
-
-      // Set permanent password
-      const setPasswordCommand = new AdminSetUserPasswordCommand({
-        UserPoolId: USER_POOL_ID,
-        Username: email,
-        Password: password,
-        Permanent: true,
-      });
-
-      await cognitoClient.send(setPasswordCommand);
-      console.log('Permanent password set for user:', email);
-
-      // Create result object
-      const result = {
-        username: email,
-        email: email,
+      // Use AWS Cognito for user creation with auto-confirmation
+      const result = await simpleCognitoAuthService.createUserAutoConfirmed({
+        username: email, // Use email as username
+        email,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
+        password,
         role: role as 'student' | 'instructor' | 'admin',
+        studentId: undefined,
         instructorId: role === 'instructor' ? `INS-${Date.now()}` : undefined,
         department: role === 'instructor' ? department : undefined,
-        status: 'CONFIRMED' as const,
-      };
+      });
 
       console.log('User created and auto-confirmed successfully:', result);
 
