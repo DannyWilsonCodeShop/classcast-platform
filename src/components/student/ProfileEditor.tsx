@@ -165,6 +165,8 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
 
   if (!isOpen) return null;
 
+  console.log('ProfileEditor rendering, isOpen:', isOpen);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -195,6 +197,8 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
                 handleSave();
               }}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+              style={{ pointerEvents: 'auto' }}
+              disabled={false}
             >
               <CheckIcon className="h-4 w-4" />
               <span>Save Changes</span>
