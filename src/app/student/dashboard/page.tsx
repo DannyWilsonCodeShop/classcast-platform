@@ -545,10 +545,6 @@ const StudentDashboard: React.FC = () => {
                       </div>
                       
                       <div className="space-y-3">
-                        <p className="text-sm text-gray-600 line-clamp-2">
-                          {course.description || 'No description available'}
-                        </p>
-                        
                         <div className="space-y-2">
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-600">Status</span>
