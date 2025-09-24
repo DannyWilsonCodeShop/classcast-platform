@@ -11,6 +11,8 @@ const StudentProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
+  
+  console.log('StudentProfilePage rendering, user:', user, 'isEditing:', isEditing);
 
   if (!user) {
     return (
@@ -218,6 +220,7 @@ const StudentProfilePage: React.FC = () => {
                   </div>
                         <button
                           onClick={() => {
+                            alert('Edit Profile button clicked!');
                             console.log('Edit Profile button clicked');
                             console.log('Current isEditing state:', isEditing);
                             setIsEditing(true);
