@@ -404,7 +404,6 @@ const StudentDashboard: React.FC = () => {
                       <span className="mr-2">📋</span>
                       To-Do List
                     </h2>
-                    <span className="text-sm text-gray-500">Quick overview</span>
                   </div>
                   
                   {isLoadingTodoStats ? (
@@ -435,7 +434,6 @@ const StudentDashboard: React.FC = () => {
                             <h3 className="text-sm font-medium text-gray-800">Pending Assignments</h3>
                             <span className="text-lg font-bold text-orange-600">{todoStats.pendingAssignments}</span>
                           </div>
-                          <p className="text-xs text-gray-600 mt-1">Due this week</p>
                         </div>
                         <div className="flex-shrink-0">
                           <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -457,7 +455,6 @@ const StudentDashboard: React.FC = () => {
                             <h3 className="text-sm font-medium text-gray-800">Pending Reviews</h3>
                             <span className="text-lg font-bold text-blue-600">{todoStats.pendingReviews}</span>
                           </div>
-                          <p className="text-xs text-gray-600 mt-1">Peer videos to review</p>
                         </div>
                         <div className="flex-shrink-0">
                           <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -596,7 +593,7 @@ const StudentDashboard: React.FC = () => {
               <span>AI-Powered Learning Platform</span>
             </div>
             <div className="flex items-center space-x-4">
-              <span>© 2024 ClassCast</span>
+              <span>© 2025 ClassCast</span>
               <span>•</span>
               <span>Version 1.0</span>
             </div>
