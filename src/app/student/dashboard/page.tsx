@@ -313,7 +313,6 @@ const StudentDashboard: React.FC = () => {
             <div className="flex-1 p-4 border-b border-gray-200">
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Recently Posted</h3>
-                <p className="text-sm text-gray-600">Latest videos from your peers</p>
               </div>
               <div className="h-64 overflow-y-auto">
                 <VideoReels studentId={user?.id || 'unknown'} />
@@ -324,7 +323,6 @@ const StudentDashboard: React.FC = () => {
             <div className="flex-1 p-4">
               <div className="mb-4">
                 <h3 className="text-lg font-bold text-[#4A90E2] mb-2">Community</h3>
-                <p className="text-sm text-gray-600">Connect with classmates</p>
               </div>
               <div className="h-64 overflow-y-auto">
                 {isLoadingPosts ? (
@@ -393,7 +391,6 @@ const StudentDashboard: React.FC = () => {
               {/* Classes Header */}
               <div className="mb-6">
                 <h1 className="text-2xl font-bold text-[#333333] mb-2">My Classes</h1>
-                <p className="text-gray-600">Manage your courses and track your progress</p>
               </div>
 
               {/* To-Do List */}
