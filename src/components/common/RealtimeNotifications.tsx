@@ -83,14 +83,14 @@ export const RealtimeNotifications: React.FC = () => {
     });
   };
 
-  // Initialize WebSocket connection
-  useWebSocket({
-    onAssignmentCreated: handleAssignmentCreated,
-    onAssignmentUpdated: handleAssignmentUpdated,
-    onSubmissionGraded: handleSubmissionGraded,
-    onGradeUpdated: handleGradeUpdated,
-    onAnnouncement: handleAnnouncement,
-  });
+  // WebSocket connections are temporarily disabled
+  // useWebSocket({
+  //   onAssignmentCreated: handleAssignmentCreated,
+  //   onAssignmentUpdated: handleAssignmentUpdated,
+  //   onSubmissionGraded: handleSubmissionGraded,
+  //   onGradeUpdated: handleGradeUpdated,
+  //   onAnnouncement: handleAnnouncement,
+  // });
 
   // Get notification icon based on type
   const getNotificationIcon = (type: Notification['type']) => {

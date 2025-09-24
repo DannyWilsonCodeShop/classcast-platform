@@ -84,79 +84,19 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
       // Simulate upload delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Try to upload to S3 first
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('folder', 'profile-pictures');
-        formData.append('userId', profile.id);
-
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (response.ok) {
-          const result = await response.json();
+      // Convert file to base64 data URL for immediate display
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        if (dataUrl) {
           setEditedProfile(prev => ({
             ...prev,
-            avatar: result.data.fileUrl
+            avatar: dataUrl
           }));
-        } else {
-          // Try fallback upload service
-          console.warn('S3 upload failed, trying fallback service');
-          const fallbackResponse = await fetch('/api/upload-fallback', {
-            method: 'POST',
-            body: formData,
-          });
-          
-          if (fallbackResponse.ok) {
-            const fallbackResult = await fallbackResponse.json();
-            setEditedProfile(prev => ({
-              ...prev,
-              avatar: fallbackResult.data.fileUrl
-            }));
-          } else {
-            // Final fallback to local preview
-            console.warn('All upload services failed, using local preview');
-            setEditedProfile(prev => ({
-              ...prev,
-              avatar: previewUrl
-            }));
-          }
+          console.log('Avatar converted to base64 data URL');
         }
-      } catch (uploadError) {
-        // Try fallback upload service if S3 is not available
-        console.warn('S3 upload error, trying fallback service:', uploadError);
-        try {
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('folder', 'profile-pictures');
-          formData.append('userId', profile.id);
-          
-          const fallbackResponse = await fetch('/api/upload-fallback', {
-            method: 'POST',
-            body: formData,
-          });
-          
-          if (fallbackResponse.ok) {
-            const fallbackResult = await fallbackResponse.json();
-            setEditedProfile(prev => ({
-              ...prev,
-              avatar: fallbackResult.data.fileUrl
-            }));
-          } else {
-            throw new Error('Fallback service also failed');
-          }
-        } catch (fallbackError) {
-          // Final fallback to local preview
-          console.warn('All upload services failed, using local preview:', fallbackError);
-          setEditedProfile(prev => ({
-            ...prev,
-            avatar: previewUrl
-          }));
-        }
-      }
+      };
+      reader.readAsDataURL(file);
       
       setErrors(prev => ({
         ...prev,
