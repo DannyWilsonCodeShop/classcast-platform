@@ -215,7 +215,7 @@ const InstructorProfilePage: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setIsEditing(!isEditing)}
-                  className="px-4 py-2 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors"
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-purple-600 transition-colors"
                 >
                   {isEditing ? 'Cancel' : 'Edit Profile'}
                 </button>
@@ -242,7 +242,7 @@ const InstructorProfilePage: React.FC = () => {
                       className="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-white shadow-lg"
                     />
                     {isEditing && (
-                      <label className="absolute bottom-0 right-0 bg-[#4A90E2] text-white rounded-full p-2 cursor-pointer hover:bg-[#9B5DE5] transition-colors">
+                      <label className="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full p-2 cursor-pointer hover:bg-purple-600 transition-colors">
                         <input
                           type="file"
                           accept="image/*"
@@ -276,7 +276,7 @@ const InstructorProfilePage: React.FC = () => {
                       </button>
                       <button
                         onClick={handleSave}
-                        className="px-6 py-3 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors font-medium"
+                        className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium"
                       >
                         Save Changes
                       </button>
@@ -290,7 +290,7 @@ const InstructorProfilePage: React.FC = () => {
                         type="text"
                         value={editedProfile.firstName}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -301,7 +301,7 @@ const InstructorProfilePage: React.FC = () => {
                         type="text"
                         value={editedProfile.lastName}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -312,7 +312,7 @@ const InstructorProfilePage: React.FC = () => {
                         type="text"
                         value={editedProfile.title}
                         onChange={(e) => handleInputChange('title', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -323,7 +323,7 @@ const InstructorProfilePage: React.FC = () => {
                         type="text"
                         value={editedProfile.department}
                         onChange={(e) => handleInputChange('department', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -347,7 +347,7 @@ const InstructorProfilePage: React.FC = () => {
                     </div>
                     <div className="flex items-center text-sm text-gray-600">
                       <span className="w-5 h-5 mr-2">🌐</span>
-                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-[#4A90E2] hover:underline">
+                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
                         Website
                       </a>
                     </div>
@@ -366,7 +366,7 @@ const InstructorProfilePage: React.FC = () => {
                     value={editedProfile.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
                     rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                     placeholder="Tell us about yourself..."
                   />
                 ) : (
@@ -382,7 +382,7 @@ const InstructorProfilePage: React.FC = () => {
                     type="text"
                     value={editedProfile.researchInterests}
                     onChange={(e) => handleInputChange('researchInterests', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                     placeholder="e.g., Machine Learning, Data Structures, Algorithms"
                   />
                 ) : (
@@ -398,7 +398,7 @@ const InstructorProfilePage: React.FC = () => {
                     value={editedProfile.education}
                     onChange={(e) => handleInputChange('education', e.target.value)}
                     rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                     placeholder="List your educational background..."
                   />
                 ) : (
@@ -414,7 +414,7 @@ const InstructorProfilePage: React.FC = () => {
                     value={editedProfile.experience}
                     onChange={(e) => handleInputChange('experience', e.target.value)}
                     rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                     placeholder="List your work experience..."
                   />
                 ) : (
@@ -433,7 +433,7 @@ const InstructorProfilePage: React.FC = () => {
                         type="text"
                         value={editedProfile.officeLocation}
                         onChange={(e) => handleInputChange('officeLocation', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       />
                     ) : (
                       <p className="text-gray-700">{profile.officeLocation}</p>
@@ -446,7 +446,7 @@ const InstructorProfilePage: React.FC = () => {
                         type="text"
                         value={editedProfile.officeHours}
                         onChange={(e) => handleInputChange('officeHours', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       />
                     ) : (
                       <p className="text-gray-700">{profile.officeHours}</p>
@@ -459,7 +459,7 @@ const InstructorProfilePage: React.FC = () => {
                         type="text"
                         value={editedProfile.phoneNumber}
                         onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       />
                     ) : (
                       <p className="text-gray-700">{profile.phoneNumber}</p>
@@ -472,10 +472,10 @@ const InstructorProfilePage: React.FC = () => {
                         type="url"
                         value={editedProfile.website}
                         onChange={(e) => handleInputChange('website', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       />
                     ) : (
-                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-[#4A90E2] hover:underline">
+                      <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
                         {profile.website}
                       </a>
                     )}

@@ -516,21 +516,26 @@ const InstructorCourseDetailPage: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-[#4A90E2] mb-2">{assignments.length}</div>
+                <div className="text-3xl font-bold text-indigo-600 mb-2">{assignments.length}</div>
                 <div className="text-sm text-gray-600">Total Assignments</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-[#9B5DE5] mb-2">{course.enrollmentCount}</div>
-                <div className="text-sm text-gray-600">Students Enrolled</div>
+                <button
+                  onClick={() => router.push(`/instructor/courses/${courseId}/students`)}
+                  className="group cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors"
+                >
+                  <div className="text-3xl font-bold text-purple-600 mb-2 group-hover:text-purple-700 transition-colors">{course.enrollmentCount}</div>
+                  <div className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors">Students Enrolled</div>
+                </button>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-[#FF6F61] mb-2">
+                <div className="text-3xl font-bold text-rose-500 mb-2">
                   {assignments.reduce((sum, assignment) => sum + assignment.submissionsCount, 0)}
                 </div>
                 <div className="text-sm text-gray-600">Total Submissions</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-[#06D6A0] mb-2">
+                <div className="text-3xl font-bold text-emerald-600 mb-2">
                   {assignments.reduce((sum, assignment) => sum + assignment.gradedCount, 0)}
                 </div>
                 <div className="text-sm text-gray-600">Graded Submissions</div>
@@ -562,7 +567,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                           <span>⭐ {assignment.points} pts</span>
                         </div>
                       </div>
-                      <div className="w-8 h-8 bg-[#4A90E2] rounded-full flex items-center justify-center text-white text-sm font-bold">
+                      <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
                         📝
                       </div>
                     </div>

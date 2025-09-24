@@ -38,7 +38,7 @@ const CreateClassPage: React.FC = () => {
     title: '',
     description: '',
     classCode: '',
-    backgroundColor: '#4A90E2',
+    backgroundColor: 'indigo-600',
     department: '',
     semester: 'Spring',
     year: new Date().getFullYear().toString(),
@@ -59,12 +59,16 @@ const CreateClassPage: React.FC = () => {
   });
 
   const colorOptions = [
-    { value: '#4A90E2', label: 'Blue', preview: 'bg-blue-500' },
-    { value: '#06D6A0', label: 'Green', preview: 'bg-green-500' },
-    { value: '#FFD166', label: 'Yellow', preview: 'bg-yellow-500' },
-    { value: '#FF6F61', label: 'Red', preview: 'bg-red-500' },
-    { value: '#9B5DE5', label: 'Purple', preview: 'bg-purple-500' },
-    { value: '#E91E63', label: 'Pink', preview: 'bg-pink-500' }
+    { value: '#2d3142', label: 'Navy', preview: 'bg-slate-800' },
+    { value: '#4a5568', label: 'Charcoal', preview: 'bg-gray-600' },
+    { value: '#4c51bf', label: 'Indigo', preview: 'bg-indigo-600' },
+    { value: '#475569', label: 'Slate', preview: 'bg-slate-600' },
+    { value: '#059669', label: 'Emerald', preview: 'bg-emerald-600' },
+    { value: '#0d9488', label: 'Teal', preview: 'bg-teal-600' },
+    { value: '#d97706', label: 'Amber', preview: 'bg-amber-600' },
+    { value: '#e11d48', label: 'Rose', preview: 'bg-rose-600' },
+    { value: '#7c3aed', label: 'Violet', preview: 'bg-violet-600' },
+    { value: '#78716c', label: 'Stone', preview: 'bg-stone-600' }
   ];
 
   const generateClassCode = async () => {
@@ -178,7 +182,7 @@ const CreateClassPage: React.FC = () => {
                     type="text"
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                     placeholder="e.g., Introduction to Computer Science"
                     required
                   />
@@ -193,7 +197,7 @@ const CreateClassPage: React.FC = () => {
                       type="text"
                       value={formData.classCode}
                       onChange={(e) => handleInputChange('classCode', e.target.value.toUpperCase())}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       placeholder="e.g., CS101"
                       required
                     />
@@ -223,7 +227,7 @@ const CreateClassPage: React.FC = () => {
                     type="text"
                     value={formData.department}
                     onChange={(e) => handleInputChange('department', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                     placeholder="e.g., Computer Science"
                   />
                 </div>
@@ -236,7 +240,7 @@ const CreateClassPage: React.FC = () => {
                     type="number"
                     value={formData.credits}
                     onChange={(e) => handleInputChange('credits', parseInt(e.target.value))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                     min="1"
                     max="6"
                   />
@@ -249,7 +253,7 @@ const CreateClassPage: React.FC = () => {
                   <select
                     value={formData.semester}
                     onChange={(e) => handleInputChange('semester', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                   >
                     <option value="Spring">Spring</option>
                     <option value="Summer">Summer</option>
@@ -266,7 +270,7 @@ const CreateClassPage: React.FC = () => {
                     type="number"
                     value={formData.year}
                     onChange={(e) => handleInputChange('year', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                     min="2020"
                     max="2030"
                   />
@@ -280,7 +284,7 @@ const CreateClassPage: React.FC = () => {
                     type="number"
                     value={formData.maxStudents}
                     onChange={(e) => handleInputChange('maxStudents', parseInt(e.target.value))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                     min="1"
                     max="500"
                   />
@@ -294,7 +298,7 @@ const CreateClassPage: React.FC = () => {
                     type="text"
                     value={formData.schedule}
                     onChange={(e) => handleInputChange('schedule', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                     placeholder="e.g., Mon/Wed/Fri 10:00-11:00 AM"
                   />
                 </div>
@@ -308,7 +312,7 @@ const CreateClassPage: React.FC = () => {
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                   placeholder="Describe your class..."
                 />
               </div>
@@ -343,7 +347,7 @@ const CreateClassPage: React.FC = () => {
                   id="createAssignment"
                   checked={formData.createAssignment}
                   onChange={(e) => handleInputChange('createAssignment', e.target.checked)}
-                  className="w-5 h-5 text-[#4A90E2] border-gray-300 rounded focus:ring-[#4A90E2]"
+                  className="w-5 h-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-600"
                 />
                 <label htmlFor="createAssignment" className="ml-3 text-lg font-semibold text-gray-800">
                   Create First Assignment
@@ -361,7 +365,7 @@ const CreateClassPage: React.FC = () => {
                         type="text"
                         value={formData.assignmentTitle || ''}
                         onChange={(e) => handleInputChange('assignmentTitle', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                         placeholder="e.g., Introduction Video"
                         required={formData.createAssignment}
                       />
@@ -374,7 +378,7 @@ const CreateClassPage: React.FC = () => {
                       <select
                         value={formData.assignmentType}
                         onChange={(e) => handleInputChange('assignmentType', e.target.value as 'video' | 'file' | 'text')}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       >
                         <option value="video">Video Assignment</option>
                         <option value="file">File Upload</option>
@@ -390,7 +394,7 @@ const CreateClassPage: React.FC = () => {
                         type="number"
                         value={formData.assignmentPoints || 100}
                         onChange={(e) => handleInputChange('assignmentPoints', parseInt(e.target.value))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                         min="1"
                         max="1000"
                       />
@@ -404,7 +408,7 @@ const CreateClassPage: React.FC = () => {
                         type="datetime-local"
                         value={formData.assignmentDueDate || ''}
                         onChange={(e) => handleInputChange('assignmentDueDate', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                         required={formData.createAssignment}
                       />
                     </div>
@@ -418,7 +422,7 @@ const CreateClassPage: React.FC = () => {
                       value={formData.assignmentDescription || ''}
                       onChange={(e) => handleInputChange('assignmentDescription', e.target.value)}
                       rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       placeholder="Describe the assignment requirements..."
                     />
                   </div>
@@ -438,7 +442,7 @@ const CreateClassPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="px-6 py-3 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-purple-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Creating...' : 'Create Class'}
               </button>

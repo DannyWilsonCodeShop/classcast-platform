@@ -1,0 +1,603 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { InstructorRoute } from '@/components/auth/ProtectedRoute';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+
+interface Course {
+  courseId: string;
+  courseName: string;
+  courseCode: string;
+  description: string;
+  instructor: {
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  semester: string;
+  year: number;
+  status: 'draft' | 'published' | 'archived';
+  enrollmentCount: number;
+  maxEnrollment?: number;
+  credits: number;
+  schedule: {
+    days: string[];
+    time: string;
+    location: string;
+  };
+  prerequisites: string[];
+  learningObjectives: string[];
+  gradingPolicy: {
+    assignments: number;
+    exams: number;
+    participation: number;
+    final: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface Student {
+  studentId: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  enrollmentDate: string;
+  status: 'active' | 'dropped' | 'completed';
+  currentGrade?: number;
+  assignmentsSubmitted: number;
+  assignmentsTotal: number;
+  lastActivity: string;
+  submissionsCount: number;
+  averageGrade: number;
+}
+
+const InstructorStudentsPage: React.FC = () => {
+  const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
+  const [course, setCourse] = useState<Course | null>(null);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'dropped' | 'completed'>('all');
+  const [sortBy, setSortBy] = useState<'name' | 'grade' | 'enrollment' | 'activity'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  const courseId = params.courseId as string;
+
+  useEffect(() => {
+    if (courseId) {
+      fetchCourseAndStudents();
+    }
+  }, [courseId]);
+
+  const fetchCourseAndStudents = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch course details
+      const courseResponse = await fetch(`/api/courses/${courseId}`, {
+        credentials: 'include',
+      });
+
+      if (!courseResponse.ok) {
+        throw new Error('Failed to fetch course details');
+      }
+
+      const courseData = await courseResponse.json();
+      if (courseData.success) {
+        const apiCourse = courseData.data;
+        const transformedCourse = {
+          courseId: apiCourse.courseId || apiCourse.id,
+          courseName: apiCourse.courseName || apiCourse.title,
+          courseCode: apiCourse.courseCode || apiCourse.code,
+          description: apiCourse.description,
+          instructor: apiCourse.instructor,
+          semester: apiCourse.semester || 'Fall',
+          year: apiCourse.year || 2024,
+          status: apiCourse.status || 'published',
+          enrollmentCount: apiCourse.currentEnrollment || apiCourse.enrollmentCount || 0,
+          maxEnrollment: apiCourse.maxStudents || apiCourse.maxEnrollment,
+          credits: apiCourse.credits || 3,
+          schedule: apiCourse.schedule || {
+            days: ['Monday', 'Wednesday', 'Friday'],
+            time: '10:00 AM - 11:00 AM',
+            location: 'TBD'
+          },
+          prerequisites: apiCourse.prerequisites || [],
+          learningObjectives: apiCourse.learningObjectives || [],
+          gradingPolicy: apiCourse.gradingPolicy || {
+            assignments: 40,
+            exams: 30,
+            participation: 10,
+            final: 20
+          },
+          createdAt: apiCourse.createdAt || new Date().toISOString(),
+          updatedAt: apiCourse.updatedAt || new Date().toISOString()
+        };
+        setCourse(transformedCourse);
+      } else {
+        throw new Error(courseData.error || 'Failed to fetch course');
+      }
+
+      // Mock students data
+      const mockStudents: Student[] = [
+        {
+          studentId: 'student_001',
+          name: 'Alex Thompson',
+          email: 'alex.thompson@university.edu',
+          avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Alex%20Thompson',
+          enrollmentDate: '2024-01-15T10:00:00Z',
+          status: 'active',
+          currentGrade: 88.5,
+          assignmentsSubmitted: 4,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-22T14:30:00Z',
+          submissionsCount: 4,
+          averageGrade: 88.5
+        },
+        {
+          studentId: 'student_002',
+          name: 'Maria Rodriguez',
+          email: 'maria.rodriguez@university.edu',
+          avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Maria%20Rodriguez',
+          enrollmentDate: '2024-01-15T10:30:00Z',
+          status: 'active',
+          currentGrade: 91.2,
+          assignmentsSubmitted: 5,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-22T12:15:00Z',
+          submissionsCount: 5,
+          averageGrade: 91.2
+        },
+        {
+          studentId: 'student_003',
+          name: 'James Wilson',
+          email: 'james.wilson@university.edu',
+          avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=James%20Wilson',
+          enrollmentDate: '2024-01-16T09:15:00Z',
+          status: 'active',
+          currentGrade: 85.8,
+          assignmentsSubmitted: 4,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-21T10:45:00Z',
+          submissionsCount: 4,
+          averageGrade: 85.8
+        },
+        {
+          studentId: 'student_004',
+          name: 'Sarah Kim',
+          email: 'sarah.kim@university.edu',
+          avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Sarah%20Kim',
+          enrollmentDate: '2024-01-16T11:00:00Z',
+          status: 'active',
+          currentGrade: 89.3,
+          assignmentsSubmitted: 5,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-21T16:20:00Z',
+          submissionsCount: 5,
+          averageGrade: 89.3
+        },
+        {
+          studentId: 'student_005',
+          name: 'David Chen',
+          email: 'david.chen@university.edu',
+          avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=David%20Chen',
+          enrollmentDate: '2024-01-17T14:20:00Z',
+          status: 'active',
+          currentGrade: 87.1,
+          assignmentsSubmitted: 5,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-20T14:10:00Z',
+          submissionsCount: 5,
+          averageGrade: 87.1
+        },
+        {
+          studentId: 'student_006',
+          name: 'Emma Johnson',
+          email: 'emma.johnson@university.edu',
+          avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Emma%20Johnson',
+          enrollmentDate: '2024-01-17T16:45:00Z',
+          status: 'active',
+          currentGrade: 84.6,
+          assignmentsSubmitted: 4,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-20T11:30:00Z',
+          submissionsCount: 4,
+          averageGrade: 84.6
+        },
+        {
+          studentId: 'student_007',
+          name: 'Michael Brown',
+          email: 'michael.brown@university.edu',
+          avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Michael%20Brown',
+          enrollmentDate: '2024-01-18T09:15:00Z',
+          status: 'active',
+          currentGrade: 82.9,
+          assignmentsSubmitted: 4,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-19T15:45:00Z',
+          submissionsCount: 4,
+          averageGrade: 82.9
+        },
+        {
+          studentId: 'student_008',
+          name: 'Lisa Garcia',
+          email: 'lisa.garcia@university.edu',
+          avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Lisa%20Garcia',
+          enrollmentDate: '2024-01-18T11:30:00Z',
+          status: 'active',
+          currentGrade: 90.1,
+          assignmentsSubmitted: 5,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-19T13:20:00Z',
+          submissionsCount: 5,
+          averageGrade: 90.1
+        },
+        {
+          studentId: 'student_009',
+          name: 'Ryan Davis',
+          email: 'ryan.davis@university.edu',
+          avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Ryan%20Davis',
+          enrollmentDate: '2024-01-19T14:20:00Z',
+          status: 'active',
+          currentGrade: 79.8,
+          assignmentsSubmitted: 3,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-18T09:15:00Z',
+          submissionsCount: 3,
+          averageGrade: 79.8
+        },
+        {
+          studentId: 'student_010',
+          name: 'Jessica Lee',
+          email: 'jessica.lee@university.edu',
+          avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=Jessica%20Lee',
+          enrollmentDate: '2024-01-19T16:45:00Z',
+          status: 'dropped',
+          currentGrade: 75.2,
+          assignmentsSubmitted: 2,
+          assignmentsTotal: 5,
+          lastActivity: '2024-01-17T16:30:00Z',
+          submissionsCount: 2,
+          averageGrade: 75.2
+        }
+      ];
+      
+      setStudents(mockStudents);
+
+    } catch (err) {
+      console.error('Error fetching course and students:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch course and students');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredAndSortedStudents = students
+    .filter(student => {
+      const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           student.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'grade':
+          comparison = (a.currentGrade || 0) - (b.currentGrade || 0);
+          break;
+        case 'enrollment':
+          comparison = new Date(a.enrollmentDate).getTime() - new Date(b.enrollmentDate).getTime();
+          break;
+        case 'activity':
+          comparison = new Date(a.lastActivity).getTime() - new Date(b.lastActivity).getTime();
+          break;
+      }
+      
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'dropped':
+        return 'bg-red-100 text-red-800';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getGradeColor = (grade: number) => {
+    if (grade >= 90) return 'text-green-600';
+    if (grade >= 80) return 'text-yellow-600';
+    if (grade >= 70) return 'text-orange-600';
+    return 'text-red-600';
+  };
+
+  if (loading) {
+    return (
+      <InstructorRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <LoadingSpinner text="Loading students..." />
+          </div>
+        </div>
+      </InstructorRoute>
+    );
+  }
+
+  if (error || !course) {
+    return (
+      <InstructorRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="text-6xl mb-4">😞</div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">Course Not Found</h1>
+            <p className="text-gray-600 mb-6">{error || 'The course you are looking for does not exist.'}</p>
+            <button
+              onClick={() => router.push('/instructor/courses')}
+              className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Courses
+            </button>
+          </div>
+        </div>
+      </InstructorRoute>
+    );
+  }
+
+  return (
+    <InstructorRoute>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => router.push(`/instructor/courses/${courseId}`)}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <span className="text-2xl">&lt;</span>
+                </button>
+                <div className="flex items-center space-x-4">
+                  <img 
+                    src="/MyClassCast (800 x 200 px).png" 
+                    alt="ClassCast Logo" 
+                    className="h-8 w-auto"
+                  />
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                      Students - {course.courseName}
+                    </h1>
+                    <p className="text-gray-600">
+                      {course.courseCode} • {course.semester} {course.year} • {students.length} students
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <button className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors">
+                  📊 Export Grades
+                </button>
+                <button className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors">
+                  📧 Send Message
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-indigo-600 mb-2">{students.length}</div>
+                <div className="text-sm text-gray-600">Total Students</div>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-green-600 mb-2">
+                  {students.filter(s => s.status === 'active').length}
+                </div>
+                <div className="text-sm text-gray-600">Active Students</div>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-purple-600 mb-2">
+                  {students.filter(s => s.status === 'dropped').length}
+                </div>
+                <div className="text-sm text-gray-600">Dropped</div>
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-rose-500 mb-2">
+                  {students.length > 0 ? Math.round(students.reduce((sum, s) => sum + (s.currentGrade || 0), 0) / students.length) : 0}%
+                </div>
+                <div className="text-sm text-gray-600">Average Grade</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filters and Search */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search students by name or email..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="dropped">Dropped</option>
+                  <option value="completed">Completed</option>
+                </select>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                >
+                  <option value="name">Sort by Name</option>
+                  <option value="grade">Sort by Grade</option>
+                  <option value="enrollment">Sort by Enrollment</option>
+                  <option value="activity">Sort by Activity</option>
+                </select>
+                <button
+                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  {sortOrder === 'asc' ? '↑' : '↓'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Students List */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            {filteredAndSortedStudents.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Student
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Current Grade
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Submissions
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Last Activity
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredAndSortedStudents.map((student) => (
+                      <tr key={student.studentId} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0 h-10 w-10">
+                              <img
+                                className="h-10 w-10 rounded-full"
+                                src={student.avatar}
+                                alt={student.name}
+                              />
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">{student.name}</div>
+                              <div className="text-sm text-gray-500">{student.email}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(student.status)}`}>
+                            {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium">
+                            {student.currentGrade ? (
+                              <span className={getGradeColor(student.currentGrade)}>
+                                {student.currentGrade.toFixed(1)}%
+                              </span>
+                            ) : (
+                              <span className="text-gray-400">No grade yet</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student.assignmentsSubmitted}/{student.assignmentsTotal}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(student.lastActivity).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button className="text-indigo-600 hover:text-indigo-900 transition-colors">
+                              View Profile
+                            </button>
+                            <button className="text-emerald-600 hover:text-emerald-900 transition-colors">
+                              Message
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">👥</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Students Found</h3>
+                <p className="text-gray-600 mb-6">
+                  {searchTerm || statusFilter !== 'all' 
+                    ? 'No students match your current filters.' 
+                    : 'No students are enrolled in this course yet.'}
+                </p>
+                {searchTerm || statusFilter !== 'all' ? (
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setStatusFilter('all');
+                    }}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+                  >
+                    Clear Filters
+                  </button>
+                ) : null}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </InstructorRoute>
+  );
+};
+
+export default InstructorStudentsPage;
