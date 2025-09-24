@@ -159,34 +159,17 @@ const InstructorProfilePage: React.FC = () => {
     }
 
     try {
-      // Upload to S3 first
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'profile-pictures');
-      formData.append('userId', user?.id || 'anonymous');
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('Upload response:', result);
-        
-        if (result.success && result.data && result.data.fileUrl) {
-          // Update with the S3 URL immediately
-          handleInputChange('avatar', result.data.fileUrl);
-          console.log('Avatar uploaded successfully:', result.data.fileUrl);
-        } else {
-          console.error('Invalid upload response structure:', result);
-          alert('Invalid response from upload service. Please try again.');
+      // Convert file to base64 data URL for immediate display
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        if (dataUrl) {
+          // Update with the base64 data URL immediately
+          handleInputChange('avatar', dataUrl);
+          console.log('Avatar converted to base64 data URL');
         }
-      } else {
-        const error = await response.json();
-        console.error('Avatar upload failed:', error);
-        alert(`Failed to upload avatar: ${error.error || 'Unknown error'}. Please try again.`);
-      }
+      };
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Avatar upload error:', error);
       alert('Error uploading avatar. Please try again.');
