@@ -192,7 +192,7 @@ export default function LoginForm({
                 value={formData.password}
                 onChange={handleInputChange}
                 onKeyPress={handleKeyPress}
-                className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#003366] focus:border-[#003366] ${
+                className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[slate-800] focus:border-slate-800 ${
                   errors.password 
                     ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
                     : 'border-gray-300 dark:border-gray-600'
@@ -232,7 +232,7 @@ export default function LoginForm({
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 text-[#003366] focus:ring-[#003366] border-gray-300 rounded"
+                className="h-4 w-4 text-slate-800 focus:ring-[slate-800] border-gray-300 rounded"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                 Remember me
@@ -242,7 +242,7 @@ export default function LoginForm({
               <button
                 type="button"
                 onClick={onSwitchToForgotPassword}
-                className="text-sm text-[#003366] hover:text-[#002244] dark:text-[#003366] dark:hover:text-[#002244]"
+                className="text-sm text-slate-800 hover:text-[#002244] dark:text-slate-800 dark:hover:text-[#002244]"
                 disabled={isLoading}
               >
                 Forgot password?
@@ -254,7 +254,7 @@ export default function LoginForm({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#003366] hover:bg-[#002244] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#003366] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-slate-800 hover:bg-[#002244] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[slate-800] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             {isLoading ? (
               <div className="flex items-center">
@@ -278,7 +278,7 @@ export default function LoginForm({
               <button
                 type="button"
                 onClick={onSwitchToSignup}
-                className="font-medium text-[#003366] hover:text-[#002244] dark:text-[#003366] dark:hover:text-[#002244]"
+                className="font-medium text-slate-800 hover:text-[#002244] dark:text-slate-800 dark:hover:text-[#002244]"
                 disabled={isLoading}
               >
                 Sign up

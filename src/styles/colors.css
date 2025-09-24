@@ -1,0 +1,96 @@
+/* Premium Color Palette for ClassCast */
+
+:root {
+  /* Primary Colors - Sophisticated Navy and Charcoal */
+  --primary-900: #1a1d29;  /* Deep charcoal navy */
+  --primary-800: #2d3142;  /* Rich navy */
+  --primary-700: #4a5568;  /* Muted navy */
+  --primary-600: #718096;  /* Soft navy gray */
+  --primary-500: #a0aec0;  /* Light navy gray */
+  --primary-400: #cbd5e0;  /* Very light navy gray */
+  --primary-300: #e2e8f0;  /* Pale navy gray */
+  --primary-200: #edf2f7;  /* Almost white with navy tint */
+  --primary-100: #f7fafc;  /* Off white with subtle navy tint */
+
+  /* Accent Colors - Refined and Muted */
+  --accent-600: #4c51bf;   /* Sophisticated indigo */
+  --accent-500: #667eea;   /* Soft indigo */
+  --accent-400: #9f7aea;   /* Muted purple */
+  --accent-300: #b794f6;   /* Light purple */
+  --accent-200: #d6bcfa;   /* Very light purple */
+  --accent-100: #e9d8fd;   /* Pale purple */
+
+  /* Success Colors - Professional Green */
+  --success-600: #38a169;  /* Professional green */
+  --success-500: #48bb78;  /* Soft green */
+  --success-400: #68d391;  /* Light green */
+  --success-300: #9ae6b4;  /* Very light green */
+  --success-200: #c6f6d5;  /* Pale green */
+  --success-100: #f0fff4;  /* Off white with green tint */
+
+  /* Warning Colors - Refined Orange */
+  --warning-600: #dd6b20;  /* Professional orange */
+  --warning-500: #ed8936;  /* Soft orange */
+  --warning-400: #f6ad55;  /* Light orange */
+  --warning-300: #fbd38d;  /* Very light orange */
+  --warning-200: #feebc8;  /* Pale orange */
+  --warning-100: #fffaf0;  /* Off white with orange tint */
+
+  /* Error Colors - Sophisticated Red */
+  --error-600: #e53e3e;    /* Professional red */
+  --error-500: #f56565;    /* Soft red */
+  --error-400: #fc8181;    /* Light red */
+  --error-300: #feb2b2;    /* Very light red */
+  --error-200: #fed7d7;    /* Pale red */
+  --error-100: #fff5f5;    /* Off white with red tint */
+
+  /* Neutral Colors - Sophisticated Grays */
+  --neutral-900: #1a202c;  /* Deep charcoal */
+  --neutral-800: #2d3748;  /* Rich charcoal */
+  --neutral-700: #4a5568;  /* Muted charcoal */
+  --neutral-600: #718096;  /* Soft charcoal */
+  --neutral-500: #a0aec0;  /* Light charcoal */
+  --neutral-400: #cbd5e0;  /* Very light charcoal */
+  --neutral-300: #e2e8f0;  /* Pale charcoal */
+  --neutral-200: #edf2f7;  /* Almost white */
+  --neutral-100: #f7fafc;  /* Off white */
+  --neutral-50: #ffffff;   /* Pure white */
+
+  /* Typography Colors */
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-700);
+  --text-tertiary: var(--neutral-600);
+  --text-muted: var(--neutral-500);
+  --text-inverse: var(--neutral-50);
+
+  /* Background Colors */
+  --bg-primary: var(--neutral-50);
+  --bg-secondary: var(--neutral-100);
+  --bg-tertiary: var(--neutral-200);
+  --bg-inverse: var(--neutral-900);
+
+  /* Border Colors */
+  --border-primary: var(--neutral-300);
+  --border-secondary: var(--neutral-200);
+  --border-accent: var(--accent-300);
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: var(--neutral-100);
+    --text-secondary: var(--neutral-300);
+    --text-tertiary: var(--neutral-400);
+    --text-muted: var(--neutral-500);
+    --text-inverse: var(--neutral-900);
+
+    --bg-primary: var(--neutral-900);
+    --bg-secondary: var(--neutral-800);
+    --bg-tertiary: var(--neutral-700);
+    --bg-inverse: var(--neutral-50);
+
+    --border-primary: var(--neutral-600);
+    --border-secondary: var(--neutral-700);
+    --border-accent: var(--accent-500);
+  }
+}
