@@ -166,8 +166,7 @@ const StudentCoursesPage: React.FC = () => {
     const searchMatch = searchQuery === '' || 
       course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.instructor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      course.description.toLowerCase().includes(searchQuery.toLowerCase());
+      course.instructor.name.toLowerCase().includes(searchQuery.toLowerCase());
     
     return statusMatch && searchMatch;
   });
@@ -266,7 +265,7 @@ const StudentCoursesPage: React.FC = () => {
             </div>
             <input
               type="text"
-              placeholder="Search courses by name, code, instructor, or description..."
+              placeholder="Search courses by name, code, or instructor..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
@@ -348,9 +347,6 @@ const StudentCoursesPage: React.FC = () => {
                       </span>
                     </div>
                   </div>
-
-                  {/* Course Description */}
-                  <p className="text-sm text-gray-700 mb-4 line-clamp-2">{course.description}</p>
 
                   {/* Course Details */}
                   <div className="space-y-2 text-xs text-gray-600">
