@@ -78,7 +78,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Use Lambda function in production, Amplify serverless function in development
       const loginUrl = window.location.hostname.includes('amplifyapp.com') 
-        ? 'https://belixlmhba.execute-api.us-east-1.amazonaws.com/prod/auth/login'
+        ? 'https://3y0dfqdjld.execute-api.us-east-1.amazonaws.com/prod/auth/login'
         : '/api/auth/login';
       
       const response = await fetch(loginUrl, {
@@ -152,7 +152,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Use Lambda function in production, Amplify serverless function in development
       const signupUrl = window.location.hostname.includes('amplifyapp.com') 
-        ? 'https://belixlmhba.execute-api.us-east-1.amazonaws.com/prod/auth/signup'
+        ? 'https://3y0dfqdjld.execute-api.us-east-1.amazonaws.com/prod/auth/signup'
         : '/api/auth/signup';
       
       const response = await fetch(signupUrl, {
