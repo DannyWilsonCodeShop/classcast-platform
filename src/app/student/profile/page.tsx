@@ -8,6 +8,9 @@ import Link from 'next/link';
 import { PeerInteractionStats } from '@/components/student/PeerInteractionStats';
 
 const StudentProfilePage: React.FC = () => {
+  alert('StudentProfilePage component loaded!');
+  console.log('StudentProfilePage component starting');
+  
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
