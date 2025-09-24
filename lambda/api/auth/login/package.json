@@ -1,0 +1,9 @@
+{
+  "name": "classcast-auth-login",
+  "version": "1.0.0",
+  "description": "ClassCast user login Lambda function",
+  "main": "login.js",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.0.0"
+  }
+}
