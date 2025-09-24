@@ -67,96 +67,15 @@ const wsManager = WebSocketManager.getInstance();
 
 // WebSocket upgrade handler
 export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    const token = searchParams.get('token');
-
-    if (!userId || !token) {
-      return NextResponse.json(
-        { error: 'Missing userId or token' },
-        { status: 400 }
-      );
-    }
-
-    // In a real implementation, you'd validate the token here
-    // For now, we'll accept any token
-
-    // Create WebSocket server
-    const wss = new WebSocketServer({ noServer: true });
-
-    wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
-      console.log(`WebSocket connection established for user: ${userId}`);
-      
-      // Add connection to manager
-      wsManager.addConnection(userId, ws);
-
-      // Handle incoming messages
-      ws.on('message', (data: string) => {
-        try {
-          const message = JSON.parse(data);
-          console.log(`Received message from ${userId}:`, message);
-
-          // Handle different message types
-          switch (message.type) {
-            case 'ping':
-              ws.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }));
-              break;
-            
-            case 'join_course':
-              // Handle course joining
-              console.log(`User ${userId} joined course: ${message.courseId}`);
-              break;
-            
-            case 'leave_course':
-              // Handle course leaving
-              console.log(`User ${userId} left course: ${message.courseId}`);
-              break;
-            
-            default:
-              console.log(`Unknown message type: ${message.type}`);
-          }
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error);
-        }
-      });
-
-      // Handle connection close
-      ws.on('close', () => {
-        console.log(`WebSocket connection closed for user: ${userId}`);
-        wsManager.removeConnection(userId);
-      });
-
-      // Handle errors
-      ws.on('error', (error) => {
-        console.error(`WebSocket error for user ${userId}:`, error);
-        wsManager.removeConnection(userId);
-      });
-
-      // Send welcome message
-      ws.send(JSON.stringify({
-        type: 'connected',
-        message: 'Connected to ClassCast real-time updates',
-        userId,
-        timestamp: Date.now(),
-      }));
-    });
-
-    return new NextResponse(null, {
-      status: 101,
-      headers: {
-        'Upgrade': 'websocket',
-        'Connection': 'Upgrade',
-        'Sec-WebSocket-Accept': 'websocket',
-      },
-    });
-  } catch (error) {
-    console.error('WebSocket error:', error);
-    return NextResponse.json(
-      { error: 'WebSocket connection failed' },
-      { status: 500 }
-    );
-  }
+  // Disable WebSocket connections for now to prevent errors
+  // In production, WebSocket connections should be handled by a proper WebSocket server
+  return NextResponse.json(
+    { 
+      error: 'WebSocket connections are temporarily disabled',
+      message: 'Real-time features are not available at this time'
+    },
+    { status: 503 }
+  );
 }
 
 // Helper functions for sending real-time updates
