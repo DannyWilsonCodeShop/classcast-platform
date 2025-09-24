@@ -87,8 +87,10 @@ const StudentProfilePage: React.FC = () => {
                 schoolName: user.schoolName || '',
               }}
               onSave={async (updatedProfile) => {
+                console.log('ProfileEditor onSave called with:', updatedProfile);
                 try {
                   // Save profile to backend
+                  console.log('Making API call to /api/profile/save');
                   const response = await fetch('/api/profile/save', {
                     method: 'POST',
                     headers: {
