@@ -9,6 +9,7 @@ import {
   ResendConfirmationCodeCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
 import { createCognitoClient, getEnvironmentInfo } from './aws-client-factory';
+import { buildApiUrl, isLambdaEndpoint } from './api-config';
 
 // Cognito client configuration
 const cognitoClient = createCognitoClient();
@@ -109,7 +110,51 @@ class SimpleCognitoAuthService {
 
   async createUser(request: CreateUserRequest): Promise<CognitoUser> {
     try {
-      // Prepare user attributes
+      // Use Lambda function for user creation in production
+      if (process.env.NODE_ENV === 'production') {
+        const response = await fetch(buildApiUrl('/auth/signup'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: request.email,
+            firstName: request.firstName,
+            lastName: request.lastName,
+            password: request.password,
+            role: request.role,
+            studentId: request.instructorId, // Map instructorId to studentId for students
+            department: request.department,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error?.message || 'Failed to create user');
+        }
+
+        const data = await response.json();
+        
+        // Return user object in expected format
+        return {
+          username: data.user.id,
+          email: data.user.email,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          role: data.user.role as UserRole,
+          instructorId: data.user.instructorId,
+          department: data.user.department,
+          bio: request.bio,
+          avatar: request.avatar,
+          phoneNumber: request.phoneNumber,
+          status: UserStatus.CONFIRMED, // Lambda function auto-confirms users
+          enabled: true,
+          createdAt: new Date().toISOString(),
+          lastModifiedAt: new Date().toISOString(),
+        };
+      }
+
+      // Fallback to direct Cognito for development
       const userAttributes = [
         { Name: 'email', Value: request.email },
         { Name: 'given_name', Value: request.firstName },
@@ -148,8 +193,8 @@ class SimpleCognitoAuthService {
       }
 
       // Check if user needs email verification
-      const needsConfirmation = createResponse.CodeDeliveryDetails && 
-        createResponse.CodeDeliveryDetails.Destination && 
+      const needsConfirmation = createResponse.CodeDeliveryDetails &&
+        createResponse.CodeDeliveryDetails.Destination &&
         createResponse.CodeDeliveryDetails.DeliveryMedium === 'EMAIL';
 
       if (needsConfirmation) {
@@ -287,6 +332,53 @@ class SimpleCognitoAuthService {
 
   async login(username: string, password: string): Promise<{ accessToken: string; refreshToken: string; user: CognitoUser }> {
     try {
+      // Use Lambda function for login in production
+      if (process.env.NODE_ENV === 'production') {
+        const response = await fetch(buildApiUrl('/auth/login'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: username,
+            password: password,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error?.message || 'Login failed');
+        }
+
+        const data = await response.json();
+        
+        // Map the response to expected format
+        const user: CognitoUser = {
+          username: data.user.id,
+          email: data.user.email,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          role: data.user.role as UserRole,
+          instructorId: data.user.instructorId,
+          department: data.user.department,
+          bio: undefined,
+          avatar: undefined,
+          phoneNumber: undefined,
+          status: UserStatus.CONFIRMED,
+          enabled: true,
+          createdAt: new Date().toISOString(),
+          lastModifiedAt: new Date().toISOString(),
+          lastLoginAt: new Date().toISOString(),
+        };
+
+        return {
+          accessToken: data.tokens.accessToken,
+          refreshToken: data.tokens.refreshToken,
+          user,
+        };
+      }
+
+      // Fallback to direct Cognito for development
       const authCommand = new InitiateAuthCommand({
         ClientId: this.userPoolClientId,
         AuthFlow: 'USER_PASSWORD_AUTH',
