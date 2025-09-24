@@ -169,6 +169,18 @@ async function main() {
       'ClassCast user login Lambda function'
     );
     
+    await deployLambdaFunction(
+      'verify-email',
+      'verify-email.handler',
+      'ClassCast email verification Lambda function'
+    );
+    
+    await deployLambdaFunction(
+      'resend-verification',
+      'resend-verification.handler',
+      'ClassCast resend verification code Lambda function'
+    );
+    
     console.log('\n🎉 All Lambda functions deployed successfully!');
     console.log('\nNext steps:');
     console.log('1. Create API Gateway endpoints for these Lambda functions');
