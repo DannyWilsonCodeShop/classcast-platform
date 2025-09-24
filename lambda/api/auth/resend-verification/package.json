@@ -1,0 +1,9 @@
+{
+  "name": "resend-verification",
+  "version": "1.0.0",
+  "description": "Resend verification code Lambda function",
+  "main": "resend-verification.js",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.0.0"
+  }
+}
