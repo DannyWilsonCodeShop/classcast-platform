@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import EmailVerificationModal from './EmailVerificationModal';
 
 interface SignupFormData {
   email: string;
@@ -53,6 +54,8 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [roleSwitchNotification, setRoleSwitchNotification] = useState<string>('');
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [pendingUser, setPendingUser] = useState<any>(null);
 
   const validateForm = (): boolean => {
     const newErrors: SignupFormErrors = {};
@@ -175,39 +178,42 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
         role: formData.role,
         ...(formData.role === 'student' && { studentId: formData.studentId }),
         ...(formData.role === 'instructor' && { 
-          department: formData.department 
+          department: formData.department,
+          instructorCode: formData.instructorCode
         }),
       };
 
       console.log('SignupForm: Attempting signup with data:', signupData);
 
       // Use AuthContext signup method
-      await signup(signupData);
+      const result = await signup(signupData);
       
-      console.log('SignupForm: Signup successful, preparing redirect...');
+      console.log('SignupForm: Signup result:', result);
 
       // Clear any previous errors
       setErrors({});
       
-      // Longer delay to ensure AuthContext state is fully updated
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Always redirect to dashboard after successful signup
-      console.log('SignupForm: About to redirect, role:', formData.role);
-      
-      if (formData.role === 'instructor') {
+      // Handle different verification flows
+      if (result.requiresEmailConfirmation && formData.role === 'student') {
+        // Show verification modal for students
+        setPendingUser({
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          role: formData.role
+        });
+        setShowVerificationModal(true);
+      } else if (formData.role === 'instructor') {
+        // Instructors are auto-confirmed, redirect immediately
         console.log('SignupForm: Redirecting to instructor dashboard');
         router.push('/instructor/dashboard');
-      } else if (formData.role === 'student') {
+      } else {
+        // Fallback for other cases
         console.log('SignupForm: Redirecting to student dashboard');
         router.push('/student/dashboard');
-      } else {
-        console.log('SignupForm: Redirecting to verification page');
-        // Default redirect to verification page for other roles
-        router.push('/auth/verify');
       }
 
-      // Call success callback if provided (after redirect)
+      // Call success callback if provided
       if (onSuccess) {
         onSuccess();
       }
@@ -219,6 +225,20 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleVerificationSuccess = () => {
+    setShowVerificationModal(false);
+    setPendingUser(null);
+    // Redirect to appropriate dashboard
+    if (pendingUser?.role === 'student') {
+      router.push('/student/dashboard');
+    }
+  };
+
+  const handleVerificationClose = () => {
+    setShowVerificationModal(false);
+    setPendingUser(null);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -609,6 +629,16 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
           </div>
         )}
       </div>
+
+      {/* Email Verification Modal */}
+      {showVerificationModal && pendingUser && (
+        <EmailVerificationModal
+          isOpen={showVerificationModal}
+          onClose={handleVerificationClose}
+          onVerified={handleVerificationSuccess}
+          email={pendingUser.email}
+        />
+      )}
     </div>
   );
 }

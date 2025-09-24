@@ -33,7 +33,7 @@ exports.handler = async (event) => {
   try {
     // Parse the request body
     const body = JSON.parse(event.body);
-    const { email, firstName, lastName, password, role, studentId, department } = body;
+    const { email, firstName, lastName, password, role, studentId, department, instructorCode } = body;
 
     console.log('Signup request body:', { email, firstName, lastName, role, studentId, department });
 
@@ -68,19 +68,35 @@ exports.handler = async (event) => {
       };
     }
 
-    if (role === 'instructor' && !department) {
-      return {
-        statusCode: 400,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
-        },
-        body: JSON.stringify({
-          error: { message: 'Department is required for instructor role' }
-        })
-      };
+    if (role === 'instructor') {
+      if (!department) {
+        return {
+          statusCode: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS'
+          },
+          body: JSON.stringify({
+            error: { message: 'Department is required for instructor role' }
+          })
+        };
+      }
+      if (!instructorCode || instructorCode !== '5555') {
+        return {
+          statusCode: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS'
+          },
+          body: JSON.stringify({
+            error: { message: 'Invalid instructor code' }
+          })
+        };
+      }
     }
 
     if (password.length < 8) {
@@ -99,7 +115,7 @@ exports.handler = async (event) => {
     }
 
     try {
-      console.log('Creating user with AWS Cognito (auto-confirmed):', { email, firstName, lastName, role, studentId, department });
+      console.log('Creating user with AWS Cognito:', { email, firstName, lastName, role, studentId, department });
 
       // Prepare user attributes
       const userAttributes = [
@@ -107,21 +123,25 @@ exports.handler = async (event) => {
         { Name: 'given_name', Value: firstName },
         { Name: 'family_name', Value: lastName },
         { Name: 'custom:role', Value: role },
-        { Name: 'email_verified', Value: 'true' }, // Auto-verify email
       ];
 
       if (role === 'instructor') {
         userAttributes.push({ Name: 'custom:instructorId', Value: `INS-${Date.now()}` });
         userAttributes.push({ Name: 'custom:department', Value: department });
+        // Auto-verify instructors
+        userAttributes.push({ Name: 'email_verified', Value: 'true' });
+      } else {
+        // Students need email verification
+        userAttributes.push({ Name: 'email_verified', Value: 'false' });
       }
 
-      // Create user with admin command (auto-confirmed)
+      // Create user with admin command
       const createCommand = new AdminCreateUserCommand({
         UserPoolId: USER_POOL_ID,
         Username: email,
         UserAttributes: userAttributes,
         TemporaryPassword: password,
-        MessageAction: 'SUPPRESS', // Don't send welcome email
+        MessageAction: role === 'instructor' ? 'SUPPRESS' : 'SEND', // Send verification email for students
       });
 
       const createResponse = await cognitoClient.send(createCommand);
@@ -174,32 +194,58 @@ exports.handler = async (event) => {
         // Continue execution even if profile creation fails
       }
 
-      // Return success response
-      return {
-        statusCode: 201,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS'
-        },
-        body: JSON.stringify({
-          message: 'Account created successfully! You can now log in immediately.',
-          user: {
-            id: email,
-            email: email,
-            firstName: firstName,
-            lastName: lastName,
-            role: role,
-            instructorId: role === 'instructor' ? `INS-${Date.now()}` : undefined,
-            department: role === 'instructor' ? department : undefined,
-            emailVerified: true, // Always true since we auto-confirm
+      // Return success response based on role
+      if (role === 'instructor') {
+        return {
+          statusCode: 201,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS'
           },
-          nextStep: 'login',
-          needsVerification: false,
-          requiresEmailConfirmation: false,
-        })
-      };
+          body: JSON.stringify({
+            message: 'Instructor account created successfully! You can now log in immediately.',
+            user: {
+              id: email,
+              email: email,
+              firstName: firstName,
+              lastName: lastName,
+              role: role,
+              instructorId: `INS-${Date.now()}`,
+              department: department,
+              emailVerified: true,
+            },
+            nextStep: 'login',
+            needsVerification: false,
+            requiresEmailConfirmation: false,
+          })
+        };
+      } else {
+        return {
+          statusCode: 201,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS'
+          },
+          body: JSON.stringify({
+            message: 'Student account created! Please check your email for a verification code.',
+            user: {
+              id: email,
+              email: email,
+              firstName: firstName,
+              lastName: lastName,
+              role: role,
+              emailVerified: false,
+            },
+            nextStep: 'verify-email',
+            needsVerification: true,
+            requiresEmailConfirmation: true,
+          })
+        };
+      }
     } catch (authError) {
       console.error('Cognito signup error:', authError);
       

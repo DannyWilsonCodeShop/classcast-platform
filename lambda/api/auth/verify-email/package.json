@@ -1,0 +1,9 @@
+{
+  "name": "verify-email",
+  "version": "1.0.0",
+  "description": "Email verification Lambda function",
+  "main": "verify-email.js",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.0.0"
+  }
+}
