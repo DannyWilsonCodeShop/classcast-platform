@@ -137,7 +137,6 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
       newErrors.email = 'Please enter a valid email address';
     }
 
-
     if (!editedProfile.careerGoals.trim()) {
       newErrors.careerGoals = 'Career goals are required';
     }
@@ -146,6 +145,8 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
       newErrors.classOf = 'Class of is required';
     }
 
+    console.log('Validation errors:', newErrors);
+    console.log('Current profile data:', editedProfile);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
