@@ -6,7 +6,7 @@
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { S3Client } from '@aws-sdk/client-s3';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { fromNodeProviderChain, fromEnv, fromInstanceMetadata } from '@aws-sdk/credential-providers';
 
 // Check if we're in production (Amplify) environment
 const isProduction = process.env.NODE_ENV === 'production';
@@ -20,17 +20,14 @@ export function createCognitoClient(): CognitoIdentityProviderClient {
     region: process.env.AWS_REGION || 'us-east-1',
   };
 
-  if (isProduction || isAmplify) {
-    // In production/Amplify, use IAM role credentials
-    config.credentials = fromNodeProviderChain();
-  } else if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-    // In development, use explicit credentials if available
+  // Only set explicit credentials in development if they exist
+  if (!isProduction && !isAmplify && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
     config.credentials = {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
   }
-  // Otherwise, use default credential provider chain
+  // In production/Amplify, let AWS SDK use default credential provider chain
 
   return new CognitoIdentityProviderClient(config);
 }
@@ -43,17 +40,14 @@ export function createDynamoDBClient(): DynamoDBClient {
     region: process.env.AWS_REGION || 'us-east-1',
   };
 
-  if (isProduction || isAmplify) {
-    // In production/Amplify, use IAM role credentials
-    config.credentials = fromNodeProviderChain();
-  } else if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-    // In development, use explicit credentials if available
+  // Only set explicit credentials in development if they exist
+  if (!isProduction && !isAmplify && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
     config.credentials = {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
   }
-  // Otherwise, use default credential provider chain
+  // In production/Amplify, let AWS SDK use default credential provider chain
 
   return new DynamoDBClient(config);
 }
@@ -66,17 +60,14 @@ export function createS3Client(): S3Client {
     region: process.env.AWS_REGION || 'us-east-1',
   };
 
-  if (isProduction || isAmplify) {
-    // In production/Amplify, use IAM role credentials
-    config.credentials = fromNodeProviderChain();
-  } else if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-    // In development, use explicit credentials if available
+  // Only set explicit credentials in development if they exist
+  if (!isProduction && !isAmplify && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
     config.credentials = {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
   }
-  // Otherwise, use default credential provider chain
+  // In production/Amplify, let AWS SDK use default credential provider chain
 
   return new S3Client(config);
 }
