@@ -70,6 +70,7 @@ const StudentProfilePage: React.FC = () => {
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto p-6">
+          {console.log('Profile page rendering, isEditing:', isEditing)}
           {isEditing ? (
             <ProfileEditor
               profile={{
@@ -158,7 +159,10 @@ const StudentProfilePage: React.FC = () => {
                     </div>
                   </div>
                   <button
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => {
+                      console.log('Edit Profile button clicked');
+                      setIsEditing(true);
+                    }}
                     className="px-4 py-2 bg-white text-[#4A90E2] rounded-lg hover:bg-gray-50 transition-colors font-medium"
                   >
                     Edit Profile
