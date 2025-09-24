@@ -92,26 +92,32 @@ const StudentProfilePage: React.FC = () => {
                 try {
                   // Save profile to backend
                   console.log('Making API call to /api/profile/save');
+                  const requestData = {
+                    userId: user?.id || user?.userId || 'test-user-123',
+                    firstName: updatedProfile.firstName,
+                    lastName: updatedProfile.lastName,
+                    email: updatedProfile.email,
+                    avatar: updatedProfile.avatar,
+                    bio: updatedProfile.bio,
+                    careerGoals: updatedProfile.careerGoals,
+                    classOf: updatedProfile.classOf,
+                    funFact: updatedProfile.funFact,
+                    favoriteSubject: updatedProfile.favoriteSubject,
+                    hobbies: updatedProfile.hobbies,
+                    schoolName: updatedProfile.schoolName,
+                  };
+                  console.log('Request data:', requestData);
+                  
                   const response = await fetch('/api/profile/save', {
                     method: 'POST',
                     headers: {
                       'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                      userId: user?.id || user?.userId || 'test-user-123',
-                      firstName: updatedProfile.firstName,
-                      lastName: updatedProfile.lastName,
-                      email: updatedProfile.email,
-                      avatar: updatedProfile.avatar,
-                      bio: updatedProfile.bio,
-                      careerGoals: updatedProfile.careerGoals,
-                      classOf: updatedProfile.classOf,
-                      funFact: updatedProfile.funFact,
-                      favoriteSubject: updatedProfile.favoriteSubject,
-                      hobbies: updatedProfile.hobbies,
-                      schoolName: updatedProfile.schoolName,
-                    }),
+                    body: JSON.stringify(requestData),
                   });
+                  
+                  console.log('Response status:', response.status);
+                  console.log('Response headers:', response.headers);
 
                   if (response.ok) {
                     const result = await response.json();
@@ -135,7 +141,12 @@ const StudentProfilePage: React.FC = () => {
                   }
                 } catch (error) {
                   console.error('Error saving profile:', error);
-                  alert('Error saving profile. Please try again.');
+                  console.error('Error details:', {
+                    message: error instanceof Error ? error.message : 'Unknown error',
+                    stack: error instanceof Error ? error.stack : undefined,
+                    error: error
+                  });
+                  alert(`Error saving profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
                 }
               }}
               onCancel={() => setIsEditing(false)}
