@@ -167,7 +167,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const responseData = await response.json();
         
         // Check if user needs email verification
-        if (responseData.needsVerification) {
+        if (responseData.requiresEmailConfirmation || responseData.needsVerification) {
           setAuthState(prev => ({
             ...prev,
             isLoading: false,
@@ -178,7 +178,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // Store email for verification page
           localStorage.setItem('pendingVerificationEmail', userData.email);
           router.push(`/verify-email?email=${encodeURIComponent(userData.email)}`);
-          return;
+          return responseData;
         }
         
         // If no verification needed, proceed directly to login
@@ -192,6 +192,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         };
         setAuthState(newState);
         localStorage.setItem('authState', JSON.stringify(newState));
+        
+        // Return response data for SignupForm to handle
+        return responseData;
         
         // Redirect based on user role
         if (responseData.user.role === 'student') {
