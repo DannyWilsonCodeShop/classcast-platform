@@ -76,7 +76,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const response = await fetch('/api/auth/login', {
+      // Use Lambda function in production, Amplify serverless function in development
+      const loginUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://belixlmhba.execute-api.us-east-1.amazonaws.com/prod/auth/login'
+        : '/api/auth/login';
+      
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,7 +150,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const response = await fetch('/api/auth/signup', {
+      // Use Lambda function in production, Amplify serverless function in development
+      const signupUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://belixlmhba.execute-api.us-east-1.amazonaws.com/prod/auth/signup'
+        : '/api/auth/signup';
+      
+      const response = await fetch(signupUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
