@@ -109,7 +109,7 @@ export default function EmailVerificationModal({
             </div>
             <div>
               <h2 className="text-xl font-bold text-gray-900">Verify Your Email</h2>
-              <p className="text-sm text-gray-600">Check your inbox for the code</p>
+              <p className="text-sm text-gray-600">Enter the 6-digit code sent to your email</p>
             </div>
           </div>
           <button
@@ -134,11 +134,11 @@ export default function EmailVerificationModal({
             <>
               <div className="text-center mb-6">
                 <p className="text-gray-700 mb-2">
-                  We've sent a verification code to:
+                  We've sent a 6-digit verification code to:
                 </p>
                 <p className="font-semibold text-blue-600">{email}</p>
                 <p className="text-sm text-gray-500 mt-2">
-                  Enter the 6-digit code below to verify your account.
+                  Check your email and enter the code below to verify your account.
                 </p>
               </div>
 
@@ -181,7 +181,7 @@ export default function EmailVerificationModal({
                     disabled={isLoading}
                     className="w-full text-blue-600 py-2 px-4 rounded-lg font-medium hover:bg-blue-50 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
                   >
-                    {isLoading ? 'Sending...' : "Didn't receive code? Resend"}
+                    {isLoading ? 'Sending...' : "Didn't receive the code? Resend"}
                   </button>
                 </div>
               </form>
