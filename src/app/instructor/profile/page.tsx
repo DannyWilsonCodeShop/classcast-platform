@@ -68,7 +68,6 @@ const InstructorProfilePage: React.FC = () => {
     const email = formData.get('email') as string;
     const favoriteSubject = formData.get('favoriteSubject') as string;
     const hobbies = formData.get('hobbies') as string;
-    const classOf = formData.get('classOf') as string;
 
     if (!firstName?.trim()) errors.push('First name is required');
     if (!lastName?.trim()) errors.push('Last name is required');
@@ -79,7 +78,6 @@ const InstructorProfilePage: React.FC = () => {
     }
     if (!favoriteSubject?.trim()) errors.push('Favorite subject is required');
     if (!hobbies?.trim()) errors.push('Hobbies and interests are required');
-    if (!classOf?.trim()) errors.push('Class of is required');
 
     return { isValid: errors.length === 0, errors };
   };
@@ -167,7 +165,6 @@ const InstructorProfilePage: React.FC = () => {
                       bio: formData.get('bio') as string || '',
                       favoriteSubject: formData.get('favoriteSubject') as string || '',
                       hobbies: formData.get('hobbies') as string || '',
-                      classOf: formData.get('classOf') as string || '',
                       funFact: formData.get('funFact') as string || '',
                       schoolName: formData.get('schoolName') as string || '',
                       avatar: avatar, // Include the avatar
@@ -197,7 +194,6 @@ const InstructorProfilePage: React.FC = () => {
                         bio: profileData.bio,
                         favoriteSubject: profileData.favoriteSubject,
                         hobbies: profileData.hobbies,
-                        classOf: profileData.classOf,
                         funFact: profileData.funFact,
                         schoolName: profileData.schoolName,
                         avatar: result.data.avatar || profileData.avatar,
@@ -211,7 +207,6 @@ const InstructorProfilePage: React.FC = () => {
                           bio: profileData.bio,
                           favoriteSubject: profileData.favoriteSubject,
                           hobbies: profileData.hobbies,
-                          classOf: profileData.classOf,
                           funFact: profileData.funFact,
                           schoolName: profileData.schoolName,
                           avatar: result.data.avatar || profileData.avatar,
@@ -362,29 +357,14 @@ const InstructorProfilePage: React.FC = () => {
                     </div>
                     
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Class Of <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="classOf"
-                          defaultValue={user.classOf || ''}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Fun Fact</label>
-                        <input
-                          type="text"
-                          name="funFact"
-                          defaultValue={user.funFact || ''}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Fun Fact</label>
+                      <input
+                        type="text"
+                        name="funFact"
+                        defaultValue={user.funFact || ''}
+                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
                     </div>
                   </div>
                   
@@ -461,18 +441,6 @@ const InstructorProfilePage: React.FC = () => {
                     <div>
                       <p className="text-sm font-medium text-gray-500">Hobbies & Interests</p>
                       <p className="text-lg text-gray-900">{user.hobbies}</p>
-                    </div>
-                  )}
-                  {user.careerGoals && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Career Goals</p>
-                      <p className="text-lg text-gray-900">{user.careerGoals}</p>
-                    </div>
-                  )}
-                  {user.classOf && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Class Of</p>
-                      <p className="text-lg text-gray-900">{user.classOf}</p>
                     </div>
                   )}
                   {user.funFact && (
