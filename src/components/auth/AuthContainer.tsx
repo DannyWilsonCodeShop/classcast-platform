@@ -36,21 +36,9 @@ export default function AuthContainer({
       console.log('Calling onSuccess callback');
       onSuccess();
     } else {
-      // Default redirect based on user role
-      console.log('No onSuccess callback, using default redirect logic');
-      if (user?.role === 'instructor') {
-        console.log('AuthContainer redirecting to instructor dashboard');
-        router.push('/instructor/dashboard');
-      } else if (user?.role === 'student') {
-        console.log('AuthContainer redirecting to student dashboard');
-        router.push('/student/dashboard');
-      } else if (user?.role === 'admin') {
-        console.log('AuthContainer redirecting to admin dashboard');
-        router.push('/admin/dashboard');
-      } else {
-        console.log('AuthContainer redirecting to dashboard');
-        router.push('/dashboard');
-      }
+      // Don't redirect here - let AuthContext handle the redirect
+      // The AuthContext already handles role-based redirects after login
+      console.log('No onSuccess callback, letting AuthContext handle redirect');
     }
   };
 
