@@ -196,7 +196,7 @@ export class S3Service {
     if (CLOUDFRONT_DOMAIN) {
       return `https://${CLOUDFRONT_DOMAIN}/${key}`;
     }
-    return `https://${this.bucketName}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`;
+    return `https://${this.bucketName}.s3.${process.env.REGION || 'us-east-1'}.amazonaws.com/${key}`;
   }
 
   // Get cache control based on content type

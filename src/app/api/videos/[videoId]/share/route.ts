@@ -4,12 +4,12 @@ import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { SNSClient, PublishCommand } from '@aws-sdk/client-sns';
 
 const dynamoClient = new DynamoDBClient({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: process.env.REGION || 'us-east-1',
 });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 const snsClient = new SNSClient({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: process.env.REGION || 'us-east-1',
 });
 
 export async function POST(

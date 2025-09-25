@@ -43,7 +43,7 @@ const getAWSConfig = (): AWSConfig => {
   const isProduction = process.env.NODE_ENV === 'production';
   
   return {
-    region: process.env.AWS_REGION || 'us-east-1',
+    region: process.env.REGION || 'us-east-1',
     cognito: {
       userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'us-east-1_uK50qBrap',
       clientId: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh',
@@ -54,7 +54,7 @@ const getAWSConfig = (): AWSConfig => {
       stage: 'prod',
     },
     dynamodb: {
-      region: process.env.AWS_REGION || 'us-east-1',
+      region: process.env.REGION || 'us-east-1',
       tables: {
         users: process.env.USERS_TABLE_NAME || 'classcast-users',
         assignments: process.env.ASSIGNMENTS_TABLE_NAME || 'classcast-assignments',
@@ -64,14 +64,14 @@ const getAWSConfig = (): AWSConfig => {
       },
     },
     s3: {
-      region: process.env.AWS_REGION || 'us-east-1',
+      region: process.env.REGION || 'us-east-1',
       buckets: {
         videos: process.env.S3_VIDEOS_BUCKET || 'classcast-videos-463470937777-us-east-1',
         assets: process.env.S3_ASSETS_BUCKET || 'cdk-hnb659fds-assets-463470937777-us-east-1',
       },
     },
     ses: {
-      region: process.env.AWS_REGION || 'us-east-1',
+      region: process.env.REGION || 'us-east-1',
       fromEmail: process.env.FROM_EMAIL || 'noreply@myclasscast.com',
       replyToEmail: process.env.REPLY_TO_EMAIL || 'support@myclasscast.com',
     },

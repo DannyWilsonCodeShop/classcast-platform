@@ -92,7 +92,7 @@ class SimpleCognitoAuthService {
     console.log('CognitoAuthService initialized with:', {
       userPoolId: this.userPoolId,
       userPoolClientId: this.userPoolClientId,
-      region: process.env.AWS_REGION || 'us-east-1',
+      region: process.env.REGION || 'us-east-1',
       environment: getEnvironmentInfo()
     });
 
