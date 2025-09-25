@@ -197,19 +197,32 @@ const InstructorDashboard: React.FC = () => {
           console.log('Courses API response:', coursesData);
           // Handle both formats: direct courses array or nested data.courses
           const coursesArray = coursesData.courses || coursesData.data?.courses || [];
-          // Map courseId to id for compatibility
-          const mappedCourses = coursesArray.map((course: any) => ({
-            ...course,
-            id: course.courseId || course.id
-          }));
-          setCourses(mappedCourses);
+          // Ensure coursesArray is an array before mapping
+          if (Array.isArray(coursesArray)) {
+            // Map courseId to id for compatibility
+            const mappedCourses = coursesArray.map((course: any) => ({
+              ...course,
+              id: course.courseId || course.id
+            }));
+            setCourses(mappedCourses);
+          } else {
+            console.error('Courses data is not an array:', coursesArray);
+            setCourses([]);
+          }
         } else {
           console.error('Courses API failed:', coursesResponse.status, coursesResponse.statusText);
+          setCourses([]);
         }
 
         if (submissionsResponse.ok) {
           const submissionsData = await submissionsResponse.json();
-          setRecentSubmissions(submissionsData || []);
+          // Ensure submissionsData is an array
+          if (Array.isArray(submissionsData)) {
+            setRecentSubmissions(submissionsData);
+          } else {
+            console.error('Submissions data is not an array:', submissionsData);
+            setRecentSubmissions([]);
+          }
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
