@@ -66,6 +66,20 @@ const users: MockUser[] = [
     password: 'password123',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+  },
+  // Real users for development
+  {
+    id: 'dev-instructor-001',
+    email: 'dwilson1919@gmail.com',
+    firstName: 'Danny',
+    lastName: 'Wilson',
+    role: 'instructor',
+    instructorId: 'inst-001',
+    department: 'Computer Science',
+    emailVerified: true,
+    password: 'YOUR_ACTUAL_COGNITO_PASSWORD', // Replace with your real Cognito password
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   }
 ];
 
