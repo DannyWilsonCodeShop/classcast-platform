@@ -33,6 +33,7 @@ interface AuthContextType extends AuthState {
   clearError: () => void;
   checkAuthStatus: () => Promise<void>;
   closeEmailConfirmation: () => void;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 interface SignupData {
@@ -420,6 +421,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     checkAuthStatus();
   }, [checkAuthStatus]);
 
+  // Update user data
+  const updateUser = useCallback((userData: Partial<User>) => {
+    setAuthState(prev => {
+      if (prev.user) {
+        const updatedUser = { ...prev.user, ...userData };
+        const newState = { ...prev, user: updatedUser };
+        localStorage.setItem('authState', JSON.stringify(newState));
+        return newState;
+      }
+      return prev;
+    });
+  }, []);
+
   const value: AuthContextType = {
     ...authState,
     login,
@@ -429,6 +443,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     clearError,
     checkAuthStatus,
     closeEmailConfirmation,
+    updateUser,
   };
 
   return (

@@ -8,11 +8,18 @@ import { useAuth } from '@/contexts/AuthContext';
 const InstructorProfilePage: React.FC = () => {
   console.log('InstructorProfilePage component starting - SIMPLE VERSION');
   
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Update avatar state when user context changes
+  React.useEffect(() => {
+    if (user?.avatar) {
+      setAvatar(user.avatar);
+    }
+  }, [user?.avatar]);
   
   console.log('InstructorProfilePage rendering, user:', user, 'isEditing:', isEditing);
 
@@ -182,6 +189,21 @@ const InstructorProfilePage: React.FC = () => {
                     if (response.ok) {
                       const result = await response.json();
                       console.log('Profile saved successfully:', result);
+                      
+                      // Update user context with new data
+                      updateUser({
+                        firstName: profileData.firstName,
+                        lastName: profileData.lastName,
+                        email: profileData.email,
+                        bio: profileData.bio,
+                        favoriteSubject: profileData.favoriteSubject,
+                        hobbies: profileData.hobbies,
+                        classOf: profileData.classOf,
+                        funFact: profileData.funFact,
+                        schoolName: profileData.schoolName,
+                        avatar: result.data.avatar || profileData.avatar,
+                      });
+                      
                       alert('Profile saved successfully!');
                       setIsEditing(false);
                     } else {
