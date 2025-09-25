@@ -13,15 +13,31 @@ const InstructorProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [isUploading, setIsUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   
+  // Helper function to get the correct avatar URL
+  const getAvatarUrl = (avatarUrl: string) => {
+    if (!avatarUrl) return '/api/placeholder/100/100';
+    if (avatarUrl.startsWith('data:')) return avatarUrl; // Base64 data URL
+    if (avatarUrl.includes('s3.amazonaws.com') || avatarUrl.includes('s3.')) {
+      // S3 URL, use proxy to avoid CORS issues
+      return `/api/avatar-proxy?url=${encodeURIComponent(avatarUrl)}`;
+    }
+    return avatarUrl; // Other URLs (CloudFront, etc.)
+  };
+
   // Update avatar state when user context changes
   React.useEffect(() => {
     if (user?.avatar && user.avatar !== avatar) {
+      console.log('User avatar changed, updating local avatar state:', user.avatar);
       setAvatar(user.avatar);
     }
   }, [user?.avatar, avatar]);
   
   console.log('InstructorProfilePage rendering, user:', user, 'isEditing:', isEditing);
+  console.log('Current avatar state:', avatar);
+  console.log('User avatar from context:', user?.avatar);
+  console.log('Avatar error state:', avatarError);
 
   // Handle avatar upload
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -187,17 +203,8 @@ const InstructorProfilePage: React.FC = () => {
                       console.log('Profile saved successfully:', result);
                       
                       // Update user context with new data
-                      console.log('Updating user context with:', {
-                        firstName: profileData.firstName,
-                        lastName: profileData.lastName,
-                        email: profileData.email,
-                        bio: profileData.bio,
-                        favoriteSubject: profileData.favoriteSubject,
-                        hobbies: profileData.hobbies,
-                        funFact: profileData.funFact,
-                        schoolName: profileData.schoolName,
-                        avatar: result.data.avatar || profileData.avatar,
-                      });
+                      const updatedAvatar = result.data.avatar || profileData.avatar;
+                      console.log('Setting avatar to:', updatedAvatar);
                       
                       try {
                         updateUser({
@@ -209,8 +216,17 @@ const InstructorProfilePage: React.FC = () => {
                           hobbies: profileData.hobbies,
                           funFact: profileData.funFact,
                           schoolName: profileData.schoolName,
-                          avatar: result.data.avatar || profileData.avatar,
+                          avatar: updatedAvatar,
                         });
+                        
+                        // Update local avatar state with the S3 URL, but keep base64 as fallback
+                        if (updatedAvatar && !updatedAvatar.startsWith('data:')) {
+                          // It's an S3 URL, use it
+                          setAvatar(updatedAvatar);
+                        } else {
+                          // It's base64 or empty, keep the current avatar
+                          console.log('Keeping current avatar (base64 or empty)');
+                        }
                         console.log('User context updated successfully');
                       } catch (updateError) {
                         console.error('Error updating user context:', updateError);
@@ -232,13 +248,19 @@ const InstructorProfilePage: React.FC = () => {
                     {/* Avatar Upload Section */}
                     <div className="flex items-center space-x-6">
                       <div className="relative">
-                        <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
-                          <img
-                            src={avatar || '/api/placeholder/100/100'}
-                            alt="Profile"
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
+                              <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
+                                <img
+                                  src={avatarError ? '/api/placeholder/100/100' : getAvatarUrl(avatar || '')}
+                                  alt="Profile"
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    console.log('Avatar load error in edit mode, falling back to placeholder');
+                                    setAvatarError(true);
+                                    e.currentTarget.src = '/api/placeholder/100/100';
+                                  }}
+                                  onLoad={() => setAvatarError(false)}
+                                />
+                              </div>
                         <input
                           type="file"
                           onChange={handleAvatarUpload}
@@ -394,9 +416,18 @@ const InstructorProfilePage: React.FC = () => {
                   <div className="flex items-center space-x-4">
                     <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
                       <img
-                        src={avatar || user.avatar || '/api/placeholder/100/100'}
+                        src={avatarError ? '/api/placeholder/100/100' : getAvatarUrl(avatar || user?.avatar || '')}
                         alt="Profile"
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.log('Avatar load error, falling back to placeholder. Current src:', e.currentTarget.src);
+                          setAvatarError(true);
+                          e.currentTarget.src = '/api/placeholder/100/100';
+                        }}
+                        onLoad={(e) => {
+                          console.log('Avatar loaded successfully:', e.currentTarget.src);
+                          setAvatarError(false);
+                        }}
                       />
                     </div>
                     <div>
