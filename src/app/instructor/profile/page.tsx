@@ -11,8 +11,73 @@ const InstructorProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
+  const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [isUploading, setIsUploading] = useState(false);
   
   console.log('InstructorProfilePage rendering, user:', user, 'isEditing:', isEditing);
+
+  // Handle avatar upload
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Convert to base64 for immediate preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        if (dataUrl) {
+          setAvatar(dataUrl);
+          setIsUploading(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      alert('Error uploading avatar');
+      setIsUploading(false);
+    }
+  };
+
+  // Form validation
+  const validateForm = (formData: FormData): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
+    const email = formData.get('email') as string;
+    const favoriteSubject = formData.get('favoriteSubject') as string;
+    const hobbies = formData.get('hobbies') as string;
+    const careerGoals = formData.get('careerGoals') as string;
+    const classOf = formData.get('classOf') as string;
+
+    if (!firstName?.trim()) errors.push('First name is required');
+    if (!lastName?.trim()) errors.push('Last name is required');
+    if (!email?.trim()) {
+      errors.push('Email is required');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.push('Please enter a valid email address');
+    }
+    if (!favoriteSubject?.trim()) errors.push('Favorite subject is required');
+    if (!hobbies?.trim()) errors.push('Hobbies and interests are required');
+    if (!careerGoals?.trim()) errors.push('Career goals are required');
+    if (!classOf?.trim()) errors.push('Class of is required');
+
+    return { isValid: errors.length === 0, errors };
+  };
 
   if (!user) {
     return (
@@ -80,8 +145,16 @@ const InstructorProfilePage: React.FC = () => {
                   e.preventDefault();
                   console.log('Form submitted!');
                   
+                  const formData = new FormData(e.currentTarget);
+                  
+                  // Validate form
+                  const validation = validateForm(formData);
+                  if (!validation.isValid) {
+                    alert('Please fix the following errors:\n' + validation.errors.join('\n'));
+                    return;
+                  }
+                  
                   try {
-                    const formData = new FormData(e.currentTarget);
                     const profileData = {
                       userId: user?.id || user?.userId || 'test-user-123',
                       firstName: formData.get('firstName') as string || '',
@@ -94,6 +167,7 @@ const InstructorProfilePage: React.FC = () => {
                       classOf: formData.get('classOf') as string || '',
                       funFact: formData.get('funFact') as string || '',
                       schoolName: formData.get('schoolName') as string || '',
+                      avatar: avatar, // Include the avatar
                     };
                     
                     console.log('Saving profile:', profileData);
@@ -124,34 +198,83 @@ const InstructorProfilePage: React.FC = () => {
                   }
                 }}>
                   <div className="space-y-4">
+                    {/* Avatar Upload Section */}
+                    <div className="flex items-center space-x-6">
+                      <div className="relative">
+                        <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
+                          <img
+                            src={avatar || '/api/placeholder/100/100'}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <input
+                          type="file"
+                          onChange={handleAvatarUpload}
+                          className="hidden"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          id="avatar-upload"
+                        />
+                        <label
+                          htmlFor="avatar-upload"
+                          className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 text-xs shadow-md hover:bg-blue-600 transition-colors cursor-pointer"
+                          title="Change Profile Picture"
+                        >
+                          📷
+                        </label>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900">Profile Picture</h3>
+                        <p className="text-sm text-gray-500">JPG, PNG, GIF, or WebP. Max 5MB.</p>
+                        {isUploading && (
+                          <div className="flex items-center mt-2 text-blue-600 text-sm">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Uploading...
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">First Name</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          First Name <span className="text-red-500">*</span>
+                        </label>
                         <input
                           type="text"
                           name="firstName"
                           defaultValue={user.firstName || ''}
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          required
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Last Name <span className="text-red-500">*</span>
+                        </label>
                         <input
                           type="text"
                           name="lastName"
                           defaultValue={user.lastName || ''}
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          required
                         />
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Email</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Email <span className="text-red-500">*</span>
+                        </label>
                         <input
                           type="email"
                           name="email"
                           defaultValue={user.email || ''}
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          required
                         />
                       </div>
                       
@@ -177,43 +300,55 @@ const InstructorProfilePage: React.FC = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Favorite Subject</label>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Favorite Subject <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         name="favoriteSubject"
                         defaultValue={user.favoriteSubject || ''}
                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        required
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Hobbies & Interests</label>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Hobbies & Interests <span className="text-red-500">*</span>
+                      </label>
                       <input
                         type="text"
                         name="hobbies"
                         defaultValue={user.hobbies || ''}
                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        required
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Career Goals</label>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Career Goals <span className="text-red-500">*</span>
+                      </label>
                       <textarea
                         name="careerGoals"
                         defaultValue={user.careerGoals || ''}
                         rows={3}
                         className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        required
                       />
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700">Class Of</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Class Of <span className="text-red-500">*</span>
+                        </label>
                         <input
                           type="text"
                           name="classOf"
                           defaultValue={user.classOf || ''}
                           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          required
                         />
                       </div>
                       
@@ -253,8 +388,12 @@ const InstructorProfilePage: React.FC = () => {
               <div className="bg-[#4A90E2] p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-[#4A90E2] font-bold text-2xl shadow-lg">
-                      {user.firstName?.charAt(0) || 'I'}{user.lastName?.charAt(0) || ''}
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                      <img
+                        src={avatar || user.avatar || '/api/placeholder/100/100'}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-white">

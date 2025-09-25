@@ -43,16 +43,36 @@ export async function POST(request: NextRequest) {
       schoolName,
     } = body;
 
-    // Get existing user profile
-    const existingUser = await dynamoDBService.getUserById(userId);
+    // Get existing user profile or create a new one
+    let existingUser = await dynamoDBService.getUserById(userId);
     if (!existingUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'User not found',
-        },
-        { status: 404 }
-      );
+      // Create a new user for development/testing
+      console.log('User not found, creating new user:', userId);
+      const newUser = {
+        userId,
+        firstName: firstName || 'New',
+        lastName: lastName || 'User',
+        email: email || 'user@example.com',
+        role: 'instructor', // Default role for development
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      try {
+        await dynamoDBService.createUser(newUser);
+        existingUser = newUser;
+        console.log('New user created successfully');
+      } catch (error) {
+        console.error('Error creating user:', error);
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Failed to create user',
+            details: error instanceof Error ? error.message : 'Unknown error',
+          },
+          { status: 500 }
+        );
+      }
     }
 
     // Handle avatar upload if it's a base64 data URL
