@@ -12,8 +12,73 @@ const StudentProfilePage: React.FC = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
+  const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [isUploading, setIsUploading] = useState(false);
   
   console.log('StudentProfilePage rendering, user:', user, 'isEditing:', isEditing);
+
+  // Handle avatar upload
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Convert to base64 for immediate preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result as string;
+        if (dataUrl) {
+          setAvatar(dataUrl);
+          setIsUploading(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      alert('Error uploading avatar');
+      setIsUploading(false);
+    }
+  };
+
+  // Form validation
+  const validateForm = (formData: FormData): { isValid: boolean; errors: string[] } => {
+    const errors: string[] = [];
+    
+    const firstName = formData.get('firstName') as string;
+    const lastName = formData.get('lastName') as string;
+    const email = formData.get('email') as string;
+    const favoriteSubject = formData.get('favoriteSubject') as string;
+    const hobbies = formData.get('hobbies') as string;
+    const careerGoals = formData.get('careerGoals') as string;
+    const classOf = formData.get('classOf') as string;
+
+    if (!firstName?.trim()) errors.push('First name is required');
+    if (!lastName?.trim()) errors.push('Last name is required');
+    if (!email?.trim()) {
+      errors.push('Email is required');
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.push('Please enter a valid email address');
+    }
+    if (!favoriteSubject?.trim()) errors.push('Favorite subject is required');
+    if (!hobbies?.trim()) errors.push('Hobbies and interests are required');
+    if (!careerGoals?.trim()) errors.push('Career goals are required');
+    if (!classOf?.trim()) errors.push('Class of is required');
+
+    return { isValid: errors.length === 0, errors };
+  };
 
   if (!user) {
     return (
