@@ -29,7 +29,7 @@ import {
 
 // Cognito client configuration
 const cognitoClient = new CognitoIdentityProviderClient({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: process.env.REGION || 'us-east-1',
 });
 
 // Configuration from environment variables

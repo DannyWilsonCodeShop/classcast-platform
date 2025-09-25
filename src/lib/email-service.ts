@@ -1,7 +1,7 @@
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 import { EmailNotificationData } from '@/types/messaging';
 
-const sesClient = new SESClient({ region: process.env.AWS_REGION });
+const sesClient = new SESClient({ region: process.env.REGION });
 
 export async function sendEmailNotification(data: EmailNotificationData) {
   try {

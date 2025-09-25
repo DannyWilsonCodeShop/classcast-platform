@@ -278,7 +278,7 @@ export class CognitoAuthService {
       const getIdCommand = new GetIdCommand({
         IdentityPoolId: IDENTITY_POOL_ID,
         Logins: {
-          [`cognito-idp.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${USER_POOL_ID}`]: idToken
+          [`cognito-idp.${process.env.REGION || 'us-east-1'}.amazonaws.com/${USER_POOL_ID}`]: idToken
         }
       });
 
@@ -293,7 +293,7 @@ export class CognitoAuthService {
       const getCredentialsCommand = new GetCredentialsForIdentityCommand({
         IdentityId: identityId,
         Logins: {
-          [`cognito-idp.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${USER_POOL_ID}`]: idToken
+          [`cognito-idp.${process.env.REGION || 'us-east-1'}.amazonaws.com/${USER_POOL_ID}`]: idToken
         }
       });
 
