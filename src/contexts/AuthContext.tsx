@@ -92,6 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (response.ok) {
         const userData = await response.json();
+        console.log('Login successful, userData:', userData);
         const newState = {
           user: userData.user,
           isAuthenticated: true,
@@ -100,17 +101,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           showEmailConfirmation: false,
           confirmationEmail: null,
         };
+        console.log('Setting auth state:', newState);
         setAuthState(newState);
         localStorage.setItem('authState', JSON.stringify(newState));
         
         // Redirect based on user role
+        console.log('User role:', userData.user.role);
         if (userData.user.role === 'student') {
+          console.log('Redirecting to student dashboard');
           router.push('/student/dashboard');
         } else if (userData.user.role === 'instructor') {
+          console.log('Redirecting to instructor dashboard');
           router.push('/instructor/dashboard');
         } else if (userData.user.role === 'admin') {
+          console.log('Redirecting to admin dashboard');
           router.push('/admin/dashboard');
         } else {
+          console.log('Redirecting to home page');
           router.push('/');
         }
       } else {
