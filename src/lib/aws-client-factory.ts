@@ -17,7 +17,7 @@ const isAmplify = process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUT
  */
 export function createCognitoClient(): CognitoIdentityProviderClient {
   const config: any = {
-    region: process.env.AWS_REGION || 'us-east-1',
+    region: process.env.REGION || 'us-east-1',
   };
 
   // Only set explicit credentials in development if they exist
@@ -37,7 +37,7 @@ export function createCognitoClient(): CognitoIdentityProviderClient {
  */
 export function createDynamoDBClient(): DynamoDBClient {
   const config: any = {
-    region: process.env.AWS_REGION || 'us-east-1',
+    region: process.env.REGION || 'us-east-1',
   };
 
   // Only set explicit credentials in development if they exist
@@ -57,7 +57,7 @@ export function createDynamoDBClient(): DynamoDBClient {
  */
 export function createS3Client(): S3Client {
   const config: any = {
-    region: process.env.AWS_REGION || 'us-east-1',
+    region: process.env.REGION || 'us-east-1',
   };
 
   // Only set explicit credentials in development if they exist
@@ -81,6 +81,6 @@ export function getEnvironmentInfo() {
     isAmplify,
     nodeEnv: process.env.NODE_ENV,
     hasExplicitCredentials: !!(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY),
-    region: process.env.AWS_REGION || 'us-east-1',
+    region: process.env.REGION || 'us-east-1',
   };
 }
