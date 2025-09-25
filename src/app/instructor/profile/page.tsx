@@ -16,10 +16,10 @@ const InstructorProfilePage: React.FC = () => {
   
   // Update avatar state when user context changes
   React.useEffect(() => {
-    if (user?.avatar) {
+    if (user?.avatar && user.avatar !== avatar) {
       setAvatar(user.avatar);
     }
-  }, [user?.avatar]);
+  }, [user?.avatar, avatar]);
   
   console.log('InstructorProfilePage rendering, user:', user, 'isEditing:', isEditing);
 
@@ -152,17 +152,13 @@ const InstructorProfilePage: React.FC = () => {
                   
                   try {
                     const formData = new FormData(e.currentTarget);
-                    console.log('FormData created successfully');
                     
                     // Validate form
                     const validation = validateForm(formData);
-                    console.log('Validation result:', validation);
                     if (!validation.isValid) {
                       alert('Please fix the following errors:\n' + validation.errors.join('\n'));
                       return;
                     }
-                    
-                    console.log('Form validation passed');
                     const profileData = {
                       userId: user?.id || user?.userId || 'test-user-123',
                       firstName: formData.get('firstName') as string || '',
@@ -399,32 +395,6 @@ const InstructorProfilePage: React.FC = () => {
                       className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       Cancel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        console.log('Test button clicked - calling API directly');
-                        try {
-                          const response = await fetch('/api/profile/save', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                              userId: 'dev-instructor-001',
-                              firstName: 'Test Direct',
-                              lastName: 'API Call',
-                              email: 'test@example.com'
-                            })
-                          });
-                          console.log('Direct API call response:', response.status);
-                          const result = await response.json();
-                          console.log('Direct API call result:', result);
-                        } catch (error) {
-                          console.error('Direct API call error:', error);
-                        }
-                      }}
-                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      Test API
                     </button>
                     <button
                       type="submit"
