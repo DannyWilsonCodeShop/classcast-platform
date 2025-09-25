@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LoginFormData {
   email: string;
@@ -26,6 +27,7 @@ export default function LoginForm({
   onSwitchToForgotPassword 
 }: LoginFormProps) {
   const router = useRouter();
+  const { login } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
@@ -76,30 +78,15 @@ export default function LoginForm({
     setErrors({});
 
     try {
-      // Call the login API endpoint
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error?.message || data.message || 'Login failed');
-      }
-
+      // Use AuthContext login method
+      await login(formData.email, formData.password);
+      
       // Clear any previous errors
       setErrors({});
       
       // Call success callback if provided
       if (onSuccess) {
         onSuccess();
-      } else {
-        // Default redirect to dashboard
-        router.push('/dashboard');
       }
     } catch (error) {
       console.error('Login error:', error);

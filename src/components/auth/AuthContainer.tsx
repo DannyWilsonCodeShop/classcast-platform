@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import ForgotPasswordForm from './ForgotPasswordForm';
@@ -22,6 +23,7 @@ export default function AuthContainer({
   onClose 
 }: AuthContainerProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const [currentView, setCurrentView] = useState<AuthView>(initialView);
 
   const switchToView = (view: AuthView) => {
@@ -31,6 +33,17 @@ export default function AuthContainer({
   const handleSuccess = () => {
     if (onSuccess) {
       onSuccess();
+    } else {
+      // Default redirect based on user role
+      if (user?.role === 'instructor') {
+        router.push('/instructor/dashboard');
+      } else if (user?.role === 'student') {
+        router.push('/student/dashboard');
+      } else if (user?.role === 'admin') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/dashboard');
+      }
     }
   };
 
