@@ -107,6 +107,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         // Redirect based on user role
         console.log('User role:', userData.user.role);
+        console.log('Current URL before redirect:', window.location.href);
+        
         if (userData.user.role === 'student') {
           console.log('Redirecting to student dashboard');
           router.push('/student/dashboard');
@@ -120,6 +122,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           console.log('Redirecting to home page');
           router.push('/');
         }
+        
+        console.log('Redirect command sent, waiting for navigation...');
       } else {
         const errorData = await response.json();
         

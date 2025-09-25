@@ -31,17 +31,24 @@ export default function AuthContainer({
   };
 
   const handleSuccess = () => {
+    console.log('AuthContainer handleSuccess called, user role:', user?.role);
     if (onSuccess) {
+      console.log('Calling onSuccess callback');
       onSuccess();
     } else {
       // Default redirect based on user role
+      console.log('No onSuccess callback, using default redirect logic');
       if (user?.role === 'instructor') {
+        console.log('AuthContainer redirecting to instructor dashboard');
         router.push('/instructor/dashboard');
       } else if (user?.role === 'student') {
+        console.log('AuthContainer redirecting to student dashboard');
         router.push('/student/dashboard');
       } else if (user?.role === 'admin') {
+        console.log('AuthContainer redirecting to admin dashboard');
         router.push('/admin/dashboard');
       } else {
+        console.log('AuthContainer redirecting to dashboard');
         router.push('/dashboard');
       }
     }
