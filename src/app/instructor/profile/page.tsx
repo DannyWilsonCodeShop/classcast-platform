@@ -61,7 +61,6 @@ const InstructorProfilePage: React.FC = () => {
     const email = formData.get('email') as string;
     const favoriteSubject = formData.get('favoriteSubject') as string;
     const hobbies = formData.get('hobbies') as string;
-    const careerGoals = formData.get('careerGoals') as string;
     const classOf = formData.get('classOf') as string;
 
     if (!firstName?.trim()) errors.push('First name is required');
@@ -73,7 +72,6 @@ const InstructorProfilePage: React.FC = () => {
     }
     if (!favoriteSubject?.trim()) errors.push('Favorite subject is required');
     if (!hobbies?.trim()) errors.push('Hobbies and interests are required');
-    if (!careerGoals?.trim()) errors.push('Career goals are required');
     if (!classOf?.trim()) errors.push('Class of is required');
 
     return { isValid: errors.length === 0, errors };
@@ -163,7 +161,6 @@ const InstructorProfilePage: React.FC = () => {
                       bio: formData.get('bio') as string || '',
                       favoriteSubject: formData.get('favoriteSubject') as string || '',
                       hobbies: formData.get('hobbies') as string || '',
-                      careerGoals: formData.get('careerGoals') as string || '',
                       classOf: formData.get('classOf') as string || '',
                       funFact: formData.get('funFact') as string || '',
                       schoolName: formData.get('schoolName') as string || '',
@@ -325,18 +322,6 @@ const InstructorProfilePage: React.FC = () => {
                       />
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Career Goals <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        name="careerGoals"
-                        defaultValue={user.careerGoals || ''}
-                        rows={3}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
