@@ -150,16 +150,19 @@ const InstructorProfilePage: React.FC = () => {
                   e.preventDefault();
                   console.log('Form submitted!');
                   
-                  const formData = new FormData(e.currentTarget);
-                  
-                  // Validate form
-                  const validation = validateForm(formData);
-                  if (!validation.isValid) {
-                    alert('Please fix the following errors:\n' + validation.errors.join('\n'));
-                    return;
-                  }
-                  
                   try {
+                    const formData = new FormData(e.currentTarget);
+                    console.log('FormData created successfully');
+                    
+                    // Validate form
+                    const validation = validateForm(formData);
+                    console.log('Validation result:', validation);
+                    if (!validation.isValid) {
+                      alert('Please fix the following errors:\n' + validation.errors.join('\n'));
+                      return;
+                    }
+                    
+                    console.log('Form validation passed');
                     const profileData = {
                       userId: user?.id || user?.userId || 'test-user-123',
                       firstName: formData.get('firstName') as string || '',
@@ -191,7 +194,7 @@ const InstructorProfilePage: React.FC = () => {
                       console.log('Profile saved successfully:', result);
                       
                       // Update user context with new data
-                      updateUser({
+                      console.log('Updating user context with:', {
                         firstName: profileData.firstName,
                         lastName: profileData.lastName,
                         email: profileData.email,
@@ -203,6 +206,24 @@ const InstructorProfilePage: React.FC = () => {
                         schoolName: profileData.schoolName,
                         avatar: result.data.avatar || profileData.avatar,
                       });
+                      
+                      try {
+                        updateUser({
+                          firstName: profileData.firstName,
+                          lastName: profileData.lastName,
+                          email: profileData.email,
+                          bio: profileData.bio,
+                          favoriteSubject: profileData.favoriteSubject,
+                          hobbies: profileData.hobbies,
+                          classOf: profileData.classOf,
+                          funFact: profileData.funFact,
+                          schoolName: profileData.schoolName,
+                          avatar: result.data.avatar || profileData.avatar,
+                        });
+                        console.log('User context updated successfully');
+                      } catch (updateError) {
+                        console.error('Error updating user context:', updateError);
+                      }
                       
                       alert('Profile saved successfully!');
                       setIsEditing(false);
@@ -378,6 +399,32 @@ const InstructorProfilePage: React.FC = () => {
                       className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
                     >
                       Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        console.log('Test button clicked - calling API directly');
+                        try {
+                          const response = await fetch('/api/profile/save', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              userId: 'dev-instructor-001',
+                              firstName: 'Test Direct',
+                              lastName: 'API Call',
+                              email: 'test@example.com'
+                            })
+                          });
+                          console.log('Direct API call response:', response.status);
+                          const result = await response.json();
+                          console.log('Direct API call result:', result);
+                        } catch (error) {
+                          console.error('Direct API call error:', error);
+                        }
+                      }}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      Test API
                     </button>
                     <button
                       type="submit"
