@@ -249,10 +249,29 @@ const InstructorDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => router.push('/instructor/profile')}
-                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
+                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-indigo-600 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
                 title="View Profile"
               >
-                {user?.firstName?.charAt(0) || 'I'}
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar.includes('s3.amazonaws.com') || user.avatar.includes('s3.') 
+                      ? `/api/avatar-proxy?url=${encodeURIComponent(user.avatar)}`
+                      : user.avatar
+                    }
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to initials if image fails to load
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        parent.innerHTML = user?.firstName?.charAt(0) || 'I';
+                      }
+                    }}
+                  />
+                ) : (
+                  user?.firstName?.charAt(0) || 'I'
+                )}
               </button>
             </div>
           </div>

@@ -20,7 +20,7 @@ const s3Client = new S3Client({
 });
 
 // Bucket name from unified configuration
-const BUCKET_NAME = awsConfig.s3.buckets.videos;
+const BUCKET_NAME = awsConfig.s3.buckets.assets;
 
 // CloudFront domain from environment
 const CLOUDFRONT_DOMAIN = process.env.CLOUDFRONT_DOMAIN;
