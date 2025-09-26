@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { simpleCognitoAuthService } from '@/lib/auth-simple';
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+
+const lambdaClient = new LambdaClient({ region: 'us-east-1' });
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { 
-      email, 
-      firstName, 
-      lastName, 
-      password, 
-      role, 
-      studentId, 
-      department 
-    } = body;
+    const { email, firstName, lastName, password, role, studentId, department } = body;
 
     console.log('Signup request body:', body);
 
@@ -33,7 +27,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-
     if (role === 'instructor' && !department) {
       console.log('Department missing for instructor role');
       return NextResponse.json(
@@ -52,94 +45,47 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      console.log('Creating user with AWS Cognito (auto-confirmed):', { email, firstName, lastName, role, studentId, department });
+      console.log('Calling Lambda function for signup:', { email, firstName, lastName, role, studentId, department });
 
-      // Use AWS Cognito for user creation with auto-confirmation
-      const result = await simpleCognitoAuthService.createUserAutoConfirmed({
-        username: email, // Use email as username
-        email,
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        password,
-        role: role as 'student' | 'instructor' | 'admin',
-        studentId: undefined,
-        instructorId: role === 'instructor' ? `INS-${Date.now()}` : undefined,
-        department: role === 'instructor' ? department : undefined,
+      // Call the Lambda function
+      const lambdaPayload = {
+        body: JSON.stringify({
+          email,
+          firstName,
+          lastName,
+          password,
+          role,
+          studentId,
+          department
+        })
+      };
+
+      const command = new InvokeCommand({
+        FunctionName: 'classcast-signup',
+        Payload: JSON.stringify(lambdaPayload)
       });
 
-      console.log('User created and auto-confirmed successfully:', result);
+      const response = await lambdaClient.send(command);
+      const result = JSON.parse(new TextDecoder().decode(response.Payload));
 
-      // No verification needed since user is auto-confirmed
-      const needsVerification = false;
+      console.log('Lambda response:', result);
 
-      // Create user profile in DynamoDB
-      try {
-        const { DynamoDBService } = await import('@/lib/dynamodb');
-        const dynamoDBService = new DynamoDBService();
-        
-        const userProfile = {
-          userId: result.username, // Use username as userId
-          email: result.email,
-          firstName: result.firstName,
-          lastName: result.lastName,
-          role: result.role,
-          studentId: result.studentId,
-          instructorId: result.instructorId,
-          department: result.department,
-          status: 'active',
-          enabled: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          lastLogin: new Date().toISOString(),
-          preferences: {
-            notifications: {
-              email: true,
-              push: false
-            },
-            theme: 'light',
-            language: 'en'
-          }
-        };
-
-        await dynamoDBService.putItem('classcast-users', userProfile);
-        console.log('User profile created in DynamoDB');
-      } catch (dbError) {
-        console.error('Failed to create user profile in DynamoDB:', dbError);
-        // Continue execution even if profile creation fails
-      }
-
-      // Return success response
-      return NextResponse.json(
-        {
-          message: 'Account created successfully! You can now log in immediately.',
-          user: {
-            id: result.username,
-            email: result.email,
-            firstName: result.firstName,
-            lastName: result.lastName,
-            role: result.role,
-            instructorId: result.instructorId,
-            department: result.department,
-            emailVerified: true, // Always true since we auto-confirm
-          },
-          nextStep: 'login',
-          needsVerification: false,
-          requiresEmailConfirmation: false,
-        },
-        { status: 201 }
-      );
-    } catch (authError) {
-      console.error('Cognito signup error:', authError);
-      
-      if (authError instanceof Error) {
-        if (authError.message.includes('email already exists')) {
-          return NextResponse.json(
-            { error: { message: 'A user with this email already exists' } },
-            { status: 409 }
-          );
-        }
+      if (result.statusCode === 201) {
+        const responseBody = JSON.parse(result.body);
+        return NextResponse.json(responseBody, { status: 201 });
+      } else {
+        const errorBody = JSON.parse(result.body);
         return NextResponse.json(
-          { error: { message: authError.message || 'Failed to create account. Please try again later' } },
+          { error: { message: errorBody.error?.message || 'Signup failed' } },
+          { status: result.statusCode || 500 }
+        );
+      }
+    } catch (lambdaError) {
+      console.error('Lambda signup error:', lambdaError);
+      
+      if (lambdaError instanceof Error) {
+        return NextResponse.json(
+          { error: { message: lambdaError.message || 'Failed to create account. Please try again later' } },
           { status: 500 }
         );
       }
@@ -164,4 +110,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
