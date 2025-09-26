@@ -205,9 +205,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAuthState(newState);
         localStorage.setItem('authState', JSON.stringify(newState));
         
-        // Return response data for SignupForm to handle
-        return responseData;
-        
         // Redirect based on user role
         if (responseData.user.role === 'student') {
           router.push('/student/dashboard');
@@ -218,6 +215,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           router.push('/');
         }
+        
+        // Return response data for SignupForm to handle
+        return responseData;
       } else {
         const errorData = await response.json();
         const errorMessage = errorData.error?.message || errorData.message || 'Signup failed';
@@ -468,3 +468,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
