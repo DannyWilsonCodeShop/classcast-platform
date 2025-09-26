@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
-// Simple in-memory store for mock users (in production, this would be a database)
-const mockUsers = new Map();
+const lambdaClient = new LambdaClient({ region: 'us-east-1' });
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== LAMBDA SIGNUP API CALLED ===');
+    
     const body = await request.json();
     const { email, firstName, lastName, password, role, studentId, department } = body;
 
-    console.log('Signup request body:', body);
+    console.log('Signup request:', { email, firstName, lastName, role });
 
     // Basic validation
     if (!email || !password || !firstName || !lastName || !role) {
-      console.log('Missing required fields:', { email: !!email, password: !!password, firstName: !!firstName, lastName: !!lastName, role: !!role });
       return NextResponse.json(
         { error: { message: 'Missing required fields' } },
         { status: 400 }
@@ -20,7 +21,6 @@ export async function POST(request: NextRequest) {
     }
 
     if (role !== 'student' && role !== 'instructor' && role !== 'admin') {
-      console.log('Invalid role:', role);
       return NextResponse.json(
         { error: { message: 'Invalid role specified' } },
         { status: 400 }
@@ -28,16 +28,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (role === 'instructor' && !department) {
-      console.log('Department missing for instructor role');
       return NextResponse.json(
         { error: { message: 'Department is required for instructor role' } },
         { status: 400 }
       );
     }
 
-    // Password validation
     if (password.length < 8) {
-      console.log('Password too short:', password.length);
       return NextResponse.json(
         { error: { message: 'Password must be at least 8 characters long' } },
         { status: 400 }
@@ -45,55 +42,32 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      console.log('Creating user with mock data for now:', { email, firstName, lastName, role, studentId, department });
+      console.log('Calling Lambda function for signup:', email);
 
-      // Check if user already exists
-      if (mockUsers.has(email)) {
-        console.log('User already exists:', email);
-        return NextResponse.json(
-          { error: { message: 'A user with this email already exists' } },
-          { status: 409 }
-        );
+      // Call Lambda function for signup
+      const lambdaCommand = new InvokeCommand({
+        FunctionName: 'classcast-signup',
+        Payload: JSON.stringify({
+          body: JSON.stringify(body)
+        })
+      });
+
+      const lambdaResponse = await lambdaClient.send(lambdaCommand);
+      
+      if (!lambdaResponse.Payload) {
+        throw new Error('No response from Lambda function');
       }
 
-      // Create mock user data
-      const mockUser = {
-        id: email,
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        password: password, // Store password for login verification
-        role: role,
-        studentId: studentId,
-        instructorId: role === 'instructor' ? `INS-${Date.now()}` : undefined,
-        department: department,
-        emailVerified: true,
-        createdAt: new Date().toISOString()
-      };
+      const responseBody = JSON.parse(new TextDecoder().decode(lambdaResponse.Payload));
+      
+      console.log('Lambda response:', responseBody);
 
-      // Add user to mock store
-      mockUsers.set(email, mockUser);
-      console.log('Mock user created and stored successfully:', mockUser);
-
-      return NextResponse.json(
-        {
-          message: 'Account created successfully! You can now log in immediately.',
-          user: {
-            id: mockUser.id,
-            email: mockUser.email,
-            firstName: mockUser.firstName,
-            lastName: mockUser.lastName,
-            role: mockUser.role,
-            emailVerified: mockUser.emailVerified
-          },
-          nextStep: 'login',
-          needsVerification: false,
-          requiresEmailConfirmation: false,
-        },
-        { status: 201 }
-      );
-    } catch (mockError) {
-      console.error('Mock signup error:', mockError);
+      // Return the Lambda response directly
+      return NextResponse.json(responseBody, { 
+        status: responseBody.statusCode || 200 
+      });
+    } catch (lambdaError) {
+      console.error('Lambda signup error:', lambdaError);
       
       return NextResponse.json(
         { error: { message: 'Failed to create account. Please try again later' } },
