@@ -203,14 +203,9 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
           role: formData.role
         });
         setShowVerificationModal(true);
-      } else if (formData.role === 'instructor') {
-        // Instructors are auto-confirmed, redirect immediately
-        console.log('SignupForm: Redirecting to instructor dashboard');
-        router.push('/instructor/dashboard');
       } else {
-        // Fallback for other cases
-        console.log('SignupForm: Redirecting to student dashboard');
-        router.push('/student/dashboard');
+        // AuthContext will handle the redirect based on user role
+        console.log('SignupForm: AuthContext will handle redirect');
       }
 
       // Call success callback if provided
