@@ -26,12 +26,9 @@ export function createCognitoClient(): CognitoIdentityProviderClient {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
-  } else if (isProduction || isAmplify) {
-    // In production/Amplify, use default credential provider chain
-    // This will automatically use the IAM role attached to the service
-    config.credentials = fromNodeProviderChain();
   }
-  // Otherwise, let AWS SDK use default credential provider chain
+  // In production/Amplify, let AWS SDK use default credential provider chain automatically
+  // This will use the IAM role attached to the service
 
   return new CognitoIdentityProviderClient(config);
 }
@@ -50,12 +47,9 @@ export function createDynamoDBClient(): DynamoDBClient {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
-  } else if (isProduction || isAmplify) {
-    // In production/Amplify, use default credential provider chain
-    // This will automatically use the IAM role attached to the service
-    config.credentials = fromNodeProviderChain();
   }
-  // Otherwise, let AWS SDK use default credential provider chain
+  // In production/Amplify, let AWS SDK use default credential provider chain automatically
+  // This will use the IAM role attached to the service
 
   return new DynamoDBClient(config);
 }
@@ -74,12 +68,9 @@ export function createS3Client(): S3Client {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
-  } else if (isProduction || isAmplify) {
-    // In production/Amplify, use default credential provider chain
-    // This will automatically use the IAM role attached to the service
-    config.credentials = fromNodeProviderChain();
   }
-  // Otherwise, let AWS SDK use default credential provider chain
+  // In production/Amplify, let AWS SDK use default credential provider chain automatically
+  // This will use the IAM role attached to the service
 
   return new S3Client(config);
 }
