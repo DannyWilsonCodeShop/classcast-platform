@@ -80,7 +80,9 @@ exports.handler = async (event) => {
             MessageAction: 'SUPPRESS'
         });
 
+        console.log('Creating user in Cognito:', email);
         const createUserResult = await cognitoClient.send(createUserCommand);
+        console.log('Cognito user creation result:', createUserResult);
 
         // Set permanent password
         const setPasswordCommand = new AdminSetUserPasswordCommand({
@@ -133,6 +135,9 @@ exports.handler = async (event) => {
         });
 
         await dynamoDBClient.send(putItemCommand);
+
+        console.log('User created successfully in Cognito:', createUserResult.User.Username);
+        console.log('User profile created in DynamoDB for:', email);
 
         return {
             statusCode: 201,
