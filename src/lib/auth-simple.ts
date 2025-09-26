@@ -15,8 +15,8 @@ import { buildApiUrl, isLambdaEndpoint } from './api-config';
 const cognitoClient = createCognitoClient();
 
 // Configuration from environment variables
-const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || '';
-const USER_POOL_CLIENT_ID = process.env.COGNITO_USER_POOL_CLIENT_ID || process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '';
+const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'us-east-1_uK50qBrap';
+const USER_POOL_CLIENT_ID = process.env.COGNITO_USER_POOL_CLIENT_ID || process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh';
 
 export enum UserRole {
   STUDENT = 'student',
