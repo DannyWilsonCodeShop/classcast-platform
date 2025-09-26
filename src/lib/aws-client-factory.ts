@@ -10,7 +10,7 @@ import { fromNodeProviderChain, fromEnv, fromInstanceMetadata } from '@aws-sdk/c
 
 // Check if we're in production (Amplify) environment
 const isProduction = process.env.NODE_ENV === 'production';
-const isAmplify = process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV;
+const isAmplify = process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.AWS_EXECUTION_ENV || process.env.AWS_REGION;
 
 /**
  * Create Cognito client with proper credentials
@@ -26,8 +26,11 @@ export function createCognitoClient(): CognitoIdentityProviderClient {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
+  } else if (isProduction || isAmplify) {
+    // In production/Amplify, use instance metadata service
+    config.credentials = fromInstanceMetadata();
   }
-  // In production/Amplify, let AWS SDK use default credential provider chain
+  // Otherwise, let AWS SDK use default credential provider chain
 
   return new CognitoIdentityProviderClient(config);
 }
@@ -46,8 +49,11 @@ export function createDynamoDBClient(): DynamoDBClient {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
+  } else if (isProduction || isAmplify) {
+    // In production/Amplify, use instance metadata service
+    config.credentials = fromInstanceMetadata();
   }
-  // In production/Amplify, let AWS SDK use default credential provider chain
+  // Otherwise, let AWS SDK use default credential provider chain
 
   return new DynamoDBClient(config);
 }
@@ -66,8 +72,11 @@ export function createS3Client(): S3Client {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
+  } else if (isProduction || isAmplify) {
+    // In production/Amplify, use instance metadata service
+    config.credentials = fromInstanceMetadata();
   }
-  // In production/Amplify, let AWS SDK use default credential provider chain
+  // Otherwise, let AWS SDK use default credential provider chain
 
   return new S3Client(config);
 }
