@@ -4,8 +4,8 @@ const { DynamoDBClient, GetItemCommand } = require('@aws-sdk/client-dynamodb');
 const cognitoClient = new CognitoIdentityProviderClient({ region: 'us-east-1' });
 const dynamoDBClient = new DynamoDBClient({ region: 'us-east-1' });
 
-const USER_POOL_ID = 'us-east-1_uK50qBrap';
-const USER_POOL_CLIENT_ID = '7tbaq74itv3gdda1bt25iqafvh';
+const USER_POOL_ID = process.env.USER_POOL_ID || 'us-east-1_uK50qBrap';
+const USER_POOL_CLIENT_ID = process.env.CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh';
 
 exports.handler = async (event) => {
     try {

@@ -48,15 +48,23 @@ export async function POST(request: NextRequest) {
         })
       });
 
+      console.log('Lambda command created, invoking...');
       const lambdaResponse = await lambdaClient.send(lambdaCommand);
+      console.log('Lambda response received:', lambdaResponse);
       
       if (!lambdaResponse.Payload) {
+        console.error('No payload in Lambda response');
         throw new Error('No response from Lambda function');
       }
 
       const responseBody = JSON.parse(new TextDecoder().decode(lambdaResponse.Payload));
-      
-      console.log('Lambda response:', responseBody);
+      console.log('Lambda response body:', responseBody);
+
+      // Check if Lambda function returned an error
+      if (lambdaResponse.FunctionError) {
+        console.error('Lambda function error:', lambdaResponse.FunctionError);
+        throw new Error('Lambda function execution failed');
+      }
 
       // Return the Lambda response directly
       return NextResponse.json(responseBody, { 
@@ -64,6 +72,11 @@ export async function POST(request: NextRequest) {
       });
     } catch (authError) {
       console.error('Lambda authentication error:', authError);
+      console.error('Error details:', {
+        name: authError.name,
+        message: authError.message,
+        stack: authError.stack
+      });
       
       return NextResponse.json(
         { error: { message: 'Authentication failed. Please check your credentials and try again' } },
