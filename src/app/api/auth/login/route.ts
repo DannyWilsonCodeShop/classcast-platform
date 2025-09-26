@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { simpleCognitoAuthService } from '@/lib/auth-simple';
-import { mockAuthService } from '@/lib/mock-auth';
+
+// Simple in-memory store for mock users (in production, this would be a database)
+const mockUsers = new Map();
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== LOGIN API CALLED ===');
-    
-    // Using AWS Cognito for authentication
-    console.log('🔧 Using AWS Cognito for authentication...');
+    console.log('=== MOCK LOGIN API CALLED ===');
     
     const body = await request.json();
     const { email, password } = body;
@@ -43,181 +41,65 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      console.log('About to call direct Cognito authentication...');
+      console.log('Attempting mock authentication for:', email);
       
-      // Use direct Cognito authentication
-      const { CognitoIdentityProviderClient, InitiateAuthCommand, GetUserCommand } = await import('@aws-sdk/client-cognito-identity-provider');
+      // Check if user exists in our mock store
+      const user = mockUsers.get(email);
       
-      const cognitoClient = new CognitoIdentityProviderClient({
-        region: process.env.REGION || 'us-east-1',
-      });
-
-      const USER_POOL_CLIENT_ID = process.env.COGNITO_USER_POOL_CLIENT_ID || process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh';
-
-      // Authenticate with Cognito
-      const authCommand = new InitiateAuthCommand({
-        ClientId: USER_POOL_CLIENT_ID,
-        AuthFlow: 'USER_PASSWORD_AUTH',
-        AuthParameters: {
-          USERNAME: email,
-          PASSWORD: password,
-        },
-      });
-
-      const authResponse = await cognitoClient.send(authCommand);
-
-      if (!authResponse.AuthenticationResult) {
-        throw new Error('Authentication failed');
-      }
-
-      // Get user details
-      const getUserCommand = new GetUserCommand({
-        AccessToken: authResponse.AuthenticationResult.AccessToken!,
-      });
-
-      const userResponse = await cognitoClient.send(getUserCommand);
-
-      // Map user attributes
-      const userAttributes = userResponse.UserAttributes || [];
-      const emailAttr = userAttributes.find(attr => attr.Name === 'email')?.Value || email;
-      const firstNameAttr = userAttributes.find(attr => attr.Name === 'given_name')?.Value || '';
-      const lastNameAttr = userAttributes.find(attr => attr.Name === 'family_name')?.Value || '';
-      const roleAttr = userAttributes.find(attr => attr.Name === 'custom:role')?.Value || 'student';
-      const emailVerified = userAttributes.find(attr => attr.Name === 'email_verified')?.Value === 'true';
-
-      console.log('Login successful, auth result:', { 
-        userId: userResponse.Username, 
-        email: emailAttr,
-        emailVerified: emailVerified,
-        hasToken: !!authResponse.AuthenticationResult.AccessToken 
-      });
-
-      // Check if email is verified
-      if (!emailVerified) {
+      if (!user) {
+        console.log('User not found in mock store:', email);
         return NextResponse.json(
-          { 
-            error: { 
-              message: 'Email not verified',
-              code: 'EMAIL_NOT_VERIFIED',
-              email: emailAttr
-            } 
-          },
-          { status: 403 }
+          { error: { message: 'Invalid email or password' } },
+          { status: 401 }
         );
       }
 
-      // Set secure HTTP-only cookies for the session
-      const response = NextResponse.json(
+      // Check password (in a real app, this would be hashed)
+      if (user.password !== password) {
+        console.log('Invalid password for user:', email);
+        return NextResponse.json(
+          { error: { message: 'Invalid email or password' } },
+          { status: 401 }
+        );
+      }
+
+      console.log('Mock authentication successful:', { 
+        userId: user.id, 
+        email: user.email,
+        role: user.role
+      });
+
+      // Return success response with user data
+      return NextResponse.json(
         {
           message: 'Login successful',
           user: {
-            id: userResponse.Username,
-            email: emailAttr,
-            firstName: firstNameAttr,
-            lastName: lastNameAttr,
-            role: roleAttr,
-            instructorId: userAttributes.find(attr => attr.Name === 'custom:instructorId')?.Value,
-            department: userAttributes.find(attr => attr.Name === 'custom:department')?.Value,
-            emailVerified: userAttributes.find(attr => attr.Name === 'email_verified')?.Value === 'true',
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: user.role,
+            studentId: user.studentId,
+            instructorId: user.instructorId,
+            department: user.department,
+            emailVerified: user.emailVerified,
           },
           tokens: {
-            accessToken: authResponse.AuthenticationResult.AccessToken,
-            refreshToken: authResponse.AuthenticationResult.RefreshToken,
-            idToken: authResponse.AuthenticationResult.IdToken || authResponse.AuthenticationResult.AccessToken,
-            expiresIn: authResponse.AuthenticationResult.ExpiresIn || 3600,
+            accessToken: 'mock-access-token',
+            refreshToken: 'mock-refresh-token',
+            idToken: 'mock-id-token',
+            expiresIn: 3600, // 1 hour
           },
         },
         { status: 200 }
       );
-
-      // Set secure cookies
-      response.cookies.set('accessToken', authResponse.AuthenticationResult.AccessToken!, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 3600, // 1 hour
-        path: '/',
-      });
-
-      response.cookies.set('refreshToken', authResponse.AuthenticationResult.RefreshToken!, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
-        path: '/',
-      });
-
-      response.cookies.set('idToken', authResponse.AuthenticationResult.IdToken || authResponse.AuthenticationResult.AccessToken!, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 3600, // 1 hour
-        path: '/',
-      });
-
-      return response;
     } catch (authError) {
-      // Handle AWS Cognito authentication errors
-      console.error('AWS Cognito auth error, falling back to mock service:', authError);
+      console.error('Mock authentication error:', authError);
       
-      try {
-        // Fallback to mock service if Cognito fails
-        console.log('Attempting to authenticate with mock service as fallback');
-        const mockUser = await mockAuthService.authenticate(email, password);
-        
-        console.log('Mock service authentication successful:', { 
-          userId: mockUser.id, 
-          email: mockUser.email,
-          role: mockUser.role
-        });
-
-        // Return success response with mock user data
-        return NextResponse.json(
-          {
-            message: 'Login successful',
-            user: {
-              id: mockUser.id,
-              email: mockUser.email,
-              firstName: mockUser.firstName,
-              lastName: mockUser.lastName,
-              role: mockUser.role,
-              studentId: mockUser.studentId,
-              instructorId: mockUser.instructorId,
-              department: mockUser.department,
-              emailVerified: mockUser.emailVerified,
-            },
-            tokens: {
-              accessToken: 'mock-access-token',
-              refreshToken: 'mock-refresh-token',
-              idToken: 'mock-id-token',
-              expiresIn: 3600, // 1 hour
-            },
-          },
-          { status: 200 }
-        );
-      } catch (mockError) {
-        console.error('Mock service authentication also failed:', mockError);
-        
-        if (authError instanceof Error) {
-          const errorMessage = authError.message.toLowerCase();
-          console.log('Error message:', errorMessage);
-          
-          if (errorMessage.includes('invalid email or password') || mockError instanceof Error) {
-            return NextResponse.json(
-              { error: { message: 'Invalid email or password' } },
-              { status: 401 }
-            );
-          }
-        }
-        
-        // Log the error for debugging
-        console.error('Login authentication error:', authError);
-        
-        return NextResponse.json(
-          { error: { message: 'Authentication failed. Please check your credentials and try again' } },
-          { status: 401 }
-        );
-      }
+      return NextResponse.json(
+        { error: { message: 'Authentication failed. Please check your credentials and try again' } },
+        { status: 401 }
+      );
     }
   } catch (error) {
     console.error('Login request error:', error);
@@ -236,3 +118,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Function to add a user to the mock store (called from signup)
+export function addMockUser(userData: any) {
+  mockUsers.set(userData.email, userData);
+  console.log('Added user to mock store:', userData.email);
+}
