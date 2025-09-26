@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
-const lambdaClient = new LambdaClient({ region: 'us-east-1' });
+const lambdaClient = new LambdaClient({ 
+  region: 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+  }
+});
 
 // POST /api/profile/save - Save user profile
 export async function POST(request: NextRequest) {
