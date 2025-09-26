@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
 
 const lambdaClient = new LambdaClient({ 
-  region: 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.SECRET_ACCESS_KEY || '',
-  }
+  region: 'us-east-1'
+  // Uses default credential provider chain (IAM role)
 });
 
 // POST /api/profile/save - Save user profile
