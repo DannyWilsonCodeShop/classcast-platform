@@ -27,8 +27,9 @@ export function createCognitoClient(): CognitoIdentityProviderClient {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
   } else if (isProduction || isAmplify) {
-    // In production/Amplify, use instance metadata service
-    config.credentials = fromInstanceMetadata();
+    // In production/Amplify, use default credential provider chain
+    // This will automatically use the IAM role attached to the service
+    config.credentials = fromNodeProviderChain();
   }
   // Otherwise, let AWS SDK use default credential provider chain
 
@@ -50,8 +51,9 @@ export function createDynamoDBClient(): DynamoDBClient {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
   } else if (isProduction || isAmplify) {
-    // In production/Amplify, use instance metadata service
-    config.credentials = fromInstanceMetadata();
+    // In production/Amplify, use default credential provider chain
+    // This will automatically use the IAM role attached to the service
+    config.credentials = fromNodeProviderChain();
   }
   // Otherwise, let AWS SDK use default credential provider chain
 
@@ -73,8 +75,9 @@ export function createS3Client(): S3Client {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     };
   } else if (isProduction || isAmplify) {
-    // In production/Amplify, use instance metadata service
-    config.credentials = fromInstanceMetadata();
+    // In production/Amplify, use default credential provider chain
+    // This will automatically use the IAM role attached to the service
+    config.credentials = fromNodeProviderChain();
   }
   // Otherwise, let AWS SDK use default credential provider chain
 
