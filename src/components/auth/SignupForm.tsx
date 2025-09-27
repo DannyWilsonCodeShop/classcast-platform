@@ -193,8 +193,8 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
       // Clear any previous errors
       setErrors({});
       
-      // Handle different verification flows
-      if (result.requiresEmailConfirmation && formData.role === 'student') {
+      // Handle different verification flows only if result exists
+      if (result && result.requiresEmailConfirmation && formData.role === 'student') {
         // Show verification modal for students
         setPendingUser({
           email: formData.email,
@@ -203,7 +203,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
           role: formData.role
         });
         setShowVerificationModal(true);
-      } else {
+      } else if (result) {
         // AuthContext will handle the redirect based on user role
         console.log('SignupForm: AuthContext will handle redirect');
       }
