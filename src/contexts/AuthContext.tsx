@@ -77,10 +77,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      // Use Lambda function in production, Amplify serverless function in development
-      const loginUrl = window.location.hostname.includes('amplifyapp.com') 
-        ? 'https://51ry872ewf.execute-api.us-east-1.amazonaws.com/prod/auth/login'
-        : '/api/auth/login';
+      // Use current domain for API calls
+      const loginUrl = '/api/auth/login';
       
       const response = await fetch(loginUrl, {
         method: 'POST',
@@ -162,10 +160,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      // Use Lambda function in production, Amplify serverless function in development
-      const signupUrl = window.location.hostname.includes('amplifyapp.com') 
-        ? 'https://51ry872ewf.execute-api.us-east-1.amazonaws.com/prod/auth/signup'
-        : '/api/auth/signup';
+      // Use current domain for API calls
+      const signupUrl = '/api/auth/signup';
       
       const response = await fetch(signupUrl, {
         method: 'POST',
