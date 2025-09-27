@@ -91,6 +91,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const userData = await response.json();
         console.log('Login successful, userData:', userData);
+        
+        // Check if response has an error (even with 200 status)
+        if (userData.error) {
+          const errorMessage = userData.error.message || 'Login failed';
+          setAuthState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: errorMessage,
+          }));
+          throw new Error(errorMessage);
+        }
+        
+        // Check if response has user data
+        if (!userData.user) {
+          const errorMessage = 'Invalid response from server';
+          setAuthState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: errorMessage,
+          }));
+          throw new Error(errorMessage);
+        }
+        
         const newState = {
           user: userData.user,
           isAuthenticated: true,
@@ -174,6 +197,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const responseData = await response.json();
         
+        // Check if response has an error (even with 200 status)
+        if (responseData.error) {
+          const errorMessage = responseData.error.message || 'Signup failed';
+          setAuthState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: errorMessage,
+          }));
+          throw new Error(errorMessage);
+        }
+        
         // Check if user needs email verification
         if (responseData.requiresEmailConfirmation || responseData.needsVerification) {
           setAuthState(prev => ({
@@ -187,6 +221,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           localStorage.setItem('pendingVerificationEmail', userData.email);
           router.push(`/verify-email?email=${encodeURIComponent(userData.email)}`);
           return responseData;
+        }
+        
+        // Check if response has user data
+        if (!responseData.user) {
+          const errorMessage = 'Invalid response from server';
+          setAuthState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: errorMessage,
+          }));
+          throw new Error(errorMessage);
         }
         
         // If no verification needed, proceed directly to login
