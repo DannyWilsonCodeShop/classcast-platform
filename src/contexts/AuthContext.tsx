@@ -89,8 +89,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (response.ok) {
-        const userData = await response.json();
-        console.log('Login successful, userData:', userData);
+        const responseData = await response.json();
+        console.log('Login successful, responseData:', responseData);
+        
+        // Parse the nested response structure
+        let userData;
+        if (responseData.body) {
+          // If response has a body property, parse it
+          userData = typeof responseData.body === 'string' 
+            ? JSON.parse(responseData.body) 
+            : responseData.body;
+        } else {
+          // If response is direct, use it
+          userData = responseData;
+        }
+        
+        console.log('Parsed userData:', userData);
         
         // Check if response has an error (even with 200 status)
         if (userData.error) {
@@ -195,7 +209,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (response.ok) {
-        const responseData = await response.json();
+        const rawResponseData = await response.json();
+        console.log('Signup response received:', rawResponseData);
+        
+        // Parse the nested response structure
+        let responseData;
+        if (rawResponseData.body) {
+          // If response has a body property, parse it
+          responseData = typeof rawResponseData.body === 'string' 
+            ? JSON.parse(rawResponseData.body) 
+            : rawResponseData.body;
+        } else {
+          // If response is direct, use it
+          responseData = rawResponseData;
+        }
+        
+        console.log('Parsed signup responseData:', responseData);
         
         // Check if response has an error (even with 200 status)
         if (responseData.error) {
