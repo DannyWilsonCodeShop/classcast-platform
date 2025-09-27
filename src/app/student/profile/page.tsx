@@ -1,86 +1,99 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ProfileEditor from '@/components/student/ProfileEditor';
+import { CameraIcon, UserIcon, PencilIcon } from '@heroicons/react/24/outline';
+
+interface ProfileData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar: string;
+  bio: string;
+  careerGoals: string;
+  classOf: string;
+  funFact: string;
+  favoriteSubject: string;
+  hobbies: string;
+  schoolName?: string;
+}
 
 const StudentProfilePage: React.FC = () => {
-  console.log('StudentProfilePage component starting - SIMPLE VERSION');
-  
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const [avatar, setAvatar] = useState(user?.avatar || '');
-  const [isUploading, setIsUploading] = useState(false);
-  
-  console.log('StudentProfilePage rendering, user:', user, 'isEditing:', isEditing);
+  const [isLoading, setIsLoading] = useState(false);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // Handle avatar upload
-  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
+  // Initialize profile data from user context
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        id: user.id || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        avatar: user.avatar || '',
+        bio: user.bio || '',
+        careerGoals: user.careerGoals || '',
+        classOf: user.classOf || '',
+        funFact: user.funFact || '',
+        favoriteSubject: user.favoriteSubject || '',
+        hobbies: user.hobbies || '',
+        schoolName: user.schoolName || ''
+      });
     }
+  }, [user]);
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      // Convert to base64 for immediate preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        if (dataUrl) {
-          setAvatar(dataUrl);
-          setIsUploading(false);
-        }
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error('Avatar upload error:', error);
-      alert('Error uploading avatar');
-      setIsUploading(false);
-    }
-  };
-
-  // Form validation
-  const validateForm = (formData: FormData): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
+  // Handle profile save
+  const handleSaveProfile = async (updatedProfile: ProfileData) => {
+    setIsLoading(true);
+    setError(null);
     
-    const firstName = formData.get('firstName') as string;
-    const lastName = formData.get('lastName') as string;
-    const email = formData.get('email') as string;
-    const favoriteSubject = formData.get('favoriteSubject') as string;
-    const hobbies = formData.get('hobbies') as string;
-    const careerGoals = formData.get('careerGoals') as string;
-    const classOf = formData.get('classOf') as string;
+    try {
+      console.log('Saving profile:', updatedProfile);
+      
+      const response = await fetch('/api/profile/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          ...updatedProfile
+        }),
+      });
 
-    if (!firstName?.trim()) errors.push('First name is required');
-    if (!lastName?.trim()) errors.push('Last name is required');
-    if (!email?.trim()) {
-      errors.push('Email is required');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.push('Please enter a valid email address');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to save profile');
+      }
+
+      const result = await response.json();
+      console.log('Profile save result:', result);
+      
+      // Update local profile state
+      setProfile(updatedProfile);
+      setIsEditing(false);
+      
+      // Show success message
+      alert('Profile updated successfully!');
+      
+    } catch (error) {
+      console.error('Profile save error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to save profile');
+    } finally {
+      setIsLoading(false);
     }
-    if (!favoriteSubject?.trim()) errors.push('Favorite subject is required');
-    if (!hobbies?.trim()) errors.push('Hobbies and interests are required');
-    if (!careerGoals?.trim()) errors.push('Career goals are required');
-    if (!classOf?.trim()) errors.push('Class of is required');
-
-    return { isValid: errors.length === 0, errors };
   };
 
-  if (!user) {
+  if (!user || !profile) {
     return (
       <StudentRoute>
         <div className="min-h-screen flex items-center justify-center bg-[#F5F5F5]">
@@ -103,7 +116,7 @@ const StudentProfilePage: React.FC = () => {
               <Link
                 href="/student/dashboard"
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
-                title="Back to Home"
+                title="Back to Dashboard"
               >
                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -111,7 +124,7 @@ const StudentProfilePage: React.FC = () => {
               </Link>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-[#4A90E2] rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  👤
+                  {profile.firstName?.charAt(0) || 'S'}
                 </div>
                 <div>
                   <h1 className="text-lg font-bold text-[#333333]">My Profile</h1>
@@ -137,32 +150,153 @@ const StudentProfilePage: React.FC = () => {
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto p-6">
-          <div className="bg-white rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+          {/* Profile Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-white/20 overflow-hidden mb-6">
+            {/* Profile Header */}
+            <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-6 text-white">
+              <div className="flex items-center space-x-6">
+                <div className="relative">
+                  {profile.avatar ? (
+                    <img
+                      src={profile.avatar}
+                      alt={`${profile.firstName} ${profile.lastName}`}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center border-4 border-white shadow-lg">
+                      <UserIcon className="w-12 h-12 text-white" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-3xl font-bold">
+                    {profile.firstName} {profile.lastName}
+                  </h2>
+                  <p className="text-lg opacity-90">{profile.email}</p>
+                  {profile.classOf && (
+                    <p className="text-sm opacity-75">Class of {profile.classOf}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                >
+                  <PencilIcon className="w-5 h-5" />
+                  <span>Edit Profile</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Profile Details */}
             <div className="p-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Simple Profile Test</h2>
-              
-              <button
-                onClick={() => {
-                  alert('Button clicked!');
-                  console.log('Button clicked, setting isEditing to true');
-                  setIsEditing(true);
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mb-4"
-              >
-                Test Button
-              </button>
-              
-              <p>isEditing state: {isEditing ? 'true' : 'false'}</p>
-              
-              {isEditing && (
-                <div className="mt-4 p-4 bg-green-100 border border-green-300 rounded-lg">
-                  <h3 className="text-lg font-semibold text-green-800">Edit Mode Active!</h3>
-                  <p className="text-green-700">The button click worked and isEditing is now true.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                    Basic Information
+                  </h3>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">First Name</label>
+                    <p className="text-gray-900">{profile.firstName}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Last Name</label>
+                    <p className="text-gray-900">{profile.lastName}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Email</label>
+                    <p className="text-gray-900">{profile.email}</p>
+                  </div>
+                  
+                  {profile.schoolName && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">School</label>
+                      <p className="text-gray-900">{profile.schoolName}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Academic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                    Academic Information
+                  </h3>
+                  
+                  {profile.favoriteSubject && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Favorite Subject</label>
+                      <p className="text-gray-900">{profile.favoriteSubject}</p>
+                    </div>
+                  )}
+                  
+                  {profile.classOf && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Class of</label>
+                      <p className="text-gray-900">{profile.classOf}</p>
+                    </div>
+                  )}
+                  
+                  {profile.careerGoals && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Career Goals</label>
+                      <p className="text-gray-900">{profile.careerGoals}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Personal Information */}
+              {(profile.bio || profile.hobbies || profile.funFact) && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                  
+                  <div className="space-y-4">
+                    {profile.bio && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Bio</label>
+                        <p className="text-gray-900">{profile.bio}</p>
+                      </div>
+                    )}
+                    
+                    {profile.hobbies && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Hobbies & Interests</label>
+                        <p className="text-gray-900">{profile.hobbies}</p>
+                      </div>
+                    )}
+                    
+                    {profile.funFact && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Fun Fact</label>
+                        <p className="text-gray-900">{profile.funFact}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-red-800">{error}</p>
+            </div>
+          )}
         </div>
+
+        {/* Profile Editor Modal */}
+        {profile && (
+          <ProfileEditor
+            profile={profile}
+            onSave={handleSaveProfile}
+            onCancel={() => setIsEditing(false)}
+            isOpen={isEditing}
+          />
+        )}
       </div>
     </StudentRoute>
   );
