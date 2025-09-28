@@ -59,6 +59,15 @@ const StudentProfilePage: React.FC = () => {
     try {
       console.log('Saving profile:', updatedProfile);
       
+      // Prepare profile data without base64 avatar
+      const profileDataToSave = { ...updatedProfile };
+      
+      // If avatar is base64 data, we'll handle it separately
+      if (profileDataToSave.avatar && profileDataToSave.avatar.startsWith('data:image/')) {
+        console.log('Avatar is base64 data, will be handled by Lambda');
+        // Keep the base64 data - Lambda will handle S3 upload
+      }
+      
       const response = await fetch('/api/profile/save', {
         method: 'POST',
         headers: {
@@ -66,13 +75,23 @@ const StudentProfilePage: React.FC = () => {
         },
         body: JSON.stringify({
           userId: user?.id,
-          ...updatedProfile
+          ...profileDataToSave
         }),
       });
 
+      console.log('Profile save response status:', response.status);
+      console.log('Profile save response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error?.message || 'Failed to save profile');
+        let errorMessage = 'Failed to save profile';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error?.message || errorData.message || errorMessage;
+        } catch (parseError) {
+          console.error('Failed to parse error response:', parseError);
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
