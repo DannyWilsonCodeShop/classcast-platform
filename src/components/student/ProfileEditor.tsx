@@ -78,35 +78,23 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
       setIsUploading(true);
       setErrors(prev => ({ ...prev, avatar: '' }));
       
-      // Convert file to base64 for S3 upload
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const dataUrl = e.target?.result as string;
-        if (dataUrl) {
-          // Upload to S3
-          const uploadResult = await uploadBase64ToS3(dataUrl, editedProfile.id, file.type);
-          
-          if (uploadResult.success && uploadResult.url) {
-            // Update profile with S3 URL
-            setEditedProfile(prev => ({
-              ...prev,
-              avatar: uploadResult.url
-            }));
-            console.log('Avatar uploaded to S3:', uploadResult.url);
-          } else {
-            // Fallback to base64 for immediate preview
-            setEditedProfile(prev => ({
-              ...prev,
-              avatar: dataUrl
-            }));
-            setErrors(prev => ({
-              ...prev,
-              avatar: uploadResult.error || 'Upload failed, using local preview'
-            }));
-          }
-        }
-      };
-      reader.readAsDataURL(file);
+      // Upload file directly to S3
+      const uploadResult = await uploadAvatarToS3(file, editedProfile.id);
+      
+      if (uploadResult.success && uploadResult.url) {
+        // Update profile with S3 URL
+        setEditedProfile(prev => ({
+          ...prev,
+          avatar: uploadResult.url
+        }));
+        console.log('Avatar uploaded to S3:', uploadResult.url);
+      } else {
+        // Show error but don't update profile
+        setErrors(prev => ({
+          ...prev,
+          avatar: uploadResult.error || 'Upload failed'
+        }));
+      }
       
     } catch (error) {
       console.error('Avatar upload error:', error);
