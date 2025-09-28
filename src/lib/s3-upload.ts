@@ -1,13 +1,3 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-
-// Initialize S3 client
-const s3Client = new S3Client({
-  region: 'us-east-1',
-  // Uses default credential provider chain (IAM role)
-});
-
-const BUCKET_NAME = 'cdk-hnb659fds-assets-463470937777-us-east-1';
-
 export interface UploadResult {
   success: boolean;
   url?: string;
@@ -35,29 +25,31 @@ export async function uploadAvatarToS3(
       };
     }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop() || 'jpg';
-    const filename = `avatar_${userId}_${timestamp}.${fileExtension}`;
-    const key = `profile-pictures/${filename}`;
+    // Use the existing upload API instead of direct S3 upload
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', 'profile-pictures');
+    formData.append('userId', userId);
+    formData.append('metadata', JSON.stringify({
+      fileType: 'avatar',
+      uploadedAt: new Date().toISOString()
+    }));
 
-    // Upload to S3
-    const uploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      Body: file,
-      ContentType: file.type,
-      ACL: 'public-read'
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
     });
 
-    await s3Client.send(uploadCommand);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Upload failed');
+    }
 
-    // Return the public URL
-    const url = `https://${BUCKET_NAME}.s3.us-east-1.amazonaws.com/${key}`;
+    const result = await response.json();
     
     return {
       success: true,
-      url
+      url: result.data.fileUrl
     };
 
   } catch (error) {
@@ -75,41 +67,15 @@ export async function uploadBase64ToS3(
   contentType: string = 'image/jpeg'
 ): Promise<UploadResult> {
   try {
-    // Extract base64 data
-    const base64String = base64Data.split(',')[1];
-    if (!base64String) {
-      return {
-        success: false,
-        error: 'Invalid base64 data'
-      };
-    }
-
-    // Convert to buffer
-    const buffer = Buffer.from(base64String, 'base64');
-
-    // Generate unique filename
-    const timestamp = Date.now();
-    const filename = `avatar_${userId}_${timestamp}.jpg`;
-    const key = `profile-pictures/${filename}`;
-
-    // Upload to S3
-    const uploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-      Body: buffer,
-      ContentType: contentType,
-      ACL: 'public-read'
-    });
-
-    await s3Client.send(uploadCommand);
-
-    // Return the public URL
-    const url = `https://${BUCKET_NAME}.s3.us-east-1.amazonaws.com/${key}`;
+    // Convert base64 to blob
+    const response = await fetch(base64Data);
+    const blob = await response.blob();
     
-    return {
-      success: true,
-      url
-    };
+    // Create a file from the blob
+    const file = new File([blob], `avatar_${userId}.jpg`, { type: contentType });
+    
+    // Use the file upload function
+    return await uploadAvatarToS3(file, userId);
 
   } catch (error) {
     console.error('S3 upload error:', error);

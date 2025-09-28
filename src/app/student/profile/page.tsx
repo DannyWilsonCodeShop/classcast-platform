@@ -59,13 +59,46 @@ const StudentProfilePage: React.FC = () => {
     try {
       console.log('Saving profile:', updatedProfile);
       
-      // Prepare profile data - avatars should already be S3 URLs
+      // Prepare profile data
       const profileDataToSave = { ...updatedProfile };
       
-      // If avatar is still base64 data, skip it (shouldn't happen with new S3 upload)
+      // If avatar is still base64 data, we need to upload it to S3 first
       if (profileDataToSave.avatar && profileDataToSave.avatar.startsWith('data:image/')) {
-        console.log('Avatar is still base64 data, skipping avatar save');
-        delete profileDataToSave.avatar;
+        console.log('Avatar is base64 data, uploading to S3 first...');
+        
+        try {
+          // Convert base64 to blob and upload
+          const response = await fetch(profileDataToSave.avatar);
+          const blob = await response.blob();
+          const file = new File([blob], `avatar_${user.id}.jpg`, { type: 'image/jpeg' });
+          
+          // Upload using the upload API
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('folder', 'profile-pictures');
+          formData.append('userId', user.id);
+          formData.append('metadata', JSON.stringify({
+            fileType: 'avatar',
+            uploadedAt: new Date().toISOString()
+          }));
+
+          const uploadResponse = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json();
+            profileDataToSave.avatar = uploadResult.data.fileUrl;
+            console.log('Avatar uploaded to S3:', profileDataToSave.avatar);
+          } else {
+            console.error('Avatar upload failed, skipping avatar save');
+            delete profileDataToSave.avatar;
+          }
+        } catch (uploadError) {
+          console.error('Error uploading avatar:', uploadError);
+          delete profileDataToSave.avatar;
+        }
       }
       
       const response = await fetch('/api/profile/save', {
