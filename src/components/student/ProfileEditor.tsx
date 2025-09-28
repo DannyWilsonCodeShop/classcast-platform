@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { CameraIcon, UserIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { uploadBase64ToS3 } from '@/lib/s3-upload';
 
 interface ProfileData {
   id: string;
@@ -77,36 +78,41 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
       setIsUploading(true);
       setErrors(prev => ({ ...prev, avatar: '' }));
       
-      // For now, create a local preview URL as a fallback
-      // In production, this would upload to S3
-      const previewUrl = URL.createObjectURL(file);
-      
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Convert file to base64 data URL for immediate display
+      // Convert file to base64 for S3 upload
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const dataUrl = e.target?.result as string;
         if (dataUrl) {
-          setEditedProfile(prev => ({
-            ...prev,
-            avatar: dataUrl
-          }));
-          console.log('Avatar converted to base64 data URL');
+          // Upload to S3
+          const uploadResult = await uploadBase64ToS3(dataUrl, editedProfile.id, file.type);
+          
+          if (uploadResult.success && uploadResult.url) {
+            // Update profile with S3 URL
+            setEditedProfile(prev => ({
+              ...prev,
+              avatar: uploadResult.url
+            }));
+            console.log('Avatar uploaded to S3:', uploadResult.url);
+          } else {
+            // Fallback to base64 for immediate preview
+            setEditedProfile(prev => ({
+              ...prev,
+              avatar: dataUrl
+            }));
+            setErrors(prev => ({
+              ...prev,
+              avatar: uploadResult.error || 'Upload failed, using local preview'
+            }));
+          }
         }
       };
       reader.readAsDataURL(file);
       
-      setErrors(prev => ({
-        ...prev,
-        avatar: ''
-      }));
     } catch (error) {
-      console.error('Error uploading avatar:', error);
+      console.error('Avatar upload error:', error);
       setErrors(prev => ({
         ...prev,
-        avatar: 'Failed to upload image. Using local preview for now.'
+        avatar: 'Failed to upload avatar. Please try again.'
       }));
       
       // Still set a local preview even if upload fails
