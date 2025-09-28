@@ -59,13 +59,13 @@ const StudentProfilePage: React.FC = () => {
     try {
       console.log('Saving profile:', updatedProfile);
       
-      // Prepare profile data without base64 avatar
+      // Prepare profile data - avatars should already be S3 URLs
       const profileDataToSave = { ...updatedProfile };
       
-      // If avatar is base64 data, we'll handle it separately
+      // If avatar is still base64 data, skip it (shouldn't happen with new S3 upload)
       if (profileDataToSave.avatar && profileDataToSave.avatar.startsWith('data:image/')) {
-        console.log('Avatar is base64 data, will be handled by Lambda');
-        // Keep the base64 data - Lambda will handle S3 upload
+        console.log('Avatar is still base64 data, skipping avatar save');
+        delete profileDataToSave.avatar;
       }
       
       const response = await fetch('/api/profile/save', {
