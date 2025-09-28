@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { CameraIcon, UserIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { uploadBase64ToS3 } from '@/lib/s3-upload';
+import { uploadAvatarToS3 } from '@/lib/s3-upload';
 
 interface ProfileData {
   id: string;
