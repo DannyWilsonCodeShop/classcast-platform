@@ -35,7 +35,9 @@ const StudentProfilePage: React.FC = () => {
 
   // Initialize profile data from user context
   useEffect(() => {
+    console.log('useEffect triggered - user:', user, 'profile:', profile);
     if (user && !profile) { // Only initialize if profile is not already set
+      console.log('Initializing profile from user context');
       const profileData = {
         id: user.id || '',
         firstName: user.firstName || '',
@@ -50,8 +52,12 @@ const StudentProfilePage: React.FC = () => {
         hobbies: user.hobbies || '',
         schoolName: user.schoolName || ''
       };
+      console.log('Profile data from user context:', profileData);
+      console.log('User avatar:', user.avatar);
       setProfile(profileData);
       setEditedProfile(profileData);
+    } else {
+      console.log('Skipping profile initialization - user:', !!user, 'profile:', !!profile);
     }
   }, [user, profile]);
 
@@ -276,12 +282,22 @@ const StudentProfilePage: React.FC = () => {
       // Update local profile state with server response
       if (result.user) {
         console.log('Updating profile with result.user:', result.user);
+        console.log('Result user avatar:', result.user.avatar);
+        console.log('Result user avatar type:', typeof result.user.avatar);
+        console.log('Result user avatar starts with data:', result.user.avatar?.startsWith('data:'));
+        console.log('Result user avatar starts with https:', result.user.avatar?.startsWith('https:'));
+        
         setProfile(result.user);
         setIsEditing(false);
         
         // Update the user in AuthContext using the updateUser function
         console.log('Calling updateUser with:', result.user);
         updateUser(result.user);
+        
+        // Verify the profile state after update
+        setTimeout(() => {
+          console.log('Profile state after update:', profile);
+        }, 100);
       } else {
         console.log('No result.user found in response');
       }
