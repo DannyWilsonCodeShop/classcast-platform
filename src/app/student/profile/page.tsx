@@ -55,43 +55,8 @@ const StudentProfilePage: React.FC = () => {
     }
   }, [user]);
 
-  // Refresh profile data from server on page load
-  useEffect(() => {
-    const refreshProfileData = async () => {
-      if (user?.id) {
-        try {
-          // Fetch fresh user data from the server
-          const response = await fetch(`/api/users/${user.id}`);
-          if (response.ok) {
-            const userData = await response.json();
-            if (userData.success && userData.data) {
-              const freshProfile = {
-                id: userData.data.userId || userData.data.id || '',
-                firstName: userData.data.firstName || '',
-                lastName: userData.data.lastName || '',
-                email: userData.data.email || '',
-                avatar: userData.data.avatar || '',
-                bio: userData.data.bio || '',
-                careerGoals: userData.data.careerGoals || '',
-                classOf: userData.data.classOf || '',
-                funFact: userData.data.funFact || '',
-                favoriteSubject: userData.data.favoriteSubject || '',
-                hobbies: userData.data.hobbies || '',
-                schoolName: userData.data.schoolName || ''
-              };
-              setProfile(freshProfile);
-              setEditedProfile(freshProfile);
-            }
-          }
-        } catch (error) {
-          console.log('Could not refresh profile data from server:', error);
-          // Continue with existing user data if refresh fails
-        }
-      }
-    };
-
-    refreshProfileData();
-  }, [user?.id]);
+  // Note: Removed server-side profile refresh to avoid 404 errors
+  // Profile data will be refreshed from AuthContext localStorage
 
   // Handle input changes
   const handleInputChange = (field: keyof ProfileData, value: string) => {
@@ -200,6 +165,51 @@ const StudentProfilePage: React.FC = () => {
       if (cleanProfile.avatar && cleanProfile.avatar.startsWith('blob:')) {
         console.log('Removing blob URL from profile data');
         cleanProfile.avatar = '';
+      }
+
+      // Handle large base64 avatars by uploading to S3 first
+      if (cleanProfile.avatar && cleanProfile.avatar.startsWith('data:image/')) {
+        console.log('Avatar is base64, uploading to S3 first...');
+        try {
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: (() => {
+              const formData = new FormData();
+              const base64Data = cleanProfile.avatar.split(',')[1];
+              const contentType = cleanProfile.avatar.split(';')[0].split(':')[1];
+              const fileExtension = contentType.split('/')[1] || 'jpg';
+              const fileName = `avatar_${user.id}_${Date.now()}.${fileExtension}`;
+              
+              // Convert base64 to blob
+              const byteCharacters = atob(base64Data);
+              const byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              const byteArray = new Uint8Array(byteNumbers);
+              const blob = new Blob([byteArray], { type: contentType });
+              
+              formData.append('file', blob, fileName);
+              formData.append('folder', 'profile-pictures');
+              formData.append('userId', user.id);
+              return formData;
+            })()
+          });
+
+          if (response.ok) {
+            const uploadResult = await response.json();
+            if (uploadResult.success && uploadResult.data?.fileUrl) {
+              console.log('Avatar uploaded to S3:', uploadResult.data.fileUrl);
+              cleanProfile.avatar = uploadResult.data.fileUrl;
+            } else {
+              console.log('S3 upload failed, keeping base64 data');
+            }
+          } else {
+            console.log('S3 upload failed, keeping base64 data');
+          }
+        } catch (error) {
+          console.log('S3 upload error, keeping base64 data:', error);
+        }
       }
 
       console.log('Saving profile:', cleanProfile);
