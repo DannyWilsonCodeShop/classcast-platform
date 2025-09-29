@@ -76,7 +76,8 @@ exports.handler = async (event) => {
         // Process each field
         const allowedFields = [
             'firstName', 'lastName', 'bio', 'schoolName', 'favoriteSubject', 
-            'funFact', 'hobbies', 'department', 'avatar'
+            'funFact', 'hobbies', 'department', 'avatar', 'careerGoals', 
+            'classOf', 'yearsExperience'
         ];
 
         for (const [key, value] of Object.entries(profileData)) {
