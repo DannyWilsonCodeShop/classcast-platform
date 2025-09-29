@@ -271,14 +271,19 @@ const StudentProfilePage: React.FC = () => {
 
       const result = await response.json();
       console.log('Profile save result:', result);
+      console.log('Result user data:', result.user);
 
       // Update local profile state with server response
       if (result.user) {
+        console.log('Updating profile with result.user:', result.user);
         setProfile(result.user);
         setIsEditing(false);
         
         // Update the user in AuthContext using the updateUser function
+        console.log('Calling updateUser with:', result.user);
         updateUser(result.user);
+      } else {
+        console.log('No result.user found in response');
       }
 
       // Show success message

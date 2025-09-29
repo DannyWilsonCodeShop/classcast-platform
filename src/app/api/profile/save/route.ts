@@ -106,10 +106,30 @@ export async function POST(request: NextRequest) {
     const result = await docClient.send(updateCommand);
     console.log('DynamoDB update result:', result);
 
+    // Convert DynamoDB result to user object
+    const updatedUser = {
+      id: result.Attributes?.userId?.S || userId,
+      firstName: result.Attributes?.firstName?.S || profileData.firstName,
+      lastName: result.Attributes?.lastName?.S || profileData.lastName,
+      email: result.Attributes?.email?.S || profileData.email,
+      avatar: result.Attributes?.avatar?.S || profileData.avatar,
+      bio: result.Attributes?.bio?.S || profileData.bio,
+      careerGoals: result.Attributes?.careerGoals?.S || profileData.careerGoals,
+      classOf: result.Attributes?.classOf?.S || profileData.classOf,
+      funFact: result.Attributes?.funFact?.S || profileData.funFact,
+      favoriteSubject: result.Attributes?.favoriteSubject?.S || profileData.favoriteSubject,
+      hobbies: result.Attributes?.hobbies?.S || profileData.hobbies,
+      schoolName: result.Attributes?.schoolName?.S || profileData.schoolName,
+      department: result.Attributes?.department?.S || profileData.department,
+      yearsExperience: result.Attributes?.yearsExperience?.N ? parseInt(result.Attributes.yearsExperience.N) : profileData.yearsExperience
+    };
+
+    console.log('Returning updated user data:', updatedUser);
+
     return NextResponse.json({
       success: true,
       message: 'Profile updated successfully',
-      user: profileData
+      user: updatedUser
     }, {
       status: 200,
       headers: {
