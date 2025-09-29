@@ -36,6 +36,7 @@ const StudentDashboard: React.FC = () => {
     nextDueAssignment: null
   });
   const [isLoadingTodoStats, setIsLoadingTodoStats] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Only load data if user is authenticated
@@ -47,6 +48,7 @@ const StudentDashboard: React.FC = () => {
 
     const loadDashboardData = async () => {
       try {
+        setError(null);
         setIsLoadingStats(true);
         setIsLoadingCourses(true);
         setIsLoadingAssignments(true);
