@@ -309,13 +309,19 @@ const StudentProfilePage: React.FC = () => {
         console.log('Result user avatar starts with data:', result.user.avatar?.startsWith('data:'));
         console.log('Result user avatar starts with https:', result.user.avatar?.startsWith('https:'));
         
-        setProfile(result.user);
-        setEditedProfile(result.user); // Also update editedProfile with the S3 URL
+        // Add cache-busting parameter to force image reload
+        const updatedUser = {
+          ...result.user,
+          avatar: result.user.avatar ? `${result.user.avatar}?t=${Date.now()}` : result.user.avatar
+        };
+        
+        setProfile(updatedUser);
+        setEditedProfile(updatedUser); // Also update editedProfile with the S3 URL
         setIsEditing(false);
         
         // Update the user in AuthContext using the updateUser function
-        console.log('Calling updateUser with:', result.user);
-        updateUser(result.user);
+        console.log('Calling updateUser with:', updatedUser);
+        updateUser(updatedUser);
         
         // Verify the profile state after update
         console.log('Profile state immediately after setProfile:', profile);
@@ -399,11 +405,12 @@ const StudentProfilePage: React.FC = () => {
                 <div className="relative">
                   {profile.avatar ? (
                     <img
+                      key={profile.avatar} // Force re-render when avatar changes
                       src={profile.avatar}
                       alt={`${profile.firstName} ${profile.lastName}`}
                       className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-            />
-          ) : (
+                    />
+                  ) : (
                     <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center border-4 border-white shadow-lg">
                       <UserIcon className="w-12 h-12 text-white" />
                     </div>
@@ -551,6 +558,7 @@ const StudentProfilePage: React.FC = () => {
                   <div className="relative">
                     <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
                       <img
+                        key={editedProfile.avatar} // Force re-render when avatar changes
                         src={editedProfile.avatar || '/api/placeholder/100/100'}
                         alt="Profile"
                         className="w-full h-full object-cover"
