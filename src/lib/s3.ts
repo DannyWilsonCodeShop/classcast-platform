@@ -5,18 +5,8 @@ import { awsConfig } from './aws-config';
 // S3 client configuration
 const s3Client = new S3Client({
   region: awsConfig.region,
-  // In production (Amplify), use IAM role; in development, use explicit credentials
-  ...(process.env.NODE_ENV !== 'production' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
-  } : {
-    // Force use of default credential provider chain in production
-    credentials: undefined,
-  }),
-  // For local development, you can use:
-  // endpoint: 'http://localhost:9000',
+  // Use default credential provider chain (IAM role in production, local credentials in development)
+  // Don't specify credentials explicitly - let AWS SDK handle it automatically
 });
 
 // Bucket name from unified configuration
