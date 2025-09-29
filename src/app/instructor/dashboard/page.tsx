@@ -121,38 +121,29 @@ const InstructorDashboard: React.FC = () => {
     return '📚';
   };
 
-  // Mock student data for each course
-  const getMockStudentsForCourse = (courseId: string): Student[] => {
-    const studentsByCourse: { [key: string]: Student[] } = {
-      'cs-101': [
-        { id: 's1', name: 'Alice Johnson', email: 'alice.johnson@email.com', enrollmentDate: '2024-01-15', lastActive: '2024-01-20', submissionsCount: 3, averageGrade: 87 },
-        { id: 's2', name: 'Bob Smith', email: 'bob.smith@email.com', enrollmentDate: '2024-01-15', lastActive: '2024-01-19', submissionsCount: 2, averageGrade: 92 },
-        { id: 's3', name: 'Carol Davis', email: 'carol.davis@email.com', enrollmentDate: '2024-01-16', lastActive: '2024-01-20', submissionsCount: 4, averageGrade: 78 },
-        { id: 's4', name: 'David Wilson', email: 'david.wilson@email.com', enrollmentDate: '2024-01-15', lastActive: '2024-01-18', submissionsCount: 1, averageGrade: 85 },
-        { id: 's5', name: 'Eva Brown', email: 'eva.brown@email.com', enrollmentDate: '2024-01-17', lastActive: '2024-01-20', submissionsCount: 3, averageGrade: 90 }
-      ],
-      'math-201': [
-        { id: 's6', name: 'Frank Miller', email: 'frank.miller@email.com', enrollmentDate: '2024-01-10', lastActive: '2024-01-20', submissionsCount: 2, averageGrade: 88 },
-        { id: 's7', name: 'Grace Lee', email: 'grace.lee@email.com', enrollmentDate: '2024-01-10', lastActive: '2024-01-19', submissionsCount: 3, averageGrade: 95 },
-        { id: 's8', name: 'Henry Taylor', email: 'henry.taylor@email.com', enrollmentDate: '2024-01-12', lastActive: '2024-01-20', submissionsCount: 1, averageGrade: 82 }
-      ],
-      'eng-102': [
-        { id: 's9', name: 'Ivy Chen', email: 'ivy.chen@email.com', enrollmentDate: '2024-01-08', lastActive: '2024-01-20', submissionsCount: 2, averageGrade: 91 },
-        { id: 's10', name: 'Jack Anderson', email: 'jack.anderson@email.com', enrollmentDate: '2024-01-08', lastActive: '2024-01-19', submissionsCount: 1, averageGrade: 76 }
-      ],
-      'phy-301': [
-        { id: 's11', name: 'Kate Rodriguez', email: 'kate.rodriguez@email.com', enrollmentDate: '2024-01-05', lastActive: '2024-01-20', submissionsCount: 1, averageGrade: 89 }
-      ],
-      'bio-150': [
-        { id: 's12', name: 'Liam Thompson', email: 'liam.thompson@email.com', enrollmentDate: '2024-01-14', lastActive: '2024-01-18', submissionsCount: 0, averageGrade: 0 }
-      ],
-      'hist-201': [
-        { id: 's13', name: 'Maya Patel', email: 'maya.patel@email.com', enrollmentDate: '2024-01-12', lastActive: '2024-01-20', submissionsCount: 1, averageGrade: 93 },
-        { id: 's14', name: 'Noah Garcia', email: 'noah.garcia@email.com', enrollmentDate: '2024-01-12', lastActive: '2024-01-19', submissionsCount: 1, averageGrade: 87 }
-      ]
-    };
-    
-    return studentsByCourse[courseId] || [];
+  // State for course students
+  const [courseStudents, setCourseStudents] = useState<Student[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+
+  // Fetch students for a course
+  const fetchCourseStudents = async (courseId: string) => {
+    try {
+      setLoadingStudents(true);
+      const response = await fetch(`/api/instructor/courses/${courseId}/students?instructorId=${user?.id}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCourseStudents(data.students || []);
+      } else {
+        console.error('Failed to fetch students:', response.statusText);
+        setCourseStudents([]);
+      }
+    } catch (error) {
+      console.error('Error fetching students:', error);
+      setCourseStudents([]);
+    } finally {
+      setLoadingStudents(false);
+    }
   };
 
 
@@ -172,6 +163,13 @@ const InstructorDashboard: React.FC = () => {
       checkFirstTimeInstructor();
     }
   }, [loading, courses.length]);
+
+  // Fetch students when a course is selected
+  useEffect(() => {
+    if (selectedCourse) {
+      fetchCourseStudents(selectedCourse.id);
+    }
+  }, [selectedCourse]);
 
   // Fetch dashboard data
   useEffect(() => {
@@ -560,8 +558,14 @@ const InstructorDashboard: React.FC = () => {
 
               {/* Student List */}
               <div className="flex-1 overflow-y-auto p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {getMockStudentsForCourse(selectedCourse.id).map((student) => (
+                {loadingStudents ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                    <span className="ml-2 text-gray-600">Loading students...</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {courseStudents.map((student) => (
                     <div key={student.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
                       <div className="flex items-start space-x-3">
                         <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">
@@ -587,10 +591,11 @@ const InstructorDashboard: React.FC = () => {
           </div>
                       </div>
                     </div>
-                  ))}
-        </div>
+                    ))}
+                  </div>
+                )}
 
-                {getMockStudentsForCourse(selectedCourse.id).length === 0 && (
+                {courseStudents.length === 0 && !loadingStudents && (
                   <div className="text-center py-8">
                     <div className="text-4xl mb-4">👥</div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">No Students Enrolled</h3>
@@ -603,7 +608,7 @@ const InstructorDashboard: React.FC = () => {
               <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">
-                    Total: {getMockStudentsForCourse(selectedCourse.id).length} students
+                    Total: {courseStudents.length} students
                   </span>
             <button
                     onClick={() => setShowStudentList(false)}
