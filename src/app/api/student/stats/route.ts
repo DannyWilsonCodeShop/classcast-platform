@@ -35,15 +35,23 @@ export async function GET(request: NextRequest) {
     const activeCourseIds = activeCourses.map(course => course.courseId);
 
     // Get assignments for user's courses
-    const assignmentsResult = await docClient.send(new ScanCommand({
-      TableName: ASSIGNMENTS_TABLE,
-      FilterExpression: 'courseId IN :courseIds',
-      ExpressionAttributeValues: {
-        ':courseIds': activeCourseIds
-      }
-    }));
-    
-    const allAssignments = assignmentsResult.Items || [];
+    let allAssignments = [];
+    if (activeCourseIds.length > 0) {
+      // DynamoDB doesn't support IN with expression attribute values directly
+      // We need to query each course individually
+      const assignmentPromises = activeCourseIds.map(courseId => 
+        docClient.send(new ScanCommand({
+          TableName: ASSIGNMENTS_TABLE,
+          FilterExpression: 'courseId = :courseId',
+          ExpressionAttributeValues: {
+            ':courseId': courseId
+          }
+        }))
+      );
+      
+      const assignmentResults = await Promise.all(assignmentPromises);
+      allAssignments = assignmentResults.flatMap(result => result.Items || []);
+    }
     
     // Get user's submissions
     const submissionsResult = await docClient.send(new ScanCommand({
