@@ -171,33 +171,37 @@ const StudentProfilePage: React.FC = () => {
       if (cleanProfile.avatar && cleanProfile.avatar.startsWith('data:image/')) {
         console.log('Avatar is base64, uploading to S3 first...');
         try {
+          const base64Data = cleanProfile.avatar.split(',')[1];
+          const contentType = cleanProfile.avatar.split(';')[0].split(':')[1];
+          const fileExtension = contentType.split('/')[1] || 'jpg';
+          const fileName = `avatar_${user.id}_${Date.now()}.${fileExtension}`;
+          
+          // Convert base64 to blob
+          const byteCharacters = atob(base64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: contentType });
+          
+          const formData = new FormData();
+          formData.append('file', blob, fileName);
+          formData.append('folder', 'profile-pictures');
+          formData.append('userId', user.id);
+
+          console.log('Uploading avatar to S3:', { fileName, contentType, size: blob.size });
+
           const response = await fetch('/api/upload', {
             method: 'POST',
-            body: (() => {
-              const formData = new FormData();
-              const base64Data = cleanProfile.avatar.split(',')[1];
-              const contentType = cleanProfile.avatar.split(';')[0].split(':')[1];
-              const fileExtension = contentType.split('/')[1] || 'jpg';
-              const fileName = `avatar_${user.id}_${Date.now()}.${fileExtension}`;
-              
-              // Convert base64 to blob
-              const byteCharacters = atob(base64Data);
-              const byteNumbers = new Array(byteCharacters.length);
-              for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-              }
-              const byteArray = new Uint8Array(byteNumbers);
-              const blob = new Blob([byteArray], { type: contentType });
-              
-              formData.append('file', blob, fileName);
-              formData.append('folder', 'profile-pictures');
-              formData.append('userId', user.id);
-              return formData;
-            })()
+            body: formData
           });
+
+          console.log('S3 upload response status:', response.status);
 
           if (response.ok) {
             const uploadResult = await response.json();
+            console.log('S3 upload result:', uploadResult);
             if (uploadResult.success && uploadResult.data?.fileUrl) {
               console.log('Avatar uploaded to S3:', uploadResult.data.fileUrl);
               cleanProfile.avatar = uploadResult.data.fileUrl;
@@ -205,16 +209,20 @@ const StudentProfilePage: React.FC = () => {
               console.log('S3 upload failed, keeping base64 data');
             }
           } else {
-            console.log('S3 upload failed, keeping base64 data');
+            const errorText = await response.text();
+            console.log('S3 upload failed with status:', response.status, errorText);
+            console.log('Keeping base64 data for profile save');
           }
         } catch (error) {
-          console.log('S3 upload error, keeping base64 data:', error);
+          console.error('S3 upload error, keeping base64 data:', error);
         }
       }
 
       console.log('Saving profile:', cleanProfile);
       console.log('Avatar type:', typeof cleanProfile.avatar);
       console.log('Avatar starts with data:', cleanProfile.avatar?.startsWith('data:'));
+      
+      console.log('Sending profile save request...');
       
       const response = await fetch('/api/profile/save', {
         method: 'POST',
@@ -233,9 +241,18 @@ const StudentProfilePage: React.FC = () => {
       if (!response.ok) {
         let errorMessage = 'Failed to save profile';
         try {
-          const errorData = await response.json();
-          console.log('Error response data:', errorData);
-          errorMessage = errorData.error?.message || errorData.message || errorMessage;
+          const errorText = await response.text();
+          console.log('Error response text:', errorText);
+          
+          // Try to parse as JSON
+          try {
+            const errorData = JSON.parse(errorText);
+            console.log('Error response data:', errorData);
+            errorMessage = errorData.error?.message || errorData.message || errorMessage;
+          } catch (jsonError) {
+            console.log('Error response is not JSON:', errorText);
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          }
         } catch (parseError) {
           console.log('Failed to parse error response:', parseError);
           errorMessage = `HTTP ${response.status}: ${response.statusText}`;
