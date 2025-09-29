@@ -167,7 +167,7 @@ const InstructorProfilePage: React.FC = () => {
         cleanProfile.avatar = '';
       }
 
-      // Handle base64 avatars by uploading directly to S3
+      // Handle base64 avatars by uploading directly to S3 with presigned URL
       if (cleanProfile.avatar && cleanProfile.avatar.startsWith('data:image/')) {
         console.log('Avatar is base64, uploading directly to S3...');
         try {
@@ -184,35 +184,40 @@ const InstructorProfilePage: React.FC = () => {
           }
           const byteArray = new Uint8Array(byteNumbers);
           const blob = new Blob([byteArray], { type: contentType });
-          
-          const formData = new FormData();
-          formData.append('file', blob, fileName);
-          formData.append('folder', 'profile-pictures');
-          formData.append('userId', user.id);
 
           console.log('Uploading avatar to S3:', { fileName, contentType, size: blob.size });
 
-          const response = await fetch('/api/upload', {
+          // Use direct S3 upload with presigned URL
+          const presignedResponse = await fetch('/api/upload/presigned', {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName,
+              fileType: contentType,
+              folder: 'profile-pictures',
+              userId: user.id
+            })
           });
 
-          console.log('S3 upload response status:', response.status);
+          if (presignedResponse.ok) {
+            const presignedData = await presignedResponse.json();
+            console.log('Got presigned URL, uploading directly to S3...');
+            
+            const directUpload = await fetch(presignedData.presignedUrl, {
+              method: 'PUT',
+              body: blob,
+              headers: { 'Content-Type': contentType }
+            });
 
-          if (response.ok) {
-            const uploadResult = await response.json();
-            console.log('S3 upload result:', uploadResult);
-            if (uploadResult.success && uploadResult.data?.fileUrl) {
-              console.log('Avatar uploaded to S3:', uploadResult.data.fileUrl);
-              cleanProfile.avatar = uploadResult.data.fileUrl;
+            if (directUpload.ok) {
+              console.log('Direct S3 upload successful:', presignedData.fileUrl);
+              cleanProfile.avatar = presignedData.fileUrl;
             } else {
-              console.log('S3 upload failed, clearing avatar');
+              console.log('Direct S3 upload failed with status:', directUpload.status);
               cleanProfile.avatar = '';
             }
           } else {
-            const errorText = await response.text();
-            console.log('S3 upload failed with status:', response.status, errorText);
-            console.log('Clearing avatar due to upload failure');
+            console.log('Failed to get presigned URL');
             cleanProfile.avatar = '';
           }
         } catch (error) {
