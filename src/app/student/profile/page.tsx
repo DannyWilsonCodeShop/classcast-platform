@@ -55,6 +55,44 @@ const StudentProfilePage: React.FC = () => {
     }
   }, [user]);
 
+  // Refresh profile data from server on page load
+  useEffect(() => {
+    const refreshProfileData = async () => {
+      if (user?.id) {
+        try {
+          // Fetch fresh user data from the server
+          const response = await fetch(`/api/users/${user.id}`);
+          if (response.ok) {
+            const userData = await response.json();
+            if (userData.success && userData.data) {
+              const freshProfile = {
+                id: userData.data.userId || userData.data.id || '',
+                firstName: userData.data.firstName || '',
+                lastName: userData.data.lastName || '',
+                email: userData.data.email || '',
+                avatar: userData.data.avatar || '',
+                bio: userData.data.bio || '',
+                careerGoals: userData.data.careerGoals || '',
+                classOf: userData.data.classOf || '',
+                funFact: userData.data.funFact || '',
+                favoriteSubject: userData.data.favoriteSubject || '',
+                hobbies: userData.data.hobbies || '',
+                schoolName: userData.data.schoolName || ''
+              };
+              setProfile(freshProfile);
+              setEditedProfile(freshProfile);
+            }
+          }
+        } catch (error) {
+          console.log('Could not refresh profile data from server:', error);
+          // Continue with existing user data if refresh fails
+        }
+      }
+    };
+
+    refreshProfileData();
+  }, [user?.id]);
+
   // Handle input changes
   const handleInputChange = (field: keyof ProfileData, value: string) => {
     if (!editedProfile) return;
@@ -197,11 +235,33 @@ const StudentProfilePage: React.FC = () => {
 
       const result = await response.json();
       console.log('Profile save result:', result);
-      
+
       // Update local profile state
       setProfile(cleanProfile);
       setIsEditing(false);
-      
+
+      // Update AuthContext with new user data
+      if (result.user) {
+        // Update the user in AuthContext
+        const updatedUser = {
+          ...user,
+          ...result.user,
+          id: user.id, // Keep the original id
+          role: user.role // Keep the original role
+        };
+        
+        // Update localStorage
+        const storedAuthState = localStorage.getItem('authState');
+        if (storedAuthState) {
+          const parsedState = JSON.parse(storedAuthState);
+          const updatedAuthState = {
+            ...parsedState,
+            user: updatedUser
+          };
+          localStorage.setItem('authState', JSON.stringify(updatedAuthState));
+        }
+      }
+
       // Show success message
       alert('Profile updated successfully!');
       
@@ -281,8 +341,8 @@ const StudentProfilePage: React.FC = () => {
                       src={profile.avatar}
                       alt={`${profile.firstName} ${profile.lastName}`}
                       className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-                    />
-                  ) : (
+            />
+          ) : (
                     <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center border-4 border-white shadow-lg">
                       <UserIcon className="w-12 h-12 text-white" />
                     </div>
@@ -291,25 +351,25 @@ const StudentProfilePage: React.FC = () => {
                 <div className="flex-1">
                   <h2 className="text-3xl font-bold">
                     {profile.firstName} {profile.lastName}
-                  </h2>
+                      </h2>
                   <p className="text-lg opacity-90">{profile.email}</p>
                   {profile.classOf && (
                     <p className="text-sm opacity-75">Class of {profile.classOf}</p>
                   )}
-                </div>
-                <button
-                  onClick={() => setIsEditing(true)}
+                  </div>
+                  <button
+                    onClick={() => setIsEditing(true)}
                   className="flex items-center space-x-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-                >
+                  >
                   <PencilIcon className="w-5 h-5" />
                   <span>Edit Profile</span>
-                </button>
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Profile Details */}
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Profile Details */}
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Basic Information */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
@@ -319,27 +379,27 @@ const StudentProfilePage: React.FC = () => {
                   <div>
                     <label className="block text-sm font-medium text-gray-600">First Name</label>
                     <p className="text-gray-900">{profile.firstName}</p>
-                  </div>
+                      </div>
                   
-                  <div>
+                      <div>
                     <label className="block text-sm font-medium text-gray-600">Last Name</label>
                     <p className="text-gray-900">{profile.lastName}</p>
-                  </div>
+                      </div>
                   
-                  <div>
+                      <div>
                     <label className="block text-sm font-medium text-gray-600">Email</label>
                     <p className="text-gray-900">{profile.email}</p>
-                  </div>
+                      </div>
                   
                   {profile.schoolName && (
-                    <div>
+                      <div>
                       <label className="block text-sm font-medium text-gray-600">School</label>
                       <p className="text-gray-900">{profile.schoolName}</p>
                     </div>
                   )}
-                </div>
+                  </div>
 
-                {/* Academic Information */}
+                  {/* Academic Information */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
                     Academic Information
@@ -360,7 +420,7 @@ const StudentProfilePage: React.FC = () => {
                   )}
                   
                   {profile.careerGoals && (
-                    <div>
+                  <div>
                       <label className="block text-sm font-medium text-gray-600">Career Goals</label>
                       <p className="text-gray-900">{profile.careerGoals}</p>
                     </div>
@@ -614,13 +674,13 @@ const StudentProfilePage: React.FC = () => {
 
                 {/* Action Buttons */}
                 <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                  <button
+                    <button
                     onClick={() => setIsEditing(false)}
                     className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                  >
+                    >
                     Cancel
-                  </button>
-                  <button
+                    </button>
+                    <button
                     onClick={handleSaveProfile}
                     disabled={isLoading}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
@@ -631,12 +691,12 @@ const StudentProfilePage: React.FC = () => {
                       <CheckIcon className="h-4 w-4" />
                     )}
                     <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
-                  </button>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </StudentRoute>
   );
