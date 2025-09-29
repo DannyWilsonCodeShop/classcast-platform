@@ -1,4 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
+
+const client = new DynamoDBClient({ region: 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(client);
+
+const PEER_RESPONSES_TABLE = 'classcast-peer-responses';
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,7 +64,6 @@ export async function POST(request: NextRequest) {
 
     // Check if student has reached minimum responses required
     if (assignment.minResponsesRequired) {
-      // Mock: Get student's response count for this assignment
       const studentResponseCount = await getStudentResponseCount(assignmentId, studentId);
       
       if (studentResponseCount >= assignment.minResponsesRequired) {
@@ -67,7 +73,6 @@ export async function POST(request: NextRequest) {
 
     // Check if video has reached maximum responses
     if (assignment.maxResponsesPerVideo) {
-      // Mock: Get response count for this video
       const videoResponseCount = await getVideoResponseCount(videoId);
       
       if (videoResponseCount >= assignment.maxResponsesPerVideo) {
@@ -87,13 +92,42 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Mock functions - in real implementation, these would query the database
+// Real database functions
 async function getStudentResponseCount(assignmentId: string, studentId: string): Promise<number> {
-  // Mock data - in real implementation, query database
-  return 1; // Mock: student has submitted 1 response
+  try {
+    const result = await docClient.send(new ScanCommand({
+      TableName: PEER_RESPONSES_TABLE,
+      FilterExpression: 'assignmentId = :assignmentId AND studentId = :studentId',
+      ExpressionAttributeValues: {
+        ':assignmentId': assignmentId,
+        ':studentId': studentId
+      }
+    }));
+    
+    return result.Items?.length || 0;
+  } catch (dbError: any) {
+    if (dbError.name === 'ResourceNotFoundException') {
+      return 0; // Table doesn't exist yet
+    }
+    throw dbError;
+  }
 }
 
 async function getVideoResponseCount(videoId: string): Promise<number> {
-  // Mock data - in real implementation, query database
-  return 2; // Mock: video has 2 responses
+  try {
+    const result = await docClient.send(new ScanCommand({
+      TableName: PEER_RESPONSES_TABLE,
+      FilterExpression: 'videoId = :videoId',
+      ExpressionAttributeValues: {
+        ':videoId': videoId
+      }
+    }));
+    
+    return result.Items?.length || 0;
+  } catch (dbError: any) {
+    if (dbError.name === 'ResourceNotFoundException') {
+      return 0; // Table doesn't exist yet
+    }
+    throw dbError;
+  }
 }
