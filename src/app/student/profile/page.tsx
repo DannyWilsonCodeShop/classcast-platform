@@ -61,6 +61,7 @@ const StudentProfilePage: React.FC = () => {
       
       // Prepare profile data
       const profileDataToSave = { ...updatedProfile };
+      console.log('Profile data to save before processing:', profileDataToSave);
       
       // If avatar is still base64 data, we need to upload it to S3 first
       if (profileDataToSave.avatar && profileDataToSave.avatar.startsWith('data:image/')) {
@@ -100,6 +101,8 @@ const StudentProfilePage: React.FC = () => {
           delete profileDataToSave.avatar;
         }
       }
+      
+      console.log('Profile data to save after processing:', profileDataToSave);
       
       const response = await fetch('/api/profile/save', {
         method: 'POST',
