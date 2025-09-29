@@ -427,14 +427,14 @@ const StudentProfilePage: React.FC = () => {
             <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-6 text-white">
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  {profile.avatar ? (
+                  {profile.avatar && !profile.avatar.startsWith('data:') ? (
                     <img
                       key={profile.avatar} // Force re-render when avatar changes
                       src={profile.avatar}
                       alt={`${profile.firstName} ${profile.lastName}`}
                       className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-            />
-          ) : (
+                    />
+                  ) : (
                     <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center border-4 border-white shadow-lg">
                       <UserIcon className="w-12 h-12 text-white" />
                     </div>
@@ -581,12 +581,18 @@ const StudentProfilePage: React.FC = () => {
                 <div className="flex items-center space-x-6">
                   <div className="relative">
                     <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
-                      <img
-                        key={editedProfile.avatar} // Force re-render when avatar changes
-                        src={editedProfile.avatar || '/api/placeholder/100/100'}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
+                      {editedProfile.avatar && !editedProfile.avatar.startsWith('data:') ? (
+                        <img
+                          key={editedProfile.avatar} // Force re-render when avatar changes
+                          src={editedProfile.avatar}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                          <UserIcon className="w-8 h-8 text-gray-400" />
+                        </div>
+                      )}
                     </div>
                     <button
                       onClick={() => document.getElementById('avatar-upload')?.click()}
