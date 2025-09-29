@@ -63,9 +63,9 @@ const StudentDashboard: React.FC = () => {
         // Try to fetch real data
         try {
           const [statsResponse, coursesResponse, assignmentsResponse] = await Promise.all([
-            fetch('/api/student/stats', { credentials: 'include' }),
-            fetch('/api/student/courses', { credentials: 'include' }),
-            fetch('/api/student/assignments', { credentials: 'include' })
+            fetch(`/api/student/stats?userId=${user.id}`, { credentials: 'include' }),
+            fetch(`/api/student/courses?userId=${user.id}`, { credentials: 'include' }),
+            fetch(`/api/student/assignments?userId=${user.id}`, { credentials: 'include' })
           ]);
 
           if (statsResponse.ok) {
