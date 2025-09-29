@@ -35,27 +35,41 @@ export async function GET(request: NextRequest) {
     const courseIds = courses.map(course => course.courseId);
     
     // Get assignments for these courses
-    const assignmentsResult = await docClient.send(new ScanCommand({
-      TableName: ASSIGNMENTS_TABLE,
-      FilterExpression: 'courseId IN :courseIds',
-      ExpressionAttributeValues: {
-        ':courseIds': courseIds
-      }
-    }));
-    
-    const allAssignments = assignmentsResult.Items || [];
+    let allAssignments = [];
+    if (courseIds.length > 0) {
+      // DynamoDB doesn't support IN with expression attribute values directly
+      const assignmentPromises = courseIds.map(courseId => 
+        docClient.send(new ScanCommand({
+          TableName: ASSIGNMENTS_TABLE,
+          FilterExpression: 'courseId = :courseId',
+          ExpressionAttributeValues: {
+            ':courseId': courseId
+          }
+        }))
+      );
+      
+      const assignmentResults = await Promise.all(assignmentPromises);
+      allAssignments = assignmentResults.flatMap(result => result.Items || []);
+    }
     
     // Get submissions for these assignments
     const assignmentIds = allAssignments.map(assignment => assignment.assignmentId);
-    const submissionsResult = await docClient.send(new ScanCommand({
-      TableName: SUBMISSIONS_TABLE,
-      FilterExpression: 'assignmentId IN :assignmentIds',
-      ExpressionAttributeValues: {
-        ':assignmentIds': assignmentIds
-      }
-    }));
-    
-    const allSubmissions = submissionsResult.Items || [];
+    let allSubmissions = [];
+    if (assignmentIds.length > 0) {
+      // DynamoDB doesn't support IN with expression attribute values directly
+      const submissionPromises = assignmentIds.map(assignmentId => 
+        docClient.send(new ScanCommand({
+          TableName: SUBMISSIONS_TABLE,
+          FilterExpression: 'assignmentId = :assignmentId',
+          ExpressionAttributeValues: {
+            ':assignmentId': assignmentId
+          }
+        }))
+      );
+      
+      const submissionResults = await Promise.all(submissionPromises);
+      allSubmissions = submissionResults.flatMap(result => result.Items || []);
+    }
     
     // Count ungraded assignments (submissions without grades)
     const ungradedAssignments = allSubmissions.filter(submission => 
