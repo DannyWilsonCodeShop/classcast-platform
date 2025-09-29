@@ -184,54 +184,47 @@ const StudentProfilePage: React.FC = () => {
           }
           const byteArray = new Uint8Array(byteNumbers);
           const blob = new Blob([byteArray], { type: contentType });
-          
-          const formData = new FormData();
-          formData.append('file', blob, fileName);
-          formData.append('folder', 'profile-pictures');
-          formData.append('userId', user.id);
 
           console.log('Uploading avatar to S3:', { fileName, contentType, size: blob.size });
 
           // Use direct S3 upload with presigned URL (now that CORS is configured)
-          try {
-            const presignedResponse = await fetch('/api/upload/presigned', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                fileName,
-                fileType: contentType,
-                folder: 'profile-pictures',
-                userId: user.id
-              })
+          const presignedResponse = await fetch('/api/upload/presigned', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName,
+              fileType: contentType,
+              folder: 'profile-pictures',
+              userId: user.id
+            })
+          });
+
+          if (presignedResponse.ok) {
+            const presignedData = await presignedResponse.json();
+            console.log('Got presigned URL, uploading directly to S3...');
+            
+            const directUpload = await fetch(presignedData.presignedUrl, {
+              method: 'PUT',
+              body: blob,
+              headers: { 'Content-Type': contentType }
             });
 
-            if (presignedResponse.ok) {
-              const presignedData = await presignedResponse.json();
-              console.log('Got presigned URL, uploading directly to S3...');
-              
-              const directUpload = await fetch(presignedData.presignedUrl, {
-                method: 'PUT',
-                body: blob,
-                headers: { 'Content-Type': contentType }
-              });
-
-              if (directUpload.ok) {
-                console.log('Direct S3 upload successful:', presignedData.fileUrl);
-                cleanProfile.avatar = presignedData.fileUrl;
-                return; // Success - skip the rest
-              } else {
-                console.log('Direct S3 upload failed with status:', directUpload.status);
-                throw new Error('Direct S3 upload failed');
-              }
+            if (directUpload.ok) {
+              console.log('Direct S3 upload successful:', presignedData.fileUrl);
+              cleanProfile.avatar = presignedData.fileUrl;
             } else {
-              throw new Error('Failed to get presigned URL');
+              console.log('Direct S3 upload failed with status:', directUpload.status);
+              cleanProfile.avatar = '';
             }
-          } catch (error) {
-            console.error('Presigned URL upload failed:', error);
-            // If presigned URL fails, clear avatar and continue without it
+          } else {
+            console.log('Failed to get presigned URL');
             cleanProfile.avatar = '';
-            return;
           }
+        } catch (error) {
+          console.error('Avatar upload failed:', error);
+          // If upload fails, clear avatar and continue without it
+          cleanProfile.avatar = '';
+        }
       }
 
       console.log('Saving profile:', cleanProfile);
