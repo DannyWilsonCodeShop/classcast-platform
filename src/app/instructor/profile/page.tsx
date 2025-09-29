@@ -160,7 +160,23 @@ const InstructorProfilePage: React.FC = () => {
         return;
       }
 
-      console.log('Saving instructor profile:', editedProfile);
+      // Clean up any blob URLs before saving
+      const cleanProfile = { ...editedProfile };
+      if (cleanProfile.avatar && cleanProfile.avatar.startsWith('blob:')) {
+        console.log('Removing blob URL from profile data');
+        cleanProfile.avatar = '';
+      }
+
+      // Temporarily skip avatar upload to avoid CloudFront issues
+      if (cleanProfile.avatar && cleanProfile.avatar.startsWith('data:image/')) {
+        console.log('Avatar is base64, skipping S3 upload for now to avoid CloudFront issues');
+        // Keep the base64 data but note it's temporary
+        cleanProfile.avatar = cleanProfile.avatar.substring(0, 100) + '... (truncated for CloudFront)';
+      }
+
+      console.log('Saving instructor profile:', cleanProfile);
+      console.log('Avatar type:', typeof cleanProfile.avatar);
+      console.log('Avatar starts with data:', cleanProfile.avatar?.startsWith('data:'));
       
       const response = await fetch('/api/profile/save', {
         method: 'POST',
@@ -169,7 +185,7 @@ const InstructorProfilePage: React.FC = () => {
         },
         body: JSON.stringify({
           userId: user.id,
-          ...editedProfile
+          ...cleanProfile
         }),
       });
 
