@@ -142,15 +142,13 @@ export async function GET(request: NextRequest) {
         assignmentTitle: v.assignmentTitle || 'Assignment'
       }));
 
-    // Get recent activity (mock for now)
-    const recentActivity = [
-      {
-        type: 'video_submitted',
-        description: `Submitted video: "${videos[0]?.title || 'Latest Video'}"`,
-        timestamp: videos[0]?.submittedAt || new Date().toISOString(),
-        assignmentTitle: videos[0]?.assignmentTitle
-      }
-    ];
+    // Get recent activity from actual data
+    const recentActivity = videos.slice(0, 5).map(video => ({
+      type: 'video_submitted',
+      description: `Submitted video: "${video.title || 'Video Submission'}"`,
+      timestamp: video.submittedAt || new Date().toISOString(),
+      assignmentTitle: video.assignmentTitle
+    }));
 
     // Generate achievements based on stats
     const achievements = [];

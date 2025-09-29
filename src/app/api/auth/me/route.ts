@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { mockAuthService } from '@/lib/mock-auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,4 +17,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

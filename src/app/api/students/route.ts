@@ -1,200 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
+
+const client = new DynamoDBClient({ region: 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(client);
+
+const USERS_TABLE = 'classcast-users';
 
 export async function GET(request: NextRequest) {
   try {
-    // Comprehensive mock student data
-    const students = [
-      {
-        studentId: 'student_001',
-        name: 'Alex Thompson',
-        email: 'alex.thompson@university.edu',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-        enrollmentDate: '2024-01-15T00:00:00Z',
-        status: 'active',
-        currentGrade: 'A-',
-        assignmentsSubmitted: 12,
-        assignmentsTotal: 15,
-        lastActivity: '2024-01-22T14:30:00Z',
-        major: 'Computer Science',
-        year: 'Junior',
-        gpa: 3.7,
-        courses: ['MATH101', 'CS301', 'PHYS201'],
-        bio: 'Passionate about algorithms and data structures. Loves solving complex problems and building innovative solutions.',
-        skills: ['JavaScript', 'Python', 'React', 'Node.js', 'Machine Learning'],
-        achievements: ['Dean\'s List Fall 2023', 'Hackathon Winner 2023', 'Research Assistant']
-      },
-      {
-        studentId: 'student_002',
-        name: 'Maria Rodriguez',
-        email: 'maria.rodriguez@university.edu',
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-        enrollmentDate: '2024-01-10T00:00:00Z',
-        status: 'active',
-        currentGrade: 'A',
-        assignmentsSubmitted: 14,
-        assignmentsTotal: 14,
-        lastActivity: '2024-01-22T12:15:00Z',
-        major: 'Data Science',
-        year: 'Senior',
-        gpa: 3.9,
-        courses: ['CS301', 'MATH101', 'BIO150'],
-        bio: 'Data science enthusiast with a focus on machine learning and statistical analysis. Always eager to learn new technologies.',
-        skills: ['Python', 'R', 'SQL', 'TensorFlow', 'Pandas', 'Statistics'],
-        achievements: ['Summa Cum Laude', 'Research Publication 2023', 'Data Science Internship']
-      },
-      {
-        studentId: 'student_003',
-        name: 'James Wilson',
-        email: 'james.wilson@university.edu',
-        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-        enrollmentDate: '2024-01-12T00:00:00Z',
-        status: 'active',
-        currentGrade: 'B+',
-        assignmentsSubmitted: 10,
-        assignmentsTotal: 12,
-        lastActivity: '2024-01-21T10:45:00Z',
-        major: 'Physics',
-        year: 'Sophomore',
-        gpa: 3.4,
-        courses: ['PHYS201', 'MATH101', 'HIST201'],
-        bio: 'Physics major with a passion for quantum mechanics and theoretical physics. Enjoys explaining complex concepts through visual demonstrations.',
-        skills: ['Matlab', 'Python', 'LaTeX', 'Lab Techniques', 'Mathematical Modeling'],
-        achievements: ['Physics Club President', 'Research Assistant', 'Tutoring Excellence Award']
-      },
-      {
-        studentId: 'student_004',
-        name: 'Sarah Kim',
-        email: 'sarah.kim@university.edu',
-        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-        enrollmentDate: '2024-01-08T00:00:00Z',
-        status: 'active',
-        currentGrade: 'A-',
-        assignmentsSubmitted: 11,
-        assignmentsTotal: 13,
-        lastActivity: '2024-01-21T16:20:00Z',
-        major: 'History',
-        year: 'Junior',
-        gpa: 3.6,
-        courses: ['HIST201', 'ENG101', 'PSYC101'],
-        bio: 'History major with a focus on cultural studies and social movements. Loves analyzing historical patterns and their modern implications.',
-        skills: ['Research', 'Writing', 'Critical Analysis', 'Public Speaking', 'Languages'],
-        achievements: ['History Honor Society', 'Undergraduate Research Grant', 'Study Abroad Program']
-      },
-      {
-        studentId: 'student_005',
-        name: 'David Chen',
-        email: 'david.chen@university.edu',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-        enrollmentDate: '2024-01-14T00:00:00Z',
-        status: 'active',
-        currentGrade: 'A',
-        assignmentsSubmitted: 13,
-        assignmentsTotal: 13,
-        lastActivity: '2024-01-20T14:10:00Z',
-        major: 'Mathematics',
-        year: 'Senior',
-        gpa: 3.8,
-        courses: ['MATH101', 'CS301', 'PHYS201'],
-        bio: 'Mathematics major specializing in calculus and linear algebra. Enjoys teaching others and breaking down complex mathematical concepts.',
-        skills: ['Calculus', 'Linear Algebra', 'Statistics', 'Mathematical Proofs', 'Teaching'],
-        achievements: ['Mathematics Honor Society', 'Teaching Assistant', 'Math Competition Winner']
-      },
-      {
-        studentId: 'student_006',
-        name: 'Emma Johnson',
-        email: 'emma.johnson@university.edu',
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
-        enrollmentDate: '2024-01-11T00:00:00Z',
-        status: 'active',
-        currentGrade: 'B',
-        assignmentsSubmitted: 9,
-        assignmentsTotal: 11,
-        lastActivity: '2024-01-20T11:30:00Z',
-        major: 'Biology',
-        year: 'Sophomore',
-        gpa: 3.2,
-        courses: ['BIO150', 'MATH101', 'PSYC101'],
-        bio: 'Biology major with a passion for cellular processes and molecular biology. Aspires to work in medical research.',
-        skills: ['Lab Techniques', 'Microscopy', 'Data Analysis', 'Scientific Writing', 'Research Methods'],
-        achievements: ['Biology Club Member', 'Undergraduate Research', 'Volunteer at Local Hospital']
-      },
-      {
-        studentId: 'student_007',
-        name: 'Michael Brown',
-        email: 'michael.brown@university.edu',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-        enrollmentDate: '2024-01-09T00:00:00Z',
-        status: 'active',
-        currentGrade: 'B+',
-        assignmentsSubmitted: 10,
-        assignmentsTotal: 12,
-        lastActivity: '2024-01-19T15:45:00Z',
-        major: 'English',
-        year: 'Junior',
-        gpa: 3.5,
-        courses: ['ENG101', 'HIST201', 'PSYC101'],
-        bio: 'English major focusing on technical writing and communication. Enjoys creating clear, engaging content for technical audiences.',
-        skills: ['Technical Writing', 'Editing', 'Communication', 'Research', 'Documentation'],
-        achievements: ['Writing Center Tutor', 'Technical Writing Award', 'Student Newspaper Editor']
-      },
-      {
-        studentId: 'student_008',
-        name: 'Lisa Garcia',
-        email: 'lisa.garcia@university.edu',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face',
-        enrollmentDate: '2024-01-13T00:00:00Z',
-        status: 'active',
-        currentGrade: 'A-',
-        assignmentsSubmitted: 11,
-        assignmentsTotal: 12,
-        lastActivity: '2024-01-19T13:20:00Z',
-        major: 'Psychology',
-        year: 'Senior',
-        gpa: 3.7,
-        courses: ['PSYC101', 'BIO150', 'HIST201'],
-        bio: 'Psychology major with a focus on cognitive psychology and memory systems. Interested in understanding how the human mind works.',
-        skills: ['Research Methods', 'Statistics', 'Data Analysis', 'Critical Thinking', 'Communication'],
-        achievements: ['Psychology Honor Society', 'Research Assistant', 'Mental Health Advocacy Award']
-      },
-      {
-        studentId: 'student_009',
-        name: 'Ryan O\'Connor',
-        email: 'ryan.oconnor@university.edu',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-        enrollmentDate: '2024-01-16T00:00:00Z',
-        status: 'active',
-        currentGrade: 'B-',
-        assignmentsSubmitted: 8,
-        assignmentsTotal: 10,
-        lastActivity: '2024-01-18T09:15:00Z',
-        major: 'Computer Science',
-        year: 'Freshman',
-        gpa: 2.9,
-        courses: ['CS301', 'MATH101'],
-        bio: 'New to computer science but eager to learn. Enjoys coding challenges and building simple applications.',
-        skills: ['Java', 'HTML/CSS', 'Problem Solving', 'Learning'],
-        achievements: ['First Semester', 'Coding Bootcamp Graduate']
-      },
-      {
-        studentId: 'student_010',
-        name: 'Priya Patel',
-        email: 'priya.patel@university.edu',
-        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
-        enrollmentDate: '2024-01-07T00:00:00Z',
-        status: 'active',
-        currentGrade: 'A+',
-        assignmentsSubmitted: 15,
-        assignmentsTotal: 15,
-        lastActivity: '2024-01-22T08:30:00Z',
-        major: 'Data Science',
-        year: 'Senior',
-        gpa: 4.0,
-        courses: ['CS301', 'MATH101', 'BIO150'],
-        bio: 'Data science major with exceptional analytical skills. Passionate about using data to solve real-world problems.',
-        skills: ['Python', 'R', 'SQL', 'Machine Learning', 'Statistics', 'Data Visualization'],
-        achievements: ['Valedictorian Candidate', 'Research Publication', 'Data Science Internship', 'Scholarship Recipient']
+    // Get students from database
+    let students = [];
+    
+    try {
+      const studentsResult = await docClient.send(new ScanCommand({
+        TableName: USERS_TABLE,
+        FilterExpression: '#role = :role',
+        ExpressionAttributeNames: {
+          '#role': 'role'
+        },
+        ExpressionAttributeValues: {
+          ':role': 'student'
+        }
+      }));
+      
+      students = studentsResult.Items || [];
+    } catch (dbError: any) {
+      if (dbError.name === 'ResourceNotFoundException') {
+        // Table doesn't exist yet, return empty array
+        return NextResponse.json({
+          success: true,
+          data: [],
+          total: 0
+        });
       }
-    ];
+      throw dbError;
+    }
 
     return NextResponse.json({
       success: true,
