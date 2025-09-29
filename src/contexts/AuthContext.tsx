@@ -14,6 +14,15 @@ export interface User {
   department?: string;
   emailVerified?: boolean;
   sessionExpiresAt?: number;
+  // Profile properties
+  avatar?: string;
+  bio?: string;
+  careerGoals?: string;
+  classOf?: string;
+  funFact?: string;
+  favoriteSubject?: string;
+  hobbies?: string;
+  schoolName?: string;
 }
 
 export interface AuthState {

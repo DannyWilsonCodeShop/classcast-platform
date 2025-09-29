@@ -8,17 +8,17 @@ import Link from 'next/link';
 import { CameraIcon, UserIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface ProfileData {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  avatar: string;
-  bio: string;
-  careerGoals: string;
-  classOf: string;
-  funFact: string;
-  favoriteSubject: string;
-  hobbies: string;
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  avatar?: string;
+  bio?: string;
+  careerGoals?: string;
+  classOf?: string;
+  funFact?: string;
+  favoriteSubject?: string;
+  hobbies?: string;
   schoolName?: string;
 }
 
@@ -39,7 +39,7 @@ const StudentProfilePage: React.FC = () => {
     if (user && !profile) { // Only initialize if profile is not already set
       console.log('Initializing profile from user context');
       
-      // Clean up any old base64 data from user avatar
+      // Clean up any old base64 data from user avatar, but preserve S3 URLs
       let cleanAvatar = user.avatar || '';
       if (cleanAvatar && cleanAvatar.startsWith('data:image/')) {
         console.log('Found base64 avatar in user context, clearing it');
@@ -59,6 +59,8 @@ const StudentProfilePage: React.FC = () => {
             console.error('Error cleaning localStorage:', error);
           }
         }
+      } else if (cleanAvatar && cleanAvatar.startsWith('https://')) {
+        console.log('Found S3 URL avatar in user context, keeping it');
       }
       
       const profileData = {
@@ -84,6 +86,26 @@ const StudentProfilePage: React.FC = () => {
       console.log('Skipping profile initialization - user:', !!user, 'profile:', !!profile);
     }
   }, [user, profile]);
+
+  // Handle user context updates (e.g., after profile save)
+  useEffect(() => {
+    if (user && profile) {
+      console.log('User context updated, syncing profile state');
+      console.log('User avatar:', user.avatar);
+      console.log('Profile avatar:', profile.avatar);
+      
+      // Only update if the avatar has changed and it's a valid S3 URL
+      if (user.avatar && user.avatar.startsWith('https://') && user.avatar !== profile.avatar) {
+        console.log('Updating profile with new user avatar');
+        const updatedProfile = {
+          ...profile,
+          avatar: user.avatar
+        };
+        setProfile(updatedProfile);
+        setEditedProfile(updatedProfile);
+      }
+    }
+  }, [user?.avatar, profile]);
 
   // Track profile state changes
   useEffect(() => {
@@ -172,25 +194,25 @@ const StudentProfilePage: React.FC = () => {
     
     const newErrors: Record<string, string> = {};
 
-    if (!editedProfile.favoriteSubject.trim()) {
+    if (!editedProfile.favoriteSubject?.trim()) {
       newErrors.favoriteSubject = 'Favorite subject is required';
     }
 
-    if (!editedProfile.hobbies.trim()) {
+    if (!editedProfile.hobbies?.trim()) {
       newErrors.hobbies = 'Hobbies and interests are required';
     }
 
-    if (!editedProfile.email.trim()) {
+    if (!editedProfile.email?.trim()) {
       newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editedProfile.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
-    if (!editedProfile.careerGoals.trim()) {
+    if (!editedProfile.careerGoals?.trim()) {
       newErrors.careerGoals = 'Career goals are required';
     }
 
-    if (!editedProfile.classOf.trim()) {
+    if (!editedProfile.classOf?.trim()) {
       newErrors.classOf = 'Class of is required';
     }
 
@@ -339,16 +361,17 @@ const StudentProfilePage: React.FC = () => {
           avatar: result.user.avatar ? `${result.user.avatar}?t=${Date.now()}` : result.user.avatar
         };
         
+        // Update the user in AuthContext first
+        console.log('Calling updateUser with:', updatedUser);
+        updateUser(updatedUser);
+        
+        // Then update local profile states
         setProfile(updatedUser);
         setEditedProfile(updatedUser); // Also update editedProfile with the S3 URL
         setIsEditing(false);
         
-        // Update the user in AuthContext using the updateUser function
-        console.log('Calling updateUser with:', updatedUser);
-        updateUser(updatedUser);
-        
         // Verify the profile state after update
-        console.log('Profile state immediately after setProfile:', profile);
+        console.log('Profile state immediately after setProfile:', updatedUser);
       } else {
         console.log('No result.user found in response');
       }
