@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       Bucket: BUCKET_NAME,
       Key: fileKey,
       ContentType: fileType,
-      ACL: 'public-read',
+      // ACL removed - bucket doesn't support ACLs
     });
 
     const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 }); // 5 minutes
