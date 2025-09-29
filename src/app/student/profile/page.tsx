@@ -170,8 +170,8 @@ const StudentProfilePage: React.FC = () => {
       // Temporarily skip avatar upload to avoid CloudFront issues
       if (cleanProfile.avatar && cleanProfile.avatar.startsWith('data:image/')) {
         console.log('Avatar is base64, skipping S3 upload for now to avoid CloudFront issues');
-        // Keep the base64 data but note it's temporary
-        cleanProfile.avatar = cleanProfile.avatar.substring(0, 100) + '... (truncated for CloudFront)';
+        // Clear avatar completely to avoid invalid URL errors
+        cleanProfile.avatar = '';
       }
 
       console.log('Saving profile:', cleanProfile);
