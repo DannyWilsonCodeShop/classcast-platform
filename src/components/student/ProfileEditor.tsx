@@ -74,49 +74,53 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
       return;
     }
 
-    // Create immediate preview
-    const previewUrl = URL.createObjectURL(file);
-    setEditedProfile(prev => ({
-      ...prev,
-      avatar: previewUrl
-    }));
+    // Convert file to base64 for immediate preview and fallback
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const base64Data = e.target?.result as string;
+      
+      // Create immediate preview
+      setEditedProfile(prev => ({
+        ...prev,
+        avatar: base64Data
+      }));
 
-    try {
-      setIsUploading(true);
-      setErrors(prev => ({ ...prev, avatar: '' }));
-      
-      // Try to upload file to S3
-      const uploadResult = await uploadAvatarToS3(file, editedProfile.id);
-      
-      if (uploadResult.success && uploadResult.url) {
-        // Update profile with S3 URL
-        setEditedProfile(prev => ({
-          ...prev,
-          avatar: uploadResult.url
-        }));
-        console.log('Avatar uploaded to S3:', uploadResult.url);
+      try {
+        setIsUploading(true);
+        setErrors(prev => ({ ...prev, avatar: '' }));
         
-        // Clean up preview URL
-        URL.revokeObjectURL(previewUrl);
-      } else {
-        // Show warning but keep preview
+        // Try to upload file to S3
+        const uploadResult = await uploadAvatarToS3(file, editedProfile.id);
+        
+        if (uploadResult.success && uploadResult.url) {
+          // Update profile with S3 URL
+          setEditedProfile(prev => ({
+            ...prev,
+            avatar: uploadResult.url
+          }));
+          console.log('Avatar uploaded to S3:', uploadResult.url);
+        } else {
+          // Show warning but keep base64 data
+          setErrors(prev => ({
+            ...prev,
+            avatar: `Upload failed: ${uploadResult.error || 'Unknown error'}. Image will be saved as base64.`
+          }));
+          console.warn('S3 upload failed, using base64 fallback:', uploadResult.error);
+        }
+        
+      } catch (error) {
+        console.error('Avatar upload error:', error);
         setErrors(prev => ({
           ...prev,
-          avatar: `Upload failed: ${uploadResult.error || 'Unknown error'}. Image will be saved as base64.`
+          avatar: `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}. Image will be saved as base64.`
         }));
-        console.warn('S3 upload failed, using base64 fallback:', uploadResult.error);
+        console.warn('S3 upload failed, using base64 fallback');
+      } finally {
+        setIsUploading(false);
       }
-      
-    } catch (error) {
-      console.error('Avatar upload error:', error);
-      setErrors(prev => ({
-        ...prev,
-        avatar: `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}. Image will be saved as base64.`
-      }));
-      console.warn('S3 upload failed, using base64 fallback');
-    } finally {
-      setIsUploading(false);
-    }
+    };
+    
+    reader.readAsDataURL(file);
   };
 
   const validateForm = (): boolean => {

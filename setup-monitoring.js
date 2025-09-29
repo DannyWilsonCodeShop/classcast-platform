@@ -15,7 +15,7 @@ const sns = new SNSClient({ region: 'us-east-1' });
 
 // Configuration
 const LOG_GROUP_NAME = 'classcast-application-logs';
-const ALARM_EMAIL = process.env.ALARM_EMAIL || 'admin@class-cast.com';
+const ALARM_EMAIL = process.env.ALARM_EMAIL || 'wilson.danny@me.com';
 const DASHBOARD_NAME = 'ClassCast-Production-Dashboard';
 
 async function setupLogGroups() {
