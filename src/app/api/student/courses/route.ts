@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+
+const client = new DynamoDBClient({ region: 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(client);
+
+const COURSES_TABLE = 'classcast-courses';
+const ASSIGNMENTS_TABLE = 'classcast-assignments';
+const SUBMISSIONS_TABLE = 'classcast-submissions';
+const USERS_TABLE = 'classcast-users';
 
 export async function GET(request: NextRequest) {
   try {
+    // Get user ID from query params
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
+
     // Helper function to determine course status
     const getCourseStatus = (assignmentsDue: number, nextDeadline: string | null) => {
       const now = new Date();
@@ -25,139 +46,114 @@ export async function GET(request: NextRequest) {
       return 'up-to-date';
     };
 
-    // Comprehensive mock course data for demonstration
-    const courses = [
-      {
-        id: 'course_1',
-        code: 'MATH101',
-        name: 'Introduction to Calculus',
-        description: 'Fundamental concepts of differential and integral calculus with real-world applications',
-        instructor: {
-          name: 'Dr. Sarah Johnson',
-          avatar: '/api/placeholder/40/40'
-        },
-        assignmentsDue: 3,
-        nextDeadline: '2024-01-25T23:59:59Z',
-        color: '#4A90E2',
-        status: getCourseStatus(3, '2024-01-25T23:59:59Z'),
-        assignmentCount: 12,
-        backgroundColor: '#4A90E2'
-      },
-      {
-        id: 'course_2',
-        code: 'PHYS201',
-        name: 'Physics for Engineers',
-        description: 'Classical mechanics, thermodynamics, and wave phenomena with laboratory components',
-        instructor: {
-          name: 'Prof. Michael Chen',
-          avatar: '/api/placeholder/40/40'
-        },
-        assignmentsDue: 7,
-        nextDeadline: '2024-01-23T23:59:59Z',
-        color: '#06D6A0',
-        status: getCourseStatus(7, '2024-01-23T23:59:59Z'),
-        assignmentCount: 15,
-        backgroundColor: '#06D6A0'
-      },
-      {
-        id: 'course_3',
-        code: 'CS301',
-        name: 'Data Structures & Algorithms',
-        description: 'Advanced programming concepts and algorithmic problem solving with complexity analysis',
-        instructor: {
-          name: 'Dr. Emily Rodriguez',
-          avatar: '/api/placeholder/40/40'
-        },
-        assignmentsDue: 2,
-        nextDeadline: '2024-01-26T23:59:59Z',
-        color: '#9B5DE5',
-        status: getCourseStatus(2, '2024-01-26T23:59:59Z'),
-        assignmentCount: 10,
-        backgroundColor: '#9B5DE5'
-      },
-      {
-        id: 'course_4',
-        code: 'ENG101',
-        name: 'Technical Writing',
-        description: 'Professional communication and technical documentation for engineering students',
-        instructor: {
-          name: 'Prof. David Thompson',
-          avatar: '/api/placeholder/40/40'
-        },
-        assignmentsDue: 0,
-        nextDeadline: null,
-        color: '#FFD166',
-        status: getCourseStatus(0, null),
-        assignmentCount: 8,
-        backgroundColor: '#FFD166'
-      },
-      {
-        id: 'course_5',
-        code: 'CHEM102',
-        name: 'Organic Chemistry',
-        description: 'Structure, properties, and reactions of organic compounds with laboratory work',
-        instructor: {
-          name: 'Dr. Lisa Wang',
-          avatar: '/api/placeholder/40/40'
-        },
-        assignmentsDue: 0,
-        nextDeadline: '2024-02-01T09:00:00Z',
-        color: '#FF6F61',
-        status: getCourseStatus(0, '2024-02-01T09:00:00Z'),
-        assignmentCount: 14,
-        backgroundColor: '#FF6F61'
-      },
-      {
-        id: 'course_6',
-        code: 'HIST201',
-        name: 'World History',
-        description: 'Survey of world civilizations from ancient to modern times with focus on cultural exchange',
-        instructor: {
-          name: 'Prof. Robert Martinez',
-          avatar: '/api/placeholder/40/40'
-        },
-        assignmentsDue: 11,
-        nextDeadline: '2024-01-24T23:59:59Z',
-        color: '#E91E63',
-        status: getCourseStatus(11, '2024-01-24T23:59:59Z'),
-        assignmentCount: 20,
-        backgroundColor: '#E91E63'
-      },
-      {
-        id: 'course_7',
-        code: 'BIO150',
-        name: 'Cell Biology',
-        description: 'Study of cellular structure, function, and processes including metabolism and reproduction',
-        instructor: {
-          name: 'Dr. Jennifer Kim',
-          avatar: '/api/placeholder/40/40'
-        },
-        assignmentsDue: 4,
-        nextDeadline: '2024-01-28T23:59:59Z',
-        color: '#2ECC71',
-        status: getCourseStatus(4, '2024-01-28T23:59:59Z'),
-        assignmentCount: 16,
-        backgroundColor: '#2ECC71'
-      },
-      {
-        id: 'course_8',
-        code: 'PSYC101',
-        name: 'Introduction to Psychology',
-        description: 'Fundamental principles of human behavior, cognition, and mental processes',
-        instructor: {
-          name: 'Dr. Maria Garcia',
-          avatar: '/api/placeholder/40/40'
-        },
-        assignmentsDue: 1,
-        nextDeadline: '2024-01-30T23:59:59Z',
-        color: '#F39C12',
-        status: getCourseStatus(1, '2024-01-30T23:59:59Z'),
-        assignmentCount: 12,
-        backgroundColor: '#F39C12'
+    // Get courses where user is enrolled
+    const coursesResult = await docClient.send(new ScanCommand({
+      TableName: COURSES_TABLE,
+      FilterExpression: 'contains(enrollment.students, :userId)',
+      ExpressionAttributeValues: {
+        ':userId': userId
       }
-    ];
+    }));
+    
+    const courses = coursesResult.Items || [];
+    
+    // Get assignments for these courses
+    const courseIds = courses.map(course => course.courseId);
+    const assignmentsResult = await docClient.send(new ScanCommand({
+      TableName: ASSIGNMENTS_TABLE,
+      FilterExpression: 'courseId IN :courseIds',
+      ExpressionAttributeValues: {
+        ':courseIds': courseIds
+      }
+    }));
+    
+    const allAssignments = assignmentsResult.Items || [];
+    
+    // Get user's submissions
+    const submissionsResult = await docClient.send(new ScanCommand({
+      TableName: SUBMISSIONS_TABLE,
+      FilterExpression: 'studentId = :userId',
+      ExpressionAttributeValues: {
+        ':userId': userId
+      }
+    }));
+    
+    const userSubmissions = submissionsResult.Items || [];
+    const submittedAssignmentIds = new Set(userSubmissions.map(sub => sub.assignmentId));
+    
+    // Process each course
+    const enrichedCourses = await Promise.all(
+      courses.map(async (course) => {
+        // Get instructor information
+        let instructor = {
+          name: course.instructorName || 'Unknown Instructor',
+          avatar: '/api/placeholder/40/40'
+        };
+        
+        if (course.instructorId) {
+          try {
+            const instructorResult = await docClient.send(new GetCommand({
+              TableName: USERS_TABLE,
+              Key: { userId: course.instructorId }
+            }));
+            
+            if (instructorResult.Item) {
+              instructor = {
+                name: `${instructorResult.Item.firstName || ''} ${instructorResult.Item.lastName || ''}`.trim() || course.instructorName || 'Unknown Instructor',
+                avatar: instructorResult.Item.avatar || '/api/placeholder/40/40'
+              };
+            }
+          } catch (error) {
+            console.error(`Error fetching instructor ${course.instructorId}:`, error);
+          }
+        }
+        
+        // Get assignments for this course
+        const courseAssignments = allAssignments.filter(assignment => 
+          assignment.courseId === course.courseId
+        );
+        
+        // Calculate assignments due
+        const now = new Date();
+        const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        
+        const assignmentsDue = courseAssignments.filter(assignment => {
+          const dueDate = new Date(assignment.dueDate);
+          return dueDate > now && dueDate <= oneWeekFromNow && !submittedAssignmentIds.has(assignment.assignmentId);
+        });
+        
+        // Find next deadline
+        const upcomingAssignments = courseAssignments.filter(assignment => {
+          const dueDate = new Date(assignment.dueDate);
+          return dueDate > now && !submittedAssignmentIds.has(assignment.assignmentId);
+        });
+        
+        const nextDeadline = upcomingAssignments.length > 0 
+          ? upcomingAssignments.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0].dueDate
+          : null;
+        
+        // Generate color based on course code
+        const colors = ['#4A90E2', '#06D6A0', '#9B5DE5', '#FFD166', '#FF6F61', '#E91E63', '#2ECC71', '#F39C12'];
+        const colorIndex = course.code ? course.code.charCodeAt(0) % colors.length : 0;
+        const color = colors[colorIndex];
+        
+        return {
+          id: course.courseId,
+          code: course.code || 'N/A',
+          name: course.title || 'Untitled Course',
+          description: course.description || 'No description available',
+          instructor,
+          assignmentsDue: assignmentsDue.length,
+          nextDeadline,
+          color,
+          status: getCourseStatus(assignmentsDue.length, nextDeadline),
+          assignmentCount: courseAssignments.length,
+          backgroundColor: color
+        };
+      })
+    );
 
-    return NextResponse.json({ courses });
+    return NextResponse.json({ courses: enrichedCourses });
   } catch (error) {
     console.error('Error fetching student courses:', error);
     return NextResponse.json(
