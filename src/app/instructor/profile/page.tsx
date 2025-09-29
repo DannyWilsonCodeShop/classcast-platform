@@ -37,7 +37,7 @@ const InstructorProfilePage: React.FC = () => {
 
   // Initialize profile data from user context
   useEffect(() => {
-    if (user) {
+    if (user && !profile) { // Only initialize if profile is not already set
       const profileData = {
         id: user.id || '',
         firstName: user.firstName || '',
@@ -57,7 +57,7 @@ const InstructorProfilePage: React.FC = () => {
       setProfile(profileData);
       setEditedProfile(profileData);
     }
-  }, [user]);
+  }, [user, profile]);
 
   // Handle input changes
   const handleInputChange = (field: keyof ProfileData, value: string | number) => {
