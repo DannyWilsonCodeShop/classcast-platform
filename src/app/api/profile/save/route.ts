@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
-const lambdaClient = new LambdaClient({ 
-  region: 'us-east-1'
-  // Uses default credential provider chain (IAM role)
-});
+const client = new DynamoDBClient({ region: 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(client);
 
 // Handle CORS preflight requests
 export async function OPTIONS(request: NextRequest) {
@@ -18,10 +17,10 @@ export async function OPTIONS(request: NextRequest) {
   });
 }
 
-// POST /api/profile/save - Save user profile
+// POST /api/profile/save - Save user profile directly to DynamoDB
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== LAMBDA PROFILE SAVE API CALLED ===');
+    console.log('=== DIRECT PROFILE SAVE API CALLED ===');
     
     const body = await request.json();
     console.log('Request body received:', body);
@@ -45,37 +44,74 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Calling Lambda function for profile save:', body.userId);
+    const { userId, ...profileData } = body;
+    console.log('Processing profile data for user:', userId);
 
-    // Call Lambda function for profile save
-    const lambdaCommand = new InvokeCommand({
-      FunctionName: 'classcast-profile-save',
-      Payload: JSON.stringify({
-        body: JSON.stringify(body)
-      })
+    // Prepare update expression for DynamoDB
+    const updateExpression = [];
+    const expressionAttributeNames = {};
+    const expressionAttributeValues = {};
+
+    // Add updatedAt
+    updateExpression.push('#updatedAt = :updatedAt');
+    expressionAttributeNames['#updatedAt'] = 'updatedAt';
+    expressionAttributeValues[':updatedAt'] = new Date().toISOString();
+
+    // Process each field
+    const allowedFields = [
+      'firstName', 'lastName', 'bio', 'schoolName', 'favoriteSubject', 
+      'funFact', 'hobbies', 'department', 'avatar', 'careerGoals', 
+      'classOf', 'yearsExperience', 'email'
+    ];
+
+    for (const [key, value] of Object.entries(profileData)) {
+      if (allowedFields.includes(key) && value !== undefined && value !== null && value !== '') {
+        const attributeName = `#${key}`;
+        const attributeValue = `:${key}`;
+        
+        updateExpression.push(`${attributeName} = ${attributeValue}`);
+        expressionAttributeNames[attributeName] = key;
+        expressionAttributeValues[attributeValue] = String(value);
+      }
+    }
+
+    if (updateExpression.length === 1) { // Only updatedAt
+      return NextResponse.json({
+        success: true,
+        message: 'Profile updated successfully',
+        user: profileData
+      }, {
+        status: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      });
+    }
+
+    // Update DynamoDB directly
+    const updateCommand = new UpdateCommand({
+      TableName: 'classcast-users',
+      Key: {
+        userId: userId
+      },
+      UpdateExpression: `SET ${updateExpression.join(', ')}`,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
+      ReturnValues: 'ALL_NEW'
     });
 
-    console.log('Lambda command created, invoking...');
-    const lambdaResponse = await lambdaClient.send(lambdaCommand);
-    console.log('Lambda response received:', lambdaResponse);
-    
-    if (!lambdaResponse.Payload) {
-      console.error('No payload in Lambda response');
-      throw new Error('No response from Lambda function');
-    }
+    console.log('Updating DynamoDB with command:', updateCommand);
+    const result = await docClient.send(updateCommand);
+    console.log('DynamoDB update result:', result);
 
-    const responseBody = JSON.parse(new TextDecoder().decode(lambdaResponse.Payload));
-    console.log('Lambda response body:', responseBody);
-
-    // Check if Lambda function returned an error
-    if (lambdaResponse.FunctionError) {
-      console.error('Lambda function error:', lambdaResponse.FunctionError);
-      throw new Error('Lambda function execution failed');
-    }
-
-    // Return the Lambda response directly
-    return NextResponse.json(responseBody, { 
-      status: responseBody.statusCode || 200,
+    return NextResponse.json({
+      success: true,
+      message: 'Profile updated successfully',
+      user: profileData
+    }, {
+      status: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',

@@ -96,10 +96,11 @@ const StudentProfilePage: React.FC = () => {
       return;
     }
 
-    // Convert file to base64
+    // Convert file to base64 immediately
     const reader = new FileReader();
     reader.onload = (e) => {
       const base64Data = e.target?.result as string;
+      console.log('Avatar converted to base64, length:', base64Data.length);
       setEditedProfile(prev => ({
         ...prev,
         avatar: base64Data
@@ -156,7 +157,16 @@ const StudentProfilePage: React.FC = () => {
         return;
       }
 
-      console.log('Saving profile:', editedProfile);
+      // Clean up any blob URLs before saving
+      const cleanProfile = { ...editedProfile };
+      if (cleanProfile.avatar && cleanProfile.avatar.startsWith('blob:')) {
+        console.log('Removing blob URL from profile data');
+        cleanProfile.avatar = '';
+      }
+
+      console.log('Saving profile:', cleanProfile);
+      console.log('Avatar type:', typeof cleanProfile.avatar);
+      console.log('Avatar starts with data:', cleanProfile.avatar?.startsWith('data:'));
       
       const response = await fetch('/api/profile/save', {
         method: 'POST',
@@ -165,16 +175,21 @@ const StudentProfilePage: React.FC = () => {
         },
         body: JSON.stringify({
           userId: user.id,
-          ...editedProfile
+          ...cleanProfile
         }),
       });
+
+      console.log('Profile save response status:', response.status);
+      console.log('Profile save response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         let errorMessage = 'Failed to save profile';
         try {
           const errorData = await response.json();
+          console.log('Error response data:', errorData);
           errorMessage = errorData.error?.message || errorData.message || errorMessage;
         } catch (parseError) {
+          console.log('Failed to parse error response:', parseError);
           errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         }
         throw new Error(errorMessage);
@@ -184,7 +199,7 @@ const StudentProfilePage: React.FC = () => {
       console.log('Profile save result:', result);
       
       // Update local profile state
-      setProfile(editedProfile);
+      setProfile(cleanProfile);
       setIsEditing(false);
       
       // Show success message
