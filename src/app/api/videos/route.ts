@@ -11,6 +11,25 @@ const USERS_TABLE = 'classcast-users';
 // GET /api/videos - Get all videos with optional filtering
 export async function GET(request: NextRequest) {
   try {
+    // Check if videos table exists by trying to describe it
+    try {
+      await docClient.send(new ScanCommand({
+        TableName: VIDEOS_TABLE,
+        Limit: 1
+      }));
+    } catch (tableError: any) {
+      if (tableError.name === 'ResourceNotFoundException') {
+        // Videos table doesn't exist yet, return empty array
+        return NextResponse.json({
+          success: true,
+          videos: [],
+          count: 0,
+          message: 'Videos table not yet created'
+        });
+      }
+      throw tableError;
+    }
+
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId');
     const userId = searchParams.get('userId');
