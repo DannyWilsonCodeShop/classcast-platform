@@ -192,7 +192,12 @@ const StudentProfilePage: React.FC = () => {
 
           console.log('Uploading avatar to S3:', { fileName, contentType, size: blob.size });
 
-          const response = await fetch('/api/upload', {
+          // Use direct Amplify URL to bypass CloudFront during deployment
+          const uploadUrl = window.location.hostname === 'localhost' 
+            ? '/api/upload' 
+            : 'https://d166bugwfgjggz.amplifyapp.com/api/upload';
+            
+          const response = await fetch(uploadUrl, {
             method: 'POST',
             body: formData
           });
@@ -224,7 +229,12 @@ const StudentProfilePage: React.FC = () => {
       
       console.log('Sending profile save request...');
       
-      const response = await fetch('/api/profile/save', {
+      // Use direct Amplify URL to bypass CloudFront during deployment
+      const profileUrl = window.location.hostname === 'localhost' 
+        ? '/api/profile/save' 
+        : 'https://d166bugwfgjggz.amplifyapp.com/api/profile/save';
+        
+      const response = await fetch(profileUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
