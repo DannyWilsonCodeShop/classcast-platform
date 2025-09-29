@@ -204,8 +204,30 @@ const InstructorProfilePage: React.FC = () => {
       console.log('Profile save result:', result);
       
       // Update local profile state
-      setProfile(editedProfile);
+      setProfile(cleanProfile);
       setIsEditing(false);
+
+      // Update AuthContext with new user data
+      if (result.user) {
+        // Update the user in AuthContext
+        const updatedUser = {
+          ...user,
+          ...result.user,
+          id: user.id, // Keep the original id
+          role: user.role // Keep the original role
+        };
+        
+        // Update localStorage
+        const storedAuthState = localStorage.getItem('authState');
+        if (storedAuthState) {
+          const parsedState = JSON.parse(storedAuthState);
+          const updatedAuthState = {
+            ...parsedState,
+            user: updatedUser
+          };
+          localStorage.setItem('authState', JSON.stringify(updatedAuthState));
+        }
+      }
       
       // Show success message
       alert('Profile updated successfully!');
