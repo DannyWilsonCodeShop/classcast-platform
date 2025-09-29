@@ -255,12 +255,11 @@ const InstructorProfilePage: React.FC = () => {
       const result = await response.json();
       console.log('Profile save result:', result);
       
-      // Update local profile state
-      setProfile(cleanProfile);
-      setIsEditing(false);
-
-      // Update AuthContext with new user data
+      // Update local profile state with server response
       if (result.user) {
+        setProfile(result.user);
+        setIsEditing(false);
+        
         // Update the user in AuthContext
         const updatedUser = {
           ...user,
