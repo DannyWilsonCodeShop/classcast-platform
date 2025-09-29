@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { s3Service } from '../../../lib/s3';
 
+// Handle CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
+
 // POST /api/upload - Upload a file to S3
 export async function POST(request: NextRequest) {
   try {
@@ -121,6 +133,12 @@ export async function POST(request: NextRequest) {
         metadata: finalMetadata,
       },
       message: 'File uploaded successfully',
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
     });
   } catch (error) {
     console.error('Error uploading file:', error);
