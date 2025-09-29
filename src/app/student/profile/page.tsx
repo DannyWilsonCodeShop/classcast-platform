@@ -38,12 +38,35 @@ const StudentProfilePage: React.FC = () => {
     console.log('useEffect triggered - user:', user, 'profile:', profile);
     if (user && !profile) { // Only initialize if profile is not already set
       console.log('Initializing profile from user context');
+      
+      // Clean up any old base64 data from user avatar
+      let cleanAvatar = user.avatar || '';
+      if (cleanAvatar && cleanAvatar.startsWith('data:image/')) {
+        console.log('Found base64 avatar in user context, clearing it');
+        cleanAvatar = '';
+        
+        // Also clean up localStorage
+        const storedAuthState = localStorage.getItem('authState');
+        if (storedAuthState) {
+          try {
+            const parsedState = JSON.parse(storedAuthState);
+            if (parsedState.user && parsedState.user.avatar && parsedState.user.avatar.startsWith('data:image/')) {
+              console.log('Cleaning base64 avatar from localStorage');
+              parsedState.user.avatar = '';
+              localStorage.setItem('authState', JSON.stringify(parsedState));
+            }
+          } catch (error) {
+            console.error('Error cleaning localStorage:', error);
+          }
+        }
+      }
+      
       const profileData = {
         id: user.id || '',
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
-        avatar: user.avatar || '',
+        avatar: cleanAvatar,
         bio: user.bio || '',
         careerGoals: user.careerGoals || '',
         classOf: user.classOf || '',
@@ -54,6 +77,7 @@ const StudentProfilePage: React.FC = () => {
       };
       console.log('Profile data from user context:', profileData);
       console.log('User avatar:', user.avatar);
+      console.log('Clean avatar:', cleanAvatar);
       setProfile(profileData);
       setEditedProfile(profileData);
     } else {
@@ -409,8 +433,8 @@ const StudentProfilePage: React.FC = () => {
                       src={profile.avatar}
                       alt={`${profile.firstName} ${profile.lastName}`}
                       className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-                    />
-                  ) : (
+            />
+          ) : (
                     <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center border-4 border-white shadow-lg">
                       <UserIcon className="w-12 h-12 text-white" />
                     </div>
