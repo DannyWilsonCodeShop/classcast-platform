@@ -16,13 +16,25 @@ export async function OPTIONS(request: NextRequest) {
 // POST /api/upload - Upload a file to S3
 export async function POST(request: NextRequest) {
   try {
+    console.log('Upload API called');
+    
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const folder = formData.get('folder') as string || 'uploads';
     const userId = formData.get('userId') as string;
     const metadata = formData.get('metadata') as string;
 
+    console.log('Upload request data:', {
+      fileName: file?.name,
+      fileSize: file?.size,
+      fileType: file?.type,
+      folder,
+      userId,
+      hasMetadata: !!metadata
+    });
+
     if (!file) {
+      console.error('No file provided in upload request');
       return NextResponse.json(
         {
           success: false,
@@ -115,12 +127,25 @@ export async function POST(request: NextRequest) {
     };
 
     // Upload file to S3
+    console.log('Attempting to upload file to S3:', {
+      fileKey,
+      fileSize: buffer.length,
+      contentType: file.type,
+      bucket: process.env.S3_ASSETS_BUCKET || 'cdk-hnb659fds-assets-463470937777-us-east-1'
+    });
+
     const fileUrl = await s3Service.uploadFile(
       fileKey,
       buffer,
       file.type,
       finalMetadata
     );
+
+    console.log('File uploaded successfully:', {
+      fileKey,
+      fileUrl,
+      fileName: file.name
+    });
 
     return NextResponse.json({
       success: true,
@@ -142,13 +167,30 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error uploading file:', error);
+    
+    // Log more detailed error information
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+    }
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to upload file',
         details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      }
     );
   }
 }

@@ -63,7 +63,7 @@ const StudentProfilePage: React.FC = () => {
       const profileDataToSave = { ...updatedProfile };
       console.log('Profile data to save before processing:', profileDataToSave);
       
-      // If avatar is still base64 data, we need to upload it to S3 first
+      // If avatar is still base64 data, try to upload it to S3 first
       if (profileDataToSave.avatar && profileDataToSave.avatar.startsWith('data:image/')) {
         console.log('Avatar is base64 data, uploading to S3 first...');
         
@@ -93,12 +93,13 @@ const StudentProfilePage: React.FC = () => {
             profileDataToSave.avatar = uploadResult.data.fileUrl;
             console.log('Avatar uploaded to S3:', profileDataToSave.avatar);
           } else {
-            console.error('Avatar upload failed, skipping avatar save');
-            delete profileDataToSave.avatar;
+            console.warn('Avatar upload failed, keeping base64 data for now');
+            // Keep the base64 data instead of deleting it
+            // The profile save API should handle base64 avatars
           }
         } catch (uploadError) {
-          console.error('Error uploading avatar:', uploadError);
-          delete profileDataToSave.avatar;
+          console.warn('Error uploading avatar, keeping base64 data:', uploadError);
+          // Keep the base64 data instead of deleting it
         }
       }
       

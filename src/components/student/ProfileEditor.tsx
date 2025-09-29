@@ -74,11 +74,18 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
       return;
     }
 
+    // Create immediate preview
+    const previewUrl = URL.createObjectURL(file);
+    setEditedProfile(prev => ({
+      ...prev,
+      avatar: previewUrl
+    }));
+
     try {
       setIsUploading(true);
       setErrors(prev => ({ ...prev, avatar: '' }));
       
-      // Upload file directly to S3
+      // Try to upload file to S3
       const uploadResult = await uploadAvatarToS3(file, editedProfile.id);
       
       if (uploadResult.success && uploadResult.url) {
@@ -88,27 +95,25 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({
           avatar: uploadResult.url
         }));
         console.log('Avatar uploaded to S3:', uploadResult.url);
+        
+        // Clean up preview URL
+        URL.revokeObjectURL(previewUrl);
       } else {
-        // Show error but don't update profile
+        // Show warning but keep preview
         setErrors(prev => ({
           ...prev,
-          avatar: uploadResult.error || 'Upload failed'
+          avatar: `Upload failed: ${uploadResult.error || 'Unknown error'}. Image will be saved as base64.`
         }));
+        console.warn('S3 upload failed, using base64 fallback:', uploadResult.error);
       }
       
     } catch (error) {
       console.error('Avatar upload error:', error);
       setErrors(prev => ({
         ...prev,
-        avatar: 'Failed to upload avatar. Please try again.'
+        avatar: `Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}. Image will be saved as base64.`
       }));
-      
-      // Still set a local preview even if upload fails
-      const previewUrl = URL.createObjectURL(file);
-      setEditedProfile(prev => ({
-        ...prev,
-        avatar: previewUrl
-      }));
+      console.warn('S3 upload failed, using base64 fallback');
     } finally {
       setIsUploading(false);
     }
