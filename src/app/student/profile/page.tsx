@@ -61,6 +61,28 @@ const StudentProfilePage: React.FC = () => {
     }
   }, [user, profile]);
 
+  // Track profile state changes
+  useEffect(() => {
+    console.log('Profile state changed:', profile);
+    if (profile?.avatar) {
+      console.log('Profile avatar:', profile.avatar);
+      console.log('Profile avatar type:', typeof profile.avatar);
+      console.log('Profile avatar starts with data:', profile.avatar.startsWith('data:'));
+      console.log('Profile avatar starts with https:', profile.avatar.startsWith('https:'));
+    }
+  }, [profile]);
+
+  // Track editedProfile state changes
+  useEffect(() => {
+    console.log('EditedProfile state changed:', editedProfile);
+    if (editedProfile?.avatar) {
+      console.log('EditedProfile avatar:', editedProfile.avatar);
+      console.log('EditedProfile avatar type:', typeof editedProfile.avatar);
+      console.log('EditedProfile avatar starts with data:', editedProfile.avatar.startsWith('data:'));
+      console.log('EditedProfile avatar starts with https:', editedProfile.avatar.startsWith('https:'));
+    }
+  }, [editedProfile]);
+
   // Note: Removed server-side profile refresh to avoid 404 errors
   // Profile data will be refreshed from AuthContext localStorage
 
@@ -288,6 +310,7 @@ const StudentProfilePage: React.FC = () => {
         console.log('Result user avatar starts with https:', result.user.avatar?.startsWith('https:'));
         
         setProfile(result.user);
+        setEditedProfile(result.user); // Also update editedProfile with the S3 URL
         setIsEditing(false);
         
         // Update the user in AuthContext using the updateUser function
@@ -295,9 +318,7 @@ const StudentProfilePage: React.FC = () => {
         updateUser(result.user);
         
         // Verify the profile state after update
-        setTimeout(() => {
-          console.log('Profile state after update:', profile);
-        }, 100);
+        console.log('Profile state immediately after setProfile:', profile);
       } else {
         console.log('No result.user found in response');
       }
