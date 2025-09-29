@@ -160,19 +160,19 @@ const StudentDashboard: React.FC = () => {
     const loadTodoStats = async () => {
       setIsLoadingTodoStats(true);
       try {
-        // Mock data for now - in real implementation, this would come from APIs
-        const mockTodoStats = {
-          pendingAssignments: 3,
-          pendingReviews: 2,
-          nextDueAssignment: {
-            title: 'Video Presentation Assignment',
-            dueDate: 'Jan 25'
-          }
-        };
+        const response = await fetch(`/api/student/todo-stats?userId=${user?.id}`, { credentials: 'include' });
         
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setTodoStats(mockTodoStats);
+        if (response.ok) {
+          const data = await response.json();
+          setTodoStats(data);
+        } else {
+          console.warn('Failed to load todo stats:', response.statusText);
+          setTodoStats({
+            pendingAssignments: 0,
+            pendingReviews: 0,
+            nextDueAssignment: null
+          });
+        }
       } catch (error) {
         console.warn('Failed to load todo stats:', error);
         setTodoStats({
