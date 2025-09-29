@@ -35,7 +35,7 @@ const StudentProfilePage: React.FC = () => {
 
   // Initialize profile data from user context
   useEffect(() => {
-    if (user) {
+    if (user && !profile) { // Only initialize if profile is not already set
       const profileData = {
         id: user.id || '',
         firstName: user.firstName || '',
@@ -53,7 +53,7 @@ const StudentProfilePage: React.FC = () => {
       setProfile(profileData);
       setEditedProfile(profileData);
     }
-  }, [user]);
+  }, [user, profile]);
 
   // Note: Removed server-side profile refresh to avoid 404 errors
   // Profile data will be refreshed from AuthContext localStorage
