@@ -157,22 +157,18 @@ const StudentProfilePage: React.FC = () => {
         return;
       }
 
-      // Clean up any blob URLs before saving and truncate large avatars for testing
+      // Clean up any blob URLs before saving
       const cleanProfile = { ...editedProfile };
       if (cleanProfile.avatar && cleanProfile.avatar.startsWith('blob:')) {
         console.log('Removing blob URL from profile data');
         cleanProfile.avatar = '';
-      } else if (cleanProfile.avatar && cleanProfile.avatar.startsWith('data:image/')) {
-        // For testing, truncate the base64 data to avoid CloudFront size limits
-        console.log('Truncating large base64 avatar for testing');
-        cleanProfile.avatar = cleanProfile.avatar.substring(0, 1000) + '...';
       }
 
       console.log('Saving profile:', cleanProfile);
       console.log('Avatar type:', typeof cleanProfile.avatar);
       console.log('Avatar starts with data:', cleanProfile.avatar?.startsWith('data:'));
       
-      const response = await fetch('/api/profile/update', {
+      const response = await fetch('/api/profile/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
