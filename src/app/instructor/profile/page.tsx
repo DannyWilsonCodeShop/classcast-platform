@@ -1,104 +1,208 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { CameraIcon, UserIcon, PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+
+interface ProfileData {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  avatar: string;
+  bio: string;
+  careerGoals: string;
+  classOf: string;
+  funFact: string;
+  favoriteSubject: string;
+  hobbies: string;
+  schoolName?: string;
+  department?: string;
+  yearsExperience?: number;
+}
 
 const InstructorProfilePage: React.FC = () => {
-  console.log('InstructorProfilePage component starting - SIMPLE VERSION');
-  
-  const { user, logout, updateUser } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
-  const [avatar, setAvatar] = useState(user?.avatar || '');
+  const [isLoading, setIsLoading] = useState(false);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [editedProfile, setEditedProfile] = useState<ProfileData | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [avatarError, setAvatarError] = useState(false);
-  
-  // Helper function to get the correct avatar URL
-  const getAvatarUrl = (avatarUrl: string) => {
-    if (!avatarUrl) return '/api/placeholder/100/100';
-    if (avatarUrl.startsWith('data:')) return avatarUrl; // Base64 data URL
-    if (avatarUrl.includes('s3.amazonaws.com') || avatarUrl.includes('s3.')) {
-      // S3 URL, use proxy to avoid CORS issues
-      return `/api/avatar-proxy?url=${encodeURIComponent(avatarUrl)}`;
-    }
-    return avatarUrl; // Other URLs (CloudFront, etc.)
-  };
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Update avatar state when user context changes
-  React.useEffect(() => {
-    if (user?.avatar && user.avatar !== avatar) {
-      console.log('User avatar changed, updating local avatar state:', user.avatar);
-      setAvatar(user.avatar);
+  // Initialize profile data from user context
+  useEffect(() => {
+    if (user) {
+      const profileData = {
+        id: user.id || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        avatar: user.avatar || '',
+        bio: user.bio || '',
+        careerGoals: user.careerGoals || '',
+        classOf: user.classOf || '',
+        funFact: user.funFact || '',
+        favoriteSubject: user.favoriteSubject || '',
+        hobbies: user.hobbies || '',
+        schoolName: user.schoolName || '',
+        department: user.department || '',
+        yearsExperience: user.yearsExperience || 0
+      };
+      setProfile(profileData);
+      setEditedProfile(profileData);
     }
-  }, [user?.avatar, avatar]);
-  
-  console.log('InstructorProfilePage rendering, user:', user, 'isEditing:', isEditing);
-  console.log('Current avatar state:', avatar);
-  console.log('User avatar from context:', user?.avatar);
-  console.log('Avatar error state:', avatarError);
+  }, [user]);
+
+  // Handle input changes
+  const handleInputChange = (field: keyof ProfileData, value: string | number) => {
+    if (!editedProfile) return;
+    
+    setEditedProfile(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
+    }
+  };
 
   // Handle avatar upload
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !editedProfile) return;
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'Please select a valid image file (JPG, PNG, GIF, or WebP)'
+      }));
       return;
     }
 
-    // Validate file size (5MB max)
+    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'Image size must be less than 5MB'
+      }));
       return;
     }
 
-    setIsUploading(true);
-    try {
-      // Convert to base64 for immediate preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        if (dataUrl) {
-          setAvatar(dataUrl);
-          setIsUploading(false);
-        }
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error('Avatar upload error:', error);
-      alert('Error uploading avatar');
-      setIsUploading(false);
-    }
-  };
-
-  // Form validation
-  const validateForm = (formData: FormData): { isValid: boolean; errors: string[] } => {
-    const errors: string[] = [];
+    // Convert file to base64
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64Data = e.target?.result as string;
+      setEditedProfile(prev => ({
+        ...prev,
+        avatar: base64Data
+      }));
+      setErrors(prev => ({ ...prev, avatar: '' }));
+    };
     
-    const firstName = formData.get('firstName') as string;
-    const lastName = formData.get('lastName') as string;
-    const email = formData.get('email') as string;
-    const favoriteSubject = formData.get('favoriteSubject') as string;
-    const hobbies = formData.get('hobbies') as string;
-
-    if (!firstName?.trim()) errors.push('First name is required');
-    if (!lastName?.trim()) errors.push('Last name is required');
-    if (!email?.trim()) {
-      errors.push('Email is required');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errors.push('Please enter a valid email address');
-    }
-    if (!favoriteSubject?.trim()) errors.push('Favorite subject is required');
-    if (!hobbies?.trim()) errors.push('Hobbies and interests are required');
-
-    return { isValid: errors.length === 0, errors };
+    reader.readAsDataURL(file);
   };
 
-  if (!user) {
+  // Validate form
+  const validateForm = (): boolean => {
+    if (!editedProfile) return false;
+    
+    const newErrors: Record<string, string> = {};
+
+    if (!editedProfile.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+
+    if (!editedProfile.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    }
+
+    if (!editedProfile.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editedProfile.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!editedProfile.department?.trim()) {
+      newErrors.department = 'Department is required';
+    }
+
+    if (!editedProfile.schoolName?.trim()) {
+      newErrors.schoolName = 'School name is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handle profile save
+  const handleSaveProfile = async () => {
+    if (!editedProfile || !user) return;
+
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const isValid = validateForm();
+      if (!isValid) {
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('Saving instructor profile:', editedProfile);
+      
+      const response = await fetch('/api/profile/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          ...editedProfile
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to save profile';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error?.message || errorData.message || errorMessage;
+        } catch (parseError) {
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      const result = await response.json();
+      console.log('Profile save result:', result);
+      
+      // Update local profile state
+      setProfile(editedProfile);
+      setIsEditing(false);
+      
+      // Show success message
+      alert('Profile updated successfully!');
+      
+    } catch (error) {
+      console.error('Profile save error:', error);
+      setError(error instanceof Error ? error.message : 'Failed to save profile');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!user || !profile) {
     return (
       <InstructorRoute>
         <div className="min-h-screen flex items-center justify-center bg-[#F5F5F5]">
@@ -118,15 +222,15 @@ const InstructorProfilePage: React.FC = () => {
         <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.push('/instructor/dashboard')}
+              <Link
+                href="/instructor/dashboard"
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors duration-200"
                 title="Back to Dashboard"
               >
                 <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-              </button>
+              </Link>
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-[#4A90E2] rounded-full flex items-center justify-center text-white font-bold text-lg">
                   👨‍🏫
@@ -155,336 +259,420 @@ const InstructorProfilePage: React.FC = () => {
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto p-6">
-          {isEditing ? (
-            <div className="bg-white rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-              <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Profile</h2>
-                
-                <form onSubmit={async (e) => {
-                  e.preventDefault();
-                  console.log('Form submitted!');
-                  
-                  try {
-                    const formData = new FormData(e.currentTarget);
-                    
-                    // Validate form
-                    const validation = validateForm(formData);
-                    if (!validation.isValid) {
-                      alert('Please fix the following errors:\n' + validation.errors.join('\n'));
-                      return;
-                    }
-                    const profileData = {
-                      userId: user?.id || user?.userId || 'test-user-123',
-                      firstName: formData.get('firstName') as string || '',
-                      lastName: formData.get('lastName') as string || '',
-                      email: formData.get('email') as string || '',
-                      bio: formData.get('bio') as string || '',
-                      favoriteSubject: formData.get('favoriteSubject') as string || '',
-                      hobbies: formData.get('hobbies') as string || '',
-                      funFact: formData.get('funFact') as string || '',
-                      schoolName: formData.get('schoolName') as string || '',
-                      avatar: avatar, // Include the avatar
-                    };
-                    
-                    console.log('Saving profile:', profileData);
-                    
-                    const response = await fetch('/api/profile/save', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify(profileData),
-                    });
-                    
-                    console.log('Response status:', response.status);
-                    
-                    if (response.ok) {
-                      const result = await response.json();
-                      console.log('Profile saved successfully:', result);
-                      
-                      // Update user context with new data
-                      const updatedAvatar = result.data.avatar || profileData.avatar;
-                      console.log('Setting avatar to:', updatedAvatar);
-                      
-                      try {
-                        updateUser({
-                          firstName: profileData.firstName,
-                          lastName: profileData.lastName,
-                          email: profileData.email,
-                          bio: profileData.bio,
-                          favoriteSubject: profileData.favoriteSubject,
-                          hobbies: profileData.hobbies,
-                          funFact: profileData.funFact,
-                          schoolName: profileData.schoolName,
-                          avatar: updatedAvatar,
-                        });
-                        
-                        // Update local avatar state with the S3 URL, but keep base64 as fallback
-                        if (updatedAvatar && !updatedAvatar.startsWith('data:')) {
-                          // It's an S3 URL, use it
-                          setAvatar(updatedAvatar);
-                        } else {
-                          // It's base64 or empty, keep the current avatar
-                          console.log('Keeping current avatar (base64 or empty)');
-                        }
-                        console.log('User context updated successfully');
-                      } catch (updateError) {
-                        console.error('Error updating user context:', updateError);
-                      }
-                      
-                      alert('Profile saved successfully!');
-                      setIsEditing(false);
-                    } else {
-                      const errorText = await response.text();
-                      console.error('Save failed:', response.status, errorText);
-                      alert(`Failed to save profile (${response.status}). Please try again.`);
-                    }
-                  } catch (error) {
-                    console.error('Error saving profile:', error);
-                    alert('Error saving profile. Please try again.');
-                  }
-                }}>
-                  <div className="space-y-4">
-                    {/* Avatar Upload Section */}
-                    <div className="flex items-center space-x-6">
-                      <div className="relative">
-                              <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
-                                <img
-                                  src={avatarError ? '/api/placeholder/100/100' : getAvatarUrl(avatar || '')}
-                                  alt="Profile"
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    console.log('Avatar load error in edit mode, falling back to placeholder');
-                                    setAvatarError(true);
-                                    e.currentTarget.src = '/api/placeholder/100/100';
-                                  }}
-                                  onLoad={() => setAvatarError(false)}
-                                />
-                              </div>
-                        <input
-                          type="file"
-                          onChange={handleAvatarUpload}
-                          className="hidden"
-                          accept="image/jpeg,image/png,image/gif,image/webp"
-                          id="avatar-upload"
-                        />
-                        <label
-                          htmlFor="avatar-upload"
-                          className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 text-xs shadow-md hover:bg-blue-600 transition-colors cursor-pointer"
-                          title="Change Profile Picture"
-                        >
-                          📷
-                        </label>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900">Profile Picture</h3>
-                        <p className="text-sm text-gray-500">JPG, PNG, GIF, or WebP. Max 5MB.</p>
-                        {isUploading && (
-                          <div className="flex items-center mt-2 text-blue-600 text-sm">
-                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Uploading...
-                          </div>
-                        )}
-                      </div>
+          {/* Profile Card */}
+          <div className="bg-white rounded-2xl shadow-xl border border-white/20 overflow-hidden mb-6">
+            {/* Profile Header */}
+            <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-6 text-white">
+              <div className="flex items-center space-x-6">
+                <div className="relative">
+                  {profile.avatar ? (
+                    <img
+                      src={profile.avatar}
+                      alt={`${profile.firstName} ${profile.lastName}`}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                    />
+                  ) : (
+                    <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center border-4 border-white shadow-lg">
+                      <UserIcon className="w-12 h-12 text-white" />
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          First Name <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="firstName"
-                          defaultValue={user.firstName || ''}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Last Name <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          name="lastName"
-                          defaultValue={user.lastName || ''}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Email <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          defaultValue={user.email || ''}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          required
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">School Name</label>
-                        <input
-                          type="text"
-                          name="schoolName"
-                          defaultValue={user.schoolName || ''}
-                          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Bio</label>
-                      <textarea
-                        name="bio"
-                        defaultValue={user.bio || ''}
-                        rows={3}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Favorite Subject <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="favoriteSubject"
-                        defaultValue={user.favoriteSubject || ''}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Hobbies & Interests <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="hobbies"
-                        defaultValue={user.hobbies || ''}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    </div>
-                    
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Fun Fact</label>
-                      <input
-                        type="text"
-                        name="funFact"
-                        defaultValue={user.funFact || ''}
-                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-end space-x-4 mt-6">
-                    <button
-                      type="button"
-                      onClick={() => setIsEditing(false)}
-                      className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Save Changes
-                    </button>
-                  </div>
-                </form>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-3xl font-bold">
+                    {profile.firstName} {profile.lastName}
+                  </h2>
+                  <p className="text-lg opacity-90">{profile.email}</p>
+                  {profile.department && (
+                    <p className="text-sm opacity-75">{profile.department} Department</p>
+                  )}
+                  {profile.schoolName && (
+                    <p className="text-sm opacity-75">{profile.schoolName}</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center space-x-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                >
+                  <PencilIcon className="w-5 h-5" />
+                  <span>Edit Profile</span>
+                </button>
               </div>
             </div>
-          ) : (
-            <div className="bg-white rounded-2xl shadow-xl border border-white/20 overflow-hidden">
-              {/* Profile Header */}
-              <div className="bg-[#4A90E2] p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
-                      <img
-                        src={avatarError ? '/api/placeholder/100/100' : getAvatarUrl(avatar || user?.avatar || '')}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.log('Avatar load error, falling back to placeholder. Current src:', e.currentTarget.src);
-                          setAvatarError(true);
-                          e.currentTarget.src = '/api/placeholder/100/100';
-                        }}
-                        onLoad={(e) => {
-                          console.log('Avatar loaded successfully:', e.currentTarget.src);
-                          setAvatarError(false);
-                        }}
-                      />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">
-                        {user.firstName} {user.lastName}
-                      </h2>
-                      <p className="text-white/80">{user.email}</p>
-                      <p className="text-white/60 text-sm">Instructor</p>
-                    </div>
+
+            {/* Profile Details */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                    Basic Information
+                  </h3>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">First Name</label>
+                    <p className="text-gray-900">{profile.firstName}</p>
                   </div>
-                  <button
-                    onClick={() => setIsEditing(true)}
-                    className="px-4 py-2 bg-white text-[#4A90E2] rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Edit Profile
-                  </button>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Last Name</label>
+                    <p className="text-gray-900">{profile.lastName}</p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600">Email</label>
+                    <p className="text-gray-900">{profile.email}</p>
+                  </div>
+                  
+                  {profile.department && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Department</label>
+                      <p className="text-gray-900">{profile.department}</p>
+                    </div>
+                  )}
+                  
+                  {profile.schoolName && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">School</label>
+                      <p className="text-gray-900">{profile.schoolName}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Professional Information */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                    Professional Information
+                  </h3>
+                  
+                  {profile.favoriteSubject && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Subject Area</label>
+                      <p className="text-gray-900">{profile.favoriteSubject}</p>
+                    </div>
+                  )}
+                  
+                  {profile.yearsExperience && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Years of Experience</label>
+                      <p className="text-gray-900">{profile.yearsExperience} years</p>
+                    </div>
+                  )}
+                  
+                  {profile.careerGoals && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600">Teaching Philosophy</label>
+                      <p className="text-gray-900">{profile.careerGoals}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Profile Details */}
-              <div className="p-6">
-                <div className="space-y-4">
-                  {user.bio && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Bio</p>
-                      <p className="text-lg text-gray-900">{user.bio}</p>
-                    </div>
-                  )}
-                  {user.schoolName && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">School</p>
-                      <p className="text-lg text-gray-900">{user.schoolName}</p>
-                    </div>
-                  )}
-                  {user.favoriteSubject && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Favorite Subject</p>
-                      <p className="text-lg text-gray-900">{user.favoriteSubject}</p>
-                    </div>
-                  )}
-                  {user.hobbies && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Hobbies & Interests</p>
-                      <p className="text-lg text-gray-900">{user.hobbies}</p>
-                    </div>
-                  )}
-                  {user.funFact && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-500">Fun Fact</p>
-                      <p className="text-lg text-gray-900">{user.funFact}</p>
-                    </div>
-                  )}
+              {/* Personal Information */}
+              {(profile.bio || profile.hobbies || profile.funFact) && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                  
+                  <div className="space-y-4">
+                    {profile.bio && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Bio</label>
+                        <p className="text-gray-900">{profile.bio}</p>
+                      </div>
+                    )}
+                    
+                    {profile.hobbies && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Hobbies & Interests</label>
+                        <p className="text-gray-900">{profile.hobbies}</p>
+                      </div>
+                    )}
+                    
+                    {profile.funFact && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-600">Fun Fact</label>
+                        <p className="text-gray-900">{profile.funFact}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-red-800">{error}</p>
             </div>
           )}
         </div>
+
+        {/* Edit Profile Modal */}
+        {isEditing && editedProfile && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-900">Edit Profile</h2>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="p-6 space-y-6">
+                {/* Avatar Section */}
+                <div className="flex items-center space-x-6">
+                  <div className="relative">
+                    <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
+                      <img
+                        src={editedProfile.avatar || '/api/placeholder/100/100'}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <button
+                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                      disabled={isUploading}
+                      className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg"
+                      title="Change photo"
+                    >
+                      <CameraIcon className="h-4 w-4" />
+                    </button>
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {editedProfile.firstName} {editedProfile.lastName}
+                    </h3>
+                    <p className="text-sm text-gray-600">Click camera icon to change photo</p>
+                    {errors.avatar && (
+                      <p className="text-sm text-red-600 mt-1">{errors.avatar}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      Supported: JPG, PNG, GIF, WebP (max 5MB)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Form Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* First Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      First Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.firstName ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your first name"
+                    />
+                    {errors.firstName && (
+                      <p className="text-sm text-red-600 mt-1">{errors.firstName}</p>
+                    )}
+                  </div>
+
+                  {/* Last Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Last Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.lastName ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your last name"
+                    />
+                    {errors.lastName && (
+                      <p className="text-sm text-red-600 mt-1">{errors.lastName}</p>
+                    )}
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      value={editedProfile.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.email ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your email"
+                    />
+                    {errors.email && (
+                      <p className="text-sm text-red-600 mt-1">{errors.email}</p>
+                    )}
+                  </div>
+
+                  {/* Department */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Department *
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.department || ''}
+                      onChange={(e) => handleInputChange('department', e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.department ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="e.g., Mathematics, Science, English"
+                    />
+                    {errors.department && (
+                      <p className="text-sm text-red-600 mt-1">{errors.department}</p>
+                    )}
+                  </div>
+
+                  {/* School Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      School Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.schoolName || ''}
+                      onChange={(e) => handleInputChange('schoolName', e.target.value)}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                        errors.schoolName ? 'border-red-500' : 'border-gray-300'
+                      }`}
+                      placeholder="Enter your school name"
+                    />
+                    {errors.schoolName && (
+                      <p className="text-sm text-red-600 mt-1">{errors.schoolName}</p>
+                    )}
+                  </div>
+
+                  {/* Years of Experience */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Years of Experience
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={editedProfile.yearsExperience || 0}
+                      onChange={(e) => handleInputChange('yearsExperience', parseInt(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0"
+                    />
+                  </div>
+
+                  {/* Subject Area */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Subject Area
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.favoriteSubject || ''}
+                      onChange={(e) => handleInputChange('favoriteSubject', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="e.g., Mathematics, Science, English"
+                    />
+                  </div>
+
+                  {/* Teaching Philosophy */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Teaching Philosophy
+                    </label>
+                    <textarea
+                      value={editedProfile.careerGoals || ''}
+                      onChange={(e) => handleInputChange('careerGoals', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Describe your teaching approach and philosophy"
+                      rows={3}
+                    />
+                  </div>
+
+                  {/* Hobbies */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Hobbies & Interests
+                    </label>
+                    <input
+                      type="text"
+                      value={editedProfile.hobbies || ''}
+                      onChange={(e) => handleInputChange('hobbies', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="e.g., Reading, Hiking, Music"
+                    />
+                  </div>
+
+                  {/* Fun Fact */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Fun Fact
+                    </label>
+                    <textarea
+                      value={editedProfile.funFact || ''}
+                      onChange={(e) => handleInputChange('funFact', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Tell us something interesting about yourself!"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                {/* Bio */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Bio
+                  </label>
+                  <textarea
+                    value={editedProfile.bio || ''}
+                    onChange={(e) => handleInputChange('bio', e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Tell us about yourself..."
+                  />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
+                  >
+                    {isLoading ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <CheckIcon className="h-4 w-4" />
+                    )}
+                    <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </InstructorRoute>
   );
