@@ -192,7 +192,41 @@ const StudentProfilePage: React.FC = () => {
 
           console.log('Uploading avatar to S3:', { fileName, contentType, size: blob.size });
 
-          const response = await fetch('/api/upload', {
+          // Try direct S3 upload first, fallback to API if needed
+          let response;
+          try {
+            // First try: Direct S3 upload using presigned URL
+            const presignedResponse = await fetch('/api/upload/presigned', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                fileName,
+                fileType: contentType,
+                folder: 'profile-pictures',
+                userId: user.id
+              })
+            });
+
+            if (presignedResponse.ok) {
+              const presignedData = await presignedResponse.json();
+              const directUpload = await fetch(presignedData.presignedUrl, {
+                method: 'PUT',
+                body: blob,
+                headers: { 'Content-Type': contentType }
+              });
+
+              if (directUpload.ok) {
+                console.log('Direct S3 upload successful:', presignedData.fileUrl);
+                cleanProfile.avatar = presignedData.fileUrl;
+                return; // Skip the regular API upload
+              }
+            }
+          } catch (directError) {
+            console.log('Direct S3 upload failed, trying API:', directError);
+          }
+
+          // Fallback: Regular API upload
+          response = await fetch('/api/upload', {
             method: 'POST',
             body: formData
           });
