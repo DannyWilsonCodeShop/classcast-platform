@@ -25,7 +25,7 @@ interface ProfileData {
 }
 
 const InstructorProfilePage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth();
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -260,24 +260,8 @@ const InstructorProfilePage: React.FC = () => {
         setProfile(result.user);
         setIsEditing(false);
         
-        // Update the user in AuthContext
-        const updatedUser = {
-          ...user,
-          ...result.user,
-          id: user.id, // Keep the original id
-          role: user.role // Keep the original role
-        };
-        
-        // Update localStorage
-        const storedAuthState = localStorage.getItem('authState');
-        if (storedAuthState) {
-          const parsedState = JSON.parse(storedAuthState);
-          const updatedAuthState = {
-            ...parsedState,
-            user: updatedUser
-          };
-          localStorage.setItem('authState', JSON.stringify(updatedAuthState));
-        }
+        // Update the user in AuthContext using the updateUser function
+        updateUser(result.user);
       }
       
       // Show success message
