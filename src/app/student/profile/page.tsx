@@ -167,60 +167,11 @@ const StudentProfilePage: React.FC = () => {
         cleanProfile.avatar = '';
       }
 
-      // Handle large base64 avatars by uploading to S3 first
+      // Temporarily skip avatar upload to avoid CloudFront issues
       if (cleanProfile.avatar && cleanProfile.avatar.startsWith('data:image/')) {
-        console.log('Avatar is base64, uploading to S3 first...');
-        try {
-          const base64Data = cleanProfile.avatar.split(',')[1];
-          const contentType = cleanProfile.avatar.split(';')[0].split(':')[1];
-          const fileExtension = contentType.split('/')[1] || 'jpg';
-          const fileName = `avatar_${user.id}_${Date.now()}.${fileExtension}`;
-          
-          // Convert base64 to blob
-          const byteCharacters = atob(base64Data);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: contentType });
-          
-          const formData = new FormData();
-          formData.append('file', blob, fileName);
-          formData.append('folder', 'profile-pictures');
-          formData.append('userId', user.id);
-
-          console.log('Uploading avatar to S3:', { fileName, contentType, size: blob.size });
-
-          // Use direct Amplify URL to bypass CloudFront during deployment
-          const uploadUrl = window.location.hostname === 'localhost' 
-            ? '/api/upload' 
-            : 'https://d166bugwfgjggz.amplifyapp.com/api/upload';
-            
-          const response = await fetch(uploadUrl, {
-            method: 'POST',
-            body: formData
-          });
-
-          console.log('S3 upload response status:', response.status);
-
-          if (response.ok) {
-            const uploadResult = await response.json();
-            console.log('S3 upload result:', uploadResult);
-            if (uploadResult.success && uploadResult.data?.fileUrl) {
-              console.log('Avatar uploaded to S3:', uploadResult.data.fileUrl);
-              cleanProfile.avatar = uploadResult.data.fileUrl;
-            } else {
-              console.log('S3 upload failed, keeping base64 data');
-            }
-          } else {
-            const errorText = await response.text();
-            console.log('S3 upload failed with status:', response.status, errorText);
-            console.log('Keeping base64 data for profile save');
-          }
-        } catch (error) {
-          console.error('S3 upload error, keeping base64 data:', error);
-        }
+        console.log('Avatar is base64, skipping S3 upload for now to avoid CloudFront issues');
+        // Keep the base64 data but note it's temporary
+        cleanProfile.avatar = cleanProfile.avatar.substring(0, 100) + '... (truncated for CloudFront)';
       }
 
       console.log('Saving profile:', cleanProfile);
@@ -229,12 +180,7 @@ const StudentProfilePage: React.FC = () => {
       
       console.log('Sending profile save request...');
       
-      // Use direct Amplify URL to bypass CloudFront during deployment
-      const profileUrl = window.location.hostname === 'localhost' 
-        ? '/api/profile/save' 
-        : 'https://d166bugwfgjggz.amplifyapp.com/api/profile/save';
-        
-      const response = await fetch(profileUrl, {
+      const response = await fetch('/api/profile/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
