@@ -167,11 +167,58 @@ const StudentProfilePage: React.FC = () => {
         cleanProfile.avatar = '';
       }
 
-      // Temporarily skip avatar upload to avoid CloudFront issues
+      // Handle base64 avatars by uploading directly to S3
       if (cleanProfile.avatar && cleanProfile.avatar.startsWith('data:image/')) {
-        console.log('Avatar is base64, skipping S3 upload for now to avoid CloudFront issues');
-        // Clear avatar completely to avoid invalid URL errors
-        cleanProfile.avatar = '';
+        console.log('Avatar is base64, uploading directly to S3...');
+        try {
+          const base64Data = cleanProfile.avatar.split(',')[1];
+          const contentType = cleanProfile.avatar.split(';')[0].split(':')[1];
+          const fileExtension = contentType.split('/')[1] || 'jpg';
+          const fileName = `avatar_${user.id}_${Date.now()}.${fileExtension}`;
+          
+          // Convert base64 to blob
+          const byteCharacters = atob(base64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: contentType });
+          
+          const formData = new FormData();
+          formData.append('file', blob, fileName);
+          formData.append('folder', 'profile-pictures');
+          formData.append('userId', user.id);
+
+          console.log('Uploading avatar to S3:', { fileName, contentType, size: blob.size });
+
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          });
+
+          console.log('S3 upload response status:', response.status);
+
+          if (response.ok) {
+            const uploadResult = await response.json();
+            console.log('S3 upload result:', uploadResult);
+            if (uploadResult.success && uploadResult.data?.fileUrl) {
+              console.log('Avatar uploaded to S3:', uploadResult.data.fileUrl);
+              cleanProfile.avatar = uploadResult.data.fileUrl;
+            } else {
+              console.log('S3 upload failed, clearing avatar');
+              cleanProfile.avatar = '';
+            }
+          } else {
+            const errorText = await response.text();
+            console.log('S3 upload failed with status:', response.status, errorText);
+            console.log('Clearing avatar due to upload failure');
+            cleanProfile.avatar = '';
+          }
+        } catch (error) {
+          console.error('S3 upload error, clearing avatar:', error);
+          cleanProfile.avatar = '';
+        }
       }
 
       console.log('Saving profile:', cleanProfile);
