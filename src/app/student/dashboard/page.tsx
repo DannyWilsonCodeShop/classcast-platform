@@ -68,25 +68,51 @@ const StudentDashboard: React.FC = () => {
             fetch(`/api/student/assignments?userId=${user.id}`, { credentials: 'include' })
           ]);
 
+          // Handle stats response
           if (statsResponse.ok) {
-            const statsData = await statsResponse.json();
-            setStats(statsData);
+            try {
+              const statsData = await statsResponse.json();
+              setStats(statsData);
+            } catch (parseError) {
+              console.error('Error parsing stats response:', parseError);
+              setError('Failed to load statistics');
+            }
+          } else {
+            console.error('Stats API failed:', statsResponse.status, statsResponse.statusText);
+            setError('Failed to load statistics');
           }
 
+          // Handle courses response
           if (coursesResponse.ok) {
-            const coursesData = await coursesResponse.json();
-            console.log('Courses API response:', coursesData);
-            setCourses(coursesData.courses || []);
+            try {
+              const coursesData = await coursesResponse.json();
+              console.log('Courses API response:', coursesData);
+              setCourses(coursesData.courses || []);
+            } catch (parseError) {
+              console.error('Error parsing courses response:', parseError);
+              setError('Failed to load courses');
+            }
           } else {
             console.error('Courses API failed:', coursesResponse.status, coursesResponse.statusText);
+            setError('Failed to load courses');
           }
 
+          // Handle assignments response
           if (assignmentsResponse.ok) {
-            const assignmentsData = await assignmentsResponse.json();
-            setAssignments(assignmentsData.assignments || []);
+            try {
+              const assignmentsData = await assignmentsResponse.json();
+              setAssignments(assignmentsData.assignments || []);
+            } catch (parseError) {
+              console.error('Error parsing assignments response:', parseError);
+              setError('Failed to load assignments');
+            }
+          } else {
+            console.error('Assignments API failed:', assignmentsResponse.status, assignmentsResponse.statusText);
+            setError('Failed to load assignments');
           }
         } catch (apiError) {
-          console.warn('API calls failed, using fallback data:', apiError);
+          console.error('API calls failed:', apiError);
+          setError('Failed to load dashboard data. Please try again later.');
         }
         
       } catch (error) {
@@ -229,6 +255,27 @@ const StudentDashboard: React.FC = () => {
             </h2>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
             <p className="text-gray-800">Loading your home...</p>
+          </div>
+        </div>
+      </StudentRoute>
+    );
+  }
+
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <StudentRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100">
+          <div className="text-center max-w-md mx-auto p-6">
+            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Dashboard</h2>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              Try Again
+            </button>
           </div>
         </div>
       </StudentRoute>
