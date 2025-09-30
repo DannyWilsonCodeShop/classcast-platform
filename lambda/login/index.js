@@ -107,11 +107,15 @@ exports.handler = async (event) => {
 
             const dbResponse = await dynamoDBClient.send(getItemCommand);
             if (dbResponse.Item) {
+                // Only include S3 URLs for avatar, ignore base64 data
+                const avatarValue = dbResponse.Item.avatar?.S;
+                const cleanAvatar = avatarValue && avatarValue.startsWith('https://') ? avatarValue : '';
+                
                 userProfile = {
                     studentId: dbResponse.Item.studentId?.S,
                     instructorId: dbResponse.Item.instructorId?.S,
                     department: dbResponse.Item.department?.S,
-                    avatar: dbResponse.Item.avatar?.S,
+                    avatar: cleanAvatar,
                     bio: dbResponse.Item.bio?.S,
                     schoolName: dbResponse.Item.schoolName?.S,
                     favoriteSubject: dbResponse.Item.favoriteSubject?.S,
