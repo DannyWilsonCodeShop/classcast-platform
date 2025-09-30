@@ -32,11 +32,12 @@ const StudentProfilePage: React.FC = () => {
   const [editedProfile, setEditedProfile] = useState<ProfileData | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [profileInitialized, setProfileInitialized] = useState(false);
 
   // Initialize profile data from user context
   useEffect(() => {
-    console.log('useEffect triggered - user:', user, 'profile:', profile);
-    if (user && !profile) {
+    console.log('useEffect triggered - user:', user, 'profile:', profile, 'initialized:', profileInitialized);
+    if (user && !profileInitialized) {
       console.log('Initializing profile from user context');
       
       // Clean up any old base64 data from user avatar, but preserve S3 URLs
@@ -82,10 +83,11 @@ const StudentProfilePage: React.FC = () => {
       console.log('Clean avatar:', cleanAvatar);
       setProfile(profileData);
       setEditedProfile(profileData);
-    } else if (user && profile) {
-      console.log('Profile already exists, skipping initialization');
+      setProfileInitialized(true);
+    } else if (user && profileInitialized) {
+      console.log('Profile already initialized, skipping initialization');
     }
-  }, [user]);
+  }, [user, profileInitialized]);
 
   // Handle user context updates (e.g., after profile save)
   useEffect(() => {
@@ -124,7 +126,30 @@ const StudentProfilePage: React.FC = () => {
       setProfile(profileData);
       setEditedProfile(profileData);
     }
-  }, [user?.avatar, user, profile]);
+  }, [user?.avatar, user]);
+
+  // Prevent profile from being reset to null
+  useEffect(() => {
+    if (user && profile === null) {
+      console.log('Profile was reset to null, reinitializing...');
+      const profileData = {
+        id: user.id || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        avatar: user.avatar || '',
+        bio: user.bio || '',
+        careerGoals: user.careerGoals || '',
+        classOf: user.classOf || '',
+        funFact: user.funFact || '',
+        favoriteSubject: user.favoriteSubject || '',
+        hobbies: user.hobbies || '',
+        schoolName: user.schoolName || ''
+      };
+      setProfile(profileData);
+      setEditedProfile(profileData);
+    }
+  }, [user, profile]);
 
   // Track profile state changes
   useEffect(() => {
@@ -387,6 +412,7 @@ const StudentProfilePage: React.FC = () => {
         // Then update local profile states
         setProfile(updatedUser);
         setEditedProfile(updatedUser); // Also update editedProfile with the S3 URL
+        setProfileInitialized(true); // Mark as initialized
         setIsEditing(false);
         
         // Verify the profile state after update
