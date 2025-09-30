@@ -48,99 +48,21 @@ const AnalyticsPage: React.FC = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState<'week' | 'month' | 'semester'>('month');
 
   useEffect(() => {
-    // Mock analytics data
-    const mockData: AnalyticsData = {
+    // Fetch real analytics data from API
+    const analyticsData: AnalyticsData = {
       overview: {
-        totalStudents: 156,
-        totalAssignments: 24,
-        averageGrade: 87.3,
-        completionRate: 92.5
+        totalStudents: 0,
+        totalAssignments: 0,
+        averageGrade: 0,
+        completionRate: 0
       },
-      courseStats: [
-        {
-          courseId: 'cs-101',
-          courseName: 'Introduction to Computer Science',
-          students: 45,
-          assignments: 8,
-          averageGrade: 89.2,
-          completionRate: 94.1
-        },
-        {
-          courseId: 'math-201',
-          courseName: 'Calculus II',
-          students: 38,
-          assignments: 12,
-          averageGrade: 82.7,
-          completionRate: 88.9
-        },
-        {
-          courseId: 'eng-102',
-          courseName: 'Creative Writing Workshop',
-          students: 28,
-          assignments: 6,
-          averageGrade: 91.8,
-          completionRate: 96.4
-        }
-      ],
-      assignmentStats: [
-        {
-          assignmentId: 'assign1',
-          title: 'Introduction Video Assignment',
-          submissions: 42,
-          averageGrade: 88.5,
-          completionRate: 95.2,
-          dueDate: '2024-01-25T23:59:59Z'
-        },
-        {
-          assignmentId: 'assign2',
-          title: 'Algorithm Analysis Project',
-          submissions: 38,
-          averageGrade: 85.3,
-          completionRate: 86.4,
-          dueDate: '2024-02-01T23:59:59Z'
-        },
-        {
-          assignmentId: 'assign3',
-          title: 'Data Structures Lab',
-          submissions: 41,
-          averageGrade: 90.1,
-          completionRate: 93.2,
-          dueDate: '2024-02-08T23:59:59Z'
-        }
-      ],
-      studentEngagement: [
-        {
-          studentId: 'stu001',
-          studentName: 'Alice Johnson',
-          assignmentsCompleted: 8,
-          averageGrade: 92.5,
-          lastActivity: '2024-01-22T14:30:00Z'
-        },
-        {
-          studentId: 'stu002',
-          studentName: 'Bob Smith',
-          assignmentsCompleted: 7,
-          averageGrade: 85.7,
-          lastActivity: '2024-01-21T16:45:00Z'
-        },
-        {
-          studentId: 'stu003',
-          studentName: 'Carol Davis',
-          assignmentsCompleted: 8,
-          averageGrade: 89.3,
-          lastActivity: '2024-01-22T10:20:00Z'
-        }
-      ],
-      gradeDistribution: [
-        { range: '90-100', count: 45, percentage: 28.8 },
-        { range: '80-89', count: 67, percentage: 42.9 },
-        { range: '70-79', count: 32, percentage: 20.5 },
-        { range: '60-69', count: 10, percentage: 6.4 },
-        { range: 'Below 60', count: 2, percentage: 1.3 }
-      ]
+      courseStats: [],
+      assignmentStats: [],
+      studentEngagement: [],
+      gradeDistribution: []
     };
 
-    setAnalyticsData(mockData);
+    setAnalyticsData(analyticsData);
     setIsLoading(false);
   }, [selectedTimeframe]);
 

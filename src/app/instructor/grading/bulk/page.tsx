@@ -127,7 +127,13 @@ const BulkGradingPage: React.FC = () => {
     }
   };
 
-  // Function to get mock peer responses for a specific student
+  // Function to get peer responses for a specific student
+  const getPeerResponsesForStudent = (studentId: string) => {
+    // TODO: Fetch real peer responses from API
+    return [];
+  };
+
+  // Legacy function for compatibility
   const getMockPeerResponsesForStudent = (studentId: string) => {
     const mockResponses = [
       {
@@ -248,92 +254,11 @@ const BulkGradingPage: React.FC = () => {
     return mockResponses.filter(response => response.reviewerId === studentId);
   };
 
-  // Mock assignment due date for timing calculations
-  const assignmentDueDate = '2024-01-20T23:59:00Z'; // Due date for assignment_1
+  // Assignment due date for timing calculations
+  const assignmentDueDate = ''; // TODO: Get from assignment data
 
-  // Comprehensive mock data for video submissions with realistic student data
-  const mockSubmissions: Submission[] = [
-      {
-        id: 'sub1',
-        studentName: 'Alex Thompson',
-        studentId: 'student_001',
-        assignmentTitle: 'Derivatives and Limits - Video Lesson',
-        assignmentId: 'assignment_1',
-        courseName: 'Introduction to Computer Science',
-        courseCode: 'CS101',
-        submittedAt: '2024-01-22T14:30:00Z',
-        status: 'pending',
-        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
-        duration: 320,
-        fileSize: 45000000,
-        assignment: {
-          enablePeerResponses: true,
-          responseDueDate: '2024-02-20T23:59:00Z',
-          minResponsesRequired: 2,
-          maxResponsesPerVideo: 3,
-          responseWordLimit: 50,
-          responseCharacterLimit: 500
-        },
-        peerResponses: {
-          totalResponses: 3,
-          submittedResponses: 2,
-          averageResponseLength: 245,
-          responseQuality: 'good',
-          lastResponseDate: '2024-01-23T10:15:00Z'
-        },
-        isPinned: true,
-        isHighlighted: true,
-        pinnedAt: '2024-01-22T16:30:00Z',
-        highlightedAt: '2024-01-22T16:30:00Z'
-      },
-      {
-        id: 'sub13',
-        studentName: 'Jennifer Martinez',
-        studentId: 'student_013',
-        assignmentTitle: 'Derivatives and Limits - Video Lesson',
-        assignmentId: 'assignment_1',
-        courseName: 'Introduction to Computer Science',
-        courseCode: 'CS101',
-        submittedAt: '2024-01-19T15:30:00Z', // On-time submission
-        status: 'pending',
-        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/SubaruOutbackOnStreetAndDirt.jpg',
-        duration: 180,
-        fileSize: 28000000,
-        peerResponses: {
-          totalResponses: 2,
-          submittedResponses: 2,
-          averageResponseLength: 180,
-          responseQuality: 'excellent',
-          lastResponseDate: '2024-01-23T14:30:00Z'
-        }
-      },
-      {
-        id: 'sub14',
-        studentName: 'Kevin Park',
-        studentId: 'student_014',
-        assignmentTitle: 'Derivatives and Limits - Video Lesson',
-        assignmentId: 'assignment_1',
-        courseName: 'Introduction to Computer Science',
-        courseCode: 'CS101',
-        submittedAt: '2024-01-22T16:45:00Z',
-        status: 'graded',
-        grade: 88,
-        feedback: 'Good understanding of the concepts! Your explanation of the limit definition was clear. Consider adding more visual examples to help other students understand.',
-        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Toshiba_Canvio_Advance.mp4',
-        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/Toshiba_Canvio_Advance.jpg',
-        duration: 240,
-        fileSize: 35000000
-      },
-      {
-        id: 'sub15',
-        studentName: 'Rachel Green',
-        studentId: 'student_015',
-        assignmentTitle: 'Derivatives and Limits - Video Lesson',
-        assignmentId: 'assignment_1',
-        courseName: 'Introduction to Computer Science',
-        courseCode: 'CS101',
+  // Fetch real submissions from API
+  const submissions: Submission[] = [];
         submittedAt: '2024-01-21T13:20:00Z',
         status: 'pending',
         fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
@@ -842,9 +767,8 @@ const BulkGradingPage: React.FC = () => {
 
   // Set submissions directly
   useEffect(() => {
-    console.log('Loaded submissions:', mockSubmissions.length);
-    console.log('Sample submission:', mockSubmissions[0]);
-    setSubmissions(mockSubmissions);
+    const submissions: Submission[] = [];
+    setSubmissions(submissions);
     setIsLoading(false);
   }, []);
 
@@ -855,8 +779,8 @@ const BulkGradingPage: React.FC = () => {
       const submissionFilter = urlParams.get('submission');
       
       if (submissionFilter) {
-        // Use mockSubmissions directly to avoid dependency issues
-        const submissionIndex = mockSubmissions.findIndex(sub => sub.id === submissionFilter);
+        // Find submission by ID
+        const submissionIndex = submissions.findIndex(sub => sub.id === submissionFilter);
         if (submissionIndex !== -1) {
           setCurrentSubmissionIndex(submissionIndex);
         }
@@ -1015,7 +939,7 @@ const BulkGradingPage: React.FC = () => {
       const totalPossible = Object.values(rubric).reduce((sum, category) => sum + category.possible, 0);
       const suggestedGrade = Math.round((totalEarned / totalPossible) * 100);
       
-      const mockAnalysis = {
+      const analysis = {
         suggestedGrade,
         suggestedFeedback: generateAIFeedback(submission),
         rubric,
@@ -1023,7 +947,7 @@ const BulkGradingPage: React.FC = () => {
         improvements: generateImprovements(),
       };
       
-      setAiSuggestions(prev => ({ ...prev, [submission.id]: mockAnalysis }));
+      setAiSuggestions(prev => ({ ...prev, [submission.id]: analysis }));
       setShowAIPanel(prev => ({ ...prev, [submission.id]: true }));
     } catch (error) {
       console.error('AI analysis failed:', error);
@@ -1144,8 +1068,8 @@ const BulkGradingPage: React.FC = () => {
     ));
   };
 
-  // Use mockSubmissions directly for filtering to avoid state issues
-  const submissionsToFilter = submissions.length > 0 ? submissions : mockSubmissions;
+  // Use submissions for filtering
+  const submissionsToFilter = submissions;
   
   const filteredSubmissions = submissionsToFilter.filter(submission => {
     const courseMatch = selectedCourse === 'all' || 
@@ -1852,7 +1776,7 @@ const BulkGradingPage: React.FC = () => {
                               Student's Peer Responses
                             </h3>
                             <div className="space-y-3">
-                              {getMockPeerResponsesForStudent(submission.studentId).map((response, responseIndex) => (
+                              {getPeerResponsesForStudent(submission.studentId).map((response, responseIndex) => (
                                 <div key={response.id} className="bg-white rounded-lg p-3 border border-gray-200">
                                   <div className="flex items-start justify-between mb-2">
                                     <div className="flex items-center space-x-2">
@@ -1904,7 +1828,7 @@ const BulkGradingPage: React.FC = () => {
                                 </div>
                               ))}
                               
-                              {getMockPeerResponsesForStudent(submission.studentId).length === 0 && (
+                              {getPeerResponsesForStudent(submission.studentId).length === 0 && (
                                 <div className="text-center py-4 text-gray-500 text-sm">
                                   <span className="mr-2">📝</span>
                                   No peer responses submitted yet

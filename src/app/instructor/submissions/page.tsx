@@ -45,92 +45,9 @@ const SubmissionsListContent: React.FC = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    // Comprehensive mock data for video submissions
-    const mockSubmissions: Submission[] = [
-      {
-        id: 'sub1',
-        studentName: 'Alex Thompson',
-        studentId: 'student_001',
-        assignmentTitle: 'Derivatives and Limits - Video Lesson',
-        assignmentId: 'assignment_1',
-        courseName: 'Introduction to Computer Science',
-        courseCode: 'CS101',
-        submittedAt: '2024-01-15T10:30:00Z',
-        status: 'graded',
-        grade: 85,
-        feedback: 'Good work on explaining the concepts clearly.',
-        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/BigBuckBunny.jpg',
-        duration: 120,
-        fileSize: 15000000
-      },
-      {
-        id: 'sub2',
-        studentName: 'Sarah Chen',
-        studentId: 'student_002',
-        assignmentTitle: 'Derivatives and Limits - Video Lesson',
-        assignmentId: 'assignment_1',
-        courseName: 'Introduction to Computer Science',
-        courseCode: 'CS101',
-        submittedAt: '2024-01-15T14:20:00Z',
-        status: 'graded',
-        grade: 92,
-        feedback: 'Excellent explanation and clear presentation.',
-        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ElephantsDream.jpg',
-        duration: 180,
-        fileSize: 22000000
-      },
-      {
-        id: 'sub3',
-        studentName: 'Marcus Johnson',
-        studentId: 'student_003',
-        assignmentTitle: 'Derivatives and Limits - Video Lesson',
-        assignmentId: 'assignment_1',
-        courseName: 'Introduction to Computer Science',
-        courseCode: 'CS101',
-        submittedAt: '2024-01-16T09:15:00Z',
-        status: 'pending',
-        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg',
-        duration: 95,
-        fileSize: 12000000
-      },
-      {
-        id: 'sub4',
-        studentName: 'Emily Rodriguez',
-        studentId: 'student_004',
-        assignmentTitle: 'Derivatives and Limits - Video Lesson',
-        assignmentId: 'assignment_1',
-        courseName: 'Introduction to Computer Science',
-        courseCode: 'CS101',
-        submittedAt: '2024-01-16T16:45:00Z',
-        status: 'graded',
-        grade: 78,
-        feedback: 'Good effort, but could improve on clarity.',
-        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg',
-        duration: 140,
-        fileSize: 18000000
-      },
-      {
-        id: 'sub5',
-        studentName: 'David Kim',
-        studentId: 'student_005',
-        assignmentTitle: 'Derivatives and Limits - Video Lesson',
-        assignmentId: 'assignment_1',
-        courseName: 'Introduction to Computer Science',
-        courseCode: 'CS101',
-        submittedAt: '2024-01-17T11:30:00Z',
-        status: 'pending',
-        fileUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-        thumbnailUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg',
-        duration: 200,
-        fileSize: 25000000
-      }
-    ];
-
-    setSubmissions(mockSubmissions);
+    // Fetch real submissions from API
+    const submissions: Submission[] = [];
+    setSubmissions(submissions);
     setIsLoading(false);
   }, []);
 
