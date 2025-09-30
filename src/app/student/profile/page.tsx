@@ -38,10 +38,12 @@ const StudentProfilePage: React.FC = () => {
   // Initialize profile data from user context - only run once when user is available
   useEffect(() => {
     if (user && !profileInitialized) {
-      // Clean up any old base64 data from user avatar, but preserve S3 URLs
-      let cleanAvatar = user.avatar || '';
-      if (cleanAvatar && cleanAvatar.startsWith('data:image/')) {
-        cleanAvatar = '';
+      // Use a reliable default avatar system
+      let userAvatar = user.avatar || '';
+      
+      // Clean up any old base64 data, but preserve S3 URLs
+      if (userAvatar && userAvatar.startsWith('data:image/')) {
+        userAvatar = '';
         
         // Also clean up localStorage
         const storedAuthState = localStorage.getItem('authState');
@@ -58,12 +60,15 @@ const StudentProfilePage: React.FC = () => {
         }
       }
       
+      // If no valid avatar, use initials as fallback
+      const fallbackAvatar = userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((user.firstName || '') + ' ' + (user.lastName || ''))}&background=4A90E2&color=ffffff&size=200`;
+      
       const profileData = {
         id: user.id || '',
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
-        avatar: cleanAvatar,
+        avatar: fallbackAvatar,
         bio: user.bio || '',
         careerGoals: user.careerGoals || '',
         classOf: user.classOf || '',
@@ -386,20 +391,27 @@ const StudentProfilePage: React.FC = () => {
             <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-6 text-white">
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  {profile.avatar && (profile.avatar.startsWith('https://') || profile.avatar.startsWith('data:')) ? (
-                    <img
-                      key={profile.avatar} // Force re-render when avatar changes
-                      src={profile.avatar}
-                      alt={`${profile.firstName} ${profile.lastName}`}
-                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-                    />
-                  ) : (
-                    <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center border-4 border-white shadow-lg">
-                      <span className="text-3xl font-bold text-white">
-                        {profile.firstName?.charAt(0) || profile.lastName?.charAt(0) || 'U'}
-                      </span>
-                    </div>
-                  )}
+                  <img
+                    key={profile.avatar} // Force re-render when avatar changes
+                    src={profile.avatar}
+                    alt={`${profile.firstName} ${profile.lastName}`}
+                    className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                    onError={(e) => {
+                      // Fallback to initials if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                  <div 
+                    className="w-24 h-24 rounded-full bg-white/20 items-center justify-center border-4 border-white shadow-lg hidden"
+                    style={{ display: 'none' }}
+                  >
+                    <span className="text-3xl font-bold text-white">
+                      {profile.firstName?.charAt(0) || profile.lastName?.charAt(0) || 'U'}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex-1">
                   <h2 className="text-3xl font-bold">
@@ -542,20 +554,27 @@ const StudentProfilePage: React.FC = () => {
                 <div className="flex items-center space-x-6">
                   <div className="relative">
                     <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
-                      {editedProfile.avatar && (editedProfile.avatar.startsWith('https://') || editedProfile.avatar.startsWith('data:')) ? (
-                        <img
-                          key={editedProfile.avatar} // Force re-render when avatar changes
-                          src={editedProfile.avatar}
-                          alt="Profile"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <span className="text-2xl font-bold text-gray-500">
-                            {editedProfile.firstName?.charAt(0) || editedProfile.lastName?.charAt(0) || 'U'}
-                          </span>
-                        </div>
-                      )}
+                      <img
+                        key={editedProfile.avatar} // Force re-render when avatar changes
+                        src={editedProfile.avatar}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to initials if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                      <div 
+                        className="w-full h-full bg-gray-200 items-center justify-center hidden"
+                        style={{ display: 'none' }}
+                      >
+                        <span className="text-2xl font-bold text-gray-500">
+                          {editedProfile.firstName?.charAt(0) || editedProfile.lastName?.charAt(0) || 'U'}
+                        </span>
+                      </div>
                     </div>
                     <button
                       onClick={() => document.getElementById('avatar-upload')?.click()}
