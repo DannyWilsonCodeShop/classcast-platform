@@ -38,6 +38,11 @@ const StudentProfilePage: React.FC = () => {
   // Initialize profile data from user context - only run once when user is available
   useEffect(() => {
     if (user && !profileInitialized) {
+      // Debug: Log the user object to see what's in it
+      console.log('DEBUG: User object from AuthContext:', user);
+      console.log('DEBUG: User firstName:', user.firstName);
+      console.log('DEBUG: User lastName:', user.lastName);
+      
       // Use a reliable default avatar system
       let userAvatar = user.avatar || '';
       
@@ -50,6 +55,7 @@ const StudentProfilePage: React.FC = () => {
         if (storedAuthState) {
           try {
             const parsedState = JSON.parse(storedAuthState);
+            console.log('DEBUG: Stored auth state:', parsedState);
             if (parsedState.user && parsedState.user.avatar && parsedState.user.avatar.startsWith('data:image/')) {
               parsedState.user.avatar = '';
               localStorage.setItem('authState', JSON.stringify(parsedState));
@@ -77,6 +83,8 @@ const StudentProfilePage: React.FC = () => {
         hobbies: user.hobbies || '',
         schoolName: user.schoolName || ''
       };
+      
+      console.log('DEBUG: Profile data being set:', profileData);
       setProfile(profileData);
       setEditedProfile(profileData);
       setProfileInitialized(true);
