@@ -104,8 +104,27 @@ const StudentProfilePage: React.FC = () => {
         setProfile(updatedProfile);
         setEditedProfile(updatedProfile);
       }
+    } else if (user && !profile) {
+      console.log('Profile is null but user exists, reinitializing...');
+      // Reinitialize profile if it got reset to null
+      const profileData = {
+        id: user.id || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        avatar: user.avatar || '',
+        bio: user.bio || '',
+        careerGoals: user.careerGoals || '',
+        classOf: user.classOf || '',
+        funFact: user.funFact || '',
+        favoriteSubject: user.favoriteSubject || '',
+        hobbies: user.hobbies || '',
+        schoolName: user.schoolName || ''
+      };
+      setProfile(profileData);
+      setEditedProfile(profileData);
     }
-  }, [user?.avatar]);
+  }, [user?.avatar, user, profile]);
 
   // Track profile state changes
   useEffect(() => {
