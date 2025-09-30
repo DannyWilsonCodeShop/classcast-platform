@@ -29,102 +29,24 @@ const StudentProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editedProfile, setEditedProfile] = useState<ProfileData | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Add aggressive cache-busting on component mount
-  useEffect(() => {
-    // Clear ALL cached data immediately
-    const clearAllCache = () => {
-      // Clear localStorage completely
-      localStorage.clear();
-      
-      // Clear sessionStorage
-      sessionStorage.clear();
-      
-      // Clear any cached data in memory
-      if (window.caches) {
-        caches.keys().then(names => {
-          names.forEach(name => {
-            caches.delete(name);
-          });
-        });
-      }
-      
-      // Force a hard reload
-      window.location.href = window.location.pathname + '?v=' + Date.now();
-    };
-
-    // Check if we need to clear cache
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('v')) {
-      // We're in a refreshed state, continue normally
-      return;
-    }
-
-    // Check for any base64 data anywhere
-    const hasBase64Data = () => {
-      // Check localStorage
-      const storedAuthState = localStorage.getItem('authState');
-      if (storedAuthState && storedAuthState.includes('data:image/')) {
-        return true;
-      }
-      
-      // Check if user object has base64 data
-      if (user && user.avatar && user.avatar.startsWith('data:image/')) {
-        return true;
-      }
-      
-      return false;
-    };
-
-    if (hasBase64Data()) {
-      clearAllCache();
-      return;
-    }
-  }, [user]);
-
-  // Simple profile initialization - only run once
+  // Initialize profile with clean data - NO base64 handling
   useEffect(() => {
     if (user && !profile) {
-      // Aggressively clean up any base64 data
-      const cleanUserData = (userData: any) => {
-        if (userData.avatar && userData.avatar.startsWith('data:image/')) {
-          userData.avatar = '';
-        }
-        return userData;
-      };
-
-      // Clean user object
-      const cleanUser = cleanUserData({ ...user });
-      
-      // Clean localStorage
-      const storedAuthState = localStorage.getItem('authState');
-      if (storedAuthState) {
-        try {
-          const parsedState = JSON.parse(storedAuthState);
-          if (parsedState.user) {
-            parsedState.user = cleanUserData(parsedState.user);
-            localStorage.setItem('authState', JSON.stringify(parsedState));
-          }
-        } catch (error) {
-          console.error('Error cleaning localStorage:', error);
-        }
-      }
-
       const profileData: ProfileData = {
-        id: cleanUser.id || '',
-        firstName: cleanUser.firstName || '',
-        lastName: cleanUser.lastName || '',
-        email: cleanUser.email || '',
-        avatar: cleanUser.avatar || '',
-        bio: cleanUser.bio || '',
-        careerGoals: cleanUser.careerGoals || '',
-        classOf: cleanUser.classOf || '',
-        funFact: cleanUser.funFact || '',
-        favoriteSubject: cleanUser.favoriteSubject || '',
-        hobbies: cleanUser.hobbies || '',
-        schoolName: cleanUser.schoolName || ''
+        id: user.id || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        avatar: user.avatar && user.avatar.startsWith('https://') ? user.avatar : '',
+        bio: user.bio || '',
+        careerGoals: user.careerGoals || '',
+        classOf: user.classOf || '',
+        funFact: user.funFact || '',
+        favoriteSubject: user.favoriteSubject || '',
+        hobbies: user.hobbies || '',
+        schoolName: user.schoolName || ''
       };
       
       setProfile(profileData);
@@ -147,8 +69,8 @@ const StudentProfilePage: React.FC = () => {
     }
   };
 
-  // Handle avatar upload
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle avatar upload - ONLY S3 URLs, NO base64
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -161,18 +83,59 @@ const StudentProfilePage: React.FC = () => {
       return;
     }
 
-    // Convert to base64 and update immediately
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64Data = e.target?.result as string;
+    setIsLoading(true);
+    setErrors(prev => ({ ...prev, avatar: '' }));
+
+    try {
+      // Generate unique filename
+      const fileExtension = file.name.split('.').pop() || 'jpg';
+      const fileName = `avatar_${user?.id}_${Date.now()}.${fileExtension}`;
+      
+      // Get presigned URL
+      const presignedResponse = await fetch('/api/upload/presigned', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName,
+          fileType: file.type,
+          folder: 'profile-pictures',
+          userId: user?.id
+        })
+      });
+
+      if (!presignedResponse.ok) {
+        throw new Error('Failed to get upload URL');
+      }
+
+      const presignedData = await presignedResponse.json();
+      
+      // Upload directly to S3
+      const uploadResponse = await fetch(presignedData.presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type }
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      // Update profile with S3 URL
+      const s3Url = presignedData.fileUrl;
       setEditedProfile(prev => ({
         ...prev,
-        avatar: base64Data
+        avatar: s3Url
       }));
-      setErrors(prev => ({ ...prev, avatar: '' }));
-    };
-    
-    reader.readAsDataURL(file);
+
+    } catch (error) {
+      console.error('Avatar upload failed:', error);
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'Failed to upload image. Please try again.'
+      }));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Validate form
@@ -207,61 +170,6 @@ const StudentProfilePage: React.FC = () => {
         return;
       }
 
-      // Handle avatar upload if it's base64
-      let finalAvatar = editedProfile.avatar;
-      
-      if (editedProfile.avatar && editedProfile.avatar.startsWith('data:image/')) {
-        try {
-          const base64Data = editedProfile.avatar.split(',')[1];
-          const contentType = editedProfile.avatar.split(';')[0].split(':')[1];
-          const fileExtension = contentType.split('/')[1] || 'jpg';
-          const fileName = `avatar_${user.id}_${Date.now()}.${fileExtension}`;
-          
-          // Convert base64 to blob
-          const byteCharacters = atob(base64Data);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          const blob = new Blob([byteArray], { type: contentType });
-
-          // Get presigned URL
-          const presignedResponse = await fetch('/api/upload/presigned', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              fileName,
-              fileType: contentType,
-              folder: 'profile-pictures',
-              userId: user.id
-            })
-          });
-
-          if (presignedResponse.ok) {
-            const presignedData = await presignedResponse.json();
-            
-            // Upload to S3
-            const directUpload = await fetch(presignedData.presignedUrl, {
-              method: 'PUT',
-              body: blob,
-              headers: { 'Content-Type': contentType }
-            });
-
-            if (directUpload.ok) {
-              finalAvatar = presignedData.fileUrl;
-            } else {
-              finalAvatar = '';
-            }
-          } else {
-            finalAvatar = '';
-          }
-        } catch (error) {
-          console.error('Avatar upload failed:', error);
-          finalAvatar = '';
-        }
-      }
-
       // Save profile data
       const response = await fetch('/api/profile/save', {
         method: 'POST',
@@ -270,8 +178,7 @@ const StudentProfilePage: React.FC = () => {
         },
         body: JSON.stringify({
           userId: user.id,
-          ...editedProfile,
-          avatar: finalAvatar
+          ...editedProfile
         }),
       });
 
@@ -286,12 +193,7 @@ const StudentProfilePage: React.FC = () => {
         updateUser(result.user);
         
         // Update local state
-        const updatedProfile = {
-          ...editedProfile,
-          avatar: finalAvatar
-        };
-        setProfile(updatedProfile);
-        setEditedProfile(updatedProfile);
+        setProfile(editedProfile);
         setIsEditing(false);
       }
 
@@ -344,17 +246,6 @@ const StudentProfilePage: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => {
-                  localStorage.clear();
-                  sessionStorage.clear();
-                  window.location.reload();
-                }}
-                className="px-4 py-2 text-blue-600 hover:text-blue-800 transition-colors text-sm"
-                title="Clear all cached data"
-              >
-                Clear Cache
-              </button>
-              <button
                 onClick={logout}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
               >
@@ -371,7 +262,7 @@ const StudentProfilePage: React.FC = () => {
             <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-6 text-white">
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  {/* Avatar Display */}
+                  {/* Avatar Display - Only S3 URLs */}
                   <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center">
                     {profile.avatar ? (
                       <img
@@ -504,7 +395,7 @@ const StudentProfilePage: React.FC = () => {
                       </div>
                       <button
                         onClick={() => document.getElementById('avatar-upload')?.click()}
-                        disabled={isUploading}
+                        disabled={isLoading}
                         className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
