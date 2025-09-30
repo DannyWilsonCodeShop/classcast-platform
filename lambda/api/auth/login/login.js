@@ -98,6 +98,7 @@ exports.handler = async (event) => {
         instructorId: attributeMap['custom:instructorId'],
         department: attributeMap['custom:department'],
         emailVerified: attributeMap.email_verified === 'true',
+        // Don't include avatar from Cognito attributes to avoid base64 data
       };
 
       // Set secure HTTP-only cookies for the session
