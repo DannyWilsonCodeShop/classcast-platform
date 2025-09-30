@@ -26,6 +26,8 @@ exports.handler = async (event) => {
 
         // Handle avatar upload if present
         let avatarUrl = profileData.avatar;
+        
+        // If avatar is base64, upload to S3
         if (profileData.avatar && profileData.avatar.startsWith('data:image/')) {
             try {
                 // Extract base64 data
@@ -61,6 +63,10 @@ exports.handler = async (event) => {
                     body: JSON.stringify({ error: { message: 'Failed to upload avatar' } })
                 };
             }
+        }
+        // If avatar is already an S3 URL, use it directly
+        else if (profileData.avatar && profileData.avatar.startsWith('https://')) {
+            avatarUrl = profileData.avatar;
         }
 
         // Prepare update expression
