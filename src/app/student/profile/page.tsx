@@ -88,7 +88,7 @@ const StudentProfilePage: React.FC = () => {
     } else if (user && profileInitialized) {
       console.log('Profile already initialized, skipping initialization');
     }
-  }, [user, profileInitialized]);
+  }, [user?.id, profileInitialized]); // Only depend on user ID, not entire user object
 
   // Handle user context updates (e.g., after profile save)
   useEffect(() => {
