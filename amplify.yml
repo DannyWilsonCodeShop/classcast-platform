@@ -15,3 +15,8 @@ frontend:
     paths:
       - node_modules/**/*
       - .next/cache/**/*
+  environment:
+    variables:
+      NEXT_PUBLIC_API_BASE_URL: https://ete1conlc8.execute-api.us-east-1.amazonaws.com/prod
+      NEXT_PUBLIC_USER_POOL_ID: us-east-1_zb9BqlWOm
+      NEXT_PUBLIC_USER_POOL_CLIENT_ID: 55ei187qtu2f4hv2b02efcsjvv
