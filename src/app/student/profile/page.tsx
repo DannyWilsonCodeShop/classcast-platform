@@ -35,7 +35,7 @@ const StudentProfilePage: React.FC = () => {
   const [profileInitialized, setProfileInitialized] = useState(false);
 
 
-  // Initialize profile data from user context
+  // Initialize profile data from user context - only run once when user is available
   useEffect(() => {
     console.log('useEffect triggered - user:', user, 'profile:', profile, 'initialized:', profileInitialized);
     if (user && !profileInitialized) {
@@ -88,7 +88,7 @@ const StudentProfilePage: React.FC = () => {
     } else if (user && profileInitialized) {
       console.log('Profile already initialized, skipping initialization');
     }
-  }, [user?.id, profileInitialized]); // Only depend on user ID, not entire user object
+  }, [user?.id]); // Only depend on user ID, remove profileInitialized to prevent loops
 
   // Handle user context updates (e.g., after profile save)
   useEffect(() => {
