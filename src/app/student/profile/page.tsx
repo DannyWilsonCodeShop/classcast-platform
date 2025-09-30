@@ -36,7 +36,7 @@ const StudentProfilePage: React.FC = () => {
   // Initialize profile data from user context
   useEffect(() => {
     console.log('useEffect triggered - user:', user, 'profile:', profile);
-    if (user && !profile) { // Only initialize if profile is not already set
+    if (user) {
       console.log('Initializing profile from user context');
       
       // Clean up any old base64 data from user avatar, but preserve S3 URLs
@@ -82,10 +82,8 @@ const StudentProfilePage: React.FC = () => {
       console.log('Clean avatar:', cleanAvatar);
       setProfile(profileData);
       setEditedProfile(profileData);
-    } else {
-      console.log('Skipping profile initialization - user:', !!user, 'profile:', !!profile);
     }
-  }, [user, profile]);
+  }, [user]);
 
   // Handle user context updates (e.g., after profile save)
   useEffect(() => {
@@ -105,7 +103,7 @@ const StudentProfilePage: React.FC = () => {
         setEditedProfile(updatedProfile);
       }
     }
-  }, [user?.avatar, profile]);
+  }, [user?.avatar]);
 
   // Track profile state changes
   useEffect(() => {
