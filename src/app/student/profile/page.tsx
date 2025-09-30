@@ -34,6 +34,13 @@ const StudentProfilePage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [profileInitialized, setProfileInitialized] = useState(false);
 
+  // Clear storage function for debugging
+  const clearStorage = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+  };
+
   // Initialize profile data from user context
   useEffect(() => {
     console.log('useEffect triggered - user:', user, 'profile:', profile, 'initialized:', profileInitialized);
@@ -482,6 +489,15 @@ const StudentProfilePage: React.FC = () => {
                 className="px-3 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition-colors"
               >
                 Logout
+              </button>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={clearStorage}
+                className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+                title="Clear storage and reload"
+              >
+                Clear Storage
               </button>
             </div>
           </div>
