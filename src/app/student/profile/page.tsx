@@ -37,14 +37,10 @@ const StudentProfilePage: React.FC = () => {
 
   // Initialize profile data from user context - only run once when user is available
   useEffect(() => {
-    console.log('useEffect triggered - user:', user, 'profile:', profile, 'initialized:', profileInitialized);
     if (user && !profileInitialized) {
-      console.log('Initializing profile from user context');
-      
       // Clean up any old base64 data from user avatar, but preserve S3 URLs
       let cleanAvatar = user.avatar || '';
       if (cleanAvatar && cleanAvatar.startsWith('data:image/')) {
-        console.log('Found base64 avatar in user context, clearing it');
         cleanAvatar = '';
         
         // Also clean up localStorage
@@ -53,7 +49,6 @@ const StudentProfilePage: React.FC = () => {
           try {
             const parsedState = JSON.parse(storedAuthState);
             if (parsedState.user && parsedState.user.avatar && parsedState.user.avatar.startsWith('data:image/')) {
-              console.log('Cleaning base64 avatar from localStorage');
               parsedState.user.avatar = '';
               localStorage.setItem('authState', JSON.stringify(parsedState));
             }
@@ -61,8 +56,6 @@ const StudentProfilePage: React.FC = () => {
             console.error('Error cleaning localStorage:', error);
           }
         }
-      } else if (cleanAvatar && cleanAvatar.startsWith('https://')) {
-        console.log('Found S3 URL avatar in user context, keeping it');
       }
       
       const profileData = {
@@ -79,25 +72,15 @@ const StudentProfilePage: React.FC = () => {
         hobbies: user.hobbies || '',
         schoolName: user.schoolName || ''
       };
-      console.log('Profile data from user context:', profileData);
-      console.log('User avatar:', user.avatar);
-      console.log('Clean avatar:', cleanAvatar);
       setProfile(profileData);
       setEditedProfile(profileData);
       setProfileInitialized(true);
-    } else if (user && profileInitialized) {
-      console.log('Profile already initialized, skipping initialization');
     }
   }, [user?.id]); // Only depend on user ID, remove profileInitialized to prevent loops
 
   // Handle user context updates (e.g., after profile save)
   useEffect(() => {
     if (user && profile && user.avatar && user.avatar.startsWith('https://') && user.avatar !== profile.avatar) {
-      console.log('User context updated, syncing profile state');
-      console.log('User avatar:', user.avatar);
-      console.log('Profile avatar:', profile.avatar);
-      console.log('Updating profile with new user avatar');
-      
       const updatedProfile = {
         ...profile,
         avatar: user.avatar
@@ -109,24 +92,12 @@ const StudentProfilePage: React.FC = () => {
 
   // Track profile state changes
   useEffect(() => {
-    console.log('Profile state changed:', profile);
-    if (profile?.avatar) {
-      console.log('Profile avatar:', profile.avatar);
-      console.log('Profile avatar type:', typeof profile.avatar);
-      console.log('Profile avatar starts with data:', profile.avatar.startsWith('data:'));
-      console.log('Profile avatar starts with https:', profile.avatar.startsWith('https:'));
-    }
+    // Profile state tracking can be added here if needed
   }, [profile]);
 
   // Track editedProfile state changes
   useEffect(() => {
-    console.log('EditedProfile state changed:', editedProfile);
-    if (editedProfile?.avatar) {
-      console.log('EditedProfile avatar:', editedProfile.avatar);
-      console.log('EditedProfile avatar type:', typeof editedProfile.avatar);
-      console.log('EditedProfile avatar starts with data:', editedProfile.avatar.startsWith('data:'));
-      console.log('EditedProfile avatar starts with https:', editedProfile.avatar.startsWith('https:'));
-    }
+    // EditedProfile state tracking can be added here if needed
   }, [editedProfile]);
 
   // Note: Removed server-side profile refresh to avoid 404 errors
@@ -177,7 +148,6 @@ const StudentProfilePage: React.FC = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const base64Data = e.target?.result as string;
-      console.log('Avatar converted to base64, length:', base64Data.length);
       setEditedProfile(prev => ({
         ...prev,
         avatar: base64Data
@@ -237,13 +207,11 @@ const StudentProfilePage: React.FC = () => {
       // Clean up any blob URLs before saving
       const cleanProfile = { ...editedProfile };
       if (cleanProfile.avatar && cleanProfile.avatar.startsWith('blob:')) {
-        console.log('Removing blob URL from profile data');
         cleanProfile.avatar = '';
       }
 
       // Handle base64 avatars by uploading directly to S3
       if (cleanProfile.avatar && cleanProfile.avatar.startsWith('data:image/')) {
-        console.log('Avatar is base64, uploading directly to S3...');
         try {
           const base64Data = cleanProfile.avatar.split(',')[1];
           const contentType = cleanProfile.avatar.split(';')[0].split(':')[1];
@@ -259,8 +227,6 @@ const StudentProfilePage: React.FC = () => {
           const byteArray = new Uint8Array(byteNumbers);
           const blob = new Blob([byteArray], { type: contentType });
 
-          console.log('Uploading avatar to S3:', { fileName, contentType, size: blob.size });
-
           // Use direct S3 upload with presigned URL (now that CORS is configured)
           const presignedResponse = await fetch('/api/upload/presigned', {
             method: 'POST',
@@ -275,7 +241,6 @@ const StudentProfilePage: React.FC = () => {
 
           if (presignedResponse.ok) {
             const presignedData = await presignedResponse.json();
-            console.log('Got presigned URL, uploading directly to S3...');
             
             const directUpload = await fetch(presignedData.presignedUrl, {
               method: 'PUT',
@@ -284,14 +249,11 @@ const StudentProfilePage: React.FC = () => {
             });
 
             if (directUpload.ok) {
-              console.log('Direct S3 upload successful:', presignedData.fileUrl);
               cleanProfile.avatar = presignedData.fileUrl;
             } else {
-              console.log('Direct S3 upload failed with status:', directUpload.status);
               cleanProfile.avatar = '';
             }
           } else {
-            console.log('Failed to get presigned URL');
             cleanProfile.avatar = '';
           }
         } catch (error) {
@@ -300,12 +262,6 @@ const StudentProfilePage: React.FC = () => {
           cleanProfile.avatar = '';
         }
       }
-
-      console.log('Saving profile:', cleanProfile);
-      console.log('Avatar type:', typeof cleanProfile.avatar);
-      console.log('Avatar starts with data:', cleanProfile.avatar?.startsWith('data:'));
-      
-      console.log('Sending profile save request...');
       
       const response = await fetch('/api/profile/save', {
         method: 'POST',
@@ -318,43 +274,28 @@ const StudentProfilePage: React.FC = () => {
         }),
       });
 
-      console.log('Profile save response status:', response.status);
-      console.log('Profile save response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         let errorMessage = 'Failed to save profile';
         try {
           const errorText = await response.text();
-          console.log('Error response text:', errorText);
-          
           // Try to parse as JSON
           try {
             const errorData = JSON.parse(errorText);
-            console.log('Error response data:', errorData);
             errorMessage = errorData.error?.message || errorData.message || errorMessage;
           } catch (jsonError) {
-            console.log('Error response is not JSON:', errorText);
             errorMessage = `HTTP ${response.status}: ${response.statusText}`;
           }
         } catch (parseError) {
-          console.log('Failed to parse error response:', parseError);
           errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         }
         throw new Error(errorMessage);
       }
 
       const result = await response.json();
-      console.log('Profile save result:', result);
-      console.log('Result user data:', result.user);
 
       // Update local profile state with server response
       if (result.user) {
-        console.log('Updating profile with result.user:', result.user);
-        console.log('Result user avatar:', result.user.avatar);
-        console.log('Result user avatar type:', typeof result.user.avatar);
-        console.log('Result user avatar starts with data:', result.user.avatar?.startsWith('data:'));
-        console.log('Result user avatar starts with https:', result.user.avatar?.startsWith('https:'));
-        
         // Add cache-busting parameter to force image reload
         const updatedUser = {
           ...result.user,
@@ -362,7 +303,6 @@ const StudentProfilePage: React.FC = () => {
         };
         
         // Update the user in AuthContext first
-        console.log('Calling updateUser with:', updatedUser);
         updateUser(updatedUser);
         
         // Then update local profile states
@@ -370,11 +310,6 @@ const StudentProfilePage: React.FC = () => {
         setEditedProfile(updatedUser); // Also update editedProfile with the S3 URL
         setProfileInitialized(true); // Mark as initialized
         setIsEditing(false);
-        
-        // Verify the profile state after update
-        console.log('Profile state immediately after setProfile:', updatedUser);
-      } else {
-        console.log('No result.user found in response');
       }
 
       // Show success message
