@@ -36,7 +36,7 @@ const StudentProfilePage: React.FC = () => {
   // Initialize profile data from user context
   useEffect(() => {
     console.log('useEffect triggered - user:', user, 'profile:', profile);
-    if (user) {
+    if (user && !profile) {
       console.log('Initializing profile from user context');
       
       // Clean up any old base64 data from user avatar, but preserve S3 URLs
@@ -82,6 +82,8 @@ const StudentProfilePage: React.FC = () => {
       console.log('Clean avatar:', cleanAvatar);
       setProfile(profileData);
       setEditedProfile(profileData);
+    } else if (user && profile) {
+      console.log('Profile already exists, skipping initialization');
     }
   }, [user]);
 
@@ -448,7 +450,7 @@ const StudentProfilePage: React.FC = () => {
             <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-6 text-white">
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  {profile.avatar && !profile.avatar.startsWith('data:') ? (
+                  {profile.avatar && (profile.avatar.startsWith('https://') || profile.avatar.startsWith('data:')) ? (
                     <img
                       key={profile.avatar} // Force re-render when avatar changes
                       src={profile.avatar}
@@ -457,7 +459,9 @@ const StudentProfilePage: React.FC = () => {
                     />
                   ) : (
                     <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center border-4 border-white shadow-lg">
-                      <UserIcon className="w-12 h-12 text-white" />
+                      <span className="text-3xl font-bold text-white">
+                        {profile.firstName?.charAt(0) || profile.lastName?.charAt(0) || 'U'}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -602,7 +606,7 @@ const StudentProfilePage: React.FC = () => {
                 <div className="flex items-center space-x-6">
                   <div className="relative">
                     <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
-                      {editedProfile.avatar && !editedProfile.avatar.startsWith('data:') ? (
+                      {editedProfile.avatar && (editedProfile.avatar.startsWith('https://') || editedProfile.avatar.startsWith('data:')) ? (
                         <img
                           key={editedProfile.avatar} // Force re-render when avatar changes
                           src={editedProfile.avatar}
@@ -611,7 +615,9 @@ const StudentProfilePage: React.FC = () => {
                         />
                       ) : (
                         <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                          <UserIcon className="w-8 h-8 text-gray-400" />
+                          <span className="text-2xl font-bold text-gray-500">
+                            {editedProfile.firstName?.charAt(0) || editedProfile.lastName?.charAt(0) || 'U'}
+                          </span>
                         </div>
                       )}
                     </div>
