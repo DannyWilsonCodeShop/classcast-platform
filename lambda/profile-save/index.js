@@ -24,49 +24,17 @@ exports.handler = async (event) => {
             };
         }
 
-        // Handle avatar upload if present
-        let avatarUrl = profileData.avatar;
+        // Handle avatar - ONLY S3 URLs, NO base64 processing
+        let avatarUrl = '';
         
-        // If avatar is base64, upload to S3
-        if (profileData.avatar && profileData.avatar.startsWith('data:image/')) {
-            try {
-                // Extract base64 data
-                const base64Data = profileData.avatar.split(',')[1];
-                const buffer = Buffer.from(base64Data, 'base64');
-                
-                // Generate unique filename
-                const timestamp = Date.now();
-                const filename = `avatar_${userId}_${timestamp}.jpg`;
-                const key = `profile-pictures/${filename}`;
-
-                // Upload to S3
-                const uploadCommand = new PutObjectCommand({
-                    Bucket: BUCKET_NAME,
-                    Key: key,
-                    Body: buffer,
-                    ContentType: 'image/jpeg',
-                    ACL: 'public-read'
-                });
-
-                await s3Client.send(uploadCommand);
-                avatarUrl = `https://${BUCKET_NAME}.s3.us-east-1.amazonaws.com/${key}`;
-            } catch (uploadError) {
-                console.error('Avatar upload error:', uploadError);
-                return {
-                    statusCode: 500,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Headers': 'Content-Type',
-                        'Access-Control-Allow-Methods': 'POST, OPTIONS'
-                    },
-                    body: JSON.stringify({ error: { message: 'Failed to upload avatar' } })
-                };
-            }
-        }
-        // If avatar is already an S3 URL, use it directly
-        else if (profileData.avatar && profileData.avatar.startsWith('https://')) {
+        // Only accept S3 URLs, ignore any base64 data
+        if (profileData.avatar && profileData.avatar.startsWith('https://')) {
             avatarUrl = profileData.avatar;
+        }
+        // If it's base64 data, ignore it completely
+        else if (profileData.avatar && profileData.avatar.startsWith('data:image/')) {
+            console.log('Ignoring base64 avatar data - only S3 URLs accepted');
+            avatarUrl = '';
         }
 
         // Prepare update expression
