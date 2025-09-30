@@ -32,15 +32,48 @@ const StudentProfilePage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Add cache-busting on component mount
+  useEffect(() => {
+    // Force a hard refresh if there's cached base64 data
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('refresh') !== 'true') {
+      // Check if there's any base64 data in localStorage
+      const storedAuthState = localStorage.getItem('authState');
+      if (storedAuthState && storedAuthState.includes('data:image/')) {
+        // Redirect with refresh parameter to force cache clear
+        window.location.href = window.location.pathname + '?refresh=true&t=' + Date.now();
+        return;
+      }
+    }
+  }, []);
+
   // Simple profile initialization - only run once
   useEffect(() => {
     if (user && !profile) {
+      // Clean up any old base64 data from localStorage
+      const storedAuthState = localStorage.getItem('authState');
+      if (storedAuthState) {
+        try {
+          const parsedState = JSON.parse(storedAuthState);
+          if (parsedState.user && parsedState.user.avatar && parsedState.user.avatar.startsWith('data:image/')) {
+            // Clear base64 data from localStorage
+            parsedState.user.avatar = '';
+            localStorage.setItem('authState', JSON.stringify(parsedState));
+            // Force page reload to clear any cached data
+            window.location.reload();
+            return;
+          }
+        } catch (error) {
+          console.error('Error cleaning localStorage:', error);
+        }
+      }
+
       const profileData: ProfileData = {
         id: user.id || '',
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
-        avatar: user.avatar || '',
+        avatar: user.avatar && !user.avatar.startsWith('data:image/') ? user.avatar : '',
         bio: user.bio || '',
         careerGoals: user.careerGoals || '',
         classOf: user.classOf || '',
