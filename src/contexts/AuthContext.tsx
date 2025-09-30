@@ -469,50 +469,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Check auth status on mount
   useEffect(() => {
-    // Temporarily disable mock user to debug avatar persistence issue
-    // if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-    //   const storedAuthState = localStorage.getItem('authState');
-    //   if (!storedAuthState) {
-    //     // Check if we're on instructor dashboard
-    //     const isInstructorRoute = window.location.pathname.startsWith('/instructor');
-    //     
-    //     const mockUser: User = isInstructorRoute ? {
-    //       id: 'dev-instructor-001',
-    //       email: 'instructor@classcast.com',
-    //       firstName: 'Dr. Sarah',
-    //       lastName: 'Instructor',
-    //       role: 'instructor',
-    //       instructorId: 'inst-001',
-    //       department: 'Computer Science',
-    //       emailVerified: true,
-    //       sessionExpiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
-    //     } : {
-    //       id: 'dev-student-001',
-    //       email: 'student@classcast.com',
-    //       firstName: 'John',
-    //       lastName: 'Student',
-    //       role: 'student',
-    //       emailVerified: true,
-    //       sessionExpiresAt: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
-    //     };
-    //     
-    //     const mockAuthState: AuthState = {
-    //       user: mockUser,
-    //       isAuthenticated: true,
-    //       isLoading: false,
-    //       error: null,
-    //       showEmailConfirmation: false,
-    //       confirmationEmail: null,
-    //     };
-    //     
-    //     setAuthState(mockAuthState);
-    //     localStorage.setItem('authState', JSON.stringify(mockAuthState));
-    //     return;
-    //   }
-    // }
-    
     checkAuthStatus();
-  }, [checkAuthStatus]);
+  }, []); // Only run once on mount
 
   // Update user data
   const updateUser = useCallback((userData: Partial<User>) => {
