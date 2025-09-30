@@ -60,8 +60,8 @@ const StudentProfilePage: React.FC = () => {
         }
       }
       
-      // If no valid avatar, use initials as fallback
-      const fallbackAvatar = userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent((user.firstName || '') + ' ' + (user.lastName || ''))}&background=4A90E2&color=ffffff&size=200`;
+      // If no valid avatar, use a stable default (empty string will trigger fallback in UI)
+      const fallbackAvatar = userAvatar || '';
       
       const profileData = {
         id: user.id || '',
@@ -391,22 +391,24 @@ const StudentProfilePage: React.FC = () => {
             <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-6 text-white">
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  <img
-                    key={profile.avatar} // Force re-render when avatar changes
-                    src={profile.avatar}
-                    alt={`${profile.firstName} ${profile.lastName}`}
-                    className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
-                    onError={(e) => {
-                      // Fallback to initials if image fails to load
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const fallback = target.nextElementSibling as HTMLElement;
-                      if (fallback) fallback.style.display = 'flex';
-                    }}
-                  />
+                  {profile.avatar ? (
+                    <img
+                      key={profile.avatar} // Force re-render when avatar changes
+                      src={profile.avatar}
+                      alt={`${profile.firstName} ${profile.lastName}`}
+                      className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                      onError={(e) => {
+                        // Fallback to initials if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const fallback = target.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
                   <div 
-                    className="w-24 h-24 rounded-full bg-white/20 items-center justify-center border-4 border-white shadow-lg hidden"
-                    style={{ display: 'none' }}
+                    className={`w-24 h-24 rounded-full bg-white/20 items-center justify-center border-4 border-white shadow-lg ${profile.avatar ? 'hidden' : 'flex'}`}
+                    style={{ display: profile.avatar ? 'none' : 'flex' }}
                   >
                     <span className="text-3xl font-bold text-white">
                       {profile.firstName?.charAt(0) || profile.lastName?.charAt(0) || 'U'}
@@ -554,22 +556,24 @@ const StudentProfilePage: React.FC = () => {
                 <div className="flex items-center space-x-6">
                   <div className="relative">
                     <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
-                      <img
-                        key={editedProfile.avatar} // Force re-render when avatar changes
-                        src={editedProfile.avatar}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Fallback to initials if image fails to load
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const fallback = target.nextElementSibling as HTMLElement;
-                          if (fallback) fallback.style.display = 'flex';
-                        }}
-                      />
+                      {editedProfile.avatar ? (
+                        <img
+                          key={editedProfile.avatar} // Force re-render when avatar changes
+                          src={editedProfile.avatar}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            // Fallback to initials if image fails to load
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            const fallback = target.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
                       <div 
-                        className="w-full h-full bg-gray-200 items-center justify-center hidden"
-                        style={{ display: 'none' }}
+                        className={`w-full h-full bg-gray-200 items-center justify-center ${editedProfile.avatar ? 'hidden' : 'flex'}`}
+                        style={{ display: editedProfile.avatar ? 'none' : 'flex' }}
                       >
                         <span className="text-2xl font-bold text-gray-500">
                           {editedProfile.firstName?.charAt(0) || editedProfile.lastName?.charAt(0) || 'U'}
