@@ -30,6 +30,30 @@ const StudentProfilePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [editedProfile, setEditedProfile] = useState<ProfileData | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+  // Popular emojis for avatars
+  const emojiOptions = [
+    '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃',
+    '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙',
+    '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔',
+    '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥',
+    '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮',
+    '🤧', '🥵', '🥶', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐',
+    '👶', '🧒', '👦', '👧', '🧑', '👨', '👩', '🧓', '👴', '👵',
+    '👱', '👱‍♀️', '👱‍♂️', '🧔', '👨‍🦰', '👩‍🦰', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳',
+    '👨‍🦲', '👩‍🦲', '🤵', '👰', '🤰', '🤱', '👼', '🎅', '🤶', '🦸',
+    '🦹', '🧙', '🧚', '🧛', '🧜', '🧝', '🧞', '🧟', '💆', '💇',
+    '🚶', '🏃', '💃', '🕺', '👯', '🧖', '🧗', '🤺', '🏇', '⛷️',
+    '🏂', '🏌️', '🏄', '🚣', '🏊', '⛹️', '🏋️', '🚴', '🚵', '🤸',
+    '🤼', '🤽', '🤾', '🤹', '🧘', '🛀', '🛌', '👭', '👫', '👬',
+    '💏', '💑', '👪', '🗣️', '👤', '👥', '🫂', '👋', '🤚', '🖐️',
+    '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈',
+    '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '👊', '✊', '🤛',
+    '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳',
+    '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🦷',
+    '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸'
+  ];
 
   // Initialize profile with clean data - NO base64 handling
   useEffect(() => {
@@ -39,7 +63,7 @@ const StudentProfilePage: React.FC = () => {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
-        avatar: user.avatar && user.avatar.startsWith('https://') ? user.avatar : '',
+        avatar: user.avatar || '',
         bio: user.bio || '',
         careerGoals: user.careerGoals || '',
         classOf: user.classOf || '',
@@ -69,73 +93,14 @@ const StudentProfilePage: React.FC = () => {
     }
   };
 
-  // Handle avatar upload - ONLY S3 URLs, NO base64
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors(prev => ({
-        ...prev,
-        avatar: 'Image size must be less than 5MB'
-      }));
-      return;
-    }
-
-    setIsLoading(true);
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji: string) => {
+    setEditedProfile(prev => ({
+      ...prev,
+      avatar: emoji
+    }));
+    setShowEmojiPicker(false);
     setErrors(prev => ({ ...prev, avatar: '' }));
-
-    try {
-      // Generate unique filename
-      const fileExtension = file.name.split('.').pop() || 'jpg';
-      const fileName = `avatar_${user?.id}_${Date.now()}.${fileExtension}`;
-      
-      // Get presigned URL
-      const presignedResponse = await fetch('/api/upload/presigned', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName,
-          fileType: file.type,
-          folder: 'profile-pictures',
-          userId: user?.id
-        })
-      });
-
-      if (!presignedResponse.ok) {
-        throw new Error('Failed to get upload URL');
-      }
-
-      const presignedData = await presignedResponse.json();
-      
-      // Upload directly to S3
-      const uploadResponse = await fetch(presignedData.presignedUrl, {
-        method: 'PUT',
-        body: file,
-        headers: { 'Content-Type': file.type }
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload image');
-      }
-
-      // Update profile with S3 URL
-      const s3Url = presignedData.fileUrl;
-      setEditedProfile(prev => ({
-        ...prev,
-        avatar: s3Url
-      }));
-
-    } catch (error) {
-      console.error('Avatar upload failed:', error);
-      setErrors(prev => ({
-        ...prev,
-        avatar: 'Failed to upload image. Please try again.'
-      }));
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   // Validate form
@@ -262,30 +227,17 @@ const StudentProfilePage: React.FC = () => {
             <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-6 text-white">
               <div className="flex items-center space-x-6">
                 <div className="relative">
-                  {/* Avatar Display - Only S3 URLs */}
+                  {/* Avatar Display - Emoji or Initials */}
                   <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center">
                     {profile.avatar ? (
-                      <img
-                        src={profile.avatar}
-                        alt={`${profile.firstName} ${profile.lastName}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          // Hide image and show initials if it fails to load
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const fallback = target.nextElementSibling as HTMLElement;
-                          if (fallback) fallback.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    <div 
-                      className={`w-full h-full items-center justify-center ${profile.avatar ? 'hidden' : 'flex'}`}
-                      style={{ display: profile.avatar ? 'none' : 'flex' }}
-                    >
+                      <span className="text-4xl">
+                        {profile.avatar}
+                      </span>
+                    ) : (
                       <span className="text-3xl font-bold text-white">
                         {profile.firstName?.charAt(0) || profile.lastName?.charAt(0) || 'U'}
                       </span>
-                    </div>
+                    )}
                   </div>
                 </div>
                 <div className="flex-1">
@@ -370,33 +322,20 @@ const StudentProfilePage: React.FC = () => {
                   {/* Avatar Section */}
                   <div className="flex items-center space-x-6">
                     <div className="relative">
-                      <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200">
+                      <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
                         {editedProfile?.avatar ? (
-                          <img
-                            src={editedProfile.avatar}
-                            alt="Profile"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const fallback = target.nextElementSibling as HTMLElement;
-                              if (fallback) fallback.style.display = 'flex';
-                            }}
-                          />
-                        ) : null}
-                        <div 
-                          className={`w-full h-full bg-gray-200 items-center justify-center ${editedProfile?.avatar ? 'hidden' : 'flex'}`}
-                          style={{ display: editedProfile?.avatar ? 'none' : 'flex' }}
-                        >
+                          <span className="text-3xl">
+                            {editedProfile.avatar}
+                          </span>
+                        ) : (
                           <span className="text-2xl font-bold text-gray-500">
                             {editedProfile?.firstName?.charAt(0) || editedProfile?.lastName?.charAt(0) || 'U'}
                           </span>
-                        </div>
+                        )}
                       </div>
                       <button
-                        onClick={() => document.getElementById('avatar-upload')?.click()}
-                        disabled={isLoading}
-                        className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg"
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="absolute -bottom-2 -right-2 bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors shadow-lg"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -404,21 +343,31 @@ const StudentProfilePage: React.FC = () => {
                       </button>
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-800">Profile Picture</h4>
-                      <p className="text-sm text-gray-600">Click the + button to upload a new photo</p>
+                      <h4 className="font-medium text-gray-800">Profile Avatar</h4>
+                      <p className="text-sm text-gray-600">Click the + button to choose an emoji</p>
                       {errors.avatar && (
                         <p className="text-red-500 text-sm mt-1">{errors.avatar}</p>
                       )}
                     </div>
                   </div>
 
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                    className="hidden"
-                  />
+                  {/* Emoji Picker */}
+                  {showEmojiPicker && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto">
+                      <h5 className="text-sm font-medium text-gray-700 mb-3">Choose an emoji</h5>
+                      <div className="grid grid-cols-10 gap-2">
+                        {emojiOptions.map((emoji, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleEmojiSelect(emoji)}
+                            className="w-8 h-8 text-lg hover:bg-gray-200 rounded transition-colors flex items-center justify-center"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Form Fields */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
