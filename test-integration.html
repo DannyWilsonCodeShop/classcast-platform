@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassCast API Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #4A90E2;
+        }
+        button {
+            background: #4A90E2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #357ABD;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .success {
+            border-left: 4px solid #28a745;
+        }
+        .error {
+            border-left: 4px solid #dc3545;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 ClassCast Clean Backend Integration Test</h1>
+        <p>Testing the new clean API endpoints with your beautiful frontend!</p>
+
+        <!-- Login Test -->
+        <div class="test-section">
+            <h3>🔐 Authentication Test</h3>
+            <input type="email" id="email" placeholder="Email" value="test@example.com">
+            <input type="password" id="password" placeholder="Password" value="testpass123">
+            <button onclick="testLogin()">Test Login</button>
+            <div id="loginResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Profile Test -->
+        <div class="test-section">
+            <h3>👤 Profile Management Test</h3>
+            <button onclick="testGetProfile()">Get Profile</button>
+            <button onclick="testUpdateProfile()">Update Profile</button>
+            <div id="profileResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Courses Test -->
+        <div class="test-section">
+            <h3>📚 Courses Test</h3>
+            <button onclick="testGetCourses()">Get Courses</button>
+            <button onclick="testCreateCourse()">Create Course</button>
+            <div id="coursesResult" class="result" style="display: none;"></div>
+        </div>
+
+        <!-- Status -->
+        <div class="test-section">
+            <h3>📊 API Status</h3>
+            <p><strong>API Base URL:</strong> https://ete1conlc8.execute-api.us-east-1.amazonaws.com/prod/</p>
+            <p><strong>Status:</strong> <span id="apiStatus" style="color: #28a745;">✅ Online</span></p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://ete1conlc8.execute-api.us-east-1.amazonaws.com/prod';
+        let accessToken = null;
+
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `result ${isError ? 'error' : 'success'}`;
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function testLogin() {
+            try {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    accessToken = data.data.tokens.accessToken;
+                    showResult('loginResult', data);
+                } else {
+                    showResult('loginResult', data, true);
+                }
+            } catch (error) {
+                showResult('loginResult', { error: error.message }, true);
+            }
+        }
+
+        async function testGetProfile() {
+            try {
+                const response = await fetch(`${API_BASE}/users/user_123/profile`);
+                const data = await response.json();
+                showResult('profileResult', data);
+            } catch (error) {
+                showResult('profileResult', { error: error.message }, true);
+            }
+        }
+
+        async function testUpdateProfile() {
+            try {
+                const profileData = {
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    bio: 'Updated via API test!',
+                    avatar: '😊',
+                    funFact: 'I love testing APIs!'
+                };
+
+                const response = await fetch(`${API_BASE}/users/user_123/profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(profileData)
+                });
+
+                const data = await response.json();
+                showResult('profileResult', data);
+            } catch (error) {
+                showResult('profileResult', { error: error.message }, true);
+            }
+        }
+
+        async function testGetCourses() {
+            try {
+                const response = await fetch(`${API_BASE}/courses`);
+                const data = await response.json();
+                showResult('coursesResult', data);
+            } catch (error) {
+                showResult('coursesResult', { error: error.message }, true);
+            }
+        }
+
+        async function testCreateCourse() {
+            try {
+                const courseData = {
+                    name: 'Test Course',
+                    code: 'TEST101',
+                    description: 'A test course created via API',
+                    instructorId: 'instructor_123',
+                    semester: 'Fall',
+                    year: 2024,
+                    credits: 3,
+                    schedule: {
+                        days: ['Monday', 'Wednesday'],
+                        time: '10:00 AM - 11:00 AM',
+                        location: 'Room 101'
+                    },
+                    prerequisites: [],
+                    learningObjectives: ['Learn something new'],
+                    gradingPolicy: {
+                        assignments: 60,
+                        exams: 30,
+                        participation: 10,
+                        projects: 0
+                    }
+                };
+
+                const response = await fetch(`${API_BASE}/courses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(courseData)
+                });
+
+                const data = await response.json();
+                showResult('coursesResult', data);
+            } catch (error) {
+                showResult('coursesResult', { error: error.message }, true);
+            }
+        }
+
+        // Test API status on load
+        window.onload = async function() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'test@example.com', password: 'testpass123' })
+                });
+                
+                if (response.ok) {
+                    document.getElementById('apiStatus').textContent = '✅ Online & Working';
+                    document.getElementById('apiStatus').style.color = '#28a745';
+                } else {
+                    document.getElementById('apiStatus').textContent = '⚠️ Online but issues';
+                    document.getElementById('apiStatus').style.color = '#ffc107';
+                }
+            } catch (error) {
+                document.getElementById('apiStatus').textContent = '❌ Offline';
+                document.getElementById('apiStatus').style.color = '#dc3545';
+            }
+        };
+    </script>
+</body>
+</html>

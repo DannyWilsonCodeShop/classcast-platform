@@ -7,26 +7,8 @@ import Link from 'next/link';
 import { PlayIcon, HeartIcon, ChatBubbleLeftIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '@/contexts/AuthContext';
+import { api, VideoReel } from '@/lib/api';
 
-interface VideoReel {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail: string;
-  videoUrl: string;
-  duration: number;
-  author: {
-    id: string;
-    name: string;
-    avatar: string;
-    course: string;
-  };
-  likes: number;
-  comments: number;
-  isLiked: boolean;
-  createdAt: string;
-  courseId: string;
-}
 
 export default function StudentVideosPage() {
   const { user } = useAuth();
@@ -44,142 +26,40 @@ export default function StudentVideosPage() {
     try {
       setIsLoading(true);
       
-      // Mock data for now - in production this would come from API
-      const mockVideos: VideoReel[] = [
-        {
-          id: '1',
-          title: 'React Hooks Explained',
-          description: 'A comprehensive tutorial on React hooks for beginners. Learn useState, useEffect, and custom hooks.',
-          thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=400&h=225&fit=crop',
-          videoUrl: '/api/placeholder/video1.mp4',
-          duration: 120,
-          author: {
-            id: 'student-1',
-            name: 'Sarah Johnson',
-            avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face',
-            course: 'CS 101 - Introduction to Programming'
-          },
-          likes: 24,
-          comments: 8,
-          isLiked: false,
-          createdAt: '2024-12-10T10:30:00Z',
-          courseId: 'cs-101'
-        },
-        {
-          id: '2',
-          title: 'Database Design Tips',
-          description: 'Best practices for designing efficient databases. Learn normalization, indexing, and query optimization.',
-          thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=400&h=225&fit=crop',
-          videoUrl: '/api/placeholder/video2.mp4',
-          duration: 180,
-          author: {
-            id: 'student-2',
-            name: 'Mike Chen',
-            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face',
-            course: 'CS 201 - Database Systems'
-          },
-          likes: 31,
-          comments: 12,
-          isLiked: true,
-          createdAt: '2024-12-09T14:20:00Z',
-          courseId: 'cs-201'
-        },
-        {
-          id: '3',
-          title: 'JavaScript Async/Await',
-          description: 'Understanding asynchronous programming in JavaScript. Master promises, async/await, and error handling.',
-          thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?w=400&h=225&fit=crop',
-          videoUrl: '/api/placeholder/video3.mp4',
-          duration: 95,
-          author: {
-            id: 'student-3',
-            name: 'Emily Davis',
-            avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face',
-            course: 'CS 102 - Web Development'
-          },
-          likes: 18,
-          comments: 5,
-          isLiked: false,
-          createdAt: '2024-12-08T16:45:00Z',
-          courseId: 'cs-102'
-        },
-        {
-          id: '4',
-          title: 'Machine Learning Basics',
-          description: 'Introduction to machine learning concepts and algorithms. Perfect for beginners starting their ML journey.',
-          thumbnail: 'https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=225&fit=crop',
-          videoUrl: '/api/placeholder/video4.mp4',
-          duration: 240,
-          author: {
-            id: 'student-4',
-            name: 'Alex Rodriguez',
-            avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
-            course: 'CS 301 - Machine Learning'
-          },
-          likes: 42,
-          comments: 15,
-          isLiked: false,
-          createdAt: '2024-12-07T09:15:00Z',
-          courseId: 'cs-301'
-        },
-        {
-          id: '5',
-          title: 'Data Structures and Algorithms',
-          description: 'Essential data structures every programmer should know. Arrays, linked lists, trees, and graphs explained.',
-          thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=225&fit=crop',
-          videoUrl: '/api/placeholder/video5.mp4',
-          duration: 200,
-          author: {
-            id: 'student-5',
-            name: 'Jordan Kim',
-            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&crop=face',
-            course: 'CS 202 - Data Structures'
-          },
-          likes: 28,
-          comments: 9,
-          isLiked: true,
-          createdAt: '2024-12-06T11:30:00Z',
-          courseId: 'cs-202'
-        },
-        {
-          id: '6',
-          title: 'UI/UX Design Principles',
-          description: 'Learn the fundamentals of user interface and user experience design. Create beautiful and functional designs.',
-          thumbnail: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=400&h=225&fit=crop',
-          videoUrl: '/api/placeholder/video6.mp4',
-          duration: 160,
-          author: {
-            id: 'student-6',
-            name: 'Maya Patel',
-            avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop&crop=face',
-            course: 'DES 101 - Design Fundamentals'
-          },
-          likes: 35,
-          comments: 11,
-          isLiked: false,
-          createdAt: '2024-12-05T13:45:00Z',
-          courseId: 'des-101'
-        }
-      ];
-      
-      setVideos(mockVideos);
+      // Use the clean API to fetch videos
+      const videosData = await api.getVideos();
+      setVideos(videosData);
     } catch (error) {
       console.error('Error loading videos:', error);
+      // Set empty array on error - no mock data
+      setVideos([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleLike = async (videoId: string) => {
-    setVideos(prev => prev.map(video => 
-      video.id === videoId 
-        ? { 
-            ...video, 
-            isLiked: !video.isLiked,
-            likes: video.isLiked ? video.likes - 1 : video.likes + 1
-          }
-        : video
-    ));
+    try {
+      // Use the API to like the video
+      const updatedVideo = await api.likeVideo(videoId);
+      
+      // Update local state with the response
+      setVideos(prev => prev.map(video => 
+        video.id === videoId ? updatedVideo : video
+      ));
+    } catch (error) {
+      console.error('Error liking video:', error);
+      // Fallback to local state update if API fails
+      setVideos(prev => prev.map(video => 
+        video.id === videoId 
+          ? { 
+              ...video, 
+              isLiked: !video.isLiked,
+              likes: video.isLiked ? video.likes - 1 : video.likes + 1
+            }
+          : video
+      ));
+    }
   };
 
   const formatDuration = (seconds: number): string => {
@@ -372,14 +252,14 @@ export default function StudentVideosPage() {
             ))}
           </div>
 
-          {filteredVideos.length === 0 && (
+          {filteredVideos.length === 0 && !isLoading && (
             <div className="text-center py-12">
               <div className="text-gray-400 text-4xl mb-4">🎬</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No videos found</h3>
               <p className="text-gray-600">
                 {searchTerm || filterCourse 
                   ? 'Try adjusting your search or filter criteria'
-                  : 'No videos have been posted yet'
+                  : 'No videos have been posted yet. Check back later!'
                 }
               </p>
             </div>

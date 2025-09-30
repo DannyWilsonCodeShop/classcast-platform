@@ -1,64 +1,167 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { EmailConfirmationModal } from '@/components/auth/EmailConfirmationModal';
+import { api, User, LoginRequest } from '@/lib/api';
 
-export interface User {
-  id?: string;
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  role: 'student' | 'instructor' | 'admin';
-  instructorId?: string;
-  department?: string;
-  emailVerified?: boolean;
-  sessionExpiresAt?: number;
-  // Profile properties
-  avatar?: string;
-  bio?: string;
-  careerGoals?: string;
-  classOf?: string;
-  funFact?: string;
-  favoriteSubject?: string;
-  hobbies?: string;
-  schoolName?: string;
-}
+// ============================================================================
+// TYPES
+// ============================================================================
 
-export interface AuthState {
+interface AuthState {
   user: User | null;
-  isAuthenticated: boolean;
   isLoading: boolean;
+  isAuthenticated: boolean;
   error: string | null;
-  showEmailConfirmation: boolean;
-  confirmationEmail: string | null;
 }
 
 interface AuthContextType extends AuthState {
-  login: (email: string, password: string) => Promise<void>;
-  signup: (userData: SignupData) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
-  refreshToken: () => Promise<void>;
-  clearError: () => void;
-  checkAuthStatus: () => Promise<void>;
-  closeEmailConfirmation: () => void;
   updateUser: (userData: Partial<User>) => void;
+  checkAuthStatus: () => Promise<void>;
+  clearError: () => void;
 }
 
-interface SignupData {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  role: 'student' | 'instructor' | 'admin';
-  studentId?: string;
-  instructorId?: string;
-  department?: string;
-}
+// ============================================================================
+// CONTEXT
+// ============================================================================
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
+// ============================================================================
+// PROVIDER
+// ============================================================================
+
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  // ============================================================================
+  // AUTH FUNCTIONS
+  // ============================================================================
+
+  const checkAuthStatus = async (): Promise<void> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Check if we have a stored user and valid token
+      const storedUser = api.getCurrentUser();
+      const isAuthenticated = api.isAuthenticated();
+      
+      if (storedUser && isAuthenticated) {
+        setUser(storedUser);
+      } else {
+        // Clear invalid data
+        api.clearCurrentUser();
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      setUser(null);
+      api.clearCurrentUser();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const credentials: LoginRequest = { email, password };
+      const response = await api.login(credentials);
+      
+      // Store user data
+      api.setCurrentUser(response.user);
+      setUser(response.user);
+      
+      // Redirect based on user role
+      if (response.user.role === 'student') {
+        router.push('/student/dashboard');
+      } else if (response.user.role === 'instructor') {
+        router.push('/instructor/dashboard');
+      } else if (response.user.role === 'admin') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/');
+      }
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      await api.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+      api.clearCurrentUser();
+      router.push('/auth/login');
+    }
+  };
+
+  const updateUser = (userData: Partial<User>): void => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      api.setCurrentUser(updatedUser);
+    }
+  };
+
+  const clearError = (): void => {
+    setError(null);
+  };
+
+  // ============================================================================
+  // EFFECTS
+  // ============================================================================
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  // ============================================================================
+  // CONTEXT VALUE
+  // ============================================================================
+
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+    error,
+    login,
+    logout,
+    updateUser,
+    checkAuthStatus,
+    clearError
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// ============================================================================
+// HOOK
+// ============================================================================
+
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
@@ -66,446 +169,8 @@ export const useAuth = () => {
   return context;
 };
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+// ============================================================================
+// EXPORT USER TYPE FOR COMPATIBILITY
+// ============================================================================
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
-    error: null,
-    showEmailConfirmation: false,
-    confirmationEmail: null,
-  });
-  const router = useRouter();
-
-  // Login function
-  const login = useCallback(async (email: string, password: string) => {
-    try {
-      setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      // Use current domain for API calls
-      const loginUrl = '/api/auth/login';
-      
-      const response = await fetch(loginUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-        console.log('Login successful, responseData:', responseData);
-        
-        // Parse the nested response structure
-        let userData;
-        if (responseData.body) {
-          // If response has a body property, parse it
-          userData = typeof responseData.body === 'string' 
-            ? JSON.parse(responseData.body) 
-            : responseData.body;
-        } else {
-          // If response is direct, use it
-          userData = responseData;
-        }
-        
-        console.log('Parsed userData:', userData);
-        
-        // Check if response has an error (even with 200 status)
-        if (userData.error) {
-          const errorMessage = userData.error.message || 'Login failed';
-          setAuthState(prev => ({
-            ...prev,
-            isLoading: false,
-            error: errorMessage,
-          }));
-          throw new Error(errorMessage);
-        }
-        
-        // Check if response has user data
-        if (!userData.user) {
-          const errorMessage = 'Invalid response from server';
-          setAuthState(prev => ({
-            ...prev,
-            isLoading: false,
-            error: errorMessage,
-          }));
-          throw new Error(errorMessage);
-        }
-        
-        const newState = {
-          user: userData.user,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-          showEmailConfirmation: false,
-          confirmationEmail: null,
-        };
-        console.log('Setting auth state:', newState);
-        setAuthState(newState);
-        localStorage.setItem('authState', JSON.stringify(newState));
-        
-        // Redirect based on user role
-        console.log('User role:', userData.user.role);
-        console.log('Current URL before redirect:', window.location.href);
-        
-        if (userData.user.role === 'student') {
-          console.log('Redirecting to student dashboard');
-          router.push('/student/dashboard');
-        } else if (userData.user.role === 'instructor') {
-          console.log('Redirecting to instructor dashboard');
-          router.push('/instructor/dashboard');
-        } else if (userData.user.role === 'admin') {
-          console.log('Redirecting to admin dashboard');
-          router.push('/admin/dashboard');
-        } else {
-          console.log('Redirecting to home page');
-          router.push('/');
-        }
-        
-        console.log('Redirect command sent, waiting for navigation...');
-      } else {
-        const errorData = await response.json();
-        
-        // Handle email verification error
-        if (errorData.error?.code === 'EMAIL_NOT_VERIFIED') {
-          setAuthState(prev => ({
-            ...prev,
-            isLoading: false,
-            error: null,
-            showEmailConfirmation: true,
-            confirmationEmail: errorData.error.email,
-          }));
-          // Store email for verification page
-          localStorage.setItem('pendingVerificationEmail', errorData.error.email);
-          router.push(`/verify-email?email=${encodeURIComponent(errorData.error.email)}`);
-          return;
-        }
-        
-        setAuthState(prev => ({
-          ...prev,
-          isLoading: false,
-          error: errorData.error?.message || errorData.message || 'Login failed',
-        }));
-      }
-    } catch (error) {
-      setAuthState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: 'Network error. Please try again.',
-      }));
-    }
-  }, []);
-
-  // Signup function
-  const signup = useCallback(async (userData: SignupData) => {
-    try {
-      setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      // Use current domain for API calls
-      const signupUrl = '/api/auth/signup';
-      
-      const response = await fetch(signupUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
-
-      if (response.ok) {
-        const rawResponseData = await response.json();
-        console.log('Signup response received:', rawResponseData);
-        
-        // Parse the nested response structure
-        let responseData;
-        if (rawResponseData.body) {
-          // If response has a body property, parse it
-          responseData = typeof rawResponseData.body === 'string' 
-            ? JSON.parse(rawResponseData.body) 
-            : rawResponseData.body;
-        } else {
-          // If response is direct, use it
-          responseData = rawResponseData;
-        }
-        
-        console.log('Parsed signup responseData:', responseData);
-        
-        // Check if response has an error (even with 200 status)
-        if (responseData.error) {
-          const errorMessage = responseData.error.message || 'Signup failed';
-          setAuthState(prev => ({
-            ...prev,
-            isLoading: false,
-            error: errorMessage,
-          }));
-          throw new Error(errorMessage);
-        }
-        
-        // Check if user needs email verification
-        if (responseData.requiresEmailConfirmation || responseData.needsVerification) {
-          setAuthState(prev => ({
-            ...prev,
-            isLoading: false,
-            error: null,
-            showEmailConfirmation: true,
-            confirmationEmail: userData.email,
-          }));
-          // Store email for verification page
-          localStorage.setItem('pendingVerificationEmail', userData.email);
-          router.push(`/verify-email?email=${encodeURIComponent(userData.email)}`);
-          return responseData;
-        }
-        
-        // Check if response has user data
-        if (!responseData.user) {
-          const errorMessage = 'Invalid response from server';
-          setAuthState(prev => ({
-            ...prev,
-            isLoading: false,
-            error: errorMessage,
-          }));
-          throw new Error(errorMessage);
-        }
-        
-        // If no verification needed, proceed directly to login
-        const newState = {
-          user: responseData.user,
-          isAuthenticated: true,
-          isLoading: false,
-          error: null,
-          showEmailConfirmation: false,
-          confirmationEmail: null,
-        };
-        setAuthState(newState);
-        localStorage.setItem('authState', JSON.stringify(newState));
-        
-        // Redirect based on user role
-        if (responseData.user.role === 'student') {
-          router.push('/student/dashboard');
-        } else if (responseData.user.role === 'instructor') {
-          router.push('/instructor/dashboard');
-        } else if (responseData.user.role === 'admin') {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/');
-        }
-        
-        // Return response data for SignupForm to handle
-        return responseData;
-      } else {
-        const errorData = await response.json();
-        const errorMessage = errorData.error?.message || errorData.message || 'Signup failed';
-        setAuthState(prev => ({
-          ...prev,
-          isLoading: false,
-          error: errorMessage,
-        }));
-        // Throw error so SignupForm can catch it
-        throw new Error(errorMessage);
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Network error. Please try again.';
-      setAuthState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: errorMessage,
-      }));
-      // Re-throw error so SignupForm can catch it
-      throw error;
-    }
-  }, [router]);
-
-  // Logout function
-  const logout = useCallback(async () => {
-    try {
-      setAuthState(prev => ({ ...prev, isLoading: true }));
-      
-      await fetch('/api/auth/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-        showEmailConfirmation: false,
-        confirmationEmail: null,
-      });
-
-      localStorage.removeItem('authState');
-      router.push('/auth/login');
-    } catch (error) {
-      console.error('Error during logout:', error);
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-        showEmailConfirmation: false,
-        confirmationEmail: null,
-      });
-      localStorage.removeItem('authState');
-      router.push('/auth/login');
-    }
-  }, [router]);
-
-  // Refresh token function
-  const refreshToken = useCallback(async () => {
-    try {
-      const response = await fetch('/api/auth/refresh', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setAuthState(prev => ({
-          ...prev,
-          user: userData.user,
-          isAuthenticated: true,
-          error: null,
-        }));
-      } else {
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: 'Session expired. Please login again.',
-          showEmailConfirmation: false,
-          confirmationEmail: null,
-        });
-        router.push('/auth/login');
-      }
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: 'Failed to refresh session. Please login again.',
-        showEmailConfirmation: false,
-        confirmationEmail: null,
-      });
-      router.push('/auth/login');
-    }
-  }, [router]);
-
-  // Clear error function
-  const clearError = useCallback(() => {
-    setAuthState(prev => ({ ...prev, error: null }));
-  }, []);
-
-  const closeEmailConfirmation = useCallback(() => {
-    setAuthState(prev => ({ 
-      ...prev, 
-      showEmailConfirmation: false, 
-      confirmationEmail: null 
-    }));
-    // Redirect to login page after closing the modal
-    router.push('/auth/login');
-  }, [router]);
-
-  // Check auth status function
-  const checkAuthStatus = useCallback(async () => {
-    try {
-      setAuthState(prev => ({ ...prev, isLoading: true, error: null }));
-      
-      const storedAuthState = localStorage.getItem('authState');
-      if (storedAuthState) {
-        try {
-          const parsedState = JSON.parse(storedAuthState);
-          if (parsedState.user && parsedState.isAuthenticated) {
-            setAuthState(parsedState);
-          } else {
-            setAuthState({
-              user: null,
-              isAuthenticated: false,
-              isLoading: false,
-              error: null,
-              showEmailConfirmation: false,
-              confirmationEmail: null,
-            });
-          }
-        } catch (parseError) {
-          console.error('Error parsing stored auth state:', parseError);
-          setAuthState({
-            user: null,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-            showEmailConfirmation: false,
-            confirmationEmail: null,
-          });
-        }
-      } else {
-        setAuthState({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-          error: null,
-          showEmailConfirmation: false,
-          confirmationEmail: null,
-        });
-      }
-    } catch (error) {
-      console.error('Error checking auth status:', error);
-      setAuthState({
-        user: null,
-        isAuthenticated: false,
-        isLoading: false,
-        error: null,
-        showEmailConfirmation: false,
-        confirmationEmail: null,
-      });
-    }
-  }, []);
-
-  // Check auth status on mount
-  useEffect(() => {
-    checkAuthStatus();
-  }, []); // Only run once on mount
-
-  // Update user data
-  const updateUser = useCallback((userData: Partial<User>) => {
-    setAuthState(prev => {
-      if (prev.user) {
-        const updatedUser = { ...prev.user, ...userData };
-        const newState = { ...prev, user: updatedUser };
-        localStorage.setItem('authState', JSON.stringify(newState));
-        return newState;
-      }
-      return prev;
-    });
-  }, []);
-
-  const value: AuthContextType = {
-    ...authState,
-    login,
-    signup,
-    logout,
-    refreshToken,
-    clearError,
-    checkAuthStatus,
-    closeEmailConfirmation,
-    updateUser,
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-      <EmailConfirmationModal
-        isOpen={authState.showEmailConfirmation}
-        email={authState.confirmationEmail || ''}
-        onClose={closeEmailConfirmation}
-      />
-    </AuthContext.Provider>
-  );
-};
-
+export type { User };
