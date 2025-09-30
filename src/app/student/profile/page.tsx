@@ -34,12 +34,6 @@ const StudentProfilePage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [profileInitialized, setProfileInitialized] = useState(false);
 
-  // Clear storage function for debugging
-  const clearStorage = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.reload();
-  };
 
   // Initialize profile data from user context
   useEffect(() => {
@@ -98,65 +92,20 @@ const StudentProfilePage: React.FC = () => {
 
   // Handle user context updates (e.g., after profile save)
   useEffect(() => {
-    if (user && profile) {
+    if (user && profile && user.avatar && user.avatar.startsWith('https://') && user.avatar !== profile.avatar) {
       console.log('User context updated, syncing profile state');
       console.log('User avatar:', user.avatar);
       console.log('Profile avatar:', profile.avatar);
+      console.log('Updating profile with new user avatar');
       
-      // Only update if the avatar has changed and it's a valid S3 URL
-      if (user.avatar && user.avatar.startsWith('https://') && user.avatar !== profile.avatar) {
-        console.log('Updating profile with new user avatar');
-        const updatedProfile = {
-          ...profile,
-          avatar: user.avatar
-        };
-        setProfile(updatedProfile);
-        setEditedProfile(updatedProfile);
-      }
-    } else if (user && !profile) {
-      console.log('Profile is null but user exists, reinitializing...');
-      // Reinitialize profile if it got reset to null
-      const profileData = {
-        id: user.id || '',
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
-        avatar: user.avatar || '',
-        bio: user.bio || '',
-        careerGoals: user.careerGoals || '',
-        classOf: user.classOf || '',
-        funFact: user.funFact || '',
-        favoriteSubject: user.favoriteSubject || '',
-        hobbies: user.hobbies || '',
-        schoolName: user.schoolName || ''
+      const updatedProfile = {
+        ...profile,
+        avatar: user.avatar
       };
-      setProfile(profileData);
-      setEditedProfile(profileData);
+      setProfile(updatedProfile);
+      setEditedProfile(updatedProfile);
     }
-  }, [user?.avatar, user]);
-
-  // Prevent profile from being reset to null
-  useEffect(() => {
-    if (user && profile === null) {
-      console.log('Profile was reset to null, reinitializing...');
-      const profileData = {
-        id: user.id || '',
-        firstName: user.firstName || '',
-        lastName: user.lastName || '',
-        email: user.email || '',
-        avatar: user.avatar || '',
-        bio: user.bio || '',
-        careerGoals: user.careerGoals || '',
-        classOf: user.classOf || '',
-        funFact: user.funFact || '',
-        favoriteSubject: user.favoriteSubject || '',
-        hobbies: user.hobbies || '',
-        schoolName: user.schoolName || ''
-      };
-      setProfile(profileData);
-      setEditedProfile(profileData);
-    }
-  }, [user, profile]);
+  }, [user?.avatar]);
 
   // Track profile state changes
   useEffect(() => {
@@ -489,15 +438,6 @@ const StudentProfilePage: React.FC = () => {
                 className="px-3 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700 transition-colors"
               >
                 Logout
-              </button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={clearStorage}
-                className="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
-                title="Clear storage and reload"
-              >
-                Clear Storage
               </button>
             </div>
           </div>
