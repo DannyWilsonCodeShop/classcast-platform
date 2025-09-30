@@ -209,6 +209,14 @@ export class ClassCastStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30)
     });
 
+    // Videos Lambda
+    const videosLambda = new lambda.Function(this, 'VideosLambda', {
+      ...lambdaConfig,
+      functionName: 'ClassCastVideos',
+      code: lambda.Code.fromAsset('../functions/simple-videos'),
+      timeout: cdk.Duration.seconds(30)
+    });
+
     // ============================================================================
     // IAM PERMISSIONS
     // ============================================================================
@@ -272,6 +280,15 @@ export class ClassCastStack extends cdk.Stack {
     course.addMethod('GET', new apigateway.LambdaIntegration(coursesLambda));
     course.addMethod('PUT', new apigateway.LambdaIntegration(coursesLambda));
     course.addMethod('DELETE', new apigateway.LambdaIntegration(coursesLambda));
+
+    // Videos endpoints
+    const videos = api.root.addResource('videos');
+    videos.addMethod('GET', new apigateway.LambdaIntegration(videosLambda));
+    videos.addMethod('POST', new apigateway.LambdaIntegration(videosLambda));
+    const video = videos.addResource('{videoId}');
+    video.addMethod('GET', new apigateway.LambdaIntegration(videosLambda));
+    video.addMethod('PUT', new apigateway.LambdaIntegration(videosLambda));
+    video.addMethod('DELETE', new apigateway.LambdaIntegration(videosLambda));
 
     // ============================================================================
     // OUTPUTS
