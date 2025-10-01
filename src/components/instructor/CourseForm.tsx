@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Course, CreateCourseData, UpdateCourseData } from '@/types/course';
+import { SEMESTER_OPTIONS } from '@/constants/semesters';
 
 interface CourseFormProps {
   course: Course | null;
@@ -229,10 +230,11 @@ export const CourseForm: React.FC<CourseFormProps> = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
               >
-                <option value="Fall">Fall</option>
-                <option value="Spring">Spring</option>
-                <option value="Summer">Summer</option>
-                <option value="Winter">Winter</option>
+                {SEMESTER_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
 
