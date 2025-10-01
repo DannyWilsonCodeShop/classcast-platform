@@ -1,138 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
+
+const client = new DynamoDBClient({ region: 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(client);
+
+const SUBMISSIONS_TABLE = 'classcast-submissions';
 
 export async function GET(request: NextRequest) {
   try {
-    // Comprehensive recent submissions data for demonstration
-    const recentSubmissions = [
-      {
-        id: 'sub_1',
-        studentName: 'Alex Thompson',
-        studentId: 'student_001',
-        assignmentTitle: 'Derivatives and Limits - Video Lesson',
-        assignmentId: 'assignment_1',
-        submittedAt: '2024-01-22T14:30:00Z',
-        courseName: 'Introduction to Calculus',
-        courseCode: 'MATH101',
-        status: 'pending_review',
-        submissionType: 'video',
-        duration: 320,
-        fileSize: 45000000,
-        grade: null,
-        maxPoints: 100
-      },
-      {
-        id: 'sub_2',
-        studentName: 'Maria Rodriguez',
-        studentId: 'student_002',
-        assignmentTitle: 'Binary Tree Implementation - Video Assessment',
-        assignmentId: 'assignment_6',
-        submittedAt: '2024-01-22T12:15:00Z',
-        courseName: 'Data Structures & Algorithms',
-        courseCode: 'CS301',
-        status: 'pending_review',
-        submissionType: 'video',
-        duration: 480,
-        fileSize: 62000000,
-        grade: null,
-        maxPoints: 200
-      },
-      {
-        id: 'sub_3',
-        studentName: 'James Wilson',
-        studentId: 'student_003',
-        assignmentTitle: 'Thermodynamics Concepts - Video Lesson',
-        assignmentId: 'assignment_5',
-        submittedAt: '2024-01-21T10:45:00Z',
-        courseName: 'Physics for Engineers',
-        courseCode: 'PHYS201',
-        status: 'graded',
-        submissionType: 'video',
-        duration: 420,
-        fileSize: 58000000,
-        grade: 92,
-        maxPoints: 130
-      },
-      {
-        id: 'sub_4',
-        studentName: 'Sarah Kim',
-        studentId: 'student_004',
-        assignmentTitle: 'Renaissance Period Analysis - Video Discussion',
-        assignmentId: 'assignment_10',
-        submittedAt: '2024-01-21T16:20:00Z',
-        courseName: 'World History',
-        courseCode: 'HIST201',
-        status: 'pending_review',
-        submissionType: 'video',
-        duration: 380,
-        fileSize: 52000000,
-        grade: null,
-        maxPoints: 180
-      },
-      {
-        id: 'sub_5',
-        studentName: 'David Chen',
-        studentId: 'student_005',
-        assignmentTitle: 'Integration Techniques - Video Assessment',
-        assignmentId: 'assignment_2',
-        submittedAt: '2024-01-20T14:10:00Z',
-        courseName: 'Introduction to Calculus',
-        courseCode: 'MATH101',
-        status: 'graded',
-        submissionType: 'video',
-        duration: 350,
-        fileSize: 48000000,
-        grade: 95,
-        maxPoints: 120
-      },
-      {
-        id: 'sub_6',
-        studentName: 'Emma Johnson',
-        studentId: 'student_006',
-        assignmentTitle: 'Mitosis Process - Video Lesson',
-        assignmentId: 'assignment_11',
-        submittedAt: '2024-01-20T11:30:00Z',
-        courseName: 'Cell Biology',
-        courseCode: 'BIO150',
-        status: 'pending_review',
-        submissionType: 'video',
-        duration: 290,
-        fileSize: 41000000,
-        grade: null,
-        maxPoints: 125
-      },
-      {
-        id: 'sub_7',
-        studentName: 'Michael Brown',
-        studentId: 'student_007',
-        assignmentTitle: 'Technical Documentation - Video Lesson',
-        assignmentId: 'assignment_8',
-        submittedAt: '2024-01-19T15:45:00Z',
-        courseName: 'Technical Writing',
-        courseCode: 'ENG101',
-        status: 'graded',
-        submissionType: 'video',
-        duration: 400,
-        fileSize: 55000000,
-        grade: 88,
-        maxPoints: 110
-      },
-      {
-        id: 'sub_8',
-        studentName: 'Lisa Garcia',
-        studentId: 'student_008',
-        assignmentTitle: 'Memory Systems - Video Discussion',
-        assignmentId: 'assignment_12',
-        submittedAt: '2024-01-19T13:20:00Z',
-        courseName: 'Introduction to Psychology',
-        courseCode: 'PSYC101',
-        status: 'pending_review',
-        submissionType: 'video',
-        duration: 310,
-        fileSize: 43000000,
-        grade: null,
-        maxPoints: 95
+    // Get recent submissions from database
+    let submissions = [];
+    
+    try {
+      const submissionsResult = await docClient.send(new ScanCommand({
+        TableName: SUBMISSIONS_TABLE,
+        Limit: 10 // Get only the most recent 10 submissions
+      }));
+      
+      submissions = submissionsResult.Items || [];
+      
+      // Sort by submittedAt in descending order (most recent first)
+      submissions.sort((a, b) => {
+        const dateA = new Date(a.submittedAt || a.createdAt || 0);
+        const dateB = new Date(b.submittedAt || b.createdAt || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+    } catch (dbError: any) {
+      if (dbError.name === 'ResourceNotFoundException') {
+        // Table doesn't exist yet, return empty array
+        return NextResponse.json([]);
       }
-    ];
+      throw dbError;
+    }
+
+    // Transform the data to match the expected format
+    const recentSubmissions = submissions.map(submission => ({
+      id: submission.submissionId || submission.id,
+      studentName: submission.studentName || 'Unknown Student',
+      studentId: submission.studentId,
+      assignmentTitle: submission.assignmentTitle || submission.title || 'Untitled Assignment',
+      assignmentId: submission.assignmentId,
+      submittedAt: submission.submittedAt || submission.createdAt,
+      courseName: submission.courseName || 'Unknown Course',
+      courseCode: submission.courseCode,
+      status: submission.status || 'pending_review',
+      submissionType: submission.submissionType || 'video',
+      duration: submission.duration || 0,
+      fileSize: submission.fileSize || 0,
+      grade: submission.grade,
+      maxPoints: submission.maxPoints || 100
+    }));
 
     return NextResponse.json(recentSubmissions);
   } catch (error) {
