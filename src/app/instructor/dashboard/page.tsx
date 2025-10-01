@@ -181,7 +181,7 @@ const InstructorDashboard: React.FC = () => {
         // Fetch stats, courses, and recent submissions
         const [statsResponse, coursesResponse, submissionsResponse] = await Promise.all([
           fetch('/api/instructor/dashboard/stats'),
-          fetch('/api/courses'),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/courses`),
           fetch('/api/instructor/submissions/recent')
         ]);
 
@@ -193,14 +193,15 @@ const InstructorDashboard: React.FC = () => {
         if (coursesResponse.ok) {
           const coursesData = await coursesResponse.json();
           console.log('Courses API response:', coursesData);
-          // Handle both formats: direct courses array or nested data.courses
-          const coursesArray = coursesData.courses || coursesData.data?.courses || [];
+          // Handle backend API format: data.courses array
+          const coursesArray = coursesData.data?.courses || [];
           // Ensure coursesArray is an array before mapping
           if (Array.isArray(coursesArray)) {
             // Map courseId to id for compatibility
             const mappedCourses = coursesArray.map((course: any) => ({
               ...course,
-              id: course.courseId || course.id
+              id: course.id || course.courseId,
+              courseId: course.id || course.courseId
             }));
             setCourses(mappedCourses);
           } else {

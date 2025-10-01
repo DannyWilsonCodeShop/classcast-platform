@@ -206,7 +206,10 @@ export class ClassCastStack extends cdk.Stack {
       ...lambdaConfig,
       functionName: 'ClassCastCourses',
       code: lambda.Code.fromAsset('../functions/simple-courses'),
-      timeout: cdk.Duration.seconds(30)
+      timeout: cdk.Duration.seconds(30),
+      environment: {
+        COURSES_TABLE_NAME: coursesTable.tableName
+      }
     });
 
     // Videos Lambda
@@ -217,6 +220,17 @@ export class ClassCastStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30)
     });
 
+    // Assignments Lambda
+    const assignmentsLambda = new lambda.Function(this, 'AssignmentsLambda', {
+      ...lambdaConfig,
+      functionName: 'ClassCastAssignments',
+      code: lambda.Code.fromAsset('../functions/simple-assignments'),
+      timeout: cdk.Duration.seconds(30),
+      environment: {
+        ASSIGNMENTS_TABLE_NAME: assignmentsTable.tableName
+      }
+    });
+
     // ============================================================================
     // IAM PERMISSIONS
     // ============================================================================
@@ -225,7 +239,7 @@ export class ClassCastStack extends cdk.Stack {
     usersTable.grantReadWriteData(authLambda);
     usersTable.grantReadWriteData(usersLambda);
     coursesTable.grantReadWriteData(coursesLambda);
-    assignmentsTable.grantReadWriteData(coursesLambda);
+    assignmentsTable.grantReadWriteData(assignmentsLambda);
     submissionsTable.grantReadWriteData(coursesLambda);
 
     // Grant S3 permissions
@@ -289,6 +303,15 @@ export class ClassCastStack extends cdk.Stack {
     video.addMethod('GET', new apigateway.LambdaIntegration(videosLambda));
     video.addMethod('PUT', new apigateway.LambdaIntegration(videosLambda));
     video.addMethod('DELETE', new apigateway.LambdaIntegration(videosLambda));
+
+    // Assignments endpoints
+    const assignments = api.root.addResource('assignments');
+    assignments.addMethod('GET', new apigateway.LambdaIntegration(assignmentsLambda));
+    assignments.addMethod('POST', new apigateway.LambdaIntegration(assignmentsLambda));
+    const assignment = assignments.addResource('{assignmentId}');
+    assignment.addMethod('GET', new apigateway.LambdaIntegration(assignmentsLambda));
+    assignment.addMethod('PUT', new apigateway.LambdaIntegration(assignmentsLambda));
+    assignment.addMethod('DELETE', new apigateway.LambdaIntegration(assignmentsLambda));
 
     // ============================================================================
     // OUTPUTS

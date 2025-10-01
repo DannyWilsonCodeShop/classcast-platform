@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,7 +26,27 @@ interface ClassFormData {
   assignmentDescription?: string;
   assignmentPoints?: number;
   assignmentDueDate?: string;
-  assignmentType?: 'video' | 'file' | 'text';
+  assignmentType?: 'video' | 'file' | 'text' | 'quiz';
+  // Advanced assignment features
+  assignmentRequirements?: string[];
+  allowLateSubmission?: boolean;
+  latePenalty?: number;
+  maxSubmissions?: number;
+  groupAssignment?: boolean;
+  maxGroupSize?: number;
+  allowedFileTypes?: string[];
+  maxFileSize?: number;
+  enablePeerResponses?: boolean;
+  responseDueDate?: string;
+  minResponsesRequired?: number;
+  maxResponsesPerVideo?: number;
+  responseWordLimit?: number;
+  responseCharacterLimit?: number;
+  hidePeerVideosUntilInstructorPosts?: boolean;
+  assignmentEmoji?: string;
+  assignmentColor?: string;
+  requireLiveRecording?: boolean;
+  rubricType?: 'none' | 'upload' | 'ai_generated';
 }
 
 const CreateClassPage: React.FC = () => {
@@ -34,6 +54,8 @@ const CreateClassPage: React.FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [newRequirement, setNewRequirement] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<ClassFormData>({
     title: '',
     description: '',
@@ -55,7 +77,27 @@ const CreateClassPage: React.FC = () => {
     assignmentDescription: '',
     assignmentPoints: 100,
     assignmentDueDate: '',
-    assignmentType: 'video'
+    assignmentType: 'video',
+    // Advanced assignment features
+    assignmentRequirements: [''],
+    allowLateSubmission: false,
+    latePenalty: 10,
+    maxSubmissions: 1,
+    groupAssignment: false,
+    maxGroupSize: 2,
+    allowedFileTypes: ['mp4', 'webm', 'mov', 'avi'],
+    maxFileSize: 100 * 1024 * 1024, // 100MB
+    enablePeerResponses: false,
+    responseDueDate: '',
+    minResponsesRequired: 2,
+    maxResponsesPerVideo: 3,
+    responseWordLimit: 50,
+    responseCharacterLimit: 500,
+    hidePeerVideosUntilInstructorPosts: false,
+    assignmentEmoji: '🎥',
+    assignmentColor: '#4c51bf',
+    requireLiveRecording: false,
+    rubricType: 'none'
   });
 
   const colorOptions = [
@@ -112,16 +154,98 @@ const CreateClassPage: React.FC = () => {
   };
 
   const generateLocalClassCode = () => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude similar characters
+    // Try to create a meaningful code based on course title and department
     let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    
+    if (formData.title && formData.department) {
+      // Extract meaningful parts from title and department
+      const deptCode = formData.department.substring(0, 3).toUpperCase();
+      const titleWords = formData.title.split(' ').filter(word => word.length > 2);
+      const courseNum = Math.floor(Math.random() * 900) + 100; // 100-999
+      
+      if (deptCode.length >= 2) {
+        result = `${deptCode}${courseNum}`;
+      } else {
+        result = `${deptCode}${courseNum}`.padEnd(6, 'X');
+      }
+    } else {
+      // Fallback to random generation
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude similar characters
+      for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
     }
+    
     setFormData(prev => ({ ...prev, classCode: result }));
   };
 
+  // Auto-generate class code on page load
+  useEffect(() => {
+    if (!formData.classCode) {
+      generateLocalClassCode();
+    }
+  }, []);
+
   const handleInputChange = (field: keyof ClassFormData, value: string | number | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Auto-regenerate class code when title or department changes
+    if ((field === 'title' || field === 'department') && value && typeof value === 'string') {
+      // Small delay to avoid too many regenerations
+      setTimeout(() => {
+        generateLocalClassCode();
+      }, 500);
+    }
+  };
+
+  // Assignment requirement management
+  const addRequirement = () => {
+    if (newRequirement.trim() && !formData.assignmentRequirements?.includes(newRequirement.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        assignmentRequirements: [...(prev.assignmentRequirements || []), newRequirement.trim()]
+      }));
+      setNewRequirement('');
+    }
+  };
+
+  const removeRequirement = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      assignmentRequirements: prev.assignmentRequirements?.filter((_, i) => i !== index) || []
+    }));
+  };
+
+  const updateRequirement = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      assignmentRequirements: prev.assignmentRequirements?.map((req, i) => i === index ? value : req) || []
+    }));
+  };
+
+  // File type management
+  const addFileType = (fileType: string) => {
+    if (fileType.trim() && !formData.allowedFileTypes?.includes(fileType.trim())) {
+      setFormData(prev => ({
+        ...prev,
+        allowedFileTypes: [...(prev.allowedFileTypes || []), fileType.trim()]
+      }));
+    }
+  };
+
+  const removeFileType = (fileType: string) => {
+    setFormData(prev => ({
+      ...prev,
+      allowedFileTypes: prev.allowedFileTypes?.filter(type => type !== fileType) || []
+    }));
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -129,15 +253,101 @@ const CreateClassPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      console.log('Class created:', formData);
-      alert('Class created successfully!');
-      router.push('/instructor/dashboard');
+      // Call the backend API to create the course
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/courses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.title,
+          code: formData.classCode,
+          description: formData.description,
+          instructorId: user?.instructorId || user?.id,
+          semester: formData.semester,
+          year: parseInt(formData.year),
+          credits: formData.credits,
+          maxEnrollment: formData.maxStudents,
+          schedule: {
+            days: formData.schedule.split(',').map(day => day.trim()),
+            time: 'TBD',
+            location: 'TBD'
+          },
+          prerequisites: formData.prerequisites ? [formData.prerequisites] : [],
+          learningObjectives: formData.learningObjectives ? [formData.learningObjectives] : [],
+          gradingPolicy: {
+            assignments: 60,
+            exams: 30,
+            participation: 10,
+            projects: 0
+          }
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Course created successfully:', result);
+        
+        // If assignment creation is enabled, create the assignment too
+        if (formData.createAssignment && formData.assignmentTitle) {
+          try {
+            const assignmentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/assignments`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                title: formData.assignmentTitle,
+                description: formData.assignmentDescription || '',
+                courseId: result.data.course.id,
+                instructorId: user?.instructorId || user?.id,
+                points: formData.assignmentPoints || 100,
+                dueDate: formData.assignmentDueDate,
+                type: formData.assignmentType || 'video',
+                requirements: formData.assignmentRequirements || [],
+                allowLateSubmission: formData.allowLateSubmission || false,
+                latePenalty: formData.latePenalty || 10,
+                maxSubmissions: formData.maxSubmissions || 1,
+                groupAssignment: formData.groupAssignment || false,
+                maxGroupSize: formData.maxGroupSize || 2,
+                allowedFileTypes: formData.allowedFileTypes || ['mp4', 'webm', 'mov'],
+                maxFileSize: formData.maxFileSize || 100 * 1024 * 1024,
+                enablePeerResponses: formData.enablePeerResponses || false,
+                responseDueDate: formData.responseDueDate,
+                minResponsesRequired: formData.minResponsesRequired || 2,
+                maxResponsesPerVideo: formData.maxResponsesPerVideo || 3,
+                responseWordLimit: formData.responseWordLimit || 50,
+                responseCharacterLimit: formData.responseCharacterLimit || 500,
+                hidePeerVideosUntilInstructorPosts: formData.hidePeerVideosUntilInstructorPosts || false,
+                emoji: formData.assignmentEmoji || '🎥',
+                color: formData.assignmentColor || '#4c51bf',
+                requireLiveRecording: formData.requireLiveRecording || false,
+                rubricType: formData.rubricType || 'none'
+              }),
+            });
+
+            if (assignmentResponse.ok) {
+              const assignmentResult = await assignmentResponse.json();
+              console.log('Assignment created successfully:', assignmentResult);
+            } else {
+              console.error('Failed to create assignment:', await assignmentResponse.text());
+            }
+          } catch (assignmentError) {
+            console.error('Error creating assignment:', assignmentError);
+            // Don't fail the whole process if assignment creation fails
+          }
+        }
+        
+        alert('Class created successfully!');
+        router.push('/instructor/dashboard');
+      } else {
+        const errorData = await response.text();
+        console.error('Failed to create course:', errorData);
+        throw new Error(`Failed to create course: ${response.status} ${response.statusText}`);
+      }
     } catch (error) {
       console.error('Error creating class:', error);
-      alert('Failed to create class. Please try again.');
+      alert(`Failed to create class: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
@@ -190,33 +400,49 @@ const CreateClassPage: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Class Code *
+                    Class Code * 
+                    <span className="text-xs text-gray-500 ml-1">(Auto-generated)</span>
                   </label>
                   <div className="flex">
-                    <input
-                      type="text"
-                      value={formData.classCode}
-                      onChange={(e) => handleInputChange('classCode', e.target.value.toUpperCase())}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                      placeholder="e.g., CS101"
-                      required
-                    />
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={formData.classCode}
+                        onChange={(e) => handleInputChange('classCode', e.target.value.toUpperCase())}
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent font-mono text-lg font-semibold"
+                        placeholder="e.g., CS101"
+                        required
+                      />
+                      {formData.classCode && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <span className="text-green-500 text-sm">✓</span>
+                        </div>
+                      )}
+                    </div>
                     <button
                       type="button"
                       onClick={generateClassCode}
                       disabled={isGeneratingCode}
-                      className="ml-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                      className="ml-2 px-4 py-3 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium"
                     >
                       {isGeneratingCode ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-600"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
                           <span>Generating...</span>
                         </>
                       ) : (
-                        <span>Generate</span>
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          <span>New Code</span>
+                        </>
                       )}
                     </button>
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Students will use this code to join your class. You can edit it if needed.
+                  </p>
                 </div>
 
                 <div>
@@ -355,7 +581,8 @@ const CreateClassPage: React.FC = () => {
               </div>
 
               {formData.createAssignment && (
-                <div className="space-y-6">
+                <div className="space-y-8">
+                  {/* Basic Assignment Information */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -377,12 +604,13 @@ const CreateClassPage: React.FC = () => {
                       </label>
                       <select
                         value={formData.assignmentType}
-                        onChange={(e) => handleInputChange('assignmentType', e.target.value as 'video' | 'file' | 'text')}
+                        onChange={(e) => handleInputChange('assignmentType', e.target.value as 'video' | 'file' | 'text' | 'quiz')}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       >
-                        <option value="video">Video Assignment</option>
-                        <option value="file">File Upload</option>
-                        <option value="text">Text Submission</option>
+                        <option value="video">🎥 Video Assignment</option>
+                        <option value="file">📁 File Upload</option>
+                        <option value="text">📝 Text Submission</option>
+                        <option value="quiz">❓ Quiz</option>
                       </select>
                     </div>
 
@@ -414,6 +642,7 @@ const CreateClassPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Assignment Description */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Assignment Description
@@ -425,6 +654,420 @@ const CreateClassPage: React.FC = () => {
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
                       placeholder="Describe the assignment requirements..."
                     />
+                  </div>
+
+                  {/* Visual Identity */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <span className="mr-2">🎨</span>
+                      Visual Identity
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Emoji Selection */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Assignment Emoji
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={formData.assignmentEmoji || '🎥'}
+                            onChange={(e) => handleInputChange('assignmentEmoji', e.target.value)}
+                            className="w-16 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-center text-2xl"
+                            placeholder="🎥"
+                            maxLength={2}
+                          />
+                          <div className="text-sm text-gray-500">
+                            Choose an emoji that represents this assignment
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Color Selection */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
+                          Assignment Color
+                        </label>
+                        <div className="grid grid-cols-5 gap-3">
+                          {colorOptions.map((colorOption) => (
+                            <button
+                              key={colorOption.value}
+                              type="button"
+                              onClick={() => handleInputChange('assignmentColor', colorOption.value)}
+                              className={`relative w-full h-12 rounded-lg border-2 transition-all duration-200 hover:scale-105 ${
+                                formData.assignmentColor === colorOption.value
+                                  ? 'border-gray-900 ring-2 ring-gray-300'
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                              style={{ backgroundColor: colorOption.value }}
+                              title={colorOption.label}
+                            >
+                              {formData.assignmentColor === colorOption.value && (
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <svg className="w-6 h-6 text-white drop-shadow-lg" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Requirements */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Assignment Requirements
+                    </label>
+                    <div className="space-y-2">
+                      {formData.assignmentRequirements?.map((requirement, index) => (
+                        <div key={index} className="flex items-center space-x-2">
+                          <input
+                            type="text"
+                            value={requirement}
+                            onChange={(e) => updateRequirement(index, e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Enter requirement"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeRequirement(index)}
+                            className="px-3 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={newRequirement}
+                          onChange={(e) => setNewRequirement(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Add new requirement"
+                          onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addRequirement())}
+                        />
+                        <button
+                          type="button"
+                          onClick={addRequirement}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Submission Settings */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium text-gray-900">Submission Settings</h3>
+                      
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="allowLateSubmission"
+                          checked={formData.allowLateSubmission || false}
+                          onChange={(e) => handleInputChange('allowLateSubmission', e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="allowLateSubmission" className="text-sm font-medium text-gray-700">
+                          Allow late submissions
+                        </label>
+                      </div>
+
+                      {formData.allowLateSubmission && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Late Penalty (%)
+                          </label>
+                          <input
+                            type="number"
+                            value={formData.latePenalty || 10}
+                            onChange={(e) => handleInputChange('latePenalty', parseInt(e.target.value))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            min="0"
+                            max="100"
+                            step="1"
+                          />
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Maximum Submissions
+                        </label>
+                        <input
+                          type="number"
+                          value={formData.maxSubmissions || 1}
+                          onChange={(e) => handleInputChange('maxSubmissions', parseInt(e.target.value))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          min="1"
+                          step="1"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium text-gray-900">Group Settings</h3>
+                      
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="groupAssignment"
+                          checked={formData.groupAssignment || false}
+                          onChange={(e) => handleInputChange('groupAssignment', e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="groupAssignment" className="text-sm font-medium text-gray-700">
+                          Group assignment
+                        </label>
+                      </div>
+
+                      {formData.groupAssignment && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Maximum Group Size
+                          </label>
+                          <input
+                            type="number"
+                            value={formData.maxGroupSize || 2}
+                            onChange={(e) => handleInputChange('maxGroupSize', parseInt(e.target.value))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            min="2"
+                            step="1"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* File Upload Settings */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">File Upload Settings</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Maximum File Size
+                        </label>
+                        <select
+                          value={formData.maxFileSize || 100 * 1024 * 1024}
+                          onChange={(e) => handleInputChange('maxFileSize', parseInt(e.target.value))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                          <option value={1024 * 1024}>1 MB</option>
+                          <option value={5 * 1024 * 1024}>5 MB</option>
+                          <option value={10 * 1024 * 1024}>10 MB</option>
+                          <option value={25 * 1024 * 1024}>25 MB</option>
+                          <option value={50 * 1024 * 1024}>50 MB</option>
+                          <option value={100 * 1024 * 1024}>100 MB</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Allowed File Types
+                        </label>
+                        <div className="space-y-2">
+                          {/* Preset file type buttons */}
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            {['mp4', 'webm', 'mov', 'avi', 'pdf', 'doc', 'docx', 'txt'].map((type) => (
+                              <button
+                                key={type}
+                                type="button"
+                                onClick={() => addFileType(type)}
+                                className={`px-3 py-1 text-sm rounded-md border transition-colors ${
+                                  formData.allowedFileTypes?.includes(type)
+                                    ? 'bg-blue-100 text-blue-800 border-blue-300'
+                                    : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                                }`}
+                              >
+                                {type.toUpperCase()}
+                              </button>
+                            ))}
+                          </div>
+                          
+                          {/* Selected file types */}
+                          <div className="space-y-1">
+                            {formData.allowedFileTypes?.map((fileType) => (
+                              <div key={fileType} className="flex items-center space-x-2">
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-sm rounded-md">
+                                  {fileType.toUpperCase()}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeFileType(fileType)}
+                                  className="text-red-600 hover:text-red-800 text-sm"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Peer Response Settings */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <span className="mr-2">💬</span>
+                      Peer Response Settings
+                    </h3>
+                    
+                    <div className="space-y-6">
+                      {/* Enable Peer Responses */}
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="enablePeerResponses"
+                          checked={formData.enablePeerResponses || false}
+                          onChange={(e) => handleInputChange('enablePeerResponses', e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="enablePeerResponses" className="ml-2 text-sm font-medium text-gray-700">
+                          Enable peer responses for this assignment
+                        </label>
+                      </div>
+
+                      {/* Response Due Date */}
+                      {formData.enablePeerResponses && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Response Due Date
+                          </label>
+                          <input
+                            type="datetime-local"
+                            value={formData.responseDueDate || ''}
+                            onChange={(e) => handleInputChange('responseDueDate', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          />
+                          <p className="mt-1 text-xs text-gray-500">When peer responses are due (must be after video due date)</p>
+                        </div>
+                      )}
+
+                      {formData.enablePeerResponses && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* Minimum Responses Required */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Minimum Responses Required per Student
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="10"
+                              value={formData.minResponsesRequired || 2}
+                              onChange={(e) => handleInputChange('minResponsesRequired', parseInt(e.target.value))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">How many peer responses each student must submit</p>
+                          </div>
+
+                          {/* Maximum Responses Per Video */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Maximum Responses Per Video
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="20"
+                              value={formData.maxResponsesPerVideo || 3}
+                              onChange={(e) => handleInputChange('maxResponsesPerVideo', parseInt(e.target.value))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">Limit responses per video to ensure fair distribution</p>
+                          </div>
+
+                          {/* Response Word Limit */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Minimum Word Count
+                            </label>
+                            <input
+                              type="number"
+                              min="10"
+                              max="1000"
+                              value={formData.responseWordLimit || 50}
+                              onChange={(e) => handleInputChange('responseWordLimit', parseInt(e.target.value))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">Minimum words required for each response</p>
+                          </div>
+
+                          {/* Response Character Limit */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Maximum Character Count
+                            </label>
+                            <input
+                              type="number"
+                              min="100"
+                              max="5000"
+                              value={formData.responseCharacterLimit || 500}
+                              onChange={(e) => handleInputChange('responseCharacterLimit', parseInt(e.target.value))}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            <p className="mt-1 text-xs text-gray-500">Maximum characters allowed per response</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Live Recording Option */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                      <span className="mr-2">🎥</span>
+                      Video Recording Settings
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id="requireLiveRecording"
+                          checked={formData.requireLiveRecording || false}
+                          onChange={(e) => handleInputChange('requireLiveRecording', e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <div className="flex-1">
+                          <label htmlFor="requireLiveRecording" className="text-sm font-medium text-gray-700">
+                            Require Live Video Recording
+                          </label>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Students must record their video live using the browser camera. File uploads will be disabled.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {formData.requireLiveRecording && (
+                        <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                          <div className="flex items-start">
+                            <div className="flex-shrink-0">
+                              <span className="text-yellow-400">⚠️</span>
+                            </div>
+                            <div className="ml-3">
+                              <h4 className="text-sm font-medium text-yellow-800">Live Recording Requirements</h4>
+                              <div className="mt-1 text-sm text-yellow-700">
+                                <ul className="list-disc list-inside space-y-1">
+                                  <li>Students will need to grant camera and microphone permissions</li>
+                                  <li>Videos are recorded directly in the browser and uploaded automatically</li>
+                                  <li>No pre-recorded video files can be uploaded</li>
+                                  <li>Recording quality depends on student's device and internet connection</li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
