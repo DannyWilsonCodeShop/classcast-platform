@@ -161,8 +161,8 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
     switch (stepIndex) {
       case 1: // Course setup
         console.log('Course setup step - courseData:', courseData);
-        console.log('Course setup step - courseName:', courseData.courseName, 'courseCode:', courseData.courseCode);
-        if (courseData.courseName && courseData.courseCode) {
+        console.log('Course setup step - title:', courseData.title, 'code:', courseData.code);
+        if (courseData.title && courseData.code) {
           // Create course
           try {
             const courseResponse = await fetch('/api/courses', {
@@ -171,9 +171,9 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                title: courseData.courseName,
+                title: courseData.title,
                 description: courseData.description,
-                code: courseData.courseCode,
+                code: courseData.code,
                 classCode: courseData.classCode,
                 department: courseData.department,
                 credits: courseData.credits,
@@ -377,22 +377,22 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
 
   // Generate course code and class code when component mounts or course name changes
   React.useEffect(() => {
-    if (data.courseName) {
+    if (data.title) {
       // Generate course code (e.g., "CS101" from "Computer Science 101")
-      if (!data.courseCode) {
-        const courseCode = data.courseName
+      if (!data.code) {
+        const courseCode = data.title
           .split(' ')
           .map(word => word.charAt(0).toUpperCase())
           .join('')
           .substring(0, 3);
         const randomNum = Math.floor(Math.random() * 90) + 10;
         const generatedCourseCode = `${courseCode}${randomNum}`;
-        handleChange('courseCode', generatedCourseCode);
+        handleChange('code', generatedCourseCode);
       }
       
       // Generate class code (e.g., "CS1011234" for students to join)
       if (!data.classCode) {
-        const courseCode = data.courseName
+        const courseCode = data.title
           .split(' ')
           .map(word => word.charAt(0).toUpperCase())
           .join('')
@@ -402,7 +402,7 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
         handleChange('classCode', generatedClassCode);
       }
     }
-  }, [data.courseName]);
+  }, [data.title]);
 
   return (
     <div className="space-y-6">
@@ -412,8 +412,8 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
         </label>
         <input
           type="text"
-          value={data.courseName || ''}
-          onChange={(e) => handleChange('courseName', e.target.value)}
+          value={data.title || ''}
+          onChange={(e) => handleChange('title', e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
           placeholder="e.g., Introduction to Computer Science"
         />
@@ -436,7 +436,7 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
             <button
               type="button"
               onClick={() => {
-                const courseCode = (data.courseName || 'COURSE')
+                const courseCode = (data.title || 'COURSE')
                   .split(' ')
                   .map(word => word.charAt(0).toUpperCase())
                   .join('')
@@ -445,7 +445,7 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
                 // Regenerate course code
                 const courseCodeNum = Math.floor(Math.random() * 90) + 10;
                 const generatedCourseCode = `${courseCode}${courseCodeNum}`;
-                handleChange('courseCode', generatedCourseCode);
+                handleChange('code', generatedCourseCode);
                 
                 // Regenerate class code
                 const randomNum = Math.floor(Math.random() * 9000) + 1000;
@@ -773,8 +773,8 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({ courseData, assig
       <div className="bg-gray-50 rounded-lg p-4">
         <h5 className="font-semibold text-gray-900 mb-2">Course Information</h5>
         <div className="space-y-1 text-sm">
-          <p><span className="font-medium">Name:</span> {courseData.courseName}</p>
-          <p><span className="font-medium">Course Code:</span> {courseData.courseCode}</p>
+          <p><span className="font-medium">Name:</span> {courseData.title}</p>
+          <p><span className="font-medium">Course Code:</span> {courseData.code}</p>
           <p><span className="font-medium">Class Code:</span> {courseData.classCode}</p>
           <p><span className="font-medium">Department:</span> {courseData.department}</p>
           <p><span className="font-medium">Semester:</span> {courseData.semester} {courseData.year}</p>

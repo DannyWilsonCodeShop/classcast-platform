@@ -179,8 +179,9 @@ const InstructorDashboard: React.FC = () => {
         setError(null);
 
         // Fetch stats, courses, and recent submissions
+        const instructorId = user?.id || 'default-instructor';
         const [statsResponse, coursesResponse, submissionsResponse] = await Promise.all([
-          fetch('/api/instructor/dashboard/stats'),
+          fetch(`/api/instructor/dashboard/stats?instructorId=${instructorId}`),
           fetch('/api/courses'),
           fetch('/api/instructor/submissions/recent')
         ]);
