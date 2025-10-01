@@ -5,6 +5,7 @@ export interface Section {
   courseId: string;
   sectionName: string;
   sectionCode?: string;
+  classCode?: string; // Unique class code for student enrollment
   description?: string;
   maxEnrollment: number;
   currentEnrollment: number;
