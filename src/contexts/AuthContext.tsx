@@ -76,9 +76,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const credentials: LoginRequest = { email, password };
       const response = await api.login(credentials);
       
-      // Store user data
-      api.setCurrentUser(response.user);
-      setUser(response.user);
+      // Load full user profile from database
+      try {
+        const profileResponse = await fetch(`/api/profile?userId=${response.user.id}`, {
+          credentials: 'include'
+        });
+        
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          if (profileData.success) {
+            // Merge profile data with login response
+            const fullUser = {
+              ...response.user,
+              ...profileData.data
+            };
+            
+            // Store full user data
+            api.setCurrentUser(fullUser);
+            setUser(fullUser);
+          } else {
+            // Fallback to basic user data if profile load fails
+            api.setCurrentUser(response.user);
+            setUser(response.user);
+          }
+        } else {
+          // Fallback to basic user data if profile load fails
+          api.setCurrentUser(response.user);
+          setUser(response.user);
+        }
+      } catch (profileError) {
+        console.warn('Failed to load user profile, using basic data:', profileError);
+        // Fallback to basic user data if profile load fails
+        api.setCurrentUser(response.user);
+        setUser(response.user);
+      }
       
       // Redirect based on user role
       if (response.user.role === 'student') {
