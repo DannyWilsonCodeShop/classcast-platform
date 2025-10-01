@@ -375,7 +375,9 @@ const InstructorDashboard: React.FC = () => {
                   </div>
                 ) : (
                   <div className="text-center py-4">
+                    <div className="text-gray-400 text-2xl mb-2">📝</div>
                     <p className="text-xs text-gray-500 mb-2">No recent submissions</p>
+                    <p className="text-xs text-gray-400 mb-3">Student submissions will appear here</p>
                     <button 
                       onClick={() => router.push('/instructor/assignments')}
                       className="text-xs text-indigo-600 hover:text-purple-600 font-medium"
