@@ -250,7 +250,7 @@ const StudentProfilePage: React.FC = () => {
                   {isEditing ? (
                     <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white">
                       {editedProfile?.avatar ? (
-                        <div className="w-full h-full bg-white flex items-center justify-center text-4xl">
+                        <div className="w-full h-full bg-white flex items-center justify-center text-6xl">
                           {editedProfile.avatar}
                         </div>
                       ) : (
@@ -264,7 +264,7 @@ const StudentProfilePage: React.FC = () => {
                   ) : (
                     <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white">
                       {profile?.avatar ? (
-                        <div className="w-full h-full bg-white flex items-center justify-center text-4xl">
+                        <div className="w-full h-full bg-white flex items-center justify-center text-6xl">
                           {profile.avatar}
                         </div>
                       ) : (

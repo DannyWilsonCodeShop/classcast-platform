@@ -1,4 +1,11 @@
-// Simple Users Lambda - Basic user profile handler
+// Simple Users Lambda - DynamoDB user profile handler
+const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
+const { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } = require('@aws-sdk/lib-dynamodb');
+
+const client = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(client);
+const USERS_TABLE = process.env.USERS_TABLE_NAME || 'ClassCastCleanUsers';
+
 exports.handler = async (event) => {
   console.log('Users event:', JSON.stringify(event, null, 2));
   
@@ -23,22 +30,45 @@ exports.handler = async (event) => {
     }
 
     if (method === 'GET') {
-      // Return mock user profile
-      return {
-        statusCode: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-          'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS'
-        },
-        body: JSON.stringify({
-          success: true,
-          data: {
-            user: {
+      // Get user profile from DynamoDB
+      const result = await docClient.send(new GetCommand({
+        TableName: USERS_TABLE,
+        Key: { 
+          PK: `USER#${userId}`,
+          SK: `USER#${userId}`
+        }
+      }));
+      
+      if (result.Item) {
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS'
+          },
+          body: JSON.stringify({
+            success: true,
+            data: result.Item
+          })
+        };
+      } else {
+        // User not found in DB, return default profile
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS'
+          },
+          body: JSON.stringify({
+            success: true,
+            data: {
               id: userId,
-              email: 'test@example.com',
-              firstName: 'Test',
+              email: 'user@example.com',
+              firstName: 'New',
               lastName: 'User',
               role: 'student',
               avatar: '',
@@ -49,16 +79,52 @@ exports.handler = async (event) => {
               funFact: '',
               favoriteSubject: '',
               hobbies: '',
-              schoolName: 'Test University'
+              schoolName: ''
             }
-          }
-        })
-      };
+          })
+        };
+      }
     }
 
     if (method === 'PUT') {
-      // Update user profile
+      // Update user profile in DynamoDB
       const body = JSON.parse(event.body || '{}');
+      
+      // First, get existing user data
+      const existingUser = await docClient.send(new GetCommand({
+        TableName: USERS_TABLE,
+        Key: { 
+          PK: `USER#${userId}`,
+          SK: `USER#${userId}`
+        }
+      }));
+      
+      // Merge existing data with updates
+      const updatedUser = {
+        PK: `USER#${userId}`,
+        SK: `USER#${userId}`,
+        id: userId,
+        email: body.email || existingUser.Item?.email || 'user@example.com',
+        firstName: body.firstName || existingUser.Item?.firstName || '',
+        lastName: body.lastName || existingUser.Item?.lastName || '',
+        role: existingUser.Item?.role || 'student',
+        avatar: body.avatar !== undefined ? body.avatar : (existingUser.Item?.avatar || ''),
+        emailVerified: existingUser.Item?.emailVerified || true,
+        bio: body.bio !== undefined ? body.bio : (existingUser.Item?.bio || ''),
+        careerGoals: body.careerGoals !== undefined ? body.careerGoals : (existingUser.Item?.careerGoals || ''),
+        classOf: body.classOf !== undefined ? body.classOf : (existingUser.Item?.classOf || ''),
+        funFact: body.funFact !== undefined ? body.funFact : (existingUser.Item?.funFact || ''),
+        favoriteSubject: body.favoriteSubject !== undefined ? body.favoriteSubject : (existingUser.Item?.favoriteSubject || ''),
+        hobbies: body.hobbies !== undefined ? body.hobbies : (existingUser.Item?.hobbies || ''),
+        schoolName: body.schoolName !== undefined ? body.schoolName : (existingUser.Item?.schoolName || ''),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Save to DynamoDB
+      await docClient.send(new PutCommand({
+        TableName: USERS_TABLE,
+        Item: updatedUser
+      }));
       
       return {
         statusCode: 200,
@@ -70,24 +136,7 @@ exports.handler = async (event) => {
         },
         body: JSON.stringify({
           success: true,
-          data: {
-            user: {
-              id: userId,
-              email: 'test@example.com',
-              firstName: body.firstName || 'Test',
-              lastName: body.lastName || 'User',
-              role: 'student',
-              avatar: body.avatar || '',
-              emailVerified: true,
-              bio: body.bio || '',
-              careerGoals: body.careerGoals || '',
-              classOf: body.classOf || '2024',
-              funFact: body.funFact || '',
-              favoriteSubject: body.favoriteSubject || '',
-              hobbies: body.hobbies || '',
-              schoolName: body.schoolName || 'Test University'
-            }
-          },
+          data: updatedUser,
           message: 'Profile updated successfully'
         })
       };

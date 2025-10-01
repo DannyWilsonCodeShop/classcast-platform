@@ -198,7 +198,10 @@ export class ClassCastStack extends cdk.Stack {
       ...lambdaConfig,
       functionName: 'ClassCastUsers',
       code: lambda.Code.fromAsset('../functions/simple-users'),
-      timeout: cdk.Duration.seconds(30)
+      timeout: cdk.Duration.seconds(30),
+      environment: {
+        USERS_TABLE_NAME: usersTable.tableName
+      }
     });
 
     // Courses Lambda
