@@ -979,7 +979,6 @@ const SectionsSetupStep: React.FC<SectionsSetupStepProps> = ({
         sectionName: sectionData.sectionName,
         sectionCode: sectionData.sectionCode,
         classCode: classCode, // Add class code to section
-        description: sectionData.description,
         maxEnrollment: sectionData.maxEnrollment || 30,
         currentEnrollment: 0,
         instructorId: instructorId || 'temp-instructor',
@@ -1112,7 +1111,6 @@ const SectionsSetupStep: React.FC<SectionsSetupStepProps> = ({
                 sectionName: 'Main Section',
                 sectionCode: 'A',
                 classCode: classCode,
-                description: 'Default section for all students',
                 maxEnrollment: 50,
                 currentEnrollment: 0,
                 instructorId: instructorId || 'temp-instructor',
