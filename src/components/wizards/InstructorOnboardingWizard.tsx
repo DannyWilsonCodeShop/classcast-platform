@@ -160,7 +160,9 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
     // Implement API calls to save data at each step
     switch (stepIndex) {
       case 1: // Course setup
-        if (courseData.title && courseData.courseCode) {
+        console.log('Course setup step - courseData:', courseData);
+        console.log('Course setup step - courseName:', courseData.courseName, 'courseCode:', courseData.courseCode);
+        if (courseData.courseName && courseData.courseCode) {
           // Create course
           try {
             const courseResponse = await fetch('/api/courses', {
@@ -169,7 +171,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                title: courseData.title,
+                title: courseData.courseName,
                 description: courseData.description,
                 code: courseData.courseCode,
                 classCode: courseData.classCode,
@@ -192,11 +194,14 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
 
             if (courseResponse.ok) {
               const courseResult = await courseResponse.json();
+              console.log('Course creation response:', courseResult);
               const createdCourse = courseResult.data;
               setCourseData(prev => ({ ...prev, courseId: createdCourse.courseId }));
-              console.log('Course created:', createdCourse);
+              console.log('Course created successfully:', createdCourse);
             } else {
-              throw new Error('Failed to create course');
+              const errorData = await courseResponse.json();
+              console.error('Course creation failed:', errorData);
+              throw new Error(`Failed to create course: ${errorData.error || 'Unknown error'}`);
             }
           } catch (error) {
             console.error('Error creating course:', error);

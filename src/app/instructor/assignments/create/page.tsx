@@ -34,15 +34,58 @@ const CreateAssignmentContent: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Get courseId from URL params or assignmentData
+      const courseId = searchParams.get('courseId') || assignmentData.courseId;
       
-      console.log('Creating assignment:', assignmentData);
+      if (!courseId) {
+        throw new Error('Course ID is required to create an assignment');
+      }
+
+      // Prepare the assignment data for the API
+      const apiData = {
+        ...assignmentData,
+        courseId,
+        instructorId: 'instructor_123', // TODO: Get from auth context
+        dueDate: assignmentData.dueDate?.toISOString(),
+        assignmentType: assignmentData.assignmentType || 'video',
+        maxScore: assignmentData.maxScore || 100,
+        weight: assignmentData.weight || 10,
+        requirements: assignmentData.requirements || [],
+        allowLateSubmission: assignmentData.allowLateSubmission || false,
+        latePenalty: assignmentData.latePenalty || 0,
+        maxSubmissions: assignmentData.maxSubmissions || 1,
+        groupAssignment: assignmentData.groupAssignment || false,
+        maxGroupSize: assignmentData.maxGroupSize || 4,
+        allowedFileTypes: assignmentData.allowedFileTypes || ['mp4', 'mov', 'avi'],
+        maxFileSize: assignmentData.maxFileSize || 100 * 1024 * 1024,
+        status: assignmentData.status || 'draft'
+      };
+
+      console.log('Creating assignment:', apiData);
+
+      // Make API call to create assignment
+      const response = await fetch('/api/assignments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(apiData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create assignment');
+      }
+
+      const result = await response.json();
+      console.log('Assignment created successfully:', result);
       
       // Redirect to assignments list or course page
       router.push('/instructor/courses');
     } catch (error) {
       console.error('Error creating assignment:', error);
+      // TODO: Show error message to user
+      alert(`Error creating assignment: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);
     }
