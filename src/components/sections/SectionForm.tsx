@@ -23,7 +23,6 @@ export const SectionForm: React.FC<SectionFormProps> = ({
   const [formData, setFormData] = useState({
     sectionName: initialData?.sectionName || '',
     sectionCode: initialData?.sectionCode || '',
-    description: initialData?.description || '',
     maxEnrollment: initialData?.maxEnrollment || 30
   });
 
@@ -74,7 +73,6 @@ export const SectionForm: React.FC<SectionFormProps> = ({
         courseId,
         sectionName: formData.sectionName,
         sectionCode: formData.sectionCode || undefined,
-        description: formData.description || undefined,
         maxEnrollment: formData.maxEnrollment
       });
     } catch (error) {
@@ -124,19 +122,6 @@ export const SectionForm: React.FC<SectionFormProps> = ({
           />
         </div>
 
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Description (Optional)
-          </label>
-          <textarea
-            value={formData.description}
-            onChange={(e) => handleInputChange('description', e.target.value)}
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Additional details about this section..."
-          />
-        </div>
 
         {/* Max Enrollment */}
         <div>
