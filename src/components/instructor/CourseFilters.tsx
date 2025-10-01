@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { SEMESTER_OPTIONS } from '@/constants/semesters';
 
 interface CourseFiltersProps {
   filters: {
@@ -30,7 +31,7 @@ export const CourseFilters: React.FC<CourseFiltersProps> = ({
     'Engineering',
   ];
 
-  const semesters = ['Fall', 'Spring', 'Summer', 'Winter'];
+  const semesters = SEMESTER_OPTIONS.map(option => option.value);
   const statuses = ['draft', 'published', 'archived'];
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i - 2);
 

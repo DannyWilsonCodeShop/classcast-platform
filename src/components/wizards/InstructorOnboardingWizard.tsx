@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { Course, CreateCourseData } from '@/types/course';
 import { Assignment } from '@/types/dynamodb';
+import { SEMESTER_OPTIONS } from '@/constants/semesters';
 
 interface InstructorOnboardingWizardProps {
   isOpen: boolean;
@@ -382,10 +383,11 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
           >
             <option value="">Select Semester</option>
-            <option value="Fall">Fall</option>
-            <option value="Spring">Spring</option>
-            <option value="Summer">Summer</option>
-            <option value="Winter">Winter</option>
+            {SEMESTER_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </div>
 
