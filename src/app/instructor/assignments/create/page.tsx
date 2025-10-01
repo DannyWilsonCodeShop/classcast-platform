@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
 
@@ -26,6 +26,7 @@ interface Assignment {
 
 const CreateAssignmentPage: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (assignmentData: Partial<Assignment>) => {
@@ -93,11 +94,12 @@ const CreateAssignmentPage: React.FC = () => {
         {/* Main Content */}
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white rounded-2xl shadow-xl border border-white/20 p-8">
-            <AssignmentCreationForm
-              onSubmit={handleSubmit}
-              onCancel={handleCancel}
-              isLoading={isLoading}
-            />
+        <AssignmentCreationForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={isLoading}
+          courseId={searchParams.get('courseId') || undefined}
+        />
           </div>
         </div>
       </div>
