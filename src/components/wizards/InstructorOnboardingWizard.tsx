@@ -111,6 +111,9 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
         assignmentData={assignmentData}
         students={students}
         isFirstTime={isFirstTime}
+        hasMultipleSections={hasMultipleSections}
+        peerReviewScope={peerReviewScope}
+        sections={sections}
       />
     },
     {
@@ -753,9 +756,20 @@ interface PublishCourseStepProps {
   assignmentData: Partial<Assignment>;
   students: Array<{email: string, name: string}>;
   isFirstTime?: boolean;
+  hasMultipleSections: boolean | null;
+  peerReviewScope: 'section' | 'course';
+  sections: Section[];
 }
 
-const PublishCourseStep: React.FC<PublishCourseStepProps> = ({ courseData, assignmentData, students, isFirstTime = false }) => (
+const PublishCourseStep: React.FC<PublishCourseStepProps> = ({ 
+  courseData, 
+  assignmentData, 
+  students, 
+  isFirstTime = false,
+  hasMultipleSections,
+  peerReviewScope,
+  sections
+}) => (
   <div className="space-y-6">
     <div className="bg-yellow-50 rounded-lg p-4">
       <h4 className="font-semibold text-yellow-900 mb-2">
