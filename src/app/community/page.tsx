@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { communityService, CommunityStats, TrendingTopic, OnlineUser } from '@/services/communityService';
+import { EmptyCommunityState } from '@/components/common/EmptyStateAdvanced';
 
 interface CommunityPost {
   id: string;
@@ -34,6 +36,10 @@ export default function CommunityPage() {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPost, setNewPost] = useState({ title: '', content: '' });
+  const [communityStats, setCommunityStats] = useState<CommunityStats | null>(null);
+  const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     if (isLoading) return;
@@ -43,26 +49,50 @@ export default function CommunityPage() {
       return;
     }
 
-    // Load community posts
-    loadPosts();
+    // Load community data
+    loadCommunityData();
   }, [user, isAuthenticated, isLoading, router]);
+
+  const loadCommunityData = async () => {
+    try {
+      setLoading(true);
+      setStatsLoading(true);
+      
+      // Load posts and community data in parallel
+      const [postsData, stats, topics, users] = await Promise.all([
+        loadPosts(),
+        communityService.getCommunityStats(),
+        communityService.getTrendingTopics(),
+        communityService.getOnlineUsers()
+      ]);
+
+      setCommunityStats(stats);
+      setTrendingTopics(topics);
+      setOnlineUsers(users);
+    } catch (error) {
+      console.error('Error loading community data:', error);
+    } finally {
+      setLoading(false);
+      setStatsLoading(false);
+    }
+  };
 
   const loadPosts = async () => {
     try {
-      setLoading(true);
-      
       // Load posts from API
       const response = await fetch('/api/community/posts');
       if (response.ok) {
         const data = await response.json();
         setPosts(data);
+        return data;
       } else {
         setPosts([]);
+        return [];
       }
     } catch (error) {
       console.error('Error loading posts:', error);
-    } finally {
-      setLoading(false);
+      setPosts([]);
+      return [];
     }
   };
 
@@ -122,18 +152,11 @@ export default function CommunityPage() {
     }));
   };
 
-  const trendingTopics = [
-    { tag: 'ai-tools', count: 23, trend: 'up' },
-    { tag: 'study-group', count: 18, trend: 'up' },
-    { tag: 'assignments', count: 15, trend: 'down' },
-    { tag: 'feedback', count: 12, trend: 'up' },
-    { tag: 'research', count: 9, trend: 'up' }
-  ];
 
   if (isLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner text="Loading community..." />
+        <LoadingSpinner />
       </div>
     );
   }
@@ -215,8 +238,20 @@ export default function CommunityPage() {
 
             {/* Posts Feed */}
             <div className="space-y-8">
-              {/* Announcements Section */}
-              {posts.filter(post => post.isAnnouncement).length > 0 && (
+              {posts.length === 0 ? (
+                <EmptyCommunityState
+                  onCreatePost={() => {
+                    // Focus on the create post form
+                    const titleInput = document.querySelector('input[placeholder="Post title..."]') as HTMLInputElement;
+                    if (titleInput) {
+                      titleInput.focus();
+                    }
+                  }}
+                />
+              ) : (
+                <>
+                  {/* Announcements Section */}
+                  {posts.filter(post => post.isAnnouncement).length > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <span className="mr-2">📢</span>
@@ -449,6 +484,8 @@ export default function CommunityPage() {
                   </div>
                 </div>
               )}
+                </>
+              )}
             </div>
           </div>
 
@@ -457,46 +494,80 @@ export default function CommunityPage() {
             {/* Quick Stats */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Community Stats</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Total Posts</span>
-                  <span className="font-semibold text-2xl text-gray-900">{posts.length}</span>
+              {statsLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <div className="h-4 bg-gray-200 rounded w-20 animate-pulse"></div>
+                      <div className="h-6 bg-gray-200 rounded w-12 animate-pulse"></div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Active Users</span>
-                  <span className="font-semibold text-2xl text-gray-900">1,247</span>
+              ) : communityStats ? (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Total Posts</span>
+                    <span className="font-semibold text-2xl text-gray-900">{communityStats.totalPosts}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Active Users</span>
+                    <span className="font-semibold text-2xl text-gray-900">{communityStats.activeUsers}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">This Week</span>
+                    <span className="font-semibold text-2xl text-gray-900">{communityStats.postsThisWeek}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Online Now</span>
+                    <span className="font-semibold text-2xl text-green-600">{communityStats.onlineNow}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">This Week</span>
-                  <span className="font-semibold text-2xl text-gray-900">89</span>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-gray-500 text-sm">No stats available</p>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Online Now</span>
-                  <span className="font-semibold text-2xl text-green-600">23</span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* Trending Topics */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">🔥 Trending Topics</h3>
-              <div className="space-y-3">
-                {trendingTopics.map((topic, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-sm font-medium text-gray-900">#{topic.tag}</span>
-                      <span className="text-xs text-gray-500">{topic.count} posts</span>
+              {statsLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="h-4 bg-gray-200 rounded w-16 animate-pulse"></div>
+                        <div className="h-3 bg-gray-200 rounded w-12 animate-pulse"></div>
+                      </div>
+                      <div className="h-3 bg-gray-200 rounded w-4 animate-pulse"></div>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <span className={`text-xs ${
-                        topic.trend === 'up' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {topic.trend === 'up' ? '↗️' : '↘️'}
-                      </span>
+                  ))}
+                </div>
+              ) : trendingTopics.length > 0 ? (
+                <div className="space-y-3">
+                  {trendingTopics.map((topic, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-sm font-medium text-gray-900">#{topic.tag}</span>
+                        <span className="text-xs text-gray-500">{topic.count} posts</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <span className={`text-xs ${
+                          topic.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {topic.trend === 'up' ? '↗️' : '↘️'}
+                        </span>
+                        <span className="text-xs text-gray-500">{topic.changePercent}%</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-gray-500 text-sm">No trending topics yet</p>
+                </div>
+              )}
             </div>
 
             {/* Quick Actions */}
@@ -521,14 +592,29 @@ export default function CommunityPage() {
             {/* Online Users */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Online Now</h3>
-              <div className="flex flex-wrap gap-2">
-                {['Alex', 'Maria', 'John', 'Sarah', 'Mike', 'Emma', 'David', 'Lisa'].map((name, index) => (
-                  <div key={index} className="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>{name}</span>
-                  </div>
-                ))}
-              </div>
+              {statsLoading ? (
+                <div className="flex flex-wrap gap-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-full">
+                      <div className="w-2 h-2 bg-gray-300 rounded-full animate-pulse"></div>
+                      <div className="h-4 bg-gray-200 rounded w-12 animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : onlineUsers.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {onlineUsers.map((user) => (
+                    <div key={user.id} className="flex items-center space-x-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>{user.name}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-gray-500 text-sm">No users online</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -4,7 +4,7 @@ const { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand } = requir
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
-const USERS_TABLE = process.env.USERS_TABLE_NAME || 'ClassCastCleanUsers';
+const USERS_TABLE = process.env.USERS_TABLE_NAME || 'classcast-users';
 
 exports.handler = async (event) => {
   console.log('Users event:', JSON.stringify(event, null, 2));
@@ -34,12 +34,29 @@ exports.handler = async (event) => {
       const result = await docClient.send(new GetCommand({
         TableName: USERS_TABLE,
         Key: { 
-          PK: `USER#${userId}`,
-          SK: `USER#${userId}`
+          userId: userId
         }
       }));
       
       if (result.Item) {
+        // Map DynamoDB item to expected format
+        const userData = {
+          id: result.Item.userId || userId,
+          email: result.Item.email || 'user@example.com',
+          firstName: result.Item.firstName || '',
+          lastName: result.Item.lastName || '',
+          role: result.Item.role || 'student',
+          avatar: result.Item.avatar || '',
+          emailVerified: result.Item.emailVerified !== undefined ? result.Item.emailVerified : true,
+          bio: result.Item.bio || '',
+          careerGoals: result.Item.careerGoals || '',
+          classOf: result.Item.classOf || '',
+          funFact: result.Item.funFact || '',
+          favoriteSubject: result.Item.favoriteSubject || '',
+          hobbies: result.Item.hobbies || '',
+          schoolName: result.Item.schoolName || ''
+        };
+        
         return {
           statusCode: 200,
           headers: {
@@ -50,7 +67,7 @@ exports.handler = async (event) => {
           },
           body: JSON.stringify({
             success: true,
-            data: result.Item
+            data: userData
           })
         };
       } else {
@@ -94,22 +111,19 @@ exports.handler = async (event) => {
       const existingUser = await docClient.send(new GetCommand({
         TableName: USERS_TABLE,
         Key: { 
-          PK: `USER#${userId}`,
-          SK: `USER#${userId}`
+          userId: userId
         }
       }));
       
-      // Merge existing data with updates
-      const updatedUser = {
-        PK: `USER#${userId}`,
-        SK: `USER#${userId}`,
-        id: userId,
+      // Prepare the updated user data
+      const updatedData = {
+        userId: userId,
         email: body.email || existingUser.Item?.email || 'user@example.com',
-        firstName: body.firstName || existingUser.Item?.firstName || '',
-        lastName: body.lastName || existingUser.Item?.lastName || '',
+        firstName: body.firstName !== undefined ? body.firstName : (existingUser.Item?.firstName || ''),
+        lastName: body.lastName !== undefined ? body.lastName : (existingUser.Item?.lastName || ''),
         role: existingUser.Item?.role || 'student',
         avatar: body.avatar !== undefined ? body.avatar : (existingUser.Item?.avatar || ''),
-        emailVerified: existingUser.Item?.emailVerified || true,
+        emailVerified: existingUser.Item?.emailVerified !== undefined ? existingUser.Item.emailVerified : true,
         bio: body.bio !== undefined ? body.bio : (existingUser.Item?.bio || ''),
         careerGoals: body.careerGoals !== undefined ? body.careerGoals : (existingUser.Item?.careerGoals || ''),
         classOf: body.classOf !== undefined ? body.classOf : (existingUser.Item?.classOf || ''),
@@ -120,11 +134,37 @@ exports.handler = async (event) => {
         updatedAt: new Date().toISOString()
       };
       
+      // Also preserve any existing fields that aren't in the body
+      if (existingUser.Item) {
+        // Preserve studentId, instructorId, department if they exist
+        if (existingUser.Item.studentId) updatedData.studentId = existingUser.Item.studentId;
+        if (existingUser.Item.instructorId) updatedData.instructorId = existingUser.Item.instructorId;
+        if (existingUser.Item.department) updatedData.department = existingUser.Item.department;
+      }
+      
       // Save to DynamoDB
       await docClient.send(new PutCommand({
         TableName: USERS_TABLE,
-        Item: updatedUser
+        Item: updatedData
       }));
+      
+      // Return data in the expected frontend format
+      const responseData = {
+        id: userId,
+        email: updatedData.email,
+        firstName: updatedData.firstName,
+        lastName: updatedData.lastName,
+        role: updatedData.role,
+        avatar: updatedData.avatar,
+        emailVerified: updatedData.emailVerified,
+        bio: updatedData.bio,
+        careerGoals: updatedData.careerGoals,
+        classOf: updatedData.classOf,
+        funFact: updatedData.funFact,
+        favoriteSubject: updatedData.favoriteSubject,
+        hobbies: updatedData.hobbies,
+        schoolName: updatedData.schoolName
+      };
       
       return {
         statusCode: 200,
@@ -136,7 +176,7 @@ exports.handler = async (event) => {
         },
         body: JSON.stringify({
           success: true,
-          data: updatedUser,
+          data: responseData,
           message: 'Profile updated successfully'
         })
       };

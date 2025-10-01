@@ -104,6 +104,7 @@ const PeerReviewsContent: React.FC = () => {
     submittedResponses: 0,
     remainingRequired: 0
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   // Like and rating functions
   const handleLike = async (videoId: string) => {
@@ -190,6 +191,7 @@ const PeerReviewsContent: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        setIsLoading(true);
         // For now, set empty data until peer reviews backend is implemented
         setAssignment(null);
         setPeerVideos([]);
@@ -201,6 +203,8 @@ const PeerReviewsContent: React.FC = () => {
         });
       } catch (error) {
         console.error('Error loading peer reviews:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -711,12 +715,44 @@ const PeerReviewsContent: React.FC = () => {
     }
   };
 
-  if (!assignment || !currentVideo) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading peer videos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!assignment || peerVideos.length === 0 || !currentVideo) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">No Peer Videos Available</h3>
+          <p className="text-gray-600 mb-6">
+            There are currently no peer video submissions available for review. This feature will be populated when your classmates submit their video assignments.
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => router.push('/student/dashboard')}
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            >
+              Return to Dashboard
+            </button>
+            <button
+              onClick={() => router.push('/student/assignments')}
+              className="w-full px-6 py-3 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+            >
+              View My Assignments
+            </button>
+          </div>
         </div>
       </div>
     );

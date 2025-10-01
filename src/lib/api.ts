@@ -243,11 +243,13 @@ class ApiClient {
   }
 
   async updateUserProfile(userId: string, updates: Partial<User>): Promise<User> {
-    const response = await this.request<{ user: User }>(`/users/${userId}/profile`, {
+    const response = await this.request<User>(`/users/${userId}/profile`, {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
-    return response.data!.user;
+    // Backend returns { success: true, data: user, message: ... }
+    // The request method already unwraps to response.data
+    return response.data!;
   }
 
   // ============================================================================
