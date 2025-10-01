@@ -4,6 +4,8 @@ import React, { useState, useCallback } from 'react';
 import { Course, CreateCourseData } from '@/types/course';
 import { Assignment } from '@/types/dynamodb';
 import { SEMESTER_OPTIONS } from '@/constants/semesters';
+import { Section, CreateSectionRequest } from '@/types/sections';
+import { SectionForm } from '@/components/sections/SectionForm';
 
 interface InstructorOnboardingWizardProps {
   isOpen: boolean;
@@ -30,6 +32,8 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
   const [courseData, setCourseData] = useState<Partial<CreateCourseData>>({});
   const [assignmentData, setAssignmentData] = useState<Partial<Assignment>>({});
   const [students, setStudents] = useState<Array<{email: string, name: string}>>([]);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [showSectionForm, setShowSectionForm] = useState(false);
 
   const steps: WizardStep[] = [
     {
@@ -47,6 +51,19 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
       component: <CourseSetupStep 
         data={courseData} 
         onChange={setCourseData} 
+      />
+    },
+    {
+      id: 'sections-setup',
+      title: 'Create Course Sections 🏫',
+      description: 'Set up different sections for your course (e.g., Period 1, 2, 3 or Section A, B, C).',
+      component: <SectionsSetupStep 
+        sections={sections} 
+        onChange={setSections}
+        courseId={courseData.courseId}
+        instructorId={courseData.instructorId}
+        showSectionForm={showSectionForm}
+        setShowSectionForm={setShowSectionForm}
       />
     },
     {
@@ -87,7 +104,13 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
       description: isFirstTime 
         ? 'Your course is live and ready for students.'
         : 'Your new class is ready for students.',
-      component: <CompleteStep isFirstTime={isFirstTime} />
+      component: <CompleteStep 
+        isFirstTime={isFirstTime} 
+        courseData={courseData}
+        sections={sections}
+        students={students}
+        assignmentData={assignmentData}
+      />
     }
   ];
 
@@ -259,48 +282,48 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
     onChange({ ...data, [field]: value });
   };
 
-  // Generate a class code when component mounts or course name changes
+  // Generate course code and class code when component mounts or course name changes
   React.useEffect(() => {
-    if (data.courseName && !data.classCode) {
-      const courseCode = data.courseName
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase())
-        .join('')
-        .substring(0, 3);
-      const randomNum = Math.floor(Math.random() * 9000) + 1000;
-      const generatedCode = `${courseCode}${randomNum}`;
-      handleChange('classCode', generatedCode);
+    if (data.courseName) {
+      // Generate course code (e.g., "CS101" from "Computer Science 101")
+      if (!data.courseCode) {
+        const courseCode = data.courseName
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase())
+          .join('')
+          .substring(0, 3);
+        const randomNum = Math.floor(Math.random() * 90) + 10;
+        const generatedCourseCode = `${courseCode}${randomNum}`;
+        handleChange('courseCode', generatedCourseCode);
+      }
+      
+      // Generate class code (e.g., "CS1011234" for students to join)
+      if (!data.classCode) {
+        const courseCode = data.courseName
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase())
+          .join('')
+          .substring(0, 3);
+        const randomNum = Math.floor(Math.random() * 9000) + 1000;
+        const generatedClassCode = `${courseCode}${randomNum}`;
+        handleChange('classCode', generatedClassCode);
+      }
     }
   }, [data.courseName]);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Course Name *
-          </label>
-          <input
-            type="text"
-            value={data.courseName || ''}
-            onChange={(e) => handleChange('courseName', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
-            placeholder="e.g., Introduction to Computer Science"
-          />
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Course Code *
-          </label>
-          <input
-            type="text"
-            value={data.courseCode || ''}
-            onChange={(e) => handleChange('courseCode', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
-            placeholder="e.g., CS101"
-          />
-        </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Course Name *
+        </label>
+        <input
+          type="text"
+          value={data.courseName || ''}
+          onChange={(e) => handleChange('courseName', e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+          placeholder="e.g., Introduction to Computer Science"
+        />
       </div>
 
       <div>
@@ -324,9 +347,16 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
                 .map(word => word.charAt(0).toUpperCase())
                 .join('')
                 .substring(0, 3);
+              
+              // Regenerate course code
+              const courseCodeNum = Math.floor(Math.random() * 90) + 10;
+              const generatedCourseCode = `${courseCode}${courseCodeNum}`;
+              handleChange('courseCode', generatedCourseCode);
+              
+              // Regenerate class code
               const randomNum = Math.floor(Math.random() * 9000) + 1000;
-              const generatedCode = `${courseCode}${randomNum}`;
-              handleChange('classCode', generatedCode);
+              const generatedClassCode = `${courseCode}${randomNum}`;
+              handleChange('classCode', generatedClassCode);
             }}
             className="px-3 py-2 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors"
           >
@@ -652,10 +682,28 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({ courseData, assig
         <h5 className="font-semibold text-gray-900 mb-2">Course Information</h5>
         <div className="space-y-1 text-sm">
           <p><span className="font-medium">Name:</span> {courseData.courseName}</p>
-          <p><span className="font-medium">Code:</span> {courseData.courseCode}</p>
+          <p><span className="font-medium">Course Code:</span> {courseData.courseCode}</p>
+          <p><span className="font-medium">Class Code:</span> {courseData.classCode}</p>
           <p><span className="font-medium">Department:</span> {courseData.department}</p>
           <p><span className="font-medium">Semester:</span> {courseData.semester} {courseData.year}</p>
         </div>
+      </div>
+
+      <div className="bg-gray-50 rounded-lg p-4">
+        <h5 className="font-semibold text-gray-900 mb-2">Course Sections</h5>
+        {sections.length > 0 ? (
+          <div className="space-y-1 text-sm">
+            {sections.map((section, index) => (
+              <p key={index}>
+                <span className="font-medium">{section.sectionName}</span>
+                {section.sectionCode && ` (${section.sectionCode})`}
+                {section.location && ` - ${section.location}`}
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500 text-sm">No sections created</p>
+        )}
       </div>
 
       <div className="bg-gray-50 rounded-lg p-4">
@@ -686,9 +734,19 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({ courseData, assig
 
 interface CompleteStepProps {
   isFirstTime?: boolean;
+  courseData: Partial<CreateCourseData>;
+  sections: Section[];
+  students: Array<{email: string, name: string}>;
+  assignmentData: Partial<Assignment>;
 }
 
-const CompleteStep: React.FC<CompleteStepProps> = ({ isFirstTime = false }) => (
+const CompleteStep: React.FC<CompleteStepProps> = ({ 
+  isFirstTime = false, 
+  courseData, 
+  sections, 
+  students, 
+  assignmentData 
+}) => (
   <div className="text-center space-y-6">
     <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto">
       <span className="text-4xl">🎉</span>
@@ -715,5 +773,182 @@ const CompleteStep: React.FC<CompleteStepProps> = ({ isFirstTime = false }) => (
     </div>
   </div>
 );
+
+// Sections Setup Step Component
+interface SectionsSetupStepProps {
+  sections: Section[];
+  onChange: (sections: Section[]) => void;
+  courseId?: string;
+  instructorId?: string;
+  showSectionForm: boolean;
+  setShowSectionForm: (show: boolean) => void;
+}
+
+const SectionsSetupStep: React.FC<SectionsSetupStepProps> = ({
+  sections,
+  onChange,
+  courseId,
+  instructorId,
+  showSectionForm,
+  setShowSectionForm
+}) => {
+  const handleCreateSection = async (sectionData: CreateSectionRequest) => {
+    try {
+      // For the wizard, we'll create a temporary section object
+      const newSection: Section = {
+        sectionId: `temp-${Date.now()}`,
+        courseId: courseId || 'temp-course',
+        sectionName: sectionData.name,
+        sectionCode: sectionData.label,
+        description: sectionData.description,
+        maxEnrollment: sectionData.maxEnrollment || 30,
+        currentEnrollment: 0,
+        schedule: sectionData.schedule,
+        location: sectionData.location,
+        instructorId: instructorId || 'temp-instructor',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isActive: true
+      };
+      
+      onChange([...sections, newSection]);
+      setShowSectionForm(false);
+    } catch (error) {
+      console.error('Error creating section:', error);
+    }
+  };
+
+  const handleEditSection = async (sectionId: string, updates: Partial<Section>) => {
+    const updatedSections = sections.map(section =>
+      section.sectionId === sectionId ? { ...section, ...updates } : section
+    );
+    onChange(updatedSections);
+  };
+
+  const handleDeleteSection = (sectionId: string) => {
+    const updatedSections = sections.filter(section => section.sectionId !== sectionId);
+    onChange(updatedSections);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Course Sections
+        </h3>
+        <p className="text-gray-600 text-sm">
+          Create different sections for your course. This is useful if you teach the same course to multiple groups of students.
+        </p>
+      </div>
+
+      {/* Sections List */}
+      {sections.length === 0 ? (
+        <div className="text-center py-8 bg-gray-50 rounded-lg">
+          <div className="text-4xl mb-4">🏫</div>
+          <p className="text-gray-500 mb-2">No sections created yet</p>
+          <p className="text-sm text-gray-400 mb-4">
+            Create sections to organize your students into different class periods
+          </p>
+          <button
+            onClick={() => setShowSectionForm(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Create First Section
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="font-medium text-gray-900">
+              Sections ({sections.length})
+            </h4>
+            <button
+              onClick={() => setShowSectionForm(true)}
+              className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              + Add Section
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {sections.map((section) => (
+              <div key={section.sectionId} className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="flex justify-between items-start mb-2">
+                  <h5 className="font-medium text-gray-900">{section.sectionName}</h5>
+                  <div className="flex space-x-1">
+                    <button
+                      onClick={() => {
+                        // For wizard, we'll just remove the section
+                        handleDeleteSection(section.sectionId);
+                      }}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+                
+                {section.sectionCode && (
+                  <p className="text-sm text-gray-600 mb-1">Code: {section.sectionCode}</p>
+                )}
+                
+                <p className="text-sm text-gray-500 mb-1">
+                  {section.currentEnrollment} / {section.maxEnrollment} students
+                </p>
+                
+                {section.location && (
+                  <p className="text-sm text-gray-500">📍 {section.location}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Section Form Modal */}
+      {showSectionForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <SectionForm
+              courseId={courseId || 'temp-course'}
+              instructorId={instructorId || 'temp-instructor'}
+              onSave={handleCreateSection}
+              onCancel={() => setShowSectionForm(false)}
+              isEditing={false}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Optional: Skip sections */}
+      {sections.length === 0 && (
+        <div className="text-center">
+          <button
+            onClick={() => {
+              // Create a default section
+              const defaultSection: Section = {
+                sectionId: `default-${Date.now()}`,
+                courseId: courseId || 'temp-course',
+                sectionName: 'Main Section',
+                sectionCode: 'A',
+                description: 'Default section for all students',
+                maxEnrollment: 50,
+                currentEnrollment: 0,
+                instructorId: instructorId || 'temp-instructor',
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                isActive: true
+              };
+              onChange([defaultSection]);
+            }}
+            className="text-gray-500 hover:text-gray-700 text-sm underline"
+          >
+            Skip and use single section
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default InstructorOnboardingWizard;
