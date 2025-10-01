@@ -195,14 +195,33 @@ class ApiClient {
 
     const data = await response.json();
     console.log('Login response data:', data);
-    console.log('Response keys:', Object.keys(data));
-    console.log('Response has user:', !!data.user);
-    console.log('Response has tokens:', !!data.tokens);
-    console.log('Response has success:', !!data.success);
-    console.log('Response has data:', !!data.data);
-    console.log('Full response structure:', JSON.stringify(data, null, 2));
 
-    // Handle Lambda response format (direct user/tokens)
+    // Handle Lambda response format (data in body field as JSON string)
+    if (data.body) {
+      try {
+        const bodyData = JSON.parse(data.body);
+        console.log('Parsed body data:', bodyData);
+        
+        if (bodyData.user && bodyData.tokens) {
+          this.setAccessToken(bodyData.tokens.accessToken);
+          
+          // Store all tokens
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('refreshToken', bodyData.tokens.refreshToken);
+            localStorage.setItem('idToken', bodyData.tokens.idToken);
+          }
+
+          return {
+            user: bodyData.user,
+            tokens: bodyData.tokens
+          };
+        }
+      } catch (parseError) {
+        console.error('Error parsing body data:', parseError);
+      }
+    }
+
+    // Handle direct user/tokens format
     if (data.user && data.tokens) {
       this.setAccessToken(data.tokens.accessToken);
       
