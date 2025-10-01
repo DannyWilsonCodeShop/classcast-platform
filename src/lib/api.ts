@@ -194,6 +194,11 @@ class ApiClient {
     }
 
     const data = await response.json();
+    console.log('Login response data:', data);
+    console.log('Response has user:', !!data.user);
+    console.log('Response has tokens:', !!data.tokens);
+    console.log('Response has success:', !!data.success);
+    console.log('Response has data:', !!data.data);
 
     // Handle Lambda response format (direct user/tokens)
     if (data.user && data.tokens) {
