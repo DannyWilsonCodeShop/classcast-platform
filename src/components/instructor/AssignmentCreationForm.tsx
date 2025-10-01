@@ -55,6 +55,7 @@ interface FormData {
   customRubricCategories: Array<{ name: string; points: number; description: string }>;
   targetSections: string[];
   allSections: boolean;
+  peerReviewScope: 'section' | 'course';
 }
 
 const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
@@ -101,7 +102,8 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
       { name: 'Creativity & Innovation', points: 25, description: 'Originality and creative approach' }
     ],
     targetSections: [],
-    allSections: true
+    allSections: true,
+    peerReviewScope: 'section'
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -476,6 +478,63 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                   )}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Peer Review Scope */}
+        {courseId && sections.length > 0 && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <span className="mr-2">👥</span>
+              Peer Review Scope
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Choose whether students can review videos from their section only or from all sections.
+            </p>
+            
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="peerReviewSection"
+                  name="peerReviewScope"
+                  value="section"
+                  checked={formData.peerReviewScope === 'section'}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    peerReviewScope: e.target.value as 'section' | 'course'
+                  }))}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <label htmlFor="peerReviewSection" className="ml-3 text-sm font-medium text-gray-700">
+                  Section Only
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 ml-7">
+                Students can only review videos from peers in their same section
+              </p>
+              
+              <div className="flex items-center">
+                <input
+                  type="radio"
+                  id="peerReviewCourse"
+                  name="peerReviewScope"
+                  value="course"
+                  checked={formData.peerReviewScope === 'course'}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    peerReviewScope: e.target.value as 'section' | 'course'
+                  }))}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <label htmlFor="peerReviewCourse" className="ml-3 text-sm font-medium text-gray-700">
+                  Course Wide
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 ml-7">
+                Students can review videos from peers in all sections of the course
+              </p>
             </div>
           </div>
         )}

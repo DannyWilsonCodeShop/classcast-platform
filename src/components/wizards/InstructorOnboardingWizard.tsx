@@ -34,6 +34,8 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
   const [students, setStudents] = useState<Array<{email: string, name: string}>>([]);
   const [sections, setSections] = useState<Section[]>([]);
   const [showSectionForm, setShowSectionForm] = useState(false);
+  const [hasMultipleSections, setHasMultipleSections] = useState<boolean | null>(null);
+  const [peerReviewScope, setPeerReviewScope] = useState<'section' | 'course'>('section');
 
   const steps: WizardStep[] = [
     {
@@ -54,6 +56,17 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
       />
     },
     {
+      id: 'sections-question',
+      title: 'Course Structure 🏫',
+      description: 'Tell us about your course structure to set up the best experience.',
+      component: <SectionsQuestionStep 
+        hasMultipleSections={hasMultipleSections}
+        setHasMultipleSections={setHasMultipleSections}
+        peerReviewScope={peerReviewScope}
+        setPeerReviewScope={setPeerReviewScope}
+      />
+    },
+    {
       id: 'sections-setup',
       title: 'Create Course Sections 🏫',
       description: 'Set up different sections for your course (e.g., Period 1, 2, 3 or Section A, B, C).',
@@ -64,6 +77,8 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
         instructorId={courseData.instructorId}
         showSectionForm={showSectionForm}
         setShowSectionForm={setShowSectionForm}
+        hasMultipleSections={hasMultipleSections}
+        courseName={courseData.courseName}
       />
     },
     {
@@ -110,6 +125,8 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
         sections={sections}
         students={students}
         assignmentData={assignmentData}
+        hasMultipleSections={hasMultipleSections}
+        peerReviewScope={peerReviewScope}
       />
     }
   ];
@@ -690,20 +707,29 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({ courseData, assig
       </div>
 
       <div className="bg-gray-50 rounded-lg p-4">
-        <h5 className="font-semibold text-gray-900 mb-2">Course Sections</h5>
-        {sections.length > 0 ? (
-          <div className="space-y-1 text-sm">
-            {sections.map((section, index) => (
-              <p key={index}>
-                <span className="font-medium">{section.sectionName}</span>
-                {section.sectionCode && ` (${section.sectionCode})`}
-                {section.location && ` - ${section.location}`}
-              </p>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-sm">No sections created</p>
-        )}
+        <h5 className="font-semibold text-gray-900 mb-2">Course Structure</h5>
+        <div className="space-y-3 text-sm">
+          <p><span className="font-medium">Structure:</span> {hasMultipleSections ? 'Multiple Sections' : 'Single Section'}</p>
+          <p><span className="font-medium">Peer Reviews:</span> {peerReviewScope === 'section' ? 'Section Only' : 'Course Wide'}</p>
+          
+          {sections.length > 0 && (
+            <div className="mt-3">
+              <p className="font-medium mb-2">Sections & Class Codes:</p>
+              {sections.map((section, index) => (
+                <div key={index} className="ml-2 mb-1">
+                  <span className="font-medium">{section.sectionName}</span>
+                  {section.sectionCode && ` (${section.sectionCode})`}
+                  {section.classCode && (
+                    <span className="ml-2 text-blue-600 font-mono font-semibold">
+                      Code: {section.classCode}
+                    </span>
+                  )}
+                  {section.location && ` - ${section.location}`}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="bg-gray-50 rounded-lg p-4">
@@ -738,6 +764,8 @@ interface CompleteStepProps {
   sections: Section[];
   students: Array<{email: string, name: string}>;
   assignmentData: Partial<Assignment>;
+  hasMultipleSections: boolean | null;
+  peerReviewScope: 'section' | 'course';
 }
 
 const CompleteStep: React.FC<CompleteStepProps> = ({ 
@@ -745,7 +773,9 @@ const CompleteStep: React.FC<CompleteStepProps> = ({
   courseData, 
   sections, 
   students, 
-  assignmentData 
+  assignmentData,
+  hasMultipleSections,
+  peerReviewScope
 }) => (
   <div className="text-center space-y-6">
     <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto">
@@ -774,6 +804,127 @@ const CompleteStep: React.FC<CompleteStepProps> = ({
   </div>
 );
 
+// Sections Question Step Component
+interface SectionsQuestionStepProps {
+  hasMultipleSections: boolean | null;
+  setHasMultipleSections: (value: boolean) => void;
+  peerReviewScope: 'section' | 'course';
+  setPeerReviewScope: (scope: 'section' | 'course') => void;
+}
+
+const SectionsQuestionStep: React.FC<SectionsQuestionStepProps> = ({
+  hasMultipleSections,
+  setHasMultipleSections,
+  peerReviewScope,
+  setPeerReviewScope
+}) => {
+  return (
+    <div className="space-y-8">
+      {/* Multiple Sections Question */}
+      <div className="text-center">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">
+          Will there be more than one section of this class?
+        </h3>
+        <p className="text-gray-600 mb-6">
+          This helps us set up the right structure for grading and student interactions.
+        </p>
+        
+        <div className="flex justify-center space-x-4">
+          <button
+            onClick={() => setHasMultipleSections(false)}
+            className={`px-8 py-4 rounded-lg border-2 transition-all ${
+              hasMultipleSections === false
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <div className="text-2xl mb-2">📚</div>
+            <div className="font-medium">Single Section</div>
+            <div className="text-sm text-gray-600">One class, all students together</div>
+          </button>
+          
+          <button
+            onClick={() => setHasMultipleSections(true)}
+            className={`px-8 py-4 rounded-lg border-2 transition-all ${
+              hasMultipleSections === true
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <div className="text-2xl mb-2">🏫</div>
+            <div className="font-medium">Multiple Sections</div>
+            <div className="text-sm text-gray-600">Period 1, 2, 3 or Section A, B, C</div>
+          </button>
+        </div>
+      </div>
+
+      {/* Peer Review Scope Question */}
+      {hasMultipleSections !== null && (
+        <div className="border-t pt-8">
+          <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+            How should students review each other's work?
+          </h4>
+          <p className="text-gray-600 mb-6 text-center">
+            Choose whether students can review videos from their section only or from the entire course.
+          </p>
+          
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => setPeerReviewScope('section')}
+              className={`px-6 py-3 rounded-lg border-2 transition-all ${
+                peerReviewScope === 'section'
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+            >
+              <div className="text-xl mb-2">👥</div>
+              <div className="font-medium">Section Only</div>
+              <div className="text-sm text-gray-600">Students review peers in their section</div>
+            </button>
+            
+            <button
+              onClick={() => setPeerReviewScope('course')}
+              className={`px-6 py-3 rounded-lg border-2 transition-all ${
+                peerReviewScope === 'course'
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+            >
+              <div className="text-xl mb-2">🌐</div>
+              <div className="font-medium">Course Wide</div>
+              <div className="text-sm text-gray-600">Students review peers from all sections</div>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Benefits Explanation */}
+      {hasMultipleSections !== null && (
+        <div className="bg-blue-50 rounded-lg p-6">
+          <h5 className="font-semibold text-blue-900 mb-3">What this means:</h5>
+          <ul className="text-blue-800 space-y-2 text-sm">
+            {hasMultipleSections ? (
+              <>
+                <li>• You'll create separate class codes for each section</li>
+                <li>• You can grade sections individually or all together</li>
+                <li>• Students will only see videos from {peerReviewScope === 'section' ? 'their section' : 'all sections'}</li>
+                <li>• You can assign work to specific sections or all sections</li>
+              </>
+            ) : (
+              <>
+                <li>• You'll have one class code for all students</li>
+                <li>• All students will be in the same group</li>
+                <li>• Students can review videos from all classmates</li>
+                <li>• Simpler setup for single-class courses</li>
+              </>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Sections Setup Step Component
 interface SectionsSetupStepProps {
   sections: Section[];
@@ -782,6 +933,8 @@ interface SectionsSetupStepProps {
   instructorId?: string;
   showSectionForm: boolean;
   setShowSectionForm: (show: boolean) => void;
+  hasMultipleSections: boolean | null;
+  courseName?: string;
 }
 
 const SectionsSetupStep: React.FC<SectionsSetupStepProps> = ({
@@ -790,16 +943,44 @@ const SectionsSetupStep: React.FC<SectionsSetupStepProps> = ({
   courseId,
   instructorId,
   showSectionForm,
-  setShowSectionForm
+  setShowSectionForm,
+  hasMultipleSections,
+  courseName
 }) => {
+  const generateClassCode = (sectionName: string, sectionIndex: number) => {
+    const courseCode = (courseName || 'COURSE')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase())
+      .join('')
+      .substring(0, 3);
+    
+    if (hasMultipleSections) {
+      // Generate unique class code for each section
+      const sectionCode = sectionName
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .join('')
+        .substring(0, 2);
+      const randomNum = Math.floor(Math.random() * 900) + 100;
+      return `${courseCode}${sectionCode}${randomNum}`;
+    } else {
+      // Single class code for all sections
+      const randomNum = Math.floor(Math.random() * 9000) + 1000;
+      return `${courseCode}${randomNum}`;
+    }
+  };
+
   const handleCreateSection = async (sectionData: CreateSectionRequest) => {
     try {
+      const classCode = generateClassCode(sectionData.name, sections.length);
+      
       // For the wizard, we'll create a temporary section object
       const newSection: Section = {
         sectionId: `temp-${Date.now()}`,
         courseId: courseId || 'temp-course',
         sectionName: sectionData.name,
         sectionCode: sectionData.label,
+        classCode: classCode, // Add class code to section
         description: sectionData.description,
         maxEnrollment: sectionData.maxEnrollment || 30,
         currentEnrollment: 0,
@@ -889,7 +1070,13 @@ const SectionsSetupStep: React.FC<SectionsSetupStepProps> = ({
                 </div>
                 
                 {section.sectionCode && (
-                  <p className="text-sm text-gray-600 mb-1">Code: {section.sectionCode}</p>
+                  <p className="text-sm text-gray-600 mb-1">Section Code: {section.sectionCode}</p>
+                )}
+                
+                {section.classCode && (
+                  <p className="text-sm text-blue-600 mb-1 font-mono font-semibold">
+                    Class Code: {section.classCode}
+                  </p>
                 )}
                 
                 <p className="text-sm text-gray-500 mb-1">
@@ -920,17 +1107,19 @@ const SectionsSetupStep: React.FC<SectionsSetupStepProps> = ({
         </div>
       )}
 
-      {/* Optional: Skip sections */}
+      {/* Optional: Skip sections or create default */}
       {sections.length === 0 && (
         <div className="text-center">
           <button
             onClick={() => {
-              // Create a default section
+              // Create a default section with appropriate class code
+              const classCode = generateClassCode('Main Section', 0);
               const defaultSection: Section = {
                 sectionId: `default-${Date.now()}`,
                 courseId: courseId || 'temp-course',
                 sectionName: 'Main Section',
                 sectionCode: 'A',
+                classCode: classCode,
                 description: 'Default section for all students',
                 maxEnrollment: 50,
                 currentEnrollment: 0,
@@ -943,7 +1132,7 @@ const SectionsSetupStep: React.FC<SectionsSetupStepProps> = ({
             }}
             className="text-gray-500 hover:text-gray-700 text-sm underline"
           >
-            Skip and use single section
+            {hasMultipleSections === false ? 'Create single section' : 'Skip and use single section'}
           </button>
         </div>
       )}
