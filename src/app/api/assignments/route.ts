@@ -108,33 +108,101 @@ export async function POST(request: NextRequest) {
       peerReviewScope
     } = body;
 
+    // Input validation
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Assignment title is required and must be a non-empty string' },
+        { status: 400 }
+      );
+    }
+
+    if (!courseId || typeof courseId !== 'string' || courseId.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Course ID is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!instructorId || typeof instructorId !== 'string' || instructorId.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Instructor ID is required' },
+        { status: 400 }
+      );
+    }
+
+    if (maxScore && (typeof maxScore !== 'number' || maxScore < 1 || maxScore > 1000)) {
+      return NextResponse.json(
+        { success: false, error: 'Max score must be a number between 1 and 1000' },
+        { status: 400 }
+      );
+    }
+
+    if (weight && (typeof weight !== 'number' || weight < 0 || weight > 100)) {
+      return NextResponse.json(
+        { success: false, error: 'Weight must be a number between 0 and 100' },
+        { status: 400 }
+      );
+    }
+
+    if (maxSubmissions && (typeof maxSubmissions !== 'number' || maxSubmissions < 1 || maxSubmissions > 10)) {
+      return NextResponse.json(
+        { success: false, error: 'Max submissions must be a number between 1 and 10' },
+        { status: 400 }
+      );
+    }
+
+    if (maxGroupSize && (typeof maxGroupSize !== 'number' || maxGroupSize < 2 || maxGroupSize > 20)) {
+      return NextResponse.json(
+        { success: false, error: 'Max group size must be a number between 2 and 20' },
+        { status: 400 }
+      );
+    }
+
+    if (latePenalty && (typeof latePenalty !== 'number' || latePenalty < 0 || latePenalty > 100)) {
+      return NextResponse.json(
+        { success: false, error: 'Late penalty must be a number between 0 and 100' },
+        { status: 400 }
+      );
+    }
+
+    // Validate due date format if provided
+    if (dueDate && typeof dueDate === 'string') {
+      const dueDateObj = new Date(dueDate);
+      if (isNaN(dueDateObj.getTime())) {
+        return NextResponse.json(
+          { success: false, error: 'Due date must be a valid date' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Generate assignment ID
     const assignmentId = `assignment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
 
-    // Create assignment object
+    // Create assignment object with sanitized data
     const assignment = {
       assignmentId,
-      courseId,
-      instructorId,
-      title,
-      description,
+      courseId: courseId.trim(),
+      instructorId: instructorId.trim(),
+      title: title.trim(),
+      description: description?.trim() || '',
       assignmentType: assignmentType || 'video',
-      dueDate,
+      dueDate: dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
       maxScore: maxScore || 100,
       weight: weight || 10,
-      requirements: requirements || [],
+      requirements: Array.isArray(requirements) ? requirements : [],
       allowLateSubmission: allowLateSubmission || false,
       latePenalty: latePenalty || 0,
       maxSubmissions: maxSubmissions || 1,
       groupAssignment: groupAssignment || false,
       maxGroupSize: maxGroupSize || 4,
-      allowedFileTypes: allowedFileTypes || ['mp4', 'mov', 'avi'],
+      allowedFileTypes: Array.isArray(allowedFileTypes) ? allowedFileTypes : ['mp4', 'mov', 'avi'],
       maxFileSize: maxFileSize || 100 * 1024 * 1024, // 100MB
       status: status || 'draft',
       rubric: rubric || null,
       peerReview: peerReview || false,
-      targetSections: targetSections || [],
+      targetSections: Array.isArray(targetSections) ? targetSections : [],
       peerReviewScope: peerReviewScope || 'section',
       createdAt: now,
       updatedAt: now,
