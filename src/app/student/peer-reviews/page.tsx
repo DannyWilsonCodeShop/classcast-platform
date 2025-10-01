@@ -19,6 +19,8 @@ interface PeerVideo {
   assignmentTitle: string;
   courseId: string;
   courseName: string;
+  sectionId?: string;
+  sectionName?: string;
   likes: number;
   averageRating: number;
   userLiked: boolean;
@@ -105,6 +107,8 @@ const PeerReviewsContent: React.FC = () => {
     remainingRequired: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserSection, setCurrentUserSection] = useState<string | null>(null);
+  const [peerReviewScope, setPeerReviewScope] = useState<'section' | 'course'>('section');
 
   // Like and rating functions
   const handleLike = async (videoId: string) => {
@@ -192,7 +196,49 @@ const PeerReviewsContent: React.FC = () => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        // For now, set empty data until peer reviews backend is implemented
+        
+        // Load assignment details
+        const assignmentResponse = await fetch(`/api/assignments/${assignmentId}`);
+        if (assignmentResponse.ok) {
+          const assignmentData = await assignmentResponse.json();
+          setAssignment(assignmentData);
+          setPeerReviewScope(assignmentData.peerReviewScope || 'section');
+        }
+        
+        // Load current user's section
+        const userResponse = await fetch('/api/auth/me');
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setCurrentUserSection(userData.sectionId || null);
+        }
+        
+        // Load peer videos with section filtering
+        const videosResponse = await fetch(`/api/student/community/submissions?assignmentId=${assignmentId}&courseId=${courseId}`);
+        if (videosResponse.ok) {
+          const videosData = await videosResponse.json();
+          let filteredVideos = videosData;
+          
+          // Filter videos based on peer review scope
+          if (peerReviewScope === 'section' && currentUserSection) {
+            filteredVideos = videosData.filter((video: PeerVideo) => 
+              video.sectionId === currentUserSection
+            );
+          }
+          
+          setPeerVideos(filteredVideos);
+        }
+        
+        // Load existing responses
+        await loadExistingResponses(assignmentId);
+        
+        setResponseStats({
+          totalResponses: 0,
+          submittedResponses: 0,
+          remainingRequired: 0
+        });
+      } catch (error) {
+        console.error('Error loading peer reviews:', error);
+        // Fallback to empty data
         setAssignment(null);
         setPeerVideos([]);
         setResponses(new Map());
@@ -201,15 +247,13 @@ const PeerReviewsContent: React.FC = () => {
           submittedResponses: 0,
           remainingRequired: 0
         });
-      } catch (error) {
-        console.error('Error loading peer reviews:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     loadData();
-  }, [assignmentId, courseId]);
+  }, [assignmentId, courseId, peerReviewScope, currentUserSection]);
 
   const loadExistingResponses = async (assignmentId: string) => {
     // TODO: Load existing peer responses from API
@@ -773,6 +817,20 @@ const PeerReviewsContent: React.FC = () => {
             <div className="min-w-0 flex-1">
               <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Peer Video Reviews</h1>
               <p className="text-sm sm:text-base text-gray-600 truncate">{assignment.title}</p>
+              <div className="flex items-center mt-1">
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  peerReviewScope === 'section' 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {peerReviewScope === 'section' ? '👥 Section Only' : '🌐 Course Wide'}
+                </span>
+                {peerReviewScope === 'section' && currentUserSection && (
+                  <span className="ml-2 text-xs text-gray-500">
+                    (Your section only)
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
@@ -1139,6 +1197,17 @@ const PeerReviewsContent: React.FC = () => {
                     <p className="text-xs text-gray-600 truncate">
                       {video.studentName}
                     </p>
+                    {video.sectionName && (
+                      <div className="flex items-center mt-1">
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          video.sectionId === currentUserSection 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {video.sectionId === currentUserSection ? '👥' : '🌐'} {video.sectionName}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between mt-1">
                       <div className="flex items-center space-x-2">
                         <span className="text-xs text-gray-500">
