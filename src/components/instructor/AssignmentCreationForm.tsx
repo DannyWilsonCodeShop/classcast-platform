@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Assignment, AssignmentType, AssignmentStatus } from '@/types/dynamodb';
 import { CLASS_COLORS, getClassColorById, getDefaultClassColor } from '@/lib/class-colors';
+import { Section } from '@/types/sections';
 
 // Dynamically import TipTapEditor to avoid SSR issues
 const TipTapEditor = dynamic(() => import('./TipTapEditor'), {
@@ -19,6 +20,7 @@ interface AssignmentCreationFormProps {
   isLoading?: boolean;
   initialData?: Partial<Assignment>;
   className?: string;
+  courseId?: string;
 }
 
 interface FormData {
@@ -51,6 +53,8 @@ interface FormData {
   aiGeneratedRubric: any;
   customRubric: any;
   customRubricCategories: Array<{ name: string; points: number; description: string }>;
+  targetSections: string[];
+  allSections: boolean;
 }
 
 const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
@@ -58,7 +62,8 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
   onCancel,
   isLoading = false,
   initialData,
-  className = ''
+  className = '',
+  courseId
 }) => {
   const [formData, setFormData] = useState<FormData>({
     title: initialData?.title || '',
@@ -94,13 +99,41 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
       { name: 'Presentation Skills', points: 25, description: 'Clarity, organization, and delivery' },
       { name: 'Technical Accuracy', points: 25, description: 'Correctness of technical concepts' },
       { name: 'Creativity & Innovation', points: 25, description: 'Originality and creative approach' }
-    ]
+    ],
+    targetSections: [],
+    allSections: true
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [newRequirement, setNewRequirement] = useState('');
   const [isGeneratingRubric, setIsGeneratingRubric] = useState(false);
   const [showRubricPreview, setShowRubricPreview] = useState(false);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [sectionsLoading, setSectionsLoading] = useState(false);
+
+  // Load sections when courseId is provided
+  useEffect(() => {
+    if (courseId) {
+      loadSections();
+    }
+  }, [courseId]);
+
+  const loadSections = async () => {
+    if (!courseId) return;
+    
+    try {
+      setSectionsLoading(true);
+      const response = await fetch(`/api/sections?courseId=${courseId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSections(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error loading sections:', error);
+    } finally {
+      setSectionsLoading(false);
+    }
+  };
 
   const validateForm = useCallback((): boolean => {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
@@ -372,6 +405,80 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
             </select>
           </div>
         </div>
+
+        {/* Section Targeting */}
+        {courseId && sections.length > 0 && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+              <span className="mr-2">🎯</span>
+              Target Sections
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Choose which sections of this course should receive this assignment.
+            </p>
+            
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="allSections"
+                  checked={formData.allSections}
+                  onChange={(e) => {
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      allSections: e.target.checked,
+                      targetSections: e.target.checked ? [] : prev.targetSections
+                    }));
+                  }}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="allSections" className="ml-2 text-sm font-medium text-gray-700">
+                  All sections ({sections.length} sections)
+                </label>
+              </div>
+
+              {!formData.allSections && (
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Select specific sections:
+                  </label>
+                  {sectionsLoading ? (
+                    <div className="text-sm text-gray-500">Loading sections...</div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {sections.map((section) => (
+                        <div key={section.sectionId} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={`section-${section.sectionId}`}
+                            checked={formData.targetSections.includes(section.sectionId)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  targetSections: [...prev.targetSections, section.sectionId]
+                                }));
+                              } else {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  targetSections: prev.targetSections.filter(id => id !== section.sectionId)
+                                }));
+                              }
+                            }}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <label htmlFor={`section-${section.sectionId}`} className="ml-2 text-sm text-gray-700">
+                            {section.sectionName} {section.sectionCode && `(${section.sectionCode})`}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Description */}
         <div>
