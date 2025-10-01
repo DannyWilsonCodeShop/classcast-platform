@@ -41,9 +41,9 @@ export async function POST(request: NextRequest) {
     try {
       const coursesResult = await docClient.send(new ScanCommand({
         TableName: COURSES_TABLE,
-        FilterExpression: 'code = :code',
+        FilterExpression: 'classCode = :classCode',
         ExpressionAttributeValues: {
-          ':code': normalizedClassCode
+          ':classCode': normalizedClassCode
         }
       }));
       
