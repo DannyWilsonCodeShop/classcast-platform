@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Section, CreateSectionRequest, SectionSchedule } from '@/types/sections';
+import { Section, CreateSectionRequest } from '@/types/sections';
 
 interface SectionFormProps {
   courseId: string;
@@ -24,22 +24,11 @@ export const SectionForm: React.FC<SectionFormProps> = ({
     sectionName: initialData?.sectionName || '',
     sectionCode: initialData?.sectionCode || '',
     description: initialData?.description || '',
-    maxEnrollment: initialData?.maxEnrollment || 30,
-    location: initialData?.location || '',
-    schedule: initialData?.schedule || {
-      days: [],
-      startTime: '',
-      endTime: '',
-      timezone: 'UTC'
-    }
+    maxEnrollment: initialData?.maxEnrollment || 30
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const dayOptions = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
-  ];
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
@@ -51,25 +40,6 @@ export const SectionForm: React.FC<SectionFormProps> = ({
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
-  };
-
-  const handleScheduleChange = (field: keyof SectionSchedule, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      schedule: {
-        ...prev.schedule,
-        [field]: value
-      }
-    }));
-  };
-
-  const handleDayToggle = (day: string) => {
-    const currentDays = formData.schedule.days;
-    const newDays = currentDays.includes(day)
-      ? currentDays.filter(d => d !== day)
-      : [...currentDays, day];
-    
-    handleScheduleChange('days', newDays);
   };
 
   const validateForm = (): boolean => {
@@ -85,16 +55,6 @@ export const SectionForm: React.FC<SectionFormProps> = ({
 
     if (formData.maxEnrollment > 1000) {
       newErrors.maxEnrollment = 'Maximum enrollment cannot exceed 1000';
-    }
-
-    if (formData.schedule.days.length === 0) {
-      newErrors.scheduleDays = 'At least one day must be selected';
-    }
-
-    if (formData.schedule.startTime && formData.schedule.endTime) {
-      if (formData.schedule.startTime >= formData.schedule.endTime) {
-        newErrors.scheduleTime = 'End time must be after start time';
-      }
     }
 
     setErrors(newErrors);
@@ -115,9 +75,7 @@ export const SectionForm: React.FC<SectionFormProps> = ({
         sectionName: formData.sectionName,
         sectionCode: formData.sectionCode || undefined,
         description: formData.description || undefined,
-        maxEnrollment: formData.maxEnrollment,
-        schedule: formData.schedule.days.length > 0 ? formData.schedule : undefined,
-        location: formData.location || undefined
+        maxEnrollment: formData.maxEnrollment
       });
     } catch (error) {
       console.error('Error saving section:', error);
@@ -180,96 +138,26 @@ export const SectionForm: React.FC<SectionFormProps> = ({
           />
         </div>
 
-        {/* Max Enrollment and Location */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Maximum Enrollment *
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="1000"
-              value={formData.maxEnrollment}
-              onChange={(e) => handleInputChange('maxEnrollment', parseInt(e.target.value))}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.maxEnrollment ? 'border-red-300' : 'border-gray-300'
-              }`}
-            />
-            {errors.maxEnrollment && (
-              <p className="mt-1 text-sm text-red-600">{errors.maxEnrollment}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Location (Optional)
-            </label>
-            <input
-              type="text"
-              value={formData.location}
-              onChange={(e) => handleInputChange('location', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Room 101, Online, Lab A"
-            />
-          </div>
-        </div>
-
-        {/* Schedule */}
+        {/* Max Enrollment */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Schedule (Optional)
+            Maximum Enrollment *
           </label>
-          
-          {/* Days */}
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">Days of the week:</p>
-            <div className="flex flex-wrap gap-2">
-              {dayOptions.map((day) => (
-                <button
-                  key={day}
-                  type="button"
-                  onClick={() => handleDayToggle(day)}
-                  className={`px-3 py-1 text-sm rounded-full border transition-colors ${
-                    formData.schedule.days.includes(day)
-                      ? 'bg-blue-100 text-blue-800 border-blue-300'
-                      : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
-                  }`}
-                >
-                  {day}
-                </button>
-              ))}
-            </div>
-            {errors.scheduleDays && (
-              <p className="mt-1 text-sm text-red-600">{errors.scheduleDays}</p>
-            )}
-          </div>
-
-          {/* Time */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">Start Time</label>
-              <input
-                type="time"
-                value={formData.schedule.startTime}
-                onChange={(e) => handleScheduleChange('startTime', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">End Time</label>
-              <input
-                type="time"
-                value={formData.schedule.endTime}
-                onChange={(e) => handleScheduleChange('endTime', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-          {errors.scheduleTime && (
-            <p className="mt-1 text-sm text-red-600">{errors.scheduleTime}</p>
+          <input
+            type="number"
+            min="1"
+            max="1000"
+            value={formData.maxEnrollment}
+            onChange={(e) => handleInputChange('maxEnrollment', parseInt(e.target.value))}
+            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              errors.maxEnrollment ? 'border-red-300' : 'border-gray-300'
+            }`}
+          />
+          {errors.maxEnrollment && (
+            <p className="mt-1 text-sm text-red-600">{errors.maxEnrollment}</p>
           )}
         </div>
+
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
