@@ -76,7 +76,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
       setError(null);
 
       // Call backend API for assignment details
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/assignments/${assignmentId}`, {
+      const response = await fetch(`/api/assignments/${assignmentId}`, {
         credentials: 'include',
       });
 

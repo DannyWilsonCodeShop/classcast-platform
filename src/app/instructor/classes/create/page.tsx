@@ -251,35 +251,94 @@ const CreateClassPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setErrors({});
+
+    // Frontend validation
+    const newErrors: Record<string, string> = {};
+
+    if (!formData.title || formData.title.trim().length === 0) {
+      newErrors.title = 'Course title is required';
+    }
+
+    if (!formData.classCode || formData.classCode.trim().length === 0) {
+      newErrors.classCode = 'Class code is required';
+    }
+
+    if (formData.credits && (formData.credits < 1 || formData.credits > 6)) {
+      newErrors.credits = 'Credits must be between 1 and 6';
+    }
+
+    if (formData.maxStudents && (formData.maxStudents < 1 || formData.maxStudents > 500)) {
+      newErrors.maxStudents = 'Max students must be between 1 and 500';
+    }
+
+    if (formData.year && (formData.year < 2020 || formData.year > 2030)) {
+      newErrors.year = 'Year must be between 2020 and 2030';
+    }
+
+    if (formData.createAssignment) {
+      if (!formData.assignmentTitle || formData.assignmentTitle.trim().length === 0) {
+        newErrors.assignmentTitle = 'Assignment title is required when creating an assignment';
+      }
+
+      if (!formData.assignmentDueDate) {
+        newErrors.assignmentDueDate = 'Due date is required when creating an assignment';
+      }
+
+      if (formData.assignmentPoints && (formData.assignmentPoints < 1 || formData.assignmentPoints > 1000)) {
+        newErrors.assignmentPoints = 'Points must be between 1 and 1000';
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       // Call the backend API to create the course
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/courses`, {
+      const response = await fetch('/api/courses', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.title,
-          code: formData.classCode,
+          title: formData.title,
           description: formData.description,
-          instructorId: user?.instructorId || user?.id,
+          code: formData.classCode,
+          classCode: formData.classCode,
+          department: formData.department,
+          credits: formData.credits,
           semester: formData.semester,
           year: parseInt(formData.year),
-          credits: formData.credits,
-          maxEnrollment: formData.maxStudents,
-          schedule: {
-            days: formData.schedule.split(',').map(day => day.trim()),
-            time: 'TBD',
-            location: 'TBD'
-          },
+          instructorId: user?.instructorId || user?.id,
+          maxStudents: formData.maxStudents,
+          startDate: formData.startDate || new Date().toISOString(),
+          endDate: formData.endDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
           prerequisites: formData.prerequisites ? [formData.prerequisites] : [],
           learningObjectives: formData.learningObjectives ? [formData.learningObjectives] : [],
           gradingPolicy: {
             assignments: 60,
             exams: 30,
             participation: 10,
-            projects: 0
+            final: 0
+          },
+          schedule: {
+            days: formData.schedule ? formData.schedule.split(',').map(day => day.trim()) : ['Monday', 'Wednesday', 'Friday'],
+            time: 'TBD',
+            location: 'TBD'
+          },
+          resources: {
+            textbooks: [],
+            materials: []
+          },
+          settings: {
+            allowLateSubmissions: true,
+            latePenalty: 10,
+            allowResubmissions: false,
+            enableDiscussions: true,
+            enableAnnouncements: true
           }
         }),
       });
@@ -291,7 +350,7 @@ const CreateClassPage: React.FC = () => {
         // If assignment creation is enabled, create the assignment too
         if (formData.createAssignment && formData.assignmentTitle) {
           try {
-            const assignmentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/assignments`, {
+            const assignmentResponse = await fetch('/api/assignments', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -299,11 +358,13 @@ const CreateClassPage: React.FC = () => {
               body: JSON.stringify({
                 title: formData.assignmentTitle,
                 description: formData.assignmentDescription || '',
-                courseId: result.data.course.id,
+                courseId: result.data.courseId,
                 instructorId: user?.instructorId || user?.id,
-                points: formData.assignmentPoints || 100,
+                assignmentType: formData.assignmentType || 'video',
+                maxScore: formData.assignmentPoints || 100,
+                weight: 10,
                 dueDate: formData.assignmentDueDate,
-                type: formData.assignmentType || 'video',
+                startDate: new Date().toISOString(),
                 requirements: formData.assignmentRequirements || [],
                 allowLateSubmission: formData.allowLateSubmission || false,
                 latePenalty: formData.latePenalty || 10,
@@ -312,17 +373,10 @@ const CreateClassPage: React.FC = () => {
                 maxGroupSize: formData.maxGroupSize || 2,
                 allowedFileTypes: formData.allowedFileTypes || ['mp4', 'webm', 'mov'],
                 maxFileSize: formData.maxFileSize || 100 * 1024 * 1024,
-                enablePeerResponses: formData.enablePeerResponses || false,
-                responseDueDate: formData.responseDueDate,
-                minResponsesRequired: formData.minResponsesRequired || 2,
-                maxResponsesPerVideo: formData.maxResponsesPerVideo || 3,
-                responseWordLimit: formData.responseWordLimit || 50,
-                responseCharacterLimit: formData.responseCharacterLimit || 500,
-                hidePeerVideosUntilInstructorPosts: formData.hidePeerVideosUntilInstructorPosts || false,
-                emoji: formData.assignmentEmoji || '🎥',
-                color: formData.assignmentColor || '#4c51bf',
-                requireLiveRecording: formData.requireLiveRecording || false,
-                rubricType: formData.rubricType || 'none'
+                individualSubmission: !formData.groupAssignment,
+                autoGrade: false,
+                peerReview: formData.enablePeerResponses || false,
+                status: 'draft'
               }),
             });
 
@@ -341,9 +395,10 @@ const CreateClassPage: React.FC = () => {
         alert('Class created successfully!');
         router.push('/instructor/dashboard');
       } else {
-        const errorData = await response.text();
+        const errorData = await response.json();
         console.error('Failed to create course:', errorData);
-        throw new Error(`Failed to create course: ${response.status} ${response.statusText}`);
+        const errorMessage = errorData.error || `Failed to create course: ${response.status} ${response.statusText}`;
+        throw new Error(errorMessage);
       }
     } catch (error) {
       console.error('Error creating class:', error);
@@ -392,10 +447,15 @@ const CreateClassPage: React.FC = () => {
                     type="text"
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                      errors.title ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="e.g., Introduction to Computer Science"
                     required
                   />
+                  {errors.title && (
+                    <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+                  )}
                 </div>
 
                 <div>
@@ -461,10 +521,15 @@ const CreateClassPage: React.FC = () => {
                     type="number"
                     value={formData.credits}
                     onChange={(e) => handleInputChange('credits', parseInt(e.target.value))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                      errors.credits ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     min="1"
                     max="6"
                   />
+                  {errors.credits && (
+                    <p className="mt-1 text-sm text-red-600">{errors.credits}</p>
+                  )}
                 </div>
 
                 <div>
@@ -505,10 +570,15 @@ const CreateClassPage: React.FC = () => {
                     type="number"
                     value={formData.maxStudents}
                     onChange={(e) => handleInputChange('maxStudents', parseInt(e.target.value))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                      errors.maxStudents ? 'border-red-500' : 'border-gray-300'
+                    }`}
                     min="1"
                     max="500"
                   />
+                  {errors.maxStudents && (
+                    <p className="mt-1 text-sm text-red-600">{errors.maxStudents}</p>
+                  )}
                 </div>
 
                 <div>
@@ -587,10 +657,15 @@ const CreateClassPage: React.FC = () => {
                         type="text"
                         value={formData.assignmentTitle || ''}
                         onChange={(e) => handleInputChange('assignmentTitle', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                          errors.assignmentTitle ? 'border-red-500' : 'border-gray-300'
+                        }`}
                         placeholder="e.g., Introduction Video"
                         required={formData.createAssignment}
                       />
+                      {errors.assignmentTitle && (
+                        <p className="mt-1 text-sm text-red-600">{errors.assignmentTitle}</p>
+                      )}
                     </div>
 
                     <div>
@@ -617,10 +692,15 @@ const CreateClassPage: React.FC = () => {
                         type="number"
                         value={formData.assignmentPoints || 100}
                         onChange={(e) => handleInputChange('assignmentPoints', parseInt(e.target.value))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                          errors.assignmentPoints ? 'border-red-500' : 'border-gray-300'
+                        }`}
                         min="1"
                         max="1000"
                       />
+                      {errors.assignmentPoints && (
+                        <p className="mt-1 text-sm text-red-600">{errors.assignmentPoints}</p>
+                      )}
                     </div>
 
                     <div>
@@ -631,9 +711,14 @@ const CreateClassPage: React.FC = () => {
                         type="datetime-local"
                         value={formData.assignmentDueDate || ''}
                         onChange={(e) => handleInputChange('assignmentDueDate', e.target.value)}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                          errors.assignmentDueDate ? 'border-red-500' : 'border-gray-300'
+                        }`}
                         required={formData.createAssignment}
                       />
+                      {errors.assignmentDueDate && (
+                        <p className="mt-1 text-sm text-red-600">{errors.assignmentDueDate}</p>
+                      )}
                     </div>
                   </div>
 
