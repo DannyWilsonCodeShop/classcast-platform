@@ -2,7 +2,7 @@
 // CLEAN API CLIENT - Frontend API integration with new backend
 // ============================================================================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '/api';
 
 // ============================================================================
 // TYPES
@@ -151,7 +151,7 @@ class ApiClient {
     };
 
     if (this.accessToken) {
-      headers.Authorization = `Bearer ${this.accessToken}`;
+      (headers as any).Authorization = `Bearer ${this.accessToken}`;
     }
 
     try {
@@ -178,22 +178,53 @@ class ApiClient {
   // ============================================================================
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const response = await this.request<LoginResponse>('/auth/login', {
+    const url = `${this.baseUrl}/auth/login`;
+    
+    const response = await fetch(url, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(credentials),
     });
 
-    if (response.success && response.data) {
-      this.setAccessToken(response.data.tokens.accessToken);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error?.message || `HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Handle Lambda response format (direct user/tokens)
+    if (data.user && data.tokens) {
+      this.setAccessToken(data.tokens.accessToken);
       
       // Store all tokens
       if (typeof window !== 'undefined') {
-        localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
-        localStorage.setItem('idToken', response.data.tokens.idToken);
+        localStorage.setItem('refreshToken', data.tokens.refreshToken);
+        localStorage.setItem('idToken', data.tokens.idToken);
       }
+
+      return {
+        user: data.user,
+        tokens: data.tokens
+      };
     }
 
-    return response.data!;
+    // Handle API response format (if success/data structure)
+    if (data.success && data.data) {
+      this.setAccessToken(data.data.tokens.accessToken);
+      
+      // Store all tokens
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
+        localStorage.setItem('idToken', data.data.tokens.idToken);
+      }
+
+      return data.data;
+    }
+
+    throw new Error('Invalid login response format');
   }
 
   async logout(): Promise<void> {
