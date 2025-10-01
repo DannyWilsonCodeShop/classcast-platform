@@ -347,42 +347,41 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Class Code (for students to join) *
         </label>
-        <div className="flex items-center space-x-2">
-          <input
-            type="text"
-            value={data.classCode || ''}
-            onChange={(e) => handleChange('classCode', e.target.value)}
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent font-mono text-lg"
-            placeholder="Auto-generated class code"
-            readOnly
-          />
-          <button
-            type="button"
-            onClick={() => {
-              const courseCode = (data.courseName || 'COURSE')
-                .split(' ')
-                .map(word => word.charAt(0).toUpperCase())
-                .join('')
-                .substring(0, 3);
-              
-              // Regenerate course code
-              const courseCodeNum = Math.floor(Math.random() * 90) + 10;
-              const generatedCourseCode = `${courseCode}${courseCodeNum}`;
-              handleChange('courseCode', generatedCourseCode);
-              
-              // Regenerate class code
-              const randomNum = Math.floor(Math.random() * 9000) + 1000;
-              const generatedClassCode = `${courseCode}${randomNum}`;
-              handleChange('classCode', generatedClassCode);
-            }}
-            className="px-3 py-2 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors"
-          >
-            🔄
-          </button>
+        <div className="bg-gray-50 border border-gray-300 rounded-lg p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="font-mono text-lg text-gray-800">
+                {data.classCode || 'Generating...'}
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Students will use this code to join your class
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const courseCode = (data.courseName || 'COURSE')
+                  .split(' ')
+                  .map(word => word.charAt(0).toUpperCase())
+                  .join('')
+                  .substring(0, 3);
+                
+                // Regenerate course code
+                const courseCodeNum = Math.floor(Math.random() * 90) + 10;
+                const generatedCourseCode = `${courseCode}${courseCodeNum}`;
+                handleChange('courseCode', generatedCourseCode);
+                
+                // Regenerate class code
+                const randomNum = Math.floor(Math.random() * 9000) + 1000;
+                const generatedClassCode = `${courseCode}${randomNum}`;
+                handleChange('classCode', generatedClassCode);
+              }}
+              className="px-3 py-2 bg-[#4A90E2] text-white rounded-lg hover:bg-[#9B5DE5] transition-colors"
+            >
+              🔄 Regenerate
+            </button>
+          </div>
         </div>
-        <p className="text-sm text-gray-500 mt-1">
-          Students will use this code to join your class. Share this with them!
-        </p>
       </div>
 
       <div>
@@ -724,7 +723,6 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({ courseData, assig
                       Code: {section.classCode}
                     </span>
                   )}
-                  {section.location && ` - ${section.location}`}
                 </div>
               ))}
             </div>
@@ -972,20 +970,18 @@ const SectionsSetupStep: React.FC<SectionsSetupStepProps> = ({
 
   const handleCreateSection = async (sectionData: CreateSectionRequest) => {
     try {
-      const classCode = generateClassCode(sectionData.name, sections.length);
+      const classCode = generateClassCode(sectionData.sectionName, sections.length);
       
       // For the wizard, we'll create a temporary section object
       const newSection: Section = {
         sectionId: `temp-${Date.now()}`,
         courseId: courseId || 'temp-course',
-        sectionName: sectionData.name,
-        sectionCode: sectionData.label,
+        sectionName: sectionData.sectionName,
+        sectionCode: sectionData.sectionCode,
         classCode: classCode, // Add class code to section
         description: sectionData.description,
         maxEnrollment: sectionData.maxEnrollment || 30,
         currentEnrollment: 0,
-        schedule: sectionData.schedule,
-        location: sectionData.location,
         instructorId: instructorId || 'temp-instructor',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -1082,10 +1078,6 @@ const SectionsSetupStep: React.FC<SectionsSetupStepProps> = ({
                 <p className="text-sm text-gray-500 mb-1">
                   {section.currentEnrollment} / {section.maxEnrollment} students
                 </p>
-                
-                {section.location && (
-                  <p className="text-sm text-gray-500">📍 {section.location}</p>
-                )}
               </div>
             ))}
           </div>

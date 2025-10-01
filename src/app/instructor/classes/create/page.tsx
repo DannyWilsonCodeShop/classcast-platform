@@ -401,18 +401,13 @@ const CreateClassPage: React.FC = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Class Code * 
-                    <span className="text-xs text-gray-500 ml-1">(Auto-generated)</span>
+                    <span className="text-xs text-gray-500 ml-1">(Auto-generated for students to join)</span>
                   </label>
                   <div className="flex">
                     <div className="flex-1 relative">
-                      <input
-                        type="text"
-                        value={formData.classCode}
-                        onChange={(e) => handleInputChange('classCode', e.target.value.toUpperCase())}
-                        className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent font-mono text-lg font-semibold"
-                        placeholder="e.g., CS101"
-                        required
-                      />
+                      <div className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg bg-gray-50 font-mono text-lg font-semibold text-gray-800">
+                        {formData.classCode || 'Generating...'}
+                      </div>
                       {formData.classCode && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                           <span className="text-green-500 text-sm">✓</span>

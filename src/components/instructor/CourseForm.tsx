@@ -57,6 +57,20 @@ export const CourseForm: React.FC<CourseFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Auto-generate course code when title changes
+  useEffect(() => {
+    if (formData.title && !course) {
+      const courseCode = formData.title
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .join('')
+        .substring(0, 3);
+      const randomNum = Math.floor(Math.random() * 90) + 10;
+      const generatedCode = `${courseCode}${randomNum}`;
+      setFormData(prev => ({ ...prev, code: generatedCode }));
+    }
+  }, [formData.title, course]);
+
   // Initialize form with course data if editing
   useEffect(() => {
     if (course) {
@@ -180,16 +194,12 @@ export const CourseForm: React.FC<CourseFormProps> = ({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Course Code *
+                Course Code * 
+                <span className="text-xs text-gray-500 ml-1">(Auto-generated)</span>
               </label>
-              <input
-                type="text"
-                value={formData.code}
-                onChange={(e) => handleInputChange('code', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., CS-101"
-                required
-              />
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 font-mono text-gray-800">
+                {formData.code || 'Generating...'}
+              </div>
             </div>
 
             <div>
