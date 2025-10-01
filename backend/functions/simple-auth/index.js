@@ -21,7 +21,34 @@ exports.handler = async (event) => {
       };
     }
 
-    // For now, return a simple success response
+    // Determine user role based on email
+    let userRole = 'student';
+    let userId = 'user_' + Date.now();
+    let firstName = 'Test';
+    let lastName = 'User';
+    
+    // Instructor emails
+    if (body.email === 'wilson.danny@me.com' || 
+        body.email === 'instructor@example.com' ||
+        body.email.includes('instructor') ||
+        body.email.includes('teacher') ||
+        body.email.includes('prof')) {
+      userRole = 'instructor';
+      userId = 'instructor_' + Date.now();
+      firstName = body.email.split('@')[0].split('.')[0] || 'Instructor';
+      lastName = body.email.split('@')[0].split('.')[1] || 'User';
+      // Capitalize first letter
+      firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+      lastName = lastName.charAt(0).toUpperCase() + lastName.slice(1);
+    }
+
+    // Admin emails
+    if (body.email === 'admin@class-cast.com' || 
+        body.email.includes('admin@')) {
+      userRole = 'admin';
+      userId = 'admin_' + Date.now();
+    }
+
     return {
       statusCode: 200,
       headers: {
@@ -34,12 +61,13 @@ exports.handler = async (event) => {
         success: true,
         data: {
           user: {
-            id: 'user_123',
+            id: userId,
             email: body.email,
-            firstName: 'Test',
-            lastName: 'User',
-            role: 'student',
-            emailVerified: true
+            firstName: firstName,
+            lastName: lastName,
+            role: userRole,
+            emailVerified: true,
+            instructorId: userRole === 'instructor' ? userId : undefined
           },
           tokens: {
             accessToken: 'mock_access_token',
