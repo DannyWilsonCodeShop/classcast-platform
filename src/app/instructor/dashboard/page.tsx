@@ -181,7 +181,7 @@ const InstructorDashboard: React.FC = () => {
         // Fetch stats, courses, and recent submissions
         const [statsResponse, coursesResponse, submissionsResponse] = await Promise.all([
           fetch('/api/instructor/dashboard/stats'),
-          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/courses`),
+          fetch('/api/courses'),
           fetch('/api/instructor/submissions/recent')
         ]);
 
@@ -195,6 +195,7 @@ const InstructorDashboard: React.FC = () => {
           console.log('Courses API response:', coursesData);
           // Handle backend API format: data.courses array
           const coursesArray = coursesData.data?.courses || [];
+          console.log('Courses array from API:', coursesArray);
           // Ensure coursesArray is an array before mapping
           if (Array.isArray(coursesArray)) {
             // Map courseId to id for compatibility
@@ -203,6 +204,7 @@ const InstructorDashboard: React.FC = () => {
               id: course.id || course.courseId,
               courseId: course.id || course.courseId
             }));
+            console.log('Mapped courses for dashboard:', mappedCourses);
             setCourses(mappedCourses);
           } else {
             console.error('Courses data is not an array:', coursesArray);
@@ -210,6 +212,8 @@ const InstructorDashboard: React.FC = () => {
           }
         } else {
           console.error('Courses API failed:', coursesResponse.status, coursesResponse.statusText);
+          const errorText = await coursesResponse.text();
+          console.error('Courses API error response:', errorText);
           setCourses([]);
         }
 
