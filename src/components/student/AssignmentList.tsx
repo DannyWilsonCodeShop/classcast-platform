@@ -9,6 +9,7 @@ import { AssignmentSort } from './AssignmentSort';
 import { Pagination } from '../common/Pagination';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { EmptyState } from '../common/EmptyState';
+import { EmptyAssignmentsState } from '../common/EmptyStateAdvanced';
 
 export interface AssignmentListProps {
   courseId?: string;
@@ -291,10 +292,19 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
   if (assignments.length === 0) {
     return (
-      <EmptyState
-        title="No Assignments Found"
-        description="There are no assignments available at the moment."
-        icon="assignment"
+      <EmptyAssignmentsState
+        onExploreCourses={() => {
+          // Navigate to courses page
+          if (typeof window !== 'undefined') {
+            window.location.href = '/student/courses';
+          }
+        }}
+        onContactInstructor={() => {
+          // Navigate to support or contact page
+          if (typeof window !== 'undefined') {
+            window.location.href = '/student/support';
+          }
+        }}
       />
     );
   }
