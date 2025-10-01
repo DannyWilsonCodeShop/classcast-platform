@@ -1,26 +1,26 @@
-// Simple Courses Lambda - DynamoDB course handler
+// Simple Assignments Lambda - DynamoDB assignment handler
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
-const COURSES_TABLE = process.env.COURSES_TABLE_NAME || 'ClassCastCleanCourses';
+const ASSIGNMENTS_TABLE = process.env.ASSIGNMENTS_TABLE_NAME || 'ClassCastCleanAssignments';
 
 exports.handler = async (event) => {
-  console.log('Courses event:', JSON.stringify(event, null, 2));
+  console.log('Assignments event:', JSON.stringify(event, null, 2));
   
   try {
     const method = event.httpMethod;
-    const courseId = event.pathParameters?.courseId;
+    const assignmentId = event.pathParameters?.assignmentId;
 
     if (method === 'GET') {
-      if (courseId) {
-        // Get specific course from DynamoDB
+      if (assignmentId) {
+        // Get specific assignment from DynamoDB
         const result = await docClient.send(new GetCommand({
-          TableName: COURSES_TABLE,
+          TableName: ASSIGNMENTS_TABLE,
           Key: { 
-            PK: `COURSE#${courseId}`,
-            SK: `COURSE#${courseId}`
+            PK: `ASSIGNMENT#${assignmentId}`,
+            SK: `ASSIGNMENT#${assignmentId}`
           }
         }));
         
@@ -35,7 +35,7 @@ exports.handler = async (event) => {
             },
             body: JSON.stringify({
               success: true,
-              data: { course: result.Item }
+              data: { assignment: result.Item }
             })
           };
         } else {
@@ -49,17 +49,17 @@ exports.handler = async (event) => {
             },
             body: JSON.stringify({
               success: false,
-              error: 'Course not found'
+              error: 'Assignment not found'
             })
           };
         }
       } else {
-        // Get all courses from DynamoDB
+        // Get all assignments from DynamoDB
         const result = await docClient.send(new ScanCommand({
-          TableName: COURSES_TABLE,
-          FilterExpression: 'begins_with(PK, :coursePrefix)',
+          TableName: ASSIGNMENTS_TABLE,
+          FilterExpression: 'begins_with(PK, :assignmentPrefix)',
           ExpressionAttributeValues: {
-            ':coursePrefix': 'COURSE#'
+            ':assignmentPrefix': 'ASSIGNMENT#'
           }
         }));
         
@@ -73,53 +73,56 @@ exports.handler = async (event) => {
           },
           body: JSON.stringify({
             success: true,
-            data: { courses: result.Items || [] }
+            data: { assignments: result.Items || [] }
           })
         };
       }
     }
 
     if (method === 'POST') {
-      // Create new course and save to DynamoDB
+      // Create new assignment and save to DynamoDB
       const body = JSON.parse(event.body || '{}');
       
-      const courseId = 'course_' + Date.now();
-      const newCourse = {
-        PK: `COURSE#${courseId}`,
-        SK: `COURSE#${courseId}`,
-        id: courseId,
-        name: body.name || 'New Course',
-        code: body.code || 'NEW101',
-        description: body.description || 'A new course',
+      const assignmentId = 'assignment_' + Date.now();
+      const newAssignment = {
+        PK: `ASSIGNMENT#${assignmentId}`,
+        SK: `ASSIGNMENT#${assignmentId}`,
+        id: assignmentId,
+        title: body.title || 'New Assignment',
+        description: body.description || 'A new assignment',
+        courseId: body.courseId || 'course_123',
         instructorId: body.instructorId || 'instructor_123',
-        instructorName: 'Dr. Smith',
-        status: 'draft',
-        semester: body.semester || 'Fall',
-        year: body.year || 2024,
-        credits: body.credits || 3,
-        maxEnrollment: body.maxEnrollment || 30,
-        currentEnrollment: 0,
-        schedule: body.schedule || {
-          days: ['Monday', 'Wednesday'],
-          time: '10:00 AM - 11:00 AM',
-          location: 'Room 101'
-        },
-        prerequisites: body.prerequisites || [],
-        learningObjectives: body.learningObjectives || ['Learn something new'],
-        gradingPolicy: body.gradingPolicy || {
-          assignments: 60,
-          exams: 30,
-          participation: 10,
-          projects: 0
-        },
+        points: body.points || 100,
+        dueDate: body.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        type: body.type || 'video',
+        status: 'published',
+        requirements: body.requirements || [],
+        allowLateSubmission: body.allowLateSubmission || false,
+        latePenalty: body.latePenalty || 10,
+        maxSubmissions: body.maxSubmissions || 1,
+        groupAssignment: body.groupAssignment || false,
+        maxGroupSize: body.maxGroupSize || 2,
+        allowedFileTypes: body.allowedFileTypes || ['mp4', 'webm', 'mov'],
+        maxFileSize: body.maxFileSize || 100 * 1024 * 1024,
+        enablePeerResponses: body.enablePeerResponses || false,
+        responseDueDate: body.responseDueDate,
+        minResponsesRequired: body.minResponsesRequired || 2,
+        maxResponsesPerVideo: body.maxResponsesPerVideo || 3,
+        responseWordLimit: body.responseWordLimit || 50,
+        responseCharacterLimit: body.responseCharacterLimit || 500,
+        hidePeerVideosUntilInstructorPosts: body.hidePeerVideosUntilInstructorPosts || false,
+        emoji: body.emoji || '🎥',
+        color: body.color || '#4c51bf',
+        requireLiveRecording: body.requireLiveRecording || false,
+        rubricType: body.rubricType || 'none',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       
       // Save to DynamoDB
       await docClient.send(new PutCommand({
-        TableName: COURSES_TABLE,
-        Item: newCourse
+        TableName: ASSIGNMENTS_TABLE,
+        Item: newAssignment
       }));
       
       return {
@@ -132,8 +135,8 @@ exports.handler = async (event) => {
         },
         body: JSON.stringify({
           success: true,
-          data: { course: newCourse },
-          message: 'Course created successfully'
+          data: { assignment: newAssignment },
+          message: 'Assignment created successfully'
         })
       };
     }
@@ -153,7 +156,7 @@ exports.handler = async (event) => {
     };
 
   } catch (error) {
-    console.error('Courses error:', error);
+    console.error('Assignments error:', error);
     
     return {
       statusCode: 500,
