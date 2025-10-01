@@ -75,110 +75,22 @@ const StudentAssignmentDetailPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/student/assignments/${assignmentId}`, {
-      //   credentials: 'include',
-      // });
+      // Call backend API for assignment details
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/assignments/${assignmentId}`, {
+        credentials: 'include',
+      });
 
-      // Mock data for now
-      const mockAssignment: Assignment = {
-        id: assignmentId,
-        title: 'Programming Assignment 3: Data Structures',
-        description: 'Implement a binary search tree with insertion, deletion, and traversal operations.',
-        instructions: `
-# Assignment Instructions
+      if (!response.ok) {
+        throw new Error('Assignment not found');
+      }
 
-## Objective
-Implement a complete binary search tree (BST) data structure with the following operations:
-- Insert a new node
-- Delete a node
-- Search for a node
-- In-order traversal
-- Pre-order traversal
-- Post-order traversal
-
-## Requirements
-1. Create a BST class with proper encapsulation
-2. Implement all required methods
-3. Include comprehensive error handling
-4. Write unit tests for all methods
-5. Include proper documentation
-
-## Submission
-- Submit your code as a single Python file
-- Include a README with setup instructions
-- Provide example usage of your BST implementation
-
-## Grading Criteria
-- Correctness (40 points)
-- Code quality and style (20 points)
-- Documentation (20 points)
-- Testing (20 points)
-        `,
-        dueDate: '2024-12-15T23:59:59Z',
-        points: 100,
-        status: 'in-progress',
-        submissionType: 'file',
-        allowedFileTypes: ['.py', '.txt', '.md'],
-        maxFileSize: 10 * 1024 * 1024, // 10MB
-        rubric: [
-          {
-            criteria: 'Correctness',
-            points: 40,
-            description: 'All methods work correctly and handle edge cases'
-          },
-          {
-            criteria: 'Code Quality',
-            points: 20,
-            description: 'Clean, readable code with proper naming conventions'
-          },
-          {
-            criteria: 'Documentation',
-            points: 20,
-            description: 'Clear comments and comprehensive README'
-          },
-          {
-            criteria: 'Testing',
-            points: 20,
-            description: 'Thorough unit tests covering all scenarios'
-          }
-        ],
-        course: {
-          id: '1',
-          name: 'Introduction to Computer Science',
-          code: 'CS101',
-          instructor: {
-            name: 'Dr. Sarah Johnson',
-            email: 'sarah.johnson@university.edu'
-          }
-        },
-        submissions: [
-          {
-            id: 'sub1',
-            submittedAt: '2024-12-10T14:30:00Z',
-            content: 'Initial implementation with basic functionality',
-            files: [
-              {
-                name: 'bst_implementation.py',
-                url: '/api/files/sub1/bst_implementation.py',
-                type: 'application/python',
-                size: 2048
-              },
-              {
-                name: 'README.md',
-                url: '/api/files/sub1/README.md',
-                type: 'text/markdown',
-                size: 512
-              }
-            ],
-            status: 'submitted'
-          }
-        ],
-        createdAt: '2024-11-20T00:00:00Z',
-        updatedAt: '2024-12-10T14:30:00Z'
-      };
-
-      setAssignment(mockAssignment);
+      const data = await response.json();
+      
+      if (data.success && data.data?.assignment) {
+        setAssignment(data.data.assignment);
+      } else {
+        throw new Error(data.error || 'Failed to load assignment');
+      }
     } catch (err) {
       console.error('Error fetching assignment details:', err);
       setError('Failed to load assignment details');
@@ -186,6 +98,7 @@ Implement a complete binary search tree (BST) data structure with the following 
       setLoading(false);
     }
   };
+
 
   const getStatusColor = (status: string) => {
     switch (status) {

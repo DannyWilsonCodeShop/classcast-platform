@@ -73,7 +73,7 @@ export const CompactAssignmentList: React.FC<CompactAssignmentListProps> = ({
       params.append('page', '1');
       params.append('limit', maxItems.toString());
 
-      const response = await fetch(`/api/assignments?${params.toString()}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/assignments?${params.toString()}`, {
         credentials: 'include',
       });
 

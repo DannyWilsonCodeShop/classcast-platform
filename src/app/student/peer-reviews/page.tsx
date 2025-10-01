@@ -186,9 +186,29 @@ const PeerReviewsContent: React.FC = () => {
     };
   }, [mediaRecorder, isRecording]);
 
-  // Mock data - in production, this would come from API
+  // Load data from backend API
   useEffect(() => {
-    // Always load data, use defaults if no URL params
+    const loadData = async () => {
+      try {
+        // For now, set empty data until peer reviews backend is implemented
+        setAssignment(null);
+        setPeerVideos([]);
+        setResponses(new Map());
+        setResponseStats({
+          totalResponses: 0,
+          submittedResponses: 0,
+          remainingRequired: 0
+        });
+      } catch (error) {
+        console.error('Error loading peer reviews:', error);
+      }
+    };
+
+    loadData();
+  }, [assignmentId, courseId]);
+
+  // Old mock implementation (to be replaced with API calls)
+  const loadMockData = async () => {
     const loadData = async () => {
       // Mock assignment data
       const mockAssignment: Assignment = {
