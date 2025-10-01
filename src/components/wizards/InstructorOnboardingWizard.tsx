@@ -160,18 +160,89 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
     // Implement API calls to save data at each step
     switch (stepIndex) {
       case 1: // Course setup
-        if (courseData.courseId) {
-          // Save course
-          console.log('Saving course:', courseData);
+        if (courseData.title && courseData.courseCode) {
+          // Create course
+          try {
+            const courseResponse = await fetch('/api/courses', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                title: courseData.title,
+                description: courseData.description,
+                code: courseData.courseCode,
+                classCode: courseData.classCode,
+                department: courseData.department,
+                credits: courseData.credits,
+                semester: courseData.semester,
+                year: courseData.year,
+                instructorId: courseData.instructorId,
+                maxStudents: courseData.maxStudents,
+                startDate: courseData.startDate,
+                endDate: courseData.endDate,
+                prerequisites: courseData.prerequisites,
+                learningObjectives: courseData.learningObjectives,
+                gradingPolicy: courseData.gradingPolicy,
+                schedule: courseData.schedule,
+                resources: courseData.resources,
+                settings: courseData.settings
+              })
+            });
+
+            if (courseResponse.ok) {
+              const courseResult = await courseResponse.json();
+              const createdCourse = courseResult.data;
+              setCourseData(prev => ({ ...prev, courseId: createdCourse.courseId }));
+              console.log('Course created:', createdCourse);
+            } else {
+              throw new Error('Failed to create course');
+            }
+          } catch (error) {
+            console.error('Error creating course:', error);
+            throw error;
+          }
         }
         break;
-      case 2: // Add students
+      case 3: // Sections setup
+        if (sections.length > 0 && courseData.courseId) {
+          // Create sections
+          try {
+            const createdSections = [];
+            for (const section of sections) {
+              const sectionResponse = await fetch('/api/sections', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  courseId: courseData.courseId,
+                  sectionName: section.sectionName,
+                  sectionCode: section.sectionCode,
+                  maxEnrollment: section.maxEnrollment,
+                  instructorId: courseData.instructorId
+                })
+              });
+
+              if (sectionResponse.ok) {
+                const sectionResult = await sectionResponse.json();
+                createdSections.push(sectionResult.data);
+              }
+            }
+            console.log('Sections created:', createdSections);
+          } catch (error) {
+            console.error('Error creating sections:', error);
+            throw error;
+          }
+        }
+        break;
+      case 4: // Add students
         if (students.length > 0) {
           // Invite students
           console.log('Inviting students:', students);
         }
         break;
-      case 3: // Create assignment
+      case 5: // Create assignment
         if (assignmentData.assignmentId) {
           // Save assignment
           console.log('Saving assignment:', assignmentData);
