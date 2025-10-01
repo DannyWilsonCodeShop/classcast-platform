@@ -100,7 +100,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       params.append('page', pagination.currentPage.toString());
       params.append('limit', pagination.itemsPerPage.toString());
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/assignments?${params.toString()}`, {
+      const response = await fetch(`/api/assignments?${params.toString()}`, {
         credentials: 'include',
       });
 

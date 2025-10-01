@@ -2,7 +2,7 @@
 // CLEAN API CLIENT - Frontend API integration with new backend
 // ============================================================================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://ete1conlc8.execute-api.us-east-1.amazonaws.com/prod';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
 // ============================================================================
 // TYPES

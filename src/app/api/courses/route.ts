@@ -52,7 +52,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching courses:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch courses' },
+      { 
+        success: false, 
+        error: 'Failed to fetch courses',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
@@ -82,26 +86,76 @@ export async function POST(request: NextRequest) {
       settings
     } = body;
 
+    // Input validation
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Course title is required and must be a non-empty string' },
+        { status: 400 }
+      );
+    }
+
+    if (!instructorId || typeof instructorId !== 'string' || instructorId.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Instructor ID is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!code || typeof code !== 'string' || code.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Course code is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!classCode || typeof classCode !== 'string' || classCode.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Class code is required' },
+        { status: 400 }
+      );
+    }
+
+    if (credits && (typeof credits !== 'number' || credits < 1 || credits > 6)) {
+      return NextResponse.json(
+        { success: false, error: 'Credits must be a number between 1 and 6' },
+        { status: 400 }
+      );
+    }
+
+    if (maxStudents && (typeof maxStudents !== 'number' || maxStudents < 1 || maxStudents > 500)) {
+      return NextResponse.json(
+        { success: false, error: 'Max students must be a number between 1 and 500' },
+        { status: 400 }
+      );
+    }
+
+    if (year && (typeof year !== 'number' || year < 2020 || year > 2030)) {
+      return NextResponse.json(
+        { success: false, error: 'Year must be a number between 2020 and 2030' },
+        { status: 400 }
+      );
+    }
+
     // Generate course ID
     const courseId = `course_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // Create course object
+    // Create course object with sanitized data
     const course = {
       courseId,
-      title,
-      description,
-      code,
-      classCode,
-      department,
+      title: title.trim(),
+      description: description?.trim() || '',
+      code: code.trim(),
+      classCode: classCode.trim(),
+      department: department?.trim() || '',
       credits: credits || 3,
-      semester,
+      semester: semester || 'Spring',
       year: year || new Date().getFullYear(),
-      instructorId,
+      instructorId: instructorId.trim(),
       maxStudents: maxStudents || 30,
-      startDate,
-      endDate,
-      prerequisites: prerequisites || [],
-      learningObjectives: learningObjectives || [],
+      startDate: startDate || new Date().toISOString(),
+      endDate: endDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+      prerequisites: Array.isArray(prerequisites) ? prerequisites : [],
+      learningObjectives: Array.isArray(learningObjectives) ? learningObjectives : [],
       gradingPolicy: gradingPolicy || {
         assignments: 40,
         quizzes: 20,
@@ -145,7 +199,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating course:', error);
     return NextResponse.json(
-      { error: 'Failed to create course' },
+      { 
+        success: false, 
+        error: 'Failed to create course',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
