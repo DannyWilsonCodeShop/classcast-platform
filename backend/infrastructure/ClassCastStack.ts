@@ -234,6 +234,28 @@ export class ClassCastStack extends cdk.Stack {
       }
     });
 
+    // Submissions Lambda
+    const submissionsLambda = new lambda.Function(this, 'SubmissionsLambda', {
+      ...lambdaConfig,
+      functionName: 'ClassCastSubmissions',
+      code: lambda.Code.fromAsset('../functions/simple-submissions'),
+      timeout: cdk.Duration.seconds(30),
+      environment: {
+        SUBMISSIONS_TABLE_NAME: submissionsTable.tableName
+      }
+    });
+
+    // Peer Reviews Lambda
+    const peerReviewsLambda = new lambda.Function(this, 'PeerReviewsLambda', {
+      ...lambdaConfig,
+      functionName: 'ClassCastPeerReviews',
+      code: lambda.Code.fromAsset('../functions/simple-peer-reviews'),
+      timeout: cdk.Duration.seconds(30),
+      environment: {
+        SUBMISSIONS_TABLE_NAME: submissionsTable.tableName
+      }
+    });
+
     // ============================================================================
     // IAM PERMISSIONS
     // ============================================================================
@@ -243,7 +265,8 @@ export class ClassCastStack extends cdk.Stack {
     usersTable.grantReadWriteData(usersLambda);
     coursesTable.grantReadWriteData(coursesLambda);
     assignmentsTable.grantReadWriteData(assignmentsLambda);
-    submissionsTable.grantReadWriteData(coursesLambda);
+    submissionsTable.grantReadWriteData(submissionsLambda);
+    submissionsTable.grantReadWriteData(peerReviewsLambda);
 
     // Grant S3 permissions
     fileBucket.grantReadWrite(authLambda);
@@ -315,6 +338,42 @@ export class ClassCastStack extends cdk.Stack {
     assignment.addMethod('GET', new apigateway.LambdaIntegration(assignmentsLambda));
     assignment.addMethod('PUT', new apigateway.LambdaIntegration(assignmentsLambda));
     assignment.addMethod('DELETE', new apigateway.LambdaIntegration(assignmentsLambda));
+
+    // Submissions endpoints
+    const submissions = api.root.addResource('submissions');
+    submissions.addMethod('GET', new apigateway.LambdaIntegration(submissionsLambda));
+    submissions.addMethod('POST', new apigateway.LambdaIntegration(submissionsLambda));
+    const submission = submissions.addResource('{submissionId}');
+    submission.addMethod('GET', new apigateway.LambdaIntegration(submissionsLambda));
+    submission.addMethod('PUT', new apigateway.LambdaIntegration(submissionsLambda));
+    submission.addMethod('DELETE', new apigateway.LambdaIntegration(submissionsLambda));
+    // Grade a submission
+    const submissionGrade = submission.addResource('grade');
+    submissionGrade.addMethod('PUT', new apigateway.LambdaIntegration(submissionsLambda));
+    // Get submissions by assignment
+    const submissionsByAssignment = submissions.addResource('assignment').addResource('{assignmentId}');
+    submissionsByAssignment.addMethod('GET', new apigateway.LambdaIntegration(submissionsLambda));
+    // Get submissions by student
+    const submissionsByStudent = submissions.addResource('student').addResource('{studentId}');
+    submissionsByStudent.addMethod('GET', new apigateway.LambdaIntegration(submissionsLambda));
+
+    // Peer Reviews endpoints
+    const peerReviews = api.root.addResource('peer-reviews');
+    peerReviews.addMethod('GET', new apigateway.LambdaIntegration(peerReviewsLambda));
+    peerReviews.addMethod('POST', new apigateway.LambdaIntegration(peerReviewsLambda));
+    const peerReview = peerReviews.addResource('{reviewId}');
+    peerReview.addMethod('GET', new apigateway.LambdaIntegration(peerReviewsLambda));
+    peerReview.addMethod('PUT', new apigateway.LambdaIntegration(peerReviewsLambda));
+    peerReview.addMethod('DELETE', new apigateway.LambdaIntegration(peerReviewsLambda));
+    // Get reviews for a video
+    const reviewsByVideo = peerReviews.addResource('video').addResource('{videoId}');
+    reviewsByVideo.addMethod('GET', new apigateway.LambdaIntegration(peerReviewsLambda));
+    // Get reviews by reviewer
+    const reviewsByReviewer = peerReviews.addResource('reviewer').addResource('{reviewerId}');
+    reviewsByReviewer.addMethod('GET', new apigateway.LambdaIntegration(peerReviewsLambda));
+    // Get all reviews for an assignment
+    const reviewsByAssignment = peerReviews.addResource('assignment').addResource('{assignmentId}');
+    reviewsByAssignment.addMethod('GET', new apigateway.LambdaIntegration(peerReviewsLambda));
 
     // ============================================================================
     // OUTPUTS
