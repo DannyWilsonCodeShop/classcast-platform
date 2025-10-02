@@ -3,7 +3,8 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
 const dynamoClient = new DynamoDBClient({
-  region: process.env.REGION || 'us-east-1',
+  region: process.env.REGION || process.env.AWS_REGION || 'us-east-1',
+  // Remove explicit credentials to use IAM role
 });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
     if (assignmentId) {
       // Get submissions for a specific assignment
       const queryCommand = new QueryCommand({
-        TableName: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
+        TableName: 'classcast-submissions',
         IndexName: 'AssignmentIdIndex',
         KeyConditionExpression: 'assignmentId = :assignmentId',
         ExpressionAttributeValues: {
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
     } else if (courseId) {
       // Get all submissions for a course
       const scanCommand = new ScanCommand({
-        TableName: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
+        TableName: 'classcast-submissions',
         FilterExpression: 'courseId = :courseId',
         ExpressionAttributeValues: {
           ':courseId': courseId
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       // Get all submissions for instructor's courses
       // First, get all courses for this instructor
       const coursesScanCommand = new ScanCommand({
-        TableName: process.env.COURSES_TABLE_NAME || 'ClassCastCourses',
+        TableName: 'classcast-courses',
         FilterExpression: 'instructorId = :instructorId',
         ExpressionAttributeValues: {
           ':instructorId': instructorId
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
       if (courseIds.length > 0) {
         // Get submissions for all instructor's courses
         const submissionsScanCommand = new ScanCommand({
-          TableName: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
+          TableName: 'classcast-submissions',
           FilterExpression: 'courseId IN (:courseIds)',
           ExpressionAttributeValues: {
             ':courseIds': courseIds
