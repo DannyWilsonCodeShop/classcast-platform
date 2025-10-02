@@ -105,6 +105,73 @@ const StudentProfilePage: React.FC = () => {
     setErrors(prev => ({ ...prev, avatar: '' }));
   };
 
+  // Handle photo upload
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !editedProfile) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'Please select a valid image file (JPG, PNG, GIF, or WebP)'
+      }));
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'Image size must be less than 5MB'
+      }));
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Upload to S3
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('folder', 'profile-pictures');
+      formData.append('userId', editedProfile.email || 'anonymous');
+      formData.append('metadata', JSON.stringify({
+        type: 'profile-picture',
+        uploadedAt: new Date().toISOString()
+      }));
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Store the S3 URL instead of base64
+        setEditedProfile(prev => ({
+          ...prev,
+          avatar: result.data.fileUrl
+        }));
+        setErrors(prev => ({ ...prev, avatar: '' }));
+      } else {
+        throw new Error(result.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'Failed to upload image. Please try again.'
+      }));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   // Validate form
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -264,16 +331,38 @@ const StudentProfilePage: React.FC = () => {
                     />
                   )}
                   
-                  {/* Emoji Picker Button (only in edit mode) */}
+                  {/* Avatar Options (only in edit mode) */}
                   {isEditing && (
-                    <button
-                      onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                      className="absolute -bottom-1 -right-1 w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors duration-200 shadow-lg"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                      </svg>
-                    </button>
+                    <div className="absolute -bottom-1 -right-1 flex space-x-1">
+                      {/* Photo Upload Button */}
+                      <label className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors duration-200 shadow-lg cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          disabled={isUploading}
+                        />
+                        {isUploading ? (
+                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        )}
+                      </label>
+                      
+                      {/* Emoji Picker Button */}
+                      <button
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white hover:bg-green-600 transition-colors duration-200 shadow-lg"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -308,6 +397,13 @@ const StudentProfilePage: React.FC = () => {
                   )}
                 </div>
               </div>
+              
+              {/* Avatar Error Display */}
+              {errors.avatar && (
+                <div className="mt-2 text-center">
+                  <p className="text-red-200 text-sm">{errors.avatar}</p>
+                </div>
+              )}
             </div>
 
             {/* Profile Details */}
@@ -461,6 +557,9 @@ const StudentProfilePage: React.FC = () => {
                   </svg>
                 </button>
               </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Choose an emoji or use the camera button to upload a photo
+              </p>
               <div className="grid grid-cols-8 gap-2">
                 {emojiOptions.map((emoji, index) => (
                   <button
