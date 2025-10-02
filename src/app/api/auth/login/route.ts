@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LambdaClient, InvokeCommand } from '@aws-sdk/client-lambda';
+import { CognitoIdentityProviderClient, InitiateAuthCommand, GetUserCommand } from '@aws-sdk/client-cognito-identity-provider';
 
-const lambdaClient = new LambdaClient({ 
-  region: 'us-east-1'
-  // Uses default credential provider chain (IAM role)
+const cognitoClient = new CognitoIdentityProviderClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+  },
 });
+
+const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'us-east-1_uK50qBrap';
+const CLIENT_ID = process.env.COGNITO_CLIENT_ID || process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== LAMBDA LOGIN API CALLED ===');
+    console.log('=== DIRECT COGNITO LOGIN API CALLED ===');
     
     const body = await request.json();
     const { email, password } = body;
@@ -41,45 +47,112 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      console.log('Calling Lambda function for login:', email);
+      console.log('Calling Cognito for authentication:', email);
       
-      // Call Lambda function for authentication
-      const lambdaCommand = new InvokeCommand({
-        FunctionName: 'classcast-login',
-        Payload: JSON.stringify({
-          body: JSON.stringify({ email, password })
-        })
+      // Authenticate with Cognito
+      const authCommand = new InitiateAuthCommand({
+        AuthFlow: 'USER_PASSWORD_AUTH',
+        ClientId: CLIENT_ID,
+        AuthParameters: {
+          USERNAME: email,
+          PASSWORD: password,
+        },
       });
 
-      console.log('Lambda command created, invoking...');
-      const lambdaResponse = await lambdaClient.send(lambdaCommand);
-      console.log('Lambda response received:', lambdaResponse);
-      
-      if (!lambdaResponse.Payload) {
-        console.error('No payload in Lambda response');
-        throw new Error('No response from Lambda function');
+      const authResponse = await cognitoClient.send(authCommand);
+      console.log('Cognito auth response received');
+
+      if (!authResponse.AuthenticationResult) {
+        throw new Error('Authentication failed - no result from Cognito');
       }
 
-      const responseBody = JSON.parse(new TextDecoder().decode(lambdaResponse.Payload));
-      console.log('Lambda response body:', responseBody);
+      const { AccessToken, IdToken, RefreshToken } = authResponse.AuthenticationResult;
 
-      // Check if Lambda function returned an error
-      if (lambdaResponse.FunctionError) {
-        console.error('Lambda function error:', lambdaResponse.FunctionError);
-        throw new Error('Lambda function execution failed');
+      if (!AccessToken) {
+        throw new Error('No access token received from Cognito');
       }
 
-      // Return the Lambda response directly
-      return NextResponse.json(responseBody, { 
-        status: responseBody.statusCode || 200 
+      // Get user details
+      const getUserCommand = new GetUserCommand({
+        AccessToken: AccessToken,
       });
-    } catch (authError) {
-      console.error('Lambda authentication error:', authError);
-      console.error('Error details:', {
-        name: authError.name,
-        message: authError.message,
-        stack: authError.stack
+
+      const userResponse = await cognitoClient.send(getUserCommand);
+      console.log('User details retrieved from Cognito');
+
+      // Extract user attributes
+      const attributes = userResponse.UserAttributes || [];
+      const userAttributes: { [key: string]: string } = {};
+      
+      attributes.forEach(attr => {
+        if (attr.Name && attr.Value) {
+          userAttributes[attr.Name] = attr.Value;
+        }
       });
+
+      // Determine user role
+      let role = 'student'; // default
+      if (userAttributes['custom:role']) {
+        role = userAttributes['custom:role'];
+      } else if (userAttributes['email']?.includes('instructor')) {
+        role = 'instructor';
+      }
+
+      // Create user object
+      const user = {
+        id: userAttributes['sub'] || userResponse.Username || '',
+        email: userAttributes['email'] || email,
+        firstName: userAttributes['given_name'] || userAttributes['name'] || '',
+        lastName: userAttributes['family_name'] || '',
+        role: role as 'student' | 'instructor' | 'admin',
+        avatar: userAttributes['picture'] || '/api/placeholder/40/40',
+        emailVerified: userAttributes['email_verified'] === 'true',
+        bio: userAttributes['custom:bio'] || '',
+        careerGoals: userAttributes['custom:careerGoals'] || '',
+        classOf: userAttributes['custom:classOf'] || '',
+        funFact: userAttributes['custom:funFact'] || '',
+        favoriteSubject: userAttributes['custom:favoriteSubject'] || '',
+        hobbies: userAttributes['custom:hobbies'] || '',
+        schoolName: userAttributes['custom:schoolName'] || '',
+      };
+
+      console.log('Login successful for user:', { id: user.id, email: user.email, role: user.role });
+
+      return NextResponse.json({
+        success: true,
+        user,
+        tokens: {
+          accessToken: AccessToken,
+          refreshToken: RefreshToken || '',
+          idToken: IdToken || '',
+        },
+      });
+
+    } catch (authError: any) {
+      console.error('Cognito authentication error:', authError);
+      
+      // Handle specific Cognito errors
+      if (authError.name === 'NotAuthorizedException') {
+        return NextResponse.json(
+          { error: { message: 'Invalid email or password' } },
+          { status: 401 }
+        );
+      } else if (authError.name === 'UserNotConfirmedException') {
+        return NextResponse.json(
+          { error: { message: 'Please verify your email address before logging in' } },
+          { status: 401 }
+        );
+      } else if (authError.name === 'UserNotFoundException') {
+        return NextResponse.json(
+          { error: { message: 'No account found with this email address' } },
+          { status: 401 }
+        );
+      } else if (authError.name === 'TooManyRequestsException') {
+        return NextResponse.json(
+          { error: { message: 'Too many login attempts. Please try again later' } },
+          { status: 429 }
+        );
+      }
       
       return NextResponse.json(
         { error: { message: 'Authentication failed. Please check your credentials and try again' } },
@@ -91,13 +164,13 @@ export async function POST(request: NextRequest) {
     
     if (error instanceof SyntaxError) {
       return NextResponse.json(
-        { message: 'Invalid request format' },
+        { error: { message: 'Invalid request format' } },
         { status: 400 }
       );
     }
     
     return NextResponse.json(
-      { message: 'Internal server error. Please try again later' },
+      { error: { message: 'Internal server error. Please try again later' } },
       { status: 500 }
     );
   }
