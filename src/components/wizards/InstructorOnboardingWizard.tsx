@@ -526,6 +526,64 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
         </div>
       </div>
 
+      {/* Course Privacy Setting */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Course Visibility
+        </label>
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3">
+            <input
+              type="radio"
+              id="privacy-public"
+              name="privacy"
+              value="public"
+              checked={data.settings?.privacy === 'public' || !data.settings?.privacy}
+              onChange={(e) => {
+                const newSettings = {
+                  ...data.settings,
+                  privacy: e.target.value as 'public' | 'private'
+                };
+                handleChange('settings', newSettings);
+              }}
+              className="h-4 w-4 text-[#4A90E2] focus:ring-[#4A90E2] border-gray-300"
+            />
+            <label htmlFor="privacy-public" className="flex-1">
+              <div className="font-medium text-gray-900">Public Course</div>
+              <div className="text-sm text-gray-500">
+                Students can search and discover this course in the course directory
+              </div>
+            </label>
+          </div>
+          <div className="flex items-center space-x-3">
+            <input
+              type="radio"
+              id="privacy-private"
+              name="privacy"
+              value="private"
+              checked={data.settings?.privacy === 'private'}
+              onChange={(e) => {
+                const newSettings = {
+                  ...data.settings,
+                  privacy: e.target.value as 'public' | 'private'
+                };
+                handleChange('settings', newSettings);
+              }}
+              className="h-4 w-4 text-[#4A90E2] focus:ring-[#4A90E2] border-gray-300"
+            />
+            <label htmlFor="privacy-private" className="flex-1">
+              <div className="font-medium text-gray-900">Private Course</div>
+              <div className="text-sm text-gray-500">
+                Only students with the class code can join this course
+              </div>
+            </label>
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 mt-2">
+          You can change this setting later in your course settings.
+        </p>
+      </div>
+
       {/* Course Color Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
