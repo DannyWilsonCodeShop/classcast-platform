@@ -409,16 +409,22 @@ const InstructorCourseDetailPage: React.FC = () => {
                     {/* Action Buttons */}
                     <div className="flex space-x-2">
                       <button
+                        onClick={() => setEditingAssignment(assignment)}
+                        className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg font-medium hover:bg-indigo-600 transition-colors text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
                         onClick={() => router.push(`/instructor/submissions?assignment=${assignment.assignmentId}&course=${courseId}`)}
                         className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors text-sm"
                       >
-                        View Submissions
+                        Submissions
                       </button>
                       <button
                         onClick={() => router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`)}
                         className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
                       >
-                        Start Grading
+                        Grade
                       </button>
                     </div>
                   </div>

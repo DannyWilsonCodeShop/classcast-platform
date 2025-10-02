@@ -182,7 +182,7 @@ const InstructorDashboard: React.FC = () => {
         const instructorId = user?.id || 'default-instructor';
         const [statsResponse, coursesResponse, submissionsResponse] = await Promise.all([
           fetch(`/api/instructor/dashboard/stats?instructorId=${instructorId}`),
-          fetch('/api/courses'),
+          fetch(`/api/instructor/courses?instructorId=${instructorId}`),
           fetch('/api/instructor/submissions/recent')
         ]);
 
@@ -458,7 +458,7 @@ const InstructorDashboard: React.FC = () => {
                       <EmptyState
                         title="No Classes Found"
                         description="It looks like you haven't created any classes yet. Start by creating your first class to begin teaching!"
-                        icon="📚"
+                        icon="course"
                         action={{ 
                           label: 'Create Your First Class', 
                           onClick: () => setShowWizard(true) 
