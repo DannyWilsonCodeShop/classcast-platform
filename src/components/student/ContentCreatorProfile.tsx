@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Avatar from '@/components/common/Avatar';
 import { Star, Eye, Heart, MessageCircle, Users, Video, TrendingUp } from 'lucide-react';
 import { ContentCreatorProfile as CreatorProfile } from '@/types/video-interactions';
 
@@ -95,9 +96,15 @@ const ContentCreatorProfile: React.FC<ContentCreatorProfileProps> = ({
     <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
       {/* Profile Header */}
       <div className="flex items-center space-x-4 mb-6">
-        <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg">
-          {profile.userName.charAt(0).toUpperCase()}
-        </div>
+        <Avatar
+          user={{
+            firstName: profile.userName.split(' ')[0] || '',
+            lastName: profile.userName.split(' ')[1] || '',
+            avatar: profile.avatar
+          }}
+          size="lg"
+          className="shadow-lg"
+        />
         <div className="flex-1">
           <h2 className="text-xl font-bold text-gray-900">{profile.userName}</h2>
           <p className="text-sm text-gray-600">Content Creator</p>
