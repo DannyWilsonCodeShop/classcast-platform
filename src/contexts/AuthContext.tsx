@@ -93,7 +93,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               role: profileData.data.role || response.user.role
             };
             
+            console.log('Login response user:', response.user);
+            console.log('Profile data:', profileData.data);
             console.log('Full user data after profile merge:', fullUser);
+            console.log('Final role:', fullUser.role);
             
             // Store full user data
             api.setCurrentUser(fullUser);
