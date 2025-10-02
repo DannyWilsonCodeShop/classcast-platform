@@ -5,10 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { CourseDetails } from '@/components/student/CourseDetails';
-import { CourseAssignments } from '@/components/student/CourseAssignments';
-import { CourseStudents } from '@/components/student/CourseStudents';
-import { CourseMaterials } from '@/components/student/CourseMaterials';
+import { EmptyState } from '@/components/common/EmptyState';
 
 interface Course {
   courseId: string;
@@ -49,21 +46,19 @@ interface Assignment {
   description: string;
   dueDate: string;
   points: number;
-  status: 'not-started' | 'in-progress' | 'submitted' | 'graded';
+  status: 'upcoming' | 'past_due' | 'completed';
+  submissionType: 'text' | 'file' | 'video';
+  assignmentType: string;
+  courseId: string;
+  courseName: string;
+  courseCode: string;
+  instructor: string;
+  createdAt: string;
+  resources?: any[];
+  isSubmitted: boolean;
+  submittedAt?: string;
   grade?: number;
   feedback?: string;
-  submissionType: 'text' | 'file' | 'video';
-  createdAt: string;
-}
-
-interface Student {
-  studentId: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  enrollmentDate: string;
-  status: 'active' | 'dropped' | 'completed';
-  grade?: string;
 }
 
 const StudentCourseDetailPage: React.FC = () => {
@@ -72,7 +67,6 @@ const StudentCourseDetailPage: React.FC = () => {
   const { user } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'assignments' | 'students' | 'materials'>('assignments');
@@ -90,7 +84,7 @@ const StudentCourseDetailPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch real course data from API
+      // Fetch course data
       const courseResponse = await fetch(`/api/courses/${courseId}`, {
         credentials: 'include',
       });
@@ -144,41 +138,7 @@ const StudentCourseDetailPage: React.FC = () => {
       setCourse(course);
 
       // Fetch assignments for this course
-      try {
-        const assignmentsResponse = await fetch(`/api/student/assignments?courseId=${courseId}&userId=${user.id}`, {
-          credentials: 'include',
-        });
-
-        if (assignmentsResponse.ok) {
-          const assignmentsData = await assignmentsResponse.json();
-          if (assignmentsData.assignments) {
-            setAssignments(assignmentsData.assignments);
-          }
-        } else {
-          console.warn('Failed to fetch assignments:', assignmentsResponse.statusText);
-          setAssignments([]);
-        }
-      } catch (assignmentError) {
-        console.warn('Failed to fetch assignments:', assignmentError);
-        setAssignments([]);
-      }
-
-      // Fetch students for this course (if user has permission)
-      try {
-        const studentsResponse = await fetch(`/api/courses/${courseId}/students`, {
-          credentials: 'include',
-        });
-
-        if (studentsResponse.ok) {
-          const studentsData = await studentsResponse.json();
-          if (studentsData.success && studentsData.data) {
-            setStudents(studentsData.data);
-          }
-        }
-      } catch (studentError) {
-        console.warn('Failed to fetch students:', studentError);
-        setStudents([]);
-      }
+      await fetchAssignments();
 
     } catch (err) {
       console.error('Error fetching course details:', err);
@@ -188,12 +148,103 @@ const StudentCourseDetailPage: React.FC = () => {
     }
   };
 
+  const fetchAssignments = async () => {
+    try {
+      // Try student assignments API first
+      const assignmentsResponse = await fetch(`/api/student/assignments?courseId=${courseId}&userId=${user?.id}`, {
+        credentials: 'include',
+      });
+
+      if (assignmentsResponse.ok) {
+        const assignmentsData = await assignmentsResponse.json();
+        if (assignmentsData.assignments) {
+          setAssignments(assignmentsData.assignments);
+          return;
+        }
+      }
+
+      // Fallback to general assignments API
+      const generalResponse = await fetch(`/api/assignments?courseId=${courseId}`, {
+        credentials: 'include',
+      });
+
+      if (generalResponse.ok) {
+        const generalData = await generalResponse.json();
+        if (generalData.success && generalData.data?.assignments) {
+          // Transform assignments to match our interface
+          const transformedAssignments = generalData.data.assignments.map((assignment: any) => ({
+            assignmentId: assignment.assignmentId,
+            title: assignment.title,
+            description: assignment.description,
+            dueDate: assignment.dueDate,
+            points: assignment.maxScore || 100,
+            status: 'upcoming' as const,
+            submissionType: assignment.assignmentType === 'video' ? 'video' as const : 'file' as const,
+            assignmentType: assignment.assignmentType,
+            courseId: assignment.courseId,
+            courseName: course?.courseName || 'Unknown Course',
+            courseCode: course?.courseCode || 'N/A',
+            instructor: course?.instructor.name || 'Unknown Instructor',
+            createdAt: assignment.createdAt,
+            resources: assignment.resources || [],
+            isSubmitted: false,
+          }));
+          setAssignments(transformedAssignments);
+        }
+      }
+    } catch (assignmentError) {
+      console.warn('Failed to fetch assignments:', assignmentError);
+      setAssignments([]);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'upcoming':
+        return 'bg-blue-100 text-blue-800';
+      case 'past_due':
+        return 'bg-red-100 text-red-800';
+      case 'completed':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'upcoming':
+        return '📋';
+      case 'past_due':
+        return '⚠️';
+      case 'completed':
+        return '✅';
+      default:
+        return '📝';
+    }
+  };
+
+  const isOverdue = (dueDate: string, status: string) => {
+    return new Date(dueDate) < new Date() && status !== 'completed';
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   if (loading) {
     return (
       <StudentRoute>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
           <div className="text-center">
-            <LoadingSpinner text="Loading course details..." />
+            <LoadingSpinner />
           </div>
         </div>
       </StudentRoute>
@@ -235,7 +286,7 @@ const StudentCourseDetailPage: React.FC = () => {
     return (
       <StudentRoute>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-          <LoadingSpinner text="Loading course details..." />
+          <LoadingSpinner />
         </div>
       </StudentRoute>
     );
@@ -244,7 +295,7 @@ const StudentCourseDetailPage: React.FC = () => {
   return (
     <StudentRoute>
       <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-        {/* Social Media Style Header */}
+        {/* Header */}
         <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 flex-shrink-0">
           <div className="flex items-center space-x-3">
             <button
@@ -281,7 +332,7 @@ const StudentCourseDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation Tabs */}
+        {/* Navigation Tabs */}
         <div className="bg-white/90 backdrop-blur-sm px-4 py-2 flex-shrink-0">
           <div className="flex space-x-1">
             {[
@@ -306,34 +357,216 @@ const StudentCourseDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Content - Scrollable */}
+        {/* Content */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-4">
-            {activeTab === 'overview' && (
-              <CourseDetails
-                course={course}
-                assignments={assignments}
-                students={students}
-              />
-            )}
             {activeTab === 'assignments' && (
-              <CourseAssignments
-                courseId={courseId}
-                assignments={assignments}
-                onAssignmentUpdate={fetchCourseDetails}
-              />
+              <div className="space-y-6">
+                {/* Assignments Header */}
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-gray-800">Video Assignments</h2>
+                  <div className="text-sm text-gray-600">
+                    {assignments.length} assignment{assignments.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+
+                {/* Assignments List */}
+                {assignments.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">📝</div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">No Assignments Found</h3>
+                    <p className="text-gray-600 mb-4">
+                      No assignments have been posted for this course yet.
+                    </p>
+                    <button
+                      onClick={fetchAssignments}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {assignments.map((assignment) => (
+                      <div
+                        key={assignment.assignmentId}
+                        className={`bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
+                          isOverdue(assignment.dueDate, assignment.status)
+                            ? 'border-red-200 bg-red-50/50'
+                            : 'border-gray-200/30'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h3 className="text-lg font-semibold text-gray-800">{assignment.title}</h3>
+                              <span className={`px-3 py-1 rounded-full text-sm font-bold ${getStatusColor(assignment.status)}`}>
+                                {getStatusIcon(assignment.status)} {assignment.status.replace('_', ' ')}
+                              </span>
+                              {isOverdue(assignment.dueDate, assignment.status) && (
+                                <span className="px-3 py-1 rounded-full text-sm font-bold bg-red-100 text-red-800">
+                                  Overdue
+                                </span>
+                              )}
+                            </div>
+                            
+                            <div className="mb-4">
+                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Instructions:</h4>
+                              <p className="text-gray-600 line-clamp-3">{assignment.description}</p>
+                            </div>
+                            
+                            <div className="flex items-center space-x-6 text-sm text-gray-500">
+                              <div className="flex items-center space-x-1">
+                                <span>📅</span>
+                                <span>Due {formatDate(assignment.dueDate)}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <span>⭐</span>
+                                <span>{assignment.points} points</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <span>📄</span>
+                                <span className="capitalize">{assignment.submissionType}</span>
+                              </div>
+                            </div>
+
+                            {assignment.grade !== undefined && (
+                              <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-green-800">Grade: {assignment.grade}%</span>
+                                  <span className="text-sm text-green-600">
+                                    {assignment.feedback ? 'Feedback available' : 'No feedback'}
+                                  </span>
+                                </div>
+                                {assignment.feedback && (
+                                  <p className="mt-2 text-sm text-green-700">{assignment.feedback}</p>
+                                )}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex flex-col space-y-2 ml-4">
+                            {assignment.status === 'upcoming' || assignment.status === 'past_due' ? (
+                              <>
+                                <button 
+                                  onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
+                                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+                                >
+                                  View Details
+                                </button>
+                                <button 
+                                  onClick={() => router.push('/student/video-submission')}
+                                  className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
+                                >
+                                  🎥 Record Video
+                                </button>
+                              </>
+                            ) : assignment.status === 'completed' ? (
+                              <button 
+                                onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
+                                className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold"
+                              >
+                                View Submission
+                              </button>
+                            ) : (
+                              <button 
+                                onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
+                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold"
+                              >
+                                View Details
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Assignment Stats */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Assignment Statistics</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-500">
+                        {assignments.filter(a => a.status === 'upcoming').length}
+                      </div>
+                      <div className="text-sm text-gray-600">Upcoming</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-yellow-500">
+                        {assignments.filter(a => a.status === 'completed').length}
+                      </div>
+                      <div className="text-sm text-gray-600">Completed</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-500">
+                        {assignments.filter(a => a.status === 'past_due').length}
+                      </div>
+                      <div className="text-sm text-gray-600">Overdue</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-500">
+                        {assignments.length > 0 ? Math.round(assignments.reduce((sum, a) => sum + a.points, 0) / assignments.length) : 0}
+                      </div>
+                      <div className="text-sm text-gray-600">Avg Points</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
-            {activeTab === 'students' && (
-              <CourseStudents
-                students={students}
-                course={course}
-              />
+
+            {activeTab === 'overview' && (
+              <div className="space-y-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Course Overview</h3>
+                  <p className="text-gray-600 mb-4">{course.description}</p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-semibold text-gray-700 mb-2">Course Details</h4>
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <p><strong>Code:</strong> {course.courseCode}</p>
+                        <p><strong>Semester:</strong> {course.semester} {course.year}</p>
+                        <p><strong>Credits:</strong> {course.credits}</p>
+                        <p><strong>Students:</strong> {course.enrollmentCount}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-gray-700 mb-2">Schedule</h4>
+                      <div className="space-y-1 text-sm text-gray-600">
+                        <p><strong>Days:</strong> {course.schedule.days.join(', ')}</p>
+                        <p><strong>Time:</strong> {course.schedule.time}</p>
+                        <p><strong>Location:</strong> {course.schedule.location}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
+
             {activeTab === 'materials' && (
-              <CourseMaterials
-                courseId={courseId}
-                course={course}
-              />
+              <div className="space-y-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Course Materials</h3>
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-2">📚</div>
+                    <p className="text-gray-600">No materials uploaded yet.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'students' && (
+              <div className="space-y-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Classmates</h3>
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-2">👥</div>
+                    <p className="text-gray-600">Classmate list not available.</p>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
