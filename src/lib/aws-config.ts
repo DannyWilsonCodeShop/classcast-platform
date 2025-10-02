@@ -67,7 +67,7 @@ const getAWSConfig = (): AWSConfig => {
       region: process.env.REGION || 'us-east-1',
       buckets: {
         videos: process.env.S3_VIDEOS_BUCKET || 'classcast-videos-463470937777-us-east-1',
-        assets: process.env.S3_ASSETS_BUCKET || 'cdk-hnb659fds-assets-463470937777-us-east-1',
+        assets: process.env.S3_VIDEOS_BUCKET || 'classcast-videos-463470937777-us-east-1', // Use same bucket for assets
       },
     },
     ses: {
