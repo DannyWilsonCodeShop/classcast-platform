@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-// Removed unused component imports since we're using a grid layout instead of tabs
+import CourseSettingsModal from '@/components/instructor/CourseSettingsModal';
 
 interface Course {
   courseId: string;
@@ -76,6 +76,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const courseId = params.courseId as string;
 
@@ -275,7 +276,10 @@ const InstructorCourseDetailPage: React.FC = () => {
                 }`}>
                   {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
                 </span>
-                <button className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors">
+                <button 
+                  onClick={() => setShowSettingsModal(true)}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+                >
                   ⚙️ Settings
                 </button>
               </div>
@@ -319,7 +323,10 @@ const InstructorCourseDetailPage: React.FC = () => {
           <div className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-800">Assignments</h2>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors">
+              <button 
+                onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
+                className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+              >
                 + Create Assignment
               </button>
             </div>
@@ -401,13 +408,24 @@ const InstructorCourseDetailPage: React.FC = () => {
                 <div className="text-6xl mb-4">📝</div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">No Assignments Yet</h3>
                 <p className="text-gray-600 mb-6">Create your first assignment to get started with this course.</p>
-                <button className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors">
+                <button 
+                  onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
+                  className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+                >
                   Create Your First Assignment
                 </button>
               </div>
             )}
           </div>
         </div>
+
+        {/* Course Settings Modal */}
+        <CourseSettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+          course={course}
+          onUpdate={handleCourseUpdate}
+        />
       </div>
     </InstructorRoute>
   );
