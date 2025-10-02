@@ -138,8 +138,29 @@ const InstructorCourseDetailPage: React.FC = () => {
       }
 
       // Fetch real assignments from API
-      const assignments: Assignment[] = [];
-      setAssignments(assignments);
+      const assignmentsResponse = await fetch(`/api/assignments?courseId=${courseId}`, {
+        credentials: 'include',
+      });
+
+      if (assignmentsResponse.ok) {
+        const assignmentsData = await assignmentsResponse.json();
+        if (assignmentsData.success) {
+          const apiAssignments = assignmentsData.data.assignments || [];
+          const transformedAssignments = apiAssignments.map((assignment: any) => ({
+            assignmentId: assignment.assignmentId || assignment.id,
+            title: assignment.title,
+            description: assignment.description,
+            dueDate: assignment.dueDate,
+            points: assignment.maxScore || assignment.points || 100,
+            status: assignment.status || 'draft',
+            submissionType: assignment.assignmentType === 'video' ? 'video' : 
+                           assignment.assignmentType === 'text' ? 'text' : 'file',
+            submissionsCount: assignment.submissionsCount || 0,
+            createdAt: assignment.createdAt
+          }));
+          setAssignments(transformedAssignments);
+        }
+      }
 
       // Fetch real students from API
       const students: Student[] = [];

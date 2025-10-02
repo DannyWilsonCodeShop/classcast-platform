@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const isActive = searchParams.get('isActive');
     const search = searchParams.get('search');
 
-    let sections = [];
+    let sections: any[] = [];
 
     if (courseId) {
       // Get sections for a specific course
@@ -45,7 +45,9 @@ export async function GET(request: NextRequest) {
           }));
           sections = scanResult.Items || [];
         } else {
-          throw gsiError;
+          console.error('Error querying sections:', gsiError);
+          // Return empty array instead of throwing error
+          sections = [];
         }
       }
     } else if (instructorId) {
@@ -105,8 +107,18 @@ export async function GET(request: NextRequest) {
       count: sections.length
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching sections:', error);
+    
+    // If table doesn't exist, return empty array instead of error
+    if (error.name === 'ResourceNotFoundException') {
+      return NextResponse.json({
+        success: true,
+        data: [],
+        count: 0
+      });
+    }
+    
     return NextResponse.json(
       { 
         success: false, 
