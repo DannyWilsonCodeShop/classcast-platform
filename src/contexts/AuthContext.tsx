@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -145,13 +145,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         router.push('/');
       }
-      
-      return { success: true };
     } catch (error) {
       console.error('Login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setError(errorMessage);
-      return { success: false, error: errorMessage };
+      throw error; // Re-throw the error so LoginForm can catch it
     } finally {
       setIsLoading(false);
     }
