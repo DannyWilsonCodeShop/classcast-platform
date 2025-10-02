@@ -6,7 +6,13 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { Assignment, AssignmentType, AssignmentStatus } from '@/types/dynamodb';
 import { CLASS_COLORS, getClassColorById, getDefaultClassColor } from '@/lib/class-colors';
-import { Section } from '@/types/sections';
+// import { Section } from '@/types/sections';
+
+interface Section {
+  sectionId: string;
+  sectionName: string;
+  sectionCode?: string;
+}
 
 // Dynamically import TipTapEditor to avoid SSR issues
 const TipTapEditor = dynamic(() => import('./TipTapEditor'), {
@@ -199,8 +205,8 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         title: formData.title.trim(),
         description: formData.description.trim(),
         assignmentType: formData.assignmentType,
-        dueDate: formData.dueDate ? formData.dueDate.toISOString() : '',
-        responseDueDate: formData.responseDueDate ? formData.responseDueDate.toISOString() : undefined,
+        dueDate: formData.dueDate && formData.dueDate instanceof Date ? formData.dueDate.toISOString() : '',
+        responseDueDate: formData.responseDueDate && formData.responseDueDate instanceof Date ? formData.responseDueDate.toISOString() : undefined,
         maxScore: formData.maxScore,
         requirements: formData.requirements.filter(req => req.trim()),
         allowLateSubmission: formData.allowLateSubmission,
@@ -678,7 +684,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
             </label>
             <DatePicker
               selected={formData.dueDate}
-              onChange={(date) => setFormData(prev => ({ ...prev, dueDate: date }))}
+              onChange={(date) => setFormData(prev => ({ ...prev, dueDate: date instanceof Date ? date : null }))}
               showTimeSelect
               timeFormat="h:mm aa"
               timeIntervals={15}
@@ -1070,7 +1076,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                 </label>
                 <DatePicker
                   selected={formData.responseDueDate}
-                  onChange={(date) => setFormData(prev => ({ ...prev, responseDueDate: date }))}
+                  onChange={(date) => setFormData(prev => ({ ...prev, responseDueDate: date instanceof Date ? date : null }))}
                   showTimeSelect
                   timeFormat="h:mm aa"
                   timeIntervals={15}
