@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { BookOpenIcon, UsersIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
+import Avatar from '@/components/common/Avatar';
 
 interface Course {
   id: string;
@@ -60,10 +61,13 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
       <div className="p-4">
         {/* Instructor */}
         <div className="flex items-center space-x-2 mb-4">
-          <img
-            src={course.instructor.avatar}
-            alt={course.instructor.name}
-            className="w-6 h-6 rounded-full"
+          <Avatar
+            user={{
+              firstName: course.instructor.name.split(' ')[0] || '',
+              lastName: course.instructor.name.split(' ')[1] || '',
+              avatar: course.instructor.avatar
+            }}
+            size="sm"
           />
           <span className="text-sm text-gray-600">
             Prof. {course.instructor.name}

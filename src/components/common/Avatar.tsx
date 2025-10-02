@@ -57,9 +57,14 @@ const Avatar: React.FC<AvatarProps> = ({
       
       // Check if it's an image URL
       if (isImageUrl(user.avatar)) {
+        // Handle S3 URLs with proxy for CORS
+        const imageSrc = user.avatar.includes('s3.amazonaws.com') || user.avatar.includes('s3.') 
+          ? `/api/avatar-proxy?url=${encodeURIComponent(user.avatar)}`
+          : user.avatar;
+          
         return (
           <img
-            src={user.avatar}
+            src={imageSrc}
             alt={`${user.firstName} ${user.lastName}`}
             className="w-full h-full object-cover"
             onError={(e) => {
