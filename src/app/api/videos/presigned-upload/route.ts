@@ -10,7 +10,7 @@ const s3 = new S3Client({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { fileName, contentType, userId, folder = 'uploads' } = body;
+    const { fileName, contentType, userId, assignmentId } = body;
 
     if (!fileName || !contentType) {
       return NextResponse.json({
@@ -21,9 +21,8 @@ export async function POST(request: NextRequest) {
 
     // Generate unique file key
     const timestamp = Date.now();
-    const fileExtension = fileName.split('.').pop() || 'jpg';
-    const sanitizedName = fileName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '_').toLowerCase().substring(0, 50);
-    const fileKey = `${folder}/${sanitizedName}_${userId || 'anonymous'}_${timestamp}.${fileExtension}`;
+    const fileExtension = fileName.split('.').pop() || 'webm';
+    const fileKey = `video-submissions/${userId || 'anonymous'}/${assignmentId || 'temp'}-${timestamp}.${fileExtension}`;
 
     const command = new PutObjectCommand({
       Bucket: 'classcast-videos-463470937777-us-east-1',
@@ -31,14 +30,14 @@ export async function POST(request: NextRequest) {
       ContentType: contentType,
       Metadata: {
         'user-id': userId || 'anonymous',
+        'assignment-id': assignmentId || 'temp',
         'upload-timestamp': new Date().toISOString(),
-        'original-filename': fileName,
-        'folder': folder
+        'original-filename': fileName
       }
     });
 
     const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 300 }); // 5 minutes
-    const fileUrl = `https://classcast-videos-463470937777-us-east-1.s3.us-east-1.amazonaws.com/${fileKey}`;
+    const videoUrl = `https://classcast-videos-463470937777-us-east-1.s3.us-east-1.amazonaws.com/${fileKey}`;
 
     console.log('Generated presigned URL for:', fileKey);
 
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
       data: {
         presignedUrl,
         fileKey,
-        fileUrl,
+        videoUrl,
         expiresIn: 300
       },
       message: 'Presigned URL generated successfully'
