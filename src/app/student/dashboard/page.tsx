@@ -7,6 +7,7 @@ import VideoReels from '@/components/student/VideoReels';
 import CourseCard from '@/components/student/CourseCard';
 import StudentOnboardingWizard from '@/components/wizards/StudentOnboardingWizard';
 import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
+import Avatar from '@/components/common/Avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Wifi, WifiOff, Plus } from 'lucide-react';
@@ -334,13 +335,13 @@ const StudentDashboard: React.FC = () => {
               >
                 <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
-              <button
+              <Avatar
+                user={user}
+                size="lg"
                 onClick={() => router.push('/student/profile')}
-                className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm sm:text-lg shadow-lg hover:scale-110 transition-all duration-200 cursor-pointer"
+                className="shadow-lg"
                 title="View Profile"
-              >
-                {user?.firstName?.charAt(0) || 'S'}
-              </button>
+              />
             </div>
           </div>
         </div>

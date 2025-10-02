@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
+import Avatar from '@/components/common/Avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -248,33 +249,19 @@ const StudentProfilePage: React.FC = () => {
                 {/* Avatar */}
                 <div className="relative">
                   {isEditing ? (
-                    <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white">
-                      {editedProfile?.avatar ? (
-                        <div className="w-full h-full bg-white flex items-center justify-center text-6xl">
-                          {editedProfile.avatar}
-                        </div>
-                      ) : (
-                        <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                          <span className="text-3xl font-bold text-white">
-                            {editedProfile?.firstName?.charAt(0) || editedProfile?.lastName?.charAt(0) || 'U'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    <Avatar
+                      user={editedProfile || {}}
+                      size="xl"
+                      showBorder={true}
+                      className="border-white"
+                    />
                   ) : (
-                    <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-white">
-                      {profile?.avatar ? (
-                        <div className="w-full h-full bg-white flex items-center justify-center text-6xl">
-                          {profile.avatar}
-                        </div>
-                      ) : (
-                        <div className="w-full h-full bg-white/20 flex items-center justify-center">
-                          <span className="text-3xl font-bold text-white">
-                            {profile?.firstName?.charAt(0) || profile?.lastName?.charAt(0) || 'U'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                    <Avatar
+                      user={profile || {}}
+                      size="xl"
+                      showBorder={true}
+                      className="border-white"
+                    />
                   )}
                   
                   {/* Emoji Picker Button (only in edit mode) */}
