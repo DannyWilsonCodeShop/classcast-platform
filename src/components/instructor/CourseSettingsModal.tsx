@@ -34,21 +34,7 @@ interface Course {
   status: 'draft' | 'published' | 'archived';
   enrollmentCount: number;
   maxEnrollment?: number;
-  credits: number;
   instructorId?: string;
-  schedule: {
-    days: string[];
-    time: string;
-    location: string;
-  };
-  prerequisites: string[];
-  learningObjectives: string[];
-  gradingPolicy: {
-    assignments: number;
-    exams: number;
-    participation: number;
-    final: number;
-  };
   settings?: {
     privacy?: 'public' | 'private';
     allowLateSubmissions?: boolean;
@@ -105,11 +91,6 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
         semester: course.semester,
         year: course.year,
         maxEnrollment: course.maxEnrollment,
-        credits: course.credits,
-        schedule: course.schedule,
-        prerequisites: course.prerequisites,
-        learningObjectives: course.learningObjectives,
-        gradingPolicy: course.gradingPolicy
       });
       loadSections();
     }
@@ -172,15 +153,6 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
     }));
   };
 
-  const handleGradingPolicyChange = (field: string, value: number) => {
-    setFormData(prev => ({
-      ...prev,
-      gradingPolicy: {
-        ...prev.gradingPolicy!,
-        [field]: value
-      }
-    }));
-  };
 
   // Section management functions
   const handleAddSection = async () => {
@@ -361,20 +333,6 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Credits
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.credits || ''}
-                    onChange={(e) => handleInputChange('credits', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min="1"
-                    max="6"
-                    required
-                  />
-                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -551,167 +509,9 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
               )}
             </div>
 
-            {/* Schedule */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-                Schedule
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Days
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.schedule?.days?.join(', ') || ''}
-                    onChange={(e) => handleInputChange('schedule', {
-                      ...formData.schedule,
-                      days: e.target.value.split(',').map(d => d.trim()).filter(d => d)
-                    })}
-                    placeholder="Monday, Wednesday, Friday"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Time
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.schedule?.time || ''}
-                    onChange={(e) => handleInputChange('schedule', {
-                      ...formData.schedule,
-                      time: e.target.value
-                    })}
-                    placeholder="10:00 AM - 11:00 AM"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.schedule?.location || ''}
-                    onChange={(e) => handleInputChange('schedule', {
-                      ...formData.schedule,
-                      location: e.target.value
-                    })}
-                    placeholder="Room 101"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </div>
 
-            {/* Grading Policy */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-                Grading Policy
-              </h3>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Assignments (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.gradingPolicy?.assignments || ''}
-                    onChange={(e) => handleGradingPolicyChange('assignments', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min="0"
-                    max="100"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Exams (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.gradingPolicy?.exams || ''}
-                    onChange={(e) => handleGradingPolicyChange('exams', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min="0"
-                    max="100"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Participation (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.gradingPolicy?.participation || ''}
-                    onChange={(e) => handleGradingPolicyChange('participation', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min="0"
-                    max="100"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Final (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.gradingPolicy?.final || ''}
-                    onChange={(e) => handleGradingPolicyChange('final', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    min="0"
-                    max="100"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Prerequisites */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-                Prerequisites
-              </h3>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Prerequisites (one per line)
-                </label>
-                <textarea
-                  value={formData.prerequisites?.join('\n') || ''}
-                  onChange={(e) => handleArrayChange('prerequisites', e.target.value)}
-                  rows={3}
-                  placeholder="Introduction to Computer Science&#10;Basic Mathematics&#10;Programming Fundamentals"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {/* Learning Objectives */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
-                Learning Objectives
-              </h3>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Learning Objectives (one per line)
-                </label>
-                <textarea
-                  value={formData.learningObjectives?.join('\n') || ''}
-                  onChange={(e) => handleArrayChange('learningObjectives', e.target.value)}
-                  rows={4}
-                  placeholder="Understand fundamental concepts of computer science&#10;Develop problem-solving skills&#10;Learn programming languages&#10;Apply knowledge to real-world projects"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
 
             {/* Error/Success Messages */}
             {error && (
