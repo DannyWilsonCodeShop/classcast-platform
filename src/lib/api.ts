@@ -295,8 +295,8 @@ class ApiClient {
   // ============================================================================
 
   async getUserProfile(userId: string): Promise<User> {
-    const response = await this.request<{ user: User }>(`/users/${userId}/profile`);
-    return response.data!.user;
+    const response = await this.request<{ success: boolean; data: User }>(`/profile?userId=${userId}`);
+    return response.data!.data;
   }
 
   async updateUserProfile(userId: string, updates: Partial<User>): Promise<User> {

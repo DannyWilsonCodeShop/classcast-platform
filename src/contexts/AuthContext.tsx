@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               ...response.user,
               ...profileData.data,
               // Ensure role is set from profile data if not in login response
-              role: profileData.data.role || response.user.role
+              role: profileData.data.role || response.user.role || 'student' // Fallback to student if no role found
             };
             
             console.log('Login response user:', response.user);
@@ -104,19 +104,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           } else {
             // Fallback to basic user data if profile load fails
             console.log('Profile load failed, using basic user data:', response.user);
-            api.setCurrentUser(response.user);
-            setUser(response.user);
+            const userWithRole = {
+              ...response.user,
+              role: response.user.role || 'student' // Fallback to student if no role found
+            };
+            api.setCurrentUser(userWithRole);
+            setUser(userWithRole);
           }
         } else {
           // Fallback to basic user data if profile load fails
-          api.setCurrentUser(response.user);
-          setUser(response.user);
+          const userWithRole = {
+            ...response.user,
+            role: response.user.role || 'student' // Fallback to student if no role found
+          };
+          api.setCurrentUser(userWithRole);
+          setUser(userWithRole);
         }
       } catch (profileError) {
         console.warn('Failed to load user profile, using basic data:', profileError);
         // Fallback to basic user data if profile load fails
-        api.setCurrentUser(response.user);
-        setUser(response.user);
+        const userWithRole = {
+          ...response.user,
+          role: response.user.role || 'student' // Fallback to student if no role found
+        };
+        api.setCurrentUser(userWithRole);
+        setUser(userWithRole);
       }
       
       // Redirect based on user role
