@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
         return {
           id: course.courseId,
           code: course.code || 'N/A',
-          name: course.title || 'Untitled Course',
+          name: course.courseName || course.title || 'Untitled Course',
           description: course.description || 'No description available',
           instructor,
           assignmentsDue: assignmentsDue.length,
