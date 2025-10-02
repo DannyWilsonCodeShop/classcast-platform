@@ -85,8 +85,8 @@ export interface CreateCourseData {
   title: string;
   description: string;
   code: string;
+  classCode?: string;
   department: string;
-  credits: number;
   semester: string;
   year: number;
   backgroundColor: string;
@@ -101,11 +101,6 @@ export interface CreateCourseData {
     exams: number;
     participation: number;
     final: number;
-  };
-  schedule: {
-    days: string[];
-    time: string;
-    location: string;
   };
   resources: {
     textbooks: Array<{
@@ -130,6 +125,9 @@ export interface CreateCourseData {
     enableAnnouncements: boolean;
     privacy: 'public' | 'private';
   };
+  instructorId?: string;
+  courseId?: string;
+  courseName?: string;
 }
 
 export interface UpdateCourseData extends Partial<CreateCourseData> {
