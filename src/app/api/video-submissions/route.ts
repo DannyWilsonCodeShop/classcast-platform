@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
       studentId,
       courseId,
       videoUrl,
+      videoId,
       videoTitle,
       videoDescription,
       duration,
@@ -96,7 +97,8 @@ export async function POST(request: NextRequest) {
       fileSize,
       fileType,
       isRecorded = false,
-      isUploaded = false
+      isUploaded = false,
+      isLocalStorage = false
     } = body;
 
     if (!assignmentId || !studentId || !courseId || !videoUrl) {
@@ -115,6 +117,7 @@ export async function POST(request: NextRequest) {
       studentId,
       courseId,
       videoUrl,
+      videoId: videoId || null,
       videoTitle: videoTitle || 'Video Submission',
       videoDescription: videoDescription || '',
       duration: duration || 0,
@@ -123,6 +126,7 @@ export async function POST(request: NextRequest) {
       fileType: fileType || 'video/webm',
       isRecorded,
       isUploaded,
+      isLocalStorage,
       status: 'submitted', // submitted, graded, returned
       grade: null,
       instructorFeedback: null,
