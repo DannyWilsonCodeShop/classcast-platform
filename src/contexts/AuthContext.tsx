@@ -99,6 +99,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             console.log('Final role:', fullUser.role);
             
             // Store full user data
+            console.log('Setting user with role:', fullUser.role);
             api.setCurrentUser(fullUser);
             setUser(fullUser);
           } else {
@@ -108,6 +109,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               ...response.user,
               role: response.user.role || 'student' // Fallback to student if no role found
             };
+            console.log('Setting fallback user with role:', userWithRole.role);
             api.setCurrentUser(userWithRole);
             setUser(userWithRole);
           }
@@ -117,6 +119,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             ...response.user,
             role: response.user.role || 'student' // Fallback to student if no role found
           };
+          console.log('Setting profile-failed user with role:', userWithRole.role);
           api.setCurrentUser(userWithRole);
           setUser(userWithRole);
         }
@@ -127,6 +130,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           ...response.user,
           role: response.user.role || 'student' // Fallback to student if no role found
         };
+        console.log('Setting catch-block user with role:', userWithRole.role);
         api.setCurrentUser(userWithRole);
         setUser(userWithRole);
       }
