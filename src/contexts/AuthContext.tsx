@@ -85,17 +85,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (profileResponse.ok) {
           const profileData = await profileResponse.json();
           if (profileData.success) {
-            // Merge profile data with login response
+            // Merge profile data with login response, ensuring role is preserved
             const fullUser = {
               ...response.user,
-              ...profileData.data
+              ...profileData.data,
+              // Ensure role is set from profile data if not in login response
+              role: profileData.data.role || response.user.role
             };
+            
+            console.log('Full user data after profile merge:', fullUser);
             
             // Store full user data
             api.setCurrentUser(fullUser);
             setUser(fullUser);
           } else {
             // Fallback to basic user data if profile load fails
+            console.log('Profile load failed, using basic user data:', response.user);
             api.setCurrentUser(response.user);
             setUser(response.user);
           }

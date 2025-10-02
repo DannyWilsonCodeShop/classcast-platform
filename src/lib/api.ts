@@ -351,12 +351,12 @@ class ApiClient {
 
   async getVideos(): Promise<VideoReel[]> {
     const response = await this.request<{ videos: VideoReel[] }>('/videos');
-    return response.data!.videos;
+    return response.videos || [];
   }
 
   async getVideo(videoId: string): Promise<VideoReel> {
     const response = await this.request<{ video: VideoReel }>(`/videos/${videoId}`);
-    return response.data!.video;
+    return response.video;
   }
 
   async createVideo(videoData: Partial<VideoReel>): Promise<VideoReel> {
@@ -364,7 +364,7 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify(videoData),
     });
-    return response.data!.video;
+    return response.video;
   }
 
   async updateVideo(videoId: string, updates: Partial<VideoReel>): Promise<VideoReel> {
