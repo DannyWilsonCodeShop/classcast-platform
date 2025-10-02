@@ -14,6 +14,7 @@ interface ClassFormData {
   semester: string;
   year: string;
   maxStudents: number;
+  privacy: 'public' | 'private';
   prerequisites: string;
   learningObjectives: string;
   gradingPolicy: string;
@@ -66,6 +67,7 @@ const CreateClassPage: React.FC = () => {
     semester: 'Spring',
     year: new Date().getFullYear().toString(),
     maxStudents: 30,
+    privacy: 'public',
     prerequisites: '',
     learningObjectives: '',
     gradingPolicy: '',
@@ -359,7 +361,8 @@ const CreateClassPage: React.FC = () => {
             latePenalty: 10,
             allowResubmissions: false,
             enableDiscussions: true,
-            enableAnnouncements: true
+            enableAnnouncements: true,
+            privacy: formData.privacy
           }
         }),
       });
@@ -650,6 +653,52 @@ const CreateClassPage: React.FC = () => {
                     />
                   ))}
                 </div>
+              </div>
+
+              {/* Course Privacy Setting */}
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Course Visibility
+                </label>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="radio"
+                      id="privacy-public"
+                      name="privacy"
+                      value="public"
+                      checked={formData.privacy === 'public'}
+                      onChange={(e) => handleInputChange('privacy', e.target.value as 'public' | 'private')}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                    />
+                    <label htmlFor="privacy-public" className="flex-1">
+                      <div className="font-medium text-gray-900">Public Course</div>
+                      <div className="text-sm text-gray-500">
+                        Students can search and discover this course in the course directory
+                      </div>
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="radio"
+                      id="privacy-private"
+                      name="privacy"
+                      value="private"
+                      checked={formData.privacy === 'private'}
+                      onChange={(e) => handleInputChange('privacy', e.target.value as 'public' | 'private')}
+                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                    />
+                    <label htmlFor="privacy-private" className="flex-1">
+                      <div className="font-medium text-gray-900">Private Course</div>
+                      <div className="text-sm text-gray-500">
+                        Only students with the class code can join this course
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  You can change this setting later in your course settings.
+                </p>
               </div>
             </div>
 

@@ -19,6 +19,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('Fetching courses for instructor ID:', instructorId);
+
     // Get courses for the specific instructor
     const result = await docClient.send(new ScanCommand({
       TableName: COURSES_TABLE,
@@ -29,6 +31,19 @@ export async function GET(request: NextRequest) {
     }));
 
     const courses = result.Items || [];
+    console.log(`Found ${courses.length} courses for instructor ${instructorId}`);
+
+    // If no courses found, let's also check for courses with different instructor ID patterns
+    let allCourses = [];
+    if (courses.length === 0) {
+      console.log('No courses found with exact instructor ID match, checking all courses...');
+      const allCoursesResult = await docClient.send(new ScanCommand({
+        TableName: COURSES_TABLE
+      }));
+      allCourses = allCoursesResult.Items || [];
+      console.log(`Found ${allCourses.length} total courses in database`);
+      console.log('All instructor IDs in database:', allCourses.map(c => c.instructorId));
+    }
 
     return NextResponse.json({
       success: true,
@@ -48,7 +63,13 @@ export async function GET(request: NextRequest) {
           status: course.status || 'active',
           createdAt: course.createdAt,
           updatedAt: course.updatedAt
-        }))
+        })),
+        debug: {
+          requestedInstructorId: instructorId,
+          coursesFound: courses.length,
+          allInstructorIds: allCourses.map(c => c.instructorId),
+          allCourseIds: allCourses.map(c => c.courseId)
+        }
       }
     });
 
