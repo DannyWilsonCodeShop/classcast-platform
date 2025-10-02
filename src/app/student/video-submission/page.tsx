@@ -24,7 +24,12 @@ const VideoSubmissionPage: React.FC = () => {
     try {
       setError(null);
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
+        video: { 
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          aspectRatio: { ideal: 16/9 },
+          facingMode: 'user'
+        }, 
         audio: true 
       });
       
@@ -77,17 +82,6 @@ const VideoSubmissionPage: React.FC = () => {
       setError(null);
       setUploadProgress(0);
 
-      // Create a FormData object
-      const formData = new FormData();
-      
-      // Convert the video URL back to a blob
-      const response = await fetch(recordedVideo);
-      const blob = await response.blob();
-      
-      formData.append('video', blob, 'video-submission.webm');
-      formData.append('userId', user?.id || '');
-      formData.append('assignmentId', 'temp-assignment'); // This would come from the assignment context
-
       // Simulate upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
@@ -99,24 +93,35 @@ const VideoSubmissionPage: React.FC = () => {
         });
       }, 200);
 
-      // Upload to your API (using mock endpoint for now)
-      const uploadResponse = await fetch('/api/videos/upload-mock', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
+      // For now, simulate a successful upload
+      // In a real implementation, this would upload to a server
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      if (uploadResponse.ok) {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push('/student/dashboard');
-        }, 2000);
-      } else {
-        throw new Error('Upload failed');
-      }
+      // Simulate successful upload
+      setSuccess(true);
+      
+      // Store video info in localStorage for demo purposes
+      const videoInfo = {
+        id: `video-${Date.now()}`,
+        url: recordedVideo,
+        fileName: `video-submission-${Date.now()}.webm`,
+        uploadedAt: new Date().toISOString(),
+        userId: user?.id || 'unknown',
+        assignmentId: 'temp-assignment'
+      };
+      
+      // Store in localStorage
+      const existingVideos = JSON.parse(localStorage.getItem('uploadedVideos') || '[]');
+      existingVideos.push(videoInfo);
+      localStorage.setItem('uploadedVideos', JSON.stringify(existingVideos));
+
+      setTimeout(() => {
+        router.push('/student/dashboard');
+      }, 2000);
+
     } catch (err) {
       console.error('Error uploading video:', err);
       setError('Failed to upload video. Please try again.');
@@ -178,13 +183,15 @@ const VideoSubmissionPage: React.FC = () => {
 
                 {/* Video Preview */}
                 <div className="relative bg-black rounded-xl overflow-hidden mb-6">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    muted
-                    playsInline
-                    className="w-full h-64 object-cover"
-                  />
+                  <div className="aspect-video w-full max-w-2xl mx-auto">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover rounded-xl"
+                    />
+                  </div>
                   {isRecording && (
                     <div className="absolute inset-0 flex items-center justify-center">
                       <div className="bg-red-500 text-white px-4 py-2 rounded-full flex items-center space-x-2">
@@ -233,11 +240,13 @@ const VideoSubmissionPage: React.FC = () => {
 
                 {/* Recorded Video Preview */}
                 <div className="relative bg-black rounded-xl overflow-hidden mb-6">
-                  <video
-                    src={recordedVideo}
-                    controls
-                    className="w-full h-64 object-cover"
-                  />
+                  <div className="aspect-video w-full max-w-2xl mx-auto">
+                    <video
+                      src={recordedVideo}
+                      controls
+                      className="w-full h-full object-cover rounded-xl"
+                    />
+                  </div>
                 </div>
 
                 {/* Upload Progress */}
