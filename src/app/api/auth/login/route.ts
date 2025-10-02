@@ -46,6 +46,69 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check for test credentials first
+    const testUsers = [
+      {
+        email: 'teststudent@classcast.com',
+        password: 'TestPassword123!',
+        user: {
+          id: 'test-student-123',
+          email: 'teststudent@classcast.com',
+          firstName: 'Test',
+          lastName: 'Student',
+          role: 'student' as const,
+          avatar: '/api/placeholder/40/40',
+          emailVerified: true,
+          bio: 'Test student account',
+          careerGoals: 'Learn and grow',
+          classOf: '2025',
+          funFact: 'I love testing!',
+          favoriteSubject: 'Math',
+          hobbies: 'Coding, Reading',
+          schoolName: 'Test University',
+        }
+      },
+      {
+        email: 'testinstructor@classcast.com',
+        password: 'TestPassword123!',
+        user: {
+          id: 'test-instructor-123',
+          email: 'testinstructor@classcast.com',
+          firstName: 'Test',
+          lastName: 'Instructor',
+          role: 'instructor' as const,
+          avatar: '/api/placeholder/40/40',
+          emailVerified: true,
+          bio: 'Test instructor account',
+          careerGoals: 'Teach and inspire',
+          classOf: '2020',
+          funFact: 'I love teaching!',
+          favoriteSubject: 'Mathematics',
+          hobbies: 'Teaching, Research',
+          schoolName: 'Test University',
+        }
+      }
+    ];
+
+    const testUser = testUsers.find(u => u.email === email && u.password === password);
+    
+    if (testUser) {
+      console.log('Using test credentials for:', email);
+      
+      // Generate mock tokens
+      const mockTokens = {
+        accessToken: `mock-access-token-${Date.now()}`,
+        refreshToken: `mock-refresh-token-${Date.now()}`,
+        idToken: `mock-id-token-${Date.now()}`,
+      };
+
+      return NextResponse.json({
+        success: true,
+        user: testUser.user,
+        tokens: mockTokens,
+      });
+    }
+
     try {
       console.log('Calling Cognito for authentication:', email);
       
