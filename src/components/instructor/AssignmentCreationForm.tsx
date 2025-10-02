@@ -216,6 +216,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         responseWordLimit: formData.enablePeerResponses ? formData.responseWordLimit : undefined,
         responseCharacterLimit: formData.enablePeerResponses ? formData.responseCharacterLimit : undefined,
         hidePeerVideosUntilInstructorPosts: formData.enablePeerResponses ? formData.hidePeerVideosUntilInstructorPosts : undefined,
+        peerReviewScope: formData.enablePeerResponses ? formData.peerReviewScope : undefined,
         coverPhoto: formData.coverPhoto,
         emoji: formData.emoji,
         color: formData.color,
