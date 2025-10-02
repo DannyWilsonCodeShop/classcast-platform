@@ -24,20 +24,6 @@ interface Course {
   status: 'draft' | 'published' | 'archived';
   enrollmentCount: number;
   maxEnrollment?: number;
-  credits: number;
-  schedule: {
-    days: string[];
-    time: string;
-    location: string;
-  };
-  prerequisites: string[];
-  learningObjectives: string[];
-  gradingPolicy: {
-    assignments: number;
-    exams: number;
-    participation: number;
-    final: number;
-  };
   createdAt: string;
   updatedAt: string;
 }
@@ -118,20 +104,6 @@ const InstructorCourseDetailPage: React.FC = () => {
           status: apiCourse.status || 'published',
           enrollmentCount: apiCourse.currentEnrollment || apiCourse.enrollmentCount || 0,
           maxEnrollment: apiCourse.maxStudents || apiCourse.maxEnrollment,
-          credits: apiCourse.credits || 3,
-          schedule: apiCourse.schedule || {
-            days: ['Monday', 'Wednesday', 'Friday'],
-            time: '10:00 AM - 11:00 AM',
-            location: 'TBD'
-          },
-          prerequisites: apiCourse.prerequisites || [],
-          learningObjectives: apiCourse.learningObjectives || [],
-          gradingPolicy: apiCourse.gradingPolicy || {
-            assignments: 40,
-            exams: 30,
-            participation: 10,
-            final: 20
-          },
           createdAt: apiCourse.createdAt || new Date().toISOString(),
           updatedAt: apiCourse.updatedAt || new Date().toISOString()
         };
