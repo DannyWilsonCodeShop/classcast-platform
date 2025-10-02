@@ -93,9 +93,16 @@ const VideoSubmissionPage: React.FC = () => {
         });
       }, 200);
 
-      // For now, simulate a successful upload
-      // In a real implementation, this would upload to a server
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Convert blob URL to actual video data
+      const response = await fetch(recordedVideo);
+      const videoBlob = await response.blob();
+      
+      // Create a more permanent video URL by converting to base64
+      const reader = new FileReader();
+      const videoDataUrl = await new Promise<string>((resolve) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.readAsDataURL(videoBlob);
+      });
 
       clearInterval(progressInterval);
       setUploadProgress(100);
@@ -106,11 +113,14 @@ const VideoSubmissionPage: React.FC = () => {
       // Store video info in localStorage for demo purposes
       const videoInfo = {
         id: `video-${Date.now()}`,
-        url: recordedVideo,
+        url: videoDataUrl, // Store as data URL for persistence
+        blobUrl: recordedVideo, // Keep original blob URL for immediate playback
         fileName: `video-submission-${Date.now()}.webm`,
         uploadedAt: new Date().toISOString(),
         userId: user?.id || 'unknown',
-        assignmentId: 'temp-assignment'
+        assignmentId: 'temp-assignment',
+        size: videoBlob.size,
+        type: videoBlob.type
       };
       
       // Store in localStorage
@@ -118,9 +128,8 @@ const VideoSubmissionPage: React.FC = () => {
       existingVideos.push(videoInfo);
       localStorage.setItem('uploadedVideos', JSON.stringify(existingVideos));
 
-      setTimeout(() => {
-        router.push('/student/dashboard');
-      }, 2000);
+      // Show success message with video preview
+      // User can choose to view submissions or go to dashboard
 
     } catch (err) {
       console.error('Error uploading video:', err);
@@ -267,11 +276,42 @@ const VideoSubmissionPage: React.FC = () => {
 
                 {/* Success Message */}
                 {success && (
-                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-green-600 text-xl">✅</span>
-                      <p className="text-green-800 font-semibold">
-                        Video uploaded successfully! Redirecting to dashboard...
+                  <div className="mb-6 space-y-4">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-green-600 text-xl">✅</span>
+                        <p className="text-green-800 font-semibold">
+                          Video uploaded successfully! Redirecting to dashboard...
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Video Preview After Upload */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Your Submitted Video:</h4>
+                      <div className="aspect-video w-full max-w-md mx-auto">
+                        <video
+                          src={recordedVideo}
+                          controls
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      </div>
+                      <div className="flex justify-center space-x-4 mt-4">
+                        <button
+                          onClick={() => router.push('/student/submissions')}
+                          className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                        >
+                          View All Submissions
+                        </button>
+                        <button
+                          onClick={() => router.push('/student/dashboard')}
+                          className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+                        >
+                          Go to Dashboard
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        This video has been saved and will be available in your submissions.
                       </p>
                     </div>
                   </div>
