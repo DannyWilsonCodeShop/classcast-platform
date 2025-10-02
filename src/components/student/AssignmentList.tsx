@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { Assignment } from '@/types/dynamodb';
 import { AssignmentCard } from './AssignmentCard';
 import { AssignmentFilters } from './AssignmentFilters';
@@ -45,6 +46,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   maxItems = 50,
 }) => {
   const router = useRouter();
+  const { user } = useAuth();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [filteredAssignments, setFilteredAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +68,15 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       setLoading(true);
       setError(null);
 
+      if (!user?.id) {
+        setError('User not authenticated');
+        return;
+      }
+
       const params = new URLSearchParams();
+      
+      // Add user ID
+      params.append('userId', user.id);
       
       if (courseId) {
         params.append('courseId', courseId);
@@ -100,7 +110,7 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
       params.append('page', pagination.currentPage.toString());
       params.append('limit', pagination.itemsPerPage.toString());
 
-      const response = await fetch(`/api/assignments?${params.toString()}`, {
+      const response = await fetch(`/api/student/assignments?${params.toString()}`, {
         credentials: 'include',
       });
 
@@ -110,11 +120,11 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
       const data = await response.json();
       
-      if (data.success && data.data) {
-        setAssignments(data.data.assignments || []);
+      if (data.assignments) {
+        setAssignments(data.assignments || []);
         setPagination(prev => ({
           ...prev,
-          totalItems: data.data.totalCount || 0,
+          totalItems: data.assignments?.length || 0,
         }));
       } else {
         throw new Error(data.error || 'Failed to fetch assignments');
@@ -228,8 +238,10 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
 
   // Fetch assignments when dependencies change
   useEffect(() => {
-    fetchAssignments();
-  }, [fetchAssignments]);
+    if (user?.id) {
+      fetchAssignments();
+    }
+  }, [fetchAssignments, user?.id]);
 
   // Handle filter changes
   const handleFilterChange = useCallback((newFilters: Partial<AssignmentFiltersState>) => {
