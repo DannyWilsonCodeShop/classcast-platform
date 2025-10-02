@@ -165,7 +165,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
           userId: studentId,
           userName: user?.firstName ? `${user.firstName} ${user.lastName}` : 'Current User',
           userAvatar: user?.avatar || '/api/placeholder/40/40',
-          contentCreatorId: selectedVideoForRating.author.id,
+          contentCreatorId: selectedVideoForRating.author?.id || '',
           rating: rating,
           comment: ratingComment.trim()
         }),
@@ -284,13 +284,13 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
               {/* Author Info */}
               <div className="flex items-center space-x-2 mb-2">
                 <img
-                  src={reel.author.avatar}
-                  alt={reel.author.name}
+                  src={reel.author?.avatar || '/api/placeholder/20/20'}
+                  alt={reel.author?.name || 'Unknown Author'}
                   className="w-5 h-5 rounded-full"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-gray-900 truncate">
-                    {reel.author.name}
+                    {reel.author?.name || 'Unknown Author'}
                   </p>
                   <p className="text-xs text-gray-500">
                     {formatTimeAgo(reel.createdAt)}
@@ -441,7 +441,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
             <div className="p-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Rate Content Creator</h3>
               <p className="text-sm text-gray-600 mt-1">
-                Rate {selectedVideoForRating.author.name}'s content
+                Rate {selectedVideoForRating.author?.name || 'Unknown Author'}'s content
               </p>
             </div>
 
