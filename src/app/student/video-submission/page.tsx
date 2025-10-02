@@ -11,12 +11,16 @@ const VideoSubmissionPage: React.FC = () => {
   const { user } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
   const [recordedVideo, setRecordedVideo] = useState<string | null>(null);
+  const [uploadedVideo, setUploadedVideo] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<'record' | 'upload'>('record');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 
@@ -75,7 +79,8 @@ const VideoSubmissionPage: React.FC = () => {
   };
 
   const uploadVideo = async () => {
-    if (!recordedVideo) return;
+    const videoToUpload = recordedVideo || uploadedVideo;
+    if (!videoToUpload) return;
 
     try {
       setIsUploading(true);
@@ -93,9 +98,24 @@ const VideoSubmissionPage: React.FC = () => {
         });
       }, 200);
 
-      // Convert blob URL to actual video data
-      const response = await fetch(recordedVideo);
-      const videoBlob = await response.blob();
+      let videoBlob: Blob;
+      let fileName: string;
+      let videoType: string;
+
+      if (recordedVideo) {
+        // Handle recorded video
+        const response = await fetch(recordedVideo);
+        videoBlob = await response.blob();
+        fileName = `video-submission-${Date.now()}.webm`;
+        videoType = videoBlob.type;
+      } else if (selectedFile) {
+        // Handle uploaded file
+        videoBlob = selectedFile;
+        fileName = selectedFile.name;
+        videoType = selectedFile.type;
+      } else {
+        throw new Error('No video to upload');
+      }
       
       // Create a more permanent video URL by converting to base64
       const reader = new FileReader();
@@ -114,13 +134,15 @@ const VideoSubmissionPage: React.FC = () => {
       const videoInfo = {
         id: `video-${Date.now()}`,
         url: videoDataUrl, // Store as data URL for persistence
-        blobUrl: recordedVideo, // Keep original blob URL for immediate playback
-        fileName: `video-submission-${Date.now()}.webm`,
+        blobUrl: videoToUpload, // Keep original blob URL for immediate playback
+        fileName: fileName,
         uploadedAt: new Date().toISOString(),
         userId: user?.id || 'unknown',
         assignmentId: 'temp-assignment',
         size: videoBlob.size,
-        type: videoBlob.type
+        type: videoType,
+        isRecorded: !!recordedVideo,
+        isUploaded: !!selectedFile
       };
       
       // Store in localStorage
@@ -141,9 +163,42 @@ const VideoSubmissionPage: React.FC = () => {
 
   const retakeVideo = () => {
     setRecordedVideo(null);
+    setUploadedVideo(null);
+    setSelectedFile(null);
     setError(null);
     setSuccess(false);
     setUploadProgress(0);
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('video/')) {
+        setError('Please select a valid video file.');
+        return;
+      }
+      
+      // Validate file size (max 100MB)
+      const maxSize = 100 * 1024 * 1024; // 100MB
+      if (file.size > maxSize) {
+        setError('File size must be less than 100MB.');
+        return;
+      }
+      
+      setSelectedFile(file);
+      setError(null);
+      
+      // Create preview URL
+      const videoUrl = URL.createObjectURL(file);
+      setUploadedVideo(videoUrl);
+    }
+  };
+
+  const handleFileUpload = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
   };
 
   return (
@@ -181,56 +236,131 @@ const VideoSubmissionPage: React.FC = () => {
 
         <div className="p-6">
           <div className="max-w-4xl mx-auto">
-            {!recordedVideo ? (
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30">
+            {/* Tab Navigation */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30 mb-6">
+              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+                <button
+                  onClick={() => setActiveTab('record')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'record'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  🎥 Live Recording
+                </button>
+                <button
+                  onClick={() => setActiveTab('upload')}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'upload'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  📁 Upload Video
+                </button>
+              </div>
+
+              {activeTab === 'record' && !recordedVideo && (
                 <div className="text-center mb-8">
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">Record Your Video</h2>
                   <p className="text-gray-600">
                     Click the record button to start recording your video assignment
                   </p>
                 </div>
+              )}
+
+              {activeTab === 'upload' && !uploadedVideo && (
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Upload Your Video</h2>
+                  <p className="text-gray-600">
+                    Select a video file from your device to upload
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {!recordedVideo && !uploadedVideo ? (
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30">
 
                 {/* Video Preview */}
-                <div className="relative bg-black rounded-xl overflow-hidden mb-6">
-                  <div className="aspect-video w-full max-w-2xl mx-auto">
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      muted
-                      playsInline
-                      className="w-full h-full object-cover rounded-xl"
+                {activeTab === 'record' && (
+                  <div className="relative bg-black rounded-xl overflow-hidden mb-6">
+                    <div className="aspect-video w-full max-w-2xl mx-auto">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                    </div>
+                    {isRecording && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-red-500 text-white px-4 py-2 rounded-full flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                          <span className="font-semibold">Recording...</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Upload Area */}
+                {activeTab === 'upload' && (
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 mb-6">
+                    <div className="text-center">
+                      <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <span className="text-2xl">📁</span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                        Select Video File
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        Choose a video file from your device (MP4, WebM, MOV, etc.)
+                      </p>
+                      <button
+                        onClick={handleFileUpload}
+                        className="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                      >
+                        Choose File
+                      </button>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Maximum file size: 100MB
+                      </p>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="video/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
                     />
                   </div>
-                  {isRecording && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-red-500 text-white px-4 py-2 rounded-full flex items-center space-x-2">
-                        <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                        <span className="font-semibold">Recording...</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                )}
 
                 {/* Recording Controls */}
-                <div className="flex justify-center space-x-4">
-                  {!isRecording ? (
-                    <button
-                      onClick={startRecording}
-                      className="px-8 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
-                    >
-                      <span className="text-xl">🔴</span>
-                      <span>Start Recording</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={stopRecording}
-                      className="px-8 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
-                    >
-                      <span className="text-xl">⏹️</span>
-                      <span>Stop Recording</span>
-                    </button>
-                  )}
-                </div>
+                {activeTab === 'record' && (
+                  <div className="flex justify-center space-x-4">
+                    {!isRecording ? (
+                      <button
+                        onClick={startRecording}
+                        className="px-8 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+                      >
+                        <span className="text-xl">🔴</span>
+                        <span>Start Recording</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={stopRecording}
+                        className="px-8 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+                      >
+                        <span className="text-xl">⏹️</span>
+                        <span>Stop Recording</span>
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {error && (
                   <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -243,20 +373,37 @@ const VideoSubmissionPage: React.FC = () => {
                 <div className="text-center mb-8">
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">Review Your Video</h2>
                   <p className="text-gray-600">
-                    Review your recording before submitting
+                    {recordedVideo ? 'Review your recording before submitting' : 'Review your uploaded video before submitting'}
                   </p>
                 </div>
 
-                {/* Recorded Video Preview */}
+                {/* Video Preview */}
                 <div className="relative bg-black rounded-xl overflow-hidden mb-6">
                   <div className="aspect-video w-full max-w-2xl mx-auto">
                     <video
-                      src={recordedVideo}
+                      src={recordedVideo || uploadedVideo || undefined}
                       controls
                       className="w-full h-full object-cover rounded-xl"
                     />
                   </div>
                 </div>
+
+                {/* Video Info */}
+                {selectedFile && (
+                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h3 className="font-semibold text-gray-800 mb-2">File Information</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                      <div>
+                        <p><strong>Name:</strong> {selectedFile.name}</p>
+                        <p><strong>Size:</strong> {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                      </div>
+                      <div>
+                        <p><strong>Type:</strong> {selectedFile.type}</p>
+                        <p><strong>Last Modified:</strong> {new Date(selectedFile.lastModified).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Upload Progress */}
                 {isUploading && (
@@ -291,7 +438,7 @@ const VideoSubmissionPage: React.FC = () => {
                       <h4 className="text-sm font-semibold text-gray-700 mb-2">Your Submitted Video:</h4>
                       <div className="aspect-video w-full max-w-md mx-auto">
                         <video
-                          src={recordedVideo}
+                          src={recordedVideo || uploadedVideo || undefined}
                           controls
                           className="w-full h-full object-cover rounded-lg"
                         />
@@ -324,7 +471,7 @@ const VideoSubmissionPage: React.FC = () => {
                     disabled={isUploading}
                     className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Retake Video
+                    {recordedVideo ? 'Retake Video' : 'Choose Different File'}
                   </button>
                   <button
                     onClick={uploadVideo}
