@@ -143,6 +143,7 @@ const StudentProfilePage: React.FC = () => {
 
       const response = await fetch('/api/upload', {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 

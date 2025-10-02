@@ -5,8 +5,21 @@ import { awsConfig } from './aws-config';
 // S3 client configuration
 const s3Client = new S3Client({
   region: awsConfig.region,
-  // Use default credential provider chain (IAM role in production, local credentials in development)
-  // Don't specify credentials explicitly - let AWS SDK handle it automatically
+  // Explicitly set credentials for production
+  credentials: process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  } : undefined,
+  // Use default credential provider chain if explicit credentials not available
+});
+
+// Debug AWS configuration
+console.log('S3 Client Configuration:', {
+  region: awsConfig.region,
+  bucketName: awsConfig.s3.buckets.assets,
+  hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+  hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
+  nodeEnv: process.env.NODE_ENV
 });
 
 // Bucket name from unified configuration
