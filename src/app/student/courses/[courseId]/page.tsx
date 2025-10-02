@@ -145,7 +145,7 @@ const StudentCourseDetailPage: React.FC = () => {
 
       // Fetch assignments for this course
       try {
-        const assignmentsResponse = await fetch(`/api/student/assignments?courseId=${courseId}`, {
+        const assignmentsResponse = await fetch(`/api/student/assignments?courseId=${courseId}&userId=${user.id}`, {
           credentials: 'include',
         });
 
