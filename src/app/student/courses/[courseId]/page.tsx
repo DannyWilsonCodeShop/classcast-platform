@@ -90,112 +90,92 @@ const StudentCourseDetailPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // TODO: Replace with actual API calls
-      // const courseResponse = await fetch(`/api/courses/${courseId}`, {
-      //   credentials: 'include',
-      // });
+      // Fetch real course data from API
+      const courseResponse = await fetch(`/api/courses/${courseId}`, {
+        credentials: 'include',
+      });
+
+      if (!courseResponse.ok) {
+        throw new Error(`Failed to fetch course: ${courseResponse.statusText}`);
+      }
+
+      const courseData = await courseResponse.json();
       
-      // Mock data for now
-      const mockCourse: Course = {
-        courseId,
-        courseName: 'Introduction to Computer Science',
-        courseCode: 'CS101',
-        description: 'Fundamental concepts of computer science and programming',
+      if (!courseData.success || !courseData.data) {
+        throw new Error('Course not found or invalid response');
+      }
+
+      const apiCourse = courseData.data;
+      
+      // Transform API data to match component interface
+      const course: Course = {
+        courseId: apiCourse.courseId || apiCourse.id,
+        courseName: apiCourse.courseName || apiCourse.title,
+        courseCode: apiCourse.courseCode || apiCourse.code,
+        description: apiCourse.description || '',
         instructor: {
-          name: 'Dr. Sarah Johnson',
-          email: 'sarah.johnson@university.edu',
-          avatar: '/api/placeholder/40/40'
+          name: apiCourse.instructorName || 'Unknown Instructor',
+          email: apiCourse.instructorEmail || '',
+          avatar: apiCourse.instructorAvatar || '/api/placeholder/40/40'
         },
-        semester: 'Fall',
-        year: 2024,
-        status: 'published',
-        enrollmentCount: 120,
-        maxEnrollment: 150,
-        credits: 3,
+        semester: apiCourse.semester || 'Fall',
+        year: apiCourse.year || 2024,
+        status: apiCourse.status || 'published',
+        enrollmentCount: apiCourse.enrollment?.students?.length || 0,
+        maxEnrollment: apiCourse.maxEnrollment || apiCourse.maxStudents,
+        credits: apiCourse.credits || 3,
         schedule: {
-          days: ['Monday', 'Wednesday', 'Friday'],
-          time: '10:00 AM - 11:00 AM',
-          location: 'Room 101'
+          days: apiCourse.schedule?.days || ['Monday', 'Wednesday', 'Friday'],
+          time: apiCourse.schedule?.time || 'TBD',
+          location: apiCourse.schedule?.location || 'TBD'
         },
-        prerequisites: ['MATH 101'],
-        learningObjectives: [
-          'Understand basic programming concepts',
-          'Learn data structures and algorithms',
-          'Develop problem-solving skills',
-          'Master a programming language'
-        ],
+        prerequisites: apiCourse.prerequisites || [],
+        learningObjectives: apiCourse.learningObjectives || [],
         gradingPolicy: {
-          assignments: 40,
-          exams: 30,
-          participation: 10,
-          final: 20
+          assignments: apiCourse.gradingPolicy?.assignments || 40,
+          exams: apiCourse.gradingPolicy?.exams || 30,
+          participation: apiCourse.gradingPolicy?.participation || 10,
+          final: apiCourse.gradingPolicy?.final || 20
         },
-        createdAt: '2024-08-15T00:00:00Z',
-        updatedAt: '2024-11-20T00:00:00Z'
+        createdAt: apiCourse.createdAt || new Date().toISOString(),
+        updatedAt: apiCourse.updatedAt || new Date().toISOString()
       };
 
-      const mockAssignments: Assignment[] = [
-        {
-          assignmentId: '1',
-          title: 'Programming Assignment 1: Hello World',
-          description: 'Create your first program that displays "Hello World"',
-          dueDate: '2024-12-01T23:59:59Z',
-          points: 50,
-          status: 'graded',
-          grade: 45,
-          feedback: 'Good work! Consider adding more comments.',
-          submissionType: 'file',
-          createdAt: '2024-11-15T00:00:00Z'
-        },
-        {
-          assignmentId: '2',
-          title: 'Programming Assignment 2: Variables and Functions',
-          description: 'Implement functions for basic mathematical operations',
-          dueDate: '2024-12-08T23:59:59Z',
-          points: 75,
-          status: 'submitted',
-          submissionType: 'file',
-          createdAt: '2024-11-20T00:00:00Z'
-        },
-        {
-          assignmentId: '3',
-          title: 'Programming Assignment 3: Data Structures',
-          description: 'Implement a binary search tree with basic operations',
-          dueDate: '2024-12-15T23:59:59Z',
-          points: 100,
-          status: 'in-progress',
-          submissionType: 'file',
-          createdAt: '2024-11-25T00:00:00Z'
-        }
-      ];
+      setCourse(course);
 
-      const mockStudents: Student[] = [
-        {
-          studentId: '1',
-          name: 'Alice Johnson',
-          email: 'alice.johnson@university.edu',
-          avatar: '/api/placeholder/40/40',
-          enrollmentDate: '2024-08-15T00:00:00Z',
-          status: 'active',
-          grade: 'A'
-        },
-        {
-          studentId: '2',
-          name: 'Bob Smith',
-          email: 'bob.smith@university.edu',
-          avatar: '/api/placeholder/40/40',
-          enrollmentDate: '2024-08-15T00:00:00Z',
-          status: 'active',
-          grade: 'B+'
-        }
-      ];
+      // Fetch assignments for this course
+      try {
+        const assignmentsResponse = await fetch(`/api/student/assignments?courseId=${courseId}`, {
+          credentials: 'include',
+        });
 
-      setCourse(mockCourse);
-      setAssignments(mockAssignments);
-      setStudents(mockStudents);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+        if (assignmentsResponse.ok) {
+          const assignmentsData = await assignmentsResponse.json();
+          if (assignmentsData.assignments) {
+            setAssignments(assignmentsData.assignments);
+          }
+        }
+      } catch (assignmentError) {
+        console.warn('Failed to fetch assignments:', assignmentError);
+        setAssignments([]);
+      }
+
+      // Fetch students for this course (if user has permission)
+      try {
+        const studentsResponse = await fetch(`/api/courses/${courseId}/students`, {
+          credentials: 'include',
+        });
+
+        if (studentsResponse.ok) {
+          const studentsData = await studentsResponse.json();
+          if (studentsData.success && studentsData.data) {
+            setStudents(studentsData.data);
+          }
+        }
+      } catch (studentError) {
+        console.warn('Failed to fetch students:', studentError);
+        setStudents([]);
+      }
 
     } catch (err) {
       console.error('Error fetching course details:', err);
