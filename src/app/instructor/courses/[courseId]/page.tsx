@@ -6,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import CourseSettingsModal from '@/components/instructor/CourseSettingsModal';
+import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
+import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
 
 interface Course {
   courseId: string;
@@ -77,6 +79,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
 
   const courseId = params.courseId as string;
 
@@ -229,7 +232,7 @@ const InstructorCourseDetailPage: React.FC = () => {
       <InstructorRoute>
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
-            <LoadingSpinner text="Loading course details..." />
+            <LoadingSpinner />
           </div>
         </div>
       </InstructorRoute>
@@ -453,6 +456,63 @@ const InstructorCourseDetailPage: React.FC = () => {
           course={course}
           onUpdate={handleCourseUpdate}
         />
+
+        {/* Assignment Editing Modal */}
+        {editingAssignment && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">Edit Assignment</h2>
+                  <button
+                    onClick={() => setEditingAssignment(null)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <AssignmentCreationForm
+                  initialData={{
+                    title: editingAssignment.title,
+                    description: editingAssignment.description,
+                    assignmentType: AssignmentType.VIDEO_ASSIGNMENT,
+                    dueDate: editingAssignment.dueDate,
+                    maxScore: editingAssignment.points,
+                    requirements: [editingAssignment.description],
+                    allowLateSubmission: true,
+                    latePenalty: 10,
+                    maxSubmissions: 1,
+                    groupAssignment: false,
+                    maxGroupSize: 4,
+                    allowedFileTypes: editingAssignment.submissionType === 'file' ? ['.pdf', '.doc', '.docx'] : [],
+                    maxFileSize: 10 * 1024 * 1024, // 10MB
+                    enablePeerResponses: false,
+                    minResponsesRequired: 0,
+                    maxResponsesPerVideo: 0,
+                    responseDueDate: editingAssignment.dueDate,
+                    status: editingAssignment.status === 'grading' ? AssignmentStatus.PUBLISHED : editingAssignment.status === 'completed' ? AssignmentStatus.CLOSED : editingAssignment.status === 'draft' ? AssignmentStatus.DRAFT : editingAssignment.status === 'published' ? AssignmentStatus.PUBLISHED : AssignmentStatus.DRAFT
+                  }}
+                  onSubmit={async (assignmentData) => {
+                    try {
+                      // Update assignment logic would go here
+                      console.log('Updating assignment:', assignmentData);
+                      setEditingAssignment(null);
+                      // Refresh assignments
+                      await fetchCourseDetails();
+                    } catch (error) {
+                      console.error('Error updating assignment:', error);
+                    }
+                  }}
+                  onCancel={() => setEditingAssignment(null)}
+                  courseId={courseId}
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </InstructorRoute>
   );
