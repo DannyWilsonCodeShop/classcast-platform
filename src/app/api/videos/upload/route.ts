@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { writeFile, mkdir } from 'fs/promises';
+import { join } from 'path';
 
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
-});
-
-const BUCKET_NAME = process.env.S3_ASSETS_BUCKET || 'classcast-assets';
+// For now, we'll store videos locally in the public directory
+const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads', 'videos');
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,23 +29,22 @@ export async function POST(request: NextRequest) {
     // Generate unique filename
     const timestamp = Date.now();
     const fileExtension = video.name.split('.').pop() || 'webm';
-    const fileName = `video-submissions/${userId}/${assignmentId}/${timestamp}.${fileExtension}`;
+    const fileName = `video-submissions-${userId}-${assignmentId}-${timestamp}.${fileExtension}`;
+    const filePath = join(UPLOAD_DIR, fileName);
 
-    // Convert file to buffer
+    // Ensure upload directory exists
+    try {
+      await mkdir(UPLOAD_DIR, { recursive: true });
+    } catch (error) {
+      // Directory might already exist, ignore error
+    }
+
+    // Convert file to buffer and save locally
     const buffer = Buffer.from(await video.arrayBuffer());
+    await writeFile(filePath, buffer);
 
-    // Upload to S3
-    const uploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: fileName,
-      Body: buffer,
-      ContentType: video.type,
-      CacheControl: 'max-age=31536000',
-    });
-
-    await s3Client.send(uploadCommand);
-
-    const videoUrl = `https://${BUCKET_NAME}.s3.amazonaws.com/${fileName}`;
+    // Return public URL
+    const videoUrl = `/uploads/videos/${fileName}`;
 
     return NextResponse.json({
       success: true,
