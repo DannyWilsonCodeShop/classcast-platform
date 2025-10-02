@@ -99,6 +99,7 @@ export interface Assignment {
   responseWordLimit?: number; // Minimum word count for responses
   responseCharacterLimit?: number; // Maximum character count for responses
   hidePeerVideosUntilInstructorPosts?: boolean; // Hide peer videos until instructor posts their own
+  peerReviewScope?: 'section' | 'course'; // Whether peer reviews are section-specific or course-wide
   
   // Instructor Features
   isPinned?: boolean;
