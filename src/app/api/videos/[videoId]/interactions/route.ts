@@ -13,10 +13,10 @@ const USERS_TABLE = 'classcast-users';
 // GET /api/videos/[videoId]/interactions - Get all interactions for a video
 export async function GET(
   request: NextRequest,
-  { params }: { params: { videoId: string } }
+  { params }: { params: Promise<{ videoId: string }> }
 ) {
   try {
-    const { videoId } = params;
+    const { videoId } = await params;
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type'); // like, comment, response, rating
 
@@ -55,10 +55,10 @@ export async function GET(
 // POST /api/videos/[videoId]/interactions - Create a new interaction
 export async function POST(
   request: NextRequest,
-  { params }: { params: { videoId: string } }
+  { params }: { params: Promise<{ videoId: string }> }
 ) {
   try {
-    const { videoId } = params;
+    const { videoId } = await params;
     const body = await request.json();
     const { type, userId, userName, userAvatar } = body;
 
@@ -185,7 +185,7 @@ export async function DELETE(
   { params }: { params: { videoId: string } }
 ) {
   try {
-    const { videoId } = params;
+    const { videoId } = await params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const type = searchParams.get('type');

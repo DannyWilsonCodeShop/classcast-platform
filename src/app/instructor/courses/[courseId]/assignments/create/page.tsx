@@ -44,7 +44,7 @@ const CreateAssignmentContent: React.FC = () => {
         throw new Error('Course ID is required to create an assignment');
       }
 
-      if (!user?.instructorId && !user?.id) {
+      if (!user?.id) {
         throw new Error('Instructor ID is required to create an assignment');
       }
 
@@ -52,8 +52,8 @@ const CreateAssignmentContent: React.FC = () => {
       const apiData = {
         ...assignmentData,
         courseId,
-        instructorId: user?.instructorId || user?.id,
-        dueDate: assignmentData.dueDate?.toISOString(),
+        instructorId: user?.id,
+        dueDate: assignmentData.dueDate && assignmentData.dueDate instanceof Date ? assignmentData.dueDate.toISOString() : undefined,
         assignmentType: assignmentData.assignmentType || 'video',
         maxScore: assignmentData.maxScore || 100,
         weight: assignmentData.weight || 10,

@@ -14,11 +14,11 @@ const snsClient = new SNSClient({
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { videoId: string } }
+  { params }: { params: Promise<{ videoId: string }> }
 ) {
   try {
     const { userId, shareType, recipientIds, message } = await request.json();
-    const { videoId } = params;
+    const { videoId } = await params;
 
     if (!userId || !shareType) {
       return NextResponse.json(

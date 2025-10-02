@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand, PutCommand, ScanCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
@@ -199,6 +199,159 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         error: 'Failed to create section' 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/sections - Update a section
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const {
+      sectionId,
+      sectionName,
+      sectionCode,
+      description,
+      maxEnrollment,
+      schedule,
+      location,
+      isActive
+    } = body;
+
+    // Validate required fields
+    if (!sectionId) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Section ID is required' 
+        },
+        { status: 400 }
+      );
+    }
+
+    // Prepare update expression
+    const updateExpression = [];
+    const expressionAttributeNames: Record<string, string> = {};
+    const expressionAttributeValues: Record<string, any> = {};
+
+    // Add updatedAt
+    updateExpression.push('#updatedAt = :updatedAt');
+    expressionAttributeNames['#updatedAt'] = 'updatedAt';
+    expressionAttributeValues[':updatedAt'] = new Date().toISOString();
+
+    // Add other fields if provided
+    if (sectionName !== undefined) {
+      updateExpression.push('#sectionName = :sectionName');
+      expressionAttributeNames['#sectionName'] = 'sectionName';
+      expressionAttributeValues[':sectionName'] = sectionName;
+    }
+
+    if (sectionCode !== undefined) {
+      updateExpression.push('#sectionCode = :sectionCode');
+      expressionAttributeNames['#sectionCode'] = 'sectionCode';
+      expressionAttributeValues[':sectionCode'] = sectionCode;
+    }
+
+    if (description !== undefined) {
+      updateExpression.push('#description = :description');
+      expressionAttributeNames['#description'] = 'description';
+      expressionAttributeValues[':description'] = description;
+    }
+
+    if (maxEnrollment !== undefined) {
+      updateExpression.push('#maxEnrollment = :maxEnrollment');
+      expressionAttributeNames['#maxEnrollment'] = 'maxEnrollment';
+      expressionAttributeValues[':maxEnrollment'] = maxEnrollment;
+    }
+
+    if (schedule !== undefined) {
+      updateExpression.push('#schedule = :schedule');
+      expressionAttributeNames['#schedule'] = 'schedule';
+      expressionAttributeValues[':schedule'] = schedule;
+    }
+
+    if (location !== undefined) {
+      updateExpression.push('#location = :location');
+      expressionAttributeNames['#location'] = 'location';
+      expressionAttributeValues[':location'] = location;
+    }
+
+    if (isActive !== undefined) {
+      updateExpression.push('#isActive = :isActive');
+      expressionAttributeNames['#isActive'] = 'isActive';
+      expressionAttributeValues[':isActive'] = isActive;
+    }
+
+    if (updateExpression.length === 1) { // Only updatedAt
+      return NextResponse.json({
+        success: true,
+        message: 'No changes to update',
+        data: body
+      });
+    }
+
+    // Update section
+    await docClient.send(new UpdateCommand({
+      TableName: SECTIONS_TABLE,
+      Key: { sectionId },
+      UpdateExpression: `SET ${updateExpression.join(', ')}`,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
+      ReturnValues: 'ALL_NEW'
+    }));
+
+    return NextResponse.json({
+      success: true,
+      message: 'Section updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Error updating section:', error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to update section' 
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/sections - Delete a section
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const sectionId = searchParams.get('sectionId');
+
+    if (!sectionId) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Section ID is required' 
+        },
+        { status: 400 }
+      );
+    }
+
+    // Delete section
+    await docClient.send(new DeleteCommand({
+      TableName: SECTIONS_TABLE,
+      Key: { sectionId }
+    }));
+
+    return NextResponse.json({
+      success: true,
+      message: 'Section deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting section:', error);
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: 'Failed to delete section' 
       },
       { status: 500 }
     );
