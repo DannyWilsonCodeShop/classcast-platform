@@ -46,15 +46,22 @@ const StudentCoursesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    if (user?.id) {
+      fetchCourses();
+    }
+  }, [user?.id]);
 
   const fetchCourses = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/student/courses', {
+      if (!user?.id) {
+        setError('User not authenticated');
+        return;
+      }
+
+      const response = await fetch(`/api/student/courses?userId=${user.id}`, {
         credentials: 'include',
       });
 
@@ -62,96 +69,14 @@ const StudentCoursesPage: React.FC = () => {
         const data = await response.json();
         setCourses(data.courses || []);
       } else {
-        // For now, show mock data until API is implemented
-        const mockCourses: Course[] = [
-          {
-            id: '1',
-            name: 'Introduction to Computer Science',
-            code: 'CS101',
-            description: 'Fundamental concepts of computer science and programming',
-            instructor: {
-              name: 'Dr. Sarah Johnson',
-              email: 'sarah.johnson@university.edu',
-              avatar: '/api/placeholder/40/40'
-            },
-            semester: 'Fall',
-            year: 2024,
-            status: 'active',
-            backgroundColor: 'indigo-600',
-            enrollmentCount: 120,
-            credits: 3,
-            schedule: {
-              days: ['Monday', 'Wednesday', 'Friday'],
-              time: '10:00 AM - 11:00 AM',
-              location: 'Room 101'
-            },
-            nextAssignment: {
-              title: 'Programming Assignment 3',
-              dueDate: '2024-12-15',
-              points: 100
-            },
-            createdAt: '2024-08-15T00:00:00Z',
-            updatedAt: '2024-11-20T00:00:00Z'
-          },
-          {
-            id: '2',
-            name: 'Data Structures and Algorithms',
-            code: 'CS201',
-            description: 'Advanced data structures and algorithmic problem solving',
-            instructor: {
-              name: 'Prof. Michael Chen',
-              email: 'michael.chen@university.edu',
-              avatar: '/api/placeholder/40/40'
-            },
-            semester: 'Fall',
-            year: 2024,
-            status: 'active',
-            backgroundColor: 'emerald-600',
-            enrollmentCount: 85,
-            credits: 4,
-            schedule: {
-              days: ['Tuesday', 'Thursday'],
-              time: '2:00 PM - 3:30 PM',
-              location: 'Room 205'
-            },
-            nextAssignment: {
-              title: 'Algorithm Analysis Project',
-              dueDate: '2024-12-20',
-              points: 150
-            },
-            createdAt: '2024-08-15T00:00:00Z',
-            updatedAt: '2024-11-20T00:00:00Z'
-          },
-          {
-            id: '3',
-            name: 'Web Development Fundamentals',
-            code: 'CS301',
-            description: 'Modern web development with HTML, CSS, and JavaScript',
-            instructor: {
-              name: 'Dr. Emily Rodriguez',
-              email: 'emily.rodriguez@university.edu',
-              avatar: '/api/placeholder/40/40'
-            },
-            semester: 'Fall',
-            year: 2024,
-            status: 'completed',
-            backgroundColor: '#FF6F61',
-            enrollmentCount: 95,
-            credits: 3,
-            schedule: {
-              days: ['Monday', 'Wednesday'],
-              time: '1:00 PM - 2:30 PM',
-              location: 'Lab 301'
-            },
-            createdAt: '2024-08-15T00:00:00Z',
-            updatedAt: '2024-11-20T00:00:00Z'
-          }
-        ];
-        setCourses(mockCourses);
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to load courses');
+        setCourses([]);
       }
     } catch (err) {
       console.error('Error fetching courses:', err);
       setError('Failed to load courses');
+      setCourses([]);
     } finally {
       setLoading(false);
     }
