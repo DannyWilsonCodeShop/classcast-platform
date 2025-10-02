@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, ScanCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 const dynamoClient = new DynamoDBClient({
   region: process.env.REGION || 'us-east-1',
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     if (assignmentId) {
       // Get submissions for a specific assignment
       const queryCommand = new QueryCommand({
-        TableName: process.env.VIDEO_SUBMISSIONS_TABLE_NAME || 'ClassCastVideoSubmissions',
+        TableName: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
         IndexName: 'AssignmentIdIndex',
         KeyConditionExpression: 'assignmentId = :assignmentId',
         ExpressionAttributeValues: {
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     } else if (studentId) {
       // Get submissions for a specific student
       const queryCommand = new QueryCommand({
-        TableName: process.env.VIDEO_SUBMISSIONS_TABLE_NAME || 'ClassCastVideoSubmissions',
+        TableName: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
         IndexName: 'StudentIdIndex',
         KeyConditionExpression: 'studentId = :studentId',
         ExpressionAttributeValues: {
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     } else if (courseId) {
       // Get all submissions for a course
       const scanCommand = new ScanCommand({
-        TableName: process.env.VIDEO_SUBMISSIONS_TABLE_NAME || 'ClassCastVideoSubmissions',
+        TableName: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
         FilterExpression: 'courseId = :courseId',
         ExpressionAttributeValues: {
           ':courseId': courseId
@@ -203,7 +203,7 @@ export async function PUT(request: NextRequest) {
       updateCommand.ExpressionAttributeValues[':feedback'] = instructorFeedback;
     }
 
-    await docClient.send(new PutCommand(updateCommand));
+    await docClient.send(new UpdateCommand(updateCommand));
 
     return NextResponse.json({
       success: true,
