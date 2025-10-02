@@ -4,13 +4,10 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 // Initialize S3 client
 const s3Client = new S3Client({
   region: process.env.REGION || process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
+  // Remove explicit credentials to use IAM role
 });
 
-const BUCKET_NAME = process.env.S3_VIDEOS_BUCKET || 'classcast-videos-463470937777-us-east-1';
+const BUCKET_NAME = 'classcast-videos-463470937777-us-east-1';
 
 export async function POST(request: NextRequest) {
   try {
