@@ -154,6 +154,9 @@ const StudentCourseDetailPage: React.FC = () => {
           if (assignmentsData.assignments) {
             setAssignments(assignmentsData.assignments);
           }
+        } else {
+          console.warn('Failed to fetch assignments:', assignmentsResponse.statusText);
+          setAssignments([]);
         }
       } catch (assignmentError) {
         console.warn('Failed to fetch assignments:', assignmentError);

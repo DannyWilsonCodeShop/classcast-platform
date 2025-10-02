@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, PutCommand, ScanCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, PutCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 import { v4 as uuidv4 } from 'uuid';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
@@ -18,66 +18,28 @@ export async function GET(request: NextRequest) {
     const isActive = searchParams.get('isActive');
     const search = searchParams.get('search');
 
-    let sections: any[] = [];
+    let sections = [];
 
     if (courseId) {
       // Get sections for a specific course
-      try {
-        const result = await docClient.send(new QueryCommand({
-          TableName: SECTIONS_TABLE,
-          IndexName: 'courseId-index',
-          KeyConditionExpression: 'courseId = :courseId',
-          ExpressionAttributeValues: {
-            ':courseId': courseId
-          }
-        }));
-        sections = result.Items || [];
-      } catch (gsiError: any) {
-        // Fallback to scan if GSI doesn't exist
-        if (gsiError.name === 'ValidationException' || gsiError.name === 'ResourceNotFoundException') {
-          console.warn('GSI not found, falling back to scan operation');
-          const scanResult = await docClient.send(new ScanCommand({
-            TableName: SECTIONS_TABLE,
-            FilterExpression: 'courseId = :courseId',
-            ExpressionAttributeValues: {
-              ':courseId': courseId
-            }
-          }));
-          sections = scanResult.Items || [];
-        } else {
-          console.error('Error querying sections:', gsiError);
-          // Return empty array instead of throwing error
-          sections = [];
+      const result = await docClient.send(new ScanCommand({
+        TableName: SECTIONS_TABLE,
+        FilterExpression: 'courseId = :courseId',
+        ExpressionAttributeValues: {
+          ':courseId': courseId
         }
-      }
+      }));
+      sections = result.Items || [];
     } else if (instructorId) {
       // Get sections for a specific instructor
-      try {
-        const result = await docClient.send(new QueryCommand({
-          TableName: SECTIONS_TABLE,
-          IndexName: 'instructorId-index',
-          KeyConditionExpression: 'instructorId = :instructorId',
-          ExpressionAttributeValues: {
-            ':instructorId': instructorId
-          }
-        }));
-        sections = result.Items || [];
-      } catch (gsiError: any) {
-        // Fallback to scan if GSI doesn't exist
-        if (gsiError.name === 'ValidationException' || gsiError.name === 'ResourceNotFoundException') {
-          console.warn('GSI not found, falling back to scan operation');
-          const scanResult = await docClient.send(new ScanCommand({
-            TableName: SECTIONS_TABLE,
-            FilterExpression: 'instructorId = :instructorId',
-            ExpressionAttributeValues: {
-              ':instructorId': instructorId
-            }
-          }));
-          sections = scanResult.Items || [];
-        } else {
-          throw gsiError;
+      const result = await docClient.send(new ScanCommand({
+        TableName: SECTIONS_TABLE,
+        FilterExpression: 'instructorId = :instructorId',
+        ExpressionAttributeValues: {
+          ':instructorId': instructorId
         }
-      }
+      }));
+      sections = result.Items || [];
     } else {
       // Get all sections
       const result = await docClient.send(new ScanCommand({
@@ -86,7 +48,7 @@ export async function GET(request: NextRequest) {
       sections = result.Items || [];
     }
 
-    // Apply filters
+    // Apply additional filters
     if (isActive !== null) {
       const activeFilter = isActive === 'true';
       sections = sections.filter(section => section.isActive === activeFilter);
@@ -94,8 +56,8 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       const searchLower = search.toLowerCase();
-      sections = sections.filter(section => 
-        section.sectionName.toLowerCase().includes(searchLower) ||
+      sections = sections.filter(section =>
+        section.sectionName?.toLowerCase().includes(searchLower) ||
         section.sectionCode?.toLowerCase().includes(searchLower) ||
         section.description?.toLowerCase().includes(searchLower)
       );
@@ -156,9 +118,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify course exists
-    const courseResult = await docClient.send(new QueryCommand({
+    const courseResult = await docClient.send(new ScanCommand({
       TableName: COURSES_TABLE,
-      KeyConditionExpression: 'courseId = :courseId',
+      FilterExpression: 'courseId = :courseId',
       ExpressionAttributeValues: {
         ':courseId': courseId
       }
@@ -201,8 +163,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: section,
-      message: 'Section created successfully'
+      message: 'Section created successfully',
+      data: section
     });
 
   } catch (error) {
@@ -217,7 +179,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT /api/sections - Update a section
+// PUT /api/sections - Update an existing section
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -232,7 +194,6 @@ export async function PUT(request: NextRequest) {
       isActive
     } = body;
 
-    // Validate required fields
     if (!sectionId) {
       return NextResponse.json(
         { 
@@ -243,17 +204,14 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Prepare update expression
     const updateExpression = [];
     const expressionAttributeNames: Record<string, string> = {};
     const expressionAttributeValues: Record<string, any> = {};
 
-    // Add updatedAt
     updateExpression.push('#updatedAt = :updatedAt');
     expressionAttributeNames['#updatedAt'] = 'updatedAt';
     expressionAttributeValues[':updatedAt'] = new Date().toISOString();
 
-    // Add other fields if provided
     if (sectionName !== undefined) {
       updateExpression.push('#sectionName = :sectionName');
       expressionAttributeNames['#sectionName'] = 'sectionName';
@@ -296,7 +254,7 @@ export async function PUT(request: NextRequest) {
       expressionAttributeValues[':isActive'] = isActive;
     }
 
-    if (updateExpression.length === 1) { // Only updatedAt
+    if (updateExpression.length === 1) {
       return NextResponse.json({
         success: true,
         message: 'No changes to update',
@@ -304,7 +262,6 @@ export async function PUT(request: NextRequest) {
       });
     }
 
-    // Update section
     await docClient.send(new UpdateCommand({
       TableName: SECTIONS_TABLE,
       Key: { sectionId },
@@ -347,7 +304,6 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Delete section
     await docClient.send(new DeleteCommand({
       TableName: SECTIONS_TABLE,
       Key: { sectionId }
