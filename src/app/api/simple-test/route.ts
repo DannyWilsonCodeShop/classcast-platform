@@ -1,24 +1,21 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function POST(request: NextRequest) {
   try {
-    console.log('=== SIMPLE TEST ENDPOINT ===');
+    const body = await request.json();
+    console.log('Simple test - received body:', body);
     
-    // Test basic functionality
-    const testData = {
-      message: 'Simple test endpoint working',
-      timestamp: new Date().toISOString(),
-      test: 'This endpoint is accessible'
-    };
-    
-    console.log('Test data:', testData);
-    
-    return NextResponse.json(testData);
+    return NextResponse.json({
+      success: true,
+      message: 'Simple test successful',
+      receivedData: body
+    });
+
   } catch (error) {
     console.error('Simple test error:', error);
     return NextResponse.json({
-      error: 'Test failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
