@@ -26,6 +26,14 @@ interface Course {
     participation: number;
     final: number;
   };
+  settings?: {
+    privacy?: 'public' | 'private';
+    allowLateSubmissions?: boolean;
+    latePenalty?: number;
+    allowResubmissions?: boolean;
+    enableDiscussions?: boolean;
+    enableAnnouncements?: boolean;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -243,6 +251,74 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
+              </div>
+            </div>
+
+            {/* Privacy Settings */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                Privacy Settings
+              </h3>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Course Visibility
+                </label>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="radio"
+                      id="privacy-public"
+                      name="privacy"
+                      value="public"
+                      checked={formData.settings?.privacy === 'public' || !formData.settings?.privacy}
+                      onChange={(e) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          settings: {
+                            ...prev.settings,
+                            privacy: e.target.value as 'public' | 'private'
+                          }
+                        }));
+                      }}
+                      className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300"
+                    />
+                    <label htmlFor="privacy-public" className="flex-1">
+                      <div className="font-medium text-gray-900">Public Course</div>
+                      <div className="text-sm text-gray-500">
+                        Students can search and discover this course in the course directory
+                      </div>
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="radio"
+                      id="privacy-private"
+                      name="privacy"
+                      value="private"
+                      checked={formData.settings?.privacy === 'private'}
+                      onChange={(e) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          settings: {
+                            ...prev.settings,
+                            privacy: e.target.value as 'public' | 'private'
+                          }
+                        }));
+                      }}
+                      className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300"
+                    />
+                    <label htmlFor="privacy-private" className="flex-1">
+                      <div className="font-medium text-gray-900">Private Course</div>
+                      <div className="text-sm text-gray-500">
+                        Only students with the class code can join this course
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Private courses won't appear in public course searches but can still be joined using the class code.
+                </p>
               </div>
             </div>
 

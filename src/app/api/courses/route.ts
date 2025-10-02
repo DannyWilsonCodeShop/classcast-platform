@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
         TableName: COURSES_TABLE
       }));
       
-      courses = coursesResult.Items || [];
+      // Filter out private courses from public search
+      courses = (coursesResult.Items || []).filter(course => 
+        course.settings?.privacy !== 'private'
+      );
     } catch (dbError: any) {
       if (dbError.name === 'ResourceNotFoundException') {
         // Table doesn't exist yet, return empty array
@@ -178,6 +181,7 @@ export async function POST(request: NextRequest) {
         allowResubmissions: false,
         enableDiscussions: true,
         enableAnnouncements: true,
+        privacy: 'public', // Default to public for backward compatibility
       },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

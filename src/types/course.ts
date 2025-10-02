@@ -51,6 +51,7 @@ export interface Course {
     requireAttendance: boolean;
     enableDiscussions: boolean;
     enableAnnouncements: boolean;
+    privacy: 'public' | 'private'; // public = searchable, private = code-only access
   };
   enrollment: {
     students: Array<{
@@ -127,6 +128,7 @@ export interface CreateCourseData {
     requireAttendance: boolean;
     enableDiscussions: boolean;
     enableAnnouncements: boolean;
+    privacy: 'public' | 'private';
   };
 }
 
