@@ -31,7 +31,12 @@ const StudentSubmissionsPage: React.FC = () => {
 
   const loadSubmissions = () => {
     try {
-      const storedVideos = localStorage.getItem('uploadedVideos');
+      // Try localStorage first, then sessionStorage as fallback
+      let storedVideos = localStorage.getItem('uploadedVideos');
+      if (!storedVideos) {
+        storedVideos = sessionStorage.getItem('uploadedVideos');
+      }
+      
       if (storedVideos) {
         const videos = JSON.parse(storedVideos);
         setSubmissions(videos);
@@ -65,8 +70,35 @@ const StudentSubmissionsPage: React.FC = () => {
     if (confirm('Are you sure you want to delete this video submission?')) {
       const updatedSubmissions = submissions.filter(sub => sub.id !== id);
       setSubmissions(updatedSubmissions);
-      localStorage.setItem('uploadedVideos', JSON.stringify(updatedSubmissions));
+      
+      // Update both localStorage and sessionStorage
+      try {
+        localStorage.setItem('uploadedVideos', JSON.stringify(updatedSubmissions));
+      } catch (error) {
+        console.warn('localStorage full, using sessionStorage');
+        sessionStorage.setItem('uploadedVideos', JSON.stringify(updatedSubmissions));
+      }
+      
+      // Also delete from IndexedDB
+      deleteVideoFromIndexedDB(id);
     }
+  };
+
+  const deleteVideoFromIndexedDB = async (videoId: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('VideoStorage', 1);
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const transaction = db.transaction(['videos'], 'readwrite');
+        const store = transaction.objectStore('videos');
+        const deleteRequest = store.delete(videoId);
+        
+        deleteRequest.onsuccess = () => resolve();
+        deleteRequest.onerror = () => reject(deleteRequest.error);
+      };
+    });
   };
 
   if (loading) {

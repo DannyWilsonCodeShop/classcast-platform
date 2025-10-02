@@ -24,6 +24,30 @@ const VideoSubmissionPage: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
 
+  const clearOldVideos = () => {
+    try {
+      // Clear localStorage if it's getting too full
+      const stored = localStorage.getItem('uploadedVideos');
+      if (stored) {
+        const videos = JSON.parse(stored);
+        if (videos.length > 5) {
+          // Keep only the last 5 videos
+          const recentVideos = videos.slice(-5);
+          localStorage.setItem('uploadedVideos', JSON.stringify(recentVideos));
+        }
+      }
+    } catch (error) {
+      console.warn('Error clearing old videos:', error);
+      // If localStorage is completely full, clear it
+      localStorage.removeItem('uploadedVideos');
+    }
+  };
+
+  // Clear old videos on component mount to prevent quota issues
+  React.useEffect(() => {
+    clearOldVideos();
+  }, []);
+
   const startRecording = async () => {
     try {
       setError(null);
@@ -59,7 +83,7 @@ const VideoSubmissionPage: React.FC = () => {
 
       mediaRecorder.start();
       setIsRecording(true);
-    } catch (err) {
+      } catch (err) {
       console.error('Error starting recording:', err);
       setError('Failed to access camera and microphone. Please check permissions.');
     }
@@ -117,24 +141,16 @@ const VideoSubmissionPage: React.FC = () => {
         throw new Error('No video to upload');
       }
       
-      // Create a more permanent video URL by converting to base64
-      const reader = new FileReader();
-      const videoDataUrl = await new Promise<string>((resolve) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.readAsDataURL(videoBlob);
-      });
-
       clearInterval(progressInterval);
       setUploadProgress(100);
 
       // Simulate successful upload
       setSuccess(true);
       
-      // Store video info in localStorage for demo purposes
+      // Store only metadata in localStorage (not the actual video data)
       const videoInfo = {
         id: `video-${Date.now()}`,
-        url: videoDataUrl, // Store as data URL for persistence
-        blobUrl: videoToUpload, // Keep original blob URL for immediate playback
+        blobUrl: videoToUpload, // Keep blob URL for immediate playback
         fileName: fileName,
         uploadedAt: new Date().toISOString(),
         userId: user?.id || 'unknown',
@@ -142,13 +158,38 @@ const VideoSubmissionPage: React.FC = () => {
         size: videoBlob.size,
         type: videoType,
         isRecorded: !!recordedVideo,
-        isUploaded: !!selectedFile
+        isUploaded: !!selectedFile,
+        // Store video data in IndexedDB instead of localStorage
+        videoData: null // Will be stored separately
       };
       
-      // Store in localStorage
-      const existingVideos = JSON.parse(localStorage.getItem('uploadedVideos') || '[]');
+      // Store metadata in localStorage (small data only)
+      let existingVideos = [];
+      try {
+        const stored = localStorage.getItem('uploadedVideos');
+        existingVideos = stored ? JSON.parse(stored) : [];
+      } catch (error) {
+        console.warn('Error reading from localStorage, starting fresh');
+        existingVideos = [];
+      }
+      
       existingVideos.push(videoInfo);
-      localStorage.setItem('uploadedVideos', JSON.stringify(existingVideos));
+      
+      // Limit to last 10 videos to prevent quota issues
+      if (existingVideos.length > 10) {
+        existingVideos = existingVideos.slice(-10);
+      }
+      
+      try {
+        localStorage.setItem('uploadedVideos', JSON.stringify(existingVideos));
+      } catch (error) {
+        console.warn('localStorage quota exceeded, storing in sessionStorage instead');
+        // Fallback to sessionStorage if localStorage is full
+        sessionStorage.setItem('uploadedVideos', JSON.stringify(existingVideos));
+      }
+      
+      // Store video blob in IndexedDB for persistence
+      await storeVideoInIndexedDB(videoInfo.id, videoBlob);
 
       // Show success message with video preview
       // User can choose to view submissions or go to dashboard
@@ -201,18 +242,60 @@ const VideoSubmissionPage: React.FC = () => {
     }
   };
 
+  // IndexedDB functions for storing video data
+  const storeVideoInIndexedDB = async (videoId: string, videoBlob: Blob): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('VideoStorage', 1);
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const transaction = db.transaction(['videos'], 'readwrite');
+        const store = transaction.objectStore('videos');
+        const putRequest = store.put(videoBlob, videoId);
+        
+        putRequest.onsuccess = () => resolve();
+        putRequest.onerror = () => reject(putRequest.error);
+      };
+      
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains('videos')) {
+          db.createObjectStore('videos');
+        }
+      };
+    });
+  };
+
+  const getVideoFromIndexedDB = async (videoId: string): Promise<Blob | null> => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('VideoStorage', 1);
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const transaction = db.transaction(['videos'], 'readonly');
+        const store = transaction.objectStore('videos');
+        const getRequest = store.get(videoId);
+        
+        getRequest.onsuccess = () => resolve(getRequest.result || null);
+        getRequest.onerror = () => reject(getRequest.error);
+      };
+    });
+  };
+
   return (
     <StudentRoute>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
         {/* Header */}
         <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3">
-          <div className="flex items-center space-x-3">
-            <button
+            <div className="flex items-center space-x-3">
+              <button
               onClick={() => router.push('/student/dashboard')}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <span className="text-xl">&lt;</span>
-            </button>
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <span className="text-xl">&lt;</span>
+              </button>
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
               🎥
             </div>
@@ -375,7 +458,7 @@ const VideoSubmissionPage: React.FC = () => {
                   <p className="text-gray-600">
                     {recordedVideo ? 'Review your recording before submitting' : 'Review your uploaded video before submitting'}
                   </p>
-                </div>
+            </div>
 
                 {/* Video Preview */}
                 <div className="relative bg-black rounded-xl overflow-hidden mb-6">
@@ -396,8 +479,8 @@ const VideoSubmissionPage: React.FC = () => {
                       <div>
                         <p><strong>Name:</strong> {selectedFile.name}</p>
                         <p><strong>Size:</strong> {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
-                      </div>
-                      <div>
+                </div>
+                <div>
                         <p><strong>Type:</strong> {selectedFile.type}</p>
                         <p><strong>Last Modified:</strong> {new Date(selectedFile.lastModified).toLocaleDateString()}</p>
                       </div>
