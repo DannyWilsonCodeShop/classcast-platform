@@ -9,60 +9,24 @@ import { EmptyState } from '@/components/common/EmptyState';
 import AssignmentResourcesDisplay from '@/components/common/AssignmentResourcesDisplay';
 
 interface Assignment {
-  id: string;
+  assignmentId: string;
   title: string;
   description: string;
-  instructions: string;
   dueDate: string;
   points: number;
-  status: 'not-started' | 'in-progress' | 'submitted' | 'graded';
+  status: 'upcoming' | 'past_due' | 'completed';
+  submissionType: 'text' | 'file' | 'video';
+  assignmentType: string;
+  courseId: string;
+  courseName: string;
+  courseCode: string;
+  instructor: string;
+  createdAt: string;
+  resources?: any[];
+  isSubmitted: boolean;
+  submittedAt?: string;
   grade?: number;
   feedback?: string;
-  submissionType: 'text' | 'file' | 'video';
-  allowedFileTypes?: string[];
-  maxFileSize?: number;
-  maxDuration?: number;
-  rubric?: {
-    criteria: string;
-    points: number;
-    description: string;
-  }[];
-  course: {
-    id: string;
-    name: string;
-    code: string;
-    instructor: {
-      name: string;
-      email: string;
-    };
-  };
-  resources?: {
-    id: string;
-    type: 'document' | 'link';
-    title: string;
-    description?: string;
-    url: string;
-    size?: number;
-    mimeType?: string;
-    uploadedAt?: string;
-    createdAt: string;
-  }[];
-  submissions: {
-    id: string;
-    submittedAt: string;
-    content: string;
-    files: {
-      name: string;
-      url: string;
-      type: string;
-      size: number;
-    }[];
-    grade?: number;
-    feedback?: string;
-    status: 'draft' | 'submitted' | 'graded';
-  }[];
-  createdAt: string;
-  updatedAt: string;
 }
 
 const StudentAssignmentDetailPage: React.FC = () => {
@@ -72,7 +36,6 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'details' | 'attachments' | 'feedback'>('details');
 
   const assignmentId = params.assignmentId as string;
 
@@ -87,22 +50,55 @@ const StudentAssignmentDetailPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      // Call backend API for assignment details
-      const response = await fetch(`/api/assignments/${assignmentId}`, {
+      // First try to get assignment from student assignments API
+      const response = await fetch(`/api/student/assignments?userId=${user?.id}`, {
         credentials: 'include',
       });
 
-      if (!response.ok) {
-        throw new Error('Assignment not found');
+      if (response.ok) {
+        const data = await response.json();
+        const foundAssignment = data.assignments?.find((a: Assignment) => a.assignmentId === assignmentId);
+        
+        if (foundAssignment) {
+          setAssignment(foundAssignment);
+          return;
+        }
       }
 
-      const data = await response.json();
-      
-      if (data.success && data.data?.assignment) {
-        setAssignment(data.data.assignment);
-      } else {
-        throw new Error(data.error || 'Failed to load assignment');
+      // If not found in student assignments, try the general assignments API
+      const generalResponse = await fetch(`/api/assignments?courseId=all`, {
+        credentials: 'include',
+      });
+
+      if (generalResponse.ok) {
+        const generalData = await generalResponse.json();
+        const foundAssignment = generalData.data?.assignments?.find((a: any) => a.assignmentId === assignmentId);
+        
+        if (foundAssignment) {
+          // Transform the assignment to match our interface
+          const transformedAssignment: Assignment = {
+            assignmentId: foundAssignment.assignmentId,
+            title: foundAssignment.title,
+            description: foundAssignment.description,
+            dueDate: foundAssignment.dueDate,
+            points: foundAssignment.maxScore || 100,
+            status: 'upcoming',
+            submissionType: foundAssignment.assignmentType === 'video' ? 'video' : 'file',
+            assignmentType: foundAssignment.assignmentType,
+            courseId: foundAssignment.courseId,
+            courseName: 'Unknown Course',
+            courseCode: 'N/A',
+            instructor: 'Unknown Instructor',
+            createdAt: foundAssignment.createdAt,
+            resources: foundAssignment.resources || [],
+            isSubmitted: false,
+          };
+          setAssignment(transformedAssignment);
+          return;
+        }
       }
+
+      throw new Error('Assignment not found');
     } catch (err) {
       console.error('Error fetching assignment details:', err);
       setError('Failed to load assignment details');
@@ -111,16 +107,13 @@ const StudentAssignmentDetailPage: React.FC = () => {
     }
   };
 
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'not-started':
-        return 'bg-gray-100 text-gray-800';
-      case 'in-progress':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'submitted':
+      case 'upcoming':
         return 'bg-blue-100 text-blue-800';
-      case 'graded':
+      case 'past_due':
+        return 'bg-red-100 text-red-800';
+      case 'completed':
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -129,13 +122,11 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'not-started':
+      case 'upcoming':
         return '📋';
-      case 'in-progress':
-        return '⚡';
-      case 'submitted':
-        return '📤';
-      case 'graded':
+      case 'past_due':
+        return '⚠️';
+      case 'completed':
         return '✅';
       default:
         return '📝';
@@ -204,13 +195,13 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 flex-shrink-0">
+        <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 sticky top-0 z-40">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => router.push(`/student/courses/${assignment.course.id}`)}
+                onClick={() => router.push('/student/assignments')}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <span className="text-xl">&lt;</span>
@@ -221,13 +212,13 @@ const StudentAssignmentDetailPage: React.FC = () => {
               <div className="flex-1 min-w-0">
                 <h1 className="text-lg font-bold text-gray-900 truncate">{assignment.title}</h1>
                 <p className="text-xs text-gray-600 truncate">
-                  {assignment.course.code} • {assignment.course.instructor.name}
+                  {assignment.courseCode} • {assignment.instructor}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
               <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(assignment.status)}`}>
-                {getStatusIcon(assignment.status)} {assignment.status.replace('-', ' ')}
+                {getStatusIcon(assignment.status)} {assignment.status.replace('_', ' ')}
               </span>
               <button
                 onClick={() => router.push('/student/dashboard')}
@@ -240,276 +231,90 @@ const StudentAssignmentDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="bg-white/90 backdrop-blur-sm px-4 py-2 flex-shrink-0">
-          <div className="flex space-x-1">
-            {[
-              { id: 'details', label: 'Details', icon: '📋' },
-              { id: 'attachments', label: 'Attachments', icon: '📎' },
-              { id: 'feedback', label: 'Feedback', icon: '💬' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <span className="mr-1">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-            <button
-              onClick={() => router.push('/student/video-submission')}
-              className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-xs hover:shadow-lg transition-all duration-200"
-            >
-              <span className="mr-1">🎥</span>
-              Record Video
-            </button>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {activeTab === 'details' && (
-            <div className="space-y-6">
-              {/* Assignment Info */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{assignment.points}</div>
-                    <div className="text-sm text-gray-600">Points</div>
-                  </div>
-                  <div className="text-center p-4 bg-orange-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">
-                      {getTimeRemaining(assignment.dueDate)}
-                    </div>
-                    <div className="text-sm text-gray-600">Time Remaining</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
-                      {assignment.submissions.length}
-                    </div>
-                    <div className="text-sm text-gray-600">Submissions</div>
-                  </div>
+        {/* Main Content */}
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+            {/* Assignment Info Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{assignment.points}</div>
+                <div className="text-sm text-gray-600">Points</div>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <div className="text-2xl font-bold text-orange-600">
+                  {getTimeRemaining(assignment.dueDate)}
                 </div>
+                <div className="text-sm text-gray-600">Time Remaining</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">
+                  {assignment.isSubmitted ? '1' : '0'}
+                </div>
+                <div className="text-sm text-gray-600">Submissions</div>
+              </div>
+            </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
-                    <div className="prose prose-sm max-w-none">
-                      <pre className="whitespace-pre-wrap text-gray-700 font-sans">
-                        {assignment.instructions}
-                      </pre>
-                    </div>
-                  </div>
+            {/* Assignment Details */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
+                <div className="prose prose-sm max-w-none">
+                  <pre className="whitespace-pre-wrap text-gray-700 font-sans">
+                    {assignment.description}
+                  </pre>
+                </div>
+              </div>
 
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Details</h3>
-                    <p className="text-gray-700">{assignment.description}</p>
-                  </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Due Date</h3>
+                <p className="text-gray-700">{formatDate(assignment.dueDate)}</p>
+              </div>
 
-                  {assignment.resources && assignment.resources.length > 0 && (
-                    <div>
-                      <AssignmentResourcesDisplay resources={assignment.resources} />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Submission Type</h3>
+                <p className="text-gray-700 capitalize">{assignment.submissionType}</p>
+              </div>
+
+              {assignment.resources && assignment.resources.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Resources</h3>
+                  <AssignmentResourcesDisplay resources={assignment.resources} />
+                </div>
+              )}
+
+              {/* Submission Status */}
+              {assignment.isSubmitted ? (
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h3 className="text-lg font-semibold text-green-800 mb-2">✅ Submitted</h3>
+                  <p className="text-green-700">
+                    You submitted this assignment on {assignment.submittedAt ? formatDate(assignment.submittedAt) : 'Unknown date'}.
+                  </p>
+                  {assignment.grade && (
+                    <div className="mt-2">
+                      <p className="text-green-700 font-medium">Grade: {assignment.grade}/{assignment.points}</p>
+                      {assignment.feedback && (
+                        <p className="text-green-700 mt-1">Feedback: {assignment.feedback}</p>
+                      )}
                     </div>
                   )}
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Due Date</h3>
-                    <p className="text-gray-700">{formatDate(assignment.dueDate)}</p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Submission Type</h3>
-                    <p className="text-gray-700 capitalize">{assignment.submissionType}</p>
-                    {assignment.allowedFileTypes && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        Allowed: {assignment.allowedFileTypes.join(', ')}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-
-              {/* Rubric */}
-              {assignment.rubric && (
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Grading Rubric</h3>
-                  <div className="space-y-3">
-                    {assignment.rubric.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
-                          <h4 className="font-medium text-gray-900">{item.criteria}</h4>
-                          <p className="text-sm text-gray-600">{item.description}</p>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-lg font-bold text-blue-600">{item.points} pts</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'attachments' && (
-            <div className="space-y-6">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Assignment Attachments</h3>
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">📎</div>
-                  <h4 className="text-xl font-semibold text-gray-900 mb-2">Attachments</h4>
-                  <p className="text-gray-600 mb-4">
-                    View and download assignment materials and resources.
-                  </p>
-                  <div className="text-sm text-gray-500">
-                    No attachments available for this assignment.
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'feedback' && (
-            <div className="space-y-6">
-              {assignment.submissions.length > 0 ? (
-                <div className="space-y-6">
-                  {/* Instructor Feedback */}
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-                    <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
-                        👨‍🏫
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">Instructor Feedback</h3>
-                    </div>
-                    
-                    {assignment.submissions[0]?.grade && assignment.submissions[0]?.feedback ? (
-                      <div className="space-y-4">
-                        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-semibold text-green-800">Grade: {assignment.submissions[0].grade}/{assignment.points}</h4>
-                            <span className="text-sm text-green-600">
-                              {((assignment.submissions[0].grade / assignment.points) * 100).toFixed(1)}%
-                            </span>
-                          </div>
-                          <div className="w-full bg-green-200 rounded-full h-2">
-                            <div 
-                              className="bg-green-500 h-2 rounded-full transition-all duration-300"
-                              style={{ width: `${(assignment.submissions[0].grade / assignment.points) * 100}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                        
-                        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                          <h4 className="font-semibold text-blue-800 mb-2">Feedback</h4>
-                          <p className="text-blue-700 whitespace-pre-wrap">{assignment.submissions[0].feedback}</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-8">
-                        <div className="text-4xl mb-2">⏳</div>
-                        <p className="text-gray-600">Waiting for instructor feedback...</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Peer Feedback */}
-                  <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-                    <div className="flex items-center mb-4">
-                      <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-lg mr-3">
-                        👥
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">Peer Feedback</h3>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {/* Mock peer feedback data */}
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                              SC
-                            </div>
-                            <span className="font-medium text-gray-800">Sarah Chen</span>
-                          </div>
-                          <span className="text-sm text-gray-500">2 days ago</span>
-                        </div>
-                        <p className="text-gray-700 text-sm">
-                          "Great work on the implementation! Your code is well-structured and the comments are helpful. 
-                          One suggestion: consider adding error handling for edge cases in the delete function."
-                        </p>
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                          <span>👍 3</span>
-                          <span>💬 Reply</span>
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                              MR
-                            </div>
-                            <span className="font-medium text-gray-800">Marcus Rodriguez</span>
-                          </div>
-                          <span className="text-sm text-gray-500">1 day ago</span>
-                        </div>
-                        <p className="text-gray-700 text-sm">
-                          "Excellent algorithm choice! The time complexity is optimal. I learned a lot from your approach. 
-                          Maybe you could add some test cases to demonstrate the functionality?"
-                        </p>
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                          <span>👍 5</span>
-                          <span>💬 Reply</span>
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 bg-gradient-to-r from-orange-400 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                              ET
-                            </div>
-                            <span className="font-medium text-gray-800">Emma Thompson</span>
-                          </div>
-                          <span className="text-sm text-gray-500">3 hours ago</span>
-                        </div>
-                        <p className="text-gray-700 text-sm">
-                          "Really impressive work! Your code is clean and easy to follow. The visualization you added 
-                          really helps understand the tree structure. Keep it up!"
-                        </p>
-                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
-                          <span>👍 2</span>
-                          <span>💬 Reply</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               ) : (
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">📝</div>
-                    <h4 className="text-xl font-semibold text-gray-900 mb-2">No Submissions Yet</h4>
-                    <p className="text-gray-600 mb-4">
-                      Submit your assignment to see feedback here.
-                    </p>
-                    <button
-                      onClick={() => setActiveTab('details')}
-                      className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                    >
-                      View Assignment Details
-                    </button>
-                  </div>
+                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">📝 Not Submitted</h3>
+                  <p className="text-yellow-700 mb-4">
+                    You haven't submitted this assignment yet. Make sure to submit before the due date.
+                  </p>
+                  <button
+                    onClick={() => router.push('/student/video-submission')}
+                    className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                  >
+                    <span className="mr-2">🎥</span>
+                    Submit Assignment
+                  </button>
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </StudentRoute>

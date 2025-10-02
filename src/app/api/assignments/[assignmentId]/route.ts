@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -14,16 +14,19 @@ export async function GET(
   try {
     const { assignmentId } = params;
     
-    // Get assignment from database
+    // Get assignment from database using scan
     let assignment = null;
     
     try {
-      const assignmentResult = await docClient.send(new GetCommand({
+      const assignmentResult = await docClient.send(new ScanCommand({
         TableName: ASSIGNMENTS_TABLE,
-        Key: { assignmentId: assignmentId }
+        FilterExpression: 'assignmentId = :assignmentId',
+        ExpressionAttributeValues: {
+          ':assignmentId': assignmentId
+        }
       }));
       
-      assignment = assignmentResult.Item;
+      assignment = assignmentResult.Items?.[0] || null;
     } catch (dbError: any) {
       if (dbError.name === 'ResourceNotFoundException') {
         return NextResponse.json(
@@ -41,9 +44,39 @@ export async function GET(
       );
     }
     
+    // Transform assignment data to match expected interface
+    const transformedAssignment = {
+      id: assignment.assignmentId,
+      assignmentId: assignment.assignmentId,
+      title: assignment.title,
+      description: assignment.description,
+      instructions: assignment.description, // Use description as instructions
+      dueDate: assignment.dueDate,
+      points: assignment.maxScore || 100,
+      status: 'not-started', // Default status
+      submissionType: assignment.assignmentType === 'video' ? 'video' : 'file',
+      allowedFileTypes: assignment.allowedFileTypes || [],
+      maxFileSize: assignment.maxFileSize || 100 * 1024 * 1024, // 100MB default
+      course: {
+        id: assignment.courseId,
+        name: 'Unknown Course', // Would need to fetch from course table
+        code: 'N/A',
+        instructor: {
+          name: 'Unknown Instructor',
+          email: 'unknown@example.com'
+        }
+      },
+      resources: assignment.resources || [],
+      submissions: [], // Would need to fetch from submissions table
+      createdAt: assignment.createdAt,
+      updatedAt: assignment.updatedAt
+    };
+    
     return NextResponse.json({
       success: true,
-      data: assignment
+      data: {
+        assignment: transformedAssignment
+      }
     });
     
   } catch (error) {
