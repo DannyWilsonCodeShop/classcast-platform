@@ -141,13 +141,62 @@ const VideoSubmissionPage: React.FC = () => {
         throw new Error('No video to upload');
       }
       
+      // Upload video to server
+      const formData = new FormData();
+      formData.append('video', videoBlob, fileName);
+      formData.append('title', `Video Submission - ${new Date().toLocaleDateString()}`);
+      formData.append('description', 'Student video submission');
+      formData.append('duration', '0'); // We don't have duration yet
+      formData.append('courseId', 'temp-course'); // This should come from the assignment
+      formData.append('userId', user?.id || 'unknown');
+
+      const uploadResponse = await fetch('/api/videos/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload video to server');
+      }
+
+      const uploadData = await uploadResponse.json();
+      const videoUrl = uploadData.videoUrl || uploadData.url;
+
+      // Now submit the video as an assignment submission
+      const submissionData = {
+        assignmentId: 'temp-assignment', // This should come from the assignment context
+        studentId: user?.id || 'unknown',
+        courseId: 'temp-course', // This should come from the assignment context
+        videoUrl: videoUrl,
+        videoTitle: `Video Submission - ${new Date().toLocaleDateString()}`,
+        videoDescription: 'Student video submission',
+        duration: 0, // We don't have duration yet
+        fileName: fileName,
+        fileSize: videoBlob.size,
+        fileType: videoType,
+        isRecorded: !!recordedVideo,
+        isUploaded: !!selectedFile
+      };
+
+      const submissionResponse = await fetch('/api/video-submissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (!submissionResponse.ok) {
+        throw new Error('Failed to submit video assignment');
+      }
+
       clearInterval(progressInterval);
       setUploadProgress(100);
 
       // Simulate successful upload
       setSuccess(true);
       
-      // Store only metadata in localStorage (not the actual video data)
+      // Store only metadata in localStorage for local reference
       const videoInfo = {
         id: `video-${Date.now()}`,
         blobUrl: videoToUpload, // Keep blob URL for immediate playback
@@ -159,7 +208,7 @@ const VideoSubmissionPage: React.FC = () => {
         type: videoType,
         isRecorded: !!recordedVideo,
         isUploaded: !!selectedFile,
-        // Store video data in IndexedDB instead of localStorage
+        videoUrl: videoUrl, // Store the server URL
         videoData: null // Will be stored separately
       };
       

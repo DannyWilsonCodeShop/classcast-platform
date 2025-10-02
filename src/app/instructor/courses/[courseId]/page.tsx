@@ -55,6 +55,41 @@ interface Student {
   lastActivity: string;
 }
 
+interface VideoSubmission {
+  submissionId: string;
+  assignmentId: string;
+  studentId: string;
+  courseId: string;
+  videoUrl: string;
+  videoTitle: string;
+  videoDescription: string;
+  duration: number;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  isRecorded: boolean;
+  isUploaded: boolean;
+  status: 'submitted' | 'graded' | 'returned';
+  grade?: number;
+  instructorFeedback?: string;
+  submittedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  gradedAt?: string;
+  student: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string;
+  };
+  assignment: {
+    id: string;
+    title: string;
+    description: string;
+    dueDate?: string;
+  };
+}
+
 const InstructorCourseDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -62,10 +97,12 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [course, setCourse] = useState<Course | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
+  const [videoSubmissions, setVideoSubmissions] = useState<VideoSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+  const [activeTab, setActiveTab] = useState<'assignments' | 'submissions' | 'students'>('assignments');
 
   const courseId = params.courseId as string;
 
@@ -74,6 +111,12 @@ const InstructorCourseDetailPage: React.FC = () => {
       fetchCourseDetails();
     }
   }, [courseId]);
+
+  useEffect(() => {
+    if (courseId && activeTab === 'submissions') {
+      fetchVideoSubmissions();
+    }
+  }, [courseId, activeTab]);
 
   const fetchCourseDetails = async () => {
     try {
@@ -146,6 +189,23 @@ const InstructorCourseDetailPage: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Failed to fetch course details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchVideoSubmissions = async () => {
+    try {
+      const response = await fetch(`/api/instructor/video-submissions?courseId=${courseId}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setVideoSubmissions(data.submissions || []);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching video submissions:', error);
     }
   };
 
@@ -315,17 +375,53 @@ const InstructorCourseDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Assignments Grid */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Assignments</h2>
-              <button 
-                onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
-                className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+          {/* Tab Navigation */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+              <button
+                onClick={() => setActiveTab('assignments')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'assignments'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
               >
-                + Create Assignment
+                📝 Assignments
+              </button>
+              <button
+                onClick={() => setActiveTab('submissions')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'submissions'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                🎥 Video Submissions
+              </button>
+              <button
+                onClick={() => setActiveTab('students')}
+                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'students'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                👥 Students
               </button>
             </div>
+
+            {/* Assignments Tab */}
+            {activeTab === 'assignments' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">Assignments</h2>
+                  <button 
+                    onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+                  >
+                    + Create Assignment
+                  </button>
+                </div>
             
             {assignments.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -416,6 +512,159 @@ const InstructorCourseDetailPage: React.FC = () => {
                 >
                   Create Your First Assignment
                 </button>
+              </div>
+            )}
+              </div>
+            )}
+
+            {/* Video Submissions Tab */}
+            {activeTab === 'submissions' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">Video Submissions</h2>
+                  <div className="text-sm text-gray-600">
+                    {videoSubmissions.length} submission{videoSubmissions.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+                
+                {videoSubmissions.length > 0 ? (
+                  <div className="space-y-4">
+                    {videoSubmissions.map((submission) => (
+                      <div
+                        key={submission.submissionId}
+                        className="bg-gray-50 rounded-xl p-6 border border-gray-200"
+                      >
+                        <div className="flex items-start space-x-4">
+                          {/* Student Avatar */}
+                          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                            {submission.student.name.charAt(0).toUpperCase()}
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between mb-2">
+                              <h3 className="text-lg font-semibold text-gray-800">
+                                {submission.student.name}
+                              </h3>
+                              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                submission.status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
+                                submission.status === 'graded' ? 'bg-green-100 text-green-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
+                              </span>
+                            </div>
+                            
+                            <p className="text-sm text-gray-600 mb-2">
+                              Assignment: {submission.assignment.title}
+                            </p>
+                            
+                            <p className="text-sm text-gray-500 mb-4">
+                              Submitted: {new Date(submission.submittedAt).toLocaleDateString()} at {new Date(submission.submittedAt).toLocaleTimeString()}
+                            </p>
+                            
+                            {/* Video Preview */}
+                            <div className="bg-black rounded-lg overflow-hidden mb-4">
+                              <video
+                                src={submission.videoUrl}
+                                controls
+                                className="w-full h-64 object-cover"
+                              />
+                            </div>
+                            
+                            {/* Submission Details */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
+                              <div>
+                                <span className="font-medium">File:</span> {submission.fileName}
+                              </div>
+                              <div>
+                                <span className="font-medium">Size:</span> {(submission.fileSize / (1024 * 1024)).toFixed(2)} MB
+                              </div>
+                              <div>
+                                <span className="font-medium">Type:</span> {submission.isRecorded ? 'Recorded' : 'Uploaded'}
+                              </div>
+                              <div>
+                                <span className="font-medium">Duration:</span> {submission.duration || 'Unknown'}
+                              </div>
+                            </div>
+                            
+                            {/* Grade and Feedback */}
+                            {submission.status === 'graded' && (
+                              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium text-gray-700">Grade:</span>
+                                  <span className="text-2xl font-bold text-blue-600">
+                                    {submission.grade || 'N/A'}
+                                  </span>
+                                </div>
+                                {submission.instructorFeedback && (
+                                  <div>
+                                    <span className="font-medium text-gray-700">Feedback:</span>
+                                    <p className="text-gray-600 mt-1">{submission.instructorFeedback}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            
+                            {/* Action Buttons */}
+                            <div className="flex space-x-2 mt-4">
+                              <button className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+                                Grade Submission
+                              </button>
+                              <button className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors">
+                                View Details
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">🎥</div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">No Video Submissions Yet</h3>
+                    <p className="text-gray-600 mb-6">Students haven't submitted any videos for this course yet.</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Students Tab */}
+            {activeTab === 'students' && (
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800">Students</h2>
+                  <div className="text-sm text-gray-600">
+                    {students.length} student{students.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+                
+                {students.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {students.map((student) => (
+                      <div
+                        key={student.studentId}
+                        className="bg-gray-50 rounded-xl p-4 border border-gray-200"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                            {student.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-800">{student.name}</h3>
+                            <p className="text-sm text-gray-600">{student.email}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="text-6xl mb-4">👥</div>
+                    <h3 className="text-xl font-semibold text-gray-800 mb-2">No Students Enrolled</h3>
+                    <p className="text-gray-600 mb-6">Students will appear here once they enroll in your course.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
