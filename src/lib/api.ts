@@ -83,7 +83,7 @@ export interface VideoReel {
   thumbnail: string;
   videoUrl: string;
   duration: number;
-  author: {
+  author?: {
     id: string;
     name: string;
     avatar: string;

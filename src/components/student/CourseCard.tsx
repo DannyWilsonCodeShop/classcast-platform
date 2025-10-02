@@ -9,7 +9,7 @@ interface Course {
   id: string;
   name: string;
   code: string;
-  instructor: {
+  instructor?: {
     name: string;
     avatar: string;
   };
@@ -63,14 +63,14 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
         <div className="flex items-center space-x-2 mb-4">
           <Avatar
             user={{
-              firstName: course.instructor.name.split(' ')[0] || '',
-              lastName: course.instructor.name.split(' ')[1] || '',
-              avatar: course.instructor.avatar
+              firstName: course.instructor?.name?.split(' ')[0] || 'Unknown',
+              lastName: course.instructor?.name?.split(' ')[1] || 'Instructor',
+              avatar: course.instructor?.avatar || '/api/placeholder/40/40'
             }}
             size="sm"
           />
           <span className="text-sm text-gray-600">
-            Prof. {course.instructor.name}
+            Prof. {course.instructor?.name || 'Unknown Instructor'}
           </span>
         </div>
 
