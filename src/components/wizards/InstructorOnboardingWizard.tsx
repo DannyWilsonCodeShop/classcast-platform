@@ -1,11 +1,49 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Course, CreateCourseData } from '@/types/course';
 import { Assignment } from '@/types/dynamodb';
 import { SEMESTER_OPTIONS } from '@/constants/semesters';
-import { Section, CreateSectionRequest } from '@/types/sections';
+// import { Section, CreateSectionRequest } from '@/types/sections';
+
+// Local interfaces for now
+interface Section {
+  sectionId: string;
+  courseId: string;
+  sectionName: string;
+  sectionCode?: string;
+  classCode?: string;
+  description?: string;
+  maxEnrollment?: number;
+  currentEnrollment: number;
+  schedule?: {
+    days: string[];
+    time: string;
+    location: string;
+  };
+  location?: string;
+  instructorId: string;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+}
+
+interface CreateSectionRequest {
+  courseId: string;
+  sectionName: string;
+  sectionCode?: string;
+  description?: string;
+  maxEnrollment?: number;
+  schedule?: {
+    days: string[];
+    time: string;
+    location: string;
+  };
+  location?: string;
+  instructorId: string;
+}
 import { SectionForm } from '@/components/sections/SectionForm';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface InstructorOnboardingWizardProps {
   isOpen: boolean;
@@ -27,6 +65,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
   onComplete,
   isFirstTime = false
 }) => {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [courseData, setCourseData] = useState<Partial<CreateCourseData>>({});
@@ -35,6 +74,13 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
   const [sections, setSections] = useState<Section[]>([]);
   const [showSectionForm, setShowSectionForm] = useState(false);
   const [hasMultipleSections, setHasMultipleSections] = useState<boolean | null>(null);
+
+  // Set instructor ID when user is available
+  useEffect(() => {
+    if (user?.id && !courseData.instructorId) {
+      setCourseData(prev => ({ ...prev, instructorId: user.id }));
+    }
+  }, [user?.id, courseData.instructorId]);
 
   const steps: WizardStep[] = [
     {
@@ -61,6 +107,8 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
       component: <SectionsQuestionStep 
         hasMultipleSections={hasMultipleSections}
         setHasMultipleSections={setHasMultipleSections}
+        peerReviewScope="section"
+        setPeerReviewScope={() => {}}
       />
     },
     {
@@ -174,7 +222,6 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
                 code: courseData.code,
                 classCode: courseData.classCode,
                 department: courseData.department,
-                credits: courseData.credits,
                 semester: courseData.semester,
                 year: courseData.year,
                 instructorId: courseData.instructorId,
@@ -184,7 +231,6 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
                 prerequisites: courseData.prerequisites,
                 learningObjectives: courseData.learningObjectives,
                 gradingPolicy: courseData.gradingPolicy,
-                schedule: courseData.schedule,
                 resources: courseData.resources,
                 settings: courseData.settings
               })
@@ -790,8 +836,8 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
           Assignment Type
         </label>
         <select
-          value={data.type || 'video'}
-          onChange={(e) => handleChange('type', e.target.value)}
+          value={data.assignmentType || 'video'}
+          onChange={(e) => handleChange('assignmentType', e.target.value)}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           <option value="video">Video Submission</option>
@@ -875,7 +921,7 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({
         <h5 className="font-semibold text-gray-900 mb-2">Assignment</h5>
         <div className="space-y-1 text-sm">
           <p><span className="font-medium">Title:</span> {assignmentData.title}</p>
-          <p><span className="font-medium">Type:</span> {assignmentData.type}</p>
+          <p><span className="font-medium">Type:</span> {assignmentData.assignmentType}</p>
           <p><span className="font-medium">Points:</span> {assignmentData.maxScore}</p>
           <p><span className="font-medium">Due Date:</span> {assignmentData.dueDate}</p>
         </div>
