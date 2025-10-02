@@ -5,12 +5,13 @@ import { awsConfig } from './aws-config';
 // S3 client configuration
 const s3Client = new S3Client({
   region: awsConfig.region,
-  // Explicitly set credentials for production
+  // Explicitly set credentials for production if available
   credentials: process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   } : undefined,
   // Use default credential provider chain if explicit credentials not available
+  // This will try IAM roles, instance profiles, etc.
 });
 
 // Debug AWS configuration
