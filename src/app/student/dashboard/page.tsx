@@ -12,6 +12,47 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Wifi, WifiOff, Plus } from 'lucide-react';
 
+interface DashboardStats {
+  activeCourses: number;
+  assignmentsDue: number;
+  completed: number;
+}
+
+interface Course {
+  id: string;
+  name: string;
+  code: string;
+  color: string;
+  instructor?: {
+    name: string;
+    avatar: string;
+  };
+  assignmentsDue: number;
+  nextDeadline?: string;
+}
+
+interface Assignment {
+  id: string;
+  title: string;
+  dueDate: string;
+  courseId: string;
+  status: string;
+  points: number;
+}
+
+interface CommunityPost {
+  id: string;
+  title: string;
+  author: {
+    name: string;
+    avatar: string;
+  };
+  isAnnouncement: boolean;
+  likes: number;
+  comments: number;
+  timestamp: string;
+}
+
 const StudentDashboard: React.FC = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -24,12 +65,12 @@ const StudentDashboard: React.FC = () => {
     assignmentsDue: 0,
     completed: 0
   });
-  const [courses, setCourses] = useState([]);
-  const [assignments, setAssignments] = useState([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [isLoadingCourses, setIsLoadingCourses] = useState(true);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
-  const [communityPosts, setCommunityPosts] = useState([]);
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [todoStats, setTodoStats] = useState({
     pendingAssignments: 0,
@@ -211,13 +252,17 @@ const StudentDashboard: React.FC = () => {
   // Handle class enrollment
   const handleClassEnrollment = async (classCode: string) => {
     try {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
       const response = await fetch('/api/student/enroll', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ classCode }),
+        body: JSON.stringify({ classCode, userId: user.id }),
       });
 
       const data = await response.json();
@@ -335,13 +380,12 @@ const StudentDashboard: React.FC = () => {
               >
                 <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
-              <Avatar
-                user={user}
-                size="lg"
-                onClick={() => router.push('/student/profile')}
-                className="shadow-lg"
-                title="View Profile"
-              />
+        <Avatar
+          user={user}
+          size="lg"
+          onClick={() => router.push('/student/profile')}
+          className="shadow-lg"
+        />
             </div>
           </div>
         </div>
