@@ -74,7 +74,6 @@ export async function POST(request: NextRequest) {
       code,
       classCode,
       department,
-      credits,
       semester,
       year,
       instructorId,
@@ -84,7 +83,6 @@ export async function POST(request: NextRequest) {
       prerequisites,
       learningObjectives,
       gradingPolicy,
-      schedule,
       resources,
       settings
     } = body;
@@ -118,12 +116,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (credits && (typeof credits !== 'number' || credits < 1 || credits > 6)) {
-      return NextResponse.json(
-        { success: false, error: 'Credits must be a number between 1 and 6' },
-        { status: 400 }
-      );
-    }
 
     if (maxStudents && (typeof maxStudents !== 'number' || maxStudents < 1 || maxStudents > 500)) {
       return NextResponse.json(
@@ -150,7 +142,7 @@ export async function POST(request: NextRequest) {
       code: code.trim(),
       classCode: classCode.trim(),
       department: department?.trim() || '',
-      credits: credits || 3,
+      credits: 3, // Default credits
       semester: semester || 'Spring',
       year: year || new Date().getFullYear(),
       instructorId: instructorId.trim(),
@@ -166,7 +158,7 @@ export async function POST(request: NextRequest) {
         participation: 5,
         final: 5,
       },
-      schedule: schedule || {
+      schedule: {
         days: ['Monday', 'Wednesday', 'Friday'],
         time: '10:00 AM - 11:00 AM',
         location: 'TBD',
