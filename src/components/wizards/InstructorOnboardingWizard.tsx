@@ -107,8 +107,6 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
       component: <SectionsQuestionStep 
         hasMultipleSections={hasMultipleSections}
         setHasMultipleSections={setHasMultipleSections}
-        peerReviewScope="section"
-        setPeerReviewScope={() => {}}
       />
     },
     {
@@ -991,15 +989,11 @@ const CompleteStep: React.FC<CompleteStepProps> = ({
 interface SectionsQuestionStepProps {
   hasMultipleSections: boolean | null;
   setHasMultipleSections: (value: boolean) => void;
-  peerReviewScope: 'section' | 'course';
-  setPeerReviewScope: (scope: 'section' | 'course') => void;
 }
 
 const SectionsQuestionStep: React.FC<SectionsQuestionStepProps> = ({
   hasMultipleSections,
-  setHasMultipleSections,
-  peerReviewScope,
-  setPeerReviewScope
+  setHasMultipleSections
 }) => {
   return (
     <div className="space-y-8">
@@ -1041,45 +1035,6 @@ const SectionsQuestionStep: React.FC<SectionsQuestionStepProps> = ({
         </div>
       </div>
 
-      {/* Peer Review Scope Question */}
-      {hasMultipleSections !== null && (
-        <div className="border-t pt-8">
-          <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-            How should students review each other's work?
-          </h4>
-          <p className="text-gray-600 mb-6 text-center">
-            Choose whether students can review videos from their section only or from the entire course.
-          </p>
-          
-          <div className="flex justify-center space-x-4">
-            <button
-              onClick={() => setPeerReviewScope('section')}
-              className={`px-6 py-3 rounded-lg border-2 transition-all ${
-                peerReviewScope === 'section'
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <div className="text-xl mb-2">👥</div>
-              <div className="font-medium">Section Only</div>
-              <div className="text-sm text-gray-600">Students review peers in their section</div>
-            </button>
-            
-            <button
-              onClick={() => setPeerReviewScope('course')}
-              className={`px-6 py-3 rounded-lg border-2 transition-all ${
-                peerReviewScope === 'course'
-                  ? 'border-green-500 bg-green-50 text-green-700'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              <div className="text-xl mb-2">🌐</div>
-              <div className="font-medium">Course Wide</div>
-              <div className="text-sm text-gray-600">Students review peers from all sections</div>
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Benefits Explanation */}
       {hasMultipleSections !== null && (
@@ -1090,7 +1045,6 @@ const SectionsQuestionStep: React.FC<SectionsQuestionStepProps> = ({
               <>
                 <li>• You'll create separate class codes for each section</li>
                 <li>• You can grade sections individually or all together</li>
-                <li>• Peer review scope can be configured per assignment</li>
                 <li>• You can assign work to specific sections or all sections</li>
               </>
             ) : (
