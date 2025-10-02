@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -11,6 +11,8 @@ const USERS_TABLE = 'classcast-users';
 export async function POST(request: NextRequest) {
   try {
     const { classCode, userId } = await request.json();
+    
+    console.log('Enrollment request:', { classCode, userId });
 
     if (!classCode || typeof classCode !== 'string') {
       return NextResponse.json(
@@ -36,19 +38,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find course by code
+    // Find course by code (search both classCode and courseCode)
     let course = null;
     try {
+      console.log('Searching for course with classCode:', normalizedClassCode);
       const coursesResult = await docClient.send(new ScanCommand({
         TableName: COURSES_TABLE,
-        FilterExpression: 'classCode = :classCode',
+        FilterExpression: 'classCode = :classCode OR courseCode = :courseCode',
         ExpressionAttributeValues: {
-          ':classCode': normalizedClassCode
+          ':classCode': normalizedClassCode,
+          ':courseCode': normalizedClassCode
         }
       }));
       
+      console.log('Course search result:', { 
+        itemCount: coursesResult.Items?.length || 0,
+        items: coursesResult.Items 
+      });
+      
       course = coursesResult.Items?.[0];
     } catch (dbError: any) {
+      console.error('Database error during course search:', dbError);
       if (dbError.name === 'ResourceNotFoundException') {
         return NextResponse.json(
           { success: false, error: 'Course not found' },
@@ -81,15 +91,28 @@ export async function POST(request: NextRequest) {
       [userId]: new Date().toISOString()
     };
 
+    // Ensure enrollment object exists
+    const enrollmentUpdate = {
+      students: updatedStudents,
+      enrollmentDates: enrollmentDates
+    };
+
+    console.log('Updating course enrollment:', {
+      courseId: course.courseId,
+      enrollmentUpdate
+    });
+
+    // Use SET to create or update the entire enrollment object
     await docClient.send(new UpdateCommand({
       TableName: COURSES_TABLE,
       Key: { courseId: course.courseId },
-      UpdateExpression: 'SET enrollment.students = :students, enrollment.enrollmentDates = :enrollmentDates',
+      UpdateExpression: 'SET enrollment = :enrollment',
       ExpressionAttributeValues: {
-        ':students': updatedStudents,
-        ':enrollmentDates': enrollmentDates
+        ':enrollment': enrollmentUpdate
       }
     }));
+
+    console.log('Course enrollment updated successfully');
 
     return NextResponse.json({
       success: true,
