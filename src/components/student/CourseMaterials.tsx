@@ -46,71 +46,26 @@ export const CourseMaterials: React.FC<CourseMaterialsProps> = ({ courseId, cour
       setLoading(true);
       setError(null);
 
-      // Mock data for now - in production, this would fetch from API
-      const mockMaterials: CourseMaterial[] = [
-        {
-          materialId: '1',
-          title: 'Course Syllabus',
-          description: 'Complete course syllabus with schedule and policies',
-          type: 'document',
-          url: '/materials/syllabus.pdf',
-          fileSize: 245760,
-          uploadedBy: { name: 'Dr. Smith', email: 'dr.smith@university.edu' },
-          uploadedAt: '2024-01-15T10:00:00Z',
-          isRequired: true,
-          tags: ['syllabus', 'policies']
-        },
-        {
-          materialId: '2',
-          title: 'Introduction to Calculus Video',
-          description: 'Basic concepts and introduction to calculus',
-          type: 'video',
-          url: '/materials/intro-calculus.mp4',
-          duration: 1800,
-          uploadedBy: { name: 'Dr. Smith', email: 'dr.smith@university.edu' },
-          uploadedAt: '2024-01-16T14:30:00Z',
-          isRequired: true,
-          tags: ['video', 'introduction', 'calculus']
-        },
-        {
-          materialId: '3',
-          title: 'Practice Problems Set 1',
-          description: 'First set of practice problems for homework',
-          type: 'assignment',
-          url: '/materials/practice-set-1.pdf',
-          fileSize: 128000,
-          uploadedBy: { name: 'Dr. Smith', email: 'dr.smith@university.edu' },
-          uploadedAt: '2024-01-17T09:15:00Z',
-          isRequired: true,
-          tags: ['homework', 'practice', 'problems']
-        },
-        {
-          materialId: '4',
-          title: 'Additional Resources',
-          description: 'Links to external resources and references',
-          type: 'link',
-          url: 'https://www.khanacademy.org/math/calculus-1',
-          uploadedBy: { name: 'Dr. Smith', email: 'dr.smith@university.edu' },
-          uploadedAt: '2024-01-18T11:45:00Z',
-          isRequired: false,
-          tags: ['resources', 'external', 'khan-academy']
-        },
-        {
-          materialId: '5',
-          title: 'Class Announcement - Office Hours',
-          description: 'Updated office hours for this week',
-          type: 'announcement',
-          uploadedBy: { name: 'Dr. Smith', email: 'dr.smith@university.edu' },
-          uploadedAt: '2024-01-19T08:00:00Z',
-          isRequired: false,
-          tags: ['announcement', 'office-hours']
-        }
-      ];
+      // Fetch real materials from API
+      const response = await fetch(`/api/courses/${courseId}/materials`, {
+        credentials: 'include',
+      });
 
-      setMaterials(mockMaterials);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch materials: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setMaterials(data.materials || []);
+      } else {
+        throw new Error(data.error || 'Failed to fetch materials');
+      }
     } catch (err) {
       console.error('Error fetching materials:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch materials');
+      setMaterials([]);
     } finally {
       setLoading(false);
     }

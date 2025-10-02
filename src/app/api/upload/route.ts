@@ -17,6 +17,12 @@ export async function OPTIONS(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     console.log('Upload API called');
+    console.log('Environment check:', {
+      hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+      hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
+      hasBucket: !!process.env.S3_ASSETS_BUCKET,
+      nodeEnv: process.env.NODE_ENV
+    });
     
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -145,6 +151,12 @@ export async function POST(request: NextRequest) {
       console.log('S3 upload successful:', fileUrl);
     } catch (s3Error) {
       console.error('S3 upload failed:', s3Error);
+      console.error('S3 error details:', {
+        name: s3Error.name,
+        message: s3Error.message,
+        code: s3Error.code,
+        statusCode: s3Error.$metadata?.httpStatusCode
+      });
       throw s3Error;
     }
 
