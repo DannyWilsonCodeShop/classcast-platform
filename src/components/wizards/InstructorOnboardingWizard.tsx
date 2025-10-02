@@ -35,7 +35,6 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
   const [sections, setSections] = useState<Section[]>([]);
   const [showSectionForm, setShowSectionForm] = useState(false);
   const [hasMultipleSections, setHasMultipleSections] = useState<boolean | null>(null);
-  const [peerReviewScope, setPeerReviewScope] = useState<'section' | 'course'>('section');
 
   const steps: WizardStep[] = [
     {
@@ -62,8 +61,6 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
       component: <SectionsQuestionStep 
         hasMultipleSections={hasMultipleSections}
         setHasMultipleSections={setHasMultipleSections}
-        peerReviewScope={peerReviewScope}
-        setPeerReviewScope={setPeerReviewScope}
       />
     },
     {
@@ -106,15 +103,14 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
       description: isFirstTime 
         ? 'Review and publish your course to make it live.'
         : 'Review and publish your new class.',
-      component: <PublishCourseStep 
-        courseData={courseData}
-        assignmentData={assignmentData}
-        students={students}
-        isFirstTime={isFirstTime}
-        hasMultipleSections={hasMultipleSections}
-        peerReviewScope={peerReviewScope}
-        sections={sections}
-      />
+        component: <PublishCourseStep 
+          courseData={courseData}
+          assignmentData={assignmentData}
+          students={students}
+          isFirstTime={isFirstTime}
+          hasMultipleSections={hasMultipleSections}
+          sections={sections}
+        />
     },
     {
       id: 'complete',
@@ -129,7 +125,6 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
         students={students}
         assignmentData={assignmentData}
         hasMultipleSections={hasMultipleSections}
-        peerReviewScope={peerReviewScope}
       />
     }
   ];
@@ -757,7 +752,6 @@ interface PublishCourseStepProps {
   students: Array<{email: string, name: string}>;
   isFirstTime?: boolean;
   hasMultipleSections: boolean | null;
-  peerReviewScope: 'section' | 'course';
   sections: Section[];
 }
 
@@ -767,7 +761,6 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({
   students, 
   isFirstTime = false,
   hasMultipleSections,
-  peerReviewScope,
   sections
 }) => (
   <div className="space-y-6">
@@ -799,7 +792,7 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({
         <h5 className="font-semibold text-gray-900 mb-2">Course Structure</h5>
         <div className="space-y-3 text-sm">
           <p><span className="font-medium">Structure:</span> {hasMultipleSections ? 'Multiple Sections' : 'Single Section'}</p>
-          <p><span className="font-medium">Peer Reviews:</span> {peerReviewScope === 'section' ? 'Section Only' : 'Course Wide'}</p>
+          <p><span className="font-medium">Peer Reviews:</span> Configured per assignment</p>
           
           {sections.length > 0 && (
             <div className="mt-3">
@@ -853,7 +846,6 @@ interface CompleteStepProps {
   students: Array<{email: string, name: string}>;
   assignmentData: Partial<Assignment>;
   hasMultipleSections: boolean | null;
-  peerReviewScope: 'section' | 'course';
 }
 
 const CompleteStep: React.FC<CompleteStepProps> = ({ 
@@ -861,9 +853,8 @@ const CompleteStep: React.FC<CompleteStepProps> = ({
   courseData, 
   sections, 
   students, 
-  assignmentData,
-  hasMultipleSections,
-  peerReviewScope
+  assignmentData, 
+  hasMultipleSections
 }) => (
   <div className="text-center space-y-6">
     <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto">
@@ -995,7 +986,7 @@ const SectionsQuestionStep: React.FC<SectionsQuestionStepProps> = ({
               <>
                 <li>• You'll create separate class codes for each section</li>
                 <li>• You can grade sections individually or all together</li>
-                <li>• Students will only see videos from {peerReviewScope === 'section' ? 'their section' : 'all sections'}</li>
+                <li>• Peer review scope can be configured per assignment</li>
                 <li>• You can assign work to specific sections or all sections</li>
               </>
             ) : (
