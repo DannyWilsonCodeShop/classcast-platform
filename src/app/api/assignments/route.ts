@@ -105,7 +105,8 @@ export async function POST(request: NextRequest) {
       rubric,
       peerReview,
       targetSections,
-      peerReviewScope
+      peerReviewScope,
+      resources
     } = body;
 
     // Input validation
@@ -204,6 +205,7 @@ export async function POST(request: NextRequest) {
       peerReview: peerReview || false,
       targetSections: Array.isArray(targetSections) ? targetSections : [],
       peerReviewScope: peerReviewScope || 'section',
+      resources: Array.isArray(resources) ? resources : [],
       createdAt: now,
       updatedAt: now,
       isActive: true

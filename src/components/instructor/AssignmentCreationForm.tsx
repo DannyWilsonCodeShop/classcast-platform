@@ -4,8 +4,9 @@ import React, { useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { Assignment, AssignmentType, AssignmentStatus } from '@/types/dynamodb';
+import { Assignment, AssignmentType, AssignmentStatus, AssignmentResource } from '@/types/dynamodb';
 import { CLASS_COLORS, getClassColorById, getDefaultClassColor } from '@/lib/class-colors';
+import AssignmentResourcesManager from './AssignmentResourcesManager';
 // import { Section } from '@/types/sections';
 
 interface Section {
@@ -62,6 +63,7 @@ interface FormData {
   targetSections: string[];
   allSections: boolean;
   peerReviewScope: 'section' | 'course';
+  resources: AssignmentResource[];
 }
 
 const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
@@ -109,7 +111,8 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     ],
     targetSections: [],
     allSections: true,
-    peerReviewScope: 'section'
+    peerReviewScope: 'section',
+    resources: initialData?.resources || []
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -227,6 +230,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         emoji: formData.emoji,
         color: formData.color,
         requireLiveRecording: formData.requireLiveRecording,
+        resources: formData.resources,
         rubric: formData.rubricType === 'ai_generated' ? formData.aiGeneratedRubric : 
                 formData.rubricType === 'upload' ? { type: 'uploaded', file: formData.rubricFile } : 
                 undefined,
@@ -763,6 +767,14 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Assignment Resources */}
+        <div>
+          <AssignmentResourcesManager
+            resources={formData.resources}
+            onResourcesChange={(resources) => setFormData(prev => ({ ...prev, resources }))}
+          />
         </div>
 
         {/* Submission Settings */}

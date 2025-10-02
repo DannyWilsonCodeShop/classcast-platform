@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
+import AssignmentResourcesDisplay from '@/components/common/AssignmentResourcesDisplay';
 
 interface Assignment {
   id: string;
@@ -35,6 +36,17 @@ interface Assignment {
       email: string;
     };
   };
+  resources?: {
+    id: string;
+    type: 'document' | 'link';
+    title: string;
+    description?: string;
+    url: string;
+    size?: number;
+    mimeType?: string;
+    uploadedAt?: string;
+    createdAt: string;
+  }[];
   submissions: {
     id: string;
     submittedAt: string;
@@ -298,6 +310,12 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Details</h3>
                     <p className="text-gray-700">{assignment.description}</p>
                   </div>
+
+                  {assignment.resources && assignment.resources.length > 0 && (
+                    <div>
+                      <AssignmentResourcesDisplay resources={assignment.resources} />
+                    </div>
+                  )}
 
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Due Date</h3>

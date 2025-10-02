@@ -82,6 +82,7 @@ export interface Assignment {
   // Requirements
   requirements: string[];
   attachments?: Attachment[];
+  resources?: AssignmentResource[]; // Assignment resources (documents and links)
   allowedFileTypes?: string[];
   maxFileSize?: number; // in bytes
   
@@ -206,6 +207,18 @@ export interface Attachment {
   size: number; // in bytes
   type: string; // MIME type
   uploadedAt: string;
+}
+
+export interface AssignmentResource {
+  id: string;
+  type: 'document' | 'link';
+  title: string;
+  description?: string;
+  url: string;
+  size?: number; // in bytes, only for documents
+  mimeType?: string; // only for documents
+  uploadedAt?: string; // only for documents
+  createdAt: string;
 }
 
 export interface SubmissionFile {
