@@ -13,9 +13,7 @@ interface ClassFormData {
   department: string;
   semester: string;
   year: string;
-  credits: number;
   maxStudents: number;
-  schedule: string;
   prerequisites: string;
   learningObjectives: string;
   gradingPolicy: string;
@@ -56,6 +54,9 @@ const CreateClassPage: React.FC = () => {
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [newRequirement, setNewRequirement] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sections, setSections] = useState<Array<{id: string, name: string, code?: string, maxEnrollment?: number}>>([]);
+  const [showSectionForm, setShowSectionForm] = useState(false);
+  const [newSection, setNewSection] = useState({name: '', code: '', maxEnrollment: 30});
   const [formData, setFormData] = useState<ClassFormData>({
     title: '',
     description: '',
@@ -64,9 +65,7 @@ const CreateClassPage: React.FC = () => {
     department: '',
     semester: 'Spring',
     year: new Date().getFullYear().toString(),
-    credits: 3,
     maxStudents: 30,
-    schedule: '',
     prerequisites: '',
     learningObjectives: '',
     gradingPolicy: '',
@@ -248,6 +247,31 @@ const CreateClassPage: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Section management functions
+  const addSection = () => {
+    if (newSection.name.trim()) {
+      const section = {
+        id: `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: newSection.name.trim(),
+        code: newSection.code.trim() || undefined,
+        maxEnrollment: newSection.maxEnrollment || 30
+      };
+      setSections(prev => [...prev, section]);
+      setNewSection({name: '', code: '', maxEnrollment: 30});
+      setShowSectionForm(false);
+    }
+  };
+
+  const removeSection = (id: string) => {
+    setSections(prev => prev.filter(section => section.id !== id));
+  };
+
+  const updateSection = (id: string, updates: Partial<{name: string, code: string, maxEnrollment: number}>) => {
+    setSections(prev => prev.map(section => 
+      section.id === id ? { ...section, ...updates } : section
+    ));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -264,15 +288,12 @@ const CreateClassPage: React.FC = () => {
       newErrors.classCode = 'Class code is required';
     }
 
-    if (formData.credits && (formData.credits < 1 || formData.credits > 6)) {
-      newErrors.credits = 'Credits must be between 1 and 6';
-    }
 
     if (formData.maxStudents && (formData.maxStudents < 1 || formData.maxStudents > 500)) {
       newErrors.maxStudents = 'Max students must be between 1 and 500';
     }
 
-    if (formData.year && (formData.year < 2020 || formData.year > 2030)) {
+    if (formData.year && (parseInt(formData.year) < 2020 || parseInt(formData.year) > 2030)) {
       newErrors.year = 'Year must be between 2020 and 2030';
     }
 
@@ -309,10 +330,10 @@ const CreateClassPage: React.FC = () => {
           code: formData.classCode,
           classCode: formData.classCode,
           department: formData.department,
-          credits: formData.credits,
+          credits: 3, // Default credits
           semester: formData.semester,
           year: parseInt(formData.year),
-          instructorId: user?.instructorId || user?.id,
+          instructorId: user?.id,
           maxStudents: formData.maxStudents,
           startDate: formData.startDate || new Date().toISOString(),
           endDate: formData.endDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
@@ -325,7 +346,7 @@ const CreateClassPage: React.FC = () => {
             final: 0
           },
           schedule: {
-            days: formData.schedule ? formData.schedule.split(',').map(day => day.trim()) : ['Monday', 'Wednesday', 'Friday'],
+            days: ['Monday', 'Wednesday', 'Friday'],
             time: 'TBD',
             location: 'TBD'
           },
@@ -347,6 +368,37 @@ const CreateClassPage: React.FC = () => {
         const result = await response.json();
         console.log('Course created successfully:', result);
         
+        // Create sections if any were added
+        if (sections.length > 0) {
+          try {
+            for (const section of sections) {
+              const sectionResponse = await fetch('/api/sections', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  courseId: result.data.courseId,
+                  sectionName: section.name,
+                  sectionCode: section.code,
+                  maxEnrollment: section.maxEnrollment,
+                  instructorId: user?.id
+                })
+              });
+
+              if (sectionResponse.ok) {
+                const sectionResult = await sectionResponse.json();
+                console.log('Section created successfully:', sectionResult);
+              } else {
+                console.error('Failed to create section:', await sectionResponse.text());
+              }
+            }
+          } catch (sectionError) {
+            console.error('Error creating sections:', sectionError);
+            // Don't fail the whole process if section creation fails
+          }
+        }
+
         // If assignment creation is enabled, create the assignment too
         if (formData.createAssignment && formData.assignmentTitle) {
           try {
@@ -359,7 +411,7 @@ const CreateClassPage: React.FC = () => {
                 title: formData.assignmentTitle,
                 description: formData.assignmentDescription || '',
                 courseId: result.data.courseId,
-                instructorId: user?.instructorId || user?.id,
+                instructorId: user?.id,
                 assignmentType: formData.assignmentType || 'video',
                 maxScore: formData.assignmentPoints || 100,
                 weight: 10,
@@ -513,24 +565,6 @@ const CreateClassPage: React.FC = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Credits
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.credits}
-                    onChange={(e) => handleInputChange('credits', parseInt(e.target.value))}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
-                      errors.credits ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    min="1"
-                    max="6"
-                  />
-                  {errors.credits && (
-                    <p className="mt-1 text-sm text-red-600">{errors.credits}</p>
-                  )}
-                </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -544,6 +578,7 @@ const CreateClassPage: React.FC = () => {
                     <option value="Spring">Spring</option>
                     <option value="Summer">Summer</option>
                     <option value="Fall">Fall</option>
+                    <option value="Fall+Spring">Fall+Spring (Full Year)</option>
                     <option value="Winter">Winter</option>
                   </select>
                 </div>
@@ -581,18 +616,6 @@ const CreateClassPage: React.FC = () => {
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Schedule
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.schedule}
-                    onChange={(e) => handleInputChange('schedule', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                    placeholder="e.g., Mon/Wed/Fri 10:00-11:00 AM"
-                  />
-                </div>
               </div>
 
               <div className="mt-6">
@@ -627,6 +650,126 @@ const CreateClassPage: React.FC = () => {
                     />
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Course Sections */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-6">Course Sections</h2>
+              
+              <div className="space-y-4">
+                {sections.length > 0 ? (
+                  <div className="space-y-3">
+                    {sections.map((section) => (
+                      <div key={section.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h4 className="font-medium text-gray-900">{section.name}</h4>
+                              {section.code && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                  {section.code}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              Max Enrollment: {section.maxEnrollment}
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeSection(section.id)}
+                            className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+                            title="Remove section"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>No sections created yet.</p>
+                    <p className="text-sm">Add sections to organize your students into different groups.</p>
+                  </div>
+                )}
+
+                {!showSectionForm ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowSectionForm(true)}
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors font-medium"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <span>Add Section</span>
+                  </button>
+                ) : (
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h3 className="font-medium text-gray-900 mb-4">Add New Section</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Section Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={newSection.name}
+                          onChange={(e) => setNewSection(prev => ({ ...prev, name: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="e.g., Section A, Period 1"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Section Code (Optional)
+                          </label>
+                          <input
+                            type="text"
+                            value={newSection.code}
+                            onChange={(e) => setNewSection(prev => ({ ...prev, code: e.target.value }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="e.g., A, 1, MORNING"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Max Enrollment
+                          </label>
+                          <input
+                            type="number"
+                            value={newSection.maxEnrollment}
+                            onChange={(e) => setNewSection(prev => ({ ...prev, maxEnrollment: parseInt(e.target.value) || 30 }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            min="1"
+                            max="500"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowSectionForm(false)}
+                          className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={addSection}
+                          disabled={!newSection.name.trim()}
+                          className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Add Section
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
