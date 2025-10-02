@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     if (assignmentId) {
       // Get submissions for a specific assignment
       const queryCommand = new QueryCommand({
-        TableName: process.env.VIDEO_SUBMISSIONS_TABLE_NAME || 'ClassCastVideoSubmissions',
+        TableName: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
         IndexName: 'AssignmentIdIndex',
         KeyConditionExpression: 'assignmentId = :assignmentId',
         ExpressionAttributeValues: {
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     } else if (courseId) {
       // Get all submissions for a course
       const scanCommand = new ScanCommand({
-        TableName: process.env.VIDEO_SUBMISSIONS_TABLE_NAME || 'ClassCastVideoSubmissions',
+        TableName: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
         FilterExpression: 'courseId = :courseId',
         ExpressionAttributeValues: {
           ':courseId': courseId
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       if (courseIds.length > 0) {
         // Get submissions for all instructor's courses
         const submissionsScanCommand = new ScanCommand({
-          TableName: process.env.VIDEO_SUBMISSIONS_TABLE_NAME || 'ClassCastVideoSubmissions',
+          TableName: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
           FilterExpression: 'courseId IN (:courseIds)',
           ExpressionAttributeValues: {
             ':courseIds': courseIds
