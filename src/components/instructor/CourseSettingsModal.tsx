@@ -1,6 +1,28 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { SEMESTER_OPTIONS } from '@/constants/semesters';
+
+interface Section {
+  sectionId: string;
+  courseId: string;
+  sectionName: string;
+  sectionCode?: string;
+  description?: string;
+  maxEnrollment?: number;
+  currentEnrollment: number;
+  schedule?: {
+    days: string[];
+    time: string;
+    location: string;
+  };
+  location?: string;
+  instructorId: string;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+}
 
 interface Course {
   courseId: string;
@@ -13,6 +35,7 @@ interface Course {
   enrollmentCount: number;
   maxEnrollment?: number;
   credits: number;
+  instructorId?: string;
   schedule: {
     days: string[];
     time: string;
@@ -34,6 +57,7 @@ interface Course {
     enableDiscussions?: boolean;
     enableAnnouncements?: boolean;
   };
+  sections?: Section[];
   createdAt: string;
   updatedAt: string;
 }
@@ -55,6 +79,22 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [isLoadingSections, setIsLoadingSections] = useState(false);
+  const [showAddSection, setShowAddSection] = useState(false);
+  const [editingSection, setEditingSection] = useState<Section | null>(null);
+  const [sectionForm, setSectionForm] = useState({
+    sectionName: '',
+    sectionCode: '',
+    description: '',
+    maxEnrollment: 30,
+    location: '',
+    schedule: {
+      days: [] as string[],
+      time: '',
+      location: ''
+    }
+  });
 
   useEffect(() => {
     if (course && isOpen) {
@@ -71,8 +111,26 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
         learningObjectives: course.learningObjectives,
         gradingPolicy: course.gradingPolicy
       });
+      loadSections();
     }
   }, [course, isOpen]);
+
+  const loadSections = async () => {
+    if (!course?.courseId) return;
+    
+    setIsLoadingSections(true);
+    try {
+      const response = await fetch(`/api/sections?courseId=${course.courseId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSections(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error loading sections:', error);
+    } finally {
+      setIsLoadingSections(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,6 +180,97 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
         [field]: value
       }
     }));
+  };
+
+  // Section management functions
+  const handleAddSection = async () => {
+    if (!course?.courseId || !sectionForm.sectionName.trim()) return;
+
+    try {
+      const response = await fetch('/api/sections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: course.courseId,
+          sectionName: sectionForm.sectionName.trim(),
+          sectionCode: sectionForm.sectionCode.trim() || undefined,
+          description: sectionForm.description.trim() || undefined,
+          maxEnrollment: sectionForm.maxEnrollment,
+          location: sectionForm.location.trim() || undefined,
+          schedule: sectionForm.schedule.days.length > 0 ? sectionForm.schedule : undefined,
+          instructorId: course.instructorId || ''
+        })
+      });
+
+      if (response.ok) {
+        setSuccess('Section added successfully');
+        setShowAddSection(false);
+        setSectionForm({
+          sectionName: '',
+          sectionCode: '',
+          description: '',
+          maxEnrollment: 30,
+          location: '',
+          schedule: { days: [], time: '', location: '' }
+        });
+        loadSections();
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to add section');
+      }
+    } catch (error) {
+      setError('Failed to add section');
+    }
+  };
+
+  const handleEditSection = async (section: Section) => {
+    try {
+      const response = await fetch('/api/sections', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sectionId: section.sectionId,
+          sectionName: section.sectionName,
+          sectionCode: section.sectionCode,
+          description: section.description,
+          maxEnrollment: section.maxEnrollment,
+          location: section.location,
+          schedule: section.schedule,
+          isActive: section.isActive
+        })
+      });
+
+      if (response.ok) {
+        setSuccess('Section updated successfully');
+        setEditingSection(null);
+        loadSections();
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to update section');
+      }
+    } catch (error) {
+      setError('Failed to update section');
+    }
+  };
+
+  const handleDeleteSection = async (sectionId: string) => {
+    if (!confirm('Are you sure you want to delete this section?')) return;
+
+    try {
+      const response = await fetch(`/api/sections?sectionId=${sectionId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setSuccess('Section deleted successfully');
+        loadSections();
+      } else {
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to delete section');
+      }
+    } catch (error) {
+      setError('Failed to delete section');
+    }
   };
 
   if (!isOpen || !course) return null;
@@ -189,10 +338,11 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                     onChange={(e) => handleInputChange('semester', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="Fall">Fall</option>
-                    <option value="Spring">Spring</option>
-                    <option value="Summer">Summer</option>
-                    <option value="Winter">Winter</option>
+                    {SEMESTER_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -320,6 +470,85 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                   Private courses won't appear in public course searches but can still be joined using the class code.
                 </p>
               </div>
+            </div>
+
+            {/* Sections Management */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-2">
+                  Course Sections ({sections.length})
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setShowAddSection(true)}
+                  className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  <span>Add Section</span>
+                </button>
+              </div>
+
+              {isLoadingSections ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  <span className="ml-2 text-gray-600">Loading sections...</span>
+                </div>
+              ) : sections.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No sections created yet.</p>
+                  <p className="text-sm">Add your first section to organize students.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {sections.map((section) => (
+                    <div key={section.sectionId} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <h4 className="font-medium text-gray-900">{section.sectionName}</h4>
+                            {section.sectionCode && (
+                              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                                {section.sectionCode}
+                              </span>
+                            )}
+                            <span className={`px-2 py-1 text-xs rounded-full ${
+                              section.isActive 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {section.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          {section.description && (
+                            <p className="text-sm text-gray-600 mb-2">{section.description}</p>
+                          )}
+                          <div className="flex items-center space-x-4 text-xs text-gray-500">
+                            <span>Max: {section.maxEnrollment || 'Unlimited'}</span>
+                            <span>Current: {section.currentEnrollment}</span>
+                            {section.location && <span>Location: {section.location}</span>}
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => setEditingSection(section)}
+                            className="p-2 text-gray-500 hover:text-blue-600 transition-colors"
+                            title="Edit section"
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSection(section.sectionId)}
+                            className="p-2 text-gray-500 hover:text-red-600 transition-colors"
+                            title="Delete section"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Schedule */}
@@ -518,6 +747,211 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
           </form>
         </div>
       </div>
+
+      {/* Add Section Modal */}
+      {showAddSection && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-60 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Add New Section</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Section Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={sectionForm.sectionName}
+                    onChange={(e) => setSectionForm(prev => ({ ...prev, sectionName: e.target.value }))}
+                    placeholder="e.g., Section A, Morning Class"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Section Code
+                  </label>
+                  <input
+                    type="text"
+                    value={sectionForm.sectionCode}
+                    onChange={(e) => setSectionForm(prev => ({ ...prev, sectionCode: e.target.value }))}
+                    placeholder="e.g., A, 001, MWF"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={sectionForm.description}
+                    onChange={(e) => setSectionForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Optional description for this section"
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Max Enrollment
+                    </label>
+                    <input
+                      type="number"
+                      value={sectionForm.maxEnrollment}
+                      onChange={(e) => setSectionForm(prev => ({ ...prev, maxEnrollment: parseInt(e.target.value) || 30 }))}
+                      min="1"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      value={sectionForm.location}
+                      onChange={(e) => setSectionForm(prev => ({ ...prev, location: e.target.value }))}
+                      placeholder="e.g., Room 101, Online"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowAddSection(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAddSection}
+                  disabled={!sectionForm.sectionName.trim()}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Add Section
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Section Modal */}
+      {editingSection && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-60 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">Edit Section</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Section Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={editingSection.sectionName}
+                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, sectionName: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Section Code
+                  </label>
+                  <input
+                    type="text"
+                    value={editingSection.sectionCode || ''}
+                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, sectionCode: e.target.value } : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={editingSection.description || ''}
+                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, description: e.target.value } : null)}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Max Enrollment
+                    </label>
+                    <input
+                      type="number"
+                      value={editingSection.maxEnrollment || ''}
+                      onChange={(e) => setEditingSection(prev => prev ? { ...prev, maxEnrollment: parseInt(e.target.value) || undefined } : null)}
+                      min="1"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Location
+                    </label>
+                    <input
+                      type="text"
+                      value={editingSection.location || ''}
+                      onChange={(e) => setEditingSection(prev => prev ? { ...prev, location: e.target.value } : null)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="isActive"
+                    checked={editingSection.isActive}
+                    onChange={(e) => setEditingSection(prev => prev ? { ...prev, isActive: e.target.checked } : null)}
+                    className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+                    Active Section
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setEditingSection(null)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleEditSection(editingSection)}
+                  disabled={!editingSection.sectionName.trim()}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

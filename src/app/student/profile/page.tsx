@@ -33,6 +33,7 @@ const StudentProfilePage: React.FC = () => {
   const [editedProfile, setEditedProfile] = useState<ProfileData | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Popular emojis for avatars
   const emojiOptions = [
