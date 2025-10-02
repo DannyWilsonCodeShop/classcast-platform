@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
     };
 
     const putCommand = new PutCommand({
-      TableName: process.env.VIDEO_SUBMISSIONS_TABLE_NAME || 'ClassCastVideoSubmissions',
+      TableName: 'classcast-submissions',
       Item: submission
     });
 
@@ -154,7 +154,8 @@ export async function POST(request: NextRequest) {
     console.error('Error creating video submission:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to create video submission'
+      error: 'Failed to create video submission',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
