@@ -99,8 +99,8 @@ const VideoSubmissionPage: React.FC = () => {
         });
       }, 200);
 
-      // Upload to your API
-      const uploadResponse = await fetch('/api/videos/upload', {
+      // Upload to your API (using mock endpoint for now)
+      const uploadResponse = await fetch('/api/videos/upload-mock', {
         method: 'POST',
         body: formData,
         credentials: 'include',
