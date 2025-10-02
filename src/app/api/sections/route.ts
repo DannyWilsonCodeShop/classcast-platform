@@ -22,26 +22,60 @@ export async function GET(request: NextRequest) {
 
     if (courseId) {
       // Get sections for a specific course
-      const result = await docClient.send(new QueryCommand({
-        TableName: SECTIONS_TABLE,
-        IndexName: 'courseId-index',
-        KeyConditionExpression: 'courseId = :courseId',
-        ExpressionAttributeValues: {
-          ':courseId': courseId
+      try {
+        const result = await docClient.send(new QueryCommand({
+          TableName: SECTIONS_TABLE,
+          IndexName: 'courseId-index',
+          KeyConditionExpression: 'courseId = :courseId',
+          ExpressionAttributeValues: {
+            ':courseId': courseId
+          }
+        }));
+        sections = result.Items || [];
+      } catch (gsiError: any) {
+        // Fallback to scan if GSI doesn't exist
+        if (gsiError.name === 'ValidationException' || gsiError.name === 'ResourceNotFoundException') {
+          console.warn('GSI not found, falling back to scan operation');
+          const scanResult = await docClient.send(new ScanCommand({
+            TableName: SECTIONS_TABLE,
+            FilterExpression: 'courseId = :courseId',
+            ExpressionAttributeValues: {
+              ':courseId': courseId
+            }
+          }));
+          sections = scanResult.Items || [];
+        } else {
+          throw gsiError;
         }
-      }));
-      sections = result.Items || [];
+      }
     } else if (instructorId) {
       // Get sections for a specific instructor
-      const result = await docClient.send(new QueryCommand({
-        TableName: SECTIONS_TABLE,
-        IndexName: 'instructorId-index',
-        KeyConditionExpression: 'instructorId = :instructorId',
-        ExpressionAttributeValues: {
-          ':instructorId': instructorId
+      try {
+        const result = await docClient.send(new QueryCommand({
+          TableName: SECTIONS_TABLE,
+          IndexName: 'instructorId-index',
+          KeyConditionExpression: 'instructorId = :instructorId',
+          ExpressionAttributeValues: {
+            ':instructorId': instructorId
+          }
+        }));
+        sections = result.Items || [];
+      } catch (gsiError: any) {
+        // Fallback to scan if GSI doesn't exist
+        if (gsiError.name === 'ValidationException' || gsiError.name === 'ResourceNotFoundException') {
+          console.warn('GSI not found, falling back to scan operation');
+          const scanResult = await docClient.send(new ScanCommand({
+            TableName: SECTIONS_TABLE,
+            FilterExpression: 'instructorId = :instructorId',
+            ExpressionAttributeValues: {
+              ':instructorId': instructorId
+            }
+          }));
+          sections = scanResult.Items || [];
+        } else {
+          throw gsiError;
         }
-      }));
-      sections = result.Items || [];
+      }
     } else {
       // Get all sections
       const result = await docClient.send(new ScanCommand({
