@@ -82,7 +82,7 @@ export default function StudentVideosPage() {
   const filteredVideos = videos.filter(video => {
     const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          video.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         video.author.name.toLowerCase().includes(searchTerm.toLowerCase());
+                         video.author?.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCourse = !filterCourse || video.courseId === filterCourse;
     return matchesSearch && matchesCourse;
   });
@@ -159,7 +159,7 @@ export default function StudentVideosPage() {
                     const course = videos.find(v => v.courseId === courseId);
                     return (
                       <option key={courseId} value={courseId}>
-                        {course?.author.course || courseId}
+                        {course?.author?.course || courseId}
                       </option>
                     );
                   })}
@@ -208,16 +208,16 @@ export default function StudentVideosPage() {
                   {/* Author Info */}
                   <div className="flex items-center space-x-2 mb-3">
                     <img
-                      src={video.author.avatar}
-                      alt={video.author.name}
+                      src={video.author?.avatar || '/api/placeholder/32/32'}
+                      alt={video.author?.name || 'Unknown Author'}
                       className="w-8 h-8 rounded-full"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">
-                        {video.author.name}
+                        {video.author?.name || 'Unknown Author'}
                       </p>
                       <p className="text-xs text-gray-500 truncate">
-                        {video.author.course}
+                        {video.author?.course || 'Unknown Course'}
                       </p>
                     </div>
                   </div>
