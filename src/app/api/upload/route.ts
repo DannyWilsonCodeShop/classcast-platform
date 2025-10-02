@@ -134,12 +134,19 @@ export async function POST(request: NextRequest) {
       bucket: process.env.S3_ASSETS_BUCKET || 'cdk-hnb659fds-assets-463470937777-us-east-1'
     });
 
-    const fileUrl = await s3Service.uploadFile(
-      fileKey,
-      buffer,
-      file.type,
-      finalMetadata
-    );
+    let fileUrl: string;
+    try {
+      fileUrl = await s3Service.uploadFile(
+        fileKey,
+        buffer,
+        file.type,
+        finalMetadata
+      );
+      console.log('S3 upload successful:', fileUrl);
+    } catch (s3Error) {
+      console.error('S3 upload failed:', s3Error);
+      throw s3Error;
+    }
 
     console.log('File uploaded successfully:', {
       fileKey,
