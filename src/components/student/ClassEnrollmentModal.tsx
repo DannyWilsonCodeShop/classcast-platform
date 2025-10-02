@@ -26,8 +26,8 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
       return;
     }
 
-    if (classCode.trim().length < 6) {
-      setError('Class code must be at least 6 characters');
+    if (classCode.trim().length < 5) {
+      setError('Class code must be at least 5 characters');
       return;
     }
 
@@ -114,7 +114,7 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
             </div>
 
             {/* Class Preview (if code is entered) */}
-            {classCode.length >= 6 && !error && (
+            {classCode.length >= 5 && !error && (
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                 <h3 className="text-sm font-semibold text-gray-900 mb-2">Class Preview</h3>
                 <div className="space-y-2">

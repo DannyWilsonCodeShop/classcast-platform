@@ -29,9 +29,9 @@ export async function POST(request: NextRequest) {
     // Normalize the class code
     const normalizedClassCode = classCode.trim().toUpperCase();
 
-    if (normalizedClassCode.length < 6) {
+    if (normalizedClassCode.length < 5) {
       return NextResponse.json(
-        { success: false, error: 'Class code must be at least 6 characters' },
+        { success: false, error: 'Class code must be at least 5 characters' },
         { status: 400 }
       );
     }
