@@ -29,11 +29,29 @@ interface Assignment {
   feedback?: string;
 }
 
+interface Submission {
+  submissionId: string;
+  assignmentId: string;
+  studentId: string;
+  courseId: string;
+  videoUrl: string;
+  videoTitle: string;
+  videoDescription: string;
+  duration: number;
+  fileName: string;
+  fileSize: number;
+  status: string;
+    submittedAt: string;
+  studentName: string;
+  studentEmail: string;
+}
+
 const StudentAssignmentDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
   const [assignment, setAssignment] = useState<Assignment | null>(null);
+  const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,8 +60,21 @@ const StudentAssignmentDetailPage: React.FC = () => {
   useEffect(() => {
     if (assignmentId) {
       fetchAssignmentDetails();
+      fetchSubmission();
     }
   }, [assignmentId]);
+
+  // Update assignment status when submission is loaded
+  useEffect(() => {
+    if (assignment && submission) {
+      setAssignment(prev => prev ? {
+        ...prev,
+        status: 'completed',
+        isSubmitted: true,
+        submittedAt: submission.submittedAt
+      } : null);
+    }
+  }, [assignment, submission]);
 
   const fetchAssignmentDetails = async () => {
     try {
@@ -104,6 +135,24 @@ const StudentAssignmentDetailPage: React.FC = () => {
       setError('Failed to load assignment details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSubmission = async () => {
+    try {
+      const response = await fetch(`/api/assignments/${assignmentId}/submissions?studentId=${user?.id}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.submissions && data.submissions.length > 0) {
+          setSubmission(data.submissions[0]); // Get the first (and should be only) submission for this student
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching submission:', err);
+      // Don't set error for submission fetch failure
     }
   };
 
@@ -236,64 +285,89 @@ const StudentAssignmentDetailPage: React.FC = () => {
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
             {/* Assignment Info Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">{assignment.points}</div>
-                <div className="text-sm text-gray-600">Points</div>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">
-                  {getTimeRemaining(assignment.dueDate)}
-                </div>
-                <div className="text-sm text-gray-600">Time Remaining</div>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{assignment.points}</div>
+                    <div className="text-sm text-gray-600">Points</div>
+                  </div>
+                  <div className="text-center p-4 bg-orange-50 rounded-lg">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {getTimeRemaining(assignment.dueDate)}
+                    </div>
+                    <div className="text-sm text-gray-600">Time Remaining</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
                   {assignment.isSubmitted ? '1' : '0'}
+                    </div>
+                    <div className="text-sm text-gray-600">Submissions</div>
+                  </div>
                 </div>
-                <div className="text-sm text-gray-600">Submissions</div>
-              </div>
-            </div>
 
             {/* Assignment Details */}
             <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
-                <div className="prose prose-sm max-w-none">
-                  <pre className="whitespace-pre-wrap text-gray-700 font-sans">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
+                    <div className="prose prose-sm max-w-none">
+                      <pre className="whitespace-pre-wrap text-gray-700 font-sans">
                     {assignment.description}
-                  </pre>
-                </div>
-              </div>
+                      </pre>
+                    </div>
+                  </div>
 
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Due Date</h3>
-                <p className="text-gray-700">{formatDate(assignment.dueDate)}</p>
-              </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Due Date</h3>
+                    <p className="text-gray-700">{formatDate(assignment.dueDate)}</p>
+                  </div>
 
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Submission Type</h3>
-                <p className="text-gray-700 capitalize">{assignment.submissionType}</p>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Submission Type</h3>
+                    <p className="text-gray-700 capitalize">{assignment.submissionType}</p>
               </div>
 
               {assignment.resources && assignment.resources.length > 0 && (
-                <div>
+                        <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Resources</h3>
                   <AssignmentResourcesDisplay resources={assignment.resources} />
-                </div>
-              )}
+            </div>
+          )}
 
               {/* Submission Status */}
-              {assignment.isSubmitted ? (
+              {submission ? (
                 <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                   <h3 className="text-lg font-semibold text-green-800 mb-2">✅ Submitted</h3>
-                  <p className="text-green-700">
-                    You submitted this assignment on {assignment.submittedAt ? formatDate(assignment.submittedAt) : 'Unknown date'}.
+                  <p className="text-green-700 mb-4">
+                    You submitted this assignment on {formatDate(submission.submittedAt)}.
                   </p>
+                  
+                  {/* Video Submission Display */}
+                  <div className="mt-4">
+                    <h4 className="text-md font-semibold text-gray-800 mb-2">Your Submission</h4>
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                      <div className="aspect-video bg-black rounded-lg overflow-hidden mb-3">
+                        <video
+                          controls
+                          className="w-full h-full object-cover"
+                          src={submission.videoUrl}
+                        >
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        <p><strong>Title:</strong> {submission.videoTitle}</p>
+                        <p><strong>Duration:</strong> {Math.floor(submission.duration / 60)}:{(submission.duration % 60).toString().padStart(2, '0')}</p>
+                        <p><strong>File Size:</strong> {(submission.fileSize / (1024 * 1024)).toFixed(2)} MB</p>
+                        {submission.videoDescription && (
+                          <p><strong>Description:</strong> {submission.videoDescription}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   {assignment.grade && (
-                    <div className="mt-2">
-                      <p className="text-green-700 font-medium">Grade: {assignment.grade}/{assignment.points}</p>
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                      <p className="text-blue-700 font-medium">Grade: {assignment.grade}/{assignment.points}</p>
                       {assignment.feedback && (
-                        <p className="text-green-700 mt-1">Feedback: {assignment.feedback}</p>
+                        <p className="text-blue-700 mt-1">Feedback: {assignment.feedback}</p>
                       )}
                     </div>
                   )}
@@ -303,14 +377,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   <h3 className="text-lg font-semibold text-yellow-800 mb-2">📝 Not Submitted</h3>
                   <p className="text-yellow-700 mb-4">
                     You haven't submitted this assignment yet. Make sure to submit before the due date.
-                  </p>
-                  <button
+                    </p>
+                    <button
                     onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&courseId=${assignment.courseId}`)}
-                    className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
-                  >
+                      className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                    >
                     <span className="mr-2">🎥</span>
                     Submit Assignment
-                  </button>
+                    </button>
                 </div>
               )}
             </div>

@@ -145,6 +145,27 @@ export async function POST(request: NextRequest) {
 
     await docClient.send(putCommand);
 
+    // Update assignment status to 'submitted' for this student
+    try {
+      const updateAssignmentCommand = new UpdateCommand({
+        TableName: 'classcast-assignments',
+        Key: { assignmentId },
+        UpdateExpression: 'SET #status = :status, updatedAt = :updatedAt',
+        ExpressionAttributeNames: {
+          '#status': 'status'
+        },
+        ExpressionAttributeValues: {
+          ':status': 'submitted',
+          ':updatedAt': new Date().toISOString()
+        }
+      });
+
+      await docClient.send(updateAssignmentCommand);
+    } catch (assignmentError) {
+      console.warn('Could not update assignment status:', assignmentError);
+      // Don't fail the submission if assignment update fails
+    }
+
     // Also create an entry in the videos table for community display
     try {
       const videoId = `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
