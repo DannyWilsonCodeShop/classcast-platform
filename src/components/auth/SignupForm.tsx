@@ -212,6 +212,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
       } else if (result && result.success) {
         // AuthContext will handle the redirect based on user role
         console.log('SignupForm: AuthContext will handle redirect');
+        console.log('SignupForm: Signup successful, waiting for AuthContext redirect...');
         // The AuthContext signup function already handles the redirect
         // Don't call onSuccess here as it might interfere with the redirect
         return; // Exit early to prevent any further processing
