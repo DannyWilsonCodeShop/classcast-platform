@@ -140,10 +140,16 @@ export const CourseAssignments: React.FC<CourseAssignmentsProps> = ({
         </div>
       ) : (
         <div className="space-y-4">
-          {sortedAssignments.map((assignment) => (
+          {sortedAssignments.filter(assignment => assignment.assignmentId).map((assignment) => (
             <div
               key={assignment.assignmentId}
-              onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
+              onClick={() => {
+                if (assignment.assignmentId) {
+                  router.push(`/student/assignments/${assignment.assignmentId}`);
+                } else {
+                  console.warn('Assignment ID is undefined, cannot navigate');
+                }
+              }}
               className={`bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 transition-all duration-300 hover:shadow-xl cursor-pointer hover:scale-105 ${
                 isOverdue(assignment.dueDate, assignment.status)
                   ? 'border-red-200 bg-red-50/50'
