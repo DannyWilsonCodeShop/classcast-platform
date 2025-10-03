@@ -82,6 +82,11 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
     }
   }, [user?.id, courseData.instructorId]);
 
+  // Debug assignment data changes
+  useEffect(() => {
+    console.log('Assignment data changed:', assignmentData);
+  }, [assignmentData]);
+
   const steps: WizardStep[] = [
     {
       id: 'welcome',
@@ -332,9 +337,17 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
         console.log('Assignment creation step - courseData.courseId:', courseData.courseId);
         console.log('Assignment creation step - courseData.instructorId:', courseData.instructorId);
         
-        if (!assignmentData.title) {
-          console.error('Missing assignment title');
-          throw new Error('Assignment title is required');
+        // Validate assignment data
+        console.log('Assignment creation step - assignmentData after delay:', assignmentData);
+        
+        if (!assignmentData.title || assignmentData.title.trim().length < 3) {
+          console.error('Missing or invalid assignment title:', assignmentData.title);
+          throw new Error('Assignment title is required and must be at least 3 characters long');
+        }
+
+        if (!assignmentData.description || assignmentData.description.trim().length < 10) {
+          console.error('Missing or invalid assignment description:', assignmentData.description);
+          throw new Error('Assignment description is required and must be at least 10 characters long');
         }
         
         if (!courseData.courseId) {
@@ -874,11 +887,19 @@ interface CreateAssignmentStepProps {
 const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onChange, courseId }) => {
   const handleChange = (field: keyof Assignment, value: any) => {
     console.log('CreateAssignmentStep - handleChange:', field, value);
-    onChange({ ...data, [field]: value });
+    const updatedData = { ...data, [field]: value };
+    console.log('CreateAssignmentStep - updatedData:', updatedData);
+    onChange(updatedData);
   };
 
   console.log('CreateAssignmentStep - data:', data);
   console.log('CreateAssignmentStep - peerReview:', data.peerReview);
+  console.log('CreateAssignmentStep - title:', data.title);
+  console.log('CreateAssignmentStep - title length:', data.title?.length);
+
+  // Validation for immediate feedback
+  const isTitleValid = data.title && data.title.trim().length >= 3;
+  const isDescriptionValid = data.description && data.description.trim().length >= 10;
 
   return (
     <div className="space-y-6">
@@ -888,6 +909,23 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
           This will be the first assignment your students see when they join the course.
         </p>
       </div>
+
+      {/* Validation feedback */}
+      {data.title && !isTitleValid && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-red-800 text-sm">
+            ⚠️ Assignment title must be at least 3 characters long.
+          </p>
+        </div>
+      )}
+
+      {data.description && !isDescriptionValid && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-red-800 text-sm">
+            ⚠️ Description must be at least 10 characters long.
+          </p>
+        </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
