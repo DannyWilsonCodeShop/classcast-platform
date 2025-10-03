@@ -195,7 +195,7 @@ const InstructorProfilePage: React.FC = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               fileName,
-              fileType: contentType,
+              contentType: contentType,
               folder: 'profile-pictures',
               userId: user.id
             })
