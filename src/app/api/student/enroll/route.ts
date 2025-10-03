@@ -38,40 +38,91 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find course by code (search both classCode and courseCode)
+    // First, try to find by section code
     let course = null;
+    let foundSection = null;
+    
     try {
-      console.log('Searching for course with classCode:', normalizedClassCode);
-      const coursesResult = await docClient.send(new ScanCommand({
-        TableName: COURSES_TABLE,
-        FilterExpression: 'classCode = :classCode OR courseCode = :courseCode',
+      // Check if this is a section code
+      const sectionResult = await docClient.send(new ScanCommand({
+        TableName: 'classcast-sections',
+        FilterExpression: 'sectionCode = :sectionCode',
         ExpressionAttributeValues: {
-          ':classCode': normalizedClassCode,
-          ':courseCode': normalizedClassCode
+          ':sectionCode': normalizedClassCode
         }
       }));
       
-      console.log('Course search result:', { 
-        itemCount: coursesResult.Items?.length || 0,
-        items: coursesResult.Items 
-      });
-      
-      course = coursesResult.Items?.[0];
-    } catch (dbError: any) {
-      console.error('Database error during course search:', dbError);
-      if (dbError.name === 'ResourceNotFoundException') {
-        return NextResponse.json(
-          { success: false, error: 'Course not found' },
-          { status: 404 }
-        );
+      if (sectionResult.Items?.length > 0) {
+        foundSection = sectionResult.Items[0];
+        console.log('Found section with code:', foundSection);
+        
+        // Get the course for this section
+        const courseResult = await docClient.send(new ScanCommand({
+          TableName: COURSES_TABLE,
+          FilterExpression: 'courseId = :courseId',
+          ExpressionAttributeValues: {
+            ':courseId': foundSection.courseId
+          }
+        }));
+        
+        course = courseResult.Items?.[0];
+        console.log('Found course for section:', course);
       }
-      throw dbError;
+    } catch (sectionError) {
+      console.log('No section found with this code, trying course search...');
+    }
+    
+    // If no section found, try course search
+    if (!course) {
+      try {
+        console.log('Searching for course with classCode:', normalizedClassCode);
+        const coursesResult = await docClient.send(new ScanCommand({
+          TableName: COURSES_TABLE,
+          FilterExpression: 'classCode = :classCode OR courseCode = :courseCode',
+          ExpressionAttributeValues: {
+            ':classCode': normalizedClassCode,
+            ':courseCode': normalizedClassCode
+          }
+        }));
+        
+        console.log('Course search result:', { 
+          itemCount: coursesResult.Items?.length || 0,
+          items: coursesResult.Items 
+        });
+        
+        course = coursesResult.Items?.[0];
+      } catch (dbError: any) {
+        console.error('Database error during course search:', dbError);
+        if (dbError.name === 'ResourceNotFoundException') {
+          return NextResponse.json(
+            { success: false, error: 'Course not found' },
+            { status: 404 }
+          );
+        }
+        throw dbError;
+      }
     }
 
     if (!course) {
       return NextResponse.json(
         { success: false, error: 'Course not found' },
         { status: 404 }
+      );
+    }
+
+    // Check if course is published and available for enrollment
+    if (course.status !== 'published') {
+      return NextResponse.json(
+        { success: false, error: 'Course is not available for enrollment' },
+        { status: 400 }
+      );
+    }
+
+    // Check if course is full
+    if (course.maxStudents && course.currentEnrollment >= course.maxStudents) {
+      return NextResponse.json(
+        { success: false, error: 'Course is full' },
+        { status: 400 }
       );
     }
 
@@ -89,6 +140,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine the section ID - use foundSection if we found one by section code
+    const finalSectionId = foundSection ? foundSection.sectionId : (sectionId || null);
+    
     // Add student to course with section information
     const studentEntry = {
       userId: userId,
@@ -97,7 +151,7 @@ export async function POST(request: NextRequest) {
       lastName: '',
       enrolledAt: new Date().toISOString(),
       status: 'active',
-      sectionId: sectionId || null // Add section ID if provided
+      sectionId: finalSectionId // Use the determined section ID
     };
     
     const updatedStudents = [...currentStudents, studentEntry];
@@ -131,18 +185,18 @@ export async function POST(request: NextRequest) {
     console.log('Course enrollment updated successfully');
 
     // If sectionId is provided, update section enrollment count
-    if (sectionId) {
+    if (finalSectionId) {
       try {
         // Update section enrollment count
         await docClient.send(new UpdateCommand({
           TableName: 'classcast-sections',
-          Key: { sectionId },
+          Key: { sectionId: finalSectionId },
           UpdateExpression: 'SET currentEnrollment = currentEnrollment + :increment',
           ExpressionAttributeValues: {
             ':increment': 1
           }
         }));
-        console.log('Section enrollment count updated');
+        console.log('Section enrollment count updated for section:', finalSectionId);
       } catch (sectionError) {
         console.error('Error updating section enrollment count:', sectionError);
         // Don't fail the enrollment if section update fails
@@ -151,7 +205,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: `Successfully enrolled in ${normalizedClassCode}${sectionId ? ' and assigned to section' : ''}`,
+      message: `Successfully enrolled in ${normalizedClassCode}${finalSectionId ? ' and assigned to section' : ''}`,
       class: {
         id: course.courseId,
         code: course.code,
