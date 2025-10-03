@@ -1,20 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CognitoIdentityProviderClient, InitiateAuthCommand, GetUserCommand } from '@aws-sdk/client-cognito-identity-provider';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import bcrypt from 'bcryptjs';
+import { generateTokens } from '@/lib/jwt';
 
-const cognitoClient = new CognitoIdentityProviderClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
-});
+const dynamoClient = new DynamoDBClient({ region: 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-const USER_POOL_ID = process.env.COGNITO_USER_POOL_ID || process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID || 'us-east-1_uK50qBrap';
-const CLIENT_ID = process.env.COGNITO_CLIENT_ID || process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh';
+const USERS_TABLE = 'classcast-users';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== DIRECT COGNITO LOGIN API CALLED ===');
+    console.log('=== JWT-BASED LOGIN API CALLED ===');
     
     const body = await request.json();
     const { email, password } = body;
@@ -95,133 +92,87 @@ export async function POST(request: NextRequest) {
     if (testUser) {
       console.log('Using test credentials for:', email);
       
-      // Generate mock tokens
-      const mockTokens = {
-        accessToken: `mock-access-token-${Date.now()}`,
-        refreshToken: `mock-refresh-token-${Date.now()}`,
-        idToken: `mock-id-token-${Date.now()}`,
-      };
+      // Generate JWT tokens for test users
+      const tokens = generateTokens({
+        id: testUser.user.id,
+        email: testUser.user.email,
+        role: testUser.user.role,
+      });
 
       return NextResponse.json({
         success: true,
         user: testUser.user,
-        tokens: mockTokens,
+        tokens,
       });
     }
 
-    try {
-      console.log('Calling Cognito for authentication:', email);
-      
-      // Authenticate with Cognito
-      const authCommand = new InitiateAuthCommand({
-        AuthFlow: 'USER_PASSWORD_AUTH',
-        ClientId: CLIENT_ID,
-        AuthParameters: {
-          USERNAME: email,
-          PASSWORD: password,
-        },
-      });
-
-      const authResponse = await cognitoClient.send(authCommand);
-      console.log('Cognito auth response received');
-
-      if (!authResponse.AuthenticationResult) {
-        throw new Error('Authentication failed - no result from Cognito');
+    // Look up user in DynamoDB
+    console.log('Looking up user in DynamoDB:', email);
+    
+    const userResult = await docClient.send(new ScanCommand({
+      TableName: USERS_TABLE,
+      FilterExpression: 'email = :email',
+      ExpressionAttributeValues: {
+        ':email': email
       }
+    }));
 
-      const { AccessToken, IdToken, RefreshToken } = authResponse.AuthenticationResult;
-
-      if (!AccessToken) {
-        throw new Error('No access token received from Cognito');
-      }
-
-      // Get user details
-      const getUserCommand = new GetUserCommand({
-        AccessToken: AccessToken,
-      });
-
-      const userResponse = await cognitoClient.send(getUserCommand);
-      console.log('User details retrieved from Cognito');
-
-      // Extract user attributes
-      const attributes = userResponse.UserAttributes || [];
-      const userAttributes: { [key: string]: string } = {};
-      
-      attributes.forEach(attr => {
-        if (attr.Name && attr.Value) {
-          userAttributes[attr.Name] = attr.Value;
-        }
-      });
-
-      // Determine user role
-      let role = 'student'; // default
-      if (userAttributes['custom:role']) {
-        role = userAttributes['custom:role'];
-      } else if (userAttributes['email']?.includes('instructor')) {
-        role = 'instructor';
-      }
-
-      // Create user object
-      const user = {
-        id: userAttributes['sub'] || userResponse.Username || '',
-        email: userAttributes['email'] || email,
-        firstName: userAttributes['given_name'] || userAttributes['name'] || '',
-        lastName: userAttributes['family_name'] || '',
-        role: role as 'student' | 'instructor' | 'admin',
-        avatar: userAttributes['picture'] || '/api/placeholder/40/40',
-        emailVerified: userAttributes['email_verified'] === 'true',
-        bio: userAttributes['custom:bio'] || '',
-        careerGoals: userAttributes['custom:careerGoals'] || '',
-        classOf: userAttributes['custom:classOf'] || '',
-        funFact: userAttributes['custom:funFact'] || '',
-        favoriteSubject: userAttributes['custom:favoriteSubject'] || '',
-        hobbies: userAttributes['custom:hobbies'] || '',
-        schoolName: userAttributes['custom:schoolName'] || '',
-      };
-
-      console.log('Login successful for user:', { id: user.id, email: user.email, role: user.role });
-
-      return NextResponse.json({
-        success: true,
-        user,
-        tokens: {
-          accessToken: AccessToken,
-          refreshToken: RefreshToken || '',
-          idToken: IdToken || '',
-        },
-      });
-
-    } catch (authError: any) {
-      console.error('Cognito authentication error:', authError);
-      
-      // Handle specific Cognito errors
-      if (authError.name === 'NotAuthorizedException') {
-        return NextResponse.json(
-          { error: { message: 'Invalid email or password' } },
-          { status: 401 }
-        );
-      } else if (authError.name === 'UserNotConfirmedException') {
-        return NextResponse.json(
-          { error: { message: 'Please verify your email address before logging in' } },
-          { status: 401 }
-        );
-      } else if (authError.name === 'UserNotFoundException') {
-        return NextResponse.json(
-          { error: { message: 'No account found with this email address' } },
-          { status: 401 }
-        );
-      } else if (authError.name === 'TooManyRequestsException') {
-        return NextResponse.json(
-          { error: { message: 'Too many login attempts. Please try again later' } },
-          { status: 429 }
-        );
-      }
-      
+    if (!userResult.Items || userResult.Items.length === 0) {
+      console.log('User not found in DynamoDB:', email);
       return NextResponse.json(
-        { error: { message: 'Authentication failed. Please check your credentials and try again' } },
+        { error: { message: 'No account found with this email address' } },
         { status: 401 }
       );
     }
+
+    const userData = userResult.Items[0];
+    
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, userData.password);
+    
+    if (!passwordMatch) {
+      console.log('Password mismatch for user:', email);
+      return NextResponse.json(
+        { error: { message: 'Invalid email or password' } },
+        { status: 401 }
+      );
+    }
+
+    console.log('Authentication successful for user:', email);
+    
+    // Create user object
+    const user = {
+      id: userData.userId,
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      role: userData.role,
+      avatar: userData.avatar || '/api/placeholder/40/40',
+      emailVerified: userData.emailVerified || false,
+      bio: userData.bio || '',
+      careerGoals: userData.careerGoals || '',
+      classOf: userData.classOf || '',
+      funFact: userData.funFact || '',
+      favoriteSubject: userData.favoriteSubject || '',
+      hobbies: userData.hobbies || '',
+      schoolName: userData.schoolName || '',
+      studentId: userData.studentId,
+      instructorId: userData.instructorCode,
+      department: userData.department,
+    };
+
+    // Generate JWT tokens
+    const tokens = generateTokens({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return NextResponse.json({
+      success: true,
+      user,
+      tokens,
+    });
   } catch (error) {
     console.error('Login request error:', error);
     

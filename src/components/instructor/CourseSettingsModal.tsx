@@ -53,19 +53,23 @@ interface CourseSettingsModalProps {
   onClose: () => void;
   course: Course | null;
   onUpdate: (updateData: Partial<Course>) => Promise<{ success: boolean; message: string }>;
+  onDelete?: (courseId: string) => Promise<{ success: boolean; message: string }>;
 }
 
 const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
   isOpen,
   onClose,
   course,
-  onUpdate
+  onUpdate,
+  onDelete
 }) => {
   const [formData, setFormData] = useState<Partial<Course>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isLoadingSections, setIsLoadingSections] = useState(false);
   const [showAddSection, setShowAddSection] = useState(false);
   const [editingSection, setEditingSection] = useState<Section | null>(null);
