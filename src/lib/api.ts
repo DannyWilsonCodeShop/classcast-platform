@@ -546,6 +546,7 @@ export const api = {
   getCurrentUser: () => apiClient.getCurrentUser(),
   setCurrentUser: (user: User) => apiClient.setCurrentUser(user),
   clearCurrentUser: () => apiClient.clearCurrentUser(),
+  ensureValidToken: () => apiClient.ensureValidToken(),
 };
 
 export default apiClient;
