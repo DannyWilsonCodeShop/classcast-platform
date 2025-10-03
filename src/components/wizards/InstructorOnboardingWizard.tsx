@@ -213,9 +213,10 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
         console.log('Course setup step - title:', courseData.title, 'code:', courseData.code);
         console.log('Course setup step - instructorId:', courseData.instructorId);
         
+        // Skip saving if required fields are not filled - this is normal during wizard navigation
         if (!courseData.title || !courseData.code) {
-          console.error('Missing required course data:', { title: courseData.title, code: courseData.code });
-          throw new Error('Course title and code are required');
+          console.log('Course setup step - skipping save, fields not yet filled:', { title: courseData.title, code: courseData.code });
+          return; // Don't throw error, just skip saving
         }
         
         if (!courseData.instructorId) {
