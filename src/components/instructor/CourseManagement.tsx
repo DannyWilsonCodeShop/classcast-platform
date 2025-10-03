@@ -133,12 +133,10 @@ export const CourseManagement: React.FC = () => {
 
   // Delete course
   const handleDeleteCourse = async (courseId: string) => {
-    if (!confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
-      return;
-    }
-
     try {
-      const response = await fetch(`/api/courses?courseId=${courseId}`, {
+      setLoading(true);
+      
+      const response = await fetch(`/api/instructor/courses/${courseId}/delete`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -147,13 +145,18 @@ export const CourseManagement: React.FC = () => {
       
       if (data.success) {
         setCourses(prev => prev.filter(course => course.courseId !== courseId));
+        alert(`Course deleted successfully! Deleted ${data.deletedAssignments} assignments and ${data.deletedSubmissions} submissions.`);
         return { success: true, message: 'Course deleted successfully' };
       } else {
+        alert(`Failed to delete course: ${data.error || 'Unknown error'}`);
         return { success: false, message: data.error || 'Failed to delete course' };
       }
     } catch (error) {
       console.error('Error deleting course:', error);
+      alert('Failed to delete course. Please try again.');
       return { success: false, message: 'Failed to delete course' };
+    } finally {
+      setLoading(false);
     }
   };
 
