@@ -94,6 +94,9 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
   const handleSectionSelection = async (sectionId: string) => {
     if (!foundCourse) return;
 
+    setIsLoading(true);
+    setError('');
+
     try {
       // Enroll in the specific section
       await onEnroll(classCode.trim().toUpperCase(), sectionId);
@@ -103,7 +106,11 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
       setFoundSections([]);
       onClose();
     } catch (err) {
-      throw err; // Re-throw to let SectionSelectionModal handle the error
+      console.error('Enrollment error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to enroll in class');
+      setShowSectionSelection(false); // Close section selection modal to show error
+    } finally {
+      setIsLoading(false);
     }
   };
 
