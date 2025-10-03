@@ -49,10 +49,10 @@ export async function GET(request: NextRequest) {
         if (submission.studentId) {
           const studentResult = await docClient.send(new GetCommand({
             TableName: USERS_TABLE,
-            Key: { id: submission.studentId }
+            Key: { userId: submission.studentId }
           }));
           if (studentResult.Item) {
-            studentName = studentResult.Item.name || studentResult.Item.fullName || 'Unknown Student';
+            studentName = studentResult.Item.firstName + ' ' + studentResult.Item.lastName || 'Unknown Student';
           }
         }
         
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
         if (submission.courseId) {
           const courseResult = await docClient.send(new GetCommand({
             TableName: COURSES_TABLE,
-            Key: { id: submission.courseId }
+            Key: { courseId: submission.courseId }
           }));
           if (courseResult.Item) {
             courseName = courseResult.Item.title || courseResult.Item.name || 'Unknown Course';
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         if (submission.assignmentId) {
           const assignmentResult = await docClient.send(new GetCommand({
             TableName: ASSIGNMENTS_TABLE,
-            Key: { id: submission.assignmentId }
+            Key: { assignmentId: submission.assignmentId }
           }));
           if (assignmentResult.Item) {
             assignmentTitle = assignmentResult.Item.title || 'Untitled Assignment';
