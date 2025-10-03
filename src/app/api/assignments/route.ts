@@ -103,9 +103,16 @@ export async function POST(request: NextRequest) {
       courseId,
       instructorId,
       rubric,
+      // Peer Review Settings
       peerReview,
-      targetSections,
       peerReviewScope,
+      peerReviewCount,
+      peerReviewDeadline,
+      anonymousReview,
+      allowSelfReview,
+      instructorReview,
+      peerReviewInstructions,
+      targetSections,
       resources
     } = body;
 
@@ -202,9 +209,16 @@ export async function POST(request: NextRequest) {
       maxFileSize: maxFileSize || 100 * 1024 * 1024, // 100MB
       status: status || 'draft',
       rubric: rubric || null,
+      // Peer Review Settings
       peerReview: peerReview || false,
-      targetSections: Array.isArray(targetSections) ? targetSections : [],
       peerReviewScope: peerReviewScope || 'section',
+      peerReviewCount: peerReviewCount || 3,
+      peerReviewDeadline: peerReviewDeadline || 7,
+      anonymousReview: anonymousReview !== undefined ? anonymousReview : true,
+      allowSelfReview: allowSelfReview || false,
+      instructorReview: instructorReview !== undefined ? instructorReview : true,
+      peerReviewInstructions: peerReviewInstructions?.trim() || '',
+      targetSections: Array.isArray(targetSections) ? targetSections : [],
       resources: Array.isArray(resources) ? resources : [],
       createdAt: now,
       updatedAt: now,

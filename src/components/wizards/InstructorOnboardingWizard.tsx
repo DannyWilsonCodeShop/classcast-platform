@@ -290,9 +290,62 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
         }
         break;
       case 5: // Create assignment
-        if (assignmentData.assignmentId) {
-          // Save assignment
-          console.log('Saving assignment:', assignmentData);
+        if (assignmentData.title && courseData.courseId && courseData.instructorId) {
+          // Create assignment
+          try {
+            const assignmentResponse = await fetch('/api/assignments', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                title: assignmentData.title,
+                description: assignmentData.description,
+                assignmentType: assignmentData.assignmentType || 'video',
+                dueDate: assignmentData.dueDate,
+                maxScore: assignmentData.maxScore || 100,
+                weight: assignmentData.weight || 10,
+                requirements: assignmentData.requirements || [],
+                allowLateSubmission: assignmentData.allowLateSubmission || false,
+                latePenalty: assignmentData.latePenalty || 0,
+                maxSubmissions: assignmentData.maxSubmissions || 1,
+                groupAssignment: assignmentData.groupAssignment || false,
+                maxGroupSize: assignmentData.maxGroupSize || 4,
+                allowedFileTypes: assignmentData.allowedFileTypes || ['mp4', 'mov', 'avi'],
+                maxFileSize: assignmentData.maxFileSize || 100 * 1024 * 1024, // 100MB
+                status: assignmentData.status || 'draft',
+                courseId: courseData.courseId,
+                instructorId: courseData.instructorId,
+                rubric: assignmentData.rubric,
+                // Peer Review Settings
+                peerReview: assignmentData.peerReview || false,
+                peerReviewScope: assignmentData.peerReviewScope || 'section',
+                peerReviewCount: assignmentData.peerReviewCount || 3,
+                peerReviewDeadline: assignmentData.peerReviewDeadline || 7,
+                anonymousReview: assignmentData.anonymousReview || true,
+                allowSelfReview: assignmentData.allowSelfReview || false,
+                instructorReview: assignmentData.instructorReview || true,
+                peerReviewInstructions: assignmentData.peerReviewInstructions || '',
+                targetSections: assignmentData.targetSections || [],
+                resources: assignmentData.resources || []
+              })
+            });
+
+            if (assignmentResponse.ok) {
+              const assignmentResult = await assignmentResponse.json();
+              console.log('Assignment creation response:', assignmentResult);
+              const createdAssignment = assignmentResult.data;
+              setAssignmentData(prev => ({ ...prev, assignmentId: createdAssignment.assignmentId }));
+              console.log('Assignment created successfully:', createdAssignment);
+            } else {
+              const errorData = await assignmentResponse.json();
+              console.error('Assignment creation failed:', errorData);
+              throw new Error(`Failed to create assignment: ${errorData.error || 'Unknown error'}`);
+            }
+          } catch (error) {
+            console.error('Error creating assignment:', error);
+            throw error;
+          }
         }
         break;
     }
@@ -844,6 +897,209 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
           <option value="quiz">Quiz</option>
         </select>
       </div>
+
+      {/* Peer Review Section */}
+      <div className="bg-blue-50 rounded-lg p-4">
+        <h4 className="font-semibold text-blue-900 mb-3">Peer Review Settings</h4>
+        
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="peerReview"
+              checked={data.peerReview || false}
+              onChange={(e) => handleChange('peerReview', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="peerReview" className="text-sm font-medium text-blue-900">
+              Enable peer review for this assignment
+            </label>
+          </div>
+
+          {data.peerReview && (
+            <div className="ml-7 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-blue-800 mb-2">
+                  Peer Review Scope
+                </label>
+                <select
+                  value={data.peerReviewScope || 'section'}
+                  onChange={(e) => handleChange('peerReviewScope', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                  <option value="section">Within Section Only</option>
+                  <option value="course">Entire Course</option>
+                  <option value="random">Random Assignment</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-blue-800 mb-2">
+                    Reviews per Submission
+                  </label>
+                  <input
+                    type="number"
+                    value={data.peerReviewCount || 3}
+                    onChange={(e) => handleChange('peerReviewCount', parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    min="1"
+                    max="10"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-blue-800 mb-2">
+                    Days to Complete Reviews
+                  </label>
+                  <input
+                    type="number"
+                    value={data.peerReviewDeadline || 7}
+                    onChange={(e) => handleChange('peerReviewDeadline', parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    min="1"
+                    max="30"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="anonymousReview"
+                    checked={data.anonymousReview || true}
+                    onChange={(e) => handleChange('anonymousReview', e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="anonymousReview" className="text-sm font-medium text-blue-800">
+                    Anonymous peer reviews
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="selfReview"
+                    checked={data.allowSelfReview || false}
+                    onChange={(e) => handleChange('allowSelfReview', e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="selfReview" className="text-sm font-medium text-blue-800">
+                    Allow students to review their own submissions
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="instructorReview"
+                    checked={data.instructorReview || true}
+                    onChange={(e) => handleChange('instructorReview', e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="instructorReview" className="text-sm font-medium text-blue-800">
+                    Instructor reviews peer feedback
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-blue-800 mb-2">
+                  Peer Review Instructions
+                </label>
+                <textarea
+                  value={data.peerReviewInstructions || ''}
+                  onChange={(e) => handleChange('peerReviewInstructions', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  placeholder="Provide specific instructions for peer reviewers..."
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Additional Assignment Settings */}
+      <div className="bg-gray-50 rounded-lg p-4">
+        <h4 className="font-semibold text-gray-900 mb-3">Additional Settings</h4>
+        
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="allowLateSubmission"
+              checked={data.allowLateSubmission || false}
+              onChange={(e) => handleChange('allowLateSubmission', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="allowLateSubmission" className="text-sm font-medium text-gray-700">
+              Allow late submissions
+            </label>
+          </div>
+
+          {data.allowLateSubmission && (
+            <div className="ml-7">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Late Penalty (% per day)
+              </label>
+              <input
+                type="number"
+                value={data.latePenalty || 0}
+                onChange={(e) => handleChange('latePenalty', parseFloat(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                min="0"
+                max="100"
+                step="0.1"
+              />
+            </div>
+          )}
+
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="groupAssignment"
+              checked={data.groupAssignment || false}
+              onChange={(e) => handleChange('groupAssignment', e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="groupAssignment" className="text-sm font-medium text-gray-700">
+              Group assignment
+            </label>
+          </div>
+
+          {data.groupAssignment && (
+            <div className="ml-7">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Maximum Group Size
+              </label>
+              <input
+                type="number"
+                value={data.maxGroupSize || 4}
+                onChange={(e) => handleChange('maxGroupSize', parseInt(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                min="2"
+                max="10"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Maximum Submissions
+            </label>
+            <input
+              type="number"
+              value={data.maxSubmissions || 1}
+              onChange={(e) => handleChange('maxSubmissions', parseInt(e.target.value))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              min="1"
+              max="10"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
@@ -922,6 +1178,18 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({
           <p><span className="font-medium">Type:</span> {assignmentData.assignmentType}</p>
           <p><span className="font-medium">Points:</span> {assignmentData.maxScore}</p>
           <p><span className="font-medium">Due Date:</span> {assignmentData.dueDate}</p>
+          {assignmentData.peerReview && (
+            <div className="mt-2 pt-2 border-t border-gray-300">
+              <p className="font-medium text-blue-700">Peer Review Settings:</p>
+              <p><span className="font-medium">Scope:</span> {assignmentData.peerReviewScope}</p>
+              <p><span className="font-medium">Reviews per submission:</span> {assignmentData.peerReviewCount}</p>
+              <p><span className="font-medium">Review deadline:</span> {assignmentData.peerReviewDeadline} days</p>
+              <p><span className="font-medium">Anonymous:</span> {assignmentData.anonymousReview ? 'Yes' : 'No'}</p>
+              {assignmentData.peerReviewInstructions && (
+                <p><span className="font-medium">Instructions:</span> {assignmentData.peerReviewInstructions.substring(0, 100)}...</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

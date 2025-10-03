@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand, ScanCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -10,9 +10,9 @@ const USERS_TABLE = 'classcast-users';
 
 export async function POST(request: NextRequest) {
   try {
-    const { classCode, userId } = await request.json();
+    const { classCode, userId, sectionId } = await request.json();
     
-    console.log('Enrollment request:', { classCode, userId });
+    console.log('Enrollment request:', { classCode, userId, sectionId });
 
     if (!classCode || typeof classCode !== 'string') {
       return NextResponse.json(
@@ -114,9 +114,79 @@ export async function POST(request: NextRequest) {
 
     console.log('Course enrollment updated successfully');
 
+    // If sectionId is provided, enroll student in the specific section
+    if (sectionId) {
+      try {
+        console.log('Enrolling student in section:', sectionId);
+        
+        // Check if section exists and is active
+        const sectionResult = await docClient.send(new GetCommand({
+          TableName: 'classcast-sections',
+          Key: { sectionId }
+        }));
+
+        if (!sectionResult.Item) {
+          console.warn('Section not found:', sectionId);
+        } else if (!sectionResult.Item.isActive) {
+          console.warn('Section is not active:', sectionId);
+        } else if (sectionResult.Item.currentEnrollment >= sectionResult.Item.maxEnrollment) {
+          console.warn('Section is at capacity:', sectionId);
+        } else {
+          // Check if student is already enrolled in this section
+          const existingEnrollment = await docClient.send(new QueryCommand({
+            TableName: 'classcast-section-enrollments',
+            IndexName: 'sectionId-studentId-index',
+            KeyConditionExpression: 'sectionId = :sectionId AND studentId = :studentId',
+            ExpressionAttributeValues: {
+              ':sectionId': sectionId,
+              ':studentId': userId
+            }
+          }));
+
+          if (!existingEnrollment.Items || existingEnrollment.Items.length === 0) {
+            // Create section enrollment
+            const enrollmentId = `enrollment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const now = new Date().toISOString();
+
+            const sectionEnrollment = {
+              enrollmentId,
+              sectionId,
+              studentId: userId,
+              enrolledAt: now,
+              status: 'active'
+            };
+
+            // Create enrollment record
+            await docClient.send(new PutCommand({
+              TableName: 'classcast-section-enrollments',
+              Item: sectionEnrollment
+            }));
+
+            // Update section enrollment count
+            await docClient.send(new UpdateCommand({
+              TableName: 'classcast-sections',
+              Key: { sectionId },
+              UpdateExpression: 'SET currentEnrollment = currentEnrollment + :inc, updatedAt = :updatedAt',
+              ExpressionAttributeValues: {
+                ':inc': 1,
+                ':updatedAt': now
+              }
+            }));
+
+            console.log('Section enrollment successful');
+          } else {
+            console.log('Student already enrolled in section');
+          }
+        }
+      } catch (sectionError) {
+        console.error('Error enrolling in section:', sectionError);
+        // Don't fail the entire enrollment if section enrollment fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: `Successfully enrolled in ${normalizedClassCode}`,
+      message: `Successfully enrolled in ${normalizedClassCode}${sectionId ? ' and assigned to section' : ''}`,
       class: {
         id: course.courseId,
         code: course.code,
