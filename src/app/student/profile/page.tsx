@@ -131,38 +131,48 @@ const StudentProfilePage: React.FC = () => {
 
     setIsUploading(true);
     try {
-      // Upload to S3
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'profile-pictures');
-      formData.append('userId', editedProfile.email || 'anonymous');
-      formData.append('metadata', JSON.stringify({
-        type: 'profile-picture',
-        uploadedAt: new Date().toISOString()
-      }));
-
-      const response = await fetch('/api/upload', {
+      // Get presigned URL for image upload
+      const presignedResponse = await fetch('/api/upload/presigned', {
         method: 'POST',
-        credentials: 'include',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          userId: editedProfile.email || 'anonymous',
+          folder: 'profile-pictures'
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
+      if (!presignedResponse.ok) {
+        throw new Error('Failed to get presigned URL');
       }
 
-      const result = await response.json();
-      
-      if (result.success) {
-        // Store the S3 URL instead of base64
-        setEditedProfile(prev => ({
-          ...prev,
-          avatar: result.data.fileUrl
-        }));
-        setErrors(prev => ({ ...prev, avatar: '' }));
-      } else {
-        throw new Error(result.error || 'Upload failed');
+      const { data: presignedData } = await presignedResponse.json();
+      const { presignedUrl, fileUrl } = presignedData;
+
+      // Upload image directly to S3 using presigned URL
+      const uploadResponse = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image to S3');
       }
+
+      // Update profile with the S3 URL
+      setEditedProfile(prev => ({
+        ...prev,
+        avatar: fileUrl
+      }));
+      setErrors(prev => ({ ...prev, avatar: '' }));
+      
+      console.log('Image uploaded successfully to S3:', fileUrl);
     } catch (error) {
       console.error('Error uploading image:', error);
       setErrors(prev => ({
