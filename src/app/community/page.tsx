@@ -297,8 +297,8 @@ export default function CommunityPage() {
                         {/* Post Header */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold bg-blue-600">
-                              {post.author.charAt(0)}
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold bg-gradient-to-br from-blue-500 to-indigo-600">
+                              {post.author.charAt(0).toUpperCase()}
                             </div>
                             <div>
                               <div className="flex items-center space-x-2">
@@ -411,9 +411,11 @@ export default function CommunityPage() {
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center space-x-3">
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
-                              post.authorRole === 'instructor' ? 'bg-blue-600' : 'bg-green-600'
+                              post.authorRole === 'instructor' 
+                                ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
+                                : 'bg-gradient-to-br from-green-500 to-emerald-600'
                             }`}>
-                              {post.author.charAt(0)}
+                              {post.author.charAt(0).toUpperCase()}
                             </div>
                             <div>
                               <div className="flex items-center space-x-2">
