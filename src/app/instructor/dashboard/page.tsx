@@ -254,15 +254,23 @@ const InstructorDashboard: React.FC = () => {
               />
             </div>
             
-            {/* Right Side - Create Class Button and Profile Thumbnail */}
+            {/* Right Side - Create Class Buttons and Profile Thumbnail */}
             <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
               <button
                 onClick={() => router.push('/instructor/classes/create')}
                 className="flex items-center space-x-1 sm:space-x-2 bg-indigo-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors shadow-lg hover:shadow-xl"
-                title="Create a new class"
+                title="Create a new class using the form"
               >
                 <span className="text-base sm:text-lg">+</span>
-                <span className="font-medium text-xs sm:text-sm hidden sm:inline">Create Class Wizard</span>
+                <span className="font-medium text-xs sm:text-sm hidden sm:inline">Create</span>
+              </button>
+              <button
+                onClick={() => setShowWizard(true)}
+                className="flex items-center space-x-1 sm:space-x-2 bg-purple-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors shadow-lg hover:shadow-xl"
+                title="Create a new class using the wizard"
+              >
+                <span className="text-base sm:text-lg">🧙</span>
+                <span className="font-medium text-xs sm:text-sm hidden sm:inline">Wizard</span>
               </button>
               <button
                 onClick={() => router.push('/instructor/profile')}
@@ -460,7 +468,7 @@ const InstructorDashboard: React.FC = () => {
                         description="It looks like you haven't created any classes yet. Start by creating your first class to begin teaching!"
                         icon="course"
                         action={{ 
-                          label: 'Create Your First Class Wizard', 
+                          label: 'Start Setup Wizard', 
                           onClick: () => setShowWizard(true) 
                         }}
                       />

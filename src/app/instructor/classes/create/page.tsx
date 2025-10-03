@@ -55,9 +55,10 @@ const CreateClassPage: React.FC = () => {
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [newRequirement, setNewRequirement] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [sections, setSections] = useState<Array<{id: string, name: string, code?: string, maxEnrollment?: number}>>([]);
+  const [sections, setSections] = useState<Array<{id: string, name: string, code?: string, classCode?: string, maxEnrollment?: number}>>([]);
   const [showSectionForm, setShowSectionForm] = useState(false);
   const [newSection, setNewSection] = useState({name: '', code: '', maxEnrollment: 30});
+  const [previewClassCode, setPreviewClassCode] = useState('');
   const [formData, setFormData] = useState<ClassFormData>({
     title: '',
     description: '',
@@ -249,6 +250,30 @@ const CreateClassPage: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Generate class code for sections (similar to wizard)
+  const generateSectionClassCode = (sectionName: string, sectionIndex: number) => {
+    const courseCode = (formData.title || 'COURSE')
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase())
+      .join('')
+      .substring(0, 3);
+    
+    if (sections.length > 0 || sectionIndex > 0) {
+      // Generate unique class code for each section
+      const sectionCode = sectionName
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase())
+        .join('')
+        .substring(0, 2);
+      const randomNum = Math.floor(Math.random() * 900) + 100;
+      return `${courseCode}${sectionCode}${randomNum}`;
+    } else {
+      // Single class code for first section
+      const randomNum = Math.floor(Math.random() * 9000) + 1000;
+      return `${courseCode}${randomNum}`;
+    }
+  };
+
   // Section management functions
   const addSection = () => {
     if (newSection.name.trim()) {
@@ -256,10 +281,12 @@ const CreateClassPage: React.FC = () => {
         id: `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: newSection.name.trim(),
         code: newSection.code.trim() || undefined,
+        classCode: previewClassCode || generateSectionClassCode(newSection.name.trim(), sections.length),
         maxEnrollment: newSection.maxEnrollment || 30
       };
       setSections(prev => [...prev, section]);
       setNewSection({name: '', code: '', maxEnrollment: 30});
+      setPreviewClassCode('');
       setShowSectionForm(false);
     }
   };
@@ -268,11 +295,37 @@ const CreateClassPage: React.FC = () => {
     setSections(prev => prev.filter(section => section.id !== id));
   };
 
-  const updateSection = (id: string, updates: Partial<{name: string, code: string, maxEnrollment: number}>) => {
+  const updateSection = (id: string, updates: Partial<{name: string, code: string, classCode: string, maxEnrollment: number}>) => {
     setSections(prev => prev.map(section => 
       section.id === id ? { ...section, ...updates } : section
     ));
   };
+
+  const regenerateSectionClassCode = (id: string) => {
+    setSections(prev => prev.map(section => {
+      if (section.id === id) {
+        const newClassCode = generateSectionClassCode(section.name, sections.indexOf(section));
+        return { ...section, classCode: newClassCode };
+      }
+      return section;
+    }));
+  };
+
+  const generatePreviewClassCode = () => {
+    if (newSection.name.trim()) {
+      const previewCode = generateSectionClassCode(newSection.name.trim(), sections.length);
+      setPreviewClassCode(previewCode);
+    }
+  };
+
+  // Generate preview class code when section name changes
+  React.useEffect(() => {
+    if (newSection.name.trim()) {
+      generatePreviewClassCode();
+    } else {
+      setPreviewClassCode('');
+    }
+  }, [newSection.name, sections.length]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -384,6 +437,7 @@ const CreateClassPage: React.FC = () => {
                   courseId: result.data.courseId,
                   sectionName: section.name,
                   sectionCode: section.code,
+                  classCode: section.classCode,
                   maxEnrollment: section.maxEnrollment,
                   instructorId: user?.id
                 })
@@ -721,8 +775,27 @@ const CreateClassPage: React.FC = () => {
                                 </span>
                               )}
                             </div>
-                            <div className="text-sm text-gray-500">
-                              Max Enrollment: {section.maxEnrollment}
+                            <div className="flex items-center space-x-4 text-sm text-gray-500">
+                              <span>Max Enrollment: {section.maxEnrollment}</span>
+                              {section.classCode && (
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-gray-600">Class Code:</span>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded font-mono font-semibold">
+                                      {section.classCode}
+                                    </span>
+                                    <button
+                                      onClick={() => regenerateSectionClassCode(section.id)}
+                                      className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+                                      title="Generate new class code"
+                                    >
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                           <button
@@ -799,6 +872,37 @@ const CreateClassPage: React.FC = () => {
                           />
                         </div>
                       </div>
+
+                      {/* Generated Class Code Preview */}
+                      {previewClassCode && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <label className="block text-sm font-medium text-green-800 mb-1">
+                                Generated Class Code
+                              </label>
+                              <div className="flex items-center space-x-2">
+                                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded font-mono font-semibold">
+                                  {previewClassCode}
+                                </span>
+                                <span className="text-xs text-green-600">
+                                  Students will use this code to join this section
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={generatePreviewClassCode}
+                              className="p-2 text-green-600 hover:text-green-800 transition-colors"
+                              title="Generate new class code"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      )}
                       <div className="flex justify-end space-x-3">
                         <button
                           type="button"

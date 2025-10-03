@@ -7,6 +7,7 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import CourseSettingsModal from '@/components/instructor/CourseSettingsModal';
 import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
+import SectionDashboard from '@/components/instructor/SectionDashboard';
 import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
 
 interface Course {
@@ -53,6 +54,25 @@ interface Student {
   assignmentsSubmitted: number;
   assignmentsTotal: number;
   lastActivity: string;
+}
+
+interface Section {
+  sectionId: string;
+  sectionName: string;
+  sectionCode?: string;
+  classCode?: string;
+  description?: string;
+  maxEnrollment: number;
+  currentEnrollment: number;
+  schedule?: {
+    days: string[];
+    time: string;
+    location: string;
+  };
+  location?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface VideoSubmission {
@@ -336,7 +356,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                   onClick={() => setShowSettingsModal(true)}
                   className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
                 >
-                  ⚙️ Settings
+                  ⚙️ Course Settings
                 </button>
               </div>
             </div>
