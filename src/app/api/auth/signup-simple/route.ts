@@ -40,6 +40,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate instructor code for instructor role
+    if (role === 'instructor') {
+      if (!instructorCode || instructorCode !== '5555') {
+        return NextResponse.json(
+          { error: { message: 'Invalid instructor code' } },
+          { status: 400 }
+        );
+      }
+    }
+
     if (password.length < 8) {
       return NextResponse.json(
         { error: { message: 'Password must be at least 8 characters long' } },
