@@ -300,14 +300,14 @@ class ApiClient {
   }
 
   async updateUserProfile(userId: string, updates: Partial<User>): Promise<User> {
-    const response = await this.request<{ success: boolean; data: User; message: string }>('/profile/save', {
+    const response = await this.request<{ success: boolean; user: User; message: string }>('/profile/save', {
       method: 'POST',
       body: JSON.stringify({
         userId,
         ...updates
       }),
     });
-    return response.data!.data;
+    return response.data!.user;
   }
 
   // ============================================================================
