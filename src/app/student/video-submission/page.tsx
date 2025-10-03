@@ -141,10 +141,44 @@ const VideoSubmissionPage: React.FC = () => {
         throw new Error('No video to upload');
       }
       
-      // For now, skip server upload due to S3 permission issues
-      // Store video locally and create a submission record
-      const videoUrl = videoToUpload; // Use local blob URL
-      console.log('Using local video storage due to server upload issues');
+      // Use presigned URL for secure S3 upload
+      console.log('Uploading video using presigned URL...');
+      
+      // Get presigned URL for video upload
+      const presignedResponse = await fetch('/api/videos/presigned-upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: fileName,
+          contentType: videoType,
+          userId: user?.id || 'unknown',
+          assignmentId: 'temp-assignment' // This should come from assignment context
+        }),
+      });
+
+      if (!presignedResponse.ok) {
+        throw new Error('Failed to get presigned URL');
+      }
+
+      const { data: presignedData } = await presignedResponse.json();
+      const { presignedUrl, videoUrl } = presignedData;
+
+      // Upload video directly to S3 using presigned URL
+      const uploadResponse = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: videoBlob,
+        headers: {
+          'Content-Type': videoType,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload video to S3');
+      }
+
+      console.log('Video uploaded successfully to S3:', videoUrl);
 
       // Store video blob in IndexedDB for persistence
       const videoId = `video-${Date.now()}`;
@@ -155,7 +189,7 @@ const VideoSubmissionPage: React.FC = () => {
         assignmentId: 'temp-assignment', // This should come from the assignment context
         studentId: user?.id || 'unknown',
         courseId: 'temp-course', // This should come from the assignment context
-        videoUrl: videoUrl,
+        videoUrl: videoUrl, // Now using the actual S3 URL
         videoId: videoId, // Store the IndexedDB key for retrieval
         videoTitle: `Video Submission - ${new Date().toLocaleDateString()}`,
         videoDescription: 'Student video submission',
@@ -165,7 +199,7 @@ const VideoSubmissionPage: React.FC = () => {
         fileType: videoType,
         isRecorded: !!recordedVideo,
         isUploaded: !!selectedFile,
-        isLocalStorage: videoUrl === videoToUpload // Flag to indicate if it's stored locally
+        isLocalStorage: false // Now using S3 storage
       };
 
       const submissionResponse = await fetch('/api/video-submissions', {
@@ -198,7 +232,7 @@ const VideoSubmissionPage: React.FC = () => {
         type: videoType,
         isRecorded: !!recordedVideo,
         isUploaded: !!selectedFile,
-        videoUrl: videoUrl, // Store the server URL
+        videoUrl: videoUrl, // Store the S3 URL
         videoData: null // Will be stored separately
       };
       
@@ -515,7 +549,7 @@ const VideoSubmissionPage: React.FC = () => {
                   <div className="bg-gray-50 rounded-lg p-4 mb-6">
                     <h3 className="font-semibold text-gray-800 mb-2">File Information</h3>
                     <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                      <div>
+                <div>
                         <p><strong>Name:</strong> {selectedFile.name}</p>
                         <p><strong>Size:</strong> {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
                 </div>
