@@ -274,14 +274,14 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
           try {
             const createdSections = [];
             for (const section of sections) {
-              // Generate a unique class code for this section
-              const classCodeResponse = await fetch('/api/classes/generate-code', {
+              // Generate a unique section code for this section
+              const sectionCodeResponse = await fetch('/api/classes/generate-code', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                  existingCodes: createdSections.map(s => s.classCode).filter(Boolean),
+                  existingCodes: createdSections.map(s => s.sectionCode).filter(Boolean),
                   options: {
                     length: 6,
                     includeLetters: true,
@@ -291,11 +291,11 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
                 })
               });
 
-              let classCode = '';
-              if (classCodeResponse.ok) {
-                const classCodeData = await classCodeResponse.json();
-                if (classCodeData.success) {
-                  classCode = classCodeData.code;
+              let sectionCode = '';
+              if (sectionCodeResponse.ok) {
+                const sectionCodeData = await sectionCodeResponse.json();
+                if (sectionCodeData.success) {
+                  sectionCode = sectionCodeData.code;
                 }
               }
 
@@ -307,8 +307,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
                 body: JSON.stringify({
                   courseId: courseData.courseId,
                   sectionName: section.sectionName,
-                  sectionCode: section.sectionCode,
-                  classCode: classCode,
+                  sectionCode: sectionCode,
                   maxEnrollment: section.maxEnrollment,
                   instructorId: courseData.instructorId
                 })

@@ -32,31 +32,66 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find course by code (search both classCode and courseCode)
+    // First, try to find by section code
     let course = null;
+    let foundSection = null;
+    
     try {
-      console.log('Searching for course with classCode:', normalizedClassCode);
-      const coursesResult = await docClient.send(new ScanCommand({
-        TableName: COURSES_TABLE,
-        FilterExpression: 'classCode = :classCode OR courseCode = :courseCode',
+      // Check if this is a section code
+      const sectionResult = await docClient.send(new ScanCommand({
+        TableName: SECTIONS_TABLE,
+        FilterExpression: 'sectionCode = :sectionCode',
         ExpressionAttributeValues: {
-          ':classCode': normalizedClassCode,
-          ':courseCode': normalizedClassCode
+          ':sectionCode': normalizedClassCode
         }
       }));
       
-      console.log('Course search result:', { 
-        itemCount: coursesResult.Items?.length || 0,
-        items: coursesResult.Items 
-      });
-      
-      course = coursesResult.Items?.[0];
-    } catch (dbError: any) {
-      console.error('Database error searching for course:', dbError);
-      return NextResponse.json(
-        { success: false, error: 'Database error occurred' },
-        { status: 500 }
-      );
+      if (sectionResult.Items?.length > 0) {
+        foundSection = sectionResult.Items[0];
+        console.log('Found section with code:', foundSection);
+        
+        // Get the course for this section
+        const courseResult = await docClient.send(new ScanCommand({
+          TableName: COURSES_TABLE,
+          FilterExpression: 'courseId = :courseId',
+          ExpressionAttributeValues: {
+            ':courseId': foundSection.courseId
+          }
+        }));
+        
+        course = courseResult.Items?.[0];
+        console.log('Found course for section:', course);
+      }
+    } catch (sectionError) {
+      console.log('No section found with this code, trying course search...');
+    }
+    
+    // If no section found, try course search
+    if (!course) {
+      try {
+        console.log('Searching for course with classCode:', normalizedClassCode);
+        const coursesResult = await docClient.send(new ScanCommand({
+          TableName: COURSES_TABLE,
+          FilterExpression: 'classCode = :classCode OR courseCode = :courseCode',
+          ExpressionAttributeValues: {
+            ':classCode': normalizedClassCode,
+            ':courseCode': normalizedClassCode
+          }
+        }));
+        
+        console.log('Course search result:', { 
+          itemCount: coursesResult.Items?.length || 0,
+          items: coursesResult.Items 
+        });
+        
+        course = coursesResult.Items?.[0];
+      } catch (dbError: any) {
+        console.error('Database error searching for course:', dbError);
+        return NextResponse.json(
+          { success: false, error: 'Database error occurred' },
+          { status: 500 }
+        );
+      }
     }
 
     if (!course) {
@@ -88,6 +123,15 @@ export async function POST(request: NextRequest) {
       
       sections = sectionsResult.Items || [];
       console.log(`Found ${sections.length} sections for course ${course.courseId}`);
+      
+      // If we found a section by code, move it to the front of the list
+      if (foundSection) {
+        sections = sections.sort((a, b) => {
+          if (a.sectionId === foundSection.sectionId) return -1;
+          if (b.sectionId === foundSection.sectionId) return 1;
+          return 0;
+        });
+      }
     } catch (dbError: any) {
       console.error('Database error searching for sections:', dbError);
       // Don't fail the request if sections can't be found, just return empty array
