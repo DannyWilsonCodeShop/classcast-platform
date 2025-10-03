@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import bcrypt from 'bcryptjs';
+import { generateTokens } from '@/lib/jwt';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -94,21 +95,40 @@ export async function POST(request: NextRequest) {
 
     console.log('User created successfully:', userId);
 
+    // Create user object for response
+    const user = {
+      id: userId,
+      email,
+      firstName,
+      lastName,
+      role,
+      avatar: '/api/placeholder/40/40',
+      emailVerified: true,
+      bio: '',
+      careerGoals: '',
+      classOf: '',
+      funFact: '',
+      favoriteSubject: '',
+      hobbies: '',
+      schoolName: '',
+      studentId: role === 'student' ? studentId : undefined,
+      instructorId: role === 'instructor' ? userData.instructorCode : undefined,
+      department: role === 'instructor' ? department : undefined,
+    };
+
+    // Generate JWT tokens
+    const tokens = generateTokens({
+      id: userId,
+      email,
+      role,
+    });
+
     // Return success response
     return NextResponse.json({
       success: true,
       message: 'Account created successfully',
-      user: {
-        id: userId,
-        email,
-        firstName,
-        lastName,
-        role,
-        studentId: role === 'student' ? studentId : undefined,
-        instructorId: role === 'instructor' ? userData.instructorCode : undefined,
-        department: role === 'instructor' ? department : undefined,
-        emailVerified: true
-      }
+      user,
+      tokens,
     });
 
   } catch (error) {
