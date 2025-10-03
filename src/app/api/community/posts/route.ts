@@ -111,11 +111,19 @@ export async function GET(request: NextRequest) {
         })
       );
 
-      return NextResponse.json(enrichedPosts);
+      return NextResponse.json({
+        success: true,
+        posts: enrichedPosts,
+        count: enrichedPosts.length
+      });
     } catch (tableError: any) {
       if (tableError.name === 'ResourceNotFoundException') {
         // Community posts table doesn't exist yet, return empty array
-        return NextResponse.json([]);
+        return NextResponse.json({
+          success: true,
+          posts: [],
+          count: 0
+        });
       }
       throw tableError;
     }
