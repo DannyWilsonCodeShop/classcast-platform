@@ -249,6 +249,31 @@ const StudentDashboard: React.FC = () => {
     };
   }, []);
 
+  // Refresh data when user returns to the page (e.g., from video submission)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (isAuthenticated && user) {
+        // Refresh todo stats when user returns to the page
+        const refreshTodoStats = async () => {
+          try {
+            const response = await fetch(`/api/student/todo-stats?userId=${user.id}`, { credentials: 'include' });
+            if (response.ok) {
+              const data = await response.json();
+              setTodoStats(data);
+            }
+          } catch (error) {
+            console.warn('Failed to refresh todo stats:', error);
+          }
+        };
+        
+        refreshTodoStats();
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [isAuthenticated, user]);
+
   // Handle class enrollment
   const handleClassEnrollment = async (classCode: string) => {
     try {
