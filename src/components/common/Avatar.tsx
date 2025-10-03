@@ -7,7 +7,7 @@ interface AvatarProps {
     firstName?: string;
     lastName?: string;
     avatar?: string;
-  };
+  } | null;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   showBorder?: boolean;
@@ -29,6 +29,7 @@ const Avatar: React.FC<AvatarProps> = ({
   };
 
   const getInitials = () => {
+    if (!user) return 'U';
     const first = user.firstName?.charAt(0) || '';
     const last = user.lastName?.charAt(0) || '';
     return (first + last).toUpperCase() || 'U';
@@ -45,12 +46,27 @@ const Avatar: React.FC<AvatarProps> = ({
   };
 
   const renderAvatar = () => {
-    if (user.avatar) {
+    if (!user) {
+      return (
+        <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white font-bold">
+          U
+        </div>
+      );
+    }
+
+    // Check if user has a valid profile picture
+    const hasProfilePicture = user.avatar && 
+      (isImageUrl(user.avatar) || isEmoji(user.avatar)) && 
+      user.avatar !== '/api/placeholder/40/40' && 
+      user.avatar !== '/api/placeholder/80/80' &&
+      !user.avatar.includes('placeholder');
+
+    if (hasProfilePicture && user.avatar) {
       // Check if it's an emoji
       if (isEmoji(user.avatar)) {
         return (
-          <div className="w-full h-full bg-white flex items-center justify-center">
-            {user.avatar}
+          <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+            <span className="text-2xl">{user.avatar}</span>
           </div>
         );
       }
@@ -65,7 +81,7 @@ const Avatar: React.FC<AvatarProps> = ({
         return (
           <img
             src={imageSrc}
-            alt={`${user.firstName} ${user.lastName}`}
+            alt={`${user.firstName || ''} ${user.lastName || ''}`}
             className="w-full h-full object-cover"
             onError={(e) => {
               // Fallback to initials if image fails to load
@@ -73,24 +89,17 @@ const Avatar: React.FC<AvatarProps> = ({
               target.style.display = 'none';
               const parent = target.parentElement;
               if (parent) {
-                parent.innerHTML = `<div class="w-full h-full bg-indigo-600 flex items-center justify-center text-white font-bold">${getInitials()}</div>`;
+                parent.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">${getInitials()}</div>`;
               }
             }}
           />
         );
       }
-      
-      // If it's neither emoji nor image URL, treat as initials
-      return (
-        <div className="w-full h-full bg-indigo-600 flex items-center justify-center text-white font-bold">
-          {user.avatar}
-        </div>
-      );
     }
 
-    // Fallback to initials
+    // Show initials as primary option when no profile picture is set
     return (
-      <div className="w-full h-full bg-indigo-600 flex items-center justify-center text-white font-bold">
+      <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
         {getInitials()}
       </div>
     );

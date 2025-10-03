@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import Avatar from '@/components/common/Avatar';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -87,11 +88,11 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-blue-500 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-                <span className="text-white font-bold text-lg">
-                  {user?.firstName?.charAt(0) || 'U'}
-                </span>
-              </div>
+              <Avatar
+                user={user}
+                size="xl"
+                className="shadow-lg flex-shrink-0"
+              />
               <div className="min-w-0 flex-1">
                 <h1 className="text-xl sm:text-2xl font-bold text-gray-800 truncate">
                   Welcome back, {user?.firstName}! 👋
