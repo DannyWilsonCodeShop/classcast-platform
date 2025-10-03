@@ -18,6 +18,12 @@ interface DashboardStats {
   completed: number;
 }
 
+interface TodoStats {
+  pendingAssignments: number;
+  pendingReviews: number;
+  nextDueAssignment: { title: string; dueDate: string } | null;
+}
+
 interface Course {
   id: string;
   name: string;
@@ -72,7 +78,7 @@ const StudentDashboard: React.FC = () => {
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
-  const [todoStats, setTodoStats] = useState({
+  const [todoStats, setTodoStats] = useState<TodoStats>({
     pendingAssignments: 0,
     pendingReviews: 0,
     nextDueAssignment: null
@@ -303,6 +309,30 @@ const StudentDashboard: React.FC = () => {
 
       // Add the new class to the courses list
       setCourses(prevCourses => [...prevCourses, data.class]);
+
+      // Refresh dashboard data to ensure everything is up to date
+      if (isAuthenticated && user) {
+        try {
+          const [statsResponse, coursesResponse] = await Promise.all([
+            fetch(`/api/student/stats?userId=${user.id}`, { credentials: 'include' }),
+            fetch(`/api/student/courses?userId=${user.id}`, { credentials: 'include' })
+          ]);
+
+          if (statsResponse.ok) {
+            const statsData = await statsResponse.json();
+            if (statsData.success) {
+              setStats(statsData.data);
+            }
+          }
+
+          if (coursesResponse.ok) {
+            const coursesData = await coursesResponse.json();
+            setCourses(coursesData.courses || []);
+          }
+        } catch (refreshError) {
+          console.warn('Failed to refresh dashboard data after enrollment:', refreshError);
+        }
+      }
       
       // Show success message (you could add a toast notification here)
       console.log('Successfully enrolled in class:', data.class.name);
@@ -463,11 +493,11 @@ const StudentDashboard: React.FC = () => {
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
                             post.isAnnouncement ? 'bg-indigo-600' : 'bg-emerald-600'
                           }`}>
-                            {post.author.charAt(0)}
+                            {post.author.name.charAt(0)}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-1 mb-1">
-                              <p className="text-xs font-medium text-gray-800 truncate">{post.author}</p>
+                              <p className="text-xs font-medium text-gray-800 truncate">{post.author.name}</p>
                               {post.isAnnouncement && (
                                 <span className="px-1 py-0.5 bg-indigo-600 text-white text-xs rounded-full flex-shrink-0">
                                   📢
