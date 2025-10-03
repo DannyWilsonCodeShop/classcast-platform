@@ -349,6 +349,14 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
           console.error('Missing or invalid assignment description:', assignmentData.description);
           throw new Error('Assignment description is required and must be at least 10 characters long');
         }
+
+        // Validate peer review due date if peer review is enabled
+        if (assignmentData.peerReview && assignmentData.peerReviewDueDate) {
+          if (assignmentData.dueDate && new Date(assignmentData.peerReviewDueDate) <= new Date(assignmentData.dueDate)) {
+            console.error('Peer review due date must be after assignment due date');
+            throw new Error('Peer review due date must be after the assignment due date');
+          }
+        }
         
         if (!courseData.courseId) {
           console.error('Missing course ID');
@@ -391,7 +399,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
                 peerReview: assignmentData.peerReview || false,
                 peerReviewScope: assignmentData.peerReviewScope || 'section',
                 peerReviewCount: assignmentData.peerReviewCount || 3,
-                peerReviewDeadline: assignmentData.peerReviewDeadline || 7,
+                peerReviewDueDate: assignmentData.peerReviewDueDate || null,
                 anonymousReview: assignmentData.anonymousReview || true,
                 allowSelfReview: assignmentData.allowSelfReview || false,
                 instructorReview: assignmentData.instructorReview || true,
@@ -888,6 +896,21 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
   const handleChange = (field: keyof Assignment, value: any) => {
     console.log('CreateAssignmentStep - handleChange:', field, value);
     const updatedData = { ...data, [field]: value };
+    
+    // Auto-set peer review due date when peer review is enabled and no due date is set
+    if (field === 'peerReview' && value === true && !updatedData.peerReviewDueDate && updatedData.dueDate) {
+      const assignmentDueDate = new Date(updatedData.dueDate);
+      const peerReviewDueDate = new Date(assignmentDueDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days later
+      updatedData.peerReviewDueDate = peerReviewDueDate.toISOString().slice(0, 16); // Format for datetime-local input
+    }
+    
+    // Auto-update peer review due date when assignment due date changes (if peer review is enabled)
+    if (field === 'dueDate' && updatedData.peerReview && updatedData.dueDate) {
+      const assignmentDueDate = new Date(updatedData.dueDate);
+      const peerReviewDueDate = new Date(assignmentDueDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days later
+      updatedData.peerReviewDueDate = peerReviewDueDate.toISOString().slice(0, 16); // Format for datetime-local input
+    }
+    
     console.log('CreateAssignmentStep - updatedData:', updatedData);
     onChange(updatedData);
   };
@@ -900,6 +923,10 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
   // Validation for immediate feedback
   const isTitleValid = data.title && data.title.trim().length >= 3;
   const isDescriptionValid = data.description && data.description.trim().length >= 10;
+  
+  // Peer review due date validation
+  const isPeerReviewDueDateValid = !data.peerReview || !data.peerReviewDueDate || 
+    (data.dueDate && data.peerReviewDueDate && new Date(data.peerReviewDueDate) > new Date(data.dueDate));
 
   return (
     <div className="space-y-6">
@@ -923,6 +950,14 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
           <p className="text-red-800 text-sm">
             ⚠️ Description must be at least 10 characters long.
+          </p>
+        </div>
+      )}
+
+      {data.peerReview && data.peerReviewDueDate && !isPeerReviewDueDateValid && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <p className="text-red-800 text-sm">
+            ⚠️ Peer review due date must be after the assignment due date.
           </p>
         </div>
       )}
@@ -1057,16 +1092,18 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
 
                 <div>
                   <label className="block text-sm font-medium text-blue-800 mb-2">
-                    Days to Complete Reviews
+                    Peer Review Due Date
                   </label>
                   <input
-                    type="number"
-                    value={data.peerReviewDeadline || 7}
-                    onChange={(e) => handleChange('peerReviewDeadline', parseInt(e.target.value))}
+                    type="datetime-local"
+                    value={data.peerReviewDueDate || ''}
+                    onChange={(e) => handleChange('peerReviewDueDate', e.target.value)}
                     className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    min="1"
-                    max="30"
+                    min={data.dueDate || ''}
                   />
+                  <p className="text-xs text-blue-600 mt-1">
+                    Reviews must be completed by this date and time
+                  </p>
                 </div>
               </div>
 
@@ -1290,7 +1327,7 @@ const PublishCourseStep: React.FC<PublishCourseStepProps> = ({
               <p className="font-medium text-blue-700">Peer Review Settings:</p>
               <p><span className="font-medium">Scope:</span> {assignmentData.peerReviewScope}</p>
               <p><span className="font-medium">Reviews per submission:</span> {assignmentData.peerReviewCount}</p>
-              <p><span className="font-medium">Review deadline:</span> {assignmentData.peerReviewDeadline} days</p>
+              <p><span className="font-medium">Review deadline:</span> {assignmentData.peerReviewDueDate ? new Date(assignmentData.peerReviewDueDate).toLocaleString() : 'Not set'}</p>
               <p><span className="font-medium">Anonymous:</span> {assignmentData.anonymousReview ? 'Yes' : 'No'}</p>
               {assignmentData.peerReviewInstructions && (
                 <p><span className="font-medium">Instructions:</span> {assignmentData.peerReviewInstructions.substring(0, 100)}...</p>

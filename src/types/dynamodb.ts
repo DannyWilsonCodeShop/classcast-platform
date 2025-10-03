@@ -106,7 +106,8 @@ export interface Assignment {
   // Enhanced Peer Review Settings
   peerReview?: boolean; // Enable peer review for this assignment
   peerReviewCount?: number; // Number of reviews each submission should receive
-  peerReviewDeadline?: number; // Days to complete peer reviews
+  peerReviewDeadline?: number; // Days to complete peer reviews (deprecated)
+  peerReviewDueDate?: string; // Specific due date for peer reviews (ISO string)
   anonymousReview?: boolean; // Whether peer reviews are anonymous
   allowSelfReview?: boolean; // Allow students to review their own submissions
   instructorReview?: boolean; // Whether instructor reviews peer feedback
