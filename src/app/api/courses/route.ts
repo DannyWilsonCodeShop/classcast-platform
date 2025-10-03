@@ -176,6 +176,12 @@ export async function POST(request: NextRequest) {
         enableAnnouncements: true,
         privacy: 'public', // Default to public for backward compatibility
       },
+      status: 'published', // Set course as published so students can enroll
+      currentEnrollment: 0, // Initialize enrollment count
+      enrollment: {
+        students: [], // Initialize empty students array
+        enrollmentDates: {} // Track when each student enrolled
+      },
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isActive: true
