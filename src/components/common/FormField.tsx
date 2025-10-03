@@ -115,8 +115,8 @@ const FormField: React.FC<FormFieldProps> = ({
 	};
 
 	const renderInput = () => {
-		const baseClasses = `w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-			disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+		const baseClasses = `w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 ${
+			disabled ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white'
 		}`;
 
 		// Enhanced validation styling
