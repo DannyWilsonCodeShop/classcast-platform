@@ -9,16 +9,59 @@ const USERS_TABLE = 'classcast-users';
 
 export async function GET(request: NextRequest) {
   try {
+    // Get user ID from query params to filter by enrolled courses
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    
+    let enrolledCourseIds = [];
+    
+    // If userId is provided, get their enrolled courses
+    if (userId) {
+      try {
+        const coursesResult = await docClient.send(new ScanCommand({
+          TableName: 'classcast-courses',
+          FilterExpression: 'contains(enrollment.students, :userId)',
+          ExpressionAttributeValues: {
+            ':userId': userId
+          }
+        }));
+        
+        enrolledCourseIds = (coursesResult.Items || []).map(course => course.courseId);
+      } catch (error) {
+        console.error('Error fetching enrolled courses:', error);
+        // If we can't get enrolled courses, return empty array
+        return NextResponse.json([]);
+      }
+    }
+
     // Try to fetch from community posts table
     try {
-      const scanCommand = new ScanCommand({
-        TableName: 'classcast-community-posts',
-        Limit: 20,
-        ScanIndexForward: false // Most recent first
-      });
+      let scanCommand;
+      
+      if (enrolledCourseIds.length > 0) {
+        // Get all posts and filter by enrolled courses in application logic
+        scanCommand = new ScanCommand({
+          TableName: 'classcast-community-posts',
+          Limit: 100 // Get more posts to filter
+        });
+      } else {
+        // If no userId or no enrolled courses, get all posts
+        scanCommand = new ScanCommand({
+          TableName: 'classcast-community-posts',
+          Limit: 20
+        });
+      }
 
       const result = await docClient.send(scanCommand);
-      const posts = result.Items || [];
+      let posts = result.Items || [];
+
+      // Filter posts by enrolled courses if userId is provided
+      if (enrolledCourseIds.length > 0) {
+        posts = posts.filter((post: any) => {
+          // Include posts from enrolled courses or posts without courseId (global posts)
+          return !post.courseId || enrolledCourseIds.includes(post.courseId);
+        });
+      }
 
       // Sort by timestamp (most recent first)
       posts.sort((a: any, b: any) => {
@@ -26,6 +69,9 @@ export async function GET(request: NextRequest) {
         const bTime = new Date(b.timestamp || b.createdAt || 0).getTime();
         return bTime - aTime;
       });
+
+      // Limit to 20 posts after filtering
+      posts = posts.slice(0, 20);
 
       // Enrich posts with user information
       const enrichedPosts = await Promise.all(
@@ -90,7 +136,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, content, userId, isAnnouncement = false } = body;
+    const { title, content, userId, isAnnouncement = false, courseId } = body;
 
     if (!title || !content || !userId) {
       return NextResponse.json(
@@ -110,6 +156,7 @@ export async function POST(request: NextRequest) {
       title,
       content,
       userId,
+      courseId: courseId || null, // Include courseId if provided
       isAnnouncement,
       likes: 0,
       comments: 0,

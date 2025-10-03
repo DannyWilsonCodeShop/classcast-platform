@@ -35,11 +35,12 @@ export default function CommunityPage() {
   const router = useRouter();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newPost, setNewPost] = useState({ title: '', content: '' });
+  const [newPost, setNewPost] = useState({ title: '', content: '', courseId: '' });
   const [communityStats, setCommunityStats] = useState<CommunityStats | null>(null);
   const [trendingTopics, setTrendingTopics] = useState<TrendingTopic[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [userCourses, setUserCourses] = useState<any[]>([]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -53,14 +54,30 @@ export default function CommunityPage() {
     loadCommunityData();
   }, [user, isAuthenticated, isLoading, router]);
 
+  const loadUserCourses = async () => {
+    try {
+      const response = await fetch(`/api/student/courses?userId=${user?.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUserCourses(data.courses || []);
+        return data.courses || [];
+      }
+      return [];
+    } catch (error) {
+      console.error('Error loading user courses:', error);
+      return [];
+    }
+  };
+
   const loadCommunityData = async () => {
     try {
       setLoading(true);
       setStatsLoading(true);
       
-      // Load posts and community data in parallel
-      const [postsData, stats, topics, users] = await Promise.all([
+      // Load posts, courses, and community data in parallel
+      const [postsData, courses, stats, topics, users] = await Promise.all([
         loadPosts(),
+        loadUserCourses(),
         communityService.getCommunityStats(),
         communityService.getTrendingTopics(),
         communityService.getOnlineUsers()
@@ -79,8 +96,8 @@ export default function CommunityPage() {
 
   const loadPosts = async () => {
     try {
-      // Load posts from API
-      const response = await fetch('/api/community/posts');
+      // Load posts from API with userId to filter by enrolled courses
+      const response = await fetch(`/api/community/posts?userId=${user?.id}`);
       if (response.ok) {
         const data = await response.json();
         setPosts(data);
@@ -110,13 +127,16 @@ export default function CommunityPage() {
         body: JSON.stringify({
           title: newPost.title,
           content: newPost.content,
+          userId: user?.id,
+          courseId: newPost.courseId || null,
+          isAnnouncement: false
         }),
       });
 
       if (response.ok) {
         const createdPost = await response.json();
         setPosts([createdPost, ...posts]);
-        setNewPost({ title: '', content: '' });
+        setNewPost({ title: '', content: '', courseId: '' });
       } else {
         console.error('Failed to create post');
       }
@@ -217,6 +237,20 @@ export default function CommunityPage() {
                     onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+                <div className="mb-4">
+                  <select
+                    value={newPost.courseId}
+                    onChange={(e) => setNewPost({ ...newPost, courseId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select a course (optional - for class-specific posts)</option>
+                    {userCourses.map((course) => (
+                      <option key={course.id} value={course.id}>
+                        {course.name} ({course.code})
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="mb-4">
                   <textarea
