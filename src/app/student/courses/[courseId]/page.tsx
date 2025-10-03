@@ -61,12 +61,23 @@ interface Assignment {
   feedback?: string;
 }
 
+interface Classmate {
+  userId: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  enrolledAt: string;
+  status: string;
+  avatar?: string;
+}
+
 const StudentCourseDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [classmates, setClassmates] = useState<Classmate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'assignments' | 'students' | 'materials'>('assignments');
@@ -139,6 +150,9 @@ const StudentCourseDetailPage: React.FC = () => {
 
       // Fetch assignments for this course
       await fetchAssignments();
+      
+      // Fetch classmates for this course
+      await fetchClassmates();
 
     } catch (err) {
       console.error('Error fetching course details:', err);
@@ -195,6 +209,28 @@ const StudentCourseDetailPage: React.FC = () => {
     } catch (assignmentError) {
       console.warn('Failed to fetch assignments:', assignmentError);
       setAssignments([]);
+    }
+  };
+
+  const fetchClassmates = async () => {
+    try {
+      const response = await fetch(`/api/courses/enrollment?courseId=${courseId}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data?.students) {
+          // Filter out the current user from classmates list
+          const classmatesList = data.data.students.filter(
+            (student: Classmate) => student.userId !== user?.id
+          );
+          setClassmates(classmatesList);
+        }
+      }
+    } catch (classmatesError) {
+      console.warn('Failed to fetch classmates:', classmatesError);
+      setClassmates([]);
     }
   };
 
@@ -560,11 +596,46 @@ const StudentCourseDetailPage: React.FC = () => {
             {activeTab === 'students' && (
               <div className="space-y-6">
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Classmates</h3>
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-2">👥</div>
-                    <p className="text-gray-600">Classmate list not available.</p>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800">Classmates</h3>
+                    <div className="text-sm text-gray-600">
+                      {classmates.length} classmate{classmates.length !== 1 ? 's' : ''}
+                    </div>
                   </div>
+                  
+                  {classmates.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="text-4xl mb-2">👥</div>
+                      <p className="text-gray-600">No other students enrolled yet.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {classmates.map((classmate) => (
+                        <div
+                          key={classmate.userId}
+                          className="bg-white/60 backdrop-blur-sm rounded-xl p-4 shadow-md border border-gray-200/30 hover:shadow-lg transition-all duration-300"
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                              {classmate.firstName?.charAt(0) || '?'}
+                              {classmate.lastName?.charAt(0) || ''}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-gray-800 truncate">
+                                {classmate.firstName} {classmate.lastName}
+                              </h4>
+                              <p className="text-sm text-gray-600 truncate">
+                                {classmate.email}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Joined {new Date(classmate.enrolledAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
