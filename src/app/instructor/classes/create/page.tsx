@@ -250,8 +250,36 @@ const CreateClassPage: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  // Generate class code for sections (similar to wizard)
-  const generateSectionClassCode = (sectionName: string, sectionIndex: number) => {
+  // Generate class code for sections using the API
+  const generateSectionClassCode = async (sectionName: string, sectionIndex: number) => {
+    try {
+      const response = await fetch('/api/classes/generate-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          existingCodes: sections.map(s => s.classCode).filter(Boolean),
+          options: {
+            length: 6,
+            includeLetters: true,
+            includeNumbers: true,
+            excludeSimilar: true
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          return data.code;
+        }
+      }
+    } catch (error) {
+      console.error('Error generating class code:', error);
+    }
+    
+    // Fallback to simple generation if API fails
     const courseCode = (formData.title || 'COURSE')
       .split(' ')
       .map(word => word.charAt(0).toUpperCase())
@@ -275,13 +303,19 @@ const CreateClassPage: React.FC = () => {
   };
 
   // Section management functions
-  const addSection = () => {
+  const addSection = async () => {
     if (newSection.name.trim()) {
+      let generatedClassCode = previewClassCode;
+      
+      if (!generatedClassCode) {
+        generatedClassCode = await generateSectionClassCode(newSection.name.trim(), sections.length);
+      }
+      
       const section = {
         id: `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: newSection.name.trim(),
         code: newSection.code.trim() || undefined,
-        classCode: previewClassCode || generateSectionClassCode(newSection.name.trim(), sections.length),
+        classCode: generatedClassCode,
         maxEnrollment: newSection.maxEnrollment || 30
       };
       setSections(prev => [...prev, section]);
@@ -301,19 +335,19 @@ const CreateClassPage: React.FC = () => {
     ));
   };
 
-  const regenerateSectionClassCode = (id: string) => {
-    setSections(prev => prev.map(section => {
-      if (section.id === id) {
-        const newClassCode = generateSectionClassCode(section.name, sections.indexOf(section));
-        return { ...section, classCode: newClassCode };
-      }
-      return section;
-    }));
+  const regenerateSectionClassCode = async (id: string) => {
+    const newClassCode = await generateSectionClassCode(
+      sections.find(s => s.id === id)?.name || '', 
+      sections.findIndex(s => s.id === id)
+    );
+    setSections(prev => prev.map(section => 
+      section.id === id ? { ...section, classCode: newClassCode } : section
+    ));
   };
 
-  const generatePreviewClassCode = () => {
+  const generatePreviewClassCode = async () => {
     if (newSection.name.trim()) {
-      const previewCode = generateSectionClassCode(newSection.name.trim(), sections.length);
+      const previewCode = await generateSectionClassCode(newSection.name.trim(), sections.length);
       setPreviewClassCode(previewCode);
     }
   };
@@ -913,7 +947,7 @@ const CreateClassPage: React.FC = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={addSection}
+                          onClick={() => addSection()}
                           disabled={!newSection.name.trim()}
                           className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >

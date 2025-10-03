@@ -269,6 +269,31 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
           try {
             const createdSections = [];
             for (const section of sections) {
+              // Generate a unique class code for this section
+              const classCodeResponse = await fetch('/api/classes/generate-code', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  existingCodes: createdSections.map(s => s.classCode).filter(Boolean),
+                  options: {
+                    length: 6,
+                    includeLetters: true,
+                    includeNumbers: true,
+                    excludeSimilar: true
+                  }
+                })
+              });
+
+              let classCode = '';
+              if (classCodeResponse.ok) {
+                const classCodeData = await classCodeResponse.json();
+                if (classCodeData.success) {
+                  classCode = classCodeData.code;
+                }
+              }
+
               const sectionResponse = await fetch('/api/sections', {
                 method: 'POST',
                 headers: {
@@ -278,6 +303,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
                   courseId: courseData.courseId,
                   sectionName: section.sectionName,
                   sectionCode: section.sectionCode,
+                  classCode: classCode,
                   maxEnrollment: section.maxEnrollment,
                   instructorId: courseData.instructorId
                 })
