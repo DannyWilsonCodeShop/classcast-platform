@@ -1,109 +1,66 @@
-const https = require('https');
+// Test creating a user with wilson.danny@me.com
+const API_BASE_URL = 'https://class-cast.com/api';
 
-// Test user creation
-const testSignup = () => {
-  const signupData = {
-    email: 'test-login@cristoreyatlanta.org',
-    firstName: 'Test',
-    lastName: 'Login',
-    password: 'Test1234!',
-    role: 'student'
-  };
+async function testUserCreation() {
+  console.log('🧪 Testing user creation for wilson.danny@me.com...\n');
 
-  const postData = JSON.stringify(signupData);
-
-  const options = {
-    hostname: 'main.d166bugwfgjggz.amplifyapp.com',
-    port: 443,
-    path: '/api/auth/signup',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(postData)
-    }
-  };
-
-  console.log('Creating test user...');
-
-  const req = https.request(options, (res) => {
-    console.log(`Signup Status: ${res.statusCode}`);
-    
-    let data = '';
-    res.on('data', (chunk) => {
-      data += chunk;
+  try {
+    // Test 1: Try to create the user
+    console.log('1️⃣ Attempting to create user...');
+    const signupResponse = await fetch(`${API_BASE_URL}/auth/signup-simple`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: 'wilson.danny@me.com',
+        firstName: 'Danny',
+        lastName: 'Wilson',
+        password: 'TestPassword123!',
+        role: 'student',
+        studentId: 'WILSON001'
+      })
     });
 
-    res.on('end', () => {
-      console.log('Signup Response:', data);
+    console.log('Signup Response Status:', signupResponse.status);
+    const signupData = await signupResponse.json();
+    console.log('Signup Response:', signupData);
+
+    if (signupResponse.ok) {
+      console.log('✅ User created successfully');
       
-      if (res.statusCode === 201) {
-        console.log('✅ User created successfully!');
-        console.log('Now testing login...');
-        
-        // Test login after 2 seconds
-        setTimeout(testLogin, 2000);
+      // Test 2: Try to login with the newly created user
+      console.log('\n2️⃣ Testing login with newly created user...');
+      const loginResponse = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: 'wilson.danny@me.com',
+          password: 'TestPassword123!'
+        })
+      });
+
+      console.log('Login Response Status:', loginResponse.status);
+      const loginData = await loginResponse.json();
+      console.log('Login Response:', loginData);
+
+      if (loginResponse.ok) {
+        console.log('✅ Login successful with newly created user');
       } else {
-        console.log('❌ Signup failed');
+        console.log('❌ Login failed with newly created user');
       }
-    });
-  });
-
-  req.on('error', (e) => {
-    console.error(`Signup error: ${e.message}`);
-  });
-
-  req.write(postData);
-  req.end();
-};
-
-// Test user login
-const testLogin = () => {
-  const loginData = {
-    email: 'test-login@cristoreyatlanta.org',
-    password: 'Test1234!'
-  };
-
-  const postData = JSON.stringify(loginData);
-
-  const options = {
-    hostname: 'main.d166bugwfgjggz.amplifyapp.com',
-    port: 443,
-    path: '/api/auth/login',
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Content-Length': Buffer.byteLength(postData)
+    } else {
+      console.log('❌ User creation failed');
     }
-  };
 
-  console.log('Testing login...');
+  } catch (error) {
+    console.error('❌ Test failed:', error.message);
+  }
 
-  const req = https.request(options, (res) => {
-    console.log(`Login Status: ${res.statusCode}`);
-    
-    let data = '';
-    res.on('data', (chunk) => {
-      data += chunk;
-    });
+  console.log('\n🏁 User creation test completed');
+}
 
-    res.on('end', () => {
-      console.log('Login Response:', data);
-      
-      if (res.statusCode === 200) {
-        console.log('✅ Login successful!');
-      } else {
-        console.log('❌ Login failed');
-      }
-    });
-  });
-
-  req.on('error', (e) => {
-    console.error(`Login error: ${e.message}`);
-  });
-
-  req.write(postData);
-  req.end();
-};
-
-// Start the test
-testSignup();
+// Run the test
+testUserCreation();
