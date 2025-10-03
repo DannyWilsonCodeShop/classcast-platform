@@ -1,15 +1,20 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 
-const VideoSubmissionPage: React.FC = () => {
+const VideoSubmissionContent: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
+  
+  // Get assignment and course IDs from URL parameters
+  const assignmentId = searchParams.get('assignmentId') || 'temp-assignment';
+  const courseId = searchParams.get('courseId') || 'temp-course';
   const [recordedVideo, setRecordedVideo] = useState<string | null>(null);
   const [uploadedVideo, setUploadedVideo] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -154,7 +159,7 @@ const VideoSubmissionPage: React.FC = () => {
           fileName: fileName,
           contentType: videoType,
           userId: user?.id || 'unknown',
-          assignmentId: 'temp-assignment' // This should come from assignment context
+          assignmentId: assignmentId
         }),
       });
 
@@ -219,6 +224,11 @@ const VideoSubmissionPage: React.FC = () => {
 
       // Simulate successful upload
       setSuccess(true);
+      
+      // Auto-redirect to dashboard after 3 seconds
+      setTimeout(() => {
+    router.push('/student/dashboard');
+      }, 3000);
       
       // Store only metadata in localStorage for local reference
       const videoInfo = {
@@ -671,6 +681,14 @@ const VideoSubmissionPage: React.FC = () => {
         </div>
       </div>
     </StudentRoute>
+  );
+};
+
+const VideoSubmissionPage: React.FC = () => {
+  return (
+    <Suspense fallback={<LoadingSpinner size="lg" />}>
+      <VideoSubmissionContent />
+    </Suspense>
   );
 };
 
