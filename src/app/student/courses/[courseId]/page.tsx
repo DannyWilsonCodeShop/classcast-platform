@@ -455,7 +455,7 @@ const StudentCourseDetailPage: React.FC = () => {
                                   View Details
                                 </button>
                                 <button 
-                                  onClick={() => router.push('/student/video-submission')}
+                                  onClick={() => router.push(`/student/video-submission?assignmentId=${assignment.assignmentId}&courseId=${courseId}`)}
                                   className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
                                 >
                                   🎥 Record Video

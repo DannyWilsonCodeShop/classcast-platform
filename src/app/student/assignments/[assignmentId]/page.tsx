@@ -305,7 +305,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     You haven't submitted this assignment yet. Make sure to submit before the due date.
                   </p>
                   <button
-                    onClick={() => router.push('/student/video-submission')}
+                    onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&courseId=${assignment.courseId}`)}
                     className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
                   >
                     <span className="mr-2">🎥</span>
