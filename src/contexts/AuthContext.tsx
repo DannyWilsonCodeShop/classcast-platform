@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import { api, User, LoginRequest } from '@/lib/api';
+import { api, apiClient, User, LoginRequest } from '@/lib/api';
 
 // ============================================================================
 // TYPES
@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const login = async (email: string, password: string): Promise<void> => {
+  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -166,11 +166,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         router.push('/');
       }
+      
+      return { success: true };
     } catch (error) {
       console.error('Login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setError(errorMessage);
-      throw error; // Re-throw the error so LoginForm can catch it
+      return { success: false, error: errorMessage };
     } finally {
       setIsLoading(false);
     }
@@ -205,7 +207,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Handle JWT-based signup response
         if (result.tokens) {
           // Store tokens in API client
-          api.setAccessToken(result.tokens.accessToken);
+          apiClient.setAccessToken(result.tokens.accessToken);
           if (typeof window !== 'undefined') {
             localStorage.setItem('refreshToken', result.tokens.refreshToken);
             localStorage.setItem('idToken', result.tokens.idToken);
@@ -219,21 +221,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           firstName: userData.firstName,
           lastName: userData.lastName,
           role: userData.role,
-          studentId: userData.studentId,
-          instructorId: userData.instructorId,
-          department: userData.department,
           emailVerified: true,
         };
 
         setUser(newUser);
         api.setCurrentUser(newUser);
         
-        // Redirect based on role
-        if (userData.role === 'student') {
-          router.push('/student/dashboard');
-        } else {
-          router.push('/instructor/dashboard');
-        }
+        console.log('AuthContext: User created successfully, redirecting...', { role: userData.role });
+        
+        // Small delay to ensure state is set before redirect
+        setTimeout(() => {
+          // Redirect based on role
+          if (userData.role === 'student') {
+            console.log('AuthContext: Redirecting student to dashboard');
+            router.push('/student/dashboard');
+          } else {
+            console.log('AuthContext: Redirecting instructor to dashboard');
+            router.push('/instructor/dashboard');
+          }
+        }, 100);
         
         return { success: true };
       } else {

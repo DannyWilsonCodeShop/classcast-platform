@@ -132,7 +132,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
               <select
                 value={profileData.department || ''}
                 onChange={(e) => handleChange('department', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
               >
                 <option value="">Select Department</option>
                 <option value="Computer Science">Computer Science</option>
@@ -156,7 +156,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
                 type="text"
                 value={profileData.institution || ''}
                 onChange={(e) => handleChange('institution', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
                 placeholder="e.g., Stanford University"
               />
             </div>
@@ -173,7 +173,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
               <select
                 value={profileData.yearOfStudy || ''}
                 onChange={(e) => handleChange('yearOfStudy', parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
               >
                 <option value="">Select Year</option>
                 <option value="1">Freshman (1st Year)</option>
@@ -193,7 +193,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
                 type="text"
                 value={profileData.institution || ''}
                 onChange={(e) => handleChange('institution', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
                 placeholder="e.g., Stanford University"
               />
             </div>
@@ -268,7 +268,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
             type="text"
             value={profileData.firstName || ''}
             onChange={(e) => handleChange('firstName', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
             placeholder="Enter your first name"
           />
         </div>
@@ -281,7 +281,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
             type="text"
             value={profileData.lastName || ''}
             onChange={(e) => handleChange('lastName', e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
             placeholder="Enter your last name"
           />
         </div>
@@ -295,7 +295,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
           type="email"
           value={profileData.email || ''}
           onChange={(e) => handleChange('email', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
           placeholder="your.email@example.com"
         />
       </div>
@@ -314,7 +314,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
           value={profileData.bio || ''}
           onChange={(e) => handleChange('bio', e.target.value)}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
           placeholder={`Tell us about yourself... ${userRole === 'instructor' ? 'What subjects do you teach?' : 'What are you studying?'}`}
         />
       </div>
@@ -325,10 +325,10 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
           Interests & Skills
         </label>
         <div className="flex space-x-2 mb-2">
-          <input
+            <input
             type="text"
             placeholder="Add an interest or skill"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
             onKeyPress={(e) => {
               if (e.key === 'Enter') {
                 addInterest(e.currentTarget.value);
@@ -378,7 +378,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
           type="tel"
           value={profileData.phone || ''}
           onChange={(e) => handleChange('phone', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
           placeholder="+1 (555) 123-4567"
         />
       </div>
@@ -391,7 +391,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
         <select
           value={profileData.timezone || 'America/New_York'}
           onChange={(e) => handleChange('timezone', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
         >
           <option value="America/New_York">Eastern Time (ET)</option>
           <option value="America/Chicago">Central Time (CT)</option>
@@ -449,7 +449,7 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
             <select
               value={profileData.privacySettings?.profileVisibility || 'course-members'}
               onChange={(e) => handleNestedChange('privacySettings', 'profileVisibility', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white"
             >
               <option value="public">Public - Anyone can see your profile</option>
               <option value="course-members">Course Members - Only people in your courses</option>

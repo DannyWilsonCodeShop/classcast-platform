@@ -77,7 +77,12 @@ export async function POST(request: NextRequest) {
 
     // Check if student is already enrolled
     const currentStudents = course.enrollment?.students || [];
-    if (currentStudents.includes(userId)) {
+    const isAlreadyEnrolled = currentStudents.some((student: any) => 
+      (typeof student === 'string' && student === userId) ||
+      (typeof student === 'object' && student.userId === userId)
+    );
+    
+    if (isAlreadyEnrolled) {
       return NextResponse.json(
         { success: false, error: 'Already enrolled in this course' },
         { status: 400 }
@@ -85,7 +90,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Add student to course
-    const updatedStudents = [...currentStudents, userId];
+    const studentEntry = {
+      userId: userId,
+      email: '', // Will be filled by the frontend
+      firstName: '',
+      lastName: '',
+      enrolledAt: new Date().toISOString(),
+      status: 'active'
+    };
+    
+    const updatedStudents = [...currentStudents, studentEntry];
     const enrollmentDates = {
       ...course.enrollment?.enrollmentDates,
       [userId]: new Date().toISOString()
@@ -102,13 +116,14 @@ export async function POST(request: NextRequest) {
       enrollmentUpdate
     });
 
-    // Use SET to create or update the entire enrollment object
+    // Use SET to create or update the entire enrollment object and increment currentEnrollment
     await docClient.send(new UpdateCommand({
       TableName: COURSES_TABLE,
       Key: { courseId: course.courseId },
-      UpdateExpression: 'SET enrollment = :enrollment',
+      UpdateExpression: 'SET enrollment = :enrollment, currentEnrollment = :currentEnrollment',
       ExpressionAttributeValues: {
-        ':enrollment': enrollmentUpdate
+        ':enrollment': enrollmentUpdate,
+        ':currentEnrollment': updatedStudents.length
       }
     }));
 
