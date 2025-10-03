@@ -64,7 +64,7 @@ const CreateClassPage: React.FC = () => {
     classCode: '',
     backgroundColor: 'indigo-600',
     department: '',
-    semester: 'Spring',
+    semester: 'Fall+Spring',
     year: new Date().getFullYear().toString(),
     maxStudents: 30,
     privacy: 'public',
