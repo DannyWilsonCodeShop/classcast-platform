@@ -129,8 +129,12 @@ export default function StudentVideosPage() {
                 </div>
               </div>
             </div>
-            <div className="text-xs text-gray-500">
-              ClassCast
+            <div className="flex items-center">
+              <img
+                src="/MyClassCast (800 x 200 px).png"
+                alt="MyClassCast"
+                className="h-6 w-auto object-contain"
+              />
             </div>
           </div>
         </div>
