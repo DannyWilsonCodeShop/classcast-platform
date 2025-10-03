@@ -8,12 +8,14 @@ import { CourseFilters } from './CourseFilters';
 import BulkEnrollmentWizard from './BulkEnrollmentWizard';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { EmptyState } from '../common/EmptyState';
+import InstructorOnboardingWizard from '../wizards/InstructorOnboardingWizard';
 
 export const CourseManagement: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [showBulkEnrollment, setShowBulkEnrollment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -76,7 +78,7 @@ export const CourseManagement: React.FC = () => {
   }, [filters, pagination.page, pagination.limit]);
 
   // Create course
-  const handleCreateCourse = async (courseData: CreateCourseData) => {
+  const handleCreateCourse = async (courseData: CreateCourseData | UpdateCourseData) => {
     try {
       const response = await fetch('/api/courses', {
         method: 'POST',
@@ -239,9 +241,15 @@ export const CourseManagement: React.FC = () => {
             </div>
             <button
               onClick={() => setShowForm(true)}
-              className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+              className="px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors mr-2"
             >
-              + Create Class Wizard
+              + Create
+            </button>
+            <button
+              onClick={() => setShowWizard(true)}
+              className="px-4 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors"
+            >
+              🧙 Wizard
             </button>
           </div>
         </div>
@@ -260,12 +268,20 @@ export const CourseManagement: React.FC = () => {
             <div className="text-6xl mb-4">📚</div>
             <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Classes Yet</h3>
             <p className="text-gray-600 mb-8">Create your first class to get started teaching.</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-8 py-4 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
-            >
-              Create Your First Class Wizard
-            </button>
+            <div className="flex space-x-4 justify-center">
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-6 py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+              >
+                + Create Class
+              </button>
+              <button
+                onClick={() => setShowWizard(true)}
+                className="px-6 py-4 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors"
+              >
+                🧙 Start Wizard
+              </button>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -319,6 +335,17 @@ export const CourseManagement: React.FC = () => {
           onCancel={() => setShowForm(false)}
         />
       )}
+
+      {/* Instructor Onboarding Wizard */}
+      <InstructorOnboardingWizard
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onComplete={() => {
+          setShowWizard(false);
+          // Optionally refresh course data or show success message
+        }}
+        isFirstTime={false}
+      />
 
       {/* Edit Course Modal */}
       {editingCourse && (

@@ -51,8 +51,8 @@ const InstructorProfilePage: React.FC = () => {
         favoriteSubject: user.favoriteSubject || '',
         hobbies: user.hobbies || '',
         schoolName: user.schoolName || '',
-        department: user.department || '',
-        yearsExperience: user.yearsExperience || 0
+        department: (user as any).department || '',
+        yearsExperience: (user as any).yearsExperience || 0
       };
       setProfile(profileData);
       setEditedProfile(profileData);
@@ -63,10 +63,10 @@ const InstructorProfilePage: React.FC = () => {
   const handleInputChange = (field: keyof ProfileData, value: string | number) => {
     if (!editedProfile) return;
     
-    setEditedProfile(prev => ({
+    setEditedProfile(prev => prev ? {
       ...prev,
       [field]: value
-    }));
+    } : null);
     
     // Clear error when user starts typing
     if (errors[field]) {
@@ -104,10 +104,10 @@ const InstructorProfilePage: React.FC = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const base64Data = e.target?.result as string;
-      setEditedProfile(prev => ({
+      setEditedProfile(prev => prev ? {
         ...prev,
         avatar: base64Data
-      }));
+      } : null);
       setErrors(prev => ({ ...prev, avatar: '' }));
     };
     
@@ -170,6 +170,8 @@ const InstructorProfilePage: React.FC = () => {
       // Handle base64 avatars by uploading directly to S3 with presigned URL
       if (cleanProfile.avatar && cleanProfile.avatar.startsWith('data:image/')) {
         console.log('Avatar is base64, uploading directly to S3...');
+        const originalAvatar = cleanProfile.avatar; // Keep original as fallback
+        
         try {
           const base64Data = cleanProfile.avatar.split(',')[1];
           const contentType = cleanProfile.avatar.split(';')[0].split(':')[1];
@@ -201,28 +203,44 @@ const InstructorProfilePage: React.FC = () => {
 
           if (presignedResponse.ok) {
             const presignedData = await presignedResponse.json();
-            console.log('Got presigned URL, uploading directly to S3...');
+            console.log('Got presigned URL response:', presignedData);
             
-            const directUpload = await fetch(presignedData.presignedUrl, {
-              method: 'PUT',
-              body: blob,
-              headers: { 'Content-Type': contentType }
-            });
+            if (presignedData.success && presignedData.data) {
+              const { presignedUrl, fileUrl } = presignedData.data;
+              console.log('Uploading directly to S3...');
+              
+              const directUpload = await fetch(presignedUrl, {
+                method: 'PUT',
+                body: blob,
+                headers: { 'Content-Type': contentType }
+              });
 
-            if (directUpload.ok) {
-              console.log('Direct S3 upload successful:', presignedData.fileUrl);
-              cleanProfile.avatar = presignedData.fileUrl;
+              if (directUpload.ok) {
+                console.log('Direct S3 upload successful:', fileUrl);
+                cleanProfile.avatar = fileUrl;
+              } else {
+                console.log('Direct S3 upload failed with status:', directUpload.status);
+                // Keep the base64 avatar as fallback instead of clearing it
+                cleanProfile.avatar = originalAvatar;
+                console.log('Keeping base64 avatar as fallback');
+              }
             } else {
-              console.log('Direct S3 upload failed with status:', directUpload.status);
-              cleanProfile.avatar = '';
+              console.log('Invalid presigned URL response structure:', presignedData);
+              // Keep the base64 avatar as fallback instead of clearing it
+              cleanProfile.avatar = originalAvatar;
+              console.log('Keeping base64 avatar as fallback');
             }
           } else {
-            console.log('Failed to get presigned URL');
-            cleanProfile.avatar = '';
+            const errorData = await presignedResponse.json();
+            console.log('Failed to get presigned URL:', presignedResponse.status, errorData);
+            // Keep the base64 avatar as fallback instead of clearing it
+            cleanProfile.avatar = originalAvatar;
+            console.log('Keeping base64 avatar as fallback');
           }
         } catch (error) {
-          console.error('S3 upload error, clearing avatar:', error);
-          cleanProfile.avatar = '';
+          console.error('S3 upload error, keeping base64 avatar as fallback:', error);
+          // Keep the base64 avatar as fallback instead of clearing it
+          cleanProfile.avatar = originalAvatar;
         }
       }
 

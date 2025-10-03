@@ -58,6 +58,7 @@ export async function PUT(
     const {
       sectionName,
       sectionCode,
+      classCode,
       description,
       maxEnrollment,
       schedule,
@@ -66,9 +67,9 @@ export async function PUT(
     } = body;
 
     // Build update expression dynamically
-    const updateExpressions = [];
-    const expressionAttributeNames = {};
-    const expressionAttributeValues = {};
+    const updateExpressions: string[] = [];
+    const expressionAttributeNames: Record<string, string> = {};
+    const expressionAttributeValues: Record<string, any> = {};
 
     if (sectionName !== undefined) {
       updateExpressions.push('#sectionName = :sectionName');
@@ -80,6 +81,12 @@ export async function PUT(
       updateExpressions.push('#sectionCode = :sectionCode');
       expressionAttributeNames['#sectionCode'] = 'sectionCode';
       expressionAttributeValues[':sectionCode'] = sectionCode;
+    }
+
+    if (classCode !== undefined) {
+      updateExpressions.push('#classCode = :classCode');
+      expressionAttributeNames['#classCode'] = 'classCode';
+      expressionAttributeValues[':classCode'] = classCode;
     }
 
     if (description !== undefined) {
