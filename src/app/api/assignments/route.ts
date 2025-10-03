@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { awsConfig } from '@/lib/aws-config';
 
-const client = new DynamoDBClient({ region: 'us-east-1' });
+const client = new DynamoDBClient({ region: awsConfig.region });
 const docClient = DynamoDBDocumentClient.from(client);
 
-const ASSIGNMENTS_TABLE = 'classcast-assignments';
+const ASSIGNMENTS_TABLE = awsConfig.dynamodb.tables.assignments;
 
 export async function GET(request: NextRequest) {
   try {

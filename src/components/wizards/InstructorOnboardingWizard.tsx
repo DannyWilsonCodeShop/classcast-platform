@@ -206,6 +206,18 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
       case 1: // Course setup
         console.log('Course setup step - courseData:', courseData);
         console.log('Course setup step - title:', courseData.title, 'code:', courseData.code);
+        console.log('Course setup step - instructorId:', courseData.instructorId);
+        
+        if (!courseData.title || !courseData.code) {
+          console.error('Missing required course data:', { title: courseData.title, code: courseData.code });
+          throw new Error('Course title and code are required');
+        }
+        
+        if (!courseData.instructorId) {
+          console.error('Missing instructor ID:', courseData.instructorId);
+          throw new Error('Instructor ID is required');
+        }
+        
         if (courseData.title && courseData.code) {
           // Create course
           try {
@@ -290,6 +302,25 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
         }
         break;
       case 5: // Create assignment
+        console.log('Assignment creation step - assignmentData:', assignmentData);
+        console.log('Assignment creation step - courseData.courseId:', courseData.courseId);
+        console.log('Assignment creation step - courseData.instructorId:', courseData.instructorId);
+        
+        if (!assignmentData.title) {
+          console.error('Missing assignment title');
+          throw new Error('Assignment title is required');
+        }
+        
+        if (!courseData.courseId) {
+          console.error('Missing course ID');
+          throw new Error('Course ID is required');
+        }
+        
+        if (!courseData.instructorId) {
+          console.error('Missing instructor ID for assignment');
+          throw new Error('Instructor ID is required');
+        }
+        
         if (assignmentData.title && courseData.courseId && courseData.instructorId) {
           // Create assignment
           try {
