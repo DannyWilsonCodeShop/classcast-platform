@@ -109,23 +109,43 @@ export async function POST(request: NextRequest) {
     // Look up user in DynamoDB
     console.log('Looking up user in DynamoDB:', email);
     
-    const userResult = await docClient.send(new ScanCommand({
-      TableName: USERS_TABLE,
-      FilterExpression: 'email = :email',
-      ExpressionAttributeValues: {
-        ':email': email
+    let userData;
+    try {
+      const userResult = await docClient.send(new ScanCommand({
+        TableName: USERS_TABLE,
+        FilterExpression: 'email = :email',
+        ExpressionAttributeValues: {
+          ':email': email
+        }
+      }));
+
+      console.log('DynamoDB scan result:', {
+        count: userResult.Count,
+        scannedCount: userResult.ScannedCount,
+        items: userResult.Items?.length || 0
+      });
+
+      if (!userResult.Items || userResult.Items.length === 0) {
+        console.log('User not found in DynamoDB:', email);
+        return NextResponse.json(
+          { error: { message: 'No account found with this email address' } },
+          { status: 401 }
+        );
       }
-    }));
 
-    if (!userResult.Items || userResult.Items.length === 0) {
-      console.log('User not found in DynamoDB:', email);
-      return NextResponse.json(
-        { error: { message: 'No account found with this email address' } },
-        { status: 401 }
-      );
+      userData = userResult.Items[0];
+      console.log('Found user data:', {
+        userId: userData.userId,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        hasPassword: !!userData.password
+      });
+    } catch (dbError) {
+      console.error('DynamoDB lookup error:', dbError);
+      throw dbError;
     }
-
-    const userData = userResult.Items[0];
     
     // Verify password
     const passwordMatch = await bcrypt.compare(password, userData.password);
@@ -175,6 +195,11 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Login request error:', error);
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
     
     if (error instanceof SyntaxError) {
       return NextResponse.json(
@@ -184,7 +209,12 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json(
-      { error: { message: 'Internal server error. Please try again later' } },
+      { 
+        error: { 
+          message: 'Internal server error. Please try again later',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        } 
+      },
       { status: 500 }
     );
   }
