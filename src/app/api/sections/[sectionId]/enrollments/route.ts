@@ -1,103 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, PutCommand, DeleteCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
-import { v4 as uuidv4 } from 'uuid';
+import { DynamoDBDocumentClient, GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
-const SECTION_ENROLLMENTS_TABLE = 'classcast-section-enrollments';
 const SECTIONS_TABLE = 'classcast-sections';
+const COURSES_TABLE = 'classcast-courses';
 const USERS_TABLE = 'classcast-users';
 
-// GET /api/sections/[sectionId]/enrollments - Get enrollments for a section
+// GET /api/sections/[sectionId]/enrollments - Get students enrolled in a specific section
 export async function GET(
   request: NextRequest,
   { params }: { params: { sectionId: string } }
 ) {
   try {
     const { sectionId } = params;
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status');
+    
+    console.log('Fetching enrollments for section:', sectionId);
 
-    let enrollments = [];
-
-    const result = await docClient.send(new QueryCommand({
-      TableName: SECTION_ENROLLMENTS_TABLE,
-      IndexName: 'sectionId-index',
-      KeyConditionExpression: 'sectionId = :sectionId',
-      ExpressionAttributeValues: {
-        ':sectionId': sectionId
-      }
-    }));
-
-    enrollments = result.Items || [];
-
-    // Apply status filter
-    if (status) {
-      enrollments = enrollments.filter(enrollment => enrollment.status === status);
-    }
-
-    // Enrich with student information
-    const enrichedEnrollments = await Promise.all(
-      enrollments.map(async (enrollment) => {
-        try {
-          const studentResult = await docClient.send(new GetCommand({
-            TableName: USERS_TABLE,
-            Key: { userId: enrollment.studentId }
-          }));
-
-          return {
-            ...enrollment,
-            studentName: studentResult.Item?.firstName + ' ' + studentResult.Item?.lastName,
-            studentEmail: studentResult.Item?.email
-          };
-        } catch (error) {
-          console.error('Error fetching student info:', error);
-          return enrollment;
-        }
-      })
-    );
-
-    return NextResponse.json({
-      success: true,
-      data: enrichedEnrollments,
-      count: enrichedEnrollments.length
-    });
-
-  } catch (error) {
-    console.error('Error fetching section enrollments:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to fetch section enrollments' 
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// POST /api/sections/[sectionId]/enrollments - Enroll a student in a section
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { sectionId: string } }
-) {
-  try {
-    const { sectionId } = params;
-    const body = await request.json();
-    const { studentId } = body;
-
-    if (!studentId) {
+    if (!sectionId) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Student ID is required' 
-        },
+        { success: false, error: 'Section ID is required' },
         { status: 400 }
       );
     }
 
-    // Check if section exists and is active
+    // First, get the section details
     const sectionResult = await docClient.send(new GetCommand({
       TableName: SECTIONS_TABLE,
       Key: { sectionId }
@@ -105,173 +34,106 @@ export async function POST(
 
     if (!sectionResult.Item) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Section not found' 
-        },
+        { success: false, error: 'Section not found' },
         { status: 404 }
       );
     }
 
-    if (!sectionResult.Item.isActive) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Section is not active' 
-        },
-        { status: 400 }
-      );
-    }
+    const section = sectionResult.Item;
+    console.log('Section found:', section.sectionName);
 
-    // Check if section is at capacity
-    if (sectionResult.Item.currentEnrollment >= sectionResult.Item.maxEnrollment) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Section is at maximum capacity' 
-        },
-        { status: 400 }
-      );
-    }
-
-    // Check if student is already enrolled
-    const existingEnrollment = await docClient.send(new QueryCommand({
-      TableName: SECTION_ENROLLMENTS_TABLE,
-      IndexName: 'sectionId-studentId-index',
-      KeyConditionExpression: 'sectionId = :sectionId AND studentId = :studentId',
-      ExpressionAttributeValues: {
-        ':sectionId': sectionId,
-        ':studentId': studentId
-      }
+    // Get the course to find enrolled students
+    const courseResult = await docClient.send(new GetCommand({
+      TableName: COURSES_TABLE,
+      Key: { courseId: section.courseId }
     }));
 
-    if (existingEnrollment.Items && existingEnrollment.Items.length > 0) {
+    if (!courseResult.Item) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Student is already enrolled in this section' 
-        },
-        { status: 400 }
-      );
-    }
-
-    const enrollmentId = uuidv4();
-    const now = new Date().toISOString();
-
-    const enrollment = {
-      enrollmentId,
-      sectionId,
-      studentId,
-      enrolledAt: now,
-      status: 'active'
-    };
-
-    // Create enrollment
-    await docClient.send(new PutCommand({
-      TableName: SECTION_ENROLLMENTS_TABLE,
-      Item: enrollment
-    }));
-
-    // Update section enrollment count
-    await docClient.send(new UpdateCommand({
-      TableName: SECTIONS_TABLE,
-      Key: { sectionId },
-      UpdateExpression: 'SET currentEnrollment = currentEnrollment + :inc, updatedAt = :updatedAt',
-      ExpressionAttributeValues: {
-        ':inc': 1,
-        ':updatedAt': now
-      }
-    }));
-
-    return NextResponse.json({
-      success: true,
-      data: enrollment,
-      message: 'Student enrolled successfully'
-    });
-
-  } catch (error) {
-    console.error('Error enrolling student:', error);
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Failed to enroll student' 
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// DELETE /api/sections/[sectionId]/enrollments - Remove a student from a section
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { sectionId: string } }
-) {
-  try {
-    const { sectionId } = params;
-    const { searchParams } = new URL(request.url);
-    const studentId = searchParams.get('studentId');
-
-    if (!studentId) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Student ID is required' 
-        },
-        { status: 400 }
-      );
-    }
-
-    // Find the enrollment
-    const enrollmentResult = await docClient.send(new QueryCommand({
-      TableName: SECTION_ENROLLMENTS_TABLE,
-      IndexName: 'sectionId-studentId-index',
-      KeyConditionExpression: 'sectionId = :sectionId AND studentId = :studentId',
-      ExpressionAttributeValues: {
-        ':sectionId': sectionId,
-        ':studentId': studentId
-      }
-    }));
-
-    if (!enrollmentResult.Items || enrollmentResult.Items.length === 0) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Enrollment not found' 
-        },
+        { success: false, error: 'Course not found' },
         { status: 404 }
       );
     }
 
-    const enrollment = enrollmentResult.Items[0];
+    const course = courseResult.Item;
+    console.log('Course found:', course.title);
 
-    // Delete enrollment
-    await docClient.send(new DeleteCommand({
-      TableName: SECTION_ENROLLMENTS_TABLE,
-      Key: { enrollmentId: enrollment.enrollmentId }
-    }));
+    // Get all students enrolled in this course
+    const enrolledStudents = course.enrollment?.students || [];
+    console.log('Total enrolled students in course:', enrolledStudents.length);
 
-    // Update section enrollment count
-    await docClient.send(new UpdateCommand({
-      TableName: SECTIONS_TABLE,
-      Key: { sectionId },
-      UpdateExpression: 'SET currentEnrollment = currentEnrollment - :dec, updatedAt = :updatedAt',
-      ExpressionAttributeValues: {
-        ':dec': 1,
-        ':updatedAt': new Date().toISOString()
+    // Filter students by section (if they have sectionId property)
+    // For now, we'll return all students in the course since we need to implement
+    // section-specific enrollment tracking
+    const sectionStudents = enrolledStudents.filter((student: any) => {
+      // If student has sectionId, check if it matches
+      if (student.sectionId) {
+        return student.sectionId === sectionId;
       }
-    }));
+      // For now, return all students until we implement section-specific enrollment
+      return true;
+    });
+
+    console.log('Students in section:', sectionStudents.length);
+
+    // Get detailed user information for each student
+    const studentsWithDetails = [];
+    for (const student of sectionStudents) {
+      try {
+        const userResult = await docClient.send(new GetCommand({
+          TableName: USERS_TABLE,
+          Key: { userId: student.userId }
+        }));
+
+        if (userResult.Item) {
+          studentsWithDetails.push({
+            userId: student.userId,
+            email: student.email || userResult.Item.email,
+            firstName: student.firstName || userResult.Item.firstName,
+            lastName: student.lastName || userResult.Item.lastName,
+            enrolledAt: student.enrolledAt || student.enrollmentDates?.[student.userId] || new Date().toISOString(),
+            status: student.status || 'active',
+            avatar: userResult.Item.avatar,
+            sectionId: student.sectionId || sectionId
+          });
+        }
+      } catch (userError) {
+        console.warn(`Failed to fetch user details for ${student.userId}:`, userError);
+        // Add student with basic info if user details can't be fetched
+        studentsWithDetails.push({
+          userId: student.userId,
+          email: student.email || 'unknown@email.com',
+          firstName: student.firstName || 'Unknown',
+          lastName: student.lastName || 'Student',
+          enrolledAt: student.enrolledAt || new Date().toISOString(),
+          status: student.status || 'active',
+          avatar: undefined,
+          sectionId: student.sectionId || sectionId
+        });
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Student removed from section successfully'
+      data: studentsWithDetails,
+      count: studentsWithDetails.length,
+      section: {
+        sectionId: section.sectionId,
+        sectionName: section.sectionName,
+        sectionCode: section.sectionCode,
+        classCode: section.classCode,
+        maxEnrollment: section.maxEnrollment,
+        currentEnrollment: studentsWithDetails.length
+      }
     });
 
   } catch (error) {
-    console.error('Error removing student from section:', error);
+    console.error('Error fetching section enrollments:', error);
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to remove student from section' 
+        error: 'Failed to fetch section enrollments',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );

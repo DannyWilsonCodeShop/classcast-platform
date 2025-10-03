@@ -237,6 +237,40 @@ const StudentCourseDetailPage: React.FC = () => {
 
   const fetchClassmates = async () => {
     try {
+      // First, get the user's section information
+      const userResponse = await fetch(`/api/student/courses?userId=${user?.id}`, {
+        credentials: 'include',
+      });
+
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        if (userData.success && userData.data) {
+          // Find the current course and get the user's section
+          const userCourse = userData.data.find((course: any) => course.courseId === courseId);
+          const userSectionId = userCourse?.sectionId;
+
+          if (userSectionId) {
+            // Fetch students from the same section
+            const sectionResponse = await fetch(`/api/sections/${userSectionId}/enrollments`, {
+              credentials: 'include',
+            });
+
+            if (sectionResponse.ok) {
+              const sectionData = await sectionResponse.json();
+              if (sectionData.success && sectionData.data) {
+                // Filter out the current user from classmates list
+                const classmatesList = sectionData.data.filter(
+                  (student: Classmate) => student.userId !== user?.id
+                );
+                setClassmates(classmatesList);
+                return;
+              }
+            }
+          }
+        }
+      }
+
+      // Fallback to course-level enrollment if section-specific fails
       const response = await fetch(`/api/courses/enrollment?courseId=${courseId}`, {
         credentials: 'include',
       });

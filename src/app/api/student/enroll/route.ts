@@ -89,14 +89,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Add student to course
+    // Add student to course with section information
     const studentEntry = {
       userId: userId,
       email: '', // Will be filled by the frontend
       firstName: '',
       lastName: '',
       enrolledAt: new Date().toISOString(),
-      status: 'active'
+      status: 'active',
+      sectionId: sectionId || null // Add section ID if provided
     };
     
     const updatedStudents = [...currentStudents, studentEntry];
@@ -129,73 +130,22 @@ export async function POST(request: NextRequest) {
 
     console.log('Course enrollment updated successfully');
 
-    // If sectionId is provided, enroll student in the specific section
+    // If sectionId is provided, update section enrollment count
     if (sectionId) {
       try {
-        console.log('Enrolling student in section:', sectionId);
-        
-        // Check if section exists and is active
-        const sectionResult = await docClient.send(new GetCommand({
+        // Update section enrollment count
+        await docClient.send(new UpdateCommand({
           TableName: 'classcast-sections',
-          Key: { sectionId }
-        }));
-
-        if (!sectionResult.Item) {
-          console.warn('Section not found:', sectionId);
-        } else if (!sectionResult.Item.isActive) {
-          console.warn('Section is not active:', sectionId);
-        } else if (sectionResult.Item.currentEnrollment >= sectionResult.Item.maxEnrollment) {
-          console.warn('Section is at capacity:', sectionId);
-        } else {
-          // Check if student is already enrolled in this section
-          const existingEnrollment = await docClient.send(new QueryCommand({
-            TableName: 'classcast-section-enrollments',
-            IndexName: 'sectionId-studentId-index',
-            KeyConditionExpression: 'sectionId = :sectionId AND studentId = :studentId',
-            ExpressionAttributeValues: {
-              ':sectionId': sectionId,
-              ':studentId': userId
-            }
-          }));
-
-          if (!existingEnrollment.Items || existingEnrollment.Items.length === 0) {
-            // Create section enrollment
-            const enrollmentId = `enrollment_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const now = new Date().toISOString();
-
-            const sectionEnrollment = {
-              enrollmentId,
-              sectionId,
-              studentId: userId,
-              enrolledAt: now,
-              status: 'active'
-            };
-
-            // Create enrollment record
-            await docClient.send(new PutCommand({
-              TableName: 'classcast-section-enrollments',
-              Item: sectionEnrollment
-            }));
-
-            // Update section enrollment count
-            await docClient.send(new UpdateCommand({
-              TableName: 'classcast-sections',
-              Key: { sectionId },
-              UpdateExpression: 'SET currentEnrollment = currentEnrollment + :inc, updatedAt = :updatedAt',
-              ExpressionAttributeValues: {
-                ':inc': 1,
-                ':updatedAt': now
-              }
-            }));
-
-            console.log('Section enrollment successful');
-          } else {
-            console.log('Student already enrolled in section');
+          Key: { sectionId },
+          UpdateExpression: 'SET currentEnrollment = currentEnrollment + :increment',
+          ExpressionAttributeValues: {
+            ':increment': 1
           }
-        }
+        }));
+        console.log('Section enrollment count updated');
       } catch (sectionError) {
-        console.error('Error enrolling in section:', sectionError);
-        // Don't fail the entire enrollment if section enrollment fails
+        console.error('Error updating section enrollment count:', sectionError);
+        // Don't fail the enrollment if section update fails
       }
     }
 
