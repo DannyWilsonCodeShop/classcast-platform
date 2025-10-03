@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
       classCode: classCode.trim(),
       department: department?.trim() || '',
       credits: 3, // Default credits
-      semester: semester || 'Spring',
+      semester: semester || 'Fall+Spring',
       year: year || new Date().getFullYear(),
       instructorId: instructorId.trim(),
       maxStudents: maxStudents || 30,

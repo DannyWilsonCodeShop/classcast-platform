@@ -21,7 +21,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
     code: '',
     department: '',
     credits: 3,
-    semester: 'Fall',
+    semester: 'Fall+Spring',
     year: new Date().getFullYear(),
     startDate: '',
     endDate: '',
