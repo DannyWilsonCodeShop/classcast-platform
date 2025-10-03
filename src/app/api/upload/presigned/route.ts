@@ -10,9 +10,11 @@ const s3 = new S3Client({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('Presigned URL API received request:', body);
     const { fileName, contentType, userId, folder = 'uploads' } = body;
 
     if (!fileName || !contentType) {
+      console.log('Missing required fields:', { fileName, contentType });
       return NextResponse.json({
         success: false,
         error: 'fileName and contentType are required'
@@ -37,6 +39,8 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    console.log('Creating S3 command:', { fileKey, contentType, userId, folder });
+    
     const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 300 }); // 5 minutes
     const fileUrl = `https://classcast-videos-463470937777-us-east-1.s3.us-east-1.amazonaws.com/${fileKey}`;
 
