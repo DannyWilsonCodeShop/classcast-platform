@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
+    const assignmentId = searchParams.get('assignmentId');
     const courseId = searchParams.get('courseId');
     
     if (!studentId) {
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('Fetching community submissions for student:', studentId, 'course:', courseId);
+    console.log('Fetching peer submissions for student:', studentId, 'assignment:', assignmentId, 'course:', courseId);
 
     // Get peer submissions (excluding the current student's own submissions)
     let submissions = [];
@@ -31,10 +32,17 @@ export async function GET(request: NextRequest) {
     try {
       const submissionsResult = await docClient.send(new ScanCommand({
         TableName: SUBMISSIONS_TABLE,
-        FilterExpression: courseId 
+        FilterExpression: assignmentId 
+          ? 'assignmentId = :assignmentId AND studentId <> :studentId'
+          : courseId
           ? 'courseId = :courseId AND studentId <> :studentId'
           : 'studentId <> :studentId',
-        ExpressionAttributeValues: courseId
+        ExpressionAttributeValues: assignmentId
+          ? {
+              ':assignmentId': assignmentId,
+              ':studentId': studentId
+            }
+          : courseId
           ? {
               ':courseId': courseId,
               ':studentId': studentId
@@ -55,7 +63,11 @@ export async function GET(request: NextRequest) {
       
     } catch (dbError: any) {
       if (dbError.name === 'ResourceNotFoundException') {
-        return NextResponse.json([]);
+        return NextResponse.json({
+          success: true,
+          submissions: [],
+          count: 0
+        });
       }
       throw dbError;
     }
@@ -136,11 +148,20 @@ export async function GET(request: NextRequest) {
       };
     }));
 
-    return NextResponse.json(enrichedSubmissions);
+    return NextResponse.json({
+      success: true,
+      submissions: enrichedSubmissions,
+      count: enrichedSubmissions.length
+    });
+
   } catch (error) {
-    console.error('Error fetching community submissions:', error);
+    console.error('Error fetching peer submissions:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch submissions' },
+      { 
+        success: false,
+        error: 'Failed to fetch peer submissions',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }
