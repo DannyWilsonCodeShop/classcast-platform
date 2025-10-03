@@ -232,7 +232,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Small delay to ensure state is set before redirect
         setTimeout(() => {
           // Redirect based on role
-          if (userData.role === 'student') {
+          if (newUser.role === 'student') {
             console.log('AuthContext: Redirecting student to dashboard');
             router.push('/student/dashboard');
           } else {
