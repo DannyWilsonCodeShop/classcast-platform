@@ -1,19 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, PutCommand, DeleteCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
 const SECTIONS_TABLE = 'classcast-sections';
 
-// GET /api/sections/[sectionId] - Get a specific section
+// GET /api/sections/[sectionId] - Get section details
 export async function GET(
   request: NextRequest,
   { params }: { params: { sectionId: string } }
 ) {
   try {
     const { sectionId } = params;
+    
+    console.log('Fetching section:', sectionId);
+
+    if (!sectionId) {
+      return NextResponse.json(
+        { success: false, error: 'Section ID is required' },
+        { status: 400 }
+      );
+    }
 
     const result = await docClient.send(new GetCommand({
       TableName: SECTIONS_TABLE,
@@ -22,17 +31,31 @@ export async function GET(
 
     if (!result.Item) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Section not found' 
-        },
+        { success: false, error: 'Section not found' },
         { status: 404 }
       );
     }
 
+    const section = result.Item;
+
     return NextResponse.json({
       success: true,
-      data: result.Item
+      data: {
+        sectionId: section.sectionId,
+        courseId: section.courseId,
+        sectionName: section.sectionName,
+        sectionCode: section.sectionCode,
+        classCode: section.classCode,
+        description: section.description,
+        maxEnrollment: section.maxEnrollment,
+        currentEnrollment: section.currentEnrollment,
+        schedule: section.schedule,
+        location: section.location,
+        instructorId: section.instructorId,
+        isActive: section.isActive,
+        createdAt: section.createdAt,
+        updatedAt: section.updatedAt
+      }
     });
 
   } catch (error) {
@@ -40,14 +63,15 @@ export async function GET(
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to fetch section' 
+        error: 'Failed to fetch section',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );
   }
 }
 
-// PUT /api/sections/[sectionId] - Update a section
+// PUT /api/sections/[sectionId] - Update section
 export async function PUT(
   request: NextRequest,
   { params }: { params: { sectionId: string } }
@@ -55,102 +79,91 @@ export async function PUT(
   try {
     const { sectionId } = params;
     const body = await request.json();
-    const {
-      sectionName,
-      sectionCode,
-      classCode,
-      description,
-      maxEnrollment,
-      schedule,
-      location,
-      isActive
-    } = body;
+    
+    console.log('Updating section:', sectionId, body);
 
-    // Build update expression dynamically
-    const updateExpressions: string[] = [];
-    const expressionAttributeNames: Record<string, string> = {};
-    const expressionAttributeValues: Record<string, any> = {};
-
-    if (sectionName !== undefined) {
-      updateExpressions.push('#sectionName = :sectionName');
-      expressionAttributeNames['#sectionName'] = 'sectionName';
-      expressionAttributeValues[':sectionName'] = sectionName;
-    }
-
-    if (sectionCode !== undefined) {
-      updateExpressions.push('#sectionCode = :sectionCode');
-      expressionAttributeNames['#sectionCode'] = 'sectionCode';
-      expressionAttributeValues[':sectionCode'] = sectionCode;
-    }
-
-    if (classCode !== undefined) {
-      updateExpressions.push('#classCode = :classCode');
-      expressionAttributeNames['#classCode'] = 'classCode';
-      expressionAttributeValues[':classCode'] = classCode;
-    }
-
-    if (description !== undefined) {
-      updateExpressions.push('#description = :description');
-      expressionAttributeNames['#description'] = 'description';
-      expressionAttributeValues[':description'] = description;
-    }
-
-    if (maxEnrollment !== undefined) {
-      updateExpressions.push('#maxEnrollment = :maxEnrollment');
-      expressionAttributeNames['#maxEnrollment'] = 'maxEnrollment';
-      expressionAttributeValues[':maxEnrollment'] = maxEnrollment;
-    }
-
-    if (schedule !== undefined) {
-      updateExpressions.push('#schedule = :schedule');
-      expressionAttributeNames['#schedule'] = 'schedule';
-      expressionAttributeValues[':schedule'] = schedule;
-    }
-
-    if (location !== undefined) {
-      updateExpressions.push('#location = :location');
-      expressionAttributeNames['#location'] = 'location';
-      expressionAttributeValues[':location'] = location;
-    }
-
-    if (isActive !== undefined) {
-      updateExpressions.push('#isActive = :isActive');
-      expressionAttributeNames['#isActive'] = 'isActive';
-      expressionAttributeValues[':isActive'] = isActive;
-    }
-
-    if (updateExpressions.length === 0) {
+    if (!sectionId) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'No fields to update' 
-        },
+        { success: false, error: 'Section ID is required' },
         { status: 400 }
       );
     }
 
-    // Always update the updatedAt timestamp
-    updateExpressions.push('#updatedAt = :updatedAt');
+    const updateExpression = [];
+    const expressionAttributeNames: Record<string, string> = {};
+    const expressionAttributeValues: Record<string, any> = {};
+
+    updateExpression.push('#updatedAt = :updatedAt');
     expressionAttributeNames['#updatedAt'] = 'updatedAt';
     expressionAttributeValues[':updatedAt'] = new Date().toISOString();
+
+    if (body.sectionName !== undefined) {
+      updateExpression.push('#sectionName = :sectionName');
+      expressionAttributeNames['#sectionName'] = 'sectionName';
+      expressionAttributeValues[':sectionName'] = body.sectionName;
+    }
+
+    if (body.sectionCode !== undefined) {
+      updateExpression.push('#sectionCode = :sectionCode');
+      expressionAttributeNames['#sectionCode'] = 'sectionCode';
+      expressionAttributeValues[':sectionCode'] = body.sectionCode;
+    }
+
+    if (body.classCode !== undefined) {
+      updateExpression.push('#classCode = :classCode');
+      expressionAttributeNames['#classCode'] = 'classCode';
+      expressionAttributeValues[':classCode'] = body.classCode;
+    }
+
+    if (body.description !== undefined) {
+      updateExpression.push('#description = :description');
+      expressionAttributeNames['#description'] = 'description';
+      expressionAttributeValues[':description'] = body.description;
+    }
+
+    if (body.maxEnrollment !== undefined) {
+      updateExpression.push('#maxEnrollment = :maxEnrollment');
+      expressionAttributeNames['#maxEnrollment'] = 'maxEnrollment';
+      expressionAttributeValues[':maxEnrollment'] = body.maxEnrollment;
+    }
+
+    if (body.schedule !== undefined) {
+      updateExpression.push('#schedule = :schedule');
+      expressionAttributeNames['#schedule'] = 'schedule';
+      expressionAttributeValues[':schedule'] = body.schedule;
+    }
+
+    if (body.location !== undefined) {
+      updateExpression.push('#location = :location');
+      expressionAttributeNames['#location'] = 'location';
+      expressionAttributeValues[':location'] = body.location;
+    }
+
+    if (body.isActive !== undefined) {
+      updateExpression.push('#isActive = :isActive');
+      expressionAttributeNames['#isActive'] = 'isActive';
+      expressionAttributeValues[':isActive'] = body.isActive;
+    }
+
+    if (updateExpression.length === 1) {
+      return NextResponse.json({
+        success: true,
+        message: 'No changes to update',
+        data: body
+      });
+    }
 
     await docClient.send(new UpdateCommand({
       TableName: SECTIONS_TABLE,
       Key: { sectionId },
-      UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+      UpdateExpression: `SET ${updateExpression.join(', ')}`,
       ExpressionAttributeNames: expressionAttributeNames,
-      ExpressionAttributeValues: expressionAttributeValues
-    }));
-
-    // Fetch updated section
-    const result = await docClient.send(new GetCommand({
-      TableName: SECTIONS_TABLE,
-      Key: { sectionId }
+      ExpressionAttributeValues: expressionAttributeValues,
+      ReturnValues: 'ALL_NEW'
     }));
 
     return NextResponse.json({
       success: true,
-      data: result.Item,
       message: 'Section updated successfully'
     });
 
@@ -159,61 +172,34 @@ export async function PUT(
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to update section' 
+        error: 'Failed to update section',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );
   }
 }
 
-// DELETE /api/sections/[sectionId] - Delete a section
+// DELETE /api/sections/[sectionId] - Delete section
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { sectionId: string } }
 ) {
   try {
     const { sectionId } = params;
+    
+    console.log('Deleting section:', sectionId);
 
-    // Check if section exists
-    const existingSection = await docClient.send(new GetCommand({
-      TableName: SECTIONS_TABLE,
-      Key: { sectionId }
-    }));
-
-    if (!existingSection.Item) {
+    if (!sectionId) {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Section not found' 
-        },
-        { status: 404 }
-      );
-    }
-
-    // Check if section has enrollments
-    if (existingSection.Item.currentEnrollment > 0) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Cannot delete section with active enrollments. Please transfer or drop all students first.' 
-        },
+        { success: false, error: 'Section ID is required' },
         { status: 400 }
       );
     }
 
-    // Soft delete by setting isActive to false
-    await docClient.send(new UpdateCommand({
+    await docClient.send(new DeleteCommand({
       TableName: SECTIONS_TABLE,
-      Key: { sectionId },
-      UpdateExpression: 'SET #isActive = :isActive, #updatedAt = :updatedAt',
-      ExpressionAttributeNames: {
-        '#isActive': 'isActive',
-        '#updatedAt': 'updatedAt'
-      },
-      ExpressionAttributeValues: {
-        ':isActive': false,
-        ':updatedAt': new Date().toISOString()
-      }
+      Key: { sectionId }
     }));
 
     return NextResponse.json({
@@ -226,7 +212,8 @@ export async function DELETE(
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to delete section' 
+        error: 'Failed to delete section',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );
