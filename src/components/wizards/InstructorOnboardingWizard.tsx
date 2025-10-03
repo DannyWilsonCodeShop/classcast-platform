@@ -816,8 +816,12 @@ interface CreateAssignmentStepProps {
 
 const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onChange, courseId }) => {
   const handleChange = (field: keyof Assignment, value: any) => {
+    console.log('CreateAssignmentStep - handleChange:', field, value);
     onChange({ ...data, [field]: value });
   };
+
+  console.log('CreateAssignmentStep - data:', data);
+  console.log('CreateAssignmentStep - peerReview:', data.peerReview);
 
   return (
     <div className="space-y-6">
@@ -899,8 +903,12 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
       </div>
 
       {/* Peer Review Section */}
-      <div className="bg-blue-50 rounded-lg p-4">
-        <h4 className="font-semibold text-blue-900 mb-3">Peer Review Settings</h4>
+      <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+        <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
+          <span className="mr-2">🔍</span>
+          Peer Review Settings
+          <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-1 rounded-full">NEW</span>
+        </h4>
         
         <div className="space-y-4">
           <div className="flex items-center space-x-3">
@@ -917,7 +925,11 @@ const CreateAssignmentStep: React.FC<CreateAssignmentStepProps> = ({ data, onCha
           </div>
 
           {data.peerReview && (
-            <div className="ml-7 space-y-4">
+            <div className="ml-7 space-y-4 bg-blue-100 p-4 rounded-lg border border-blue-300">
+              <div className="flex items-center text-blue-800 font-medium mb-3">
+                <span className="mr-2">✅</span>
+                Peer Review Enabled - Configure Settings Below
+              </div>
               <div>
                 <label className="block text-sm font-medium text-blue-800 mb-2">
                   Peer Review Scope
