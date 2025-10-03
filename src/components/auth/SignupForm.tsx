@@ -12,6 +12,7 @@ interface SignupFormData {
   password: string;
   confirmPassword: string;
   role: 'student' | 'instructor';
+  studentId?: string;
   department?: string;
   instructorCode?: string;
   agreeToTerms: boolean;
@@ -45,6 +46,7 @@ export default function SignupForm({ onSuccess, onSwitchToLogin }: SignupFormPro
     password: '',
     confirmPassword: '',
     role: 'student',
+    studentId: '',
     department: '',
     instructorCode: '',
     agreeToTerms: false,

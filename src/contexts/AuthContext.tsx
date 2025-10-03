@@ -15,8 +15,21 @@ interface AuthState {
   error: string | null;
 }
 
+interface SignupData {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  role: 'student' | 'instructor';
+  studentId?: string;
+  instructorId?: string;
+  department?: string;
+  instructorCode?: string;
+}
+
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (userData: SignupData) => Promise<{ success: boolean; error?: string; requiresEmailConfirmation?: boolean }>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
   checkAuthStatus: () => Promise<void>;
@@ -155,6 +168,69 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const signup = async (userData: SignupData): Promise<{ success: boolean; error?: string; requiresEmailConfirmation?: boolean }> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const response = await fetch('/api/auth/signup-simple', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        try {
+          const errorData = await response.json();
+          throw new Error(errorData.error?.message || 'Signup failed');
+        } catch (jsonError) {
+          throw new Error('Signup failed - invalid server response');
+        }
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Create user object from signup data
+        const newUser: User = {
+          id: result.user?.id || userData.email,
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          role: userData.role,
+          studentId: userData.studentId,
+          instructorId: userData.instructorId,
+          department: userData.department,
+          emailVerified: true,
+        };
+
+        setUser(newUser);
+        api.setCurrentUser(newUser);
+        
+        // Redirect based on role
+        if (userData.role === 'student') {
+          router.push('/student/dashboard');
+        } else {
+          router.push('/instructor/dashboard');
+        }
+        
+        return { success: true };
+      } else {
+        setError(result.error || 'Signup failed');
+        return { success: false, error: result.error || 'Signup failed' };
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Signup failed';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = async (): Promise<void> => {
     try {
       await api.logout();
@@ -197,6 +273,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isAuthenticated: !!user,
     error,
     login,
+    signup,
     logout,
     updateUser,
     checkAuthStatus,
