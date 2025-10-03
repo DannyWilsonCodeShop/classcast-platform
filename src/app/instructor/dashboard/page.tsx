@@ -262,7 +262,7 @@ const InstructorDashboard: React.FC = () => {
                 title="Create a new class"
               >
                 <span className="text-base sm:text-lg">+</span>
-                <span className="font-medium text-xs sm:text-sm hidden sm:inline">Create Class</span>
+                <span className="font-medium text-xs sm:text-sm hidden sm:inline">Create Class Wizard</span>
               </button>
               <button
                 onClick={() => router.push('/instructor/profile')}
@@ -460,7 +460,7 @@ const InstructorDashboard: React.FC = () => {
                         description="It looks like you haven't created any classes yet. Start by creating your first class to begin teaching!"
                         icon="course"
                         action={{ 
-                          label: 'Create Your First Class', 
+                          label: 'Create Your First Class Wizard', 
                           onClick: () => setShowWizard(true) 
                         }}
                       />

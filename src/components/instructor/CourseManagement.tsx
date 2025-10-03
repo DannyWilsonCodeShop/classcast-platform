@@ -241,7 +241,7 @@ export const CourseManagement: React.FC = () => {
               onClick={() => setShowForm(true)}
               className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
             >
-              + Create Class
+              + Create Class Wizard
             </button>
           </div>
         </div>
@@ -264,7 +264,7 @@ export const CourseManagement: React.FC = () => {
               onClick={() => setShowForm(true)}
               className="px-8 py-4 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
             >
-              Create Your First Class
+              Create Your First Class Wizard
             </button>
           </div>
         ) : (
