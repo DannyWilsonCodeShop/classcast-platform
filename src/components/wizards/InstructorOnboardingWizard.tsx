@@ -411,7 +411,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
               onClick={onClose}
               className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
             >
-              Skip for now
+              Exit Wizard
             </button>
             <button
               onClick={handleNext}
