@@ -135,6 +135,35 @@ class ApiClient {
     }
   }
 
+  isTokenValid(): boolean {
+    if (!this.accessToken) return false;
+    
+    try {
+      // Decode JWT token to check expiration
+      const payload = JSON.parse(atob(this.accessToken.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp > currentTime;
+    } catch (error) {
+      console.error('Error validating token:', error);
+      return false;
+    }
+  }
+
+  async ensureValidToken(): Promise<boolean> {
+    if (this.isTokenValid()) {
+      return true;
+    }
+
+    try {
+      await this.refreshToken();
+      return true;
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      this.clearToken();
+      return false;
+    }
+  }
+
   // ============================================================================
   // HTTP METHODS
   // ============================================================================
@@ -144,6 +173,14 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
+    
+    // Ensure we have a valid token before making the request
+    if (this.accessToken && !this.isTokenValid()) {
+      const tokenValid = await this.ensureValidToken();
+      if (!tokenValid) {
+        throw new Error('Authentication required');
+      }
+    }
     
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -161,6 +198,36 @@ class ApiClient {
       });
 
       const data = await response.json();
+
+      // If we get a 401, try to refresh the token and retry once
+      if (response.status === 401 && this.accessToken) {
+        try {
+          const tokenValid = await this.ensureValidToken();
+          if (tokenValid) {
+            // Retry the request with the new token
+            const retryHeaders = {
+              ...headers,
+              Authorization: `Bearer ${this.accessToken}`,
+            };
+            
+            const retryResponse = await fetch(url, {
+              ...options,
+              headers: retryHeaders,
+            });
+            
+            const retryData = await retryResponse.json();
+            
+            if (!retryResponse.ok) {
+              throw new Error(retryData.error || `HTTP ${retryResponse.status}`);
+            }
+            
+            return retryData;
+          }
+        } catch (refreshError) {
+          console.error('Token refresh failed during request retry:', refreshError);
+          // Fall through to original error
+        }
+      }
 
       if (!response.ok) {
         throw new Error(data.error || `HTTP ${response.status}`);
@@ -195,6 +262,22 @@ class ApiClient {
 
     const data = await response.json();
     console.log('Login response data:', data);
+
+    // Handle JWT-based login response format
+    if (data.success && data.user && data.tokens) {
+      this.setAccessToken(data.tokens.accessToken);
+      
+      // Store all tokens
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('refreshToken', data.tokens.refreshToken);
+        localStorage.setItem('idToken', data.tokens.idToken);
+      }
+
+      return {
+        user: data.user,
+        tokens: data.tokens
+      };
+    }
 
     // Handle Lambda response format (data in body field as JSON string)
     if (data.body) {
@@ -285,9 +368,11 @@ class ApiClient {
         localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
         localStorage.setItem('idToken', response.data.tokens.idToken);
       }
+
+      return response.data;
     }
 
-    return response.data!;
+    throw new Error('Token refresh failed');
   }
 
   // ============================================================================

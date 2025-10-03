@@ -66,7 +66,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const isAuthenticated = api.isAuthenticated();
       
       if (storedUser && isAuthenticated) {
-        setUser(storedUser);
+        // Verify token is still valid
+        const tokenValid = await api.ensureValidToken();
+        if (tokenValid) {
+          setUser(storedUser);
+        } else {
+          // Token is invalid, clear user data
+          api.clearCurrentUser();
+          setUser(null);
+        }
       } else {
         // Clear invalid data
         api.clearCurrentUser();
@@ -194,6 +202,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const result = await response.json();
       
       if (result.success) {
+        // Handle JWT-based signup response
+        if (result.tokens) {
+          // Store tokens in API client
+          api.setAccessToken(result.tokens.accessToken);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('refreshToken', result.tokens.refreshToken);
+            localStorage.setItem('idToken', result.tokens.idToken);
+          }
+        }
+
         // Create user object from signup data
         const newUser: User = {
           id: result.user?.id || userData.email,
