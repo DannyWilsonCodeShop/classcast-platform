@@ -191,9 +191,9 @@ const VideoSubmissionContent: React.FC = () => {
       
       // Now submit the video as an assignment submission
       const submissionData = {
-        assignmentId: 'temp-assignment', // This should come from the assignment context
+        assignmentId: assignmentId, // Use the actual assignment ID from URL params
         studentId: user?.id || 'unknown',
-        courseId: 'temp-course', // This should come from the assignment context
+        courseId: courseId, // Use the actual course ID from URL params
         videoUrl: videoUrl, // Now using the actual S3 URL
         videoId: videoId, // Store the IndexedDB key for retrieval
         videoTitle: `Video Submission - ${new Date().toLocaleDateString()}`,
