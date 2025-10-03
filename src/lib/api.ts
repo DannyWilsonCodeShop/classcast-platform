@@ -307,7 +307,7 @@ class ApiClient {
         ...updates
       }),
     });
-    return response.data!.user;
+    return response.user;
   }
 
   // ============================================================================
