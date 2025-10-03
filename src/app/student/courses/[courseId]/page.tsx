@@ -71,6 +71,25 @@ interface Classmate {
   avatar?: string;
 }
 
+interface Section {
+  sectionId: string;
+  sectionName: string;
+  sectionCode?: string;
+  description?: string;
+  maxEnrollment: number;
+  currentEnrollment: number;
+  schedule?: {
+    days: string[];
+    time: string;
+    location: string;
+  };
+  location?: string;
+  instructorId: string;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+}
+
 const StudentCourseDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -78,9 +97,10 @@ const StudentCourseDetailPage: React.FC = () => {
   const [course, setCourse] = useState<Course | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [classmates, setClassmates] = useState<Classmate[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'assignments' | 'students' | 'materials'>('assignments');
+  const [activeTab, setActiveTab] = useState<'overview' | 'assignments' | 'students' | 'materials' | 'sections'>('assignments');
 
   const courseId = params.courseId as string;
 
@@ -153,6 +173,9 @@ const StudentCourseDetailPage: React.FC = () => {
       
       // Fetch classmates for this course
       await fetchClassmates();
+      
+      // Fetch sections for this course
+      await fetchSections();
 
     } catch (err) {
       console.error('Error fetching course details:', err);
@@ -231,6 +254,24 @@ const StudentCourseDetailPage: React.FC = () => {
     } catch (classmatesError) {
       console.warn('Failed to fetch classmates:', classmatesError);
       setClassmates([]);
+    }
+  };
+
+  const fetchSections = async () => {
+    try {
+      const response = await fetch(`/api/sections?courseId=${courseId}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setSections(data.data);
+        }
+      }
+    } catch (sectionsError) {
+      console.warn('Failed to fetch sections:', sectionsError);
+      setSections([]);
     }
   };
 
@@ -373,6 +414,7 @@ const StudentCourseDetailPage: React.FC = () => {
           <div className="flex space-x-1">
             {[
               { id: 'assignments', label: 'Assignments', icon: '📝' },
+              { id: 'sections', label: 'Sections', icon: '🏫' },
               { id: 'materials', label: 'Files', icon: '📚' },
               { id: 'overview', label: 'Overview', icon: '📊' },
               { id: 'students', label: 'Classmates', icon: '👥' },
@@ -548,6 +590,90 @@ const StudentCourseDetailPage: React.FC = () => {
                       <div className="text-sm text-gray-600">Avg Points</div>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'sections' && (
+              <div className="space-y-6">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-800">Course Sections</h3>
+                    <div className="text-sm text-gray-600">
+                      {sections.length} section{sections.length !== 1 ? 's' : ''}
+                    </div>
+                  </div>
+                  
+                  {sections.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="text-4xl mb-2">🏫</div>
+                      <p className="text-gray-600">No sections available for this course.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {sections.map((section) => (
+                        <div
+                          key={section.sectionId}
+                          className="bg-white/60 backdrop-blur-sm rounded-xl p-4 shadow-md border border-gray-200/30 hover:shadow-lg transition-all duration-300"
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className="font-semibold text-gray-800 text-lg">
+                              {section.sectionName}
+                            </h4>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              section.isActive 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {section.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          
+                          {section.sectionCode && (
+                            <div className="mb-2">
+                              <span className="text-sm text-gray-600">Code: </span>
+                              <span className="font-mono text-sm font-semibold text-blue-600">
+                                {section.sectionCode}
+                              </span>
+                            </div>
+                          )}
+                          
+                          {section.description && (
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                              {section.description}
+                            </p>
+                          )}
+                          
+                          <div className="space-y-2 text-sm text-gray-500">
+                            <div className="flex items-center justify-between">
+                              <span>Enrollment:</span>
+                              <span className="font-medium">
+                                {section.currentEnrollment}/{section.maxEnrollment}
+                              </span>
+                            </div>
+                            
+                            {section.schedule && (
+                              <div>
+                                <span className="text-gray-600">Schedule:</span>
+                                <div className="text-xs mt-1">
+                                  <div>{section.schedule.days?.join(', ')}</div>
+                                  <div>{section.schedule.time}</div>
+                                  <div>{section.schedule.location}</div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {section.location && !section.schedule && (
+                              <div>
+                                <span className="text-gray-600">Location: </span>
+                                <span>{section.location}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
