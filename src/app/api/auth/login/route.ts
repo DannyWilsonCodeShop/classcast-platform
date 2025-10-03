@@ -150,6 +150,15 @@ export async function POST(request: NextRequest) {
     // Verify password - handle legacy users
     let passwordMatch = false;
     
+    // Check if user has a valid password field
+    if (!userData.password) {
+      console.log('User has no password field - legacy user needs password reset');
+      return NextResponse.json(
+        { error: { message: 'Account needs password reset. Please contact support or create a new account.' } },
+        { status: 401 }
+      );
+    }
+    
     try {
       // First try bcrypt comparison (new format)
       passwordMatch = await bcrypt.compare(password, userData.password);
