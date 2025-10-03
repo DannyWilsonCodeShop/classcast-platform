@@ -180,13 +180,18 @@ const StudentDashboard: React.FC = () => {
     const loadCommunityPosts = async () => {
       setIsLoadingPosts(true);
       try {
-        const response = await fetch('/api/community/posts', { credentials: 'include' });
+        const response = await fetch(`/api/community/posts?userId=${user?.id}`, { credentials: 'include' });
         if (response.ok) {
           const data = await response.json();
-          setCommunityPosts(data || []);
+          if (data.success && data.posts) {
+            setCommunityPosts(data.posts);
+          } else {
+            setCommunityPosts([]);
+          }
         }
       } catch (error) {
         console.warn('Failed to load community posts:', error);
+        setCommunityPosts([]);
       } finally {
         setIsLoadingPosts(false);
       }
@@ -452,7 +457,8 @@ const StudentDashboard: React.FC = () => {
                 ) : communityPosts.length > 0 ? (
                   <div className="space-y-3">
                     {communityPosts.slice(0, 5).map((post) => (
-                      <div key={post.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      <div key={post.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
+                           onClick={() => router.push('/community')}>
                         <div className="flex items-start space-x-2">
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
                             post.isAnnouncement ? 'bg-indigo-600' : 'bg-emerald-600'
@@ -471,8 +477,27 @@ const StudentDashboard: React.FC = () => {
                             <p className="text-xs text-gray-600 line-clamp-2">{post.title}</p>
                             <div className="flex items-center justify-between mt-2">
                               <div className="flex items-center space-x-2">
-                                <span className="text-xs text-gray-400">👍 {post.likes}</span>
-                                <span className="text-xs text-gray-400">💬 {post.comments}</span>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // TODO: Implement like functionality
+                                    console.log('Like post:', post.id);
+                                  }}
+                                  className="flex items-center space-x-1 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
+                                >
+                                  <span>👍</span>
+                                  <span>{post.likes}</span>
+                                </button>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    router.push('/community');
+                                  }}
+                                  className="flex items-center space-x-1 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
+                                >
+                                  <span>💬</span>
+                                  <span>{post.comments}</span>
+                                </button>
                               </div>
                               <span className="text-xs text-gray-500">
                                 {new Date(post.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -482,21 +507,32 @@ const StudentDashboard: React.FC = () => {
                         </div>
                       </div>
                     ))}
-                    <button 
-                      onClick={() => router.push('/community')}
-                      className="w-full text-center text-xs text-indigo-600 hover:text-purple-600 font-medium py-2 border border-indigo-600 rounded-lg hover:bg-indigo-600/5 transition-colors"
-                    >
-                      View All Posts →
-                    </button>
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => router.push('/community')}
+                        className="flex-1 text-center text-xs text-indigo-600 hover:text-purple-600 font-medium py-2 border border-indigo-600 rounded-lg hover:bg-indigo-600/5 transition-colors"
+                      >
+                        View All Posts →
+                      </button>
+                      <button 
+                        onClick={() => router.push('/community')}
+                        className="px-3 py-2 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-1"
+                      >
+                        <span>✏️</span>
+                        <span>Post</span>
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-xs text-gray-500 mb-2">No posts yet</p>
+                    <div className="text-4xl mb-2">💬</div>
+                    <p className="text-xs text-gray-500 mb-3">No posts yet</p>
                     <button 
                       onClick={() => router.push('/community')}
-                      className="text-xs text-indigo-600 hover:text-purple-600 font-medium"
+                      className="w-full bg-indigo-600 text-white text-xs font-medium py-2 px-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-1"
                     >
-                      Be the first to post!
+                      <span>✏️</span>
+                      <span>Be the first to post!</span>
                     </button>
                   </div>
                 )}

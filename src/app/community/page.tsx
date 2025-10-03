@@ -100,9 +100,16 @@ export default function CommunityPage() {
       const response = await fetch(`/api/community/posts?userId=${user?.id}`);
       if (response.ok) {
         const data = await response.json();
-        setPosts(data);
-        return data;
+        if (data.success && data.posts) {
+          setPosts(data.posts);
+          return data.posts;
+        } else {
+          console.error('API returned error:', data.error);
+          setPosts([]);
+          return [];
+        }
       } else {
+        console.error('Failed to fetch posts:', response.status);
         setPosts([]);
         return [];
       }
@@ -134,11 +141,15 @@ export default function CommunityPage() {
       });
 
       if (response.ok) {
-        const createdPost = await response.json();
-        setPosts([createdPost, ...posts]);
-        setNewPost({ title: '', content: '', courseId: '' });
+        const data = await response.json();
+        if (data.success && data.post) {
+          setPosts([data.post, ...posts]);
+          setNewPost({ title: '', content: '', courseId: '' });
+        } else {
+          console.error('Failed to create post:', data.error);
+        }
       } else {
-        console.error('Failed to create post');
+        console.error('Failed to create post:', response.status);
       }
     } catch (error) {
       console.error('Error creating post:', error);
