@@ -275,7 +275,7 @@ const StudentDashboard: React.FC = () => {
   }, [isAuthenticated, user]);
 
   // Handle class enrollment
-  const handleClassEnrollment = async (classCode: string) => {
+  const handleClassEnrollment = async (classCode: string, sectionId?: string) => {
     try {
       if (!user?.id) {
         throw new Error('User not authenticated');
@@ -287,7 +287,7 @@ const StudentDashboard: React.FC = () => {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ classCode, userId: user.id }),
+        body: JSON.stringify({ classCode, userId: user.id, sectionId }),
       });
 
       const data = await response.json();

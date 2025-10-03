@@ -77,6 +77,7 @@ export interface Assignment {
   
   // Grading
   maxScore: number;
+  weight?: number; // Assignment weight in course grade calculation
   rubric?: GradingRubric[];
   
   // Requirements
@@ -100,7 +101,17 @@ export interface Assignment {
   responseWordLimit?: number; // Minimum word count for responses
   responseCharacterLimit?: number; // Maximum character count for responses
   hidePeerVideosUntilInstructorPosts?: boolean; // Hide peer videos until instructor posts their own
-  peerReviewScope?: 'section' | 'course'; // Whether peer reviews are section-specific or course-wide
+  peerReviewScope?: 'section' | 'course' | 'random'; // Whether peer reviews are section-specific, course-wide, or random
+  
+  // Enhanced Peer Review Settings
+  peerReview?: boolean; // Enable peer review for this assignment
+  peerReviewCount?: number; // Number of reviews each submission should receive
+  peerReviewDeadline?: number; // Days to complete peer reviews
+  anonymousReview?: boolean; // Whether peer reviews are anonymous
+  allowSelfReview?: boolean; // Allow students to review their own submissions
+  instructorReview?: boolean; // Whether instructor reviews peer feedback
+  peerReviewInstructions?: string; // Specific instructions for peer reviewers
+  targetSections?: string[]; // Specific sections to include in peer review
   
   // Instructor Features
   isPinned?: boolean;

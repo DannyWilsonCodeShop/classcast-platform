@@ -2,11 +2,39 @@
 
 import React, { useState } from 'react';
 import { X, Plus, BookOpen, Users, Calendar } from 'lucide-react';
+import SectionSelectionModal from './SectionSelectionModal';
+
+interface Course {
+  courseId: string;
+  title: string;
+  description: string;
+  code: string;
+  instructorId: string;
+}
+
+interface Section {
+  sectionId: string;
+  sectionName: string;
+  sectionCode?: string;
+  description?: string;
+  maxEnrollment: number;
+  currentEnrollment: number;
+  schedule?: {
+    days: string[];
+    time: string;
+    location: string;
+  };
+  location?: string;
+  instructorId: string;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+}
 
 interface ClassEnrollmentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onEnroll: (classCode: string) => Promise<void>;
+  onEnroll: (classCode: string, sectionId?: string) => Promise<void>;
 }
 
 const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
@@ -17,6 +45,9 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
   const [classCode, setClassCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showSectionSelection, setShowSectionSelection] = useState(false);
+  const [foundCourse, setFoundCourse] = useState<Course | null>(null);
+  const [foundSections, setFoundSections] = useState<Section[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,49 +66,96 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
     setError('');
 
     try {
-      await onEnroll(classCode.trim().toUpperCase());
-      setClassCode('');
-      onClose();
+      // First, find the course and its sections
+      const response = await fetch('/api/courses/find-by-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ classCode: classCode.trim().toUpperCase() }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Course not found');
+      }
+
+      const data = await response.json();
+      setFoundCourse(data.course);
+      setFoundSections(data.sections || []);
+      setShowSectionSelection(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to enroll in class');
+      setError(err instanceof Error ? err.message : 'Failed to find course');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSectionSelection = async (sectionId: string) => {
+    if (!foundCourse) return;
+
+    try {
+      // Enroll in the specific section
+      await onEnroll(classCode.trim().toUpperCase(), sectionId);
+      setClassCode('');
+      setShowSectionSelection(false);
+      setFoundCourse(null);
+      setFoundSections([]);
+      onClose();
+    } catch (err) {
+      throw err; // Re-throw to let SectionSelectionModal handle the error
     }
   };
 
   const handleClose = () => {
     setClassCode('');
     setError('');
+    setShowSectionSelection(false);
+    setFoundCourse(null);
+    setFoundSections([]);
     onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#4A90E2] rounded-xl flex items-center justify-center">
-              <Plus className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Join a Class</h2>
-              <p className="text-sm text-gray-600">Enter your class code to enroll</p>
-            </div>
-          </div>
-          <button
-            onClick={handleClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
-        </div>
+    <>
+      {/* Section Selection Modal */}
+      {showSectionSelection && foundCourse && (
+        <SectionSelectionModal
+          isOpen={showSectionSelection}
+          onClose={() => setShowSectionSelection(false)}
+          onSelectSection={handleSectionSelection}
+          course={foundCourse}
+          sections={foundSections}
+        />
+      )}
 
-        {/* Content */}
-        <div className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Main Enrollment Modal */}
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-[#4A90E2] rounded-xl flex items-center justify-center">
+                <Plus className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Join a Class</h2>
+                <p className="text-sm text-gray-600">Enter your class code to enroll</p>
+              </div>
+            </div>
+            <button
+              onClick={handleClose}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
             {/* Class Code Input */}
             <div>
               <label htmlFor="classCode" className="block text-sm font-medium text-gray-700 mb-2">
@@ -158,10 +236,11 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
                 )}
               </button>
             </div>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
