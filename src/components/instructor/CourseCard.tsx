@@ -83,6 +83,22 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           </div>
         </div>
 
+        {/* Course Status */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(course.status)}`}>
+              {getStatusIcon(course.status)}
+              <span className="ml-1 capitalize">{course.status}</span>
+            </span>
+            <span className="text-sm text-gray-500">
+              {course.currentEnrollment} students
+            </span>
+          </div>
+          <span className="text-sm text-gray-500">
+            {formatDate(course.updatedAt)}
+          </span>
+        </div>
+
         {/* Primary Action */}
         <div className="flex items-center justify-between">
           <button
@@ -93,16 +109,90 @@ export const CourseCard: React.FC<CourseCardProps> = ({
           </button>
           
           {/* Quick Actions Menu */}
-          <div className="ml-3 relative">
+          <div className="ml-3 relative group">
             <button
-              onClick={() => onEdit(course)}
               className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
-              title="Edit Class"
+              title="More Actions"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
               </svg>
             </button>
+            
+            {/* Dropdown Menu */}
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <div className="py-1">
+                <button
+                  onClick={() => onEdit(course)}
+                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                  Edit Course
+                </button>
+                
+                {course.status === 'published' ? (
+                  <button
+                    onClick={() => onArchive(course.courseId)}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8l6 6 6-6" />
+                    </svg>
+                    Archive Course
+                  </button>
+                ) : course.status === 'draft' ? (
+                  <button
+                    onClick={() => onPublish(course.courseId)}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    Publish Course
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onPublish(course.courseId)}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Restore Course
+                  </button>
+                )}
+                
+                {onBulkEnroll && (
+                  <button
+                    onClick={() => onBulkEnroll(course)}
+                    className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                    </svg>
+                    Bulk Enroll
+                  </button>
+                )}
+                
+                <div className="border-t border-gray-100 my-1"></div>
+                
+                <button
+                  onClick={() => {
+                    if (window.confirm(`Are you sure you want to delete "${course.title}"? This action cannot be undone and will delete all assignments, submissions, and student data associated with this course.`)) {
+                      onDelete(course.courseId);
+                    }
+                  }}
+                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete Course
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
