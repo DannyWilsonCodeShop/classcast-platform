@@ -47,6 +47,12 @@ export default function EditProfilePage() {
     major: '',
     bio: '',
     profilePicture: null,
+    videoStats: {
+      totalViews: 0,
+      totalLikes: 0,
+      totalVideos: 0,
+      publicVideos: 0
+    },
     personalInfo: {
       birthday: '',
       hometown: '',
@@ -84,6 +90,12 @@ export default function EditProfilePage() {
       major: 'Computer Science', // Default value
       bio: 'Love learning and helping others!',
       profilePicture: null,
+      videoStats: {
+        totalViews: 0,
+        totalLikes: 0,
+        totalVideos: 0,
+        publicVideos: 0
+      },
       personalInfo: {
         birthday: '',
         hometown: '',
@@ -196,7 +208,8 @@ export default function EditProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
         <div className="text-center">
-          <LoadingSpinner text="Loading profile editor..." />
+          <LoadingSpinner />
+          <p className="mt-2 text-gray-600">Loading profile editor...</p>
         </div>
       </div>
     );
@@ -262,7 +275,8 @@ export default function EditProfilePage() {
                 
                 {isUploading && (
                   <div className="flex items-center justify-center text-blue-600">
-                    <LoadingSpinner size="sm" text="Uploading..." />
+                    <LoadingSpinner size="sm" />
+                    <span className="ml-2">Uploading...</span>
                   </div>
                 )}
               </div>
@@ -282,7 +296,7 @@ export default function EditProfilePage() {
                     type="text"
                     value={profileData.firstName}
                     onChange={(e) => handleInputChange('firstName', e.target.value)}
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -291,7 +305,7 @@ export default function EditProfilePage() {
                     type="text"
                     value={profileData.lastName}
                     onChange={(e) => handleInputChange('lastName', e.target.value)}
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -300,7 +314,7 @@ export default function EditProfilePage() {
                     type="email"
                     value={profileData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -308,7 +322,7 @@ export default function EditProfilePage() {
                   <select
                     value={profileData.grade}
                     onChange={(e) => handleInputChange('grade', e.target.value)}
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   >
                     <option value="9th Grade">9th Grade</option>
                     <option value="10th Grade">10th Grade</option>
@@ -323,7 +337,7 @@ export default function EditProfilePage() {
                     value={profileData.major}
                     onChange={(e) => handleInputChange('major', e.target.value)}
                     placeholder="e.g., Computer Science, Mathematics, Engineering..."
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
                 <div className="md:col-span-2">
@@ -333,7 +347,7 @@ export default function EditProfilePage() {
                     onChange={(e) => handleInputChange('bio', e.target.value)}
                     placeholder="Tell us about yourself..."
                     rows={3}
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none resize-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none resize-none text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -350,7 +364,7 @@ export default function EditProfilePage() {
                     type="date"
                     value={profileData.personalInfo.birthday}
                     onChange={(e) => handlePersonalInfoChange('birthday', e.target.value)}
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -360,7 +374,7 @@ export default function EditProfilePage() {
                     value={profileData.personalInfo.hometown}
                     onChange={(e) => handlePersonalInfoChange('hometown', e.target.value)}
                     placeholder="e.g., San Francisco, CA"
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -370,7 +384,7 @@ export default function EditProfilePage() {
                     value={profileData.personalInfo.favoriteSubject}
                     onChange={(e) => handlePersonalInfoChange('favoriteSubject', e.target.value)}
                     placeholder="e.g., Mathematics, Science, English..."
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -380,7 +394,7 @@ export default function EditProfilePage() {
                     value={profileData.personalInfo.careerGoal}
                     onChange={(e) => handlePersonalInfoChange('careerGoal', e.target.value)}
                     placeholder="e.g., Software Engineer, Doctor, Teacher..."
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -410,7 +424,7 @@ export default function EditProfilePage() {
                     value={newHobby}
                     onChange={(e) => setNewHobby(e.target.value)}
                     placeholder="Add a hobby..."
-                    className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-blue-400 focus:outline-none"
+                    className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                     onKeyPress={(e) => e.key === 'Enter' && addHobby()}
                   />
                   <button
@@ -447,7 +461,7 @@ export default function EditProfilePage() {
                     value={newFunFact}
                     onChange={(e) => setNewFunFact(e.target.value)}
                     placeholder="Add a fun fact..."
-                    className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-blue-400 focus:outline-none"
+                    className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                     onKeyPress={(e) => e.key === 'Enter' && addFunFact()}
                   />
                   <button
@@ -472,7 +486,7 @@ export default function EditProfilePage() {
                     value={profileData.socialLinks.instagram}
                     onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
                     placeholder="@username"
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -482,7 +496,7 @@ export default function EditProfilePage() {
                     value={profileData.socialLinks.twitter}
                     onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
                     placeholder="@username"
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -492,7 +506,7 @@ export default function EditProfilePage() {
                     value={profileData.socialLinks.linkedin}
                     onChange={(e) => handleSocialLinkChange('linkedin', e.target.value)}
                     placeholder="linkedin.com/in/username"
-                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-blue-400 focus:outline-none text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
