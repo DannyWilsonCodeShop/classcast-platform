@@ -7,7 +7,7 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import CourseSettingsModal from '@/components/instructor/CourseSettingsModal';
 import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
-import SectionDashboard from '@/components/instructor/SectionDashboard';
+import SectionList from '@/components/instructor/SectionList';
 import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
 
 interface Course {
@@ -75,6 +75,25 @@ interface Section {
   updatedAt: string;
 }
 
+interface Section {
+  sectionId: string;
+  sectionName: string;
+  sectionCode?: string;
+  classCode?: string;
+  description?: string;
+  maxEnrollment: number;
+  currentEnrollment: number;
+  schedule?: {
+    days: string[];
+    time: string;
+    location: string;
+  };
+  location?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface VideoSubmission {
   submissionId: string;
   assignmentId: string;
@@ -115,6 +134,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
+  const [sections, setSections] = useState<Section[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [videoSubmissions, setVideoSubmissions] = useState<VideoSubmission[]>([]);
@@ -204,11 +224,32 @@ const InstructorCourseDetailPage: React.FC = () => {
       const students: Student[] = [];
       setStudents(students);
 
+      // Fetch sections for this course
+      await fetchSections();
+
     } catch (err) {
       console.error('Error fetching course details:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch course details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSections = async () => {
+    try {
+      const response = await fetch(`/api/sections?courseId=${courseId}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setSections(data.data || []);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching sections:', err);
+      // Don't set error for sections as it's not critical
     }
   };
 
@@ -364,6 +405,12 @@ const InstructorCourseDetailPage: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Section List - shows sections if they exist */}
+          <SectionList
+            courseId={courseId}
+            sections={sections}
+          />
+          
           {/* Course Stats */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
