@@ -47,19 +47,47 @@ export async function GET(request: NextRequest) {
     };
 
     // Get courses where user is enrolled
+    // Note: We need to scan all courses and filter by enrollment.students array
+    // because DynamoDB's contains() doesn't work with nested object properties
     const coursesResult = await docClient.send(new ScanCommand({
-      TableName: COURSES_TABLE,
-      FilterExpression: 'contains(enrollment.students, :userId)',
-      ExpressionAttributeValues: {
-        ':userId': userId
-      }
+      TableName: COURSES_TABLE
     }));
+
+    // Filter courses where the user is enrolled
+    console.log(`Filtering courses for userId: ${userId}`);
+    console.log(`Total courses found: ${coursesResult.Items?.length || 0}`);
     
-    const courses = coursesResult.Items || [];
+    const courses = (coursesResult.Items || []).filter(course => {
+      if (!course.enrollment?.students) {
+        console.log(`Course ${course.title} has no enrollment.students`);
+        return false;
+      }
+
+      console.log(`Checking course ${course.title} with ${course.enrollment.students.length} students`);
+      
+      // Check if user is enrolled (handle both string and object formats)
+      const isEnrolled = course.enrollment.students.some((student: any) => {
+        if (typeof student === 'string') {
+          const match = student === userId;
+          if (match) console.log(`Found string match for userId: ${userId}`);
+          return match;
+        } else if (typeof student === 'object' && student.userId) {
+          const match = student.userId === userId;
+          if (match) console.log(`Found object match for userId: ${userId} in student:`, student);
+          return match;
+        }
+        return false;
+      });
+      
+      console.log(`Course ${course.title} enrollment check result: ${isEnrolled}`);
+      return isEnrolled;
+    });
+    
+    console.log(`Final filtered courses count: ${courses.length}`);
     
     // Get assignments for these courses
     const courseIds = courses.map(course => course.courseId);
-    let allAssignments = [];
+    let allAssignments: any[] = [];
     if (courseIds.length > 0) {
       // DynamoDB doesn't support IN with expression attribute values directly
       const assignmentPromises = courseIds.map(courseId => 
