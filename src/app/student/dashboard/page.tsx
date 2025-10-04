@@ -49,7 +49,7 @@ interface Assignment {
 interface CommunityPost {
   id: string;
   title: string;
-  author: {
+  author: string | {
     name: string;
     avatar: string;
   };
@@ -493,11 +493,11 @@ const StudentDashboard: React.FC = () => {
                           <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
                             post.isAnnouncement ? 'bg-indigo-600' : 'bg-emerald-600'
                           }`}>
-                            {post.author.name.charAt(0)}
+                            {typeof post.author === 'string' ? post.author.charAt(0) : (post.author as any)?.name?.charAt(0) || '?'}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-1 mb-1">
-                              <p className="text-xs font-medium text-gray-800 truncate">{post.author.name}</p>
+                              <p className="text-xs font-medium text-gray-800 truncate">{typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}</p>
                               {post.isAnnouncement && (
                                 <span className="px-1 py-0.5 bg-indigo-600 text-white text-xs rounded-full flex-shrink-0">
                                   📢
@@ -713,7 +713,7 @@ const StudentDashboard: React.FC = () => {
                           className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg"
                           style={{ backgroundColor: course.color }}
                         >
-                          {course.code?.charAt(0) || 'C'}
+                          {course.code?.charAt(0) || course.name?.charAt(0) || 'C'}
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="text-lg font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">
