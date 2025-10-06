@@ -127,11 +127,22 @@ export async function GET(request: NextRequest) {
     // Calculate pending assignments
     const submittedAssignmentIds = new Set(userSubmissions.map(sub => sub.assignmentId));
     const now = new Date();
-    const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     
     const pendingAssignments = allAssignments.filter(assignment => {
       const dueDate = new Date(assignment.dueDate);
-      return dueDate > now && dueDate <= oneWeekFromNow && !submittedAssignmentIds.has(assignment.assignmentId);
+      const isNotDue = dueDate > now;
+      const isNotSubmitted = !submittedAssignmentIds.has(assignment.assignmentId);
+      
+      console.log(`Assignment ${assignment.assignmentId}:`, {
+        title: assignment.title,
+        dueDate: assignment.dueDate,
+        isNotDue,
+        isNotSubmitted,
+        included: isNotDue && isNotSubmitted
+      });
+      
+      // Show all assignments that are not yet due and haven't been submitted
+      return isNotDue && isNotSubmitted;
     });
 
     // Find next due assignment
@@ -147,11 +158,16 @@ export async function GET(request: NextRequest) {
         }
       : null;
 
-    return NextResponse.json({
+    const result = {
       pendingAssignments: pendingAssignments.length,
       pendingReviews,
       nextDueAssignment
-    });
+    };
+    
+    console.log('Todo stats result:', result);
+    console.log(`Found ${allAssignments.length} total assignments, ${pendingAssignments.length} pending`);
+    
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Error fetching todo stats:', error);
