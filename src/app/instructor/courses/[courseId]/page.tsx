@@ -255,18 +255,32 @@ const InstructorCourseDetailPage: React.FC = () => {
 
   const fetchVideoSubmissions = async () => {
     try {
-      const response = await fetch(`/api/instructor/video-submissions?courseId=${courseId}`, {
+      console.log('Course page: Fetching video submissions for course:', courseId);
+      const url = `/api/instructor/video-submissions?courseId=${courseId}`;
+      console.log('Course page API URL:', url);
+      
+      const response = await fetch(url, {
         credentials: 'include',
       });
 
+      console.log('Course page video submissions API response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Course page video submissions API response data:', data);
         if (data.success) {
+          console.log('Course page setting video submissions:', data.submissions);
           setVideoSubmissions(data.submissions || []);
+        } else {
+          console.log('Course page API returned success: false, error:', data.error);
         }
+      } else {
+        console.log('Course page video submissions API failed with status:', response.status);
+        const errorText = await response.text();
+        console.log('Course page error response:', errorText);
       }
     } catch (error) {
-      console.error('Error fetching video submissions:', error);
+      console.error('Course page error fetching video submissions:', error);
     }
   };
 
