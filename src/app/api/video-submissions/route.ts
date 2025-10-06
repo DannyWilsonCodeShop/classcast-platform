@@ -113,6 +113,9 @@ export async function POST(request: NextRequest) {
     const submissionId = `submission_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
 
+    // Generate thumbnail URL (placeholder for now, in production you'd generate actual thumbnails)
+    const thumbnailUrl = `/api/placeholder/400/300?text=${encodeURIComponent(videoTitle || 'Video')}`;
+
     const submission = {
       submissionId,
       assignmentId,
@@ -127,6 +130,7 @@ export async function POST(request: NextRequest) {
       fileName: fileName || 'video.webm',
       fileSize: fileSize || 0,
       fileType: fileType || 'video/webm',
+      thumbnailUrl, // Add thumbnail URL
       isRecorded,
       isUploaded,
       isLocalStorage,

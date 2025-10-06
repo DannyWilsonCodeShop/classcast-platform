@@ -257,11 +257,79 @@ const BulkGradingPage: React.FC = () => {
   // Assignment due date for timing calculations
   const assignmentDueDate = ''; // TODO: Get from assignment data
 
-  // Set submissions directly
+  // Fetch submissions from API
   useEffect(() => {
-    const submissions: Submission[] = [];
-    setSubmissions(submissions);
-    setIsLoading(false);
+    const fetchSubmissions = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get URL parameters for filtering
+        const urlParams = new URLSearchParams(window.location.search);
+        const assignmentId = urlParams.get('assignment');
+        const courseId = urlParams.get('course');
+        
+        let apiUrl = '/api/instructor/video-submissions';
+        if (assignmentId && courseId) {
+          apiUrl += `?assignmentId=${assignmentId}&courseId=${courseId}`;
+        } else if (courseId) {
+          apiUrl += `?courseId=${courseId}`;
+        }
+        
+        console.log('Fetching submissions from:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Bulk grading submissions response:', data);
+          
+          if (data.success && data.submissions) {
+            // Transform API response to match expected interface
+            const transformedSubmissions: Submission[] = data.submissions.map((sub: any) => ({
+              id: sub.submissionId,
+              studentName: sub.student?.name || 'Unknown Student',
+              studentId: sub.studentId,
+              assignmentTitle: sub.assignment?.title || 'Unknown Assignment',
+              assignmentId: sub.assignmentId,
+              courseName: sub.courseName || 'Unknown Course',
+              courseCode: sub.courseCode || 'N/A',
+              submittedAt: sub.submittedAt || sub.createdAt,
+              status: sub.status === 'graded' ? 'graded' : 'pending',
+              grade: sub.grade,
+              feedback: sub.instructorFeedback,
+              fileUrl: sub.videoUrl,
+              thumbnailUrl: sub.thumbnailUrl || '/api/placeholder/300/200',
+              duration: sub.duration || 0,
+              fileSize: sub.fileSize || 0,
+              assignment: sub.assignment,
+              isPinned: sub.isPinned || false,
+              isHighlighted: sub.isHighlighted || false,
+              pinnedAt: sub.pinnedAt,
+              highlightedAt: sub.highlightedAt,
+              peerResponses: sub.peerResponses
+            }));
+            
+            setSubmissions(transformedSubmissions);
+            console.log('Set submissions:', transformedSubmissions.length);
+          } else {
+            console.log('No submissions found or API error:', data.error);
+            setSubmissions([]);
+          }
+        } else {
+          console.error('Failed to fetch submissions:', response.status);
+          setSubmissions([]);
+        }
+      } catch (error) {
+        console.error('Error fetching submissions:', error);
+        setSubmissions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchSubmissions();
   }, []);
 
   // Navigate to specific submission if provided in URL
@@ -842,11 +910,30 @@ const BulkGradingPage: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Video Player */}
                       <div>
-                        <div className="bg-black rounded-lg overflow-hidden mb-4 relative">
+                        <div className="bg-black rounded-lg overflow-hidden mb-4 relative group">
                           <video
                             ref={index === currentSubmissionIndex ? videoRef : null}
                             src={submission.fileUrl}
-                            className="w-full h-64 object-contain"
+                            className="w-full h-64 object-cover"
+                            poster={submission.thumbnailUrl || '/api/placeholder/400/300'}
+                            onError={(e) => {
+                              console.error('Video load error:', e);
+                              // Fallback to placeholder if video fails to load
+                              const target = e.target as HTMLVideoElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                parent.innerHTML = `
+                                  <div class="w-full h-64 bg-gray-800 flex items-center justify-center">
+                                    <div class="text-center text-white">
+                                      <div class="text-4xl mb-2">🎥</div>
+                                      <div class="text-sm">Video Preview</div>
+                                      <div class="text-xs text-gray-400 mt-1">Click to view</div>
+                                    </div>
+                                  </div>
+                                `;
+                              }
+                            }}
                             onTimeUpdate={index === currentSubmissionIndex ? handleTimeUpdate : undefined}
                             onLoadedMetadata={index === currentSubmissionIndex ? handleLoadedMetadata : undefined}
                             onPlay={() => index === currentSubmissionIndex && setIsPlaying(true)}
