@@ -638,8 +638,16 @@ const InstructorCourseDetailPage: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-800">Video Submissions</h2>
-                  <div className="text-sm text-gray-600">
-                    {videoSubmissions.length} submission{videoSubmissions.length !== 1 ? 's' : ''}
+                  <div className="flex items-center space-x-4">
+                    <div className="text-sm text-gray-600">
+                      {videoSubmissions.length} submission{videoSubmissions.length !== 1 ? 's' : ''}
+                    </div>
+                    <button
+                      onClick={() => router.push(`/instructor/grading/bulk?course=${courseId}`)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                    >
+                      Show All Submissions
+                    </button>
                   </div>
                 </div>
                 
@@ -678,13 +686,40 @@ const InstructorCourseDetailPage: React.FC = () => {
                               Submitted: {new Date(submission.submittedAt).toLocaleDateString()} at {new Date(submission.submittedAt).toLocaleTimeString()}
                             </p>
                             
-                            {/* Video Preview */}
-                            <div className="bg-black rounded-lg overflow-hidden mb-4">
+                            {/* Video Preview with Thumbnail */}
+                            <div className="bg-black rounded-lg overflow-hidden mb-4 relative group">
                               <video
                                 src={submission.videoUrl}
                                 controls
                                 className="w-full h-64 object-cover"
+                                poster={submission.thumbnailUrl || '/api/placeholder/400/300'}
+                                onError={(e) => {
+                                  console.error('Video load error:', e);
+                                  // Fallback to placeholder if video fails to load
+                                  const target = e.target as HTMLVideoElement;
+                                  target.style.display = 'none';
+                                  const parent = target.parentElement;
+                                  if (parent) {
+                                    parent.innerHTML = `
+                                      <div class="w-full h-64 bg-gray-800 flex items-center justify-center">
+                                        <div class="text-center text-white">
+                                          <div class="text-4xl mb-2">🎥</div>
+                                          <div class="text-sm">Video Preview</div>
+                                          <div class="text-xs text-gray-400 mt-1">Click to view</div>
+                                        </div>
+                                      </div>
+                                    `;
+                                  }
+                                }}
                               />
+                              {/* Play overlay for better UX */}
+                              <div className="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                                <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
+                                  <svg className="w-8 h-8 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                  </svg>
+                                </div>
+                              </div>
                             </div>
                             
                             {/* Submission Details */}
