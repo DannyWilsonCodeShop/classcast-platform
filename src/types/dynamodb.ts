@@ -132,6 +132,7 @@ export interface Submission {
   // Submission Information
   studentId: string;
   courseId: string;
+  sectionId?: string; // Add sectionId field
   status: SubmissionStatus;
   
   // Timestamps

@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
       assignmentId,
       studentId,
       courseId,
+      sectionId, // Add sectionId
       videoUrl,
       videoId,
       videoTitle,
@@ -117,6 +118,7 @@ export async function POST(request: NextRequest) {
       assignmentId,
       studentId,
       courseId,
+      sectionId: sectionId || null, // Add sectionId to submission
       videoUrl,
       videoId: videoId || null,
       videoTitle: videoTitle || 'Video Submission',
