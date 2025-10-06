@@ -13,13 +13,17 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get('courseId');
+    const sectionId = searchParams.get('sectionId');
     const assignmentId = searchParams.get('assignmentId');
     const instructorId = searchParams.get('instructorId');
+
+    console.log('Video submissions API called with:', { courseId, sectionId, assignmentId, instructorId });
 
     let submissions: any[] = [];
 
     if (assignmentId) {
       // Get submissions for a specific assignment
+      console.log('Fetching submissions for assignment:', assignmentId);
       const queryCommand = new QueryCommand({
         TableName: 'classcast-submissions',
         IndexName: 'AssignmentIdIndex',
@@ -31,20 +35,33 @@ export async function GET(request: NextRequest) {
 
       const result = await docClient.send(queryCommand);
       submissions = result.Items || [];
+      console.log('Found submissions for assignment:', submissions.length);
     } else if (courseId) {
-      // Get all submissions for a course
+      // Get all submissions for a course (optionally filtered by section)
+      console.log('Fetching submissions for course:', courseId, 'section:', sectionId);
+      
+      let filterExpression = 'courseId = :courseId';
+      let expressionAttributeValues: any = {
+        ':courseId': courseId
+      };
+
+      if (sectionId) {
+        filterExpression += ' AND sectionId = :sectionId';
+        expressionAttributeValues[':sectionId'] = sectionId;
+      }
+
       const scanCommand = new ScanCommand({
         TableName: 'classcast-submissions',
-        FilterExpression: 'courseId = :courseId',
-        ExpressionAttributeValues: {
-          ':courseId': courseId
-        }
+        FilterExpression: filterExpression,
+        ExpressionAttributeValues: expressionAttributeValues
       });
 
       const result = await docClient.send(scanCommand);
       submissions = result.Items || [];
+      console.log('Found submissions for course/section:', submissions.length);
     } else if (instructorId) {
       // Get all submissions for instructor's courses
+      console.log('Fetching submissions for instructor:', instructorId);
       // First, get all courses for this instructor
       const coursesScanCommand = new ScanCommand({
         TableName: 'classcast-courses',
@@ -69,45 +86,62 @@ export async function GET(request: NextRequest) {
 
         const submissionsResult = await docClient.send(submissionsScanCommand);
         submissions = (submissionsResult.Items || []) as any[];
+        console.log('Found submissions for instructor courses:', submissions.length);
       }
     } else {
       // Get all submissions
+      console.log('Fetching all submissions');
       const scanCommand = new ScanCommand({
-        TableName: process.env.VIDEO_SUBMISSIONS_TABLE_NAME || 'ClassCastVideoSubmissions'
+        TableName: 'classcast-submissions'
       });
 
       const result = await docClient.send(scanCommand);
       submissions = result.Items || [];
+      console.log('Found all submissions:', submissions.length);
     }
 
     // Enrich submissions with student and assignment data
     const enrichedSubmissions = await Promise.all(
       submissions.map(async (submission) => {
         try {
-          // Get student info
-          const studentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || '/api'}/profile?userId=${submission.studentId}`, {
-            credentials: 'include'
-          });
+          console.log('Enriching submission:', submission.submissionId);
+          
+          // Get student info from users table
           let studentInfo = null;
-          if (studentResponse.ok) {
-            const studentData = await studentResponse.json();
-            studentInfo = studentData.data || studentData;
+          try {
+            const studentScanCommand = new ScanCommand({
+              TableName: 'classcast-users',
+              FilterExpression: 'userId = :userId',
+              ExpressionAttributeValues: {
+                ':userId': submission.studentId
+              }
+            });
+            const studentResult = await docClient.send(studentScanCommand);
+            studentInfo = studentResult.Items?.[0] || null;
+          } catch (error) {
+            console.error('Error fetching student info:', error);
           }
 
-          // Get assignment info
-          const assignmentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || '/api'}/assignments/${submission.assignmentId}`, {
-            credentials: 'include'
-          });
+          // Get assignment info from assignments table
           let assignmentInfo = null;
-          if (assignmentResponse.ok) {
-            const assignmentData = await assignmentResponse.json();
-            assignmentInfo = assignmentData.assignment || assignmentData;
+          try {
+            const assignmentScanCommand = new ScanCommand({
+              TableName: 'classcast-assignments',
+              FilterExpression: 'assignmentId = :assignmentId',
+              ExpressionAttributeValues: {
+                ':assignmentId': submission.assignmentId
+              }
+            });
+            const assignmentResult = await docClient.send(assignmentScanCommand);
+            assignmentInfo = assignmentResult.Items?.[0] || null;
+          } catch (error) {
+            console.error('Error fetching assignment info:', error);
           }
 
           return {
             ...submission,
             student: studentInfo ? {
-              id: studentInfo.id || studentInfo.userId,
+              id: studentInfo.userId,
               name: `${studentInfo.firstName || ''} ${studentInfo.lastName || ''}`.trim() || 'Unknown Student',
               email: studentInfo.email || 'unknown@example.com',
               avatar: studentInfo.avatar || null
@@ -118,7 +152,7 @@ export async function GET(request: NextRequest) {
               avatar: null
             },
             assignment: assignmentInfo ? {
-              id: assignmentInfo.assignmentId || assignmentInfo.id,
+              id: assignmentInfo.assignmentId,
               title: assignmentInfo.title || 'Unknown Assignment',
               description: assignmentInfo.description || '',
               dueDate: assignmentInfo.dueDate || null
