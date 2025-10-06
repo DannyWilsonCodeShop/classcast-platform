@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
 
 interface TipTapEditorProps {
   value: string;
@@ -18,7 +19,7 @@ const TipTapEditor: React.FC<TipTapEditorProps> = ({
   className = ''
 }) => {
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, Underline],
     content: value,
     editorProps: {
       attributes: {

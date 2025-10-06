@@ -558,12 +558,30 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
           <div className={`border rounded-md ${errors.description ? 'border-red-500' : 'border-gray-300'}`}>
             <TipTapEditor
               value={formData.description}
-              onChange={(value) => setFormData(prev => ({ ...prev, description: value }))}
+              onChange={(value) => {
+                console.log('TipTap description changed:', value);
+                setFormData(prev => ({ ...prev, description: value }));
+              }}
               placeholder="Describe the assignment requirements, objectives, and expectations..."
               className="min-h-[200px]"
             />
           </div>
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+          
+          {/* Fallback textarea for debugging */}
+          <details className="mt-2">
+            <summary className="text-xs text-gray-500 cursor-pointer">Debug: Show raw textarea</summary>
+            <textarea
+              id="description-fallback"
+              value={formData.description}
+              onChange={(e) => {
+                console.log('Fallback textarea changed:', e.target.value);
+                setFormData(prev => ({ ...prev, description: e.target.value }));
+              }}
+              placeholder="Describe the assignment requirements, objectives, and expectations..."
+              className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[200px]"
+            />
+          </details>
         </div>
 
         {/* Visual Identity */}
