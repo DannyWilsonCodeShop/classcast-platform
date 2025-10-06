@@ -19,12 +19,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get course details
-    const courseResponse = await dynamoDBService.get({
-      TableName: 'classcast-courses',
-      Key: { courseId },
-    });
+    const course = await dynamoDBService.getItem<any>('classcast-courses', { courseId });
 
-    if (!courseResponse.Item) {
+    if (!course) {
       return NextResponse.json(
         {
           success: false,
@@ -33,8 +30,6 @@ export async function POST(request: NextRequest) {
         { status: 404 }
       );
     }
-
-    const course = courseResponse.Item;
 
     // Check if course is published
     if (course.status !== 'published') {
@@ -58,15 +53,15 @@ export async function POST(request: NextRequest) {
         addedAt: new Date().toISOString(),
       };
 
-      await dynamoDBService.update({
-        TableName: 'classcast-courses',
-        Key: { courseId },
-        UpdateExpression: 'SET enrollment.waitlist = list_append(if_not_exists(enrollment.waitlist, :empty_list), :waitlist_entry)',
-        ExpressionAttributeValues: {
+      await dynamoDBService.updateItem(
+        'classcast-courses', 
+        { courseId }, 
+        'SET enrollment.waitlist = list_append(if_not_exists(enrollment.waitlist, :empty_list), :waitlist_entry)',
+        {
           ':waitlist_entry': [waitlistEntry],
           ':empty_list': [],
-        },
-      });
+        }
+      );
 
       return NextResponse.json({
         success: true,
@@ -100,16 +95,16 @@ export async function POST(request: NextRequest) {
       status: 'active',
     };
 
-    await dynamoDBService.update({
-      TableName: 'classcast-courses',
-      Key: { courseId },
-      UpdateExpression: 'SET enrollment.students = list_append(if_not_exists(enrollment.students, :empty_list), :student_entry), currentEnrollment = currentEnrollment + :increment',
-      ExpressionAttributeValues: {
+    await dynamoDBService.updateItem(
+      'classcast-courses', 
+      { courseId }, 
+      'SET enrollment.students = list_append(if_not_exists(enrollment.students, :empty_list), :student_entry), currentEnrollment = currentEnrollment + :increment',
+      {
         ':student_entry': [studentEntry],
         ':empty_list': [],
         ':increment': 1,
-      },
-    });
+      }
+    );
 
     // Send real-time notification
     try {
@@ -180,12 +175,9 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get course details
-    const courseResponse = await dynamoDBService.get({
-      TableName: 'classcast-courses',
-      Key: { courseId },
-    });
+    const course = await dynamoDBService.getItem<any>('classcast-courses', { courseId });
 
-    if (!courseResponse.Item) {
+    if (!course) {
       return NextResponse.json(
         {
           success: false,
@@ -195,22 +187,20 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const course = courseResponse.Item;
-
     // Find and remove student from enrollment
     const updatedStudents = course.enrollment?.students?.filter(
       (s: any) => s.userId !== studentId
     ) || [];
 
-    await dynamoDBService.update({
-      TableName: 'classcast-courses',
-      Key: { courseId },
-      UpdateExpression: 'SET enrollment.students = :students, currentEnrollment = :enrollment',
-      ExpressionAttributeValues: {
+    await dynamoDBService.updateItem(
+      'classcast-courses', 
+      { courseId }, 
+      'SET enrollment.students = :students, currentEnrollment = :enrollment',
+      {
         ':students': updatedStudents,
         ':enrollment': updatedStudents.length,
-      },
-    });
+      }
+    );
 
     // If there's a waitlist, move the first student from waitlist to enrollment
     if (course.enrollment?.waitlist?.length > 0) {
@@ -223,16 +213,16 @@ export async function DELETE(request: NextRequest) {
         status: 'active',
       };
 
-      await dynamoDBService.update({
-        TableName: 'classcast-courses',
-        Key: { courseId },
-        UpdateExpression: 'SET enrollment.students = list_append(enrollment.students, :new_student), enrollment.waitlist = :waitlist, currentEnrollment = currentEnrollment + :increment',
-        ExpressionAttributeValues: {
+      await dynamoDBService.updateItem(
+        'classcast-courses', 
+        { courseId }, 
+        'SET enrollment.students = list_append(enrollment.students, :new_student), enrollment.waitlist = :waitlist, currentEnrollment = currentEnrollment + :increment',
+        {
           ':new_student': [enrolledStudent],
           ':waitlist': remainingWaitlist,
           ':increment': 1,
-        },
-      });
+        }
+      );
 
       // Notify the student who was moved from waitlist
       try {
@@ -282,12 +272,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Get course enrollment
-    const courseResponse = await dynamoDBService.get({
-      TableName: 'classcast-courses',
-      Key: { courseId },
-    });
+    const course = await dynamoDBService.getItem<any>('classcast-courses', { courseId });
 
-    if (!courseResponse.Item) {
+    if (!course) {
       return NextResponse.json(
         {
           success: false,
@@ -296,8 +283,6 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
-
-    const course = courseResponse.Item;
 
     return NextResponse.json({
       success: true,
