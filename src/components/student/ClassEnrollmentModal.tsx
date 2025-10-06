@@ -103,24 +103,25 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
       await onEnroll(classCode.trim().toUpperCase(), sectionId);
       console.log('Enrollment successful, closing modal');
       
-      // Reset all state
+      // Reset all state and close modals
       setClassCode('');
       setShowSectionSelection(false);
       setFoundCourse(null);
       setFoundSections([]);
+      setIsLoading(false);
       
-      // Close the modal
+      // Close the main modal
       onClose();
     } catch (err) {
       console.error('Enrollment error:', err);
       setError(err instanceof Error ? err.message : 'Failed to enroll in class');
       setShowSectionSelection(false); // Close section selection modal to show error
-    } finally {
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
+    console.log('Main modal handleClose called');
     setClassCode('');
     setError('');
     setShowSectionSelection(false);
@@ -137,15 +138,19 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
       {showSectionSelection && foundCourse && (
         <SectionSelectionModal
           isOpen={showSectionSelection}
-          onClose={() => setShowSectionSelection(false)}
+          onClose={() => {
+            console.log('Section selection modal closing');
+            setShowSectionSelection(false);
+          }}
           onSelectSection={handleSectionSelection}
           course={foundCourse}
           sections={foundSections}
         />
       )}
 
-      {/* Main Enrollment Modal */}
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      {/* Main Enrollment Modal - hide when section selection is active */}
+      {!showSectionSelection && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
@@ -253,6 +258,7 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
           </div>
         </div>
       </div>
+      )}
     </>
   );
 };
