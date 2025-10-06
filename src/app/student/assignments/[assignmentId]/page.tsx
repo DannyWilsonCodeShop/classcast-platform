@@ -80,32 +80,43 @@ const StudentAssignmentDetailPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Fetching assignment details for:', assignmentId);
 
       // First try to get assignment from student assignments API
+      console.log('Trying student assignments API...');
       const response = await fetch(`/api/student/assignments?userId=${user?.id}`, {
         credentials: 'include',
       });
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Student assignments API response:', data);
         const foundAssignment = data.assignments?.find((a: Assignment) => a.assignmentId === assignmentId);
         
         if (foundAssignment) {
+          console.log('Found assignment in student assignments:', foundAssignment);
           setAssignment(foundAssignment);
           return;
+        } else {
+          console.log('Assignment not found in student assignments');
         }
+      } else {
+        console.log('Student assignments API failed:', response.status, response.statusText);
       }
 
       // If not found in student assignments, try the general assignments API
+      console.log('Trying general assignments API...');
       const generalResponse = await fetch(`/api/assignments?courseId=all`, {
         credentials: 'include',
       });
 
       if (generalResponse.ok) {
         const generalData = await generalResponse.json();
+        console.log('General assignments API response:', generalData);
         const foundAssignment = generalData.data?.assignments?.find((a: any) => a.assignmentId === assignmentId);
         
         if (foundAssignment) {
+          console.log('Found assignment in general assignments:', foundAssignment);
           // Transform the assignment to match our interface
           const transformedAssignment: Assignment = {
             assignmentId: foundAssignment.assignmentId,
@@ -126,13 +137,18 @@ const StudentAssignmentDetailPage: React.FC = () => {
           };
           setAssignment(transformedAssignment);
           return;
+        } else {
+          console.log('Assignment not found in general assignments');
         }
+      } else {
+        console.log('General assignments API failed:', generalResponse.status, generalResponse.statusText);
       }
 
-      throw new Error('Assignment not found');
+      console.log('Assignment not found in any API');
+      throw new Error(`Assignment ${assignmentId} not found`);
     } catch (err) {
       console.error('Error fetching assignment details:', err);
-      setError('Failed to load assignment details');
+      setError(`Failed to load assignment details: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -140,15 +156,24 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
   const fetchSubmission = async () => {
     try {
+      console.log('Fetching submission for assignment:', assignmentId, 'student:', user?.id);
       const response = await fetch(`/api/assignments/${assignmentId}/submissions?studentId=${user?.id}`, {
         credentials: 'include',
       });
 
+      console.log('Submission API response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Submission API response data:', data);
         if (data.success && data.submissions && data.submissions.length > 0) {
+          console.log('Found submission:', data.submissions[0]);
           setSubmission(data.submissions[0]); // Get the first (and should be only) submission for this student
+        } else {
+          console.log('No submissions found');
         }
+      } else {
+        console.log('Submission API failed:', response.status, response.statusText);
       }
     } catch (err) {
       console.error('Error fetching submission:', err);
