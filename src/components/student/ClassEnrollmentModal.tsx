@@ -98,12 +98,18 @@ const ClassEnrollmentModal: React.FC<ClassEnrollmentModalProps> = ({
     setError('');
 
     try {
+      console.log('Starting enrollment for section:', sectionId);
       // Enroll in the specific section
       await onEnroll(classCode.trim().toUpperCase(), sectionId);
+      console.log('Enrollment successful, closing modal');
+      
+      // Reset all state
       setClassCode('');
       setShowSectionSelection(false);
       setFoundCourse(null);
       setFoundSections([]);
+      
+      // Close the modal
       onClose();
     } catch (err) {
       console.error('Enrollment error:', err);

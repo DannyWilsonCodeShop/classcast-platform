@@ -292,6 +292,8 @@ const StudentDashboard: React.FC = () => {
         throw new Error('User not authenticated');
       }
 
+      console.log('Starting enrollment process for class:', classCode, 'section:', sectionId);
+
       const response = await fetch('/api/student/enroll', {
         method: 'POST',
         headers: {
@@ -302,10 +304,13 @@ const StudentDashboard: React.FC = () => {
       });
 
       const data = await response.json();
+      console.log('Enrollment API response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to enroll in class');
       }
+
+      console.log('Enrollment successful, updating UI...');
 
       // Add the new class to the courses list
       setCourses(prevCourses => [...prevCourses, data.class]);
@@ -313,6 +318,7 @@ const StudentDashboard: React.FC = () => {
       // Refresh dashboard data to ensure everything is up to date
       if (isAuthenticated && user) {
         try {
+          console.log('Refreshing dashboard data...');
           const [statsResponse, coursesResponse] = await Promise.all([
             fetch(`/api/student/stats?userId=${user.id}`, { credentials: 'include' }),
             fetch(`/api/student/courses?userId=${user.id}`, { credentials: 'include' })
@@ -329,8 +335,11 @@ const StudentDashboard: React.FC = () => {
             const coursesData = await coursesResponse.json();
             setCourses(coursesData.courses || []);
           }
+          
+          console.log('Dashboard data refreshed successfully');
         } catch (refreshError) {
           console.warn('Failed to refresh dashboard data after enrollment:', refreshError);
+          // Don't throw here - enrollment was successful, just refresh failed
         }
       }
       
