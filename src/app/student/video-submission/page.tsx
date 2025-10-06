@@ -189,11 +189,30 @@ const VideoSubmissionContent: React.FC = () => {
       const videoId = `video-${Date.now()}`;
       await storeVideoInIndexedDB(videoId, videoBlob);
       
+      // Get assignment details to extract sectionId
+      let sectionId = null;
+      try {
+        const assignmentResponse = await fetch(`/api/assignments/${assignmentId}`, {
+          credentials: 'include',
+        });
+        
+        if (assignmentResponse.ok) {
+          const assignmentData = await assignmentResponse.json();
+          if (assignmentData.success && assignmentData.assignment) {
+            sectionId = assignmentData.assignment.sectionId;
+            console.log('Found sectionId for assignment:', sectionId);
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch assignment details for sectionId:', error);
+      }
+
       // Now submit the video as an assignment submission
       const submissionData = {
         assignmentId: assignmentId, // Use the actual assignment ID from URL params
         studentId: user?.id || 'unknown',
         courseId: courseId, // Use the actual course ID from URL params
+        sectionId: sectionId, // Add sectionId if available
         videoUrl: videoUrl, // Now using the actual S3 URL
         videoId: videoId, // Store the IndexedDB key for retrieval
         videoTitle: `Video Submission - ${new Date().toLocaleDateString()}`,
