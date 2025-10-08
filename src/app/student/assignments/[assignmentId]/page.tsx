@@ -104,19 +104,19 @@ const StudentAssignmentDetailPage: React.FC = () => {
         console.log('Student assignments API failed:', response.status, response.statusText);
       }
 
-      // If not found in student assignments, try the general assignments API
-      console.log('Trying general assignments API...');
-      const generalResponse = await fetch(`/api/assignments?courseId=all`, {
+      // If not found in student assignments, try the direct assignment API
+      console.log('Trying direct assignment API...');
+      const directResponse = await fetch(`/api/assignments/${assignmentId}`, {
         credentials: 'include',
       });
 
-      if (generalResponse.ok) {
-        const generalData = await generalResponse.json();
-        console.log('General assignments API response:', generalData);
-        const foundAssignment = generalData.data?.assignments?.find((a: any) => a.assignmentId === assignmentId);
+      if (directResponse.ok) {
+        const directData = await directResponse.json();
+        console.log('Direct assignment API response:', directData);
+        const foundAssignment = directData.success ? directData.data?.assignment : null;
         
         if (foundAssignment) {
-          console.log('Found assignment in general assignments:', foundAssignment);
+          console.log('Found assignment via direct API:', foundAssignment);
           // Transform the assignment to match our interface
           const transformedAssignment: Assignment = {
             assignmentId: foundAssignment.assignmentId,
@@ -138,10 +138,10 @@ const StudentAssignmentDetailPage: React.FC = () => {
           setAssignment(transformedAssignment);
           return;
         } else {
-          console.log('Assignment not found in general assignments');
+          console.log('Assignment not found via direct API');
         }
       } else {
-        console.log('General assignments API failed:', generalResponse.status, generalResponse.statusText);
+        console.log('Direct assignment API failed:', directResponse.status, directResponse.statusText);
       }
 
       console.log('Assignment not found in any API');
