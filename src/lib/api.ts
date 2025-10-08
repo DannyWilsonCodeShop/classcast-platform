@@ -170,12 +170,13 @@ class ApiClient {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit & { skipTokenValidation?: boolean } = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
     
     // Ensure we have a valid token before making the request
-    if (this.accessToken && !this.isTokenValid()) {
+    // Skip this check for endpoints that don't need token validation (like refresh)
+    if (!options.skipTokenValidation && this.accessToken && !this.isTokenValid()) {
       const tokenValid = await this.ensureValidToken();
       if (!tokenValid) {
         throw new Error('Authentication required');
@@ -355,24 +356,42 @@ class ApiClient {
       throw new Error('No refresh token available');
     }
 
-    const response = await this.request<LoginResponse>('/auth/refresh', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken }),
-    });
+    // Make a direct request to avoid circular token validation
+    const url = `${this.baseUrl}/auth/refresh`;
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
 
-    if (response.success && response.data) {
-      this.setAccessToken(response.data.tokens.accessToken);
-      
-      // Update stored tokens
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('refreshToken', response.data.tokens.refreshToken);
-        localStorage.setItem('idToken', response.data.tokens.idToken);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
       }
 
-      return response.data;
-    }
+      const data = await response.json();
 
-    throw new Error('Token refresh failed');
+      if (data.success && data.data) {
+        this.setAccessToken(data.data.tokens.accessToken);
+        
+        // Update stored tokens
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('refreshToken', data.data.tokens.refreshToken);
+          localStorage.setItem('idToken', data.data.tokens.idToken);
+        }
+
+        return data.data;
+      }
+
+      throw new Error('Token refresh failed');
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      throw error;
+    }
   }
 
   // ============================================================================

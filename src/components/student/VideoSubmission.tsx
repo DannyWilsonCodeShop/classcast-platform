@@ -305,10 +305,46 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       setSelectedFile(prev => prev ? { ...prev, status: 'processing' } : null);
       setIsProcessing(true);
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Create submission record in database
+      const submissionPayload = {
+        assignmentId,
+        studentId: user.id || user.sub,
+        courseId,
+        videoUrl: result.data.fileUrl,
+        videoTitle: selectedFile.file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
+        videoDescription: `Video submission for assignment ${assignmentId}`,
+        duration: selectedFile.duration || 0,
+        fileName: result.data.fileName,
+        fileSize: selectedFile.file.size,
+        fileType: selectedFile.file.type,
+        isUploaded: true,
+        isRecorded: false,
+        isLocalStorage: false,
+      };
+
+      console.log('Creating submission record:', submissionPayload);
+
+      const submissionResponse = await fetch('/api/video-submissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionPayload),
+      });
+
+      if (!submissionResponse.ok) {
+        const errorData = await submissionResponse.json();
+        console.error('Failed to create submission record:', errorData);
+        throw new Error(errorData.error || 'Failed to create submission record');
+      }
+
+      const submissionResult = await submissionResponse.json();
+      console.log('Submission record created:', submissionResult);
+
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const submissionData: VideoSubmissionData = {
-        submissionId: crypto.randomUUID(),
+        submissionId: submissionResult.submission.submissionId,
         fileKey: result.data.fileKey,
         fileUrl: result.data.fileUrl,
         fileName: result.data.fileName,
@@ -317,8 +353,8 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         metadata: {
           assignmentId,
           courseId,
-          studentId: user.userId,
-          uploadedAt: new Date().toISOString(),
+          studentId: user.id || user.sub,
+          uploadedAt: submissionResult.submission.submittedAt,
           videoFormat: selectedFile.metadata?.format || 'unknown',
           resolution: selectedFile.metadata ? `${selectedFile.metadata.width}x${selectedFile.metadata.height}` : undefined,
         },
