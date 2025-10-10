@@ -189,6 +189,26 @@ const VideoSubmissionContent: React.FC = () => {
       const videoId = `video-${Date.now()}`;
       await storeVideoInIndexedDB(videoId, videoBlob);
       
+      // Extract video metadata (duration, resolution)
+      let videoDuration = 0;
+      let videoWidth = 1920;
+      let videoHeight = 1080;
+      
+      try {
+        const metadata = await extractVideoMetadata(videoBlob);
+        videoDuration = metadata.duration;
+        videoWidth = metadata.width;
+        videoHeight = metadata.height;
+        console.log('Video metadata extracted:', { duration: videoDuration, width: videoWidth, height: videoHeight });
+      } catch (error) {
+        console.warn('Could not extract video metadata, using defaults:', error);
+        // Try to get duration from the video element if it's displayed
+        if (videoRef.current && videoRef.current.duration) {
+          videoDuration = Math.floor(videoRef.current.duration);
+          console.log('Using duration from video element:', videoDuration);
+        }
+      }
+      
       // Get assignment details to extract sectionId
       let sectionId = null;
       try {
@@ -217,7 +237,7 @@ const VideoSubmissionContent: React.FC = () => {
         videoId: videoId, // Store the IndexedDB key for retrieval
         videoTitle: `Video Submission - ${new Date().toLocaleDateString()}`,
         videoDescription: 'Student video submission',
-        duration: 0, // We don't have duration yet
+        duration: videoDuration, // Use extracted video duration
         fileName: fileName,
         fileSize: videoBlob.size,
         fileType: videoType,
@@ -342,6 +362,35 @@ const VideoSubmissionContent: React.FC = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
+  };
+
+  // Extract video metadata (duration, resolution)
+  const extractVideoMetadata = async (blob: Blob | File): Promise<{
+    duration: number;
+    width: number;
+    height: number;
+  }> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      const url = URL.createObjectURL(blob);
+
+      video.onloadedmetadata = () => {
+        const metadata = {
+          duration: Math.floor(video.duration), // Round to nearest second
+          width: video.videoWidth,
+          height: video.videoHeight,
+        };
+        URL.revokeObjectURL(url);
+        resolve(metadata);
+      };
+
+      video.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load video metadata'));
+      };
+
+      video.src = url;
+    });
   };
 
   // IndexedDB functions for storing video data
