@@ -633,22 +633,29 @@ const StudentDashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Pending Reviews */}
-                      <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors cursor-pointer"
+                      {/* Pending Reviews - More Prominent */}
+                      <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group"
                            onClick={() => router.push('/student/peer-reviews')}>
                         <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                            <span className="text-white text-lg">👥</span>
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                            <span className="text-white text-lg">🎥</span>
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-medium text-gray-800">Pending Reviews</h3>
-                            <span className="text-lg font-bold text-blue-600">{todoStats.pendingReviews}</span>
+                            <h3 className="text-sm font-semibold text-gray-800">Videos to Review</h3>
+                            {todoStats.pendingReviews > 0 ? (
+                              <span className="px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full animate-pulse">
+                                {todoStats.pendingReviews} NEW
+                              </span>
+                            ) : (
+                              <span className="text-lg font-bold text-blue-600">{todoStats.pendingReviews}</span>
+                            )}
                           </div>
+                          <p className="text-xs text-gray-600 mt-0.5">Watch & respond to peer videos</p>
                         </div>
                         <div className="flex-shrink-0">
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 text-blue-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
@@ -658,8 +665,8 @@ const StudentDashboard: React.FC = () => {
                   
                   {/* Quick Actions */}
                   <div className="mt-3 pt-3 border-t border-gray-100">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-500">
                         {todoStats.nextDueAssignment 
                           ? `Next due: ${todoStats.nextDueAssignment.title} - ${todoStats.nextDueAssignment.dueDate}`
                           : 'No upcoming assignments'
@@ -672,12 +679,14 @@ const StudentDashboard: React.FC = () => {
                         >
                           View All Assignments
                         </button>
-                        <button 
-                          onClick={() => router.push('/student/peer-reviews')}
-                          className="text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                          Start Reviewing
-                        </button>
+                        {todoStats.pendingReviews > 0 && (
+                          <button 
+                            onClick={() => router.push('/student/peer-reviews')}
+                            className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg font-medium transition-colors"
+                          >
+                            🎥 Start Reviewing ({todoStats.pendingReviews})
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
