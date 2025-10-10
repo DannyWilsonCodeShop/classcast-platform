@@ -999,7 +999,7 @@ const PeerReviewsContent: React.FC = () => {
                     </button>
                   ))}
                   <span className="text-xs sm:text-sm text-gray-500 ml-1 sm:ml-2">
-                    ({currentVideo.averageRating.toFixed(1)})
+                    ({(currentVideo.averageRating || 0).toFixed(1)})
                   </span>
                 </div>
 
@@ -1258,8 +1258,8 @@ const PeerReviewsContent: React.FC = () => {
                           {formatTime(video.duration)}
                         </span>
                         <div className="flex items-center space-x-1">
-                          <span className="text-xs">❤️ {video.likes}</span>
-                          <span className="text-xs">⭐ {video.averageRating.toFixed(1)}</span>
+                          <span className="text-xs">❤️ {video.likes || 0}</span>
+                          <span className="text-xs">⭐ {(video.averageRating || 0).toFixed(1)}</span>
                         </div>
                       </div>
                       {responses.has(video.id) && (
