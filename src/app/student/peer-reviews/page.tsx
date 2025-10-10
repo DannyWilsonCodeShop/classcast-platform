@@ -809,7 +809,8 @@ const PeerReviewsContent: React.FC = () => {
     );
   }
 
-  if (!assignment || peerVideos.length === 0 || !currentVideo) {
+  // Show empty state only if there are truly no videos
+  if (peerVideos.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-8">
@@ -857,7 +858,9 @@ const PeerReviewsContent: React.FC = () => {
             </button>
             <div className="min-w-0 flex-1">
               <h1 className="text-lg sm:text-2xl font-bold text-gray-800 truncate">Peer Video Reviews</h1>
-              <p className="text-sm sm:text-base text-gray-600 truncate">{assignment.title}</p>
+              <p className="text-sm sm:text-base text-gray-600 truncate">
+                {assignment ? assignment.title : `${peerVideos.length} videos to review`}
+              </p>
               <div className="flex items-center mt-1">
                 <span className={`text-xs px-2 py-1 rounded-full ${
                   peerReviewScope === 'section' 
