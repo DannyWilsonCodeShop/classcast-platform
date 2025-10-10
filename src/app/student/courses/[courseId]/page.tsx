@@ -413,7 +413,9 @@ const StudentCourseDetailPage: React.FC = () => {
               onClick={() => router.push('/student/dashboard')}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <span className="text-xl">&lt;</span>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
             </button>
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
               📚
