@@ -1,47 +1,78 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
+const s3Client = new S3Client({ region: 'us-east-1' });
 
 const SUBMISSIONS_TABLE = 'classcast-submissions';
 const COURSES_TABLE = 'classcast-courses';
 const USERS_TABLE = 'classcast-users';
 const ASSIGNMENTS_TABLE = 'classcast-assignments';
+const VIDEO_BUCKET = process.env.VIDEO_BUCKET || 'classcast-videos-463470937777-us-east-1';
+const SIGNED_URL_EXPIRY = 3600; // 1 hour
+
+// Helper function to extract S3 key from S3 URL
+function extractS3KeyFromUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    let key = urlObj.pathname.substring(1);
+    if (key.startsWith(`${VIDEO_BUCKET}/`)) {
+      key = key.substring(VIDEO_BUCKET.length + 1);
+    }
+    return key || null;
+  } catch (error) {
+    console.error('Error extracting S3 key from URL:', error);
+    return null;
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
     const courseId = searchParams.get('courseId');
-    
-    if (!studentId) {
-      return NextResponse.json(
-        { error: 'Student ID is required' },
-        { status: 400 }
-      );
-    }
+    const assignmentId = searchParams.get('assignmentId');
 
-    console.log('Fetching community submissions for student:', studentId, 'course:', courseId);
+    console.log('Fetching community submissions for student:', studentId, 'course:', courseId, 'assignment:', assignmentId);
 
-    // Get peer submissions (excluding the current student's own submissions)
+    // Get peer submissions
     let submissions = [];
     
     try {
+      // Build filter expression based on parameters
+      let filterExpression = '';
+      let expressionAttributeValues: any = {};
+      
+      const filters = [];
+      
+      if (assignmentId) {
+        filters.push('assignmentId = :assignmentId');
+        expressionAttributeValues[':assignmentId'] = assignmentId;
+      }
+      
+      if (courseId) {
+        filters.push('courseId = :courseId');
+        expressionAttributeValues[':courseId'] = courseId;
+      }
+      
+      // Exclude current student's own submissions if studentId provided
+      if (studentId) {
+        filters.push('studentId <> :studentId');
+        expressionAttributeValues[':studentId'] = studentId;
+      }
+      
+      filterExpression = filters.join(' AND ');
+      
       const submissionsResult = await docClient.send(new ScanCommand({
         TableName: SUBMISSIONS_TABLE,
-        FilterExpression: courseId 
-          ? 'courseId = :courseId AND studentId <> :studentId'
-          : 'studentId <> :studentId',
-        ExpressionAttributeValues: courseId
-          ? {
-              ':courseId': courseId,
-              ':studentId': studentId
-            }
-          : {
-              ':studentId': studentId
-            }
+        ...(filterExpression && {
+          FilterExpression: filterExpression,
+          ExpressionAttributeValues: expressionAttributeValues
+        })
       }));
       
       submissions = submissionsResult.Items || [];
@@ -106,6 +137,24 @@ export async function GET(request: NextRequest) {
         // Use fallback values if enrichment fails
       }
       
+      // Generate signed URL for video if it exists
+      let signedVideoUrl = submission.videoUrl;
+      if (submission.videoUrl) {
+        try {
+          const s3Key = extractS3KeyFromUrl(submission.videoUrl);
+          if (s3Key) {
+            const command = new GetObjectCommand({
+              Bucket: VIDEO_BUCKET,
+              Key: s3Key,
+            });
+            signedVideoUrl = await getSignedUrl(s3Client, command, { expiresIn: SIGNED_URL_EXPIRY });
+            console.log('Generated signed URL for peer video:', s3Key);
+          }
+        } catch (error) {
+          console.warn('Could not generate signed URL for video:', error);
+        }
+      }
+
       return {
         id: submission.submissionId || submission.id,
         submissionId: submission.submissionId || submission.id,
@@ -116,7 +165,8 @@ export async function GET(request: NextRequest) {
         assignmentTitle,
         courseId: submission.courseId,
         courseName,
-        videoUrl: submission.videoUrl,
+        sectionId: submission.sectionId,
+        videoUrl: signedVideoUrl,
         videoTitle: submission.videoTitle || 'Video Submission',
         videoDescription: submission.videoDescription || '',
         duration: submission.duration || 0,
