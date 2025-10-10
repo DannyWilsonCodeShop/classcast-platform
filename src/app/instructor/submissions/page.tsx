@@ -111,7 +111,9 @@ const SubmissionsListContent: React.FC = () => {
                   onClick={() => router.push('/instructor/dashboard')}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  <span className="text-2xl">&lt;</span>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
                 <div className="flex items-center space-x-4">
                   <img 
