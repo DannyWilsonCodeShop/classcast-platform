@@ -125,9 +125,89 @@ const InstructorStudentsPage: React.FC = () => {
         throw new Error(courseData.error || 'Failed to fetch course');
       }
 
-      // Fetch real students data from API
-      const students: Student[] = [];
-      setStudents(students);
+      // Fetch enrolled students
+      const enrollmentResponse = await fetch(`/api/courses/enrollment?courseId=${courseId}`, {
+        credentials: 'include',
+      });
+
+      if (enrollmentResponse.ok) {
+        const enrollmentData = await enrollmentResponse.json();
+        if (enrollmentData.success && enrollmentData.data.students) {
+          // Transform enrolled students to Student interface
+          const transformedStudents: Student[] = await Promise.all(
+            enrollmentData.data.students.map(async (enrolledStudent: any) => {
+              // Fetch user details
+              let userName = `${enrolledStudent.firstName || ''} ${enrolledStudent.lastName || ''}`.trim() || 'Unknown';
+              let userEmail = enrolledStudent.email || 'N/A';
+              let userAvatar = '/api/placeholder/40/40';
+
+              try {
+                const userResponse = await fetch(`/api/users/${enrolledStudent.userId}`, {
+                  credentials: 'include',
+                });
+                if (userResponse.ok) {
+                  const userData = await userResponse.json();
+                  if (userData.success && userData.user) {
+                    userName = `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim() || userName;
+                    userEmail = userData.user.email || userEmail;
+                    userAvatar = userData.user.avatar || userAvatar;
+                  }
+                }
+              } catch (err) {
+                console.warn('Could not fetch user details for:', enrolledStudent.userId);
+              }
+
+              // Fetch submission stats for this student in this course
+              let submissionsCount = 0;
+              let assignmentsTotal = 0;
+              let averageGrade = 0;
+
+              try {
+                const submissionsResponse = await fetch(
+                  `/api/video-submissions?studentId=${enrolledStudent.userId}&courseId=${courseId}`,
+                  { credentials: 'include' }
+                );
+                if (submissionsResponse.ok) {
+                  const submissionsData = await submissionsResponse.json();
+                  if (submissionsData.success && submissionsData.submissions) {
+                    submissionsCount = submissionsData.submissions.length;
+                    const grades = submissionsData.submissions
+                      .filter((s: any) => s.grade !== null && s.grade !== undefined)
+                      .map((s: any) => s.grade);
+                    if (grades.length > 0) {
+                      averageGrade = grades.reduce((sum: number, g: number) => sum + g, 0) / grades.length;
+                    }
+                  }
+                }
+              } catch (err) {
+                console.warn('Could not fetch submissions for:', enrolledStudent.userId);
+              }
+
+              return {
+                studentId: enrolledStudent.userId,
+                name: userName,
+                email: userEmail,
+                avatar: userAvatar,
+                enrollmentDate: enrolledStudent.enrolledAt,
+                status: (enrolledStudent.status as 'active' | 'dropped' | 'completed') || 'active',
+                currentGrade: averageGrade > 0 ? averageGrade : undefined,
+                assignmentsSubmitted: submissionsCount,
+                assignmentsTotal: assignmentsTotal,
+                lastActivity: enrolledStudent.enrolledAt, // Default to enrollment date
+                submissionsCount: submissionsCount,
+                averageGrade: averageGrade,
+              };
+            })
+          );
+
+          setStudents(transformedStudents);
+        } else {
+          setStudents([]);
+        }
+      } else {
+        console.warn('Failed to fetch enrollment data');
+        setStudents([]);
+      }
 
     } catch (err) {
       console.error('Error fetching course and students:', err);
@@ -190,7 +270,8 @@ const InstructorStudentsPage: React.FC = () => {
       <InstructorRoute>
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
-            <LoadingSpinner text="Loading students..." />
+            <LoadingSpinner size="lg" />
+            <p className="mt-4 text-gray-600">Loading students...</p>
           </div>
         </div>
       </InstructorRoute>
@@ -232,7 +313,9 @@ const InstructorStudentsPage: React.FC = () => {
                   onClick={() => router.push(`/instructor/courses/${courseId}`)}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  <span className="text-2xl">&lt;</span>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
                 <div className="flex items-center space-x-4">
                   <img 
