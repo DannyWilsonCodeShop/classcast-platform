@@ -52,18 +52,46 @@ export async function GET(request: NextRequest) {
     if (assignmentId) {
       // Get submissions for a specific assignment
       console.log('Fetching submissions for assignment:', assignmentId);
-      const queryCommand = new QueryCommand({
-        TableName: 'classcast-submissions',
-        IndexName: 'AssignmentIdIndex',
-        KeyConditionExpression: 'assignmentId = :assignmentId',
-        ExpressionAttributeValues: {
-          ':assignmentId': assignmentId
-        }
-      });
+      
+      // Try using QueryCommand with index first, fall back to Scan if index doesn't exist
+      try {
+        const queryCommand = new QueryCommand({
+          TableName: 'classcast-submissions',
+          IndexName: 'AssignmentIdIndex',
+          KeyConditionExpression: 'assignmentId = :assignmentId',
+          ExpressionAttributeValues: {
+            ':assignmentId': assignmentId
+          }
+        });
 
-      const result = await docClient.send(queryCommand);
-      submissions = result.Items || [];
-      console.log('Found submissions for assignment:', submissions.length);
+        const result = await docClient.send(queryCommand);
+        submissions = result.Items || [];
+        console.log('Found submissions for assignment (via Query):', submissions.length);
+      } catch (queryError: any) {
+        // If index doesn't exist, fall back to Scan with filter
+        console.warn('Query failed, falling back to Scan:', queryError.message);
+        
+        let filterExpression = 'assignmentId = :assignmentId';
+        let expressionAttributeValues: any = {
+          ':assignmentId': assignmentId
+        };
+
+        // Also filter by courseId if provided
+        if (courseId) {
+          filterExpression += ' AND courseId = :courseId';
+          expressionAttributeValues[':courseId'] = courseId;
+        }
+
+        const scanCommand = new ScanCommand({
+          TableName: 'classcast-submissions',
+          FilterExpression: filterExpression,
+          ExpressionAttributeValues: expressionAttributeValues
+        });
+
+        const result = await docClient.send(scanCommand);
+        submissions = result.Items || [];
+        console.log('Found submissions for assignment (via Scan):', submissions.length);
+      }
     } else if (courseId) {
       // Get all submissions for a course (optionally filtered by section)
       console.log('Fetching submissions for course:', courseId, 'section:', sectionId);

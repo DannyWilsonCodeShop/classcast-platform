@@ -690,7 +690,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                             </p>
                             
                             {/* Video Preview with Thumbnail */}
-                            <div className="bg-black rounded-lg overflow-hidden mb-4 relative group">
+                            <div className="bg-black rounded-lg overflow-hidden mb-4 relative">
                               <video
                                 src={submission.videoUrl}
                                 controls
@@ -703,14 +703,6 @@ const InstructorCourseDetailPage: React.FC = () => {
                               >
                                 Your browser does not support the video tag.
                               </video>
-                              {/* Play overlay for better UX */}
-                              <div className="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none">
-                                <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
-                                  <svg className="w-8 h-8 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z"/>
-                                  </svg>
-                                </div>
-                              </div>
                             </div>
                             
                             {/* Submission Details */}
