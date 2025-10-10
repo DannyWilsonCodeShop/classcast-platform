@@ -23,6 +23,7 @@ interface Course {
   assignmentsDue: number;
   icon?: string;
   subject?: string;
+  ungradedSubmissions?: number;
 }
 
 interface RecentSubmission {
@@ -207,7 +208,35 @@ const InstructorDashboard: React.FC = () => {
               courseId: course.id || course.courseId
             }));
             console.log('Mapped courses for dashboard:', mappedCourses);
-            setCourses(mappedCourses);
+            
+            // Fetch ungraded submission counts for each course
+            const coursesWithSubmissionCounts = await Promise.all(
+              mappedCourses.map(async (course: any) => {
+                try {
+                  const submissionsResponse = await fetch(`/api/instructor/video-submissions?courseId=${course.id}`);
+                  if (submissionsResponse.ok) {
+                    const submissionsData = await submissionsResponse.json();
+                    const submissions = submissionsData.submissions || [];
+                    // Count submissions without a grade
+                    const ungradedCount = submissions.filter((sub: any) => 
+                      sub.grade === null || sub.grade === undefined
+                    ).length;
+                    return {
+                      ...course,
+                      ungradedSubmissions: ungradedCount
+                    };
+                  }
+                } catch (error) {
+                  console.error(`Error fetching submissions for course ${course.id}:`, error);
+                }
+                return {
+                  ...course,
+                  ungradedSubmissions: 0
+                };
+              })
+            );
+            
+            setCourses(coursesWithSubmissionCounts);
           } else {
             console.error('Courses data is not an array:', coursesArray);
             setCourses([]);
@@ -410,11 +439,23 @@ const InstructorDashboard: React.FC = () => {
                       <button
                         key={course.id}
                         onClick={() => router.push(`/instructor/courses/${course.id}`)}
-                        className="w-full text-left bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-indigo-600/20"
+                        className={`w-full text-left bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 focus:outline-none focus:ring-4 ${
+                          (course.ungradedSubmissions || 0) > 0
+                            ? 'border-orange-400 ring-2 ring-orange-200 bg-gradient-to-br from-orange-50/50 to-white focus:ring-orange-300/50'
+                            : 'border-white/20 focus:ring-indigo-600/20'
+                        }`}
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{course.title}</h3>
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-lg font-semibold text-gray-900">{course.title}</h3>
+                              {(course.ungradedSubmissions || 0) > 0 && (
+                                <span className="flex items-center gap-1 px-2 py-1 bg-orange-500 text-white text-xs font-bold rounded-full animate-pulse">
+                                  <span>🔔</span>
+                                  <span>{course.ungradedSubmissions}</span>
+                                </span>
+                              )}
+                            </div>
                             <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
                               <button 
                                 onClick={(e) => {
@@ -433,10 +474,21 @@ const InstructorDashboard: React.FC = () => {
                           </div>
                         </div>
                         
+                        {(course.ungradedSubmissions || 0) > 0 && (
+                          <div className="mb-4 p-3 bg-orange-100 border border-orange-200 rounded-lg">
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="text-orange-600 font-semibold">
+                                ⚠️ {course.ungradedSubmissions} ungraded {course.ungradedSubmissions === 1 ? 'submission' : 'submissions'}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                         
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">Click to manage class</span>
+                            <span className="text-gray-600">
+                              {(course.ungradedSubmissions || 0) > 0 ? 'Click to grade submissions' : 'Click to manage class'}
+                            </span>
                             <span className="text-indigo-600 font-medium">→</span>
                           </div>
                         </div>
