@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     } else {
       // Get all submissions
       const scanCommand = new ScanCommand({
-        TableName: process.env.VIDEO_SUBMISSIONS_TABLE_NAME || 'ClassCastVideoSubmissions'
+        TableName: 'classcast-submissions'
       });
 
       const result = await docClient.send(scanCommand);
@@ -294,7 +294,7 @@ export async function PUT(request: NextRequest) {
     const now = new Date().toISOString();
 
     const updateCommand: any = {
-      TableName: process.env.VIDEO_SUBMISSIONS_TABLE_NAME || 'ClassCastVideoSubmissions',
+      TableName: 'classcast-submissions',
       Key: { submissionId },
       UpdateExpression: 'SET #status = :status, updatedAt = :updatedAt, gradedAt = :gradedAt',
       ExpressionAttributeNames: {

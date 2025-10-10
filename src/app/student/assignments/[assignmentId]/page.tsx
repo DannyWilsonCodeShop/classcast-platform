@@ -59,26 +59,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
   const assignmentId = params.assignmentId as string;
 
-  useEffect(() => {
-    if (assignmentId) {
-      fetchAssignmentDetails();
-      fetchSubmission();
-    }
-  }, [assignmentId]);
-
-  // Update assignment status when submission is loaded
-  useEffect(() => {
-    if (assignment && submission) {
-      setAssignment(prev => prev ? {
-        ...prev,
-        status: 'completed',
-        isSubmitted: true,
-        submittedAt: submission.submittedAt
-      } : null);
-    }
-  }, [assignment, submission]);
-
-  const fetchAssignmentDetails = async () => {
+  const fetchAssignmentDetails = React.useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -154,9 +135,9 @@ const StudentAssignmentDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [assignmentId, user?.id]);
 
-  const fetchSubmission = async () => {
+  const fetchSubmission = React.useCallback(async () => {
     try {
       console.log('Fetching submission for assignment:', assignmentId, 'student:', user?.id);
       const response = await fetch(`/api/assignments/${assignmentId}/submissions?studentId=${user?.id}`, {
@@ -181,7 +162,26 @@ const StudentAssignmentDetailPage: React.FC = () => {
       console.error('Error fetching submission:', err);
       // Don't set error for submission fetch failure
     }
-  };
+  }, [assignmentId, user?.id]);
+
+  useEffect(() => {
+    if (assignmentId && user?.id) {
+      fetchAssignmentDetails();
+      fetchSubmission();
+    }
+  }, [assignmentId, user?.id, fetchAssignmentDetails, fetchSubmission]);
+
+  // Update assignment status when submission is loaded
+  useEffect(() => {
+    if (assignment && submission) {
+      setAssignment(prev => prev ? {
+        ...prev,
+        status: 'completed',
+        isSubmitted: true,
+        submittedAt: submission.submittedAt
+      } : null);
+    }
+  }, [assignment, submission]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
