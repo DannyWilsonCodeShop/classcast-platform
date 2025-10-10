@@ -879,7 +879,7 @@ const PeerReviewsContent: React.FC = () => {
           </div>
           <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
             <div className="hidden sm:block text-sm text-gray-600">
-              {responseStats.submittedResponses}/{assignment.minResponsesRequired} responses submitted
+              {responseStats.submittedResponses}/{assignment?.minResponsesRequired || 0} responses submitted
             </div>
             <div className="flex items-center space-x-2">
               <img
@@ -892,7 +892,7 @@ const PeerReviewsContent: React.FC = () => {
         </div>
         {/* Mobile response counter */}
         <div className="sm:hidden mt-2 text-xs text-gray-600 text-center">
-          {responseStats.submittedResponses}/{assignment.minResponsesRequired} responses submitted
+          {responseStats.submittedResponses}/{assignment?.minResponsesRequired || 0} responses submitted
         </div>
       </div>
 
@@ -1213,7 +1213,7 @@ const PeerReviewsContent: React.FC = () => {
           <div className="p-4 border-b border-gray-200">
             <h3 className="font-semibold text-gray-800 mb-2">Peer Videos</h3>
             <div className="text-sm text-gray-600">
-              {responseStats.submittedResponses} of {assignment.minResponsesRequired} responses submitted
+              {responseStats.submittedResponses} of {assignment?.minResponsesRequired || 0} responses submitted
             </div>
           </div>
           
