@@ -144,6 +144,9 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
   const [activeTab, setActiveTab] = useState<'assignments' | 'submissions' | 'students'>('assignments');
+  const [globalPlaybackSpeed, setGlobalPlaybackSpeed] = useState(1.0);
+  const [gradingSubmission, setGradingSubmission] = useState<string | null>(null);
+  const [grades, setGrades] = useState<{[key: string]: { grade: number | '', feedback: string }}>({});
 
   const courseId = params.courseId as string;
 
@@ -358,6 +361,55 @@ const InstructorCourseDetailPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGradeSubmission = async (submissionId: string) => {
+    try {
+      const gradeData = grades[submissionId];
+      if (!gradeData || !gradeData.grade) {
+        alert('Please enter a grade before submitting.');
+        return;
+      }
+
+      const response = await fetch('/api/video-submissions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          submissionId,
+          grade: Number(gradeData.grade),
+          instructorFeedback: gradeData.feedback,
+          status: 'graded'
+        }),
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Update local state
+        setVideoSubmissions(prev => prev.map(sub =>
+          sub.submissionId === submissionId
+            ? { ...sub, grade: Number(gradeData.grade), instructorFeedback: gradeData.feedback, status: 'graded' as const }
+            : sub
+        ));
+        setGradingSubmission(null);
+        alert('Grade submitted successfully!');
+      } else {
+        alert(`Failed to submit grade: ${data.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error submitting grade:', error);
+      alert('Failed to submit grade. Please try again.');
+    }
+  };
+
+  const handlePlaybackSpeedChange = (speed: number) => {
+    setGlobalPlaybackSpeed(speed);
+    // Apply to all video elements on the page
+    const videos = document.querySelectorAll('video');
+    videos.forEach(video => {
+      video.playbackRate = speed;
+    });
   };
 
   if (loading) {
@@ -645,11 +697,30 @@ const InstructorCourseDetailPage: React.FC = () => {
                     <div className="text-sm text-gray-600">
                       {videoSubmissions.length} submission{videoSubmissions.length !== 1 ? 's' : ''}
                     </div>
+                    
+                    {/* Global Playback Speed Control */}
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium text-gray-700">Playback Speed:</label>
+                      <select
+                        value={globalPlaybackSpeed}
+                        onChange={(e) => handlePlaybackSpeedChange(Number(e.target.value))}
+                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value={0.5}>0.5x</option>
+                        <option value={0.75}>0.75x</option>
+                        <option value={1.0}>1.0x (Normal)</option>
+                        <option value={1.25}>1.25x</option>
+                        <option value={1.5}>1.5x</option>
+                        <option value={1.75}>1.75x</option>
+                        <option value={2.0}>2.0x</option>
+                      </select>
+                    </div>
+                    
                     <button
                       onClick={() => router.push(`/instructor/grading/bulk?course=${courseId}`)}
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
                     >
-                      Show All Submissions
+                      Bulk Grading View
                     </button>
                   </div>
                 </div>
@@ -689,13 +760,18 @@ const InstructorCourseDetailPage: React.FC = () => {
                               Submitted: {new Date(submission.submittedAt).toLocaleDateString()} at {new Date(submission.submittedAt).toLocaleTimeString()}
                             </p>
                             
-                            {/* Video Preview with Thumbnail */}
-                            <div className="bg-black rounded-lg overflow-hidden mb-4 relative">
+                            {/* Video Preview with 16:9 Aspect Ratio */}
+                            <div className="bg-black rounded-lg overflow-hidden mb-4 aspect-video">
                               <video
                                 src={submission.videoUrl}
                                 controls
-                                className="w-full h-64 object-cover"
-                                poster={submission.thumbnailUrl || '/api/placeholder/400/300'}
+                                className="w-full h-full object-contain"
+                                preload="metadata"
+                                onLoadedMetadata={(e) => {
+                                  // Apply global playback speed when video loads
+                                  const video = e.currentTarget;
+                                  video.playbackRate = globalPlaybackSpeed;
+                                }}
                                 onError={(e) => {
                                   console.error('Video load error for submission:', submission.submissionId);
                                   console.error('Video URL:', submission.videoUrl);
@@ -721,42 +797,113 @@ const InstructorCourseDetailPage: React.FC = () => {
                               </div>
                             </div>
                             
-                            {/* Grade and Feedback */}
-                            {submission.status === 'graded' && (
-                              <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            {/* Inline Grading Form */}
+                            {submission.status === 'graded' ? (
+                              <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                                 <div className="flex items-center justify-between mb-2">
-                                  <span className="font-medium text-gray-700">Grade:</span>
-                                  <span className="text-2xl font-bold text-blue-600">
+                                  <span className="font-medium text-green-700">✅ Grade:</span>
+                                  <span className="text-2xl font-bold text-green-600">
                                     {submission.grade || 'N/A'}
                                   </span>
                                 </div>
                                 {submission.instructorFeedback && (
                                   <div>
-                                    <span className="font-medium text-gray-700">Feedback:</span>
-                                    <p className="text-gray-600 mt-1">{submission.instructorFeedback}</p>
+                                    <span className="font-medium text-green-700">Feedback:</span>
+                                    <p className="text-green-600 mt-1">{submission.instructorFeedback}</p>
                                   </div>
                                 )}
+                                <button
+                                  onClick={() => {
+                                    setGradingSubmission(submission.submissionId);
+                                    setGrades(prev => ({
+                                      ...prev,
+                                      [submission.submissionId]: {
+                                        grade: submission.grade || '',
+                                        feedback: submission.instructorFeedback || ''
+                                      }
+                                    }));
+                                  }}
+                                  className="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                                >
+                                  Edit Grade
+                                </button>
                               </div>
-                            )}
-                            
-                            {/* Action Buttons */}
-                            <div className="flex space-x-2 mt-4">
-                              <button 
-                                onClick={() => router.push(`/instructor/grading/bulk?assignment=${submission.assignmentId}&course=${courseId}&submission=${submission.submissionId}`)}
-                                className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
-                              >
-                                Grade Submission
-                              </button>
-                              <button 
+                            ) : gradingSubmission === submission.submissionId ? (
+                              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                                <h4 className="font-semibold text-gray-800 mb-3">Grade This Submission</h4>
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Grade (0-100)
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={grades[submission.submissionId]?.grade || ''}
+                                      onChange={(e) => setGrades(prev => ({
+                                        ...prev,
+                                        [submission.submissionId]: {
+                                          ...prev[submission.submissionId],
+                                          grade: e.target.value === '' ? '' : Number(e.target.value),
+                                          feedback: prev[submission.submissionId]?.feedback || ''
+                                        }
+                                      }))}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Enter grade..."
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                      Feedback (Optional)
+                                    </label>
+                                    <textarea
+                                      value={grades[submission.submissionId]?.feedback || ''}
+                                      onChange={(e) => setGrades(prev => ({
+                                        ...prev,
+                                        [submission.submissionId]: {
+                                          grade: prev[submission.submissionId]?.grade || '',
+                                          feedback: e.target.value
+                                        }
+                                      }))}
+                                      rows={3}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Enter feedback for the student..."
+                                    />
+                                  </div>
+                                  <div className="flex space-x-2">
+                                    <button
+                                      onClick={() => handleGradeSubmission(submission.submissionId)}
+                                      className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
+                                    >
+                                      Submit Grade
+                                    </button>
+                                    <button
+                                      onClick={() => setGradingSubmission(null)}
+                                      className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <button
                                 onClick={() => {
-                                  // Open video in new modal or navigate to details page
-                                  window.open(submission.videoUrl, '_blank');
+                                  setGradingSubmission(submission.submissionId);
+                                  setGrades(prev => ({
+                                    ...prev,
+                                    [submission.submissionId]: {
+                                      grade: submission.grade || '',
+                                      feedback: submission.instructorFeedback || ''
+                                    }
+                                  }));
                                 }}
-                                className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+                                className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
                               >
-                                View Details
+                                📝 Grade This Submission
                               </button>
-                            </div>
+                            )}
                           </div>
                         </div>
                       </div>
