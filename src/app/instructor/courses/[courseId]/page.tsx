@@ -106,6 +106,7 @@ interface VideoSubmission {
   fileName: string;
   fileSize: number;
   fileType: string;
+  thumbnailUrl?: string;
   isRecorded: boolean;
   isUploaded: boolean;
   status: 'submitted' | 'graded' | 'returned';
@@ -406,7 +407,9 @@ const InstructorCourseDetailPage: React.FC = () => {
                   onClick={() => router.push('/instructor/dashboard')}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  <span className="text-2xl">&lt;</span>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
                 </button>
                 <div className="flex items-center space-x-4">
                   <img 
@@ -694,26 +697,14 @@ const InstructorCourseDetailPage: React.FC = () => {
                                 className="w-full h-64 object-cover"
                                 poster={submission.thumbnailUrl || '/api/placeholder/400/300'}
                                 onError={(e) => {
-                                  console.error('Video load error:', e);
-                                  // Fallback to placeholder if video fails to load
-                                  const target = e.target as HTMLVideoElement;
-                                  target.style.display = 'none';
-                                  const parent = target.parentElement;
-                                  if (parent) {
-                                    parent.innerHTML = `
-                                      <div class="w-full h-64 bg-gray-800 flex items-center justify-center">
-                                        <div class="text-center text-white">
-                                          <div class="text-4xl mb-2">🎥</div>
-                                          <div class="text-sm">Video Preview</div>
-                                          <div class="text-xs text-gray-400 mt-1">Click to view</div>
-                                        </div>
-                                      </div>
-                                    `;
-                                  }
+                                  console.error('Video load error for submission:', submission.submissionId);
+                                  console.error('Video URL:', submission.videoUrl);
                                 }}
-                              />
+                              >
+                                Your browser does not support the video tag.
+                              </video>
                               {/* Play overlay for better UX */}
-                              <div className="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                              <div className="absolute inset-0 bg-black bg-opacity-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none">
                                 <div className="w-16 h-16 bg-white bg-opacity-90 rounded-full flex items-center justify-center">
                                   <svg className="w-8 h-8 text-gray-800 ml-1" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M8 5v14l11-7z"/>
@@ -758,10 +749,19 @@ const InstructorCourseDetailPage: React.FC = () => {
                             
                             {/* Action Buttons */}
                             <div className="flex space-x-2 mt-4">
-                              <button className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors">
+                              <button 
+                                onClick={() => router.push(`/instructor/grading/bulk?assignment=${submission.assignmentId}&course=${courseId}&submission=${submission.submissionId}`)}
+                                className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                              >
                                 Grade Submission
                               </button>
-                              <button className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors">
+                              <button 
+                                onClick={() => {
+                                  // Open video in new modal or navigate to details page
+                                  window.open(submission.videoUrl, '_blank');
+                                }}
+                                className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+                              >
                                 View Details
                               </button>
                             </div>

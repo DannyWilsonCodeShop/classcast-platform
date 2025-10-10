@@ -477,7 +477,9 @@ const DiscussionContent: React.FC = () => {
               onClick={() => router.push('/student/dashboard')}
               className="text-gray-600 hover:text-gray-800 transition-colors"
             >
-              <span className="text-2xl">&lt;</span>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
             </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-800">{assignment.title}</h1>
