@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PeerVideo {
   id: string;
@@ -78,6 +79,7 @@ const PeerReviewsContent: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const { user } = useAuth();
   
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [peerVideos, setPeerVideos] = useState<PeerVideo[]>([]);
@@ -213,9 +215,12 @@ const PeerReviewsContent: React.FC = () => {
         }
         
         // Load peer videos with section filtering
-        const videosResponse = await fetch(`/api/student/community/submissions?assignmentId=${assignmentId}&courseId=${courseId}`);
+        const apiUrl = `/api/student/community/submissions?assignmentId=${assignmentId}&courseId=${courseId}${user?.id ? `&studentId=${user.id}` : ''}`;
+        console.log('Fetching peer videos from:', apiUrl);
+        const videosResponse = await fetch(apiUrl);
         if (videosResponse.ok) {
           const videosData = await videosResponse.json();
+          console.log('Peer videos data received:', videosData.length, 'videos');
           let filteredVideos = videosData;
           
           // Filter videos based on peer review scope
@@ -223,9 +228,13 @@ const PeerReviewsContent: React.FC = () => {
             filteredVideos = videosData.filter((video: PeerVideo) => 
               video.sectionId === currentUserSection
             );
+            console.log('Filtered to section:', currentUserSection, 'Count:', filteredVideos.length);
           }
           
           setPeerVideos(filteredVideos);
+          console.log('Set peer videos:', filteredVideos.length);
+        } else {
+          console.error('Failed to fetch peer videos:', videosResponse.status);
         }
         
         // Load existing responses
@@ -252,8 +261,10 @@ const PeerReviewsContent: React.FC = () => {
       }
     };
 
-    loadData();
-  }, [assignmentId, courseId, peerReviewScope, currentUserSection]);
+    if (assignmentId && user?.id) {
+      loadData();
+    }
+  }, [assignmentId, courseId, peerReviewScope, currentUserSection, user?.id]);
 
   const loadExistingResponses = async (assignmentId: string) => {
     // TODO: Load existing peer responses from API
