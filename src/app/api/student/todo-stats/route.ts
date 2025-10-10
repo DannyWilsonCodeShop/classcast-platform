@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     const courseIds = courses.map(course => course.courseId);
 
     // Get assignments for user's courses
-    let allAssignments = [];
+    let allAssignments: any[] = [];
     if (courseIds.length > 0) {
       try {
         const assignmentPromises = courseIds.map(courseId => 
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user's submissions
-    let userSubmissions = [];
+    let userSubmissions: any[] = [];
     try {
       const submissionsResult = await docClient.send(new ScanCommand({
         TableName: SUBMISSIONS_TABLE,
@@ -93,34 +93,51 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Get peer responses for user's submissions
+    // Get videos that need peer review from this student
     let pendingReviews = 0;
     try {
-      const submissionIds = userSubmissions.map(sub => sub.submissionId);
-      if (submissionIds.length > 0) {
-        const responsePromises = submissionIds.map(submissionId => 
-          docClient.send(new ScanCommand({
-            TableName: PEER_RESPONSES_TABLE,
-            FilterExpression: 'submissionId = :submissionId',
-            ExpressionAttributeValues: {
-              ':submissionId': submissionId
-            }
-          }))
+      // Get all submissions from the user's courses (peer videos to review)
+      let allPeerSubmissions: any[] = [];
+      if (courseIds.length > 0) {
+        const peerSubmissionsResult = await docClient.send(new ScanCommand({
+          TableName: SUBMISSIONS_TABLE,
+          FilterExpression: 'studentId <> :userId',
+          ExpressionAttributeValues: {
+            ':userId': userId
+          }
+        }));
+        allPeerSubmissions = (peerSubmissionsResult.Items || []).filter(sub => 
+          courseIds.includes(sub.courseId)
         );
-        
-        const responseResults = await Promise.all(responsePromises);
-        const allResponses = responseResults.flatMap(result => result.Items || []);
-        
-        // Count responses that need review (assuming there's a status field)
-        pendingReviews = allResponses.filter(response => 
-          response.status === 'pending' || response.status === 'submitted'
-        ).length;
       }
+
+      // Get all peer responses this user has already made
+      let userResponses = [];
+      const responsesResult = await docClient.send(new ScanCommand({
+        TableName: PEER_RESPONSES_TABLE,
+        FilterExpression: 'reviewerId = :userId',
+        ExpressionAttributeValues: {
+          ':userId': userId
+        }
+      }));
+      userResponses = responsesResult.Items || [];
+
+      // Get the video IDs the user has already responded to
+      const respondedVideoIds = new Set(userResponses.map(r => r.videoId));
+
+      // Count peer videos that haven't been responded to yet
+      pendingReviews = allPeerSubmissions.filter(sub => 
+        !respondedVideoIds.has(sub.submissionId)
+      ).length;
+      
+      console.log(`Pending reviews calculation: ${allPeerSubmissions.length} peer videos, ${userResponses.length} responses made, ${pendingReviews} pending`);
     } catch (dbError: any) {
+      console.error('Error calculating pending reviews:', dbError);
       if (dbError.name === 'ResourceNotFoundException') {
         pendingReviews = 0;
       } else {
-        throw dbError;
+        // Don't throw, just set to 0
+        pendingReviews = 0;
       }
     }
 
