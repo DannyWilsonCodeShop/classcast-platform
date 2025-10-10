@@ -130,6 +130,22 @@ interface VideoSubmission {
   };
 }
 
+interface PeerResponse {
+  id: string;
+  reviewerId: string;
+  reviewerName: string;
+  videoId: string;
+  reviewedStudentId: string;
+  reviewedStudentName: string;
+  assignmentId: string;
+  assignmentTitle: string;
+  content: string;
+  submittedAt: string;
+  isSubmitted: boolean;
+  wordCount: number;
+  characterCount: number;
+}
+
 const InstructorCourseDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -147,6 +163,9 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [globalPlaybackSpeed, setGlobalPlaybackSpeed] = useState(1.0);
   const [gradingSubmission, setGradingSubmission] = useState<string | null>(null);
   const [grades, setGrades] = useState<{[key: string]: { grade: number | '', feedback: string }}>({});
+  const [peerResponses, setPeerResponses] = useState<PeerResponse[]>([]);
+  const [expandedPeerResponses, setExpandedPeerResponses] = useState<Set<string>>(new Set());
+  const [collapsedVideos, setCollapsedVideos] = useState<Set<string>>(new Set());
 
   const courseId = params.courseId as string;
 
@@ -159,6 +178,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   useEffect(() => {
     if (courseId && activeTab === 'submissions') {
       fetchVideoSubmissions();
+      fetchPeerResponses();
     }
   }, [courseId, activeTab]);
 
@@ -288,6 +308,31 @@ const InstructorCourseDetailPage: React.FC = () => {
     }
   };
 
+  const fetchPeerResponses = async () => {
+    try {
+      // Fetch all peer responses for all assignments in this course
+      const assignmentIds = assignments.map(a => a.assignmentId);
+      const allResponses: PeerResponse[] = [];
+      
+      for (const assignmentId of assignmentIds) {
+        const response = await fetch(`/api/peer-responses?assignmentId=${assignmentId}`, {
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            allResponses.push(...data.data);
+          }
+        }
+      }
+      
+      setPeerResponses(allResponses);
+    } catch (error) {
+      console.error('Error fetching peer responses:', error);
+    }
+  };
+
   const handleCourseUpdate = async (updateData: Partial<Course>) => {
     try {
       const response = await fetch(`/api/courses/${courseId}`, {
@@ -409,6 +454,39 @@ const InstructorCourseDetailPage: React.FC = () => {
     const videos = document.querySelectorAll('video');
     videos.forEach(video => {
       video.playbackRate = speed;
+    });
+  };
+
+  const getPeerResponsesForStudent = (studentId: string): PeerResponse[] => {
+    return peerResponses.filter(response => response.reviewerId === studentId);
+  };
+
+  const togglePeerResponses = (submissionId: string) => {
+    setExpandedPeerResponses(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(submissionId)) {
+        newSet.delete(submissionId);
+      } else {
+        newSet.add(submissionId);
+      }
+      return newSet;
+    });
+  };
+
+  const getVideoOwnerName = (videoId: string): string => {
+    const submission = videoSubmissions.find(s => s.submissionId === videoId);
+    return submission?.student.name || 'Unknown Student';
+  };
+
+  const toggleVideoCollapse = (submissionId: string) => {
+    setCollapsedVideos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(submissionId)) {
+        newSet.delete(submissionId);
+      } else {
+        newSet.add(submissionId);
+      }
+      return newSet;
     });
   };
 
@@ -693,26 +771,42 @@ const InstructorCourseDetailPage: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-800">Video Submissions</h2>
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-3">
                     <div className="text-sm text-gray-600">
                       {videoSubmissions.length} submission{videoSubmissions.length !== 1 ? 's' : ''}
                     </div>
                     
+                    {/* Quick Actions */}
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setCollapsedVideos(new Set(videoSubmissions.map(s => s.submissionId)))}
+                        className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                      >
+                        ▲ Collapse All
+                      </button>
+                      <button
+                        onClick={() => setCollapsedVideos(new Set())}
+                        className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                      >
+                        ▼ Expand All
+                      </button>
+                    </div>
+                    
                     {/* Global Playback Speed Control */}
                     <div className="flex items-center space-x-2">
-                      <label className="text-sm font-medium text-gray-700">Playback Speed:</label>
+                      <label className="text-sm font-medium text-gray-700">Speed:</label>
                       <select
                         value={globalPlaybackSpeed}
                         onChange={(e) => handlePlaybackSpeedChange(Number(e.target.value))}
-                        className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-2 py-1 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value={0.5}>0.5x</option>
                         <option value={0.75}>0.75x</option>
-                        <option value={1.0}>1.0x (Normal)</option>
+                        <option value={1.0}>1x</option>
                         <option value={1.25}>1.25x</option>
                         <option value={1.5}>1.5x</option>
                         <option value={1.75}>1.75x</option>
-                        <option value={2.0}>2.0x</option>
+                        <option value={2.0}>2x</option>
                       </select>
                     </div>
                     
@@ -720,7 +814,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                       onClick={() => router.push(`/instructor/grading/bulk?course=${courseId}`)}
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
                     >
-                      Bulk Grading View
+                      Bulk Grading
                     </button>
                   </div>
                 </div>
@@ -730,7 +824,8 @@ const InstructorCourseDetailPage: React.FC = () => {
                     {videoSubmissions.map((submission) => (
                       <div
                         key={submission.submissionId}
-                        className="bg-gray-50 rounded-xl p-6 border border-gray-200"
+                        id={`submission-${submission.submissionId}`}
+                        className="bg-gray-50 rounded-xl p-6 border border-gray-200 scroll-mt-24"
                       >
                         <div className="flex items-start space-x-4">
                           {/* Student Avatar */}
@@ -739,64 +834,142 @@ const InstructorCourseDetailPage: React.FC = () => {
                           </div>
                           
                           <div className="flex-1">
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="text-lg font-semibold text-gray-800">
-                                {submission.student.name}
-                              </h3>
-                              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                submission.status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
-                                submission.status === 'graded' ? 'bg-green-100 text-green-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {submission.status.charAt(0).toUpperCase() + submission.status.slice(1)}
-                              </span>
-                            </div>
-                            
-                            <p className="text-sm text-gray-600 mb-2">
-                              Assignment: {submission.assignment.title}
-                            </p>
-                            
-                            <p className="text-sm text-gray-500 mb-4">
-                              Submitted: {new Date(submission.submittedAt).toLocaleDateString()} at {new Date(submission.submittedAt).toLocaleTimeString()}
-                            </p>
-                            
-                            {/* Video Preview with 16:9 Aspect Ratio */}
-                            <div className="bg-black rounded-lg overflow-hidden mb-4 aspect-video">
-                              <video
-                                src={submission.videoUrl}
-                                controls
-                                className="w-full h-full object-contain"
-                                preload="metadata"
-                                onLoadedMetadata={(e) => {
-                                  // Apply global playback speed when video loads
-                                  const video = e.currentTarget;
-                                  video.playbackRate = globalPlaybackSpeed;
-                                }}
-                                onError={(e) => {
-                                  console.error('Video load error for submission:', submission.submissionId);
-                                  console.error('Video URL:', submission.videoUrl);
-                                }}
+                            {/* Header with Student Name and Status */}
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-3">
+                                  <h3 className="text-lg font-semibold text-gray-800">
+                                    {submission.student.name}
+                                  </h3>
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    submission.status === 'submitted' ? 'bg-yellow-100 text-yellow-800' :
+                                    submission.status === 'graded' ? 'bg-green-100 text-green-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {submission.status === 'graded' ? `✓ ${submission.grade || 'Graded'}` : 'Pending'}
+                                  </span>
+                                  {getPeerResponsesForStudent(submission.studentId).length > 0 && (
+                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                      💬 {getPeerResponsesForStudent(submission.studentId).length}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                                  <span>📝 {submission.assignment.title}</span>
+                                  <span>📅 {new Date(submission.submittedAt).toLocaleDateString()}</span>
+                                  <span>⏱️ {submission.duration || 'N/A'}</span>
+                                  <span>📦 {(submission.fileSize / (1024 * 1024)).toFixed(1)} MB</span>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => toggleVideoCollapse(submission.submissionId)}
+                                className="ml-3 px-3 py-1 text-xs font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors"
                               >
-                                Your browser does not support the video tag.
-                              </video>
+                                {collapsedVideos.has(submission.submissionId) ? '▶ Show Video' : '▼ Hide Video'}
+                              </button>
                             </div>
                             
-                            {/* Submission Details */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mb-4">
-                              <div>
-                                <span className="font-medium">File:</span> {submission.fileName}
+                            {/* Collapsible Video Preview */}
+                            {!collapsedVideos.has(submission.submissionId) && (
+                              <div className="bg-black rounded-lg overflow-hidden mb-4 aspect-video">
+                                <video
+                                  src={submission.videoUrl}
+                                  controls
+                                  className="w-full h-full object-contain"
+                                  preload="metadata"
+                                  onLoadedMetadata={(e) => {
+                                    // Apply global playback speed when video loads
+                                    const video = e.currentTarget;
+                                    video.playbackRate = globalPlaybackSpeed;
+                                  }}
+                                  onError={(e) => {
+                                    console.error('Video load error for submission:', submission.submissionId);
+                                    console.error('Video URL:', submission.videoUrl);
+                                  }}
+                                >
+                                  Your browser does not support the video tag.
+                                </video>
                               </div>
-                              <div>
-                                <span className="font-medium">Size:</span> {(submission.fileSize / (1024 * 1024)).toFixed(2)} MB
-                              </div>
-                              <div>
-                                <span className="font-medium">Type:</span> {submission.isRecorded ? 'Recorded' : 'Uploaded'}
-                              </div>
-                              <div>
-                                <span className="font-medium">Duration:</span> {submission.duration || 'Unknown'}
-                              </div>
-                            </div>
+                            )}
                             
+                            {/* Peer Responses Section - Minimalistic */}
+                            {getPeerResponsesForStudent(submission.studentId).length > 0 && (
+                              <div className="mb-4">
+                                <button
+                                  onClick={() => togglePeerResponses(submission.submissionId)}
+                                  className="w-full flex items-center justify-between px-3 py-2 bg-blue-50 hover:bg-blue-100 rounded-lg border border-blue-200 transition-colors text-sm"
+                                >
+                                  <span className="flex items-center space-x-2">
+                                    <span>💬</span>
+                                    <span className="font-medium text-blue-700">
+                                      {getPeerResponsesForStudent(submission.studentId).length} Peer Response{getPeerResponsesForStudent(submission.studentId).length !== 1 ? 's' : ''}
+                                    </span>
+                                  </span>
+                                  <svg
+                                    className={`w-5 h-5 text-blue-600 transition-transform ${expandedPeerResponses.has(submission.submissionId) ? 'rotate-180' : ''}`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </button>
+                                
+                                {expandedPeerResponses.has(submission.submissionId) && (
+                                  <div className="mt-2 space-y-2 bg-gray-50 rounded-lg p-3 border border-gray-200">
+                                    {getPeerResponsesForStudent(submission.studentId).map((response) => (
+                                      <div key={response.id} className="bg-white rounded-md p-3 border border-gray-200 text-sm">
+                                        <div className="flex items-start justify-between mb-2">
+                                          <div className="flex-1">
+                                            <div className="flex items-center space-x-2 mb-1">
+                                              <span className="text-xs font-medium text-gray-700">
+                                                → {getVideoOwnerName(response.videoId)}'s video
+                                              </span>
+                                              {response.assignmentTitle && (
+                                                <span className="text-xs text-gray-500">
+                                                  ({response.assignmentTitle})
+                                                </span>
+                                              )}
+                                            </div>
+                                            <p className="text-xs text-gray-500">
+                                              {new Date(response.submittedAt).toLocaleDateString()}
+                                            </p>
+                                          </div>
+                                          <span className={`px-2 py-0.5 rounded-full text-xs whitespace-nowrap ${
+                                            response.isSubmitted 
+                                              ? 'bg-green-100 text-green-700' 
+                                              : 'bg-yellow-100 text-yellow-700'
+                                          }`}>
+                                            {response.isSubmitted ? '✓' : '○'}
+                                          </span>
+                                        </div>
+                                        <p className="text-gray-700 text-xs leading-relaxed line-clamp-3 mb-2">
+                                          {response.content}
+                                        </p>
+                                        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                          <span className="text-xs text-gray-500">
+                                            {response.wordCount} words
+                                          </span>
+                                          <button
+                                            onClick={() => {
+                                              // Navigate to the video this response is about
+                                              const targetSubmission = videoSubmissions.find(s => s.submissionId === response.videoId);
+                                              if (targetSubmission) {
+                                                document.getElementById(`submission-${response.videoId}`)?.scrollIntoView({ behavior: 'smooth' });
+                                              }
+                                            }}
+                                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                          >
+                                            View Video →
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
                             {/* Inline Grading Form */}
                             {submission.status === 'graded' ? (
                               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
