@@ -54,6 +54,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const [submission, setSubmission] = useState<Submission | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
 
   const assignmentId = params.assignmentId as string;
 
@@ -236,7 +238,10 @@ const StudentAssignmentDetailPage: React.FC = () => {
     return (
       <StudentRoute>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-          <LoadingSpinner text="Loading assignment..." />
+          <div className="text-center">
+            <LoadingSpinner size="lg" />
+            <p className="mt-4 text-gray-600">Loading assignment...</p>
+          </div>
         </div>
       </StudentRoute>
     );
@@ -247,20 +252,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
       <StudentRoute>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
           <EmptyState
-            icon="📝"
+            icon="assignment"
             title="Assignment Not Found"
             description="The requested assignment could not be found or you don't have access to it."
-            action={
-              <button
-                onClick={() => router.push('/student/assignments')}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to Assignments
-              </button>
-            }
+            action={{
+              label: "Back to Assignments",
+              onClick: () => router.push('/student/assignments'),
+              variant: 'primary'
+            }}
           />
         </div>
       </StudentRoute>
@@ -278,7 +277,9 @@ const StudentAssignmentDetailPage: React.FC = () => {
                 onClick={() => router.push('/student/assignments')}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <span className="text-xl">&lt;</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
               </button>
               <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
                 📝
@@ -368,18 +369,42 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   <div className="mt-4">
                     <h4 className="text-md font-semibold text-gray-800 mb-2">Your Submission</h4>
                     <div className="bg-white rounded-lg p-4 border border-gray-200">
-                      <div className="aspect-video bg-black rounded-lg overflow-hidden mb-3">
+                      <div className="aspect-video bg-black rounded-lg overflow-hidden mb-3 relative">
                         <video
                           controls
                           className="w-full h-full object-cover"
                           src={submission.videoUrl}
+                          onLoadedMetadata={(e) => {
+                            const video = e.currentTarget;
+                            setVideoLoaded(true);
+                            if (video.duration && !isNaN(video.duration)) {
+                              setVideoDuration(Math.floor(video.duration));
+                            }
+                          }}
+                          onError={() => {
+                            console.error('Video failed to load');
+                            setVideoLoaded(false);
+                          }}
                         >
                           Your browser does not support the video tag.
                         </video>
+                        {!videoLoaded && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                            <div className="text-white text-sm">Loading video...</div>
+                          </div>
+                        )}
                       </div>
                       <div className="text-sm text-gray-600">
                         <p><strong>Title:</strong> {submission.videoTitle}</p>
-                        <p><strong>Duration:</strong> {Math.floor(submission.duration / 60)}:{(submission.duration % 60).toString().padStart(2, '0')}</p>
+                        <p><strong>Duration:</strong> {
+                          (() => {
+                            const duration = videoDuration ?? submission.duration;
+                            if (duration > 0) {
+                              return `${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')}`;
+                            }
+                            return 'Loading...';
+                          })()
+                        }</p>
                         <p><strong>File Size:</strong> {(submission.fileSize / (1024 * 1024)).toFixed(2)} MB</p>
                         {submission.videoDescription && (
                           <p><strong>Description:</strong> {submission.videoDescription}</p>
