@@ -178,8 +178,8 @@ const PeerReviewsContent: React.FC = () => {
     return currentAverage + (newRating - oldRating) / 10; // Simplified for demo
   };
 
-  const assignmentId = searchParams.get('assignment') || 'assignment_1';
-  const courseId = searchParams.get('course') || 'cs-101';
+  const assignmentId = searchParams.get('assignment');
+  const courseId = searchParams.get('course');
 
   // Cleanup media recorder on unmount
   useEffect(() => {
@@ -199,12 +199,14 @@ const PeerReviewsContent: React.FC = () => {
       try {
         setIsLoading(true);
         
-        // Load assignment details
-        const assignmentResponse = await fetch(`/api/assignments/${assignmentId}`);
-        if (assignmentResponse.ok) {
-          const assignmentData = await assignmentResponse.json();
-          setAssignment(assignmentData);
-          setPeerReviewScope(assignmentData.peerReviewScope || 'section');
+        // If specific assignment provided, load that assignment's details
+        if (assignmentId) {
+          const assignmentResponse = await fetch(`/api/assignments/${assignmentId}`);
+          if (assignmentResponse.ok) {
+            const assignmentData = await assignmentResponse.json();
+            setAssignment(assignmentData);
+            setPeerReviewScope(assignmentData.peerReviewScope || 'section');
+          }
         }
         
         // Load current user's section
@@ -214,8 +216,17 @@ const PeerReviewsContent: React.FC = () => {
           setCurrentUserSection(userData.sectionId || null);
         }
         
-        // Load peer videos with section filtering
-        const apiUrl = `/api/student/community/submissions?assignmentId=${assignmentId}&courseId=${courseId}${user?.id ? `&studentId=${user.id}` : ''}`;
+        // Build API URL - if no assignment/course specified, load ALL peer videos
+        let apiUrl = '/api/student/community/submissions';
+        const params = new URLSearchParams();
+        if (user?.id) params.append('studentId', user.id);
+        if (assignmentId) params.append('assignmentId', assignmentId);
+        if (courseId) params.append('courseId', courseId);
+        
+        if (params.toString()) {
+          apiUrl += '?' + params.toString();
+        }
+        
         console.log('Fetching peer videos from:', apiUrl);
         const videosResponse = await fetch(apiUrl);
         if (videosResponse.ok) {
@@ -223,8 +234,8 @@ const PeerReviewsContent: React.FC = () => {
           console.log('Peer videos data received:', videosData.length, 'videos');
           let filteredVideos = videosData;
           
-          // Filter videos based on peer review scope
-          if (peerReviewScope === 'section' && currentUserSection) {
+          // Filter videos based on peer review scope (only if we have an assignment with scope)
+          if (assignmentId && peerReviewScope === 'section' && currentUserSection) {
             filteredVideos = videosData.filter((video: PeerVideo) => 
               video.sectionId === currentUserSection
             );
@@ -235,10 +246,13 @@ const PeerReviewsContent: React.FC = () => {
           console.log('Set peer videos:', filteredVideos.length);
         } else {
           console.error('Failed to fetch peer videos:', videosResponse.status);
+          setPeerVideos([]);
         }
         
-        // Load existing responses
-        await loadExistingResponses(assignmentId);
+        // Load existing responses (only if assignmentId is provided)
+        if (assignmentId) {
+          await loadExistingResponses(assignmentId);
+        }
         
         setResponseStats({
           totalResponses: 0,
@@ -261,7 +275,7 @@ const PeerReviewsContent: React.FC = () => {
       }
     };
 
-    if (assignmentId && user?.id) {
+    if (user?.id) {
       loadData();
     }
   }, [assignmentId, courseId, peerReviewScope, currentUserSection, user?.id]);
@@ -606,6 +620,7 @@ const PeerReviewsContent: React.FC = () => {
         wordCount: currentResponse.trim().split(/\s+/).length,
         characterCount: currentResponse.length,
         responseType: responseType,
+        threadLevel: 0,
         videoResponse: {
           videoUrl: videoUrl,
           thumbnailUrl: thumbnailUrl,
@@ -665,7 +680,9 @@ const PeerReviewsContent: React.FC = () => {
         lastSavedAt: new Date().toISOString(),
         isSubmitted: false,
         wordCount: content.trim().split(/\s+/).length,
-        characterCount: content.length
+        characterCount: content.length,
+        responseType: 'text',
+        threadLevel: 0
       };
 
       // Mock API call
@@ -720,6 +737,7 @@ const PeerReviewsContent: React.FC = () => {
         wordCount: currentResponse.trim().split(/\s+/).length,
         characterCount: currentResponse.length,
         responseType: responseType,
+        threadLevel: 0,
         videoResponse: hasVideoContent ? {
           videoUrl: videoUrl,
           thumbnailUrl: thumbnailUrl,
