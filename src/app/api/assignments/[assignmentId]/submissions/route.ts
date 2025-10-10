@@ -1,12 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
+const s3Client = new S3Client({ region: 'us-east-1' });
 
 const SUBMISSIONS_TABLE = 'classcast-submissions';
 const USERS_TABLE = 'classcast-users';
+const VIDEO_BUCKET = process.env.VIDEO_BUCKET || 'classcast-videos-463470937777-us-east-1';
+const SIGNED_URL_EXPIRY = 3600; // 1 hour
+
+// Helper function to extract S3 key from S3 URL
+function extractS3KeyFromUrl(url: string): string | null {
+  try {
+    // Handle S3 URLs in format: https://bucket.s3.region.amazonaws.com/key
+    // or https://s3.region.amazonaws.com/bucket/key
+    const urlObj = new URL(url);
+    
+    // Extract path and remove leading slash
+    let key = urlObj.pathname.substring(1);
+    
+    // If the URL contains the bucket name in the path, remove it
+    if (key.startsWith(`${VIDEO_BUCKET}/`)) {
+      key = key.substring(VIDEO_BUCKET.length + 1);
+    }
+    
+    return key || null;
+  } catch (error) {
+    console.error('Error extracting S3 key from URL:', error);
+    return null;
+  }
+}
 
 export async function GET(
   request: NextRequest,
@@ -45,7 +72,7 @@ export async function GET(
 
     const submissions = submissionsResult.Items || [];
 
-    // Enrich submissions with student information
+    // Enrich submissions with student information and signed video URLs
     const enrichedSubmissions = await Promise.all(submissions.map(async (submission) => {
       let studentName = 'Unknown Student';
       let studentEmail = '';
@@ -64,8 +91,29 @@ export async function GET(
         console.warn('Could not fetch student information:', error);
       }
 
+      // Generate signed URL for video if it exists
+      let signedVideoUrl = submission.videoUrl;
+      if (submission.videoUrl) {
+        try {
+          // Extract S3 key from URL
+          const s3Key = extractS3KeyFromUrl(submission.videoUrl);
+          if (s3Key) {
+            const command = new GetObjectCommand({
+              Bucket: VIDEO_BUCKET,
+              Key: s3Key,
+            });
+            signedVideoUrl = await getSignedUrl(s3Client, command, { expiresIn: SIGNED_URL_EXPIRY });
+            console.log('Generated signed URL for video:', s3Key);
+          }
+        } catch (error) {
+          console.warn('Could not generate signed URL for video:', error);
+          // Keep original URL as fallback
+        }
+      }
+
       return {
         ...submission,
+        videoUrl: signedVideoUrl,
         studentName,
         studentEmail
       };
