@@ -100,7 +100,7 @@ const StudentCourseDetailPage: React.FC = () => {
   const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'overview' | 'assignments' | 'students' | 'materials' | 'sections'>('assignments');
+  const [showClassmates, setShowClassmates] = useState(false);
 
   const courseId = params.courseId as string;
 
@@ -405,87 +405,40 @@ const StudentCourseDetailPage: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-        {/* Header */}
-        <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => router.push('/student/dashboard')}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-              📚
-            </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold text-gray-900 truncate">
-                {course.courseName}
-              </h1>
-              <p className="text-xs text-gray-600 truncate">
-                {course.courseCode} • {course.instructor.name}
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <img
-                src="/MyClassCast (800 x 200 px).png"
-                alt="MyClassCast"
-                className="h-6 w-auto object-contain"
-              />
-              <button
-                onClick={() => router.push('/student/dashboard')}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                title="Home Dashboard"
-              >
-                <span className="text-xl">🏠</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Tabs */}
-        <div className="bg-white/90 backdrop-blur-sm px-4 py-2 flex-shrink-0">
-          <div className="flex space-x-1">
-            {[
-              { id: 'assignments', label: 'Assignments', icon: '📝' },
-              { id: 'sections', label: 'Sections', icon: '🏫' },
-              { id: 'materials', label: 'Files', icon: '📚' },
-              { id: 'overview', label: 'Overview', icon: '📊' },
-              { id: 'students', label: 'Classmates', icon: '👥' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`flex-1 px-3 py-2 rounded-xl font-bold text-xs transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <span className="mr-1">{tab.icon}</span>
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4">
-            {activeTab === 'assignments' && (
-              <div className="space-y-6">
-                {/* Assignments Header */}
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold text-gray-800">Video Assignments</h2>
-                  <div className="text-sm text-gray-600">
-                    {assignments.length} assignment{assignments.length !== 1 ? 's' : ''}
-                  </div>
+      <div className="min-h-screen bg-gray-50">
+        {/* Clean Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+          <div className="max-w-5xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => router.push('/student/dashboard')}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Back to Dashboard"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">{course.courseName}</h1>
+                  <p className="text-sm text-gray-500">{course.courseCode} • {course.instructor.name}</p>
                 </div>
+              </div>
+              <button
+                onClick={() => setShowClassmates(!showClassmates)}
+                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                👥 {classmates.length} Classmates
+              </button>
+            </div>
+          </div>
+        </div>
 
-                {/* Assignments List */}
-                {assignments.length === 0 ? (
+        {/* Main Content - Assignments Only */}
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          {/* Assignments List */}
+          {assignments.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="text-6xl mb-4">📝</div>
                     <h3 className="text-xl font-semibold text-gray-800 mb-2">No Assignments Found</h3>
@@ -500,96 +453,50 @@ const StudentCourseDetailPage: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {assignments.map((assignment) => (
                       <div
                         key={assignment.assignmentId}
-                        className={`bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${
-                          isOverdue(assignment.dueDate, assignment.status)
-                            ? 'border-red-200 bg-red-50/50'
-                            : 'border-gray-200/30'
-                        }`}
+                        className="bg-white rounded-lg p-5 border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-2">
-                              <h3 className="text-lg font-semibold text-gray-800">{assignment.title}</h3>
-                              <span className={`px-3 py-1 rounded-full text-sm font-bold ${getStatusColor(assignment.status)}`}>
-                                {getStatusIcon(assignment.status)} {assignment.status.replace('_', ' ')}
-                              </span>
-                              {isOverdue(assignment.dueDate, assignment.status) && (
-                                <span className="px-3 py-1 rounded-full text-sm font-bold bg-red-100 text-red-800">
-                                  Overdue
+                        <div className="flex items-start justify-between gap-4">
+                          {/* Left: Assignment Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="text-lg font-semibold text-gray-900">{assignment.title}</h3>
+                              {assignment.grade !== undefined && (
+                                <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-sm font-medium">
+                                  {assignment.grade}%
                                 </span>
                               )}
                             </div>
                             
-                            <div className="mb-4">
-                              <h4 className="text-sm font-semibold text-gray-700 mb-2">Instructions:</h4>
-                              <p className="text-gray-600 line-clamp-3">{assignment.description}</p>
-                            </div>
-                            
-                            <div className="flex items-center space-x-6 text-sm text-gray-500">
-                              <div className="flex items-center space-x-1">
-                                <span>📅</span>
-                                <span>Due {formatDate(assignment.dueDate)}</span>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <span>⭐</span>
-                                <span>{assignment.points} points</span>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <span>📄</span>
-                                <span className="capitalize">{assignment.submissionType}</span>
-                              </div>
-                            </div>
-
-                            {assignment.grade !== undefined && (
-                              <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
-                                <div className="flex items-center justify-between">
-                                  <span className="font-semibold text-green-800">Grade: {assignment.grade}%</span>
-                                  <span className="text-sm text-green-600">
-                                    {assignment.feedback ? 'Feedback available' : 'No feedback'}
-                                  </span>
-                                </div>
-                                {assignment.feedback && (
-                                  <p className="mt-2 text-sm text-green-700">{assignment.feedback}</p>
-                                )}
-                              </div>
+                            {assignment.description && (
+                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{assignment.description}</p>
                             )}
+                            
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span className="flex items-center gap-1">
+                                📅 {new Date(assignment.dueDate).toLocaleDateString()}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                ⭐ {assignment.points} pts
+                              </span>
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(assignment.status)}`}>
+                                {assignment.status === 'completed' ? '✓' : assignment.status === 'past_due' ? '!' : '○'} 
+                                {assignment.status.replace('_', ' ')}
+                              </span>
+                            </div>
                           </div>
 
-                          <div className="flex flex-col space-y-2 ml-4">
-                            {assignment.status === 'upcoming' || assignment.status === 'past_due' ? (
-                              <>
-                                <button 
-                                  onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
-                                  className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
-                                >
-                                  View Details
-                                </button>
-                                <button 
-                                  onClick={() => router.push(`/student/video-submission?assignmentId=${assignment.assignmentId}&courseId=${courseId}`)}
-                                  className="px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg transition-all duration-300"
-                                >
-                                  🎥 Record Video
-                                </button>
-                              </>
-                            ) : assignment.status === 'completed' ? (
-                              <button 
-                                onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
-                                className="px-4 py-2 bg-green-100 text-green-700 rounded-lg font-semibold"
-                              >
-                                View Submission
-                              </button>
-                            ) : (
-                              <button 
-                                onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
-                                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold"
-                              >
-                                View Details
-                              </button>
-                            )}
+                          {/* Right: Action Button */}
+                          <div className="flex-shrink-0">
+                            <button 
+                              onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
+                              className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium whitespace-nowrap"
+                            >
+                              {assignment.status === 'completed' ? 'View' : 'Open'}
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -597,211 +504,29 @@ const StudentCourseDetailPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* Assignment Stats */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Assignment Statistics</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-500">
-                        {assignments.filter(a => a.status === 'upcoming').length}
-                      </div>
-                      <div className="text-sm text-gray-600">Upcoming</div>
+          {/* Collapsible Classmates Section */}
+          {showClassmates && classmates.length > 0 && (
+            <div className="bg-white rounded-lg p-5 border border-gray-200 mt-4">
+              <h3 className="font-semibold text-gray-900 mb-3">Classmates ({classmates.length})</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {classmates.map((classmate) => (
+                  <div
+                    key={classmate.userId}
+                    className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg"
+                  >
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                      {classmate.firstName?.charAt(0)}{classmate.lastName?.charAt(0)}
                     </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-yellow-500">
-                        {assignments.filter(a => a.status === 'completed').length}
-                      </div>
-                      <div className="text-sm text-gray-600">Completed</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-red-500">
-                        {assignments.filter(a => a.status === 'past_due').length}
-                      </div>
-                      <div className="text-sm text-gray-600">Overdue</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-500">
-                        {assignments.length > 0 ? Math.round(assignments.reduce((sum, a) => sum + a.points, 0) / assignments.length) : 0}
-                      </div>
-                      <div className="text-sm text-gray-600">Avg Points</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {classmate.firstName} {classmate.lastName}
+                      </p>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            )}
-
-            {activeTab === 'sections' && (
-              <div className="space-y-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800">Course Sections</h3>
-                    <div className="text-sm text-gray-600">
-                      {sections.length} section{sections.length !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                  
-                  {sections.length === 0 ? (
-                    <div className="text-center py-8">
-                      <div className="text-4xl mb-2">🏫</div>
-                      <p className="text-gray-600">No sections available for this course.</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {sections.map((section) => (
-                        <div
-                          key={section.sectionId}
-                          className="bg-white/60 backdrop-blur-sm rounded-xl p-4 shadow-md border border-gray-200/30 hover:shadow-lg transition-all duration-300"
-                        >
-                          <div className="flex items-start justify-between mb-3">
-                            <h4 className="font-semibold text-gray-800 text-lg">
-                              {section.sectionName}
-                            </h4>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              section.isActive 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {section.isActive ? 'Active' : 'Inactive'}
-                            </span>
-                          </div>
-                          
-                          {section.sectionCode && (
-                            <div className="mb-2">
-                              <span className="text-sm text-gray-600">Code: </span>
-                              <span className="font-mono text-sm font-semibold text-blue-600">
-                                {section.sectionCode}
-                              </span>
-                            </div>
-                          )}
-                          
-                          {section.description && (
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                              {section.description}
-                            </p>
-                          )}
-                          
-                          <div className="space-y-2 text-sm text-gray-500">
-                            <div className="flex items-center justify-between">
-                              <span>Enrollment:</span>
-                              <span className="font-medium">
-                                {section.currentEnrollment}/{section.maxEnrollment}
-                              </span>
-                            </div>
-                            
-                            {section.schedule && (
-                              <div>
-                                <span className="text-gray-600">Schedule:</span>
-                                <div className="text-xs mt-1">
-                                  <div>{section.schedule.days?.join(', ')}</div>
-                                  <div>{section.schedule.time}</div>
-                                  <div>{section.schedule.location}</div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {section.location && !section.schedule && (
-                              <div>
-                                <span className="text-gray-600">Location: </span>
-                                <span>{section.location}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Course Overview</h3>
-                  <p className="text-gray-600 mb-4">{course.description}</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-semibold text-gray-700 mb-2">Course Details</h4>
-                      <div className="space-y-1 text-sm text-gray-600">
-                        <p><strong>Code:</strong> {course.courseCode}</p>
-                        <p><strong>Semester:</strong> {course.semester} {course.year}</p>
-                        <p><strong>Credits:</strong> {course.credits}</p>
-                        <p><strong>Students:</strong> {course.enrollmentCount}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-700 mb-2">Schedule</h4>
-                      <div className="space-y-1 text-sm text-gray-600">
-                        <p><strong>Days:</strong> {course.schedule.days.join(', ')}</p>
-                        <p><strong>Time:</strong> {course.schedule.time}</p>
-                        <p><strong>Location:</strong> {course.schedule.location}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'materials' && (
-              <div className="space-y-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Course Materials</h3>
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-2">📚</div>
-                    <p className="text-gray-600">No materials uploaded yet.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'students' && (
-              <div className="space-y-6">
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border-2 border-gray-200/30">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-800">Classmates</h3>
-                    <div className="text-sm text-gray-600">
-                      {classmates.length} classmate{classmates.length !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                  
-                  {classmates.length === 0 ? (
-                    <div className="text-center py-8">
-                      <div className="text-4xl mb-2">👥</div>
-                      <p className="text-gray-600">No other students enrolled yet.</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {classmates.map((classmate) => (
-                        <div
-                          key={classmate.userId}
-                          className="bg-white/60 backdrop-blur-sm rounded-xl p-4 shadow-md border border-gray-200/30 hover:shadow-lg transition-all duration-300"
-                        >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                              {classmate.firstName?.charAt(0) || '?'}
-                              {classmate.lastName?.charAt(0) || ''}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-gray-800 truncate">
-                                {classmate.firstName} {classmate.lastName}
-                              </h4>
-                              <p className="text-sm text-gray-600 truncate">
-                                {classmate.email}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Joined {new Date(classmate.enrolledAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </StudentRoute>
