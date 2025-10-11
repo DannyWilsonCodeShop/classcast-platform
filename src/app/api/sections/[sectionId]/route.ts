@@ -10,10 +10,10 @@ const SECTIONS_TABLE = 'classcast-sections';
 // GET /api/sections/[sectionId] - Get section details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { sectionId: string } }
+  { params }: { params: Promise<{ sectionId: string }> }
 ) {
   try {
-    const { sectionId } = params;
+    const { sectionId } = await params;
     
     console.log('Fetching section:', sectionId);
 
@@ -74,10 +74,10 @@ export async function GET(
 // PUT /api/sections/[sectionId] - Update section
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { sectionId: string } }
+  { params }: { params: Promise<{ sectionId: string }> }
 ) {
   try {
-    const { sectionId } = params;
+    const { sectionId } = await params;
     const body = await request.json();
     
     console.log('Updating section:', sectionId, body);
@@ -183,10 +183,10 @@ export async function PUT(
 // DELETE /api/sections/[sectionId] - Delete section
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { sectionId: string } }
+  { params }: { params: Promise<{ sectionId: string }> }
 ) {
   try {
-    const { sectionId } = params;
+    const { sectionId } = await params;
     
     console.log('Deleting section:', sectionId);
 

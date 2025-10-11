@@ -9,10 +9,10 @@ const ASSIGNMENTS_TABLE = 'classcast-assignments';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { assignmentId: string } }
+  { params }: { params: Promise<{ assignmentId: string }> }
 ) {
   try {
-    const { assignmentId } = params;
+    const { assignmentId } = await params;
     
     // Get assignment from database using scan
     let assignment = null;

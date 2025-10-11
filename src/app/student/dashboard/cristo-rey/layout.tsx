@@ -1,3 +1,6 @@
+'use client';
+
+import React from 'react';
 import '@/styles/cristo-rey.css';
 
 export default function CristoReyLayout({
@@ -5,5 +8,9 @@ export default function CristoReyLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return (
+    <div className="cristo-rey-dashboard">
+      {children}
+    </div>
+  );
 }

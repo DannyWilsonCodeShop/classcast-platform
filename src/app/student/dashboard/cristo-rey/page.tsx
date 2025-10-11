@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import '@/styles/cristo-rey.css';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { CompactAssignmentList } from '@/components/student/CompactAssignmentList';
 import VideoReels from '@/components/student/VideoReels';

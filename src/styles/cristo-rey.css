@@ -1,7 +1,6 @@
 /* Cristo Rey Atlanta Jesuit High School Brand Styles */
 
-/* Import Trajan Pro font (fallback to serif) */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+/* Use system fonts for better performance and reliability */
 
 /* Cristo Rey Brand Colors */
 :root {
@@ -21,8 +20,8 @@
   --cristo-rey-gray-dark: #374151;
   
   /* Typography */
-  --cristo-rey-primary-font: 'Playfair Display', 'Trajan Pro', serif;
-  --cristo-rey-secondary-font: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
+  --cristo-rey-primary-font: 'Times New Roman', 'Times', serif;
+  --cristo-rey-secondary-font: 'Helvetica Neue', 'Arial', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 /* Cristo Rey Typography Classes */

@@ -11,10 +11,10 @@ const SUBMISSIONS_TABLE = 'classcast-submissions';
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { courseId } = params;
+    const { courseId } = await params;
 
     if (!courseId) {
       return NextResponse.json(
