@@ -172,7 +172,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('Login error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setError(errorMessage);
-      return { success: false, error: errorMessage };
+      setIsLoading(false);
+      // Throw the error so LoginForm can catch and display it
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
