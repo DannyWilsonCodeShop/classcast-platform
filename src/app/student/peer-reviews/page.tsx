@@ -887,10 +887,10 @@ const PeerReviewsContent: React.FC = () => {
         {/* Video Player Section */}
         <div className="flex-1 flex flex-col">
           {/* Video Player */}
-          <div className="bg-black relative">
+          <div className="bg-black relative aspect-video">
             <video
               ref={videoRef}
-              className="w-full h-64 sm:h-96 object-cover"
+              className="w-full h-full object-contain"
               onLoadedMetadata={handleVideoLoad}
               onTimeUpdate={handleTimeUpdate}
               onPlay={() => {
@@ -1090,11 +1090,13 @@ const PeerReviewsContent: React.FC = () => {
                     </label>
                     {recordedVideo ? (
                       <div className="space-y-2">
-                        <video
-                          className="w-full max-w-md rounded-lg"
-                          controls
-                          src={recordedVideo}
-                        />
+                        <div className="bg-black rounded-lg overflow-hidden aspect-video max-w-md">
+                          <video
+                            className="w-full h-full object-contain"
+                            controls
+                            src={recordedVideo}
+                          />
+                        </div>
                         <div className="flex items-center justify-between">
                           <div className="text-sm text-gray-600">
                             Duration: {formatTime(recordingDuration)} | 
