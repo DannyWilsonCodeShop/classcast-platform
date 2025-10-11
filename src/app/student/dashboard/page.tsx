@@ -601,12 +601,7 @@ const StudentDashboard: React.FC = () => {
           {/* Main Content - Classes */}
           <div className="flex-1 overflow-y-auto p-4">
             <div className="max-w-6xl mx-auto">
-              {/* Classes Header */}
-              <div className="mb-6">
-                <h1 className="text-heading text-gray-800 mb-2">My Classes</h1>
-              </div>
-
-              {/* To-Do List */}
+              {/* To-Do List - Moved to top */}
               <div className="mb-6">
                 <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
@@ -710,6 +705,11 @@ const StudentDashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* My Classes Header */}
+              <div className="mb-6">
+                <h1 className="text-heading text-gray-800 mb-2">My Classes</h1>
               </div>
 
               {/* Classes Grid */}
