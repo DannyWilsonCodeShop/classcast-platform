@@ -185,6 +185,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
   const fetchPeerVideos = React.useCallback(async () => {
     try {
+      console.log('🎥 FETCHING PEER VIDEOS for assignment:', assignmentId);
       const response = await fetch(
         `/api/student/community/submissions?assignmentId=${assignmentId}&studentId=${user?.id}`,
         { credentials: 'include' }
@@ -192,6 +193,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
       
       if (response.ok) {
         const submissions = await response.json();
+        console.log('🎥 PEER VIDEOS RECEIVED:', submissions.length, 'videos');
         const videos: PeerVideo[] = submissions.slice(0, 6).map((sub: any) => ({
           id: sub.submissionId || sub.id,
           studentId: sub.studentId,
@@ -203,14 +205,18 @@ const StudentAssignmentDetailPage: React.FC = () => {
           submittedAt: sub.submittedAt || sub.createdAt
         }));
         setPeerVideos(videos);
+        console.log('🎥 SET PEER VIDEOS STATE:', videos.length);
+      } else {
+        console.log('🎥 PEER VIDEOS API FAILED:', response.status);
       }
     } catch (error) {
-      console.error('Error fetching peer videos:', error);
+      console.error('🎥 Error fetching peer videos:', error);
     }
   }, [assignmentId, user?.id]);
 
   const fetchPeerResponses = React.useCallback(async () => {
     try {
+      console.log('💬 FETCHING PEER RESPONSES for assignment:', assignmentId);
       const response = await fetch(
         `/api/peer-responses?assignmentId=${assignmentId}&studentId=${user?.id}`,
         { credentials: 'include' }
@@ -218,10 +224,13 @@ const StudentAssignmentDetailPage: React.FC = () => {
       
       if (response.ok) {
         const data = await response.json();
+        console.log('💬 PEER RESPONSES RECEIVED:', data.data?.length || 0);
         setPeerResponses(data.data || []);
+      } else {
+        console.log('💬 PEER RESPONSES API FAILED:', response.status);
       }
     } catch (error) {
-      console.error('Error fetching peer responses:', error);
+      console.error('💬 Error fetching peer responses:', error);
     }
   }, [assignmentId, user?.id]);
 
