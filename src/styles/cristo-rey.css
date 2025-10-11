@@ -1,0 +1,207 @@
+/* Cristo Rey Atlanta Jesuit High School Brand Styles */
+
+/* Import Trajan Pro font (fallback to serif) */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+/* Cristo Rey Brand Colors */
+:root {
+  /* Cristo Rey Blue - Pantone 301 */
+  --cristo-rey-blue: #0056b3;
+  --cristo-rey-blue-light: #4a90e2;
+  --cristo-rey-blue-dark: #003d82;
+  
+  /* Cristo Rey Gold - Pantone 124 */
+  --cristo-rey-gold: #f4c430;
+  --cristo-rey-gold-light: #f7d94c;
+  --cristo-rey-gold-dark: #d4a017;
+  
+  /* Supporting Colors */
+  --cristo-rey-gray: #6b7280;
+  --cristo-rey-gray-light: #f3f4f6;
+  --cristo-rey-gray-dark: #374151;
+  
+  /* Typography */
+  --cristo-rey-primary-font: 'Playfair Display', 'Trajan Pro', serif;
+  --cristo-rey-secondary-font: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Cristo Rey Typography Classes */
+.cristo-rey-heading {
+  font-family: var(--cristo-rey-primary-font);
+  font-weight: 700;
+  color: var(--cristo-rey-blue);
+}
+
+.cristo-rey-subheading {
+  font-family: var(--cristo-rey-secondary-font);
+  font-weight: 300;
+  color: var(--cristo-rey-gray-dark);
+}
+
+.cristo-rey-body {
+  font-family: var(--cristo-rey-secondary-font);
+  font-weight: 400;
+  color: var(--cristo-rey-gray);
+}
+
+/* Cristo Rey Button Styles */
+.cristo-rey-btn-primary {
+  background-color: var(--cristo-rey-blue);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-family: var(--cristo-rey-secondary-font);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.cristo-rey-btn-primary:hover {
+  background-color: var(--cristo-rey-blue-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);
+}
+
+.cristo-rey-btn-secondary {
+  background-color: var(--cristo-rey-gold);
+  color: var(--cristo-rey-blue-dark);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-family: var(--cristo-rey-secondary-font);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.cristo-rey-btn-secondary:hover {
+  background-color: var(--cristo-rey-gold-light);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(244, 196, 48, 0.3);
+}
+
+/* Cristo Rey Card Styles */
+.cristo-rey-card {
+  background: white;
+  border-radius: 1rem;
+  border: 2px solid var(--cristo-rey-gray-light);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.cristo-rey-card:hover {
+  border-color: var(--cristo-rey-blue-light);
+  box-shadow: 0 8px 25px rgba(0, 86, 179, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Cristo Rey Header Styles */
+.cristo-rey-header {
+  background: linear-gradient(135deg, var(--cristo-rey-blue) 0%, var(--cristo-rey-blue-dark) 100%);
+  color: white;
+}
+
+.cristo-rey-header-logo {
+  filter: brightness(0) invert(1);
+}
+
+/* Cristo Rey Status Indicators */
+.cristo-rey-status-blue {
+  background-color: var(--cristo-rey-blue);
+  color: white;
+}
+
+.cristo-rey-status-gold {
+  background-color: var(--cristo-rey-gold);
+  color: var(--cristo-rey-blue-dark);
+}
+
+/* Cristo Rey Navigation */
+.cristo-rey-nav-link {
+  color: var(--cristo-rey-gray);
+  font-family: var(--cristo-rey-secondary-font);
+  font-weight: 300;
+  transition: color 0.2s ease;
+}
+
+.cristo-rey-nav-link:hover {
+  color: var(--cristo-rey-blue);
+}
+
+.cristo-rey-nav-link.active {
+  color: var(--cristo-rey-blue);
+  font-weight: 500;
+}
+
+/* Cristo Rey Form Elements */
+.cristo-rey-input {
+  border: 2px solid var(--cristo-rey-gray-light);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-family: var(--cristo-rey-secondary-font);
+  transition: border-color 0.2s ease;
+}
+
+.cristo-rey-input:focus {
+  outline: none;
+  border-color: var(--cristo-rey-blue);
+  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+}
+
+/* Cristo Rey Badge Styles */
+.cristo-rey-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-family: var(--cristo-rey-secondary-font);
+}
+
+.cristo-rey-badge-blue {
+  background-color: var(--cristo-rey-blue);
+  color: white;
+}
+
+.cristo-rey-badge-gold {
+  background-color: var(--cristo-rey-gold);
+  color: var(--cristo-rey-blue-dark);
+}
+
+.cristo-rey-badge-gray {
+  background-color: var(--cristo-rey-gray-light);
+  color: var(--cristo-rey-gray-dark);
+}
+
+/* Cristo Rey Logo Container */
+.cristo-rey-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.cristo-rey-logo-emblem {
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, var(--cristo-rey-blue) 0%, var(--cristo-rey-gold) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);
+}
+
+.cristo-rey-logo-text {
+  font-family: var(--cristo-rey-primary-font);
+  color: var(--cristo-rey-blue);
+  font-weight: 700;
+}
+
+.cristo-rey-logo-subtitle {
+  font-family: var(--cristo-rey-secondary-font);
+  color: var(--cristo-rey-gray);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.05em;
+}
