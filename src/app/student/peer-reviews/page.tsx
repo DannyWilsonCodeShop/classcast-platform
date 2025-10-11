@@ -891,6 +891,7 @@ const PeerReviewsContent: React.FC = () => {
             <video
               ref={videoRef}
               className="w-full h-full object-contain"
+              preload="metadata"
               onLoadedMetadata={handleVideoLoad}
               onTimeUpdate={handleTimeUpdate}
               onPlay={() => {
@@ -901,7 +902,7 @@ const PeerReviewsContent: React.FC = () => {
                 }
               }}
               onPause={() => setIsPlaying(false)}
-              poster={currentVideo.thumbnailUrl}
+              poster={currentVideo.thumbnailUrl !== '/api/placeholder/300/200' ? currentVideo.thumbnailUrl : undefined}
             >
               <source src={currentVideo.videoUrl} type="video/mp4" />
               Your browser does not support the video tag.
