@@ -484,8 +484,15 @@ const StudentDashboard: React.FC = () => {
             
             {/* Socials/Community */}
             <div className="flex-1 p-4">
-              <div className="mb-4">
+              <div className="mb-3">
                 <h3 className="text-lg font-bold text-indigo-600 mb-2">Community</h3>
+                <button 
+                  onClick={() => router.push('/community')}
+                  className="w-full text-center text-xs text-white bg-indigo-600 hover:bg-indigo-700 font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center space-x-2 mb-3"
+                >
+                  <span>💬</span>
+                  <span>Go to Community</span>
+                </button>
               </div>
               <div className="h-64 overflow-y-auto">
                 {isLoadingPosts ? (
@@ -579,27 +586,12 @@ const StudentDashboard: React.FC = () => {
                         </div>
                       </div>
                     ))}
-                    <div className="pt-2 border-t border-gray-200">
-                      <button 
-                        onClick={() => router.push('/community')}
-                        className="w-full text-center text-xs text-white bg-indigo-600 hover:bg-indigo-700 font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                      >
-                        <span>💬</span>
-                        <span>Go to Community</span>
-                      </button>
-                    </div>
                   </div>
                 ) : (
-                  <div className="text-center py-4">
+                  <div className="text-center py-8">
                     <div className="text-4xl mb-2">💬</div>
-                    <p className="text-xs text-gray-500 mb-3">No posts yet</p>
-                    <button 
-                      onClick={() => router.push('/community')}
-                      className="w-full bg-indigo-600 text-white text-xs font-medium py-2 px-3 rounded-lg hover:bg-indigo-700 transition-colors flex items-center justify-center space-x-1"
-                    >
-                      <span>✏️</span>
-                      <span>Be the first to post!</span>
-                    </button>
+                    <p className="text-xs text-gray-500 mb-1">No posts yet</p>
+                    <p className="text-xs text-gray-400">Click above to visit the Community!</p>
                   </div>
                 )}
               </div>
