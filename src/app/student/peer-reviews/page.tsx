@@ -227,35 +227,22 @@ const PeerReviewsContent: React.FC = () => {
           apiUrl += '?' + params.toString();
         }
         
-        console.log('🔍 Fetching peer videos from:', apiUrl);
-        console.log('🔍 User ID:', user?.id);
-        console.log('🔍 Assignment ID:', assignmentId);
-        console.log('🔍 Course ID:', courseId);
-        
         const videosResponse = await fetch(apiUrl);
-        console.log('🔍 Response status:', videosResponse.status);
         
         if (videosResponse.ok) {
           const videosData = await videosResponse.json();
-          console.log('✅ Peer videos data received:', videosData.length, 'videos');
-          console.log('📹 Raw videos data:', videosData);
           let filteredVideos = videosData;
           
           // Filter videos based on peer review scope (only if we have an assignment with scope)
           if (assignmentId && peerReviewScope === 'section' && currentUserSection) {
-            console.log('🔍 Filtering by section:', currentUserSection);
             filteredVideos = videosData.filter((video: PeerVideo) => 
               video.sectionId === currentUserSection
             );
-            console.log('📊 Filtered to section:', currentUserSection, 'Count:', filteredVideos.length);
           }
           
           setPeerVideos(filteredVideos);
-          console.log('✅ Set peer videos:', filteredVideos.length);
         } else {
-          console.error('❌ Failed to fetch peer videos. Status:', videosResponse.status);
-          const errorText = await videosResponse.text();
-          console.error('❌ Error response:', errorText);
+          console.error('Failed to fetch peer videos. Status:', videosResponse.status);
           setPeerVideos([]);
         }
         
