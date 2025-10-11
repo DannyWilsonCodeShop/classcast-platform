@@ -497,13 +497,30 @@ const StudentDashboard: React.FC = () => {
                   <div className="space-y-3">
                     {communityPosts.slice(0, 5).map((post) => (
                       <div key={post.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
-                           onClick={() => router.push('/community')}>
+                           onClick={() => router.push(`/community#post-${post.id}`)}>
                         <div className="flex items-start space-x-2">
-                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                            post.isAnnouncement ? 'bg-indigo-600' : 'bg-emerald-600'
-                          }`}>
-                            {typeof post.author === 'string' ? post.author.charAt(0) : (post.author as any)?.name?.charAt(0) || '?'}
-                          </div>
+                          {/* Author Profile Thumbnail */}
+                          <img
+                            src={typeof post.author === 'object' && post.author?.avatar 
+                              ? post.author.avatar 
+                              : '/api/placeholder/40/40'}
+                            alt={typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}
+                            className="w-7 h-7 rounded-full object-cover flex-shrink-0 border border-gray-200"
+                            onError={(e) => {
+                              // Fallback to initials if image fails
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                const fallback = document.createElement('div');
+                                fallback.className = `w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold ${
+                                  post.isAnnouncement ? 'bg-indigo-600' : 'bg-emerald-600'
+                                }`;
+                                fallback.textContent = (typeof post.author === 'string' ? post.author.charAt(0) : (post.author as any)?.name?.charAt(0) || '?');
+                                parent.appendChild(fallback);
+                              }
+                            }}
+                          />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-1 mb-1">
                               <p className="text-xs font-medium text-gray-800 truncate">{typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}</p>
@@ -517,10 +534,26 @@ const StudentDashboard: React.FC = () => {
                             <div className="flex items-center justify-between mt-2">
                               <div className="flex items-center space-x-2">
                                 <button 
-                                  onClick={(e) => {
+                                  onClick={async (e) => {
                                     e.stopPropagation();
-                                    // TODO: Implement like functionality
-                                    console.log('Like post:', post.id);
+                                    try {
+                                      const response = await fetch('/api/community/posts/like', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        credentials: 'include',
+                                        body: JSON.stringify({ postId: post.id, userId: user?.id })
+                                      });
+                                      if (response.ok) {
+                                        // Update local state
+                                        setCommunityPosts(prev => prev.map(p => 
+                                          p.id === post.id 
+                                            ? { ...p, likes: p.likes + 1 }
+                                            : p
+                                        ));
+                                      }
+                                    } catch (error) {
+                                      console.error('Error liking post:', error);
+                                    }
                                   }}
                                   className="flex items-center space-x-1 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
                                 >
@@ -530,7 +563,7 @@ const StudentDashboard: React.FC = () => {
                                 <button 
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    router.push('/community');
+                                    router.push(`/community#post-${post.id}`);
                                   }}
                                   className="flex items-center space-x-1 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
                                 >
@@ -546,19 +579,13 @@ const StudentDashboard: React.FC = () => {
                         </div>
                       </div>
                     ))}
-                    <div className="flex space-x-2">
+                    <div className="pt-2 border-t border-gray-200">
                       <button 
                         onClick={() => router.push('/community')}
-                        className="flex-1 text-center text-xs text-indigo-600 hover:text-purple-600 font-medium py-2 border border-indigo-600 rounded-lg hover:bg-indigo-600/5 transition-colors"
+                        className="w-full text-center text-xs text-white bg-indigo-600 hover:bg-indigo-700 font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center space-x-2"
                       >
-                        View All Posts →
-                      </button>
-                      <button 
-                        onClick={() => router.push('/community')}
-                        className="px-3 py-2 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-1"
-                      >
-                        <span>✏️</span>
-                        <span>Post</span>
+                        <span>💬</span>
+                        <span>Go to Community</span>
                       </button>
                     </div>
                   </div>
