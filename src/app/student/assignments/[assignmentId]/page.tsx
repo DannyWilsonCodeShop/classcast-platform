@@ -133,6 +133,9 @@ const StudentAssignmentDetailPage: React.FC = () => {
             createdAt: foundAssignment.createdAt,
             resources: foundAssignment.resources || [],
             isSubmitted: false,
+            enablePeerResponses: foundAssignment.enablePeerResponses || false,
+            minResponsesRequired: foundAssignment.minResponsesRequired || 0,
+            maxResponsesPerVideo: foundAssignment.maxResponsesPerVideo || 0,
           };
           setAssignment(transformedAssignment);
           return;
@@ -395,10 +398,13 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     </div>
                     <div className="text-sm text-gray-600">Submission</div>
                   </div>
-                  {assignment.enablePeerResponses && (assignment.minResponsesRequired || 0) > 0 && (
+                  {/* Show Peer Reviews card if enabled OR if there are peer videos/responses */}
+                  {((assignment.enablePeerResponses && (assignment.minResponsesRequired || 0) > 0) || 
+                    peerVideos.length > 0 || 
+                    peerResponses.length > 0) && (
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600">
-                        {peerResponses.length} of {assignment.minResponsesRequired}
+                        {peerResponses.length} of {assignment.minResponsesRequired || peerVideos.length || 2}
                       </div>
                       <div className="text-sm text-gray-600">Peer Reviews</div>
                     </div>
@@ -516,8 +522,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Peer Submission Reels - Only show if submission exists and peer reviews are enabled */}
-          {submission && assignment.enablePeerResponses && peerVideos.length > 0 && (
+          {/* Peer Submission Reels - Show if submission exists and there are peer videos */}
+          {submission && peerVideos.length > 0 && (
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mt-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
