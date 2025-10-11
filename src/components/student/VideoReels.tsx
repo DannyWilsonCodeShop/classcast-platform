@@ -30,10 +30,42 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
   const [rating, setRating] = useState<number>(0);
   const [ratingComment, setRatingComment] = useState<string>('');
   const [isSubmittingRating, setIsSubmittingRating] = useState<boolean>(false);
+  const [thumbnails, setThumbnails] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     loadVideoReels();
   }, [studentId]);
+
+  // Generate thumbnail from video first frame
+  const generateThumbnail = (videoUrl: string, videoId: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.crossOrigin = 'anonymous';
+      video.src = videoUrl;
+      video.currentTime = 0.5; // Capture frame at 0.5 seconds
+      
+      video.addEventListener('loadeddata', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 300;
+        canvas.height = 200;
+        const ctx = canvas.getContext('2d');
+        
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
+          resolve(thumbnailUrl);
+        } else {
+          resolve('/api/placeholder/300/200');
+        }
+      });
+      
+      video.addEventListener('error', () => {
+        resolve('/api/placeholder/300/200');
+      });
+      
+      video.load();
+    });
+  };
 
   const loadVideoReels = async () => {
     try {
@@ -67,6 +99,18 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
           courseName: sub.courseName
         }));
         setReels(videoReels);
+        
+        // Generate thumbnails for videos without proper thumbnails
+        videoReels.forEach(async (reel) => {
+          if (!reel.thumbnail || reel.thumbnail === '/api/placeholder/300/200') {
+            try {
+              const thumb = await generateThumbnail(reel.videoUrl, reel.id);
+              setThumbnails(prev => ({ ...prev, [reel.id]: thumb }));
+            } catch (error) {
+              console.error('Error generating thumbnail for', reel.id, error);
+            }
+          }
+        });
       } else {
         setReels([]);
       }
@@ -275,27 +319,41 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
             onClick={() => handleVideoClick(reel)}
           >
             {/* Video Thumbnail */}
-            <div className="relative bg-black">
-              <video
-                src={reel.videoUrl}
-                className="w-full h-32 object-cover rounded-t-xl"
-                preload="metadata"
-                poster={reel.thumbnail !== '/api/placeholder/300/200' ? reel.thumbnail : undefined}
-              />
+            <div className="relative bg-gray-900">
+              {thumbnails[reel.id] ? (
+                <img
+                  src={thumbnails[reel.id]}
+                  alt={reel.title}
+                  className="w-full h-32 object-cover rounded-t-xl"
+                />
+              ) : reel.thumbnail && reel.thumbnail !== '/api/placeholder/300/200' ? (
+                <img
+                  src={reel.thumbnail}
+                  alt={reel.title}
+                  className="w-full h-32 object-cover rounded-t-xl"
+                  onError={(e) => {
+                    // If image fails, try to generate from video
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    generateThumbnail(reel.videoUrl, reel.id).then(thumb => {
+                      setThumbnails(prev => ({ ...prev, [reel.id]: thumb }));
+                    });
+                  }}
+                />
+              ) : (
+                <div className="w-full h-32 bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center rounded-t-xl">
+                  <span className="text-4xl">🎥</span>
+                </div>
+              )}
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setIsPlaying(!isPlaying);
-                    setCurrentVideo(index);
+                    router.push(`/student/videos/${reel.id}`);
                   }}
-                  className="bg-white bg-opacity-0 group-hover:bg-opacity-90 rounded-full p-2 transition-all duration-200"
+                  className="bg-white bg-opacity-0 group-hover:bg-opacity-90 rounded-full p-3 transition-all duration-200"
                 >
-                  {isPlaying && currentVideo === index ? (
-                    <PauseIcon className="h-5 w-5 text-gray-800" />
-                  ) : (
-                    <PlayIcon className="h-5 w-5 text-gray-800" />
-                  )}
+                  <PlayIcon className="h-6 w-6 text-gray-800" />
                 </button>
               </div>
               <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
