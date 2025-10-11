@@ -342,13 +342,18 @@ const AssignmentSubmissionsPage: React.FC = () => {
                         <p className="text-sm text-gray-600 mb-4">{video.videoDescription}</p>
                       )}
 
-                      {/* Video Player */}
-                      <div className="bg-black rounded-lg overflow-hidden aspect-video mb-4">
+                      {/* Video Player - 16:9 Ratio */}
+                      <div className="bg-black rounded-lg overflow-hidden mb-4" style={{ aspectRatio: '16 / 9' }}>
                         <video
                           controls
                           className="w-full h-full object-contain"
                           preload="metadata"
                           poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
+                          onLoadedMetadata={(e) => {
+                            // Seek to 0.1 seconds to show first frame
+                            const videoEl = e.currentTarget;
+                            videoEl.currentTime = 0.1;
+                          }}
                         >
                           <source src={video.videoUrl} type="video/mp4" />
                           <source src={video.videoUrl} type="video/webm" />
