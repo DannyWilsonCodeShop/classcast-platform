@@ -39,12 +39,39 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
     try {
       setIsLoading(true);
       
-      // Use the clean API to fetch videos
-      const videosData = await api.getVideos();
-      setReels(videosData.slice(0, 10)); // Show only first 10 videos
+      // Fetch recent video submissions from all enrolled courses
+      const response = await fetch(`/api/student/community/submissions?studentId=${studentId}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const submissions = await response.json();
+        // Transform submissions to VideoReel format
+        const videoReels: VideoReel[] = submissions.slice(0, 10).map((sub: any) => ({
+          id: sub.submissionId || sub.id,
+          title: sub.videoTitle || 'Video Submission',
+          description: sub.videoDescription || '',
+          thumbnail: sub.thumbnailUrl || '/api/placeholder/300/200',
+          videoUrl: sub.videoUrl,
+          duration: sub.duration || 0,
+          author: {
+            id: sub.studentId,
+            name: sub.studentName || 'Unknown Student',
+            avatar: sub.studentAvatar || '/api/placeholder/40/40'
+          },
+          likes: sub.likes || 0,
+          comments: 0,
+          isLiked: false,
+          createdAt: sub.submittedAt || sub.createdAt,
+          courseId: sub.courseId,
+          courseName: sub.courseName
+        }));
+        setReels(videoReels);
+      } else {
+        setReels([]);
+      }
     } catch (error) {
       console.error('Error loading video reels:', error);
-      // Set empty array on error - no mock data
       setReels([]);
     } finally {
       setIsLoading(false);
@@ -248,11 +275,12 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
             onClick={() => handleVideoClick(reel)}
           >
             {/* Video Thumbnail */}
-            <div className="relative">
-              <img
-                src={reel.thumbnail}
-                alt={reel.title}
+            <div className="relative bg-black">
+              <video
+                src={reel.videoUrl}
                 className="w-full h-32 object-cover rounded-t-xl"
+                preload="metadata"
+                poster={reel.thumbnail !== '/api/placeholder/300/200' ? reel.thumbnail : undefined}
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all duration-200">
                 <button
