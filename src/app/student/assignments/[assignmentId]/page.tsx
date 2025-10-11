@@ -27,6 +27,9 @@ interface Assignment {
   submittedAt?: string;
   grade?: number;
   feedback?: string;
+  minResponsesRequired?: number;
+  maxResponsesPerVideo?: number;
+  enablePeerResponses?: boolean;
 }
 
 interface Submission {
@@ -46,6 +49,17 @@ interface Submission {
   studentEmail: string;
 }
 
+interface PeerVideo {
+  id: string;
+  studentId: string;
+  studentName: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  title: string;
+  duration: number;
+  submittedAt: string;
+}
+
 const StudentAssignmentDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -56,6 +70,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  const [peerVideos, setPeerVideos] = useState<PeerVideo[]>([]);
+  const [peerResponses, setPeerResponses] = useState<any[]>([]);
 
   const assignmentId = params.assignmentId as string;
 
@@ -164,24 +180,76 @@ const StudentAssignmentDetailPage: React.FC = () => {
     }
   }, [assignmentId, user?.id]);
 
+  const fetchPeerVideos = React.useCallback(async () => {
+    try {
+      const response = await fetch(
+        `/api/student/community/submissions?assignmentId=${assignmentId}&studentId=${user?.id}`,
+        { credentials: 'include' }
+      );
+      
+      if (response.ok) {
+        const submissions = await response.json();
+        const videos: PeerVideo[] = submissions.slice(0, 6).map((sub: any) => ({
+          id: sub.submissionId || sub.id,
+          studentId: sub.studentId,
+          studentName: sub.studentName || 'Unknown Student',
+          videoUrl: sub.videoUrl,
+          thumbnailUrl: sub.thumbnailUrl || '/api/placeholder/300/200',
+          title: sub.videoTitle || 'Video Submission',
+          duration: sub.duration || 0,
+          submittedAt: sub.submittedAt || sub.createdAt
+        }));
+        setPeerVideos(videos);
+      }
+    } catch (error) {
+      console.error('Error fetching peer videos:', error);
+    }
+  }, [assignmentId, user?.id]);
+
+  const fetchPeerResponses = React.useCallback(async () => {
+    try {
+      const response = await fetch(
+        `/api/peer-responses?assignmentId=${assignmentId}&studentId=${user?.id}`,
+        { credentials: 'include' }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPeerResponses(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching peer responses:', error);
+    }
+  }, [assignmentId, user?.id]);
+
   useEffect(() => {
     if (assignmentId && user?.id) {
       fetchAssignmentDetails();
       fetchSubmission();
+      fetchPeerVideos();
+      fetchPeerResponses();
     }
-  }, [assignmentId, user?.id, fetchAssignmentDetails, fetchSubmission]);
+  }, [assignmentId, user?.id, fetchAssignmentDetails, fetchSubmission, fetchPeerVideos, fetchPeerResponses]);
 
-  // Update assignment status when submission is loaded
+  // Update assignment status when submission and peer responses are loaded
   useEffect(() => {
     if (assignment && submission) {
+      // Check if peer responses are required
+      const peerResponsesRequired = assignment.enablePeerResponses && (assignment.minResponsesRequired || 0) > 0;
+      const peerResponsesComplete = !peerResponsesRequired || 
+        peerResponses.length >= (assignment.minResponsesRequired || 0);
+      
+      // Assignment is only completed if both submission AND peer responses are done
+      const isComplete = submission && peerResponsesComplete;
+      
       setAssignment(prev => prev ? {
         ...prev,
-        status: 'completed',
+        status: isComplete ? 'completed' : 'upcoming',
         isSubmitted: true,
         submittedAt: submission.submittedAt
       } : null);
     }
-  }, [assignment, submission]);
+  }, [assignment, submission, peerResponses]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -310,7 +378,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
             {/* Assignment Info Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">{assignment.points}</div>
                     <div className="text-sm text-gray-600">Points</div>
@@ -323,10 +391,18 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                  {assignment.isSubmitted ? '1' : '0'}
+                  {assignment.isSubmitted ? '✓' : '○'}
                     </div>
-                    <div className="text-sm text-gray-600">Submissions</div>
+                    <div className="text-sm text-gray-600">Submission</div>
                   </div>
+                  {assignment.enablePeerResponses && (assignment.minResponsesRequired || 0) > 0 && (
+                    <div className="text-center p-4 bg-purple-50 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {peerResponses.length} of {assignment.minResponsesRequired}
+                      </div>
+                      <div className="text-sm text-gray-600">Peer Reviews</div>
+                    </div>
+                  )}
                 </div>
 
             {/* Assignment Details */}
@@ -439,6 +515,71 @@ const StudentAssignmentDetailPage: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Peer Submission Reels - Only show if submission exists and peer reviews are enabled */}
+          {submission && assignment.enablePeerResponses && peerVideos.length > 0 && (
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mt-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Classmate Submissions</h3>
+                  <p className="text-sm text-gray-600">Watch and respond to earn full credit</p>
+                </div>
+                <button
+                  onClick={() => router.push(`/student/peer-reviews?assignment=${assignmentId}&course=${assignment.courseId}`)}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                >
+                  View All Reviews →
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {peerVideos.map((video) => (
+                  <div
+                    key={video.id}
+                    onClick={() => router.push(`/student/peer-reviews?assignment=${assignmentId}&course=${assignment.courseId}`)}
+                    className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
+                  >
+                    <div className="relative bg-black rounded-t-lg overflow-hidden aspect-video">
+                      <video
+                        src={video.videoUrl}
+                        className="w-full h-full object-cover"
+                        preload="metadata"
+                        poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center transition-all">
+                        <div className="bg-white bg-opacity-0 group-hover:bg-opacity-90 rounded-full p-2 transition-all">
+                          <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1.5 py-0.5 rounded">
+                        {Math.floor(video.duration / 60)}:{(video.duration % 60).toString().padStart(2, '0')}
+                      </div>
+                    </div>
+                    <div className="p-2">
+                      <p className="text-xs font-medium text-gray-900 truncate">{video.studentName}</p>
+                      <p className="text-xs text-gray-500 truncate">{video.title}</p>
+                      {peerResponses.some(r => r.videoId === video.id) && (
+                        <span className="inline-block mt-1 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                          ✓ Reviewed
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {peerResponses.length < (assignment.minResponsesRequired || 0) && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-700">
+                    💡 <strong>Required:</strong> Review {assignment.minResponsesRequired} peer submissions to complete this assignment. 
+                    You've completed {peerResponses.length} of {assignment.minResponsesRequired}.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </StudentRoute>

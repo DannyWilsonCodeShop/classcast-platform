@@ -345,7 +345,7 @@ export default function CommunityPage() {
                         <p className="text-gray-700 mb-4 leading-relaxed">{post.content}</p>
                         
                         {/* Tags */}
-                        {post.tags.length > 0 && (
+                        {post.tags && post.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-4">
                             {post.tags.map((tag, index) => (
                               <span key={index} className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 cursor-pointer transition-colors">
@@ -473,7 +473,7 @@ export default function CommunityPage() {
                         <p className="text-gray-700 mb-4 leading-relaxed">{post.content}</p>
                         
                         {/* Tags */}
-                        {post.tags.length > 0 && (
+                        {post.tags && post.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-4">
                             {post.tags.map((tag, index) => (
                               <span key={index} className="px-3 py-1 bg-gray-100 text-gray-600 text-xs rounded-full hover:bg-gray-200 cursor-pointer transition-colors">
