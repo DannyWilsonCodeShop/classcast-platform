@@ -78,7 +78,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
       
       if (response.ok) {
         const submissions = await response.json();
-        // Transform submissions to VideoReel format
+        // Transform submissions to VideoReel format with assignmentId
         const videoReels: VideoReel[] = submissions.slice(0, 10).map((sub: any) => ({
           id: sub.submissionId || sub.id,
           title: sub.videoTitle || 'Video Submission',
@@ -89,15 +89,16 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
           author: {
             id: sub.studentId,
             name: sub.studentName || 'Unknown Student',
-            avatar: sub.studentAvatar || '/api/placeholder/40/40'
+            avatar: sub.studentAvatar || '/api/placeholder/40/40',
+            course: sub.courseName || 'Unknown Course'
           },
           likes: sub.likes || 0,
           comments: 0,
           isLiked: false,
           createdAt: sub.submittedAt || sub.createdAt,
           courseId: sub.courseId,
-          courseName: sub.courseName
-        }));
+          assignmentId: sub.assignmentId  // Add assignmentId
+        } as any));
         setReels(videoReels);
         
         // Generate thumbnails for videos without proper thumbnails
@@ -349,7 +350,13 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    router.push(`/student/videos/${reel.id}`);
+                    // Navigate to assignment submissions page with this video highlighted
+                    const assignmentId = (reel as any).assignmentId;
+                    if (assignmentId) {
+                      router.push(`/student/assignments/${assignmentId}/submissions?videoId=${reel.id}`);
+                    } else {
+                      router.push(`/student/peer-reviews?videoId=${reel.id}`);
+                    }
                   }}
                   className="bg-white bg-opacity-0 group-hover:bg-opacity-90 rounded-full p-3 transition-all duration-200"
                 >

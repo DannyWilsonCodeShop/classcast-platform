@@ -525,10 +525,10 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   <p className="text-sm text-gray-600">Watch and respond to earn full credit</p>
                 </div>
                 <button
-                  onClick={() => router.push(`/student/peer-reviews?assignment=${assignmentId}&course=${assignment.courseId}`)}
+                  onClick={() => router.push(`/student/assignments/${assignmentId}/submissions`)}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
                 >
-                  View All Reviews →
+                  View All Submissions →
                 </button>
               </div>
 
@@ -536,7 +536,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                 {peerVideos.map((video) => (
                   <div
                     key={video.id}
-                    onClick={() => router.push(`/student/peer-reviews?assignment=${assignmentId}&course=${assignment.courseId}`)}
+                    onClick={() => router.push(`/student/assignments/${assignmentId}/submissions?videoId=${video.id}`)}
                     className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
                   >
                     <div className="relative bg-black rounded-t-lg overflow-hidden aspect-video">
