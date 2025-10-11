@@ -356,14 +356,25 @@ const AssignmentSubmissionsPage: React.FC = () => {
                         </video>
                       </div>
 
-                      {/* Video Metadata */}
-                      <div className="flex items-center space-x-4 text-sm text-gray-600 mb-4">
-                        <span>⏱️ {formatDuration(video.duration)}</span>
+                      {/* Video Metadata and Actions */}
+                      <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-200">
+                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                          <span>⏱️ {formatDuration(video.duration)}</span>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <button className="flex items-center space-x-1 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors text-sm">
+                            <span>👍</span>
+                            <span className="text-gray-600">0</span>
+                          </button>
+                          <button className="flex items-center space-x-1 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors text-sm">
+                            <span>💬</span>
+                            <span className="text-gray-600">0</span>
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Response Section */}
-                      {assignment?.enablePeerResponses && (
-                        <div className="border-t border-gray-200 pt-4">
+                      {/* Response Section - Always show for peer videos */}
+                      <div className="pt-4">
                           {hasResponse ? (
                             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                               <div className="flex items-center justify-between mb-2">
@@ -428,8 +439,7 @@ const AssignmentSubmissionsPage: React.FC = () => {
                               )}
                             </div>
                           )}
-                        </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 );
