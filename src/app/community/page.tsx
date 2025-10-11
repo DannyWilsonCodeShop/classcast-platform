@@ -364,28 +364,28 @@ export default function CommunityPage() {
                                 className="flex items-center space-x-1 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
                               >
                                 <span>👍</span>
-                                <span className="text-sm text-gray-600">{post.reactions.like}</span>
+                                <span className="text-sm text-gray-600">{post.reactions?.like || 0}</span>
                               </button>
                               <button
                                 onClick={() => handleReaction(post.id, 'love')}
                                 className="flex items-center space-x-1 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
                               >
                                 <span>❤️</span>
-                                <span className="text-sm text-gray-600">{post.reactions.love}</span>
+                                <span className="text-sm text-gray-600">{post.reactions?.love || 0}</span>
                               </button>
                               <button
                                 onClick={() => handleReaction(post.id, 'helpful')}
                                 className="flex items-center space-x-1 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
                               >
                                 <span>💡</span>
-                                <span className="text-sm text-gray-600">{post.reactions.helpful}</span>
+                                <span className="text-sm text-gray-600">{post.reactions?.helpful || 0}</span>
                               </button>
                               <button
                                 onClick={() => handleReaction(post.id, 'celebrate')}
                                 className="flex items-center space-x-1 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
                               >
                                 <span>🎉</span>
-                                <span className="text-sm text-gray-600">{post.reactions.celebrate}</span>
+                                <span className="text-sm text-gray-600">{post.reactions?.celebrate || 0}</span>
                               </button>
                             </div>
                           </div>
@@ -492,28 +492,28 @@ export default function CommunityPage() {
                                 className="flex items-center space-x-1 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
                               >
                                 <span>👍</span>
-                                <span className="text-sm text-gray-600">{post.reactions.like}</span>
+                                <span className="text-sm text-gray-600">{post.reactions?.like || 0}</span>
                               </button>
                               <button
                                 onClick={() => handleReaction(post.id, 'love')}
                                 className="flex items-center space-x-1 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
                               >
                                 <span>❤️</span>
-                                <span className="text-sm text-gray-600">{post.reactions.love}</span>
+                                <span className="text-sm text-gray-600">{post.reactions?.love || 0}</span>
                               </button>
                               <button
                                 onClick={() => handleReaction(post.id, 'helpful')}
                                 className="flex items-center space-x-1 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
                               >
                                 <span>💡</span>
-                                <span className="text-sm text-gray-600">{post.reactions.helpful}</span>
+                                <span className="text-sm text-gray-600">{post.reactions?.helpful || 0}</span>
                               </button>
                               <button
                                 onClick={() => handleReaction(post.id, 'celebrate')}
                                 className="flex items-center space-x-1 px-3 py-1 rounded-full hover:bg-gray-100 transition-colors"
                               >
                                 <span>🎉</span>
-                                <span className="text-sm text-gray-600">{post.reactions.celebrate}</span>
+                                <span className="text-sm text-gray-600">{post.reactions?.celebrate || 0}</span>
                               </button>
                             </div>
                           </div>
