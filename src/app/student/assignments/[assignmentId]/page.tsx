@@ -532,6 +532,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
           </div>
 
           {/* Peer Submission Reels - Show if submission exists and there are peer videos */}
+          {(() => {
+            console.log('📊 Classmate Submissions Section Check:', {
+              hasSubmission: !!submission,
+              peerVideosLength: peerVideos.length,
+              shouldShow: !!(submission && peerVideos.length > 0)
+            });
+            return null;
+          })()}
           {submission && peerVideos.length > 0 && (
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mt-6">
               <div className="flex items-center justify-between mb-4">
@@ -540,8 +548,12 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   <p className="text-sm text-gray-600">Watch and respond to earn full credit</p>
                 </div>
                 <button
-                  onClick={() => router.push(`/student/assignments/${assignmentId}/submissions`)}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('🚀 View All Submissions clicked, navigating to:', `/student/assignments/${assignmentId}/submissions`);
+                    router.push(`/student/assignments/${assignmentId}/submissions`);
+                  }}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium cursor-pointer"
                 >
                   View All Submissions →
                 </button>
@@ -551,7 +563,12 @@ const StudentAssignmentDetailPage: React.FC = () => {
                 {peerVideos.map((video) => (
                   <div
                     key={video.id}
-                    onClick={() => router.push(`/student/assignments/${assignmentId}/submissions?videoId=${video.id}`)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const targetUrl = `/student/assignments/${assignmentId}/submissions?videoId=${video.id}`;
+                      console.log('🎬 Video thumbnail clicked, navigating to:', targetUrl);
+                      router.push(targetUrl);
+                    }}
                     className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
                   >
                     <div className="relative bg-black rounded-t-lg overflow-hidden aspect-video">
