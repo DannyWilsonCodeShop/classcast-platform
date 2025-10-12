@@ -938,21 +938,21 @@ const BulkGradingPage: React.FC = () => {
                 {filteredSubmissions.map((submission, index) => (
                   <div
                     key={submission.id}
-                    className={`p-6 rounded-lg border-2 transition-all duration-300 ${
+                    className={`p-6 rounded-xl border transition-all duration-300 ${
                       index === currentSubmissionIndex
-                        ? 'border-blue-500 bg-blue-50'
+                        ? 'border-[#005587] bg-gradient-to-br from-blue-50 to-white shadow-lg ring-2 ring-[#005587]/20'
                         : submission.isPinned && submission.isHighlighted
-                        ? 'border-yellow-400 bg-gradient-to-r from-yellow-50 to-orange-50 shadow-lg'
+                        ? 'border-[#FFC72C] bg-gradient-to-br from-blue-50/30 to-amber-50/30 shadow-lg'
                         : submission.isPinned
-                        ? 'border-yellow-300 bg-yellow-50 shadow-md'
+                        ? 'border-[#005587]/40 bg-blue-50/50 shadow-md'
                         : submission.isHighlighted
-                        ? 'border-orange-300 bg-orange-50 shadow-md'
+                        ? 'border-[#FFC72C]/60 bg-amber-50/30 shadow-md'
                         : (() => {
                             const timingStatus = getSubmissionTimingStatus(submission, assignmentDueDate);
                             if (timingStatus.status === 'late') {
-                              return 'border-yellow-400 bg-yellow-50 hover:border-yellow-500 hover:shadow-md';
+                              return 'border-red-200 bg-red-50/50 hover:border-red-300 hover:shadow-md';
                             } else if (timingStatus.status === 'ontime') {
-                              return 'border-green-300 bg-green-50 hover:border-green-400 hover:shadow-md';
+                              return 'border-green-200 bg-green-50/30 hover:border-green-300 hover:shadow-md';
                             }
                             return 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md';
                           })()
@@ -962,15 +962,15 @@ const BulkGradingPage: React.FC = () => {
                     {(submission.isPinned || submission.isHighlighted) && (
                       <div className="flex items-center space-x-2 mb-4">
                         {submission.isPinned && (
-                          <div className="flex items-center space-x-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                          <div className="flex items-center space-x-1 px-3 py-1.5 bg-[#005587]/10 text-[#005587] rounded-lg text-xs font-semibold border border-[#005587]/20">
                             <span>📌</span>
                             <span>Pinned</span>
                           </div>
                         )}
                         {submission.isHighlighted && (
-                          <div className="flex items-center space-x-1 px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
+                          <div className="flex items-center space-x-1 px-3 py-1.5 bg-[#FFC72C]/15 text-[#CC9900] rounded-lg text-xs font-semibold border border-[#FFC72C]/30">
                             <span>⭐</span>
-                            <span>Highlighted</span>
+                            <span>Featured</span>
                           </div>
                         )}
                       </div>
