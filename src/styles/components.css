@@ -1,0 +1,256 @@
+/* Professional Component Styles - Cristo Rey Brand */
+
+/* ========================================
+   CARDS - Sophisticated & Professional
+   ======================================== */
+
+.card-professional {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-professional:hover {
+  border-color: var(--cristo-rey-blue);
+  box-shadow: 0 10px 15px -3px rgba(0, 85, 135, 0.1), 0 4px 6px -2px rgba(0, 85, 135, 0.05);
+  transform: translateY(-2px);
+}
+
+.card-elevated {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.card-subtle {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 85, 135, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+/* Card with accent border */
+.card-accent-blue {
+  border-left: 4px solid var(--cristo-rey-blue);
+}
+
+.card-accent-gold {
+  border-left: 4px solid var(--cristo-rey-gold);
+}
+
+/* ========================================
+   BUTTONS - Professional & Refined
+   ======================================== */
+
+/* Primary Button - Cristo Rey Blue */
+.btn-primary {
+  background: var(--cristo-rey-blue);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 85, 135, 0.2);
+}
+
+.btn-primary:hover {
+  background: var(--cristo-rey-blue-dark);
+  box-shadow: 0 4px 6px -1px rgba(0, 85, 135, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px 0 rgba(0, 85, 135, 0.2);
+}
+
+/* Secondary Button - Gold Accent */
+.btn-secondary {
+  background: white;
+  color: var(--cristo-rey-blue);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: 2px solid var(--cristo-rey-blue);
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--cristo-rey-blue);
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 85, 135, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Gold Button - Accent Actions */
+.btn-gold {
+  background: var(--cristo-rey-gold);
+  color: var(--cristo-rey-blue);
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px 0 rgba(255, 199, 44, 0.3);
+}
+
+.btn-gold:hover {
+  background: var(--cristo-rey-gold-dark);
+  box-shadow: 0 4px 6px -1px rgba(255, 199, 44, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Subtle Button */
+.btn-subtle {
+  background: rgba(0, 85, 135, 0.05);
+  color: var(--cristo-rey-blue);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.btn-subtle:hover {
+  background: rgba(0, 85, 135, 0.1);
+  transform: translateY(-1px);
+}
+
+/* ========================================
+   GRADIENTS - Subtle & Professional
+   ======================================== */
+
+.gradient-blue-subtle {
+  background: linear-gradient(135deg, 
+    rgba(0, 85, 135, 0.05) 0%, 
+    rgba(0, 123, 184, 0.05) 100%);
+}
+
+.gradient-gold-subtle {
+  background: linear-gradient(135deg, 
+    rgba(255, 199, 44, 0.05) 0%, 
+    rgba(255, 214, 102, 0.05) 100%);
+}
+
+.gradient-cristo-rey {
+  background: linear-gradient(135deg, 
+    var(--cristo-rey-blue) 0%, 
+    var(--cristo-rey-blue-light) 100%);
+}
+
+.gradient-cristo-rey-reverse {
+  background: linear-gradient(135deg, 
+    var(--cristo-rey-blue-light) 0%, 
+    var(--cristo-rey-blue) 100%);
+}
+
+/* Professional header gradient */
+.gradient-header {
+  background: linear-gradient(180deg, 
+    rgba(0, 85, 135, 0.02) 0%, 
+    rgba(255, 255, 255, 0) 100%);
+}
+
+/* ========================================
+   BADGES - Professional Status Indicators
+   ======================================== */
+
+.badge-blue {
+  background: rgba(0, 85, 135, 0.1);
+  color: var(--cristo-rey-blue);
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.badge-gold {
+  background: rgba(255, 199, 44, 0.15);
+  color: #CC9900;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.badge-success {
+  background: rgba(56, 161, 105, 0.1);
+  color: #38a169;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.badge-warning {
+  background: rgba(180, 83, 9, 0.1);
+  color: #92400e;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+/* ========================================
+   HOVER EFFECTS - Subtle & Elegant
+   ======================================== */
+
+.hover-lift-subtle {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift-subtle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.hover-scale-subtle {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale-subtle:hover {
+  transform: scale(1.02);
+}
+
+/* ========================================
+   BORDERS - Clean & Professional
+   ======================================== */
+
+.border-professional {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.border-blue {
+  border: 1px solid rgba(0, 85, 135, 0.2);
+}
+
+.border-gold {
+  border: 1px solid rgba(255, 199, 44, 0.3);
+}
+
+/* ========================================
+   FOCUS STATES - Accessible & Clear
+   ======================================== */
+
+.focus-ring-blue:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--cristo-rey-blue);
+  ring-offset: 2px;
+  border-color: var(--cristo-rey-blue);
+}
+
+.focus-ring-gold:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--cristo-rey-gold);
+  ring-offset: 2px;
+  border-color: var(--cristo-rey-gold);
+}
+

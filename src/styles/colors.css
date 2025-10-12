@@ -1,24 +1,33 @@
-/* Premium Color Palette for ClassCast */
+/* Premium Color Palette for ClassCast - Cristo Rey Brand */
 
 :root {
-  /* Primary Colors - Sophisticated Navy and Charcoal */
-  --primary-900: #1a1d29;  /* Deep charcoal navy */
-  --primary-800: #2d3142;  /* Rich navy */
-  --primary-700: #4a5568;  /* Muted navy */
-  --primary-600: #718096;  /* Soft navy gray */
-  --primary-500: #a0aec0;  /* Light navy gray */
-  --primary-400: #cbd5e0;  /* Very light navy gray */
-  --primary-300: #e2e8f0;  /* Pale navy gray */
-  --primary-200: #edf2f7;  /* Almost white with navy tint */
-  --primary-100: #f7fafc;  /* Off white with subtle navy tint */
+  /* Cristo Rey Brand Colors - Pantone 301 (Deep Blue) & Pantone 124 (Gold) */
+  --cristo-rey-blue: #005587;        /* Pantone 301 - Primary brand blue */
+  --cristo-rey-blue-dark: #003d5c;   /* Darker shade for hover states */
+  --cristo-rey-blue-light: #007bb8;  /* Lighter shade */
+  --cristo-rey-gold: #FFC72C;        /* Pantone 124 - Brand gold */
+  --cristo-rey-gold-dark: #E5A900;   /* Darker gold for hover */
+  --cristo-rey-gold-light: #FFD666;  /* Lighter gold */
 
-  /* Accent Colors - Refined and Muted */
-  --accent-600: #4c51bf;   /* Sophisticated indigo */
-  --accent-500: #667eea;   /* Soft indigo */
-  --accent-400: #9f7aea;   /* Muted purple */
-  --accent-300: #b794f6;   /* Light purple */
-  --accent-200: #d6bcfa;   /* Very light purple */
-  --accent-100: #e9d8fd;   /* Pale purple */
+  /* Primary Colors - Cristo Rey Blue Palette */
+  --primary-900: #002840;  /* Deepest blue */
+  --primary-800: #003d5c;  /* Deep blue */
+  --primary-700: #005587;  /* Cristo Rey Blue (Pantone 301) */
+  --primary-600: #007bb8;  /* Medium blue */
+  --primary-500: #0099e6;  /* Light blue */
+  --primary-400: #4db8ff;  /* Very light blue */
+  --primary-300: #99d6ff;  /* Pale blue */
+  --primary-200: #cceaff;  /* Almost white blue */
+  --primary-100: #e6f5ff;  /* Off white with blue tint */
+
+  /* Accent Colors - Cristo Rey Gold Palette */
+  --accent-700: #CC9900;   /* Deep gold */
+  --accent-600: #E5A900;   /* Dark gold */
+  --accent-500: #FFC72C;   /* Cristo Rey Gold (Pantone 124) */
+  --accent-400: #FFD666;   /* Light gold */
+  --accent-300: #FFE599;   /* Very light gold */
+  --accent-200: #FFF2CC;   /* Pale gold */
+  --accent-100: #FFF9E6;   /* Off white with gold tint */
 
   /* Success Colors - Professional Green */
   --success-600: #38a169;  /* Professional green */
@@ -28,13 +37,14 @@
   --success-200: #c6f6d5;  /* Pale green */
   --success-100: #f0fff4;  /* Off white with green tint */
 
-  /* Warning Colors - Refined Orange */
-  --warning-600: #dd6b20;  /* Professional orange */
-  --warning-500: #ed8936;  /* Soft orange */
-  --warning-400: #f6ad55;  /* Light orange */
-  --warning-300: #fbd38d;  /* Very light orange */
-  --warning-200: #feebc8;  /* Pale orange */
-  --warning-100: #fffaf0;  /* Off white with orange tint */
+  /* Warning Colors - Professional Burgundy/Amber (no juvenile orange) */
+  --warning-700: #78350f;  /* Deep amber */
+  --warning-600: #92400e;  /* Dark amber */
+  --warning-500: #b45309;  /* Professional amber */
+  --warning-400: #d97706;  /* Medium amber */
+  --warning-300: #fbbf24;  /* Light amber */
+  --warning-200: #fde68a;  /* Very light amber */
+  --warning-100: #fef3c7;  /* Pale amber */
 
   /* Error Colors - Sophisticated Red */
   --error-600: #e53e3e;    /* Professional red */
