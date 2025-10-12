@@ -140,9 +140,21 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
               </span>
             )}
           </div>
-          <span className="font-medium">
-            {assignment.maxScore} pts
-          </span>
+          <div className="flex flex-col items-end gap-1">
+            <span className="font-medium">
+              {assignment.maxScore} pts
+            </span>
+            {/* Grade Badge */}
+            {(assignment as any).grade !== undefined && (assignment as any).grade !== null ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                ✓ {(assignment as any).grade}%
+              </span>
+            ) : (assignment as any).isSubmitted ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                ⏳ Pending
+              </span>
+            ) : null}
+          </div>
         </div>
       </div>
     );
@@ -289,6 +301,24 @@ export const AssignmentCard: React.FC<AssignmentCardProps> = ({
           <span className="text-gray-600">Points:</span>
           <span className="ml-2 font-medium text-gray-900">{assignment.maxScore}</span>
         </div>
+        {/* Grade Display */}
+        {(assignment as any).grade !== undefined && (assignment as any).grade !== null ? (
+          <div className="flex items-center">
+            <svg className="h-4 w-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-gray-600">Your Grade:</span>
+            <span className="ml-2 font-bold text-green-600">{(assignment as any).grade}%</span>
+          </div>
+        ) : (assignment as any).isSubmitted ? (
+          <div className="flex items-center">
+            <svg className="h-4 w-4 text-yellow-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-gray-600">Status:</span>
+            <span className="ml-2 font-medium text-yellow-600">Pending Grade</span>
+          </div>
+        ) : null}
         {assignment.weight && (
           <div className="flex items-center">
             <svg className="h-4 w-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

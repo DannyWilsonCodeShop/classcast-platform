@@ -44,9 +44,12 @@ interface Submission {
   fileName: string;
   fileSize: number;
   status: string;
-    submittedAt: string;
+  submittedAt: string;
   studentName: string;
   studentEmail: string;
+  grade?: number;
+  instructorFeedback?: string;
+  gradedAt?: string;
 }
 
 interface PeerVideo {
@@ -503,12 +506,34 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {displayAssignment.grade && (
-                    <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                      <p className="text-blue-700 font-medium">Grade: {displayAssignment.grade}/{displayAssignment.points}</p>
-                      {displayAssignment.feedback && (
-                        <p className="text-blue-700 mt-1">Feedback: {displayAssignment.feedback}</p>
+                  {/* Grade and Feedback Display */}
+                  {(submission.grade !== undefined && submission.grade !== null) ? (
+                    <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="text-md font-semibold text-blue-900 flex items-center">
+                          <span className="mr-2">📊</span>
+                          Your Grade
+                        </h4>
+                        <div className="text-2xl font-bold text-blue-600">
+                          {submission.grade}%
+                        </div>
+                      </div>
+                      {submission.instructorFeedback && (
+                        <div className="mt-3 p-3 bg-white rounded-lg border border-blue-100">
+                          <h5 className="text-sm font-semibold text-gray-700 mb-2">Instructor Feedback:</h5>
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{submission.instructorFeedback}</p>
+                        </div>
                       )}
+                      <div className="mt-2 text-xs text-blue-600">
+                        ✅ Graded on {new Date(submission.gradedAt || submission.submittedAt).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <div className="flex items-center text-yellow-800">
+                        <span className="mr-2">⏳</span>
+                        <p className="text-sm font-medium">Waiting for instructor to grade your submission</p>
+                      </div>
                     </div>
                   )}
                 </div>

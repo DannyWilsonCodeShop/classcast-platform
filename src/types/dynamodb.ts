@@ -120,6 +120,13 @@ export interface Assignment {
   pinnedAt?: string;
   highlightedAt?: string;
   
+  // Student-Specific Fields (populated when fetched for students)
+  isSubmitted?: boolean;
+  submittedAt?: string;
+  grade?: number;
+  feedback?: string;
+  instructorFeedback?: string;
+  
   // TTL for automatic cleanup
   ttl?: number;
 }
