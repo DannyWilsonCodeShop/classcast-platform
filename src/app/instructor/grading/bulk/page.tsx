@@ -138,13 +138,13 @@ const BulkGradingPage: React.FC = () => {
   // Fetch peer responses for all students
   useEffect(() => {
     const fetchPeerResponses = async () => {
-      if (filteredSubmissions.length === 0) return;
+      if (submissions.length === 0) return;
       
       try {
         const responsesMap: {[studentId: string]: any[]} = {};
         
         // Fetch peer responses for each student
-        await Promise.all(filteredSubmissions.map(async (submission) => {
+        await Promise.all(submissions.map(async (submission) => {
           try {
             const response = await fetch(
               `/api/peer-responses?assignmentId=${submission.assignmentId}&studentId=${submission.studentId}`,
@@ -167,7 +167,7 @@ const BulkGradingPage: React.FC = () => {
     };
     
     fetchPeerResponses();
-  }, [filteredSubmissions.length]);
+  }, [submissions.length]);
 
   // Legacy function for compatibility - DEPRECATED
   const getMockPeerResponsesForStudent = (studentId: string) => {
