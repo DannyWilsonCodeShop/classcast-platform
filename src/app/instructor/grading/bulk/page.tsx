@@ -127,13 +127,49 @@ const BulkGradingPage: React.FC = () => {
     }
   };
 
-  // Function to get peer responses for a specific student
+  // State for peer responses
+  const [peerResponsesData, setPeerResponsesData] = useState<{[studentId: string]: any[]}>({});
+
+  // Function to fetch and get peer responses for a specific student
   const getPeerResponsesForStudent = (studentId: string) => {
-    // TODO: Fetch real peer responses from API
-    return [];
+    return peerResponsesData[studentId] || [];
   };
 
-  // Legacy function for compatibility
+  // Fetch peer responses for all students
+  useEffect(() => {
+    const fetchPeerResponses = async () => {
+      if (filteredSubmissions.length === 0) return;
+      
+      try {
+        const responsesMap: {[studentId: string]: any[]} = {};
+        
+        // Fetch peer responses for each student
+        await Promise.all(filteredSubmissions.map(async (submission) => {
+          try {
+            const response = await fetch(
+              `/api/peer-responses?assignmentId=${submission.assignmentId}&studentId=${submission.studentId}`,
+              { credentials: 'include' }
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              responsesMap[submission.studentId] = data.data || [];
+            }
+          } catch (error) {
+            console.error(`Error fetching peer responses for student ${submission.studentId}:`, error);
+          }
+        }));
+        
+        setPeerResponsesData(responsesMap);
+      } catch (error) {
+        console.error('Error fetching peer responses:', error);
+      }
+    };
+    
+    fetchPeerResponses();
+  }, [filteredSubmissions.length]);
+
+  // Legacy function for compatibility - DEPRECATED
   const getMockPeerResponsesForStudent = (studentId: string) => {
     const mockResponses = [
       {
@@ -443,10 +479,25 @@ const BulkGradingPage: React.FC = () => {
     
     setSaveStatus('saving');
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Save to API
+      const response = await fetch(`/api/submissions/${submissionId}/grade`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          grade: Number(grade),
+          feedback: feedback || '',
+          status: 'graded'
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save grade');
+      }
       
-      // Update submission with grade
+      // Update submission with grade in local state
       setSubmissions(prev => prev.map(sub => 
         sub.id === submissionId
           ? {
@@ -593,6 +644,24 @@ const BulkGradingPage: React.FC = () => {
       if (suggestions.suggestedGrade) {
         debouncedAutoSave(submissionId, suggestions.suggestedGrade, suggestions.suggestedFeedback);
       }
+    }
+  };
+
+  // AI Analysis for Peer Responses
+  const analyzePeerResponsesWithAI = async (submission: Submission) => {
+    setIsAIAnalyzing(prev => ({ ...prev, [`peer-${submission.id}`]: true }));
+    
+    try {
+      // Simulate AI analysis
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // For now, just complete the analysis without showing results
+      // Could expand this to show peer response quality insights
+      console.log('Peer responses analyzed for:', submission.studentName);
+    } catch (error) {
+      console.error('Peer response AI analysis failed:', error);
+    } finally {
+      setIsAIAnalyzing(prev => ({ ...prev, [`peer-${submission.id}`]: false }));
     }
   };
 
