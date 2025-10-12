@@ -185,7 +185,6 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
   const fetchPeerVideos = React.useCallback(async () => {
     try {
-      console.log('🎥 FETCHING PEER VIDEOS for assignment:', assignmentId);
       const response = await fetch(
         `/api/student/community/submissions?assignmentId=${assignmentId}&studentId=${user?.id}`,
         { credentials: 'include' }
@@ -193,7 +192,6 @@ const StudentAssignmentDetailPage: React.FC = () => {
       
       if (response.ok) {
         const submissions = await response.json();
-        console.log('🎥 PEER VIDEOS RECEIVED:', submissions.length, 'videos');
         const videos: PeerVideo[] = submissions.slice(0, 6).map((sub: any) => ({
           id: sub.submissionId || sub.id,
           studentId: sub.studentId,
@@ -205,18 +203,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
           submittedAt: sub.submittedAt || sub.createdAt
         }));
         setPeerVideos(videos);
-        console.log('🎥 SET PEER VIDEOS STATE:', videos.length);
-      } else {
-        console.log('🎥 PEER VIDEOS API FAILED:', response.status);
       }
     } catch (error) {
-      console.error('🎥 Error fetching peer videos:', error);
+      console.error('Error fetching peer videos:', error);
     }
   }, [assignmentId, user?.id]);
 
   const fetchPeerResponses = React.useCallback(async () => {
     try {
-      console.log('💬 FETCHING PEER RESPONSES for assignment:', assignmentId);
       const response = await fetch(
         `/api/peer-responses?assignmentId=${assignmentId}&studentId=${user?.id}`,
         { credentials: 'include' }
@@ -224,13 +218,10 @@ const StudentAssignmentDetailPage: React.FC = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('💬 PEER RESPONSES RECEIVED:', data.data?.length || 0);
         setPeerResponses(data.data || []);
-      } else {
-        console.log('💬 PEER RESPONSES API FAILED:', response.status);
       }
     } catch (error) {
-      console.error('💬 Error fetching peer responses:', error);
+      console.error('Error fetching peer responses:', error);
     }
   }, [assignmentId, user?.id]);
 
@@ -243,9 +234,11 @@ const StudentAssignmentDetailPage: React.FC = () => {
     }
   }, [assignmentId, user?.id, fetchAssignmentDetails, fetchSubmission, fetchPeerVideos, fetchPeerResponses]);
 
-  // Update assignment status when submission and peer responses are loaded
-  useEffect(() => {
-    if (assignment && submission) {
+  // Compute assignment status dynamically without storing in state to avoid infinite loops
+  const getComputedAssignment = React.useMemo(() => {
+    if (!assignment) return null;
+    
+    if (submission) {
       // Check if peer responses are required
       const peerResponsesRequired = assignment.enablePeerResponses && (assignment.minResponsesRequired || 0) > 0;
       const peerResponsesComplete = !peerResponsesRequired || 
@@ -253,14 +246,17 @@ const StudentAssignmentDetailPage: React.FC = () => {
       
       // Assignment is only completed if both submission AND peer responses are done
       const isComplete = submission && peerResponsesComplete;
+      const computedStatus = isComplete ? 'completed' : 'upcoming';
       
-      setAssignment(prev => prev ? {
-        ...prev,
-        status: isComplete ? 'completed' : 'upcoming',
+      return {
+        ...assignment,
+        status: computedStatus as 'upcoming' | 'past_due' | 'completed',
         isSubmitted: true,
         submittedAt: submission.submittedAt
-      } : null);
+      };
     }
+    
+    return assignment;
   }, [assignment, submission, peerResponses]);
 
   const getStatusColor = (status: string) => {
@@ -327,7 +323,10 @@ const StudentAssignmentDetailPage: React.FC = () => {
     );
   }
 
-  if (error || !assignment) {
+  // Use computed assignment for rendering
+  const displayAssignment = getComputedAssignment;
+
+  if (error || !displayAssignment) {
     return (
       <StudentRoute>
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
@@ -365,15 +364,15 @@ const StudentAssignmentDetailPage: React.FC = () => {
                 📝
               </div>
               <div className="flex-1 min-w-0">
-                <h1 className="text-lg font-bold text-gray-900 truncate">{assignment.title}</h1>
+                <h1 className="text-lg font-bold text-gray-900 truncate">{displayAssignment.title}</h1>
                 <p className="text-xs text-gray-600 truncate">
-                  {assignment.courseCode} • {assignment.instructor}
+                  {displayAssignment.courseCode} • {displayAssignment.instructor}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(assignment.status)}`}>
-                {getStatusIcon(assignment.status)} {assignment.status.replace('_', ' ')}
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(displayAssignment.status)}`}>
+                {getStatusIcon(displayAssignment.status)} {displayAssignment.status.replace('_', ' ')}
               </span>
               <button
                 onClick={() => router.push('/student/dashboard')}
@@ -392,28 +391,28 @@ const StudentAssignmentDetailPage: React.FC = () => {
             {/* Assignment Info Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{assignment.points}</div>
+                    <div className="text-2xl font-bold text-blue-600">{displayAssignment.points}</div>
                     <div className="text-sm text-gray-600">Points</div>
                   </div>
                   <div className="text-center p-4 bg-orange-50 rounded-lg">
                     <div className="text-2xl font-bold text-orange-600">
-                      {getTimeRemaining(assignment.dueDate)}
+                      {getTimeRemaining(displayAssignment.dueDate)}
                     </div>
                     <div className="text-sm text-gray-600">Time Remaining</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                  {assignment.isSubmitted ? '✓' : '○'}
+                  {displayAssignment.isSubmitted ? '✓' : '○'}
                     </div>
                     <div className="text-sm text-gray-600">Submission</div>
                   </div>
                   {/* Show Peer Reviews card if enabled OR if there are peer videos/responses */}
-                  {((assignment.enablePeerResponses && (assignment.minResponsesRequired || 0) > 0) || 
+                  {((displayAssignment.enablePeerResponses && (displayAssignment.minResponsesRequired || 0) > 0) || 
                     peerVideos.length > 0 || 
                     peerResponses.length > 0) && (
                     <div className="text-center p-4 bg-purple-50 rounded-lg">
                       <div className="text-2xl font-bold text-purple-600">
-                        {peerResponses.length} of {assignment.minResponsesRequired || peerVideos.length || 2}
+                        {peerResponses.length} of {displayAssignment.minResponsesRequired || peerVideos.length || 2}
                       </div>
                       <div className="text-sm text-gray-600">Peer Reviews</div>
                     </div>
@@ -426,25 +425,25 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
                     <div className="prose prose-sm max-w-none">
                       <pre className="whitespace-pre-wrap text-gray-700 font-sans">
-                    {assignment.description}
+                    {displayAssignment.description}
                       </pre>
                     </div>
                   </div>
 
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Due Date</h3>
-                    <p className="text-gray-700">{formatDate(assignment.dueDate)}</p>
+                    <p className="text-gray-700">{formatDate(displayAssignment.dueDate)}</p>
                   </div>
 
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Submission Type</h3>
-                    <p className="text-gray-700 capitalize">{assignment.submissionType}</p>
+                    <p className="text-gray-700 capitalize">{displayAssignment.submissionType}</p>
               </div>
 
-              {assignment.resources && assignment.resources.length > 0 && (
+              {displayAssignment.resources && displayAssignment.resources.length > 0 && (
                         <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Resources</h3>
-                  <AssignmentResourcesDisplay resources={assignment.resources} />
+                  <AssignmentResourcesDisplay resources={displayAssignment.resources} />
             </div>
           )}
 
@@ -504,11 +503,11 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {assignment.grade && (
+                  {displayAssignment.grade && (
                     <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                      <p className="text-blue-700 font-medium">Grade: {assignment.grade}/{assignment.points}</p>
-                      {assignment.feedback && (
-                        <p className="text-blue-700 mt-1">Feedback: {assignment.feedback}</p>
+                      <p className="text-blue-700 font-medium">Grade: {displayAssignment.grade}/{displayAssignment.points}</p>
+                      {displayAssignment.feedback && (
+                        <p className="text-blue-700 mt-1">Feedback: {displayAssignment.feedback}</p>
                       )}
                     </div>
                   )}
@@ -520,7 +519,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     You haven't submitted this assignment yet. Make sure to submit before the due date.
                     </p>
                     <button
-                    onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&courseId=${assignment.courseId}`)}
+                    onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&courseId=${displayAssignment.courseId}`)}
                       className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
                     >
                     <span className="mr-2">🎥</span>
@@ -532,14 +531,6 @@ const StudentAssignmentDetailPage: React.FC = () => {
           </div>
 
           {/* Peer Submission Reels - Show if submission exists and there are peer videos */}
-          {(() => {
-            console.log('📊 Classmate Submissions Section Check:', {
-              hasSubmission: !!submission,
-              peerVideosLength: peerVideos.length,
-              shouldShow: !!(submission && peerVideos.length > 0)
-            });
-            return null;
-          })()}
           {submission && peerVideos.length > 0 && (
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mt-6">
               <div className="flex items-center justify-between mb-4">
@@ -548,11 +539,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   <p className="text-sm text-gray-600">Watch and respond to earn full credit</p>
                 </div>
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    console.log('🚀 View All Submissions clicked, navigating to:', `/student/assignments/${assignmentId}/submissions`);
-                    router.push(`/student/assignments/${assignmentId}/submissions`);
-                  }}
+                  onClick={() => router.push(`/student/assignments/${assignmentId}/submissions`)}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium cursor-pointer"
                 >
                   View All Submissions →
@@ -563,12 +550,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                 {peerVideos.map((video) => (
                   <div
                     key={video.id}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const targetUrl = `/student/assignments/${assignmentId}/submissions?videoId=${video.id}`;
-                      console.log('🎬 Video thumbnail clicked, navigating to:', targetUrl);
-                      router.push(targetUrl);
-                    }}
+                    onClick={() => router.push(`/student/assignments/${assignmentId}/submissions?videoId=${video.id}`)}
                     className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
                   >
                     <div className="relative bg-black rounded-t-lg overflow-hidden aspect-video">
@@ -602,11 +584,11 @@ const StudentAssignmentDetailPage: React.FC = () => {
                 ))}
               </div>
 
-              {peerResponses.length < (assignment.minResponsesRequired || 0) && (
+              {peerResponses.length < (displayAssignment.minResponsesRequired || 0) && (
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <p className="text-sm text-blue-700">
-                    💡 <strong>Required:</strong> Review {assignment.minResponsesRequired} peer submissions to complete this assignment. 
-                    You've completed {peerResponses.length} of {assignment.minResponsesRequired}.
+                    💡 <strong>Required:</strong> Review {displayAssignment.minResponsesRequired} peer submissions to complete this assignment. 
+                    You've completed {peerResponses.length} of {displayAssignment.minResponsesRequired}.
                   </p>
                 </div>
               )}
