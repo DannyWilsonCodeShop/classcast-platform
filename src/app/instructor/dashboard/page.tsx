@@ -381,7 +381,10 @@ const InstructorDashboard: React.FC = () => {
                               <span className="text-xs text-gray-500">
                                 {new Date(submission.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
-                              <button className="text-xs text-indigo-600 hover:text-purple-600 font-medium">
+                              <button 
+                                onClick={() => router.push(`/instructor/grading/bulk?assignment=${submission.assignmentId}&course=${submission.courseId}&submission=${submission.id}`)}
+                                className="text-xs text-indigo-600 hover:text-purple-600 font-medium"
+                              >
                                 Review →
                               </button>
                             </div>
