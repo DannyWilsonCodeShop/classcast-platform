@@ -7,6 +7,7 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import AssignmentResourcesDisplay from '@/components/common/AssignmentResourcesDisplay';
+import { htmlToPlainText } from '@/lib/htmlUtils';
 
 interface Assignment {
   assignmentId: string;
@@ -525,7 +526,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
                     <div className="prose prose-sm max-w-none">
                       <pre className="whitespace-pre-wrap text-gray-700 font-sans">
-                    {displayAssignment.description}
+                    {htmlToPlainText(displayAssignment.description)}
                       </pre>
                     </div>
                   </div>

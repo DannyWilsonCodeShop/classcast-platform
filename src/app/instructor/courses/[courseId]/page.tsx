@@ -9,6 +9,7 @@ import CourseSettingsModal from '@/components/instructor/CourseSettingsModal';
 import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
 import SectionList from '@/components/instructor/SectionList';
 import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
+import { stripHtmlTags } from '@/lib/htmlUtils';
 
 interface Course {
   courseId: string;
@@ -692,7 +693,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                       </div>
                     </div>
                     
-                    <p className="text-gray-600 mb-4 line-clamp-2 text-sm">{assignment.description}</p>
+                    <p className="text-gray-600 mb-4 line-clamp-2 text-sm">{stripHtmlTags(assignment.description)}</p>
                     
                     {/* Submission Stats */}
                     <div className="mb-4">
