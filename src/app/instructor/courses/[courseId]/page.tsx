@@ -1181,17 +1181,39 @@ const InstructorCourseDetailPage: React.FC = () => {
                   }}
                   onSubmit={async (assignmentData) => {
                     try {
-                      // Update assignment logic would go here
-                      console.log('Updating assignment:', assignmentData);
+                      console.log('Updating assignment:', editingAssignment.assignmentId, assignmentData);
+                      
+                      // Call the assignment update API
+                      const response = await fetch(`/api/assignments/${editingAssignment.assignmentId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                          ...assignmentData,
+                          assignmentId: editingAssignment.assignmentId
+                        })
+                      });
+                      
+                      if (!response.ok) {
+                        throw new Error('Failed to update assignment');
+                      }
+                      
+                      const result = await response.json();
+                      console.log('Assignment updated successfully:', result);
+                      
                       setEditingAssignment(null);
-                      // Refresh assignments
+                      // Refresh assignments to show changes
                       await fetchCourseDetails();
+                      alert('Assignment updated successfully!');
                     } catch (error) {
                       console.error('Error updating assignment:', error);
+                      alert('Failed to update assignment. Please try again.');
                     }
                   }}
                   onCancel={() => setEditingAssignment(null)}
                   courseId={courseId}
+                  isEditing={true}
+                  assignmentId={editingAssignment.assignmentId}
                 />
               </div>
             </div>
