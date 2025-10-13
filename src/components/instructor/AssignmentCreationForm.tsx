@@ -55,6 +55,7 @@ interface FormData {
   emoji: string;
   color: string;
   requireLiveRecording: boolean;
+  allowYouTubeUrl: boolean; // NEW: Allow YouTube URL submissions
   rubricType: 'none' | 'upload' | 'ai_generated';
   rubricFile: File | null;
   aiGeneratedRubric: any;
@@ -99,6 +100,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     emoji: initialData?.emoji || '🎥',
     color: initialData?.color || getDefaultClassColor().value,
     requireLiveRecording: initialData?.requireLiveRecording || false,
+    allowYouTubeUrl: initialData?.allowYouTubeUrl || false,
     rubricType: 'none',
     rubricFile: null,
     aiGeneratedRubric: null,
@@ -230,6 +232,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         emoji: formData.emoji,
         color: formData.color,
         requireLiveRecording: formData.requireLiveRecording,
+        allowYouTubeUrl: formData.allowYouTubeUrl,
         resources: formData.resources,
         rubric: formData.rubricType === 'ai_generated' ? formData.aiGeneratedRubric : 
                 formData.rubricType === 'upload' ? { type: 'uploaded', file: formData.rubricFile } : 
@@ -1062,6 +1065,49 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                           <li>Videos are recorded directly in the browser and uploaded automatically</li>
                           <li>No pre-recorded video files can be uploaded</li>
                           <li>Recording quality depends on student's device and internet connection</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* YouTube URL Option */}
+            <div className="border-t border-blue-200 pt-4 mt-4">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="allowYouTubeUrl"
+                  checked={formData.allowYouTubeUrl}
+                  onChange={(e) => setFormData(prev => ({ ...prev, allowYouTubeUrl: e.target.checked }))}
+                  disabled={formData.requireLiveRecording}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
+                />
+                <div className="flex-1">
+                  <label htmlFor="allowYouTubeUrl" className="text-sm font-medium text-gray-700">
+                    Allow YouTube URL Submissions
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Students can submit a YouTube video URL instead of uploading a file. Useful for large videos that exceed file size limits.
+                  </p>
+                </div>
+              </div>
+              
+              {formData.allowYouTubeUrl && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <span className="text-blue-400">ℹ️</span>
+                    </div>
+                    <div className="ml-3">
+                      <h4 className="text-sm font-medium text-blue-800">YouTube Submission Guidelines</h4>
+                      <div className="mt-1 text-sm text-blue-700">
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Students can upload their video to YouTube and paste the link</li>
+                          <li>Videos should be unlisted or public (not private) so instructors can view them</li>
+                          <li>Ideal for videos larger than {Math.round(formData.maxFileSize / (1024 * 1024))}MB</li>
+                          <li>Students can still choose to record/upload directly if preferred</li>
                         </ul>
                       </div>
                     </div>

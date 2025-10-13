@@ -58,6 +58,8 @@ export interface AssignmentSettings {
   plagiarismCheck: boolean;
   peerReview: boolean;
   anonymousGrading: boolean;
+  allowYouTubeUrl?: boolean; // Allow students to submit YouTube URLs instead of uploading
+  maxFileSize?: number; // Maximum file size for uploads
 }
 
 export interface AssignmentSubmission {
@@ -75,6 +77,8 @@ export interface AssignmentSubmission {
   attemptNumber: number;
   isLate: boolean;
   latePenalty?: number;
+  youtubeUrl?: string; // YouTube video URL for submissions
+  submissionMethod?: 'upload' | 'youtube' | 'record'; // How the video was submitted
 }
 
 export interface SubmissionAttachment {
