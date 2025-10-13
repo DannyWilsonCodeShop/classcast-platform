@@ -117,24 +117,27 @@ const PeerReviewsContent: React.FC = () => {
 
   // Like and rating functions
   const handleLike = async (videoId: string) => {
+    if (!user?.id) return;
+    
     try {
-      const response = await fetch('/api/peer-interactions', {
+      const response = await fetch(`/api/videos/${videoId}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
-          videoId: videoId,
-          studentId: 'current_student_id', // In production, get from auth context
-          action: 'like'
+          userId: user.id,
+          isLiked: !peerVideos.find(v => v.id === videoId)?.userLiked
         })
       });
 
       if (response.ok) {
+        const data = await response.json();
         setPeerVideos(prev => prev.map(video => 
           video.id === videoId 
             ? { 
                 ...video, 
-                userLiked: !video.userLiked,
-                likes: video.userLiked ? video.likes - 1 : video.likes + 1
+                userLiked: data.isLiked,
+                likes: data.likes
               }
             : video
         ));
@@ -145,14 +148,18 @@ const PeerReviewsContent: React.FC = () => {
   };
 
   const handleRating = async (videoId: string, rating: number) => {
+    if (!user?.id) return;
+    
     try {
-      const response = await fetch('/api/peer-interactions', {
+      const response = await fetch(`/api/videos/${videoId}/interactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
-          videoId: videoId,
-          studentId: 'current_student_id', // In production, get from auth context
-          action: 'rate',
+          type: 'rating',
+          userId: user.id,
+          userName: `${user.firstName} ${user.lastName}`,
+          userAvatar: user.avatar || '/api/placeholder/40/40',
           rating: rating
         })
       });
