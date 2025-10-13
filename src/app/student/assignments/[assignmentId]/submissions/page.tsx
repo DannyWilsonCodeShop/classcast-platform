@@ -350,9 +350,9 @@ const AssignmentSubmissionsPage: React.FC = () => {
                           preload="metadata"
                           poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
                           onLoadedMetadata={(e) => {
-                            // Seek to 0.1 seconds to show first frame
+                            // Seek to 2 seconds to show better frame
                             const videoEl = e.currentTarget;
-                            videoEl.currentTime = 0.1;
+                            videoEl.currentTime = 2.0;
                           }}
                         >
                           <source src={video.videoUrl} type="video/mp4" />
