@@ -568,40 +568,8 @@ const BulkGradingPage: React.FC = () => {
 
   // AI Analysis function
   const analyzeWithAI = async (submission: Submission) => {
-    setIsAIAnalyzing(prev => ({ ...prev, [submission.id]: true }));
-    
-    try {
-      // Simulate AI analysis with realistic delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Generate rubric-based scoring (4 out of 5 points for each category)
-      const rubric = {
-        contentQuality: { earned: 4, possible: 5 },
-        presentation: { earned: 4, possible: 5 },
-        technicalAspects: { earned: 4, possible: 5 },
-        engagement: { earned: 4, possible: 5 },
-      };
-      
-      // Calculate total grade based on rubric
-      const totalEarned = Object.values(rubric).reduce((sum, category) => sum + category.earned, 0);
-      const totalPossible = Object.values(rubric).reduce((sum, category) => sum + category.possible, 0);
-      const suggestedGrade = Math.round((totalEarned / totalPossible) * 100);
-      
-      const analysis = {
-        suggestedGrade,
-        suggestedFeedback: generateAIFeedback(submission),
-        rubric,
-        strengths: generateStrengths(),
-        improvements: generateImprovements(),
-      };
-      
-      setAiSuggestions(prev => ({ ...prev, [submission.id]: analysis }));
-      setShowAIPanel(prev => ({ ...prev, [submission.id]: true }));
-    } catch (error) {
-      console.error('AI analysis failed:', error);
-    } finally {
-      setIsAIAnalyzing(prev => ({ ...prev, [submission.id]: false }));
-    }
+    // Show subscription modal
+    alert('🤖 AI Auto-Grading\n\nAI-powered video grading requires a ClassCast AI subscription.\n\nFeatures include:\n• Automated rubric-based grading\n• Detailed feedback generation\n• Strengths and improvement suggestions\n• Save hours of grading time\n\nContact your administrator for subscription details.');
   };
 
   // Generate AI feedback based on submission
@@ -671,20 +639,7 @@ const BulkGradingPage: React.FC = () => {
 
   // AI Analysis for Peer Responses
   const analyzePeerResponsesWithAI = async (submission: Submission) => {
-    setIsAIAnalyzing(prev => ({ ...prev, [`peer-${submission.id}`]: true }));
-    
-    try {
-      // Simulate AI analysis
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // For now, just complete the analysis without showing results
-      // Could expand this to show peer response quality insights
-      console.log('Peer responses analyzed for:', submission.studentName);
-    } catch (error) {
-      console.error('Peer response AI analysis failed:', error);
-    } finally {
-      setIsAIAnalyzing(prev => ({ ...prev, [`peer-${submission.id}`]: false }));
-    }
+    alert('🤖 AI Peer Response Analysis\n\nAI-powered peer response quality analysis requires a ClassCast AI subscription.\n\nFeatures include:\n• Analyze peer response quality and depth\n• Identify engagement patterns\n• Suggest intervention opportunities\n• Track collaboration metrics\n\nContact your administrator for subscription details.');
   };
 
   // Pin/Highlight functions
