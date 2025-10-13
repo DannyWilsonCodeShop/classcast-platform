@@ -55,6 +55,7 @@ const BulkGradingPage: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [videoThumbnails, setVideoThumbnails] = useState<{[key: string]: string}>({});
   
   // Current submission being graded
   const [currentGrade, setCurrentGrade] = useState<number | ''>('');
@@ -433,6 +434,30 @@ const BulkGradingPage: React.FC = () => {
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
+      
+      // Generate thumbnail from first frame if not already generated
+      const currentSubmission = filteredSubmissions[currentSubmissionIndex];
+      if (currentSubmission && !videoThumbnails[currentSubmission.id]) {
+        videoRef.current.currentTime = 0.1;
+      }
+    }
+  };
+
+  const generateThumbnail = (video: HTMLVideoElement, submissionId: string) => {
+    if (videoThumbnails[submissionId]) return; // Already generated
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 300;
+    const ctx = canvas.getContext('2d');
+    
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
+      setVideoThumbnails(prev => ({
+        ...prev,
+        [submissionId]: thumbnail
+      }));
     }
   };
 
@@ -986,7 +1011,8 @@ const BulkGradingPage: React.FC = () => {
                               ref={index === currentSubmissionIndex ? videoRef : null}
                               src={submission.fileUrl}
                               className="w-full h-64 object-cover"
-                              poster={submission.thumbnailUrl || '/api/placeholder/400/300'}
+                              poster={videoThumbnails[submission.id] || submission.thumbnailUrl || '/api/placeholder/400/300'}
+                              preload="metadata"
                               onError={(e) => {
                                 console.error('Video load error:', e);
                                 // Fallback to placeholder if video fails to load
@@ -1007,6 +1033,14 @@ const BulkGradingPage: React.FC = () => {
                               }}
                               onTimeUpdate={index === currentSubmissionIndex ? handleTimeUpdate : undefined}
                               onLoadedMetadata={index === currentSubmissionIndex ? handleLoadedMetadata : undefined}
+                              onSeeked={(e) => {
+                                if (index === currentSubmissionIndex) {
+                                  const video = e.currentTarget;
+                                  if (!videoThumbnails[submission.id] && video.currentTime < 1) {
+                                    generateThumbnail(video, submission.id);
+                                  }
+                                }
+                              }}
                               onPlay={() => index === currentSubmissionIndex && setIsPlaying(true)}
                               onPause={() => index === currentSubmissionIndex && setIsPlaying(false)}
                               onEnded={() => index === currentSubmissionIndex && setIsPlaying(false)}
