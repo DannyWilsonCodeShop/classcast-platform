@@ -6,6 +6,7 @@ const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
 const ASSIGNMENTS_TABLE = 'classcast-assignments';
+const COURSES_TABLE = 'classcast-courses';
 
 export async function GET(
   request: NextRequest,
@@ -44,6 +45,20 @@ export async function GET(
       );
     }
     
+    // Fetch course information
+    let courseInfo = null;
+    if (assignment.courseId) {
+      try {
+        const courseResult = await docClient.send(new GetCommand({
+          TableName: COURSES_TABLE,
+          Key: { courseId: assignment.courseId }
+        }));
+        courseInfo = courseResult.Item;
+      } catch (error) {
+        console.warn('Could not fetch course info:', error);
+      }
+    }
+    
     // Transform assignment data to match expected interface
     const transformedAssignment = {
       id: assignment.assignmentId,
@@ -57,19 +72,25 @@ export async function GET(
       submissionType: assignment.assignmentType === 'video' ? 'video' : 'file',
       allowedFileTypes: assignment.allowedFileTypes || [],
       maxFileSize: assignment.maxFileSize || 100 * 1024 * 1024, // 100MB default
+      courseId: assignment.courseId,
+      courseName: courseInfo?.title || courseInfo?.courseName || 'Unknown Course',
+      courseCode: courseInfo?.courseCode || courseInfo?.code || 'N/A',
       course: {
         id: assignment.courseId,
-        name: 'Unknown Course', // Would need to fetch from course table
-        code: 'N/A',
+        name: courseInfo?.title || courseInfo?.courseName || 'Unknown Course',
+        code: courseInfo?.courseCode || courseInfo?.code || 'N/A',
         instructor: {
-          name: 'Unknown Instructor',
-          email: 'unknown@example.com'
+          name: courseInfo?.instructorName || 'Unknown Instructor',
+          email: courseInfo?.instructorEmail || 'unknown@example.com'
         }
       },
       resources: assignment.resources || [],
       submissions: [], // Would need to fetch from submissions table
       createdAt: assignment.createdAt,
-      updatedAt: assignment.updatedAt
+      updatedAt: assignment.updatedAt,
+      enablePeerResponses: assignment.enablePeerResponses || false,
+      minResponsesRequired: assignment.minResponsesRequired || 0,
+      maxResponsesPerVideo: assignment.maxResponsesPerVideo || 0
     };
     
     return NextResponse.json({
