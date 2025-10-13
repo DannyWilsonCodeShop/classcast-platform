@@ -54,19 +54,63 @@ export async function GET(request: NextRequest) {
       filteredAssignments = assignments.filter(assignment => assignment.courseId === courseId);
     }
 
+    // Calculate submission counts for each assignment
+    const assignmentsWithCounts = await Promise.all(
+      filteredAssignments.map(async (assignment) => {
+        try {
+          // Get submission count for this assignment
+          const submissionsResult = await docClient.send(new ScanCommand({
+            TableName: 'classcast-submissions',
+            FilterExpression: 'assignmentId = :assignmentId',
+            ExpressionAttributeValues: {
+              ':assignmentId': assignment.assignmentId || assignment.id
+            },
+            Select: 'COUNT'
+          }));
+          
+          const submissionsCount = submissionsResult.Count || 0;
+          
+          // Get graded count
+          const gradedResult = await docClient.send(new ScanCommand({
+            TableName: 'classcast-submissions',
+            FilterExpression: 'assignmentId = :assignmentId AND attribute_exists(grade)',
+            ExpressionAttributeValues: {
+              ':assignmentId': assignment.assignmentId || assignment.id
+            },
+            Select: 'COUNT'
+          }));
+          
+          const gradedCount = gradedResult.Count || 0;
+          
+          return {
+            ...assignment,
+            submissionsCount,
+            gradedCount
+          };
+        } catch (error) {
+          console.error(`Error calculating counts for assignment ${assignment.assignmentId}:`, error);
+          return {
+            ...assignment,
+            submissionsCount: 0,
+            gradedCount: 0
+          };
+        }
+      })
+    );
+
     // Apply pagination
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
-    const paginatedAssignments = filteredAssignments.slice(startIndex, endIndex);
+    const paginatedAssignments = assignmentsWithCounts.slice(startIndex, endIndex);
 
     return NextResponse.json({
       success: true,
       data: {
         assignments: paginatedAssignments,
-        totalCount: filteredAssignments.length,
+        totalCount: assignmentsWithCounts.length,
         currentPage: page,
-        totalPages: Math.ceil(filteredAssignments.length / limit),
-        hasNextPage: endIndex < filteredAssignments.length,
+        totalPages: Math.ceil(assignmentsWithCounts.length / limit),
+        hasNextPage: endIndex < assignmentsWithCounts.length,
         hasPreviousPage: page > 1
       }
     });
