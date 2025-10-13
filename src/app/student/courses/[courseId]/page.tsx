@@ -437,6 +437,15 @@ const StudentCourseDetailPage: React.FC = () => {
 
         {/* Main Content - Assignments Only */}
         <div className="max-w-5xl mx-auto px-4 py-6">
+          {/* Assignments Heading */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+              <span className="mr-2">📝</span>
+              Assignments
+            </h2>
+            <p className="text-gray-600 mt-1">Your course assignments and due dates</p>
+          </div>
+
           {/* Assignments List */}
           {assignments.length === 0 ? (
                   <div className="text-center py-12">
