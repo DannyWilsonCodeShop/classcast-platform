@@ -707,6 +707,19 @@ const StudentDashboard: React.FC = () => {
                 </div>
               </div>
 
+              {/* Recent Assignments with Grades */}
+              {!isLoadingAssignments && assignments.length > 0 && (
+                <div className="mb-8">
+                  <CompactAssignmentList 
+                    maxItems={6}
+                    showFilters={false}
+                    showSort={true}
+                    title="Recent Assignments"
+                    className="shadow-lg"
+                  />
+                </div>
+              )}
+
               {/* My Classes Header */}
               <div className="mb-6">
                 <h1 className="text-heading text-gray-800 mb-2">My Classes</h1>
