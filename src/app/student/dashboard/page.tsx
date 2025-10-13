@@ -441,57 +441,57 @@ const StudentDashboard: React.FC = () => {
 
         {/* Main Content Layout */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-7xl mx-auto p-4">
+          <div className="max-w-7xl mx-auto p-2 sm:p-4">
             
-            {/* Recently Posted Videos - Main Feature */}
-            <div className="mb-8">
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3">
+            {/* Recently Posted Videos - Compact Mobile Version */}
+            <div className="mb-4 sm:mb-6">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-3 sm:px-4 py-2">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-white flex items-center">
-                      <span className="mr-2">🎥</span>
-                      Recently Posted Videos
+                    <h2 className="text-sm sm:text-base font-semibold text-white flex items-center">
+                      <span className="mr-1 sm:mr-2">🎥</span>
+                      <span className="hidden sm:inline">Recently Posted Videos</span>
+                      <span className="sm:hidden">Videos</span>
                     </h2>
                     <button 
                       onClick={() => router.push('/student/peer-reviews')}
-                      className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors text-sm font-medium"
+                      className="px-2 py-1 bg-white/20 backdrop-blur-sm text-white rounded text-xs sm:text-sm font-medium"
                     >
                       View All
                     </button>
                   </div>
-              </div>
-                <div className="p-6">
-                <VideoReels />
+                </div>
+                <div className="p-2 sm:p-4">
+                  <VideoReels className="h-48 sm:h-64" />
                 </div>
               </div>
             </div>
             
-            {/* Two Column Layout for Classes and Sidebar */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            {/* Mobile-First Layout for Classes and Sidebar */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
               {/* My Classes - Left Column (2/3 width) */}
               <div className="lg:col-span-2">
-                <div className="mb-6">
-                  <h1 className="text-heading text-gray-800 mb-2">My Classes</h1>
+                <div className="mb-3 sm:mb-4">
+                  <h1 className="text-lg sm:text-xl font-bold text-gray-800">My Classes</h1>
                 </div>
 
-                {/* Classes Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Classes Grid - Mobile Optimized */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {isLoadingCourses ? (
-                    // Loading state for classes
+                    // Loading state for classes - Mobile Optimized
                     <>
-                      {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 animate-pulse">
-                          <div className="flex items-center space-x-4 mb-4">
-                            <div className="w-12 h-12 bg-gray-300 rounded-xl"></div>
+                      {[1, 2].map((i) => (
+                        <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 animate-pulse">
+                          <div className="flex items-center space-x-3 mb-3">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-300 rounded-lg"></div>
                             <div className="flex-1">
-                              <div className="h-4 bg-gray-300 rounded mb-2"></div>
-                              <div className="h-3 bg-gray-300 rounded w-2/3"></div>
+                              <div className="h-3 sm:h-4 bg-gray-300 rounded mb-1"></div>
+                              <div className="h-2 sm:h-3 bg-gray-300 rounded w-2/3"></div>
                             </div>
                           </div>
-                          <div className="space-y-3">
-                            <div className="h-3 bg-gray-300 rounded"></div>
-                            <div className="h-3 bg-gray-300 rounded w-3/4"></div>
+                          <div className="space-y-2">
                             <div className="h-2 bg-gray-300 rounded"></div>
+                            <div className="h-2 bg-gray-300 rounded w-3/4"></div>
                           </div>
                         </div>
                       ))}
@@ -511,58 +511,59 @@ const StudentDashboard: React.FC = () => {
                       />
                     ))
                   ) : (
-                    // Empty state for classes
+                    // Empty state for classes - Mobile Optimized
                     <div className="col-span-full">
-                      <div className="bg-gray-50 rounded-2xl p-12 text-center border-2 border-dashed border-gray-300">
-                        <div className="text-5xl mb-4">📚</div>
-                        <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                      <div className="bg-gray-50 rounded-xl p-6 sm:p-8 text-center border-2 border-dashed border-gray-300">
+                        <div className="text-3xl sm:text-4xl mb-3">📚</div>
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">
                           No Classes Yet
                         </h3>
-                        <p className="text-gray-500 mb-6">
+                        <p className="text-sm sm:text-base text-gray-500 mb-4">
                           Join your first class to get started!
                         </p>
-                <button 
+                        <button 
                           onClick={() => setShowEnrollmentModal(true)}
-                          className="inline-flex items-center px-6 py-3 bg-[#005587] text-white rounded-lg hover:bg-[#003d5c] transition-colors font-medium"
-                >
-                          <Plus className="w-5 h-5 mr-2" />
+                          className="inline-flex items-center px-4 py-2 sm:px-6 sm:py-3 bg-[#005587] text-white rounded-lg hover:bg-[#003d5c] transition-colors font-medium text-sm sm:text-base"
+                        >
+                          <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                           Join a Class
-                </button>
+                        </button>
                       </div>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Right Sidebar - Community */}
+              {/* Right Sidebar - Community - Mobile Optimized */}
               <div className="lg:col-span-1">
                 {/* Community Section */}
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-2">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-base font-semibold text-white flex items-center">
-                        <span className="mr-2">💬</span>
-                        Community
+                      <h3 className="text-sm font-semibold text-white flex items-center">
+                        <span className="mr-1">💬</span>
+                        <span className="hidden sm:inline">Community</span>
+                        <span className="sm:hidden">Posts</span>
                       </h3>
                       <button 
                         onClick={() => router.push('/community')}
-                        className="px-2 py-1 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors text-xs font-medium"
+                        className="px-2 py-1 bg-white/20 backdrop-blur-sm text-white rounded text-xs font-medium"
                       >
                         View All
                       </button>
                     </div>
                   </div>
-                  <div className="p-4">
-                    <div className="h-48 overflow-y-auto">
+                  <div className="p-2 sm:p-3">
+                    <div className="h-32 sm:h-40 overflow-y-auto">
                 {isLoadingPosts ? (
                   <div className="flex items-center justify-center py-4">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
                     <span className="ml-2 text-xs text-gray-500">Loading posts...</span>
                   </div>
                 ) : communityPosts.length > 0 ? (
-                  <div className="space-y-3">
-                    {communityPosts.slice(0, 5).map((post) => (
-                      <div key={post.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
+                  <div className="space-y-2">
+                    {communityPosts.slice(0, 3).map((post) => (
+                      <div key={post.id} className="p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
                            onClick={() => router.push(`/community#post-${post.id}`)}>
                         <div className="flex items-start space-x-2">
                           <img
@@ -570,7 +571,7 @@ const StudentDashboard: React.FC = () => {
                               ? post.author.avatar 
                               : '/api/placeholder/40/40'}
                             alt={typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}
-                                  className="w-6 h-6 rounded-full object-cover flex-shrink-0 border border-gray-200"
+                            className="w-5 h-5 rounded-full object-cover flex-shrink-0 border border-gray-200"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-1 mb-1">
@@ -581,7 +582,7 @@ const StudentDashboard: React.FC = () => {
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-gray-600 line-clamp-2">{post.title}</p>
+                            <p className="text-xs text-gray-600 line-clamp-1">{post.title}</p>
                             <div className="flex items-center justify-between mt-2">
                               <div className="flex items-center space-x-2">
                                       <span className="text-xs text-gray-400">👍 {post.likes}</span>

@@ -172,22 +172,22 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
 
   if (isLoading) {
     return (
-      <div className={`w-full aspect-video bg-gray-100 rounded-2xl flex items-center justify-center ${className}`}>
+      <div className={`w-full bg-gray-100 rounded-xl flex items-center justify-center ${className}`}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading video reels...</p>
-        </div>
-      </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <p className="text-gray-600 text-sm">Loading...</p>
+                </div>
+              </div>
     );
   }
 
   if (reels.length === 0) {
     return (
-      <div className={`w-full aspect-video bg-gray-100 rounded-2xl flex items-center justify-center ${className}`}>
+      <div className={`w-full bg-gray-100 rounded-xl flex items-center justify-center ${className}`}>
         <div className="text-center">
-          <div className="text-6xl mb-4">🎥</div>
-          <p className="text-gray-600 text-lg">No videos to show</p>
-          <p className="text-gray-500 text-sm">Check back later for new submissions</p>
+          <div className="text-4xl mb-2">🎥</div>
+          <p className="text-gray-600 text-sm">No videos</p>
+          <p className="text-gray-500 text-xs">Check back later</p>
         </div>
       </div>
     );
@@ -198,7 +198,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
   return (
     <div 
       ref={containerRef}
-      className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden cursor-pointer group ${className}`}
+      className={`relative w-full bg-black rounded-xl overflow-hidden cursor-pointer group ${className}`}
       onWheel={handleWheel}
       onClick={() => handleVideoClick(currentReel)}
     >
@@ -238,7 +238,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
       )}
 
       {currentIndex < reels.length - 1 && (
-        <button
+        <button 
           onClick={(e) => {
             e.stopPropagation();
             navigateToVideo('next');
@@ -249,15 +249,15 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         </button>
       )}
 
-      {/* Video Info Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+      {/* Video Info Overlay - Mobile Optimized */}
+      <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 text-white">
         <div className="flex items-start justify-between">
           {/* Left Side - Video Info */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold mb-1 truncate">
+            <h3 className="text-sm sm:text-base font-bold mb-1 truncate">
               {currentReel.title}
             </h3>
-            <div className="flex items-center space-x-2 mb-2">
+            <div className="flex items-center space-x-2 mb-1">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -265,60 +265,60 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                     router.push(`/student/profile/${currentReel.author.id}`);
                   }
                 }}
-                className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+                className="flex items-center space-x-1 sm:space-x-2 hover:opacity-80 transition-opacity"
               >
                 <img
                   src={currentReel.author?.avatar || '/api/placeholder/20/20'}
                   alt={currentReel.author?.name || 'Unknown Author'}
-                  className="w-6 h-6 rounded-full"
+                  className="w-5 h-5 sm:w-6 sm:h-6 rounded-full"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.src = '/api/placeholder/20/20';
                   }}
                 />
-                <span className="text-sm font-medium">
+                <span className="text-xs sm:text-sm font-medium">
                   {currentReel.author?.name || 'Unknown Author'}
                 </span>
-              </button>
+                </button>
             </div>
-            <p className="text-sm text-gray-300 line-clamp-2">
+            <p className="text-xs sm:text-sm text-gray-300 line-clamp-1 sm:line-clamp-2">
               {currentReel.description}
             </p>
-          </div>
+              </div>
 
-          {/* Right Side - Actions */}
-          <div className="flex flex-col items-center space-y-4 ml-4">
-            <button
+          {/* Right Side - Actions - Mobile Optimized */}
+          <div className="flex flex-col items-center space-y-2 sm:space-y-3 ml-2 sm:ml-4">
+                  <button
               onClick={(e) => handleLike(currentReel.id, e)}
-              className={`p-3 rounded-full transition-all duration-200 ${
+              className={`p-2 sm:p-3 rounded-full transition-all duration-200 ${
                 likedVideos.has(currentReel.id)
                   ? 'bg-red-500 text-white'
                   : 'bg-white/20 text-white hover:bg-white/30'
               }`}
             >
-              <Heart className={`w-6 h-6 ${likedVideos.has(currentReel.id) ? 'fill-current' : ''}`} />
-            </button>
+              <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${likedVideos.has(currentReel.id) ? 'fill-current' : ''}`} />
+                  </button>
             <span className="text-xs text-white">
               {currentReel.likes || 0}
             </span>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
+                  
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
                 // Navigate to comments/peer reviews
                 handleVideoClick(currentReel);
-              }}
-              className="p-3 bg-white/20 text-white rounded-full hover:bg-white/30 transition-all duration-200"
-            >
-              <MessageCircle className="w-6 h-6" />
-            </button>
+                    }}
+              className="p-2 sm:p-3 bg-white/20 text-white rounded-full hover:bg-white/30 transition-all duration-200"
+                  >
+              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
             <span className="text-xs text-white">
               {currentReel.comments || 0}
             </span>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
+                
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
                 // Share functionality
                 if (navigator.share) {
                   navigator.share({
@@ -327,16 +327,16 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                   });
                 }
               }}
-              className="p-3 bg-white/20 text-white rounded-full hover:bg-white/30 transition-all duration-200"
+              className="p-2 sm:p-3 bg-white/20 text-white rounded-full hover:bg-white/30 transition-all duration-200"
             >
-              <Share className="w-6 h-6" />
-            </button>
-          </div>
-        </div>
+              <Share className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+              </div>
+            </div>
       </div>
-
-      {/* Play/Pause Button */}
-      <button
+      
+      {/* Play/Pause Button - Mobile Optimized */}
+              <button
         onClick={(e) => {
           e.stopPropagation();
           const video = videoRefs.current[currentIndex];
@@ -348,37 +348,37 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
             }
           }
         }}
-        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-4 transition-all duration-200 opacity-0 group-hover:opacity-100"
+        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-2 sm:p-3 transition-all duration-200 opacity-0 group-hover:opacity-100"
       >
         {isPlaying ? (
-          <Pause className="w-8 h-8 text-white" />
+          <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         ) : (
-          <Play className="w-8 h-8 text-white" />
+          <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         )}
-      </button>
+                </button>
 
-      {/* Video Counter */}
-      <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-        <span className="text-white text-sm font-medium">
+      {/* Video Counter - Mobile Optimized */}
+      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
+        <span className="text-white text-xs sm:text-sm font-medium">
           {currentIndex + 1} / {reels.length}
         </span>
-      </div>
+            </div>
 
-      {/* Progress Dots */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+      {/* Progress Dots - Mobile Optimized */}
+      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-2">
         {reels.map((_, index) => (
-          <button
+                    <button
             key={index}
             onClick={(e) => {
               e.stopPropagation();
               setCurrentIndex(index);
             }}
-            className={`w-2 h-2 rounded-full transition-all duration-200 ${
+            className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-200 ${
               index === currentIndex ? 'bg-white' : 'bg-white/50'
             }`}
           />
-        ))}
-      </div>
+                  ))}
+                </div>
     </div>
   );
 };
