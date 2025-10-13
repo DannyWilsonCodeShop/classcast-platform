@@ -44,7 +44,7 @@ interface Submission {
   fileName: string;
   fileSize: number;
   status: string;
-  submittedAt: string;
+    submittedAt: string;
   studentName: string;
   studentEmail: string;
   grade?: number;
@@ -75,6 +75,10 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [peerVideos, setPeerVideos] = useState<PeerVideo[]>([]);
   const [peerResponses, setPeerResponses] = useState<any[]>([]);
+  const [responsesToMySubmission, setResponsesToMySubmission] = useState<any[]>([]);
+  const [showResponsesDropdown, setShowResponsesDropdown] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState<{[key: string]: string}>({});
 
   const assignmentId = params.assignmentId as string;
 
@@ -228,6 +232,24 @@ const StudentAssignmentDetailPage: React.FC = () => {
     }
   }, [assignmentId, user?.id]);
 
+  const fetchResponsesToMySubmission = React.useCallback(async () => {
+    if (!submission) return;
+    
+    try {
+      const response = await fetch(
+        `/api/peer-responses?videoId=${submission.submissionId}`,
+        { credentials: 'include' }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setResponsesToMySubmission(data.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching responses to my submission:', error);
+    }
+  }, [submission?.submissionId]);
+
   useEffect(() => {
     if (assignmentId && user?.id) {
       fetchAssignmentDetails();
@@ -236,6 +258,13 @@ const StudentAssignmentDetailPage: React.FC = () => {
       fetchPeerResponses();
     }
   }, [assignmentId, user?.id, fetchAssignmentDetails, fetchSubmission, fetchPeerVideos, fetchPeerResponses]);
+
+  // Fetch responses to the student's submission when it's loaded
+  useEffect(() => {
+    if (submission) {
+      fetchResponsesToMySubmission();
+    }
+  }, [submission?.submissionId, fetchResponsesToMySubmission]);
 
   // Compute assignment status dynamically without storing in state to avoid infinite loops
   const getComputedAssignment = React.useMemo(() => {
@@ -297,6 +326,43 @@ const StudentAssignmentDetailPage: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleReplySubmit = async (parentResponseId: string) => {
+    const replyContent = replyText[parentResponseId];
+    if (!replyContent || replyContent.trim().length < 20) {
+      alert('Reply must be at least 20 characters.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/peer-responses/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          parentResponseId,
+          videoId: submission?.submissionId,
+          assignmentId,
+          reviewerId: user?.id,
+          reviewerName: `${user?.firstName} ${user?.lastName}`,
+          content: replyContent.trim(),
+        })
+      });
+
+      if (response.ok) {
+        // Refresh responses
+        await fetchResponsesToMySubmission();
+        setReplyText(prev => ({ ...prev, [parentResponseId]: '' }));
+        setReplyingTo(null);
+        alert('Reply posted successfully!');
+      } else {
+        alert('Failed to post reply. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error posting reply:', error);
+      alert('Failed to post reply. Please try again.');
+    }
   };
 
   const getTimeRemaining = (dueDate: string) => {
@@ -534,6 +600,118 @@ const StudentAssignmentDetailPage: React.FC = () => {
                         <span className="mr-2">⏳</span>
                         <p className="text-sm font-medium">Waiting for instructor to grade your submission</p>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Peer Responses to My Submission - Threaded Discussions */}
+                  {submission && responsesToMySubmission.length > 0 && (
+                    <div className="mt-4">
+                      <button
+                        onClick={() => setShowResponsesDropdown(!showResponsesDropdown)}
+                        className="w-full flex items-center justify-between p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-[#005587] transition-colors"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span className="text-lg">💬</span>
+                          <h4 className="text-md font-semibold text-gray-800">
+                            Peer Responses to Your Video ({responsesToMySubmission.length})
+                          </h4>
+                        </div>
+                        <svg className={`w-5 h-5 text-gray-400 transition-transform ${showResponsesDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {showResponsesDropdown && (
+                        <div className="mt-2 space-y-3 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          {responsesToMySubmission.map((response) => (
+                            <div key={response.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                              {/* Main Response */}
+                              <div className="p-4">
+                                <div className="flex items-start space-x-3 mb-3">
+                                  <div className="w-8 h-8 bg-[#005587] rounded-full flex items-center justify-center text-white text-sm font-bold">
+                                    {response.reviewerName?.charAt(0) || '?'}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <h5 className="font-semibold text-gray-900 text-sm">{response.reviewerName || 'Anonymous'}</h5>
+                                      <span className="text-xs text-gray-500">
+                                        {new Date(response.submittedAt).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{response.content}</p>
+                                  </div>
+                                </div>
+
+                                {/* Reply Button */}
+                                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                  <button
+                                    onClick={() => setReplyingTo(replyingTo === response.id ? null : response.id)}
+                                    className="text-sm text-[#005587] hover:text-[#003d5c] font-medium"
+                                  >
+                                    {replyingTo === response.id ? 'Cancel' : '💬 Reply'}
+                                  </button>
+                                  {response.replies && response.replies.length > 0 && (
+                                    <span className="text-xs text-gray-500">
+                                      {response.replies.length} {response.replies.length === 1 ? 'reply' : 'replies'}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Reply Form */}
+                                {replyingTo === response.id && (
+                                  <div className="mt-3 pt-3 border-t border-gray-100">
+                                    <textarea
+                                      value={replyText[response.id] || ''}
+                                      onChange={(e) => setReplyText(prev => ({ ...prev, [response.id]: e.target.value }))}
+                                      placeholder="Write your reply... (minimum 20 characters)"
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent resize-none text-sm"
+                                      rows={3}
+                                    />
+                                    <div className="flex items-center justify-between mt-2">
+                                      <span className="text-xs text-gray-500">
+                                        {(replyText[response.id] || '').length} characters
+                                      </span>
+                                      <button
+                                        onClick={() => handleReplySubmit(response.id)}
+                                        disabled={!replyText[response.id] || replyText[response.id].length < 20}
+                                        className="px-4 py-2 bg-[#005587] text-white rounded-lg hover:bg-[#003d5c] disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors text-sm font-medium"
+                                      >
+                                        Post Reply
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Threaded Replies */}
+                              {response.replies && response.replies.length > 0 && (
+                                <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+                                  <div className="space-y-3 pl-4 border-l-2 border-[#FFC72C]/30">
+                                    {response.replies.map((reply: any) => (
+                                      <div key={reply.id} className="bg-white rounded-lg p-3 border border-gray-200">
+                                        <div className="flex items-start space-x-2">
+                                          <div className="w-6 h-6 bg-[#FFC72C] rounded-full flex items-center justify-center text-[#003d5c] text-xs font-bold">
+                                            {reply.reviewerName?.charAt(0) || '?'}
+                                          </div>
+                                          <div className="flex-1">
+                                            <div className="flex items-center justify-between mb-1">
+                                              <h6 className="font-semibold text-gray-900 text-xs">{reply.reviewerName || 'Anonymous'}</h6>
+                                              <span className="text-xs text-gray-500">
+                                                {new Date(reply.submittedAt).toLocaleDateString()}
+                                              </span>
+                                            </div>
+                                            <p className="text-xs text-gray-700 whitespace-pre-wrap">{reply.content}</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
