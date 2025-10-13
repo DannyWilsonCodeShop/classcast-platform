@@ -278,8 +278,30 @@ const PeerReviewsContent: React.FC = () => {
   }, [assignmentId, courseId, peerReviewScope, currentUserSection, user?.id]);
 
   const loadExistingResponses = async (assignmentId: string) => {
-    // TODO: Load existing peer responses from API
-    return;
+    if (!user?.id) return;
+    
+    try {
+      const response = await fetch(
+        `/api/peer-responses?assignmentId=${assignmentId}&studentId=${user.id}`,
+        { credentials: 'include' }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        const responsesData = data.data || [];
+        
+        // Convert array to Map keyed by videoId
+        const responsesMap = new Map<string, PeerResponse>();
+        responsesData.forEach((resp: PeerResponse) => {
+          responsesMap.set(resp.videoId, resp);
+        });
+        
+        setResponses(responsesMap);
+        updateResponseStats(responsesMap);
+      }
+    } catch (error) {
+      console.error('Error loading existing responses:', error);
+    }
   };
 
   const updateResponseStats = (responses: Map<string, PeerResponse>) => {
@@ -664,30 +686,54 @@ const PeerReviewsContent: React.FC = () => {
   })();
 
   const autoSaveResponse = async (content: string) => {
-    if (!currentVideo) return;
+    if (!currentVideo || !user || !assignmentId) return;
+    if (content.trim().length === 0) return;
 
     try {
-      const response: PeerResponse = {
-        id: `response_${currentVideo.id}_${Date.now()}`,
-        reviewerId: 'current_student_id', // In production, get from auth context
-        reviewerName: 'Current Student', // In production, get from auth context
+      const existingResponse = responses.get(currentVideo.id);
+      
+      const responseData = {
+        reviewerId: user.id,
+        reviewerName: `${user.firstName} ${user.lastName}`,
         videoId: currentVideo.id,
+        assignmentId: assignmentId,
         content: content,
-        submittedAt: new Date().toISOString(),
-        lastSavedAt: new Date().toISOString(),
-        isSubmitted: false,
-        wordCount: content.trim().split(/\s+/).length,
-        characterCount: content.length,
-        responseType: 'text',
-        threadLevel: 0
+        isSubmitted: false
       };
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      let savedResponse;
+      if (existingResponse && existingResponse.id) {
+        // Update existing draft
+        const updateResponse = await fetch('/api/peer-responses', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            id: existingResponse.id,
+            content: content,
+            isSubmitted: false
+          })
+        });
+
+        if (!updateResponse.ok) throw new Error('Failed to update response');
+        savedResponse = existingResponse;
+      } else {
+        // Create new draft
+        const postResponse = await fetch('/api/peer-responses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(responseData)
+        });
+
+        if (!postResponse.ok) throw new Error('Failed to save response');
+        const data = await postResponse.json();
+        savedResponse = data.data;
+      }
       
       setResponses(prev => {
         const newResponses = new Map(prev);
-        newResponses.set(currentVideo.id, response);
+        newResponses.set(currentVideo.id, savedResponse);
         updateResponseStats(newResponses);
         return newResponses;
       });
@@ -701,7 +747,7 @@ const PeerReviewsContent: React.FC = () => {
   };
 
   const handleSubmitResponse = async () => {
-    if (!currentVideo) return;
+    if (!currentVideo || !user || !assignmentId) return;
     
     // Check if we have content to submit
     const hasTextContent = currentResponse.trim().length > 0;
@@ -722,33 +768,51 @@ const PeerReviewsContent: React.FC = () => {
         thumbnailUrl = uploadResult.thumbnailUrl;
       }
 
-      const response: PeerResponse = {
-        id: `response_${currentVideo.id}_${Date.now()}`,
-        reviewerId: 'current_student_id',
-        reviewerName: 'Current Student',
+      const existingResponse = responses.get(currentVideo.id);
+      
+      const responseData = {
+        reviewerId: user.id,
+        reviewerName: `${user.firstName} ${user.lastName}`,
         videoId: currentVideo.id,
+        assignmentId: assignmentId,
         content: currentResponse,
-        submittedAt: new Date().toISOString(),
-        lastSavedAt: new Date().toISOString(),
-        isSubmitted: true,
-        wordCount: currentResponse.trim().split(/\s+/).length,
-        characterCount: currentResponse.length,
-        responseType: responseType,
-        threadLevel: 0,
-        videoResponse: hasVideoContent ? {
-          videoUrl: videoUrl,
-          thumbnailUrl: thumbnailUrl,
-          duration: recordingDuration,
-          fileSize: recordedChunks.length > 0 ? new Blob(recordedChunks).size : 0
-        } : undefined
+        isSubmitted: true
       };
 
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      let savedResponse;
+      if (existingResponse && existingResponse.id) {
+        // Update existing draft to submitted
+        const updateResponse = await fetch('/api/peer-responses', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            id: existingResponse.id,
+            content: currentResponse,
+            isSubmitted: true
+          })
+        });
+
+        if (!updateResponse.ok) throw new Error('Failed to submit response');
+        const data = await updateResponse.json();
+        savedResponse = { ...existingResponse, isSubmitted: true, submittedAt: new Date().toISOString() };
+      } else {
+        // Create new submitted response
+        const postResponse = await fetch('/api/peer-responses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(responseData)
+        });
+
+        if (!postResponse.ok) throw new Error('Failed to submit response');
+        const data = await postResponse.json();
+        savedResponse = data.data;
+      }
       
       setResponses(prev => {
         const newResponses = new Map(prev);
-        newResponses.set(currentVideo.id, response);
+        newResponses.set(currentVideo.id, savedResponse);
         updateResponseStats(newResponses);
         return newResponses;
       });
@@ -758,6 +822,7 @@ const PeerReviewsContent: React.FC = () => {
       setRecordedChunks([]);
       setShowResponseForm(false);
       setSaveStatus('saved');
+      alert('Response submitted successfully!');
     } catch (error) {
       console.error('Error submitting response:', error);
       alert('Failed to submit response. Please try again.');
