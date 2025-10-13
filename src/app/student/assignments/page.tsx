@@ -7,7 +7,7 @@ import Link from 'next/link';
 const StudentAssignmentsPage: React.FC = () => {
   return (
     <StudentRoute>
-      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100">
+      <div className="h-screen overflow-hidden flex flex-col bg-gray-50">
         {/* Header with Back Button */}
         <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -22,7 +22,7 @@ const StudentAssignmentsPage: React.FC = () => {
                 </svg>
               </Link>
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-10 h-10 bg-[#005587] rounded-full flex items-center justify-center text-white font-bold text-lg">
                   📝
                 </div>
                 <div>

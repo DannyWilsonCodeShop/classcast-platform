@@ -627,17 +627,17 @@ const StudentDashboard: React.FC = () => {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Pending Assignments */}
-                      <div className="flex items-center space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors cursor-pointer"
+                      <div className="flex items-center space-x-3 p-3 bg-blue-50/50 rounded-lg border border-[#005587]/20 hover:bg-blue-50 transition-colors cursor-pointer"
                            onClick={() => router.push('/student/assignments')}>
                         <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                          <div className="w-10 h-10 bg-[#005587] rounded-lg flex items-center justify-center">
                             <span className="text-white text-lg">📝</span>
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <h3 className="text-sm font-medium text-gray-800">Pending Assignments</h3>
-                            <span className="text-lg font-bold text-orange-600">{todoStats.pendingAssignments}</span>
+                            <span className="text-lg font-bold text-[#005587]">{todoStats.pendingAssignments}</span>
                           </div>
                         </div>
                         <div className="flex-shrink-0">
@@ -648,28 +648,28 @@ const StudentDashboard: React.FC = () => {
                       </div>
 
                       {/* Pending Reviews - More Prominent */}
-                      <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-300 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group"
+                      <div className="flex items-center space-x-3 p-3 bg-[#FFC72C]/10 rounded-lg border-2 border-[#FFC72C]/30 hover:border-[#FFC72C]/50 hover:shadow-md transition-all cursor-pointer group"
                            onClick={() => router.push('/student/peer-reviews')}>
                         <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                            <span className="text-white text-lg">🎥</span>
+                          <div className="w-10 h-10 bg-[#FFC72C] rounded-lg flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                            <span className="text-[#003d5c] text-lg font-bold">🎥</span>
                           </div>
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <h3 className="text-sm font-semibold text-gray-800">Videos to Review</h3>
                             {todoStats.pendingReviews > 0 ? (
-                              <span className="px-2 py-0.5 bg-blue-600 text-white text-xs font-bold rounded-full animate-pulse">
+                              <span className="px-2 py-0.5 bg-[#005587] text-white text-xs font-bold rounded-full animate-pulse">
                                 {todoStats.pendingReviews} NEW
                               </span>
                             ) : (
-                              <span className="text-lg font-bold text-blue-600">{todoStats.pendingReviews}</span>
+                              <span className="text-lg font-bold text-[#CC9900]">{todoStats.pendingReviews}</span>
                             )}
                           </div>
                           <p className="text-xs text-gray-600 mt-0.5">Watch & respond to peer videos</p>
                         </div>
                         <div className="flex-shrink-0">
-                          <svg className="w-5 h-5 text-blue-500 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 text-[#CC9900] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </div>
@@ -689,14 +689,14 @@ const StudentDashboard: React.FC = () => {
                       <div className="flex space-x-3">
                         <button 
                           onClick={() => router.push('/student/assignments')}
-                          className="text-orange-600 hover:text-orange-700 font-medium"
+                          className="text-[#005587] hover:text-[#003d5c] font-medium"
                         >
                           View All Assignments
                         </button>
                         {todoStats.pendingReviews > 0 && (
                           <button 
                             onClick={() => router.push('/student/peer-reviews')}
-                            className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg font-medium transition-colors"
+                            className="text-white bg-[#005587] hover:bg-[#003d5c] px-3 py-1 rounded-lg font-medium transition-colors"
                           >
                             🎥 Start Reviewing ({todoStats.pendingReviews})
                           </button>
