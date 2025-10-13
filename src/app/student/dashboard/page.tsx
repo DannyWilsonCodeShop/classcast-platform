@@ -511,22 +511,20 @@ const StudentDashboard: React.FC = () => {
               {/* To-Do List - Left Column */}
               <div className="lg:col-span-2">
                 <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-              {/* To-Do List Header */}
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold text-white mb-1 flex items-center">
-                      <span className="mr-2">📋</span>
-                      To-Do List
-                    </h2>
-                    <p className="text-blue-100 text-sm">Your assignments and tasks</p>
+                  {/* To-Do List Header */}
+                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-xl font-bold text-white mb-1 flex items-center">
+                          <span className="mr-2">📋</span>
+                          To-Do List
+                        </h2>
+                        <p className="text-blue-100 text-sm">Your assignments and tasks</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className="p-6">
-                  </div>
-                  
-                  {isLoadingTodoStats ? (
+                  <div className="p-6">
+                    {isLoadingTodoStats ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {[1, 2].map((i) => (
                         <div key={i} className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg animate-pulse">
@@ -620,7 +618,6 @@ const StudentDashboard: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </div>
               </div>
 
               {/* Community Section - Right Column */}
@@ -846,7 +843,6 @@ const StudentDashboard: React.FC = () => {
           onClose={() => setShowEnrollmentModal(false)}
           onEnroll={handleClassEnrollment}
         />
-        </div>
       </div>
     </StudentRoute>
   );
