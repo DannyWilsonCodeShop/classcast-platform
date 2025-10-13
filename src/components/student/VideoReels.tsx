@@ -104,27 +104,35 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
       
       if (response.ok) {
         const submissions = await response.json();
+        console.log('📦 Loaded submissions:', submissions.length);
+        
         // Transform submissions to VideoReel format with assignmentId
-        const videoReels: VideoReel[] = submissions.slice(0, 10).map((sub: any) => ({
-          id: sub.submissionId || sub.id,
-          title: sub.videoTitle || 'Video Submission',
-          description: sub.videoDescription || '',
-          thumbnail: sub.thumbnailUrl || '/api/placeholder/300/200',
-          videoUrl: sub.videoUrl,
-          duration: sub.duration || 0,
-          author: {
-            id: sub.studentId,
-            name: sub.studentName || 'Unknown Student',
-            avatar: sub.studentAvatar || '/api/placeholder/40/40',
-            course: sub.courseName || 'Unknown Course'
-          },
-          likes: sub.likes || 0,
-          comments: 0,
-          isLiked: false,
-          createdAt: sub.submittedAt || sub.createdAt,
-          courseId: sub.courseId,
-          assignmentId: sub.assignmentId  // Add assignmentId
-        } as any));
+        const videoReels: VideoReel[] = submissions.slice(0, 10).map((sub: any) => {
+          const likedBy = sub.likedBy || [];
+          const isLiked = likedBy.includes(studentId);
+          console.log('🎬 Video', sub.id, '- likes:', sub.likes, 'isLiked:', isLiked, 'likedBy:', likedBy);
+          
+          return {
+            id: sub.submissionId || sub.id,
+            title: sub.videoTitle || 'Video Submission',
+            description: sub.videoDescription || '',
+            thumbnail: sub.thumbnailUrl || '/api/placeholder/300/200',
+            videoUrl: sub.videoUrl,
+            duration: sub.duration || 0,
+            author: {
+              id: sub.studentId,
+              name: sub.studentName || 'Unknown Student',
+              avatar: sub.studentAvatar || '/api/placeholder/40/40',
+              course: sub.courseName || 'Unknown Course'
+            },
+            likes: sub.likes || 0,
+            comments: 0,
+            isLiked: isLiked,
+            createdAt: sub.submittedAt || sub.createdAt,
+            courseId: sub.courseId,
+            assignmentId: sub.assignmentId  // Add assignmentId
+          } as any;
+        });
         setReels(videoReels);
         
         // Generate thumbnails for videos without proper thumbnails

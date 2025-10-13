@@ -181,6 +181,7 @@ export async function GET(request: NextRequest) {
         maxPoints: submission.maxPoints || 100,
         feedback: submission.instructorFeedback,
         likes: submission.likes || 0,
+        likedBy: submission.likedBy || [],
         comments: submission.comments || [],
         peerReviews: submission.peerReviews || [],
         isRecorded: submission.isRecorded || false,

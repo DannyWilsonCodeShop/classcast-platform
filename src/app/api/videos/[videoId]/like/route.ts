@@ -12,55 +12,62 @@ export async function POST(
   { params }: { params: Promise<{ videoId: string }> }
 ) {
   try {
-    const { userId, isLiked } = await request.json();
+    const body = await request.json();
     const { videoId } = await params;
+    
+    console.log('📍 Like API called - videoId:', videoId, 'body:', body);
 
-    if (!userId || typeof isLiked !== 'boolean') {
-      return NextResponse.json(
-        { error: 'Missing required fields: userId, isLiked' },
-        { status: 400 }
-      );
-    }
-
-    // Get current video data
+    // Support both old format (userId/isLiked) and new format (just toggle)
+    const userId = body.userId || 'anonymous';
+    
+    // Get current submission data - videoId is actually submissionId
+    const submissionId = videoId;
     const getCommand = new GetCommand({
-      TableName: process.env.VIDEOS_TABLE_NAME || 'ClassCastVideos',
-      Key: { videoId }
+      TableName: 'classcast-submissions',
+      Key: { submissionId }
     });
 
-    const videoData = await docClient.send(getCommand);
+    console.log('🔍 Looking for submission:', submissionId);
+    const submissionData = await docClient.send(getCommand);
     
-    if (!videoData.Item) {
+    if (!submissionData.Item) {
+      console.error('❌ Submission not found:', submissionId);
       return NextResponse.json(
-        { error: 'Video not found' },
+        { error: 'Video submission not found' },
         { status: 404 }
       );
     }
 
-    const currentLikes = videoData.Item.likes || 0;
-    const likedBy = videoData.Item.likedBy || [];
+    console.log('✅ Found submission:', submissionData.Item);
+
+    const currentLikes = submissionData.Item.likes || 0;
+    const likedBy = submissionData.Item.likedBy || [];
+    
+    // Determine if this is a like or unlike
+    const isCurrentlyLiked = likedBy.includes(userId);
+    const isLiked = body.isLiked !== undefined ? body.isLiked : !isCurrentlyLiked;
     
     let newLikes = currentLikes;
     let newLikedBy = [...likedBy];
 
-    if (isLiked) {
+    if (isLiked && !isCurrentlyLiked) {
       // Add like
-      if (!likedBy.includes(userId)) {
-        newLikes = currentLikes + 1;
-        newLikedBy.push(userId);
-      }
-    } else {
+      newLikes = currentLikes + 1;
+      newLikedBy.push(userId);
+      console.log('➕ Adding like - new count:', newLikes);
+    } else if (!isLiked && isCurrentlyLiked) {
       // Remove like
-      if (likedBy.includes(userId)) {
-        newLikes = Math.max(0, currentLikes - 1);
-        newLikedBy = likedBy.filter(id => id !== userId);
-      }
+      newLikes = Math.max(0, currentLikes - 1);
+      newLikedBy = likedBy.filter(id => id !== userId);
+      console.log('➖ Removing like - new count:', newLikes);
+    } else {
+      console.log('⏸️ No change needed - already in desired state');
     }
 
-    // Update video with new like data
+    // Update submission with new like data
     const updateCommand = new UpdateCommand({
-      TableName: process.env.VIDEOS_TABLE_NAME || 'ClassCastVideos',
-      Key: { videoId },
+      TableName: 'classcast-submissions',
+      Key: { submissionId },
       UpdateExpression: 'SET likes = :likes, likedBy = :likedBy, updatedAt = :updatedAt',
       ExpressionAttributeValues: {
         ':likes': newLikes,
@@ -71,18 +78,38 @@ export async function POST(
     });
 
     const result = await docClient.send(updateCommand);
+    console.log('✅ Like updated successfully:', result.Attributes);
 
+    // Return in format that matches VideoReel interface
+    const updatedSubmission = result.Attributes;
     return NextResponse.json({
       success: true,
       likes: newLikes,
       isLiked: isLiked,
-      video: result.Attributes
+      id: submissionId,
+      title: updatedSubmission.videoTitle || 'Video Submission',
+      description: updatedSubmission.videoDescription || '',
+      thumbnail: updatedSubmission.thumbnailUrl || '/api/placeholder/300/200',
+      videoUrl: updatedSubmission.videoUrl,
+      duration: updatedSubmission.duration || 0,
+      author: {
+        id: updatedSubmission.studentId,
+        name: updatedSubmission.studentName || 'Unknown Student',
+        avatar: updatedSubmission.studentAvatar || '/api/placeholder/40/40',
+        course: updatedSubmission.courseName || 'Unknown Course'
+      },
+      likes: newLikes,
+      comments: updatedSubmission.comments?.length || 0,
+      isLiked: isLiked,
+      createdAt: updatedSubmission.submittedAt || updatedSubmission.createdAt,
+      courseId: updatedSubmission.courseId,
+      assignmentId: updatedSubmission.assignmentId
     });
 
   } catch (error) {
-    console.error('Error updating video like:', error);
+    console.error('❌ Error updating video like:', error);
     return NextResponse.json(
-      { error: 'Failed to update video like' },
+      { error: 'Failed to update video like', details: error.message },
       { status: 500 }
     );
   }
