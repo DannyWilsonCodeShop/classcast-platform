@@ -41,16 +41,20 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
     if (reels.length > 0) {
       reels.forEach(reel => {
         // Only generate thumbnail if we don't have one and the video has a valid URL
-        // Check if thumbnail is a placeholder (contains 'placeholder' or is empty)
-        const isPlaceholder = !reel.thumbnail || 
-                             reel.thumbnail.includes('placeholder') || 
-                             reel.thumbnail === '/api/placeholder/300/200';
+        // Check if thumbnail is a basic placeholder (not a generated one with text)
+        const isBasicPlaceholder = !reel.thumbnail || 
+                                  reel.thumbnail === '/api/placeholder/300/200' ||
+                                  reel.thumbnail === '/api/placeholder/400/300';
         
-        if (!thumbnails[reel.id] && reel.videoUrl && isPlaceholder) {
+        if (!thumbnails[reel.id] && reel.videoUrl && isBasicPlaceholder) {
           console.log('🎬 Generating thumbnail for:', reel.id, 'current thumbnail:', reel.thumbnail);
           generateThumbnail(reel.videoUrl, reel.id).then(thumb => {
             setThumbnails(prev => ({ ...prev, [reel.id]: thumb }));
           });
+        } else if (reel.thumbnail && !isBasicPlaceholder) {
+          console.log('🎬 Using existing thumbnail for:', reel.id, 'thumbnail:', reel.thumbnail);
+          // Use the existing thumbnail from the API
+          setThumbnails(prev => ({ ...prev, [reel.id]: reel.thumbnail }));
         }
       });
     }
@@ -92,7 +96,8 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
             clearTimeout(timeout);
             resolve(thumbnailUrl);
           } catch (error) {
-            console.error('❌ Canvas draw error for:', videoId, error);
+            console.error('❌ Canvas security error for:', videoId, error);
+            // Canvas is tainted due to CORS - use placeholder instead
             clearTimeout(timeout);
             resolve('/api/placeholder/300/200');
           }
