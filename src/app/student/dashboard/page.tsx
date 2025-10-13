@@ -753,7 +753,6 @@ const StudentDashboard: React.FC = () => {
                   />
                 </div>
               )}
-            </div>
           </div>
         </div>
 
