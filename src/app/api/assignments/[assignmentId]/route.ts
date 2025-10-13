@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -104,6 +104,110 @@ export async function GET(
     console.error('Error fetching assignment:', error);
     return NextResponse.json(
       { error: 'Failed to fetch assignment' },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT /api/assignments/[assignmentId] - Update an assignment
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { assignmentId: string } }
+) {
+  try {
+    const { assignmentId } = params;
+    const body = await request.json();
+    
+    console.log('Updating assignment:', assignmentId, body);
+    
+    // Build update expression
+    const updateExpressions = [];
+    const expressionAttributeNames: any = {};
+    const expressionAttributeValues: any = {};
+    
+    // Add updatedAt
+    updateExpressions.push('#updatedAt = :updatedAt');
+    expressionAttributeNames['#updatedAt'] = 'updatedAt';
+    expressionAttributeValues[':updatedAt'] = new Date().toISOString();
+    
+    // Map of allowed fields to update
+    const fieldMapping: { [key: string]: string } = {
+      title: 'title',
+      description: 'description',
+      dueDate: 'dueDate',
+      maxScore: 'maxScore',
+      status: 'status',
+      assignmentType: 'assignmentType',
+      requirements: 'requirements',
+      allowLateSubmission: 'allowLateSubmission',
+      latePenalty: 'latePenalty',
+      maxSubmissions: 'maxSubmissions',
+      groupAssignment: 'groupAssignment',
+      maxGroupSize: 'maxGroupSize',
+      allowedFileTypes: 'allowedFileTypes',
+      maxFileSize: 'maxFileSize',
+      enablePeerResponses: 'enablePeerResponses',
+      minResponsesRequired: 'minResponsesRequired',
+      maxResponsesPerVideo: 'maxResponsesPerVideo',
+      responseDueDate: 'responseDueDate',
+      responseWordLimit: 'responseWordLimit',
+      responseCharacterLimit: 'responseCharacterLimit',
+      hidePeerVideosUntilInstructorPosts: 'hidePeerVideosUntilInstructorPosts',
+      peerReviewScope: 'peerReviewScope',
+      coverPhoto: 'coverPhoto',
+      emoji: 'emoji',
+      color: 'color',
+      requireLiveRecording: 'requireLiveRecording',
+      allowYouTubeUrl: 'allowYouTubeUrl',
+      resources: 'resources'
+    };
+    
+    // Process each field in the body
+    for (const [bodyKey, dbKey] of Object.entries(fieldMapping)) {
+      if (body[bodyKey] !== undefined) {
+        const attrName = `#${dbKey}`;
+        const attrValue = `:${dbKey}`;
+        
+        updateExpressions.push(`${attrName} = ${attrValue}`);
+        expressionAttributeNames[attrName] = dbKey;
+        expressionAttributeValues[attrValue] = body[bodyKey];
+      }
+    }
+    
+    if (updateExpressions.length === 1) {
+      // Only updatedAt, nothing to update
+      return NextResponse.json({
+        success: true,
+        message: 'No changes to save'
+      });
+    }
+    
+    // Update the assignment in DynamoDB
+    const updateCommand = {
+      TableName: ASSIGNMENTS_TABLE,
+      Key: { assignmentId },
+      UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+      ExpressionAttributeNames: expressionAttributeNames,
+      ExpressionAttributeValues: expressionAttributeValues,
+      ReturnValues: 'ALL_NEW' as const
+    };
+    
+    const result = await docClient.send(new UpdateCommand(updateCommand));
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Assignment updated successfully',
+      assignment: result.Attributes
+    });
+    
+  } catch (error) {
+    console.error('Error updating assignment:', error);
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'Failed to update assignment',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

@@ -28,6 +28,8 @@ interface AssignmentCreationFormProps {
   initialData?: Partial<Assignment>;
   className?: string;
   courseId?: string;
+  isEditing?: boolean;
+  assignmentId?: string;
 }
 
 interface FormData {
@@ -73,7 +75,9 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
   isLoading = false,
   initialData,
   className = '',
-  courseId
+  courseId,
+  isEditing = false,
+  assignmentId
 }) => {
   const [formData, setFormData] = useState<FormData>({
     title: initialData?.title || '',
@@ -1694,7 +1698,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
             disabled={isLoading}
             className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isLoading ? 'Creating...' : 'Create Assignment'}
+            {isLoading ? (isEditing ? 'Saving...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Assignment')}
           </button>
         </div>
       </form>
