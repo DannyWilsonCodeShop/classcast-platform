@@ -403,17 +403,6 @@ const StudentDashboard: React.FC = () => {
               />
             </div>
             
-            {/* Center - School Logo */}
-            <div className="flex items-center justify-center flex-1">
-              {user?.schoolLogo && (
-                <img
-                  src={user.schoolLogo}
-                  alt="School Logo"
-                  className="h-8 sm:h-10 w-auto object-contain max-h-10"
-                />
-              )}
-            </div>
-            
             {/* Right Side - Join Class Button and Profile Thumbnail */}
             <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
               <button
@@ -433,12 +422,20 @@ const StudentDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Status Bar */}
+        {/* Status Bar with School Logo */}
         <div className="bg-gray-50 border-b border-indigo-600/20 px-4 py-2">
-          <div className="flex items-center text-sm">
+          <div className="flex items-center justify-between text-sm">
             <div className="text-gray-800 font-medium">
               Student Portal
             </div>
+            {/* School Logo - Right Side */}
+            {user?.schoolLogo && (
+              <img
+                src={user.schoolLogo}
+                alt="School Logo"
+                className="h-6 w-auto object-contain"
+              />
+            )}
           </div>
         </div>
 
