@@ -42,6 +42,27 @@ interface Assignment {
   gradedCount: number;
   averageGrade?: number;
   createdAt: string;
+  // Peer Review Settings
+  enablePeerResponses?: boolean;
+  minResponsesRequired?: number;
+  maxResponsesPerVideo?: number;
+  responseDueDate?: string;
+  responseWordLimit?: number;
+  responseCharacterLimit?: number;
+  hidePeerVideosUntilInstructorPosts?: boolean;
+  peerReviewScope?: 'section' | 'course';
+  // Video Settings
+  requireLiveRecording?: boolean;
+  allowYouTubeUrl?: boolean;
+  // Other Settings
+  allowLateSubmission?: boolean;
+  latePenalty?: number;
+  maxSubmissions?: number;
+  groupAssignment?: boolean;
+  maxGroupSize?: number;
+  allowedFileTypes?: string[];
+  maxFileSize?: number;
+  resources?: any[];
 }
 
 interface Student {
@@ -239,7 +260,28 @@ const InstructorCourseDetailPage: React.FC = () => {
             submissionType: assignment.assignmentType === 'video' ? 'video' : 
                            assignment.assignmentType === 'text' ? 'text' : 'file',
             submissionsCount: assignment.submissionsCount || 0,
-            createdAt: assignment.createdAt
+            createdAt: assignment.createdAt,
+            // Peer Review Settings
+            enablePeerResponses: assignment.enablePeerResponses || false,
+            minResponsesRequired: assignment.minResponsesRequired || 0,
+            maxResponsesPerVideo: assignment.maxResponsesPerVideo || 0,
+            responseDueDate: assignment.responseDueDate,
+            responseWordLimit: assignment.responseWordLimit,
+            responseCharacterLimit: assignment.responseCharacterLimit,
+            hidePeerVideosUntilInstructorPosts: assignment.hidePeerVideosUntilInstructorPosts || false,
+            peerReviewScope: assignment.peerReviewScope || 'course',
+            // Video Settings
+            requireLiveRecording: assignment.requireLiveRecording || false,
+            allowYouTubeUrl: assignment.allowYouTubeUrl || false,
+            // Other Settings
+            allowLateSubmission: assignment.allowLateSubmission || false,
+            latePenalty: assignment.latePenalty || 10,
+            maxSubmissions: assignment.maxSubmissions || 1,
+            groupAssignment: assignment.groupAssignment || false,
+            maxGroupSize: assignment.maxGroupSize || 4,
+            allowedFileTypes: assignment.allowedFileTypes || [],
+            maxFileSize: assignment.maxFileSize || 10 * 1024 * 1024,
+            resources: assignment.resources || []
           }));
           setAssignments(transformedAssignments);
         }
@@ -1160,17 +1202,24 @@ const InstructorCourseDetailPage: React.FC = () => {
                     dueDate: editingAssignment.dueDate,
                     maxScore: editingAssignment.points,
                     requirements: [editingAssignment.description],
-                    allowLateSubmission: true,
-                    latePenalty: 10,
-                    maxSubmissions: 1,
-                    groupAssignment: false,
-                    maxGroupSize: 4,
-                    allowedFileTypes: editingAssignment.submissionType === 'file' ? ['.pdf', '.doc', '.docx'] : [],
-                    maxFileSize: 10 * 1024 * 1024, // 10MB
-                    enablePeerResponses: false,
-                    minResponsesRequired: 0,
-                    maxResponsesPerVideo: 0,
-                    responseDueDate: editingAssignment.dueDate,
+                    allowLateSubmission: editingAssignment.allowLateSubmission ?? true,
+                    latePenalty: editingAssignment.latePenalty ?? 10,
+                    maxSubmissions: editingAssignment.maxSubmissions ?? 1,
+                    groupAssignment: editingAssignment.groupAssignment ?? false,
+                    maxGroupSize: editingAssignment.maxGroupSize ?? 4,
+                    allowedFileTypes: editingAssignment.allowedFileTypes ?? (editingAssignment.submissionType === 'file' ? ['.pdf', '.doc', '.docx'] : []),
+                    maxFileSize: editingAssignment.maxFileSize ?? 10 * 1024 * 1024,
+                    enablePeerResponses: editingAssignment.enablePeerResponses ?? false,
+                    minResponsesRequired: editingAssignment.minResponsesRequired ?? 0,
+                    maxResponsesPerVideo: editingAssignment.maxResponsesPerVideo ?? 0,
+                    responseDueDate: editingAssignment.responseDueDate ?? editingAssignment.dueDate,
+                    responseWordLimit: editingAssignment.responseWordLimit,
+                    responseCharacterLimit: editingAssignment.responseCharacterLimit,
+                    hidePeerVideosUntilInstructorPosts: editingAssignment.hidePeerVideosUntilInstructorPosts ?? false,
+                    peerReviewScope: editingAssignment.peerReviewScope ?? 'course',
+                    requireLiveRecording: editingAssignment.requireLiveRecording ?? false,
+                    allowYouTubeUrl: editingAssignment.allowYouTubeUrl ?? false,
+                    resources: editingAssignment.resources ?? [],
                     status: editingAssignment.status === 'grading' ? AssignmentStatus.PUBLISHED : editingAssignment.status === 'completed' ? AssignmentStatus.CLOSED : editingAssignment.status === 'draft' ? AssignmentStatus.DRAFT : editingAssignment.status === 'published' ? AssignmentStatus.PUBLISHED : AssignmentStatus.DRAFT
                   }}
                   onSubmit={async (assignmentData) => {
