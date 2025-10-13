@@ -21,6 +21,7 @@ interface ProfileData {
   favoriteSubject?: string;
   hobbies?: string;
   schoolName?: string;
+  schoolLogo?: string;
 }
 
 const StudentProfilePage: React.FC = () => {
@@ -73,7 +74,8 @@ const StudentProfilePage: React.FC = () => {
         funFact: user.funFact || '',
         favoriteSubject: user.favoriteSubject || '',
         hobbies: user.hobbies || '',
-        schoolName: user.schoolName || ''
+        schoolName: user.schoolName || '',
+        schoolLogo: user.schoolLogo || ''
       };
       
       setProfile(profileData);
@@ -451,6 +453,51 @@ const StudentProfilePage: React.FC = () => {
                     />
                   ) : (
                     <p className="text-gray-900">{profile?.schoolName || 'Not specified'}</p>
+                  )}
+                </div>
+
+                {/* School Logo */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">School Logo</label>
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <select
+                        value={editedProfile?.schoolLogo || ''}
+                        onChange={(e) => handleInputChange('schoolLogo', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                      >
+                        <option value="">Select a school logo</option>
+                        <option value="/logos/cristo-rey-atlanta.svg">Cristo Rey Atlanta Jesuit High School</option>
+                      </select>
+                      {editedProfile?.schoolLogo && (
+                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border">
+                          <img 
+                            src={editedProfile.schoolLogo} 
+                            alt="School Logo" 
+                            className="w-12 h-12 object-contain"
+                          />
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Selected Logo</p>
+                            <p className="text-xs text-gray-500">Will appear in dashboard header</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center space-x-3">
+                      {profile?.schoolLogo ? (
+                        <>
+                          <img 
+                            src={profile.schoolLogo} 
+                            alt="School Logo" 
+                            className="w-12 h-12 object-contain"
+                          />
+                          <p className="text-gray-900">Cristo Rey Atlanta Jesuit High School</p>
+                        </>
+                      ) : (
+                        <p className="text-gray-500">No logo selected</p>
+                      )}
+                    </div>
                   )}
                 </div>
 

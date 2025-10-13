@@ -284,6 +284,17 @@ const InstructorDashboard: React.FC = () => {
               />
             </div>
             
+            {/* Center - School Logo */}
+            <div className="flex items-center justify-center flex-1">
+              {user?.schoolLogo && (
+                <img
+                  src={user.schoolLogo}
+                  alt="School Logo"
+                  className="h-8 sm:h-10 w-auto object-contain max-h-10"
+                />
+              )}
+            </div>
+            
             {/* Right Side - Create Class Buttons and Profile Thumbnail */}
             <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
               <button

@@ -25,7 +25,13 @@ export interface User {
     department?: string;
     studentId?: string; // For students
     instructorId?: string; // For instructors
+    schoolLogo?: string; // School logo for dashboard display
   };
+  
+  // Direct user fields for easier access
+  avatar?: string;
+  bio?: string;
+  schoolLogo?: string;
   
   // Authentication
   passwordHash?: string; // Hashed password

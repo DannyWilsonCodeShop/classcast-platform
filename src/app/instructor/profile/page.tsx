@@ -20,6 +20,7 @@ interface ProfileData {
   favoriteSubject: string;
   hobbies: string;
   schoolName?: string;
+  schoolLogo?: string;
   department?: string;
   yearsExperience?: number;
 }
@@ -51,6 +52,7 @@ const InstructorProfilePage: React.FC = () => {
         favoriteSubject: user.favoriteSubject || '',
         hobbies: user.hobbies || '',
         schoolName: user.schoolName || '',
+        schoolLogo: user.schoolLogo || '',
         department: (user as any).department || '',
         yearsExperience: (user as any).yearsExperience || 0
       };
@@ -649,6 +651,34 @@ const InstructorProfilePage: React.FC = () => {
                     />
                     {errors.schoolName && (
                       <p className="text-sm text-red-600 mt-1">{errors.schoolName}</p>
+                    )}
+                  </div>
+
+                  {/* School Logo */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      School Logo
+                    </label>
+                    <select
+                      value={editedProfile.schoolLogo || ''}
+                      onChange={(e) => handleInputChange('schoolLogo', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Select a school logo</option>
+                      <option value="/logos/cristo-rey-atlanta.svg">Cristo Rey Atlanta Jesuit High School</option>
+                    </select>
+                    {editedProfile.schoolLogo && (
+                      <div className="flex items-center space-x-3 mt-3 p-3 bg-gray-50 rounded-lg border">
+                        <img 
+                          src={editedProfile.schoolLogo} 
+                          alt="School Logo" 
+                          className="w-12 h-12 object-contain"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">Selected Logo</p>
+                          <p className="text-xs text-gray-500">Will appear in dashboard header</p>
+                        </div>
+                      </div>
                     )}
                   </div>
 
