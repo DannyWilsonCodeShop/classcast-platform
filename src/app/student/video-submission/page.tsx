@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { isValidYouTubeUrl, extractYouTubeVideoId, getYouTubeThumbnail } from '@/lib/youtube';
 
 const VideoSubmissionContent: React.FC = () => {
   const router = useRouter();
@@ -329,9 +330,91 @@ const VideoSubmissionContent: React.FC = () => {
     setRecordedVideo(null);
     setUploadedVideo(null);
     setSelectedFile(null);
+    setYoutubeUrl('');
     setError(null);
     setSuccess(false);
     setUploadProgress(0);
+  };
+
+  const handleYouTubeSubmit = async () => {
+    if (!youtubeUrl) return;
+
+    // Validate YouTube URL
+    if (!isValidYouTubeUrl(youtubeUrl)) {
+      setError('Please enter a valid YouTube URL');
+      return;
+    }
+
+    setError(null);
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      // Extract video ID
+      const videoId = extractYouTubeVideoId(youtubeUrl);
+      if (!videoId) {
+        throw new Error('Could not extract video ID from URL');
+      }
+
+      // Get sectionId from assignment if available
+      let sectionId;
+      try {
+        const assignmentResponse = await fetch(`/api/assignments/${assignmentId}`);
+        if (assignmentResponse.ok) {
+          const assignmentData = await assignmentResponse.json();
+          if (assignmentData.success && assignmentData.assignment) {
+            sectionId = assignmentData.assignment.sectionId;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch assignment details for sectionId:', error);
+      }
+
+      // Submit the YouTube URL as an assignment submission
+      const submissionData = {
+        assignmentId: assignmentId,
+        studentId: user?.id || 'unknown',
+        courseId: courseId,
+        sectionId: sectionId,
+        youtubeUrl: youtubeUrl,
+        videoId: videoId,
+        thumbnailUrl: getYouTubeThumbnail(youtubeUrl, 'hq'),
+        videoTitle: `YouTube Submission - ${new Date().toLocaleDateString()}`,
+        videoDescription: 'Student YouTube video submission',
+        submissionMethod: 'youtube',
+        isRecorded: false,
+        isUploaded: false,
+        isYouTube: true
+      };
+
+      setUploadProgress(50);
+
+      const submissionResponse = await fetch('/api/video-submissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (!submissionResponse.ok) {
+        throw new Error('Failed to submit YouTube video');
+      }
+
+      setUploadProgress(100);
+      setSuccess(true);
+
+      // Auto-redirect to dashboard after 3 seconds
+      setTimeout(() => {
+        router.push('/student/dashboard');
+      }, 3000);
+
+    } catch (err) {
+      console.error('Error submitting YouTube URL:', err);
+      setError('Failed to submit YouTube URL. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -611,22 +694,11 @@ const VideoSubmissionContent: React.FC = () => {
                           className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         <button
-                          onClick={() => {
-                            if (youtubeUrl) {
-                              // Validate YouTube URL
-                              const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/)|youtu\.be\/)[\w-]+/;
-                              if (youtubeRegex.test(youtubeUrl)) {
-                                // URL is valid, proceed to submit
-                                setSuccess(true);
-                              } else {
-                                setError('Please enter a valid YouTube URL');
-                              }
-                            }
-                          }}
+                          onClick={handleYouTubeSubmit}
                           className="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                          disabled={!youtubeUrl}
+                          disabled={!youtubeUrl || isUploading}
                         >
-                          Preview
+                          {isUploading ? 'Submitting...' : 'Submit'}
                         </button>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
