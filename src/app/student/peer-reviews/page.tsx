@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import YouTubePlayer from '@/components/common/YouTubePlayer';
 
 interface PeerVideo {
   id: string;
@@ -953,30 +954,38 @@ const PeerReviewsContent: React.FC = () => {
         <div className="flex-1 flex flex-col">
           {/* Video Player */}
           <div className="bg-black relative aspect-video">
-            <video
-              ref={videoRef}
-              className="w-full h-full object-contain"
-              preload="metadata"
-              onLoadedMetadata={(e) => {
-                handleVideoLoad(e);
-                // Seek to first frame for thumbnail display
-                const video = e.currentTarget;
-                video.currentTime = 0.1;
-              }}
-              onTimeUpdate={handleTimeUpdate}
-              onPlay={() => {
-                setIsPlaying(true);
-                // Track view when video starts playing
-                if (currentVideo) {
-                  trackView(currentVideo.id);
-                }
-              }}
-              onPause={() => setIsPlaying(false)}
-              poster={currentVideo.thumbnailUrl !== '/api/placeholder/300/200' ? currentVideo.thumbnailUrl : undefined}
-            >
-              <source src={currentVideo.videoUrl} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
+            {currentVideo.isYouTube || currentVideo.youtubeUrl ? (
+              <YouTubePlayer
+                url={currentVideo.youtubeUrl || currentVideo.videoUrl}
+                title={currentVideo.title}
+                className="w-full h-full"
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                className="w-full h-full object-contain"
+                preload="metadata"
+                onLoadedMetadata={(e) => {
+                  handleVideoLoad(e);
+                  // Seek to first frame for thumbnail display
+                  const video = e.currentTarget;
+                  video.currentTime = 0.1;
+                }}
+                onTimeUpdate={handleTimeUpdate}
+                onPlay={() => {
+                  setIsPlaying(true);
+                  // Track view when video starts playing
+                  if (currentVideo) {
+                    trackView(currentVideo.id);
+                  }
+                }}
+                onPause={() => setIsPlaying(false)}
+                poster={currentVideo.thumbnailUrl !== '/api/placeholder/300/200' ? currentVideo.thumbnailUrl : undefined}
+              >
+                <source src={currentVideo.videoUrl} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            )}
 
             {/* Video Controls */}
             <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-4">
