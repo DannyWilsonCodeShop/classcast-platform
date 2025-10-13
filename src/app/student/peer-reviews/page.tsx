@@ -66,6 +66,8 @@ interface Assignment {
   allowVideoResponses: boolean;
   allowThreadedDiscussions: boolean;
   maxThreadDepth?: number;
+  responseWordLimit?: number;
+  responseCharacterLimit?: number;
   rubric: {
     contentQuality: { possible: number; description: string };
     engagement: { possible: number; description: string };
@@ -1241,6 +1243,16 @@ const PeerReviewsContent: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
                   Minimum {assignment?.minResponsesRequired} responses required
+                  {assignment?.responseWordLimit && (
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({assignment.responseWordLimit} words minimum)
+                    </span>
+                  )}
+                  {assignment?.responseCharacterLimit && !assignment?.responseWordLimit && (
+                    <span className="ml-2 text-xs text-gray-500">
+                      ({assignment.responseCharacterLimit} characters minimum)
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={handleSubmitResponse}
