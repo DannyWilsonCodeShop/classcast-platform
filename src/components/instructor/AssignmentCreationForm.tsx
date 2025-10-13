@@ -117,7 +117,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     ],
     targetSections: [],
     allSections: true,
-    peerReviewScope: 'section',
+    peerReviewScope: initialData?.peerReviewScope || 'section',
     resources: initialData?.resources || []
   });
 
