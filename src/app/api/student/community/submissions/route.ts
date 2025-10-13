@@ -95,6 +95,7 @@ export async function GET(request: NextRequest) {
     const enrichedSubmissions = await Promise.all(submissions.map(async (submission) => {
       let studentName = 'Unknown Student';
       let studentEmail = 'unknown@example.com';
+      let studentAvatar = '/api/placeholder/40/40';
       let courseName = 'Unknown Course';
       let assignmentTitle = 'Untitled Assignment';
       
@@ -108,6 +109,7 @@ export async function GET(request: NextRequest) {
           if (studentResult.Item) {
             studentName = `${studentResult.Item.firstName || ''} ${studentResult.Item.lastName || ''}`.trim() || 'Unknown Student';
             studentEmail = studentResult.Item.email || 'unknown@example.com';
+            studentAvatar = studentResult.Item.avatar || studentResult.Item.profile?.avatar || '/api/placeholder/40/40';
           }
         }
         
@@ -161,6 +163,7 @@ export async function GET(request: NextRequest) {
         studentId: submission.studentId,
         studentName,
         studentEmail,
+        studentAvatar,
         assignmentId: submission.assignmentId,
         assignmentTitle,
         courseId: submission.courseId,

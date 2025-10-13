@@ -39,27 +39,53 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
   // Generate thumbnail from video first frame
   const generateThumbnail = (videoUrl: string, videoId: string): Promise<string> => {
     return new Promise((resolve) => {
+      console.log('🎬 Starting thumbnail generation for:', videoId, videoUrl);
+      
       const video = document.createElement('video');
       video.crossOrigin = 'anonymous';
+      video.muted = true; // Ensure video can load without user interaction
+      video.preload = 'metadata';
       video.src = videoUrl;
-      video.currentTime = 0.1; // Capture frame at 0.1 seconds for first frame
       
-      video.addEventListener('loadeddata', () => {
+      const timeout = setTimeout(() => {
+        console.warn('⏰ Thumbnail generation timeout for:', videoId);
+        resolve('/api/placeholder/300/200');
+      }, 10000); // 10 second timeout
+      
+      video.addEventListener('loadedmetadata', () => {
+        console.log('📹 Video metadata loaded for:', videoId, 'Duration:', video.duration);
+        video.currentTime = 0.1; // Capture frame at 0.1 seconds for first frame
+      });
+      
+      video.addEventListener('seeked', () => {
+        console.log('⏭️ Video seeked to 0.1s for:', videoId);
         const canvas = document.createElement('canvas');
         canvas.width = 300;
         canvas.height = 200;
         const ctx = canvas.getContext('2d');
         
         if (ctx) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
-          resolve(thumbnailUrl);
+          try {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
+            console.log('✅ Thumbnail generated successfully for:', videoId);
+            clearTimeout(timeout);
+            resolve(thumbnailUrl);
+          } catch (error) {
+            console.error('❌ Canvas draw error for:', videoId, error);
+            clearTimeout(timeout);
+            resolve('/api/placeholder/300/200');
+          }
         } else {
+          console.error('❌ Canvas context error for:', videoId);
+          clearTimeout(timeout);
           resolve('/api/placeholder/300/200');
         }
       });
       
-      video.addEventListener('error', () => {
+      video.addEventListener('error', (e) => {
+        console.error('❌ Video load error for:', videoId, e);
+        clearTimeout(timeout);
         resolve('/api/placeholder/300/200');
       });
       
@@ -104,12 +130,16 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
         // Generate thumbnails for videos without proper thumbnails
         videoReels.forEach(async (reel) => {
           if (!reel.thumbnail || reel.thumbnail === '/api/placeholder/300/200') {
+            console.log('🎬 Generating thumbnail for video:', reel.id, reel.videoUrl);
             try {
               const thumb = await generateThumbnail(reel.videoUrl, reel.id);
+              console.log('✅ Generated thumbnail for', reel.id, ':', thumb.substring(0, 50) + '...');
               setThumbnails(prev => ({ ...prev, [reel.id]: thumb }));
             } catch (error) {
-              console.error('Error generating thumbnail for', reel.id, error);
+              console.error('❌ Error generating thumbnail for', reel.id, error);
             }
+          } else {
+            console.log('🎬 Video already has thumbnail:', reel.id, reel.thumbnail);
           }
         });
       } else {
