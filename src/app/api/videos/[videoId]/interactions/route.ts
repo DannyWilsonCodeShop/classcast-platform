@@ -7,7 +7,7 @@ const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
 const INTERACTIONS_TABLE = 'classcast-video-interactions';
-const VIDEOS_TABLE = 'classcast-videos';
+const VIDEOS_TABLE = 'classcast-submissions';
 const USERS_TABLE = 'classcast-users';
 
 // GET /api/videos/[videoId]/interactions - Get all interactions for a video
@@ -253,7 +253,7 @@ async function updateVideoStats(videoId: string, type: string, action: 'incremen
     // Get current video stats
     const videoResult = await docClient.send(new GetCommand({
       TableName: VIDEOS_TABLE,
-      Key: { id: videoId }
+      Key: { submissionId: videoId }
     }));
 
     if (!videoResult.Item) {
@@ -303,7 +303,7 @@ async function updateVideoStats(videoId: string, type: string, action: 'incremen
 
     await docClient.send(new UpdateCommand({
       TableName: VIDEOS_TABLE,
-      Key: { id: videoId },
+      Key: { submissionId: videoId },
       UpdateExpression: updateExpression,
       ExpressionAttributeValues: expressionValues
     }));
