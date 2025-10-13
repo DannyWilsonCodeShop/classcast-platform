@@ -411,6 +411,17 @@ const StudentCourseDetailPage: React.FC = () => {
           <div className="max-w-5xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
+                {/* ClassCast Logo */}
+                <div className="flex-shrink-0">
+                  <img 
+                    src="/UpdatedCCLogo.png" 
+                    alt="ClassCast Logo" 
+                    className="h-8 w-auto object-contain cursor-pointer"
+                    onClick={() => router.push('/student/dashboard')}
+                    title="Go to Dashboard"
+                  />
+                </div>
+                
                 <button
                   onClick={() => router.push('/student/dashboard')}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
