@@ -772,7 +772,33 @@ const InstructorCourseDetailPage: React.FC = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`)}
+                        onClick={async () => {
+                          try {
+                            // Fetch the first submission for this assignment
+                            const response = await fetch(`/api/instructor/video-submissions?assignmentId=${assignment.assignmentId}&courseId=${courseId}`, {
+                              credentials: 'include',
+                            });
+                            
+                            if (response.ok) {
+                              const data = await response.json();
+                              if (data.success && data.submissions && data.submissions.length > 0) {
+                                // Navigate to the first submission
+                                const firstSubmission = data.submissions[0];
+                                router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}&submission=${firstSubmission.submissionId || firstSubmission.id}`);
+                              } else {
+                                // No submissions, go to bulk grading without specific submission
+                                router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`);
+                              }
+                            } else {
+                              // Fallback to bulk grading without specific submission
+                              router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`);
+                            }
+                          } catch (error) {
+                            console.error('Error fetching submissions:', error);
+                            // Fallback to bulk grading without specific submission
+                            router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`);
+                          }
+                        }}
                         className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
                       >
                         Grade Submissions
