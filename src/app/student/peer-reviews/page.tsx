@@ -892,7 +892,12 @@ const PeerReviewsContent: React.FC = () => {
               ref={videoRef}
               className="w-full h-full object-contain"
               preload="metadata"
-              onLoadedMetadata={handleVideoLoad}
+              onLoadedMetadata={(e) => {
+                handleVideoLoad(e);
+                // Seek to first frame for thumbnail display
+                const video = e.currentTarget;
+                video.currentTime = 0.1;
+              }}
               onTimeUpdate={handleTimeUpdate}
               onPlay={() => {
                 setIsPlaying(true);
@@ -909,7 +914,7 @@ const PeerReviewsContent: React.FC = () => {
             </video>
 
             {/* Video Controls */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+            <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-4">
               <div className="flex items-center space-x-4 text-white">
                 <button
                   onClick={handlePlayPause}
@@ -1219,11 +1224,18 @@ const PeerReviewsContent: React.FC = () => {
                 }`}
               >
                 <div className="flex items-start space-x-3">
-                  <img
-                    src={video.thumbnailUrl}
-                    alt={video.title}
-                    className="w-16 h-12 object-cover rounded"
-                  />
+                  <div className="w-16 h-12 bg-black rounded overflow-hidden flex-shrink-0">
+                    <video
+                      src={video.videoUrl}
+                      className="w-full h-full object-cover"
+                      preload="metadata"
+                      onLoadedMetadata={(e) => {
+                        const vid = e.currentTarget;
+                        vid.currentTime = 0.1;
+                      }}
+                      poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
+                    />
+                  </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-gray-800 text-sm truncate">
                       {video.title}
