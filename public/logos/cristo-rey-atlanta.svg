@@ -1,0 +1,24 @@
+<svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with cross design -->
+  <circle cx="40" cy="40" r="35" stroke="#005587" stroke-width="3" fill="none"/>
+  
+  <!-- Cross structure -->
+  <line x1="40" y1="10" x2="40" y2="70" stroke="#005587" stroke-width="4"/>
+  <line x1="10" y1="40" x2="70" y2="40" stroke="#005587" stroke-width="4"/>
+  
+  <!-- Yellow quadrants -->
+  <path d="M 10 10 L 40 10 L 40 40 L 10 40 Z" fill="#FFC72C"/>
+  <path d="M 10 40 L 40 40 L 40 70 L 10 70 Z" fill="#FFC72C"/>
+  <path d="M 40 40 L 70 40 L 70 70 L 40 70 Z" fill="#FFC72C"/>
+  
+  <!-- Blue angular shape in top-right -->
+  <path d="M 40 10 L 70 10 L 65 25 L 40 25 Z" fill="#005587"/>
+  
+  <!-- School name text -->
+  <text x="90" y="25" font-family="serif" font-size="14" font-weight="bold" fill="#333333">
+    CRISTO REY ATLANTA
+  </text>
+  <text x="90" y="45" font-family="serif" font-size="10" font-weight="normal" fill="#333333">
+    JESUIT HIGH SCHOOL
+  </text>
+</svg>
