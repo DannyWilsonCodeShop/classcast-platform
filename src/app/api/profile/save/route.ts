@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
     const allowedFields = [
       'firstName', 'lastName', 'bio', 'schoolName', 'favoriteSubject', 
       'funFact', 'hobbies', 'department', 'avatar', 'careerGoals', 
-      'classOf', 'yearsExperience', 'email'
+      'classOf', 'yearsExperience', 'email', 'schoolLogo'
     ];
 
     for (const [key, value] of Object.entries(profileData)) {
@@ -120,6 +120,7 @@ export async function POST(request: NextRequest) {
       favoriteSubject: result.Attributes?.favoriteSubject?.S || profileData.favoriteSubject,
       hobbies: result.Attributes?.hobbies?.S || profileData.hobbies,
       schoolName: result.Attributes?.schoolName?.S || profileData.schoolName,
+      schoolLogo: result.Attributes?.schoolLogo?.S || profileData.schoolLogo,
       department: result.Attributes?.department?.S || profileData.department,
       yearsExperience: result.Attributes?.yearsExperience?.N ? parseInt(result.Attributes.yearsExperience.N) : profileData.yearsExperience
     };
