@@ -5,7 +5,7 @@ import { PlayIcon, PauseIcon, HeartIcon, ChatBubbleLeftIcon, ShareIcon } from '@
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import { api, VideoReel } from '@/lib/api';
+import apiClient, { VideoReel } from '@/lib/api';
 
 
 interface VideoReelsProps {
@@ -178,7 +178,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
   const handleLike = async (videoId: string) => {
     try {
       // Use the clean API to like the video
-      const updatedVideo = await api.likeVideo(videoId);
+      const updatedVideo = await apiClient.likeVideo(videoId);
       
       // Update local state with the response
       setReels(prev => prev.map(r => 
