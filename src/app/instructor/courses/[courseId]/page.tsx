@@ -730,16 +730,10 @@ const InstructorCourseDetailPage: React.FC = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => router.push(`/instructor/submissions?assignment=${assignment.assignmentId}&course=${courseId}`)}
-                        className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors text-sm"
-                      >
-                        Submissions
-                      </button>
-                      <button
                         onClick={() => router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`)}
                         className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
                       >
-                        Grade
+                        Grade Submissions
                       </button>
                     </div>
                   </div>
