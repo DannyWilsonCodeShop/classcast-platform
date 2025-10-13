@@ -762,50 +762,6 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
           </div>
         </div>
 
-        {/* Requirements */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Assignment Requirements
-          </label>
-          <div className="space-y-2">
-            {formData.requirements.map((requirement, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={requirement}
-                  onChange={(e) => updateRequirement(index, e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter requirement"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeRequirement(index)}
-                  className="px-3 py-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors"
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-            <div className="flex items-center space-x-2">
-              <input
-                type="text"
-                value={newRequirement}
-                onChange={(e) => setNewRequirement(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Add new requirement"
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addRequirement())}
-              />
-              <button
-                type="button"
-                onClick={addRequirement}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Assignment Resources */}
         <div>
           <AssignmentResourcesManager
