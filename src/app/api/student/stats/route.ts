@@ -67,11 +67,12 @@ export async function GET(request: NextRequest) {
     
     // Calculate stats
     const now = new Date();
-    const oneWeekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     
+    // Count ALL assignments that are not yet submitted (not just due in next 7 days)
     const assignmentsDue = allAssignments.filter(assignment => {
       const dueDate = new Date(assignment.dueDate);
-      return dueDate > now && dueDate <= oneWeekFromNow && !submittedAssignmentIds.has(assignment.assignmentId);
+      // Assignment is due if: not submitted AND due date hasn't passed yet
+      return dueDate > now && !submittedAssignmentIds.has(assignment.assignmentId);
     });
     
     const completed = allAssignments.filter(assignment => 
@@ -83,6 +84,15 @@ export async function GET(request: NextRequest) {
       assignmentsDue: assignmentsDue.length,
       completed: completed.length
     };
+
+    console.log('📊 Student Stats:', {
+      userId,
+      activeCourses: activeCourses.length,
+      totalAssignments: allAssignments.length,
+      assignmentsDue: assignmentsDue.length,
+      completed: completed.length,
+      submitted: submittedAssignmentIds.size
+    });
 
     return NextResponse.json(stats);
   } catch (error) {
