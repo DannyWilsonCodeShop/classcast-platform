@@ -435,10 +435,10 @@ const BulkGradingPage: React.FC = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
       
-      // Generate thumbnail from first frame if not already generated
+      // Generate thumbnail from frame at 2 seconds if not already generated
       const currentSubmission = filteredSubmissions[currentSubmissionIndex];
       if (currentSubmission && !videoThumbnails[currentSubmission.id]) {
-        videoRef.current.currentTime = 0.1;
+        videoRef.current.currentTime = 2.0;
       }
     }
   };
@@ -1036,7 +1036,7 @@ const BulkGradingPage: React.FC = () => {
                               onSeeked={(e) => {
                                 if (index === currentSubmissionIndex) {
                                   const video = e.currentTarget;
-                                  if (!videoThumbnails[submission.id] && video.currentTime < 1) {
+                                  if (!videoThumbnails[submission.id] && video.currentTime >= 2.0 && video.currentTime < 3.0) {
                                     generateThumbnail(video, submission.id);
                                   }
                                 }
