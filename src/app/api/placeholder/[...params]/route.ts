@@ -8,6 +8,8 @@ export async function GET(
   try {
     const { params: pathParams } = await params;
     const [width, height] = pathParams;
+    const { searchParams } = new URL(request.url);
+    const text = searchParams.get('text');
     
     // Parse dimensions
     const w = parseInt(width) || 100;
@@ -18,6 +20,9 @@ export async function GET(
       return new NextResponse('Invalid dimensions', { status: 400 });
     }
     
+    // Determine display text
+    const displayText = text ? decodeURIComponent(text) : `${w}×${h}`;
+    
     // Create a simple SVG placeholder
     const svg = `
       <svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
@@ -25,9 +30,10 @@ export async function GET(
         <rect x="10%" y="10%" width="80%" height="80%" fill="#e5e7eb" stroke="#d1d5db" stroke-width="2" rx="8"/>
         <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" 
               font-family="system-ui, -apple-system, sans-serif" 
-              font-size="${Math.min(w, h) * 0.15}" 
-              fill="#9ca3af">
-          ${w}×${h}
+              font-size="${Math.min(w, h) * 0.12}" 
+              fill="#6b7280"
+              font-weight="500">
+          ${displayText}
         </text>
       </svg>
     `.trim();
