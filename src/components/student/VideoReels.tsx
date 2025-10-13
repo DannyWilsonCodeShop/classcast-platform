@@ -131,6 +131,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
           const likedBy = sub.likedBy || [];
           const isLiked = likedBy.includes(studentId);
           console.log('🎬 Video', sub.id, '- likes:', sub.likes, 'isLiked:', isLiked, 'likedBy:', likedBy);
+          console.log('👤 Author avatar for', sub.studentName, ':', sub.studentAvatar);
           
           return {
             id: sub.submissionId || sub.id,
@@ -441,6 +442,13 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
                   src={reel.author?.avatar || '/api/placeholder/20/20'}
                   alt={reel.author?.name || 'Unknown Author'}
                   className="w-5 h-5 rounded-full"
+                  onError={(e) => {
+                    // If avatar fails to load, use a fallback
+                    const target = e.target as HTMLImageElement;
+                    if (target.src !== '/api/placeholder/20/20') {
+                      target.src = '/api/placeholder/20/20';
+                    }
+                  }}
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-gray-900 truncate">
