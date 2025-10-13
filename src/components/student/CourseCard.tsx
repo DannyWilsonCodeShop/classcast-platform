@@ -5,33 +5,32 @@ import { useRouter } from 'next/navigation';
 import { BookOpenIcon, UsersIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
 import Avatar from '@/components/common/Avatar';
 
-interface Course {
+interface CourseCardProps {
   id: string;
   name: string;
   code: string;
+  color: string;
   instructor?: {
     name: string;
     avatar: string;
   };
   assignmentsDue: number;
   nextDeadline?: string;
-  color: string;
 }
 
-interface CourseCardProps {
-  course: Course;
-  onClick?: (course: Course) => void;
-}
-
-const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
+const CourseCard: React.FC<CourseCardProps> = ({ 
+  id, 
+  name, 
+  code, 
+  color, 
+  instructor, 
+  assignmentsDue, 
+  nextDeadline 
+}) => {
   const router = useRouter();
 
   const handleClick = () => {
-    if (onClick) {
-      onClick(course);
-    } else {
-      router.push(`/student/courses/${course.id}`);
-    }
+    router.push(`/student/courses/${id}`);
   };
 
 
@@ -41,16 +40,16 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
       className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer group"
     >
       {/* Course Header */}
-      <div className={`h-20 rounded-t-lg p-4 relative overflow-hidden`} style={{ backgroundColor: course.color }}>
+      <div className={`h-20 rounded-t-lg p-4 relative overflow-hidden`} style={{ backgroundColor: color }}>
         <div className="absolute inset-0 bg-black bg-opacity-10"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-white mb-1 line-clamp-1">
-                {course.name}
+                {name}
               </h3>
               <p className="text-sm text-white text-opacity-90">
-                {course.code}
+                {code}
               </p>
             </div>
           </div>
@@ -63,14 +62,14 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
         <div className="flex items-center space-x-2 mb-4">
           <Avatar
             user={{
-              firstName: course.instructor?.name?.split(' ')[0] || 'Unknown',
-              lastName: course.instructor?.name?.split(' ')[1] || 'Instructor',
-              avatar: course.instructor?.avatar || '/api/placeholder/40/40'
+              firstName: instructor?.name?.split(' ')[0] || 'Unknown',
+              lastName: instructor?.name?.split(' ')[1] || 'Instructor',
+              avatar: instructor?.avatar || '/api/placeholder/40/40'
             }}
             size="sm"
           />
           <span className="text-sm text-gray-600">
-            Prof. {course.instructor?.name || 'Unknown Instructor'}
+            Prof. {instructor?.name || 'Unknown Instructor'}
           </span>
         </div>
 
@@ -80,19 +79,19 @@ const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
           <div>
             <p className="text-xs text-gray-500">Assignments Due</p>
             <p className="text-sm font-medium text-gray-900">
-              {course.assignmentsDue}
+              {assignmentsDue}
             </p>
           </div>
         </div>
 
         {/* Next Deadline */}
-        {course.nextDeadline && (
+        {nextDeadline && (
           <div className="flex items-center space-x-2 p-2 bg-yellow-50 rounded-lg mb-4">
             <CalendarIcon className="h-4 w-4 text-yellow-600" />
             <div>
               <p className="text-xs text-yellow-800 font-medium">Next Deadline</p>
               <p className="text-sm text-yellow-700">
-                {new Date(course.nextDeadline).toLocaleDateString()}
+                {new Date(nextDeadline).toLocaleDateString()}
               </p>
             </div>
           </div>
