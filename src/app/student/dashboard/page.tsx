@@ -137,7 +137,17 @@ const StudentDashboard: React.FC = () => {
             try {
               const coursesData = await coursesResponse.json();
               console.log('Courses API response:', coursesData);
-              setCourses(coursesData.courses || []);
+              
+              // Add default colors to courses that don't have one
+              const coursesWithColors = (coursesData.courses || []).map((course: Course, index: number) => {
+                const defaultColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+                return {
+                  ...course,
+                  color: course.color || defaultColors[index % defaultColors.length]
+                };
+              });
+              
+              setCourses(coursesWithColors);
             } catch (parseError) {
               console.error('Error parsing courses response:', parseError);
               setError('Failed to load courses');
@@ -312,8 +322,13 @@ const StudentDashboard: React.FC = () => {
 
       console.log('Enrollment successful, updating UI...');
 
-      // Add the new class to the courses list
-      setCourses(prevCourses => [...prevCourses, data.class]);
+      // Add the new class to the courses list with default color if missing
+      const defaultColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+      const newClass = {
+        ...data.class,
+        color: data.class.color || defaultColors[0]
+      };
+      setCourses(prevCourses => [...prevCourses, newClass]);
 
       // Refresh dashboard data to ensure everything is up to date
       if (isAuthenticated && user) {
@@ -333,7 +348,17 @@ const StudentDashboard: React.FC = () => {
 
           if (coursesResponse.ok) {
             const coursesData = await coursesResponse.json();
-            setCourses(coursesData.courses || []);
+            
+            // Add default colors to courses that don't have one
+            const coursesWithColors = (coursesData.courses || []).map((course: Course, index: number) => {
+              const defaultColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+              return {
+                ...course,
+                color: course.color || defaultColors[index % defaultColors.length]
+              };
+            });
+            
+            setCourses(coursesWithColors);
           }
           
           console.log('Dashboard data refreshed successfully');
