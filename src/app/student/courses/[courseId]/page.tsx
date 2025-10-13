@@ -505,7 +505,7 @@ const StudentCourseDetailPage: React.FC = () => {
                               </span>
                               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(assignment.status)}`}>
                                 {assignment.status === 'completed' ? '✓' : assignment.status === 'past_due' ? '!' : '○'} 
-                                {assignment.status.replace('_', ' ')}
+                                {assignment.status.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase())}
                               </span>
                             </div>
                           </div>
