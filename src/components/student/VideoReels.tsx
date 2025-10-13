@@ -395,14 +395,16 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
                   src={thumbnails[reel.id]}
                   alt={reel.title}
                   className="w-full h-32 object-cover rounded-t-xl"
-                  onLoad={() => console.log('✅ Generated thumbnail loaded for:', reel.id)}
-                  onError={(e) => console.error('❌ Generated thumbnail failed for:', reel.id, e)}
+                  style={{ display: 'block', backgroundColor: '#f3f4f6' }}
+                  onLoad={() => console.log('✅ Generated thumbnail loaded for:', reel.id, 'URL:', thumbnails[reel.id])}
+                  onError={(e) => console.error('❌ Generated thumbnail failed for:', reel.id, 'URL:', thumbnails[reel.id], e)}
                 />
               ) : reel.thumbnail && reel.thumbnail !== '/api/placeholder/300/200' ? (
                 <img
                   src={reel.thumbnail}
                   alt={reel.title}
                   className="w-full h-32 object-cover rounded-t-xl"
+                  style={{ display: 'block', backgroundColor: '#f3f4f6' }}
                   onLoad={() => console.log('✅ API thumbnail loaded for:', reel.id, reel.thumbnail)}
                   onError={(e) => {
                     console.error('❌ API thumbnail failed for:', reel.id, reel.thumbnail, e);
@@ -453,6 +455,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
                   src={reel.author?.avatar || '/api/placeholder/20/20'}
                   alt={reel.author?.name || 'Unknown Author'}
                   className="w-5 h-5 rounded-full"
+                  style={{ display: 'block', backgroundColor: '#e5e7eb' }}
                   onLoad={() => console.log('✅ Author avatar loaded for:', reel.author?.name, reel.author?.avatar)}
                   onError={(e) => {
                     console.error('❌ Author avatar failed for:', reel.author?.name, reel.author?.avatar, e);
