@@ -404,8 +404,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
             title="Assignment Not Found"
             description="The requested assignment could not be found or you don't have access to it."
             action={{
-              label: "Back to Assignments",
-              onClick: () => router.push('/student/assignments'),
+              label: "Go Back",
+              onClick: () => router.back(),
               variant: 'primary'
             }}
           />
@@ -422,8 +422,9 @@ const StudentAssignmentDetailPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => router.push('/student/assignments')}
+                onClick={() => router.back()}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                title="Go back"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
