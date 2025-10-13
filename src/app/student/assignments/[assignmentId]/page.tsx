@@ -74,6 +74,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  const [videoThumbnail, setVideoThumbnail] = useState<string | null>(null);
   const [peerVideos, setPeerVideos] = useState<PeerVideo[]>([]);
   const [peerResponses, setPeerResponses] = useState<any[]>([]);
   const [responsesToMySubmission, setResponsesToMySubmission] = useState<any[]>([]);
@@ -560,11 +561,32 @@ const StudentAssignmentDetailPage: React.FC = () => {
                           controls
                           className="w-full h-full object-cover"
                           src={submission.videoUrl}
+                          poster={videoThumbnail || submission.thumbnailUrl || undefined}
+                          preload="metadata"
                           onLoadedMetadata={(e) => {
                             const video = e.currentTarget;
                             setVideoLoaded(true);
                             if (video.duration && !isNaN(video.duration)) {
                               setVideoDuration(Math.floor(video.duration));
+                            }
+                            
+                            // Generate thumbnail from first frame if not already generated
+                            if (!videoThumbnail) {
+                              video.currentTime = 0.1;
+                            }
+                          }}
+                          onSeeked={(e) => {
+                            const video = e.currentTarget;
+                            if (!videoThumbnail && video.currentTime < 1) {
+                              const canvas = document.createElement('canvas');
+                              canvas.width = 400;
+                              canvas.height = 300;
+                              const ctx = canvas.getContext('2d');
+                              if (ctx) {
+                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
+                                setVideoThumbnail(thumbnail);
+                              }
                             }
                           }}
                           onError={() => {
