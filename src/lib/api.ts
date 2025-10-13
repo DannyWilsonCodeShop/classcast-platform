@@ -487,10 +487,12 @@ class ApiClient {
   }
 
   async likeVideo(videoId: string): Promise<VideoReel> {
-    const response = await this.request<{ video: VideoReel }>(`/videos/${videoId}/like`, {
+    const response = await this.request<any>(`/videos/${videoId}/like`, {
       method: 'POST',
+      body: JSON.stringify({}), // Empty body, API will toggle the like
     });
-    return response.data!.video;
+    // API returns the updated video data directly, not in data.video
+    return response as VideoReel;
   }
 
   // ============================================================================
