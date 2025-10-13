@@ -56,7 +56,7 @@ interface FormData {
   color: string;
   requireLiveRecording: boolean;
   allowYouTubeUrl: boolean; // NEW: Allow YouTube URL submissions
-  rubricType: 'none' | 'upload' | 'ai_generated';
+  rubricType: 'none' | 'upload' | 'custom' | 'ai_generated';
   rubricFile: File | null;
   aiGeneratedRubric: any;
   customRubric: any;
@@ -1292,7 +1292,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Choose Rubric Option
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <button
                   type="button"
                   onClick={() => setFormData(prev => ({ ...prev, rubricType: 'none' }))}
@@ -1304,21 +1304,21 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                 >
                   <div className="text-2xl mb-2">❌</div>
                   <div className="font-medium">No Rubric</div>
-                  <div className="text-sm text-gray-600">Grade without structured criteria</div>
+                  <div className="text-sm text-gray-600">Grade without criteria</div>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, rubricType: 'upload' }))}
+                  onClick={() => setFormData(prev => ({ ...prev, rubricType: 'custom' }))}
                   className={`p-4 border-2 rounded-lg text-left transition-colors ${
-                    formData.rubricType === 'upload'
+                    formData.rubricType === 'custom'
                       ? 'border-purple-500 bg-purple-100'
                       : 'border-gray-300 hover:border-gray-400'
                   }`}
                 >
-                  <div className="text-2xl mb-2">📄</div>
-                  <div className="font-medium">Upload Rubric</div>
-                  <div className="text-sm text-gray-600">Upload your own rubric file</div>
+                  <div className="text-2xl mb-2">✏️</div>
+                  <div className="font-medium">Create Custom</div>
+                  <div className="text-sm text-gray-600">Build your own rubric</div>
                 </button>
 
                 <button
@@ -1332,10 +1332,125 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                 >
                   <div className="text-2xl mb-2">🤖</div>
                   <div className="font-medium">AI Generated</div>
-                  <div className="text-sm text-gray-600">Generate rubric with AI</div>
+                  <div className="text-sm text-gray-600">Let AI create criteria</div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, rubricType: 'upload' }))}
+                  className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                    formData.rubricType === 'upload'
+                      ? 'border-purple-500 bg-purple-100'
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <div className="text-2xl mb-2">📄</div>
+                  <div className="font-medium">Upload File</div>
+                  <div className="text-sm text-gray-600">Upload rubric PDF</div>
                 </button>
               </div>
             </div>
+
+            {/* Custom Rubric Section */}
+            {formData.rubricType === 'custom' && (
+              <div className="border border-gray-200 rounded-lg p-4 bg-white">
+                <div className="mb-4">
+                  <h4 className="font-medium text-gray-900 mb-2">Create Your Rubric</h4>
+                  <p className="text-sm text-gray-600">
+                    Add categories with points and descriptions for your grading rubric
+                  </p>
+                </div>
+
+                {/* Custom Categories Input */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Rubric Categories
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addRubricCategory}
+                      className="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                    >
+                      + Add Category
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {formData.customRubricCategories.map((category, index) => (
+                      <div key={index} className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div className="grid grid-cols-1 gap-3">
+                          <div className="grid grid-cols-12 gap-3 items-end">
+                            <div className="col-span-5">
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                Category Name *
+                              </label>
+                              <input
+                                type="text"
+                                value={category.name}
+                                onChange={(e) => updateRubricCategory(index, 'name', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                                placeholder="e.g., Content Quality"
+                              />
+                            </div>
+                            <div className="col-span-2">
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                Points *
+                              </label>
+                              <input
+                                type="number"
+                                value={category.points}
+                                onChange={(e) => updateRubricCategory(index, 'points', parseInt(e.target.value) || 0)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                                min="1"
+                                step="1"
+                              />
+                            </div>
+                            <div className="col-span-4">
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                Description
+                              </label>
+                              <input
+                                type="text"
+                                value={category.description}
+                                onChange={(e) => updateRubricCategory(index, 'description', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                                placeholder="Brief description"
+                              />
+                            </div>
+                            <div className="col-span-1">
+                              <button
+                                type="button"
+                                onClick={() => removeRubricCategory(index)}
+                                disabled={formData.customRubricCategories.length <= 1}
+                                className="w-full px-2 py-2 text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                                title="Remove category"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="flex items-center">
+                      <span className="text-blue-600 mr-2">ℹ️</span>
+                      <div className="text-sm text-blue-800">
+                        <strong>Total Points:</strong> {formData.customRubricCategories.reduce((sum, cat) => sum + cat.points, 0)} / {formData.maxScore}
+                        {formData.customRubricCategories.reduce((sum, cat) => sum + cat.points, 0) !== formData.maxScore && (
+                          <span className="text-red-600 ml-2">
+                            ⚠️ Points don't match max score
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Upload Rubric Section */}
             {formData.rubricType === 'upload' && (
@@ -1378,31 +1493,21 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
               </div>
             )}
 
-            {/* AI Generated Rubric Section */}
+            {/* AI Generated Rubric Section - Simplified */}
             {formData.rubricType === 'ai_generated' && (
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h4 className="font-medium text-gray-900">AI-Generated Rubric</h4>
-                    <p className="text-sm text-gray-600">
-                      Define your rubric categories and AI will generate detailed criteria
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={generateAIRubric}
-                    disabled={isGeneratingRubric || !formData.title.trim() || !formData.description.trim() || formData.customRubricCategories.some(cat => !cat.name.trim() || cat.points <= 0)}
-                    className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {isGeneratingRubric ? 'Generating...' : 'Generate Rubric'}
-                  </button>
+              <div className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-purple-50 to-blue-50">
+                <div className="mb-4">
+                  <h4 className="font-medium text-gray-900 mb-2">🤖 AI-Powered Rubric Generator</h4>
+                  <p className="text-sm text-gray-600">
+                    Provide category names and points. AI will generate detailed descriptions and grading levels.
+                  </p>
                 </div>
 
-                {/* Custom Categories Input */}
-                <div className="mb-6">
+                {/* Simplified Categories Input - Only name and points */}
+                <div className="mb-4">
                   <div className="flex items-center justify-between mb-3">
                     <label className="block text-sm font-medium text-gray-700">
-                      Rubric Categories
+                      Define Categories (AI will add descriptions)
                     </label>
                     <button
                       type="button"
@@ -1413,101 +1518,95 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                     </button>
                   </div>
                   
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {formData.customRubricCategories.map((category, index) => (
-                      <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                        <div className="md:col-span-4">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Category Name
-                          </label>
+                      <div key={index} className="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg">
+                        <div className="flex-1">
                           <input
                             type="text"
                             value={category.name}
                             onChange={(e) => updateRubricCategory(index, 'name', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
-                            placeholder="e.g., Content Quality"
+                            placeholder="e.g., Content Quality, Presentation, Creativity"
                           />
                         </div>
-                        <div className="md:col-span-2">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Points
-                          </label>
+                        <div className="w-24">
                           <input
                             type="number"
                             value={category.points}
                             onChange={(e) => updateRubricCategory(index, 'points', parseInt(e.target.value) || 0)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm text-center"
                             min="1"
                             step="1"
+                            placeholder="pts"
                           />
                         </div>
-                        <div className="md:col-span-5">
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Description
-                          </label>
-                          <input
-                            type="text"
-                            value={category.description}
-                            onChange={(e) => updateRubricCategory(index, 'description', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm"
-                            placeholder="Brief description of this category"
-                          />
-                        </div>
-                        <div className="md:col-span-1">
-                          <button
-                            type="button"
-                            onClick={() => removeRubricCategory(index)}
-                            disabled={formData.customRubricCategories.length <= 1}
-                            className="w-full px-2 py-2 text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
-                            title="Remove category"
-                          >
-                            🗑️
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeRubricCategory(index)}
+                          disabled={formData.customRubricCategories.length <= 1}
+                          className="px-3 py-2 text-red-600 hover:text-red-800 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
+                          title="Remove category"
+                        >
+                          🗑️
+                        </button>
                       </div>
                     ))}
                   </div>
                   
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                    <div className="flex items-center">
-                      <span className="text-blue-600 mr-2">ℹ️</span>
-                      <div className="text-sm text-blue-800">
-                        <strong>Total Points:</strong> {formData.customRubricCategories.reduce((sum, cat) => sum + cat.points, 0)} / {formData.maxScore}
-                        {formData.customRubricCategories.reduce((sum, cat) => sum + cat.points, 0) !== formData.maxScore && (
-                          <span className="text-red-600 ml-2">
-                            (Points don't match max score)
-                          </span>
-                        )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <span className="text-blue-600 mr-2">ℹ️</span>
+                        <div className="text-sm text-blue-800">
+                          <strong>Total Points:</strong> {formData.customRubricCategories.reduce((sum, cat) => sum + cat.points, 0)} / {formData.maxScore}
+                          {formData.customRubricCategories.reduce((sum, cat) => sum + cat.points, 0) !== formData.maxScore && (
+                            <span className="text-red-600 ml-2">
+                              ⚠️ Mismatch
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      <button
+                        type="button"
+                        onClick={generateAIRubric}
+                        disabled={isGeneratingRubric || !formData.title.trim() || !formData.description.trim() || formData.customRubricCategories.some(cat => !cat.name.trim() || cat.points <= 0)}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                      >
+                        {isGeneratingRubric ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                            <span>Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>🤖</span>
+                            <span>Generate Descriptions</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 </div>
 
-                {isGeneratingRubric && (
-                  <div className="flex items-center space-x-2 text-purple-600">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
-                    <span className="text-sm">AI is analyzing your assignment and generating a rubric...</span>
-                  </div>
-                )}
-
                 {formData.aiGeneratedRubric && (
                   <div className="mt-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Generated Rubric Preview</span>
+                      <span className="text-sm font-medium text-gray-700">✨ AI-Generated Rubric Preview</span>
                       <div className="space-x-2">
                         <button
                           type="button"
                           onClick={() => setShowRubricPreview(!showRubricPreview)}
                           className="text-sm text-purple-600 hover:text-purple-800"
                         >
-                          {showRubricPreview ? 'Hide' : 'Preview'}
+                          {showRubricPreview ? 'Hide' : 'Show Preview'}
                         </button>
                         <button
                           type="button"
                           onClick={removeRubric}
                           className="text-sm text-red-600 hover:text-red-800"
                         >
-                          Remove
+                          Regenerate
                         </button>
                       </div>
                     </div>
@@ -1524,7 +1623,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                               <div className="text-xs text-gray-500">
                                 <div className="grid grid-cols-4 gap-2">
                                   {criterion.levels?.map((level: any, levelIndex: number) => (
-                                    <div key={levelIndex} className="text-center">
+                                    <div key={levelIndex} className="text-center p-2 bg-gray-50 rounded">
                                       <div className="font-medium">{level.name}</div>
                                       <div className="text-gray-500">{level.points} pts</div>
                                     </div>
@@ -1540,8 +1639,14 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                 )}
 
                 {!formData.aiGeneratedRubric && !isGeneratingRubric && (
-                  <div className="text-sm text-gray-500 italic">
-                    Click "Generate Rubric" to create an AI-powered rubric based on your assignment details.
+                  <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-start space-x-2">
+                      <span className="text-purple-600 text-xl">💡</span>
+                      <div className="text-sm text-purple-800">
+                        <strong>How it works:</strong> Add your category names and point values above, 
+                        then click "Generate Descriptions" and AI will create detailed grading criteria and performance levels for each category.
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

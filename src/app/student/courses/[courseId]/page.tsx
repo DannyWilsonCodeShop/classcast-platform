@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { stripHtmlTags } from '@/lib/htmlUtils';
 import { EmptyState } from '@/components/common/EmptyState';
 
 interface Course {
@@ -492,7 +493,7 @@ const StudentCourseDetailPage: React.FC = () => {
                             </div>
                             
                             {assignment.description && (
-                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{assignment.description}</p>
+                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{stripHtmlTags(assignment.description)}</p>
                             )}
                             
                             <div className="flex items-center gap-4 text-xs text-gray-500">
