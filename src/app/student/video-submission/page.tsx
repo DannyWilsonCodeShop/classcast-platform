@@ -42,8 +42,12 @@ const VideoSubmissionContent: React.FC = () => {
           });
           if (response.ok) {
             const data = await response.json();
+            console.log('📝 Assignment data loaded:', data);
             if (data.success && data.data?.assignment?.title) {
+              console.log('📝 Setting assignment title:', data.data.assignment.title);
               setAssignmentTitle(data.data.assignment.title);
+            } else {
+              console.log('📝 No assignment title found in response');
             }
           }
         } catch (error) {
@@ -254,6 +258,9 @@ const VideoSubmissionContent: React.FC = () => {
       }
 
       // Now submit the video as an assignment submission
+      const finalVideoTitle = assignmentTitle || `Video Submission - ${new Date().toLocaleDateString()}`;
+      console.log('📝 Final video title being sent:', finalVideoTitle, 'assignmentTitle:', assignmentTitle);
+      
       const submissionData = {
         assignmentId: assignmentId, // Use the actual assignment ID from URL params
         studentId: user?.id || 'unknown',
@@ -261,7 +268,7 @@ const VideoSubmissionContent: React.FC = () => {
         sectionId: sectionId, // Add sectionId if available
         videoUrl: videoUrl, // Now using the actual S3 URL
         videoId: videoId, // Store the IndexedDB key for retrieval
-        videoTitle: assignmentTitle || `Video Submission - ${new Date().toLocaleDateString()}`,
+        videoTitle: finalVideoTitle,
         videoDescription: 'Student video submission',
         duration: videoDuration, // Use extracted video duration
         fileName: fileName,
@@ -395,6 +402,9 @@ const VideoSubmissionContent: React.FC = () => {
       }
 
       // Submit the YouTube URL as an assignment submission
+      const finalYouTubeTitle = assignmentTitle || `YouTube Submission - ${new Date().toLocaleDateString()}`;
+      console.log('📝 Final YouTube title being sent:', finalYouTubeTitle, 'assignmentTitle:', assignmentTitle);
+      
       const submissionData = {
         assignmentId: assignmentId,
         studentId: user?.id || 'unknown',
@@ -403,7 +413,7 @@ const VideoSubmissionContent: React.FC = () => {
         youtubeUrl: youtubeUrl,
         videoId: videoId,
         thumbnailUrl: getYouTubeThumbnail(youtubeUrl, 'hq'),
-        videoTitle: assignmentTitle || `YouTube Submission - ${new Date().toLocaleDateString()}`,
+        videoTitle: finalYouTubeTitle,
         videoDescription: 'Student YouTube video submission',
         submissionMethod: 'youtube',
         isRecorded: false,
