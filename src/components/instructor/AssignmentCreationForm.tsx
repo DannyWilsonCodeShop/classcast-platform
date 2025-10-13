@@ -123,6 +123,8 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
   const [showRubricPreview, setShowRubricPreview] = useState(false);
   const [sections, setSections] = useState<Section[]>([]);
   const [sectionsLoading, setSectionsLoading] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [subscriptionData, setSubscriptionData] = useState<any>(null);
 
   // Load sections when courseId is provided
   useEffect(() => {
@@ -310,8 +312,18 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         })
       });
 
+      const data = await response.json();
+
+      // Check if subscription is required
+      if (data.requiresSubscription) {
+        setIsGeneratingRubric(false);
+        setSubscriptionData(data);
+        setShowSubscriptionModal(true);
+        return;
+      }
+
       if (response.ok) {
-        const rubric = await response.json();
+        const rubric = data;
         setFormData(prev => ({ 
           ...prev, 
           aiGeneratedRubric: rubric,
@@ -1686,6 +1698,77 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
           </button>
         </div>
       </form>
+
+      {/* AI Subscription Modal */}
+      {showSubscriptionModal && subscriptionData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-2xl font-bold">🤖 AI Features</h3>
+                <button
+                  onClick={() => setShowSubscriptionModal(false)}
+                  className="text-white/80 hover:text-white text-2xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+              <p className="text-white/90">{subscriptionData.feature}</p>
+            </div>
+
+            {/* Content */}
+            <div className="p-6">
+              <div className="mb-6">
+                <p className="text-gray-700 text-lg mb-4">
+                  {subscriptionData.message}
+                </p>
+                
+                {subscriptionData.benefits && subscriptionData.benefits.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold text-gray-900 mb-2">With AI Subscription:</p>
+                    {subscriptionData.benefits.map((benefit: string, index: number) => (
+                      <div key={index} className="flex items-start space-x-2">
+                        <span className="text-green-500 mt-0.5">✓</span>
+                        <span className="text-sm text-gray-700">{benefit}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                <div className="flex items-start space-x-2">
+                  <span className="text-blue-600 text-xl">💡</span>
+                  <div className="text-sm text-blue-800">
+                    <strong>Coming Soon!</strong> AI-powered features will be available with a ClassCast AI subscription. 
+                    Contact your administrator or check our pricing page for more information.
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowSubscriptionModal(false)}
+                  className="flex-1 px-4 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Continue Without AI
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSubscriptionModal(false);
+                    window.open('/pricing', '_blank');
+                  }}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+                >
+                  Learn More
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
