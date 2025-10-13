@@ -54,11 +54,11 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
       
       video.addEventListener('loadedmetadata', () => {
         console.log('📹 Video metadata loaded for:', videoId, 'Duration:', video.duration);
-        video.currentTime = 0.1; // Capture frame at 0.1 seconds for first frame
+        video.currentTime = 2.0; // Capture frame at 2 seconds for better thumbnail
       });
       
       video.addEventListener('seeked', () => {
-        console.log('⏭️ Video seeked to 0.1s for:', videoId);
+        console.log('⏭️ Video seeked to 2s for:', videoId);
         const canvas = document.createElement('canvas');
         canvas.width = 300;
         canvas.height = 200;

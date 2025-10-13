@@ -570,14 +570,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
                               setVideoDuration(Math.floor(video.duration));
                             }
                             
-                            // Generate thumbnail from first frame if not already generated
+                            // Generate thumbnail from frame at 2 seconds if not already generated
                             if (!videoThumbnail) {
-                              video.currentTime = 0.1;
+                              video.currentTime = 2.0;
                             }
                           }}
                           onSeeked={(e) => {
                             const video = e.currentTarget;
-                            if (!videoThumbnail && video.currentTime < 1) {
+                            if (!videoThumbnail && video.currentTime >= 2.0 && video.currentTime < 3.0) {
                               const canvas = document.createElement('canvas');
                               canvas.width = 400;
                               canvas.height = 300;

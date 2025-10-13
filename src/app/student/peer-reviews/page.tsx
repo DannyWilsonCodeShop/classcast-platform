@@ -967,9 +967,9 @@ const PeerReviewsContent: React.FC = () => {
                 preload="metadata"
                 onLoadedMetadata={(e) => {
                   handleVideoLoad(e);
-                  // Seek to first frame for thumbnail display
+                  // Seek to 2 seconds for thumbnail display
                   const video = e.currentTarget;
-                  video.currentTime = 0.1;
+                  video.currentTime = 2.0;
                 }}
                 onTimeUpdate={handleTimeUpdate}
                 onPlay={() => {
@@ -1305,7 +1305,7 @@ const PeerReviewsContent: React.FC = () => {
                       preload="metadata"
                       onLoadedMetadata={(e) => {
                         const vid = e.currentTarget;
-                        vid.currentTime = 0.1;
+                        vid.currentTime = 2.0;
                       }}
                       poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
                     />
