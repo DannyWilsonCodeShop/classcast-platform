@@ -258,20 +258,24 @@ export async function DELETE(
     console.log('✅ Course deleted');
 
     console.log('🎉 Course deletion completed successfully!');
-    console.log('📊 Deletion Report:', deletionReport);
+    console.log('📊 Deletion Report:', JSON.stringify(deletionReport, null, 2));
+
+    const finalReport = {
+      courseId: deletionReport.courseId,
+      deletedAssignments: deletionReport.assignments || 0,
+      deletedSubmissions: deletionReport.submissions || 0,
+      deletedPeerResponses: deletionReport.peerResponses || 0,
+      deletedVideos: deletionReport.videosDeleted || 0,
+      failedVideoDeletes: deletionReport.videosFailed || 0,
+      errors: deletionReport.errors.length > 0 ? deletionReport.errors : undefined
+    };
+
+    console.log('📤 Sending final report:', JSON.stringify(finalReport, null, 2));
 
     return NextResponse.json({
       success: true,
       message: 'Course and all associated data deleted successfully',
-      report: {
-        courseId: deletionReport.courseId,
-        deletedAssignments: deletionReport.assignments,
-        deletedSubmissions: deletionReport.submissions,
-        deletedPeerResponses: deletionReport.peerResponses,
-        deletedVideos: deletionReport.videosDeleted,
-        failedVideoDeletes: deletionReport.videosFailed,
-        errors: deletionReport.errors.length > 0 ? deletionReport.errors : undefined
-      }
+      report: finalReport
     });
 
   } catch (error) {
