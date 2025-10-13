@@ -55,6 +55,8 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
           console.log('🎬 Using existing thumbnail for:', reel.id, 'thumbnail:', reel.thumbnail);
           // Use the existing thumbnail from the API
           setThumbnails(prev => ({ ...prev, [reel.id]: reel.thumbnail }));
+        } else {
+          console.log('🎬 No thumbnail action for:', reel.id, 'thumbnail:', reel.thumbnail, 'isBasicPlaceholder:', isBasicPlaceholder);
         }
       });
     }
