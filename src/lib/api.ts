@@ -83,6 +83,7 @@ export interface VideoReel {
   thumbnail: string;
   videoUrl: string;
   duration: number;
+  assignmentId?: string;
   author?: {
     id: string;
     name: string;
@@ -459,6 +460,14 @@ class ApiClient {
     return response.videos || [];
   }
 
+  async getVideoReels(): Promise<{ success: boolean; reels: VideoReel[] }> {
+    const response = await this.request<VideoReel[]>('/student/community/submissions');
+    return {
+      success: true,
+      reels: response || []
+    };
+  }
+
   async getVideo(videoId: string): Promise<VideoReel> {
     const response = await this.request<{ video: VideoReel }>(`/videos/${videoId}`);
     return response.video;
@@ -555,6 +564,7 @@ export const api = {
   
   // Videos
   getVideos: () => apiClient.getVideos(),
+  getVideoReels: () => apiClient.getVideoReels(),
   getVideo: (videoId: string) => apiClient.getVideo(videoId),
   createVideo: (videoData: Partial<VideoReel>) => apiClient.createVideo(videoData),
   updateVideo: (videoId: string, updates: Partial<VideoReel>) => 
