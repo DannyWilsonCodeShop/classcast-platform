@@ -784,19 +784,19 @@ const InstructorCourseDetailPage: React.FC = () => {
                               if (data.success && data.submissions && data.submissions.length > 0) {
                                 // Navigate to the first submission
                                 const firstSubmission = data.submissions[0];
-                                router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}&submission=${firstSubmission.submissionId || firstSubmission.id}`);
+                                router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=&submission=${firstSubmission.submissionId || firstSubmission.id}`);
                               } else {
                                 // No submissions, go to bulk grading without specific submission
-                                router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`);
+                                router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=`);
                               }
                             } else {
                               // Fallback to bulk grading without specific submission
-                              router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`);
+                              router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=`);
                             }
                           } catch (error) {
                             console.error('Error fetching submissions:', error);
                             // Fallback to bulk grading without specific submission
-                            router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`);
+                            router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=`);
                           }
                         }}
                         className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
