@@ -100,21 +100,27 @@ export async function POST(request: NextRequest) {
       fileType,
       isRecorded = false,
       isUploaded = false,
-      isLocalStorage = false
+      isLocalStorage = false,
+      // YouTube-specific fields
+      youtubeUrl,
+      thumbnailUrl,
+      submissionMethod,
+      isYouTube = false
     } = body;
 
-    if (!assignmentId || !studentId || !courseId || !videoUrl) {
+    // For YouTube submissions, we don't need videoUrl, just youtubeUrl
+    if (!assignmentId || !studentId || !courseId || (!videoUrl && !youtubeUrl)) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields: assignmentId, studentId, courseId, videoUrl'
+        error: 'Missing required fields: assignmentId, studentId, courseId, and either videoUrl or youtubeUrl'
       }, { status: 400 });
     }
 
     const submissionId = `submission_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
 
-    // Generate thumbnail URL (placeholder for now, in production you'd generate actual thumbnails)
-    const thumbnailUrl = `/api/placeholder/400/300?text=${encodeURIComponent(videoTitle || 'Video')}`;
+    // Use provided thumbnail URL or generate placeholder
+    const finalThumbnailUrl = thumbnailUrl || `/api/placeholder/400/300?text=${encodeURIComponent(videoTitle || 'Video')}`;
 
     const submission = {
       submissionId,
@@ -122,18 +128,22 @@ export async function POST(request: NextRequest) {
       studentId,
       courseId,
       sectionId: sectionId || null, // Add sectionId to submission
-      videoUrl,
+      // For YouTube submissions, store both the YouTube URL and use it as videoUrl
+      videoUrl: isYouTube ? youtubeUrl : videoUrl,
+      youtubeUrl: youtubeUrl || null, // Store YouTube URL separately
       videoId: videoId || null,
       videoTitle: videoTitle || 'Video Submission',
       videoDescription: videoDescription || '',
       duration: duration || 0,
-      fileName: fileName || 'video.webm',
+      fileName: fileName || (isYouTube ? 'youtube-video' : 'video.webm'),
       fileSize: fileSize || 0,
-      fileType: fileType || 'video/webm',
-      thumbnailUrl, // Add thumbnail URL
+      fileType: fileType || (isYouTube ? 'video/youtube' : 'video/webm'),
+      thumbnailUrl: finalThumbnailUrl, // Add thumbnail URL
       isRecorded,
       isUploaded,
       isLocalStorage,
+      isYouTube, // Flag for YouTube submissions
+      submissionMethod: submissionMethod || (isRecorded ? 'record' : isUploaded ? 'upload' : isYouTube ? 'youtube' : 'unknown'),
       status: 'submitted', // submitted, graded, returned
       grade: null,
       instructorFeedback: null,
@@ -221,8 +231,10 @@ export async function POST(request: NextRequest) {
         id: videoId,
         title: videoTitle || 'Video Submission',
         description: videoDescription || '',
-        videoUrl,
-        thumbnail: '/api/placeholder/300/200', // Default thumbnail
+        videoUrl: isYouTube ? youtubeUrl : videoUrl,
+        youtubeUrl: youtubeUrl || null,
+        isYouTube: isYouTube || false,
+        thumbnail: finalThumbnailUrl || '/api/placeholder/300/200',
         duration: duration || 0,
         courseId,
         userId: studentId,
