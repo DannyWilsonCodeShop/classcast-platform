@@ -117,9 +117,14 @@ const PeerReviewsContent: React.FC = () => {
 
   // Like and rating functions
   const handleLike = async (videoId: string) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.error('No user ID available for liking video');
+      return;
+    }
     
     try {
+      console.log('👍 Liking video:', videoId, 'user:', user.id);
+      
       const response = await fetch(`/api/videos/${videoId}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -132,6 +137,7 @@ const PeerReviewsContent: React.FC = () => {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Like response:', data);
         setPeerVideos(prev => prev.map(video => 
           video.id === videoId 
             ? { 
@@ -141,16 +147,26 @@ const PeerReviewsContent: React.FC = () => {
               }
             : video
         ));
+      } else {
+        const errorData = await response.text();
+        console.error('Like API failed:', response.status, errorData);
+        alert('Failed to like video. Please try again.');
       }
     } catch (error) {
       console.error('Error liking video:', error);
+      alert('Failed to like video. Please try again.');
     }
   };
 
   const handleRating = async (videoId: string, rating: number) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.error('No user ID available for rating video');
+      return;
+    }
     
     try {
+      console.log('⭐ Rating video:', videoId, 'rating:', rating, 'user:', user.id);
+      
       const response = await fetch(`/api/videos/${videoId}/interactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -165,6 +181,8 @@ const PeerReviewsContent: React.FC = () => {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Rating response:', data);
         setPeerVideos(prev => prev.map(video => 
           video.id === videoId 
             ? { 
@@ -174,9 +192,14 @@ const PeerReviewsContent: React.FC = () => {
               }
             : video
         ));
+      } else {
+        const errorData = await response.text();
+        console.error('Rating API failed:', response.status, errorData);
+        alert('Failed to rate video. Please try again.');
       }
     } catch (error) {
       console.error('Error rating video:', error);
+      alert('Failed to rate video. Please try again.');
     }
   };
 
@@ -475,10 +498,16 @@ const PeerReviewsContent: React.FC = () => {
       
       video.onseeked = () => {
         if (ctx) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          
-          const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-          resolve(thumbnailDataUrl);
+          try {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            resolve(thumbnailDataUrl);
+          } catch (error) {
+            console.error('Canvas security error:', error);
+            // Fallback to a placeholder or empty string
+            resolve('');
+          }
         } else {
           resolve('');
         }
@@ -516,21 +545,26 @@ const PeerReviewsContent: React.FC = () => {
       
       video.onseeked = () => {
         if (ctx) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          
-          canvas.toBlob((compressedBlob) => {
-            if (compressedBlob) {
-              // If compression resulted in larger file, use original
-              const compressionRatio = compressedBlob.size / videoBlob.size;
-              if (compressionRatio < 0.9) {
-                resolve(compressedBlob);
+          try {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            canvas.toBlob((compressedBlob) => {
+              if (compressedBlob) {
+                // If compression resulted in larger file, use original
+                const compressionRatio = compressedBlob.size / videoBlob.size;
+                if (compressionRatio < 0.9) {
+                  resolve(compressedBlob);
               } else {
                 resolve(videoBlob);
               }
             } else {
               resolve(videoBlob);
             }
-          }, 'video/webm', 0.8); // 80% quality
+            }, 'video/webm', 0.8); // 80% quality
+          } catch (error) {
+            console.error('Canvas compression error:', error);
+            resolve(videoBlob);
+          }
         } else {
           resolve(videoBlob);
         }
@@ -757,13 +791,28 @@ const PeerReviewsContent: React.FC = () => {
   };
 
   const handleSubmitResponse = async () => {
-    if (!currentVideo || !user || !assignmentId) return;
+    if (!currentVideo || !user || !assignmentId) {
+      console.error('Missing required data:', { currentVideo: !!currentVideo, user: !!user, assignmentId });
+      alert('Missing required data. Please refresh the page and try again.');
+      return;
+    }
     
     // Check if we have content to submit
     const hasTextContent = currentResponse.trim().length > 0;
     const hasVideoContent = recordedVideo && recordedChunks.length > 0;
     
-    if (!hasTextContent && !hasVideoContent) return;
+    if (!hasTextContent && !hasVideoContent) {
+      alert('Please write a response or record a video before submitting.');
+      return;
+    }
+
+    console.log('🚀 Submitting response:', { 
+      videoId: currentVideo.id, 
+      assignmentId, 
+      hasTextContent, 
+      hasVideoContent,
+      textLength: currentResponse.trim().length 
+    });
 
     setIsSubmitting(true);
     try {
@@ -803,8 +852,13 @@ const PeerReviewsContent: React.FC = () => {
           })
         });
 
-        if (!updateResponse.ok) throw new Error('Failed to submit response');
+        if (!updateResponse.ok) {
+          const errorData = await updateResponse.text();
+          console.error('Update response failed:', updateResponse.status, errorData);
+          throw new Error(`Failed to submit response: ${updateResponse.status} ${errorData}`);
+        }
         const data = await updateResponse.json();
+        console.log('✅ Response updated successfully:', data);
         savedResponse = { ...existingResponse, isSubmitted: true, submittedAt: new Date().toISOString() };
       } else {
         // Create new submitted response
@@ -815,8 +869,13 @@ const PeerReviewsContent: React.FC = () => {
           body: JSON.stringify(responseData)
         });
 
-        if (!postResponse.ok) throw new Error('Failed to submit response');
+        if (!postResponse.ok) {
+          const errorData = await postResponse.text();
+          console.error('Post response failed:', postResponse.status, errorData);
+          throw new Error(`Failed to submit response: ${postResponse.status} ${errorData}`);
+        }
         const data = await postResponse.json();
+        console.log('✅ Response created successfully:', data);
         savedResponse = data.data;
       }
       
