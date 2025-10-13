@@ -147,15 +147,15 @@ export const CourseManagement: React.FC = () => {
         setCourses(prev => prev.filter(course => course.courseId !== courseId));
         
         // Build detailed deletion report
-        const report = data.report;
+        const report = data.report || {};
         let message = `✅ Course deleted successfully!\n\n`;
         message += `📊 Deletion Report:\n`;
-        message += `• Assignments: ${report.deletedAssignments}\n`;
-        message += `• Submissions: ${report.deletedSubmissions}\n`;
-        message += `• Peer Responses: ${report.deletedPeerResponses}\n`;
-        message += `• Videos from S3: ${report.deletedVideos}`;
+        message += `• Assignments: ${report.deletedAssignments ?? 0}\n`;
+        message += `• Submissions: ${report.deletedSubmissions ?? 0}\n`;
+        message += `• Peer Responses: ${report.deletedPeerResponses ?? 0}\n`;
+        message += `• Videos from S3: ${report.deletedVideos ?? 0}`;
         
-        if (report.failedVideoDeletes > 0) {
+        if ((report.failedVideoDeletes ?? 0) > 0) {
           message += `\n⚠️  Failed to delete ${report.failedVideoDeletes} videos from S3`;
         }
         
@@ -173,10 +173,10 @@ export const CourseManagement: React.FC = () => {
         if (data.partialReport) {
           const pr = data.partialReport;
           message += `\n\n📊 Partial Deletion Report:\n`;
-          message += `• Assignments: ${pr.assignments}\n`;
-          message += `• Submissions: ${pr.submissions}\n`;
-          message += `• Peer Responses: ${pr.peerResponses}\n`;
-          message += `• Videos: ${pr.videosDeleted}`;
+          message += `• Assignments: ${pr.assignments ?? 0}\n`;
+          message += `• Submissions: ${pr.submissions ?? 0}\n`;
+          message += `• Peer Responses: ${pr.peerResponses ?? 0}\n`;
+          message += `• Videos: ${pr.videosDeleted ?? 0}`;
           
           if (pr.errors && pr.errors.length > 0) {
             message += `\n\nErrors:\n${pr.errors.join('\n')}`;
