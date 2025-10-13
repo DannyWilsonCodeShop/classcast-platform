@@ -26,14 +26,23 @@ export async function GET(request: NextRequest) {
     let courses = [];
     try {
       const coursesResult = await docClient.send(new ScanCommand({
-        TableName: COURSES_TABLE,
-        FilterExpression: 'contains(enrollment.students, :userId)',
-        ExpressionAttributeValues: {
-          ':userId': userId
-        }
+        TableName: COURSES_TABLE
       }));
-      courses = coursesResult.Items || [];
+      
+      // Filter courses where user is enrolled
+      const allCourses = coursesResult.Items || [];
+      courses = allCourses.filter(course => {
+        if (!course.enrollment || !course.enrollment.students) return false;
+        
+        // Check if user is in the students array
+        return course.enrollment.students.some((student: any) => 
+          student.userId === userId || student.id === userId
+        );
+      });
+      
+      console.log(`📚 Found ${courses.length} enrolled courses for user ${userId} out of ${allCourses.length} total courses`);
     } catch (dbError: any) {
+      console.error('Error fetching courses:', dbError);
       if (dbError.name === 'ResourceNotFoundException') {
         return NextResponse.json({
           pendingAssignments: 0,
