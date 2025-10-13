@@ -480,146 +480,50 @@ const StudentDashboard: React.FC = () => {
         </div>
 
         {/* Main Content Layout */}
-        <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-          {/* Left Sidebar - Videos and Socials */}
-          <div className="hidden lg:block w-80 bg-white/90 backdrop-blur-sm border-r border-indigo-600/20 flex flex-col">
-            {/* Recently Posted Videos */}
-            <div className="flex-1 p-4 border-b border-gray-200">
-              <div className="mb-4">
-                <h3 className="text-lg font-bold text-indigo-600 mb-2">Recently Posted</h3>
-              </div>
-              <div className="h-64 overflow-y-auto">
-                <VideoReels studentId={user?.id || 'unknown'} />
-              </div>
-            </div>
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-7xl mx-auto p-4">
             
-            {/* Socials/Community */}
-            <div className="flex-1 p-4">
-              <div className="mb-3">
-                <h3 className="text-lg font-bold text-indigo-600 mb-2">Community</h3>
-                <button 
-                  onClick={() => router.push('/community')}
-                  className="w-full text-center text-xs text-white bg-indigo-600 hover:bg-indigo-700 font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center space-x-2 mb-3"
-                >
-                  <span>💬</span>
-                  <span>Go to Community</span>
-                </button>
-              </div>
-              <div className="h-64 overflow-y-auto">
-                {isLoadingPosts ? (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
-                    <span className="ml-2 text-xs text-gray-500">Loading posts...</span>
+            {/* Recently Posted Videos - Main Feature */}
+            <div className="mb-8">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white mb-2">🎥 Recently Posted Videos</h2>
+                      <p className="text-indigo-100">Watch the latest submissions from your classmates</p>
+                    </div>
+                    <button 
+                      onClick={() => router.push('/student/peer-reviews')}
+                      className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors font-medium"
+                    >
+                      View All Videos
+                    </button>
                   </div>
-                ) : communityPosts.length > 0 ? (
-                  <div className="space-y-3">
-                    {communityPosts.slice(0, 5).map((post) => (
-                      <div key={post.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
-                           onClick={() => router.push(`/community#post-${post.id}`)}>
-                        <div className="flex items-start space-x-2">
-                          {/* Author Profile Thumbnail */}
-                          <img
-                            src={typeof post.author === 'object' && post.author?.avatar 
-                              ? post.author.avatar 
-                              : '/api/placeholder/40/40'}
-                            alt={typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}
-                            className="w-7 h-7 rounded-full object-cover flex-shrink-0 border border-gray-200"
-                            onError={(e) => {
-                              // Fallback to initials if image fails
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const parent = target.parentElement;
-                              if (parent) {
-                                const fallback = document.createElement('div');
-                                fallback.className = `w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold ${
-                                  post.isAnnouncement ? 'bg-indigo-600' : 'bg-emerald-600'
-                                }`;
-                                fallback.textContent = (typeof post.author === 'string' ? post.author.charAt(0) : (post.author as any)?.name?.charAt(0) || '?');
-                                parent.appendChild(fallback);
-                              }
-                            }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center space-x-1 mb-1">
-                              <p className="text-xs font-medium text-gray-800 truncate">{typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}</p>
-                              {post.isAnnouncement && (
-                                <span className="px-1 py-0.5 bg-indigo-600 text-white text-xs rounded-full flex-shrink-0">
-                                  📢
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-gray-600 line-clamp-2">{post.title}</p>
-                            <div className="flex items-center justify-between mt-2">
-                              <div className="flex items-center space-x-2">
-                                <button 
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    try {
-                                      const response = await fetch('/api/community/posts/like', {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        credentials: 'include',
-                                        body: JSON.stringify({ postId: post.id, userId: user?.id })
-                                      });
-                                      if (response.ok) {
-                                        // Update local state
-                                        setCommunityPosts(prev => prev.map(p => 
-                                          p.id === post.id 
-                                            ? { ...p, likes: p.likes + 1 }
-                                            : p
-                                        ));
-                                      }
-                                    } catch (error) {
-                                      console.error('Error liking post:', error);
-                                    }
-                                  }}
-                                  className="flex items-center space-x-1 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
-                                >
-                                  <span>👍</span>
-                                  <span>{post.likes}</span>
-                                </button>
-                                <button 
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    router.push(`/community#post-${post.id}`);
-                                  }}
-                                  className="flex items-center space-x-1 text-xs text-gray-400 hover:text-indigo-600 transition-colors"
-                                >
-                                  <span>💬</span>
-                                  <span>{post.comments}</span>
-                                </button>
-                              </div>
-                              <span className="text-xs text-gray-500">
-                                {new Date(post.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="text-4xl mb-2">💬</div>
-                    <p className="text-xs text-gray-500 mb-1">No posts yet</p>
-                    <p className="text-xs text-gray-400">Click above to visit the Community!</p>
-                  </div>
-                )}
+                </div>
+                <div className="p-6">
+                  <VideoReels studentId={user?.id || 'unknown'} />
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Main Content - Classes */}
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="max-w-6xl mx-auto">
-              {/* To-Do List - Moved to top */}
-              <div className="mb-6">
-                <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+            {/* Two Column Layout for To-Do and Community */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              {/* To-Do List - Left Column */}
+              <div className="lg:col-span-2">
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+              {/* To-Do List Header */}
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold text-white mb-1 flex items-center">
                       <span className="mr-2">📋</span>
                       To-Do List
                     </h2>
+                    <p className="text-blue-100 text-sm">Your assignments and tasks</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
                   </div>
                   
                   {isLoadingTodoStats ? (
@@ -717,8 +621,91 @@ const StudentDashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
+              </div>
 
-              {/* Recent Assignments with Grades */}
+              {/* Community Section - Right Column */}
+              <div className="lg:col-span-1">
+                <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                  <div className="bg-gradient-to-r from-emerald-600 to-teal-600 p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-lg font-bold text-white mb-1 flex items-center">
+                          <span className="mr-2">💬</span>
+                          Community
+                        </h3>
+                        <p className="text-emerald-100 text-sm">Latest discussions</p>
+                      </div>
+                      <button 
+                        onClick={() => router.push('/community')}
+                        className="px-3 py-1 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors text-sm font-medium"
+                      >
+                        View All
+                      </button>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <div className="h-64 overflow-y-auto">
+                      {isLoadingPosts ? (
+                        <div className="flex items-center justify-center py-4">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-600"></div>
+                          <span className="ml-2 text-xs text-gray-500">Loading posts...</span>
+                        </div>
+                      ) : communityPosts.length > 0 ? (
+                        <div className="space-y-3">
+                          {communityPosts.slice(0, 5).map((post) => (
+                            <div key={post.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
+                                 onClick={() => router.push(`/community#post-${post.id}`)}>
+                              <div className="flex items-start space-x-2">
+                                <img
+                                  src={typeof post.author === 'object' && post.author?.avatar 
+                                    ? post.author.avatar 
+                                    : '/api/placeholder/40/40'}
+                                  alt={typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}
+                                  className="w-6 h-6 rounded-full object-cover flex-shrink-0 border border-gray-200"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center space-x-1 mb-1">
+                                    <p className="text-xs font-medium text-gray-800 truncate">{typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}</p>
+                                    {post.isAnnouncement && (
+                                      <span className="px-1 py-0.5 bg-indigo-600 text-white text-xs rounded-full flex-shrink-0">
+                                        📢
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-600 line-clamp-2">{post.title}</p>
+                                  <div className="flex items-center justify-between mt-2">
+                                    <div className="flex items-center space-x-2">
+                                      <span className="text-xs text-gray-400">👍 {post.likes}</span>
+                                      <span className="text-xs text-gray-400">💬 {post.comments}</span>
+                                    </div>
+                                    <span className="text-xs text-gray-500">
+                                      {new Date(post.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <div className="text-gray-400 text-2xl mb-2">💬</div>
+                          <p className="text-xs text-gray-500">No posts yet</p>
+                          <button 
+                            onClick={() => router.push('/community')}
+                            className="mt-2 text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                          >
+                            Be the first to post!
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recent Assignments with Grades */}
               {!isLoadingAssignments && assignments.length > 0 && (
                 <div className="mb-8">
                   <CompactAssignmentList 
@@ -859,6 +846,8 @@ const StudentDashboard: React.FC = () => {
           onClose={() => setShowEnrollmentModal(false)}
           onEnroll={handleClassEnrollment}
         />
+          </div>
+        </div>
       </div>
     </StudentRoute>
   );
