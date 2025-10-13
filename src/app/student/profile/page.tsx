@@ -322,43 +322,43 @@ const StudentProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          {/* Error Message */}
+        {/* Main Content - Mobile Optimized */}
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
+          {/* Error Message - Mobile Optimized */}
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-600">{error}</p>
+            <div className="mb-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm sm:text-base">{error}</p>
             </div>
           )}
 
-          {/* Profile Card */}
-          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            {/* Profile Header */}
-            <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-8 text-white">
-              <div className="flex items-center space-x-6">
-                {/* Avatar */}
+          {/* Profile Card - Mobile Optimized */}
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            {/* Profile Header - Mobile Optimized */}
+            <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-4 sm:p-6 text-white">
+              <div className="flex items-center space-x-3 sm:space-x-4">
+                {/* Avatar - Mobile Optimized */}
                 <div className="relative">
                   {isEditing ? (
                     <Avatar
                       user={editedProfile || {}}
-                      size="xl"
+                      size="lg"
                       showBorder={true}
                       className="border-white"
                     />
                   ) : (
                     <Avatar
                       user={profile || {}}
-                      size="xl"
+                      size="lg"
                       showBorder={true}
                       className="border-white"
                     />
                   )}
                   
-                  {/* Avatar Options (only in edit mode) */}
+                  {/* Avatar Options (only in edit mode) - Mobile Optimized */}
                   {isEditing && (
                     <div className="absolute -bottom-1 -right-1 flex space-x-1">
                       {/* Photo Upload Button */}
-                      <label className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors duration-200 shadow-lg cursor-pointer">
+                      <label className="w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors duration-200 shadow-lg cursor-pointer">
                         <input
                           type="file"
                           accept="image/*"
@@ -367,9 +367,9 @@ const StudentProfilePage: React.FC = () => {
                           disabled={isUploading}
                         />
                         {isUploading ? (
-                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                         ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                           </svg>
@@ -379,9 +379,9 @@ const StudentProfilePage: React.FC = () => {
                       {/* Emoji Picker Button */}
                       <button
                         onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white hover:bg-green-600 transition-colors duration-200 shadow-lg"
+                        className="w-6 h-6 sm:w-7 sm:h-7 bg-green-500 rounded-full flex items-center justify-center text-white hover:bg-green-600 transition-colors duration-200 shadow-lg"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </button>
@@ -389,7 +389,7 @@ const StudentProfilePage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Name and Title */}
+                {/* Name and Title - Mobile Optimized */}
                 <div className="flex-1">
                   {isEditing ? (
                     <div className="space-y-2">
@@ -397,25 +397,25 @@ const StudentProfilePage: React.FC = () => {
                         type="text"
                         value={editedProfile?.firstName || ''}
                         onChange={(e) => handleInputChange('firstName', e.target.value)}
-                        className="text-3xl font-bold bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                        className="text-lg sm:text-xl font-bold bg-white/20 border border-white/30 rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
                         placeholder="First Name"
                       />
                       <input
                         type="text"
                         value={editedProfile?.lastName || ''}
                         onChange={(e) => handleInputChange('lastName', e.target.value)}
-                        className="text-3xl font-bold bg-white/20 border border-white/30 rounded-lg px-3 py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                        className="text-lg sm:text-xl font-bold bg-white/20 border border-white/30 rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
                         placeholder="Last Name"
                       />
-                      {errors.firstName && <p className="text-red-200 text-sm">{errors.firstName}</p>}
-                      {errors.lastName && <p className="text-red-200 text-sm">{errors.lastName}</p>}
+                      {errors.firstName && <p className="text-red-200 text-xs sm:text-sm">{errors.firstName}</p>}
+                      {errors.lastName && <p className="text-red-200 text-xs sm:text-sm">{errors.lastName}</p>}
                     </div>
                   ) : (
                     <div>
-                      <h2 className="text-3xl font-bold">
+                      <h2 className="text-lg sm:text-xl font-bold">
                         {profile?.firstName} {profile?.lastName}
                       </h2>
-                      <p className="text-white/80 text-lg">Student</p>
+                      <p className="text-white/80 text-sm sm:text-base">Student</p>
                     </div>
                   )}
                 </div>
@@ -429,24 +429,24 @@ const StudentProfilePage: React.FC = () => {
               )}
             </div>
 
-            {/* Profile Details */}
-            <div className="p-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Email */}
+            {/* Profile Details - Mobile Optimized */}
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                {/* Email - Mobile Optimized */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Email</label>
                   {isEditing ? (
                     <input
                       type="email"
                       value={editedProfile?.email || ''}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm sm:text-base"
                       placeholder="Email address"
                     />
                   ) : (
-                    <p className="text-gray-900">{profile?.email}</p>
+                    <p className="text-gray-900 text-sm sm:text-base">{profile?.email}</p>
                   )}
-                  {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                  {errors.email && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.email}</p>}
                 </div>
 
                 {/* School Name */}
