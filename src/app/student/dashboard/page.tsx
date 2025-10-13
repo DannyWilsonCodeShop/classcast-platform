@@ -846,7 +846,6 @@ const StudentDashboard: React.FC = () => {
           onClose={() => setShowEnrollmentModal(false)}
           onEnroll={handleClassEnrollment}
         />
-          </div>
         </div>
       </div>
     </StudentRoute>
