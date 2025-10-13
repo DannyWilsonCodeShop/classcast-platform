@@ -461,7 +461,7 @@ const StudentDashboard: React.FC = () => {
                   </div>
               </div>
                 <div className="p-6">
-                <VideoReels studentId={user?.id || 'unknown'} />
+                <VideoReels />
                 </div>
               </div>
             </div>
