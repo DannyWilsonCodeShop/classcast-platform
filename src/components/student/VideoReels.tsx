@@ -42,7 +42,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
       const video = document.createElement('video');
       video.crossOrigin = 'anonymous';
       video.src = videoUrl;
-      video.currentTime = 0.5; // Capture frame at 0.5 seconds
+      video.currentTime = 0.1; // Capture frame at 0.1 seconds for first frame
       
       video.addEventListener('loadeddata', () => {
         const canvas = document.createElement('canvas');
