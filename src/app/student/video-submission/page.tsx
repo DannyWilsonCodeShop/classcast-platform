@@ -25,11 +25,35 @@ const VideoSubmissionContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'record' | 'upload' | 'youtube'>('record');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState<string>('');
+  const [assignmentTitle, setAssignmentTitle] = useState<string>('');
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+
+  // Load assignment data to get the assignment title
+  React.useEffect(() => {
+    const loadAssignment = async () => {
+      if (assignmentId && assignmentId !== 'temp-assignment') {
+        try {
+          const response = await fetch(`/api/assignments/${assignmentId}`, {
+            credentials: 'include'
+          });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data?.assignment?.title) {
+              setAssignmentTitle(data.data.assignment.title);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading assignment:', error);
+        }
+      }
+    };
+    
+    loadAssignment();
+  }, [assignmentId]);
 
   const clearOldVideos = () => {
     try {
@@ -237,7 +261,7 @@ const VideoSubmissionContent: React.FC = () => {
         sectionId: sectionId, // Add sectionId if available
         videoUrl: videoUrl, // Now using the actual S3 URL
         videoId: videoId, // Store the IndexedDB key for retrieval
-        videoTitle: `Video Submission - ${new Date().toLocaleDateString()}`,
+        videoTitle: assignmentTitle || `Video Submission - ${new Date().toLocaleDateString()}`,
         videoDescription: 'Student video submission',
         duration: videoDuration, // Use extracted video duration
         fileName: fileName,
@@ -379,7 +403,7 @@ const VideoSubmissionContent: React.FC = () => {
         youtubeUrl: youtubeUrl,
         videoId: videoId,
         thumbnailUrl: getYouTubeThumbnail(youtubeUrl, 'hq'),
-        videoTitle: `YouTube Submission - ${new Date().toLocaleDateString()}`,
+        videoTitle: assignmentTitle || `YouTube Submission - ${new Date().toLocaleDateString()}`,
         videoDescription: 'Student YouTube video submission',
         submissionMethod: 'youtube',
         isRecorded: false,
