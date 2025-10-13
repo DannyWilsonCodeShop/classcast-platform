@@ -1110,7 +1110,6 @@ const InstructorCourseDetailPage: React.FC = () => {
                           </div>
                           <div className="flex-1">
                             <h3 className="font-semibold text-gray-800">{student.name}</h3>
-                            <p className="text-sm text-gray-600">{student.email}</p>
                           </div>
                         </div>
                       </div>

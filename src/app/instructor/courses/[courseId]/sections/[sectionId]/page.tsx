@@ -499,9 +499,6 @@ const InstructorSectionDetailPage: React.FC = () => {
                             <h4 className="font-semibold text-gray-800 truncate">
                               {student.firstName} {student.lastName}
                             </h4>
-                            <p className="text-sm text-gray-600 truncate">
-                              {student.email}
-                            </p>
                             <p className="text-xs text-gray-500">
                               Joined {formatDate(student.enrolledAt)}
                             </p>
