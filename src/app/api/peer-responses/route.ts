@@ -10,9 +10,62 @@ export async function GET(request: NextRequest) {
     const studentId = searchParams.get('studentId');
     const videoId = searchParams.get('videoId');
 
+    // If videoId is provided without assignmentId, scan by videoId
+    if (videoId && !assignmentId) {
+      const scanParams: any = {
+        TableName: 'classcast-peer-responses',
+        FilterExpression: 'videoId = :videoId',
+        ExpressionAttributeValues: {
+          ':videoId': videoId
+        }
+      };
+
+      if (studentId) {
+        scanParams.FilterExpression += ' AND reviewerId = :studentId';
+        scanParams.ExpressionAttributeValues[':studentId'] = studentId;
+      }
+
+      const result = await dynamodbService.scan(scanParams);
+      const responses = result.Items || [];
+
+      // Fetch replies for each response to build threaded conversations
+      const responsesWithReplies = await Promise.all(
+        responses.map(async (response: any) => {
+          if (response.replies && response.replies.length > 0) {
+            // Fetch each reply
+            const replyPromises = response.replies.map(async (replyId: string) => {
+              try {
+                const replyResult = await dynamodbService.getItem(
+                  'classcast-peer-responses',
+                  { responseId: replyId }
+                );
+                return replyResult.Item;
+              } catch (error) {
+                console.error(`Error fetching reply ${replyId}:`, error);
+                return null;
+              }
+            });
+            
+            const fetchedReplies = await Promise.all(replyPromises);
+            return {
+              ...response,
+              replies: fetchedReplies.filter(r => r !== null)
+            };
+          }
+          return response;
+        })
+      );
+
+      return NextResponse.json({
+        success: true,
+        data: responsesWithReplies,
+        count: result.Count || 0
+      });
+    }
+
     if (!assignmentId) {
       return NextResponse.json(
-        { success: false, error: 'Assignment ID is required' },
+        { success: false, error: 'Assignment ID or Video ID is required' },
         { status: 400 }
       );
     }
