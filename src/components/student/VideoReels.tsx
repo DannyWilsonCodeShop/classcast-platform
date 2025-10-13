@@ -41,7 +41,13 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
     if (reels.length > 0) {
       reels.forEach(reel => {
         // Only generate thumbnail if we don't have one and the video has a valid URL
-        if (!thumbnails[reel.id] && reel.videoUrl && reel.thumbnail === '/api/placeholder/300/200') {
+        // Check if thumbnail is a placeholder (contains 'placeholder' or is empty)
+        const isPlaceholder = !reel.thumbnail || 
+                             reel.thumbnail.includes('placeholder') || 
+                             reel.thumbnail === '/api/placeholder/300/200';
+        
+        if (!thumbnails[reel.id] && reel.videoUrl && isPlaceholder) {
+          console.log('🎬 Generating thumbnail for:', reel.id, 'current thumbnail:', reel.thumbnail);
           generateThumbnail(reel.videoUrl, reel.id).then(thumb => {
             setThumbnails(prev => ({ ...prev, [reel.id]: thumb }));
           });
@@ -180,9 +186,12 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
       // Use the clean API to like the video
       const updatedVideo = await apiClient.likeVideo(videoId);
       
-      // Update local state with the response
+      // Update local state with the response, preserving existing author info
       setReels(prev => prev.map(r => 
-        r.id === videoId ? updatedVideo : r
+        r.id === videoId ? {
+          ...updatedVideo,
+          author: r.author // Preserve the original author information
+        } : r
       ));
     } catch (error) {
       console.error('Error toggling like:', error);
