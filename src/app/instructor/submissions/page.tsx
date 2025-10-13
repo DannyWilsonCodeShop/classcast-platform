@@ -45,10 +45,70 @@ const SubmissionsListContent: React.FC = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    // Fetch real submissions from API
-    const submissions: Submission[] = [];
-    setSubmissions(submissions);
-    setIsLoading(false);
+    const fetchSubmissions = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Get URL parameters for filtering
+        const urlParams = new URLSearchParams(window.location.search);
+        const assignmentId = urlParams.get('assignment');
+        const courseId = urlParams.get('course');
+        
+        let apiUrl = '/api/instructor/video-submissions';
+        if (assignmentId && courseId) {
+          apiUrl += `?assignmentId=${assignmentId}&courseId=${courseId}`;
+        } else if (courseId) {
+          apiUrl += `?courseId=${courseId}`;
+        }
+        
+        console.log('Fetching submissions from:', apiUrl);
+        
+        const response = await fetch(apiUrl, {
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Submissions API response:', data);
+          
+          if (data.success && data.submissions) {
+            const transformedSubmissions = data.submissions.map((sub: any) => ({
+              id: sub.submissionId || sub.id,
+              studentName: sub.studentName || 'Unknown Student',
+              studentId: sub.studentId,
+              assignmentTitle: sub.assignmentTitle || sub.title,
+              assignmentId: sub.assignmentId,
+              courseName: sub.courseName || 'Unknown Course',
+              courseCode: sub.courseCode || '',
+              submittedAt: sub.submittedAt || sub.createdAt,
+              status: sub.status || 'pending',
+              grade: sub.grade,
+              feedback: sub.feedback || sub.instructorFeedback,
+              fileUrl: sub.videoUrl || sub.fileUrl,
+              thumbnailUrl: sub.thumbnailUrl || '',
+              duration: sub.duration || 0,
+              fileSize: sub.fileSize || 0
+            }));
+            
+            setSubmissions(transformedSubmissions);
+            console.log('Set submissions:', transformedSubmissions.length);
+          } else {
+            console.log('No submissions found or API error:', data.error);
+            setSubmissions([]);
+          }
+        } else {
+          console.error('Failed to fetch submissions:', response.status);
+          setSubmissions([]);
+        }
+      } catch (error) {
+        console.error('Error fetching submissions:', error);
+        setSubmissions([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchSubmissions();
   }, []);
 
   const filteredSubmissions = submissions.filter(submission => {
