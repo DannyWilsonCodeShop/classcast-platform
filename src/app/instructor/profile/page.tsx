@@ -665,7 +665,7 @@ const InstructorProfilePage: React.FC = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                       <option value="">Select a school logo</option>
-                      <option value="/logos/cristo-rey-atlanta.svg">Cristo Rey Atlanta Jesuit High School</option>
+                      <option value="/logos/cristo-rey-atlanta.png">Cristo Rey Atlanta Jesuit High School</option>
                     </select>
                     {editedProfile.schoolLogo && (
                       <div className="flex items-center space-x-3 mt-3 p-3 bg-gray-50 rounded-lg border">
