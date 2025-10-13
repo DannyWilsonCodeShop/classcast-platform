@@ -36,6 +36,20 @@ const VideoReels: React.FC<VideoReelsProps> = ({ studentId, onVideoClick }) => {
     loadVideoReels();
   }, [studentId]);
 
+  // Generate thumbnails for all videos when reels load
+  useEffect(() => {
+    if (reels.length > 0) {
+      reels.forEach(reel => {
+        // Only generate thumbnail if we don't have one and the video has a valid URL
+        if (!thumbnails[reel.id] && reel.videoUrl && reel.thumbnail === '/api/placeholder/300/200') {
+          generateThumbnail(reel.videoUrl, reel.id).then(thumb => {
+            setThumbnails(prev => ({ ...prev, [reel.id]: thumb }));
+          });
+        }
+      });
+    }
+  }, [reels]);
+
   // Generate thumbnail from video first frame
   const generateThumbnail = (videoUrl: string, videoId: string): Promise<string> => {
     return new Promise((resolve) => {
