@@ -153,7 +153,28 @@ const BulkGradingPage: React.FC = () => {
             
             if (response.ok) {
               const data = await response.json();
-              responsesMap[submission.studentId] = data.data || [];
+              const responses = data.data || [];
+              
+              // Enrich each response with the reviewed student's info
+              const enrichedResponses = await Promise.all(responses.map(async (resp: any) => {
+                // Find the submission that this response is about
+                const reviewedSubmission = submissions.find(sub => sub.id === resp.videoId);
+                
+                return {
+                  ...resp,
+                  reviewedStudentName: reviewedSubmission?.studentName || 'Unknown Student',
+                  reviewedStudentId: reviewedSubmission?.studentId || 'unknown',
+                  // Use existing wordCount and characterCount from API, or calculate if missing
+                  wordCount: resp.wordCount || (resp.content ? resp.content.split(/\s+/).length : 0),
+                  characterCount: resp.characterCount || (resp.content ? resp.content.length : 0),
+                  qualityScore: resp.qualityScore || null,
+                  // Ensure we have a date to display
+                  displayDate: resp.submittedAt || resp.lastSavedAt || resp.createdAt
+                };
+              }));
+              
+              responsesMap[submission.studentId] = enrichedResponses;
+              console.log(`Fetched ${enrichedResponses.length} responses for student ${submission.studentId}`);
             }
           } catch (error) {
             console.error(`Error fetching peer responses for student ${submission.studentId}:`, error);
@@ -1447,11 +1468,11 @@ const BulkGradingPage: React.FC = () => {
                                         Response to: {response.reviewedStudentName}
                                       </span>
                                       <span className="text-xs text-gray-500">
-                                        {new Date(response.submittedAt).toLocaleDateString()}
+                                        {new Date(response.displayDate || response.submittedAt || response.createdAt).toLocaleDateString()}
                                       </span>
                                       {/* Video Link */}
                                       <a
-                                        href={`/instructor/grading/bulk?assignment=${submission.assignmentId}&course=${submission.courseCode}&submission=${response.reviewedStudentId}`}
+                                        href={`/instructor/grading/bulk?assignment=${submission.assignmentId}&course=${submission.courseCode}&submission=${response.videoId}`}
                                         className="text-xs text-blue-600 hover:text-blue-800 underline"
                                         title="View the video this response is about"
                                       >
