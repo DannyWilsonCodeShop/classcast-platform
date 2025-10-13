@@ -145,10 +145,45 @@ export const CourseManagement: React.FC = () => {
       
       if (data.success) {
         setCourses(prev => prev.filter(course => course.courseId !== courseId));
-        alert(`Course deleted successfully! Deleted ${data.deletedAssignments} assignments and ${data.deletedSubmissions} submissions.`);
+        
+        // Build detailed deletion report
+        const report = data.report;
+        let message = `✅ Course deleted successfully!\n\n`;
+        message += `📊 Deletion Report:\n`;
+        message += `• Assignments: ${report.deletedAssignments}\n`;
+        message += `• Submissions: ${report.deletedSubmissions}\n`;
+        message += `• Peer Responses: ${report.deletedPeerResponses}\n`;
+        message += `• Videos from S3: ${report.deletedVideos}`;
+        
+        if (report.failedVideoDeletes > 0) {
+          message += `\n⚠️  Failed to delete ${report.failedVideoDeletes} videos from S3`;
+        }
+        
+        if (report.errors && report.errors.length > 0) {
+          message += `\n\n⚠️  Warnings:\n${report.errors.join('\n')}`;
+        }
+        
+        alert(message);
         return { success: true, message: 'Course deleted successfully' };
       } else {
-        alert(`Failed to delete course: ${data.error || 'Unknown error'}`);
+        const errorMsg = data.details || data.error || 'Unknown error';
+        let message = `❌ Failed to delete course: ${errorMsg}`;
+        
+        // Show partial deletion report if available
+        if (data.partialReport) {
+          const pr = data.partialReport;
+          message += `\n\n📊 Partial Deletion Report:\n`;
+          message += `• Assignments: ${pr.assignments}\n`;
+          message += `• Submissions: ${pr.submissions}\n`;
+          message += `• Peer Responses: ${pr.peerResponses}\n`;
+          message += `• Videos: ${pr.videosDeleted}`;
+          
+          if (pr.errors && pr.errors.length > 0) {
+            message += `\n\nErrors:\n${pr.errors.join('\n')}`;
+          }
+        }
+        
+        alert(message);
         return { success: false, message: data.error || 'Failed to delete course' };
       }
     } catch (error) {
