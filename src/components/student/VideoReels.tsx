@@ -258,15 +258,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
               {currentReel.title}
             </h3>
             <div className="flex items-center space-x-2 mb-1">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (currentReel.author?.id) {
-                    router.push(`/student/profile/${currentReel.author.id}`);
-                  }
-                }}
-                className="flex items-center space-x-1 sm:space-x-2 hover:opacity-80 transition-opacity"
-              >
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <img
                   src={currentReel.author?.avatar || '/api/placeholder/20/20'}
                   alt={currentReel.author?.name || 'Unknown Author'}
@@ -279,7 +271,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                 <span className="text-xs sm:text-sm font-medium">
                   {currentReel.author?.name || 'Unknown Author'}
                 </span>
-                </button>
+              </div>
             </div>
             <p className="text-xs sm:text-sm text-gray-300 line-clamp-1 sm:line-clamp-2">
               {currentReel.description}
