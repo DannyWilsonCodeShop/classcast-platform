@@ -243,7 +243,16 @@ const StudentAssignmentDetailPage: React.FC = () => {
       
       if (response.ok) {
         const data = await response.json();
-        setResponsesToMySubmission(data.data || []);
+        const allResponses = data.data || [];
+        
+        // Filter to only show top-level responses (threadLevel 0)
+        // Replies are already nested within the responses
+        const topLevelResponses = allResponses.filter((r: any) => 
+          r.threadLevel === 0 || r.threadLevel === undefined
+        );
+        
+        console.log('📊 Responses fetched:', allResponses.length, 'total,', topLevelResponses.length, 'top-level');
+        setResponsesToMySubmission(topLevelResponses);
       }
     } catch (error) {
       console.error('Error fetching responses to my submission:', error);
