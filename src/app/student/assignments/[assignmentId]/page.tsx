@@ -458,17 +458,38 @@ const StudentAssignmentDetailPage: React.FC = () => {
         {/* Main Content */}
         <div className="max-w-4xl mx-auto px-4 py-8">
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+            {/* Assignment Title */}
+            <div className="mb-6">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayAssignment.title}</h2>
+              <p className="text-gray-600">
+                {displayAssignment.courseCode} • {displayAssignment.courseName}
+              </p>
+            </div>
+
             {/* Assignment Info Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{displayAssignment.points}</div>
-                    <div className="text-sm text-gray-600">Points</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {submission?.grade !== undefined && submission?.grade !== null 
+                        ? `${submission.grade}` 
+                        : '—'
+                      } / {displayAssignment.points}
+                    </div>
+                    <div className="text-sm text-gray-600">Score</div>
                   </div>
                   <div className="text-center p-4 bg-orange-50 rounded-lg">
-                    <div className="text-2xl font-bold text-orange-600">
+                    <div className="text-lg font-bold text-orange-600">
                       {getTimeRemaining(displayAssignment.dueDate)}
                     </div>
-                    <div className="text-sm text-gray-600">Time Remaining</div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      Due: {new Date(displayAssignment.dueDate).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit'
+                      })}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-0.5">Time Remaining</div>
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
@@ -498,11 +519,6 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     {displayAssignment.description}
                       </pre>
                     </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Due Date</h3>
-                    <p className="text-gray-700">{formatDate(displayAssignment.dueDate)}</p>
                   </div>
 
                   <div>
