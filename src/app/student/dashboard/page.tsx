@@ -137,16 +137,24 @@ const StudentDashboard: React.FC = () => {
             try {
               const coursesData = await coursesResponse.json();
               console.log('Courses API response:', coursesData);
+              console.log('Raw courses array:', coursesData.courses);
               
               // Add default colors to courses that don't have one
-              const coursesWithColors = (coursesData.courses || []).map((course: Course, index: number) => {
+              const coursesArray = coursesData.courses || [];
+              console.log('Courses array length:', coursesArray.length);
+              
+              const coursesWithColors = coursesArray.map((course: Course, index: number) => {
+                console.log(`Course ${index}:`, course, 'has color:', course.color);
                 const defaultColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+                const finalColor = course.color || defaultColors[index % defaultColors.length];
+                console.log(`Assigning color:`, finalColor);
                 return {
                   ...course,
-                  color: course.color || defaultColors[index % defaultColors.length]
+                  color: finalColor
                 };
               });
               
+              console.log('Courses with colors:', coursesWithColors);
               setCourses(coursesWithColors);
             } catch (parseError) {
               console.error('Error parsing courses response:', parseError);
