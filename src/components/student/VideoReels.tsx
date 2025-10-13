@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Play, Pause, Heart, MessageCircle, Share, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import apiClient, { VideoReel } from '@/lib/api';
 
 interface VideoReelsProps {
@@ -18,6 +19,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { user } = useAuth();
 
   // Load video reels
   const loadVideoReels = useCallback(async () => {
@@ -28,13 +30,37 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
       });
       
       if (response.ok) {
-        const reels = await response.json();
-        console.log('📦 Loaded reels:', reels.length);
-        setReels(reels);
+        const rawReels = await response.json();
+        console.log('📦 Loaded raw reels:', rawReels.length);
+        
+        // Transform API response to match VideoReel interface
+        const transformedReels: VideoReel[] = rawReels.map((reel: any) => ({
+          id: reel.id || reel.submissionId,
+          title: reel.videoTitle || reel.title || 'Video Submission',
+          description: reel.videoDescription || reel.description || '',
+          thumbnail: reel.thumbnailUrl || '/api/placeholder/400/300',
+          videoUrl: reel.videoUrl,
+          duration: reel.duration || 0,
+          assignmentId: reel.assignmentId,
+          author: {
+            id: reel.studentId,
+            name: reel.studentName || 'Unknown Author',
+            avatar: reel.studentAvatar || '/api/placeholder/40/40',
+            course: reel.courseName || 'Unknown Course'
+          },
+          likes: reel.likes || 0,
+          comments: reel.comments?.length || 0,
+          isLiked: reel.likedBy?.includes(user?.id || '') || false,
+          createdAt: reel.submittedAt || new Date().toISOString(),
+          courseId: reel.courseId || ''
+        }));
+        
+        console.log('📦 Transformed reels:', transformedReels.length);
+        setReels(transformedReels);
         
         // Initialize liked videos
         const liked = new Set<string>();
-        reels.forEach((reel: VideoReel) => {
+        transformedReels.forEach((reel: VideoReel) => {
           if (reel.isLiked) {
             liked.add(reel.id);
           }
@@ -146,7 +172,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
 
   if (isLoading) {
     return (
-      <div className={`w-full h-96 bg-gray-100 rounded-2xl flex items-center justify-center ${className}`}>
+      <div className={`w-full aspect-video bg-gray-100 rounded-2xl flex items-center justify-center ${className}`}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading video reels...</p>
@@ -157,7 +183,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
 
   if (reels.length === 0) {
     return (
-      <div className={`w-full h-96 bg-gray-100 rounded-2xl flex items-center justify-center ${className}`}>
+      <div className={`w-full aspect-video bg-gray-100 rounded-2xl flex items-center justify-center ${className}`}>
         <div className="text-center">
           <div className="text-6xl mb-4">🎥</div>
           <p className="text-gray-600 text-lg">No videos to show</p>
@@ -172,7 +198,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
   return (
     <div 
       ref={containerRef}
-      className={`relative w-full h-96 bg-black rounded-2xl overflow-hidden cursor-pointer group ${className}`}
+      className={`relative w-full aspect-video bg-black rounded-2xl overflow-hidden cursor-pointer group ${className}`}
       onWheel={handleWheel}
       onClick={() => handleVideoClick(currentReel)}
     >
@@ -232,18 +258,28 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
               {currentReel.title}
             </h3>
             <div className="flex items-center space-x-2 mb-2">
-              <img
-                src={currentReel.author?.avatar || '/api/placeholder/20/20'}
-                alt={currentReel.author?.name || 'Unknown Author'}
-                className="w-6 h-6 rounded-full"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = '/api/placeholder/20/20';
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (currentReel.author?.id) {
+                    router.push(`/student/profile/${currentReel.author.id}`);
+                  }
                 }}
-              />
-              <span className="text-sm font-medium">
-                {currentReel.author?.name || 'Unknown Author'}
-              </span>
+                className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+              >
+                <img
+                  src={currentReel.author?.avatar || '/api/placeholder/20/20'}
+                  alt={currentReel.author?.name || 'Unknown Author'}
+                  className="w-6 h-6 rounded-full"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/api/placeholder/20/20';
+                  }}
+                />
+                <span className="text-sm font-medium">
+                  {currentReel.author?.name || 'Unknown Author'}
+                </span>
+              </button>
             </div>
             <p className="text-sm text-gray-300 line-clamp-2">
               {currentReel.description}
