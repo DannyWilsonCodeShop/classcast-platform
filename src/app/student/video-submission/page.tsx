@@ -429,7 +429,19 @@ const VideoSubmissionContent: React.FC = () => {
       // Validate file size (max 100MB)
       const maxSize = 100 * 1024 * 1024; // 100MB
       if (file.size > maxSize) {
-        setError('File size must be less than 100MB.');
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        setError(
+          `⚠️ File Too Large (${fileSizeMB}MB)\n\n` +
+          `Your video exceeds the ${Math.round(maxSize / (1024 * 1024))}MB upload limit.\n\n` +
+          `📺 Solution: Upload to YouTube Instead\n\n` +
+          `1. Upload your video to YouTube (set to Unlisted or Public)\n` +
+          `2. Copy the YouTube video URL\n` +
+          `3. Switch to the "YouTube URL" tab above\n` +
+          `4. Paste your video URL and submit\n\n` +
+          `This allows you to submit videos of any size!`
+        );
+        // Switch to YouTube tab to guide the user
+        setActiveTab('youtube');
         return;
       }
       
@@ -740,8 +752,23 @@ const VideoSubmissionContent: React.FC = () => {
                 )}
 
                 {error && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-800">{error}</p>
+                  <div className="mt-4 p-6 bg-red-50 border-2 border-red-300 rounded-xl shadow-lg">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 text-2xl">
+                        {error.includes('File Too Large') ? '📦' : '⚠️'}
+                      </div>
+                      <div className="flex-1">
+                        <pre className="text-red-800 text-sm whitespace-pre-wrap font-sans leading-relaxed">{error}</pre>
+                        {error.includes('YouTube') && (
+                          <div className="mt-4 pt-4 border-t border-red-200">
+                            <div className="flex items-center justify-center space-x-2">
+                              <span className="text-blue-600 font-semibold">👆 Switch to YouTube URL tab above</span>
+                              <span className="animate-bounce text-xl">⬆️</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -870,8 +897,23 @@ const VideoSubmissionContent: React.FC = () => {
                 </div>
 
                 {error && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-red-800">{error}</p>
+                  <div className="mt-4 p-6 bg-red-50 border-2 border-red-300 rounded-xl shadow-lg">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 text-2xl">
+                        {error.includes('File Too Large') ? '📦' : '⚠️'}
+                      </div>
+                      <div className="flex-1">
+                        <pre className="text-red-800 text-sm whitespace-pre-wrap font-sans leading-relaxed">{error}</pre>
+                        {error.includes('YouTube') && (
+                          <div className="mt-4 pt-4 border-t border-red-200">
+                            <div className="flex items-center justify-center space-x-2">
+                              <span className="text-blue-600 font-semibold">👆 Switch to YouTube URL tab above</span>
+                              <span className="animate-bounce text-xl">⬆️</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

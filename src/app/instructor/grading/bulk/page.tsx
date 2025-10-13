@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
+import YouTubePlayer from '@/components/common/YouTubePlayer';
 
 interface Submission {
   id: string;
@@ -1001,35 +1002,43 @@ const BulkGradingPage: React.FC = () => {
                       {/* Video Player */}
                       <div>
                         <div className="bg-black rounded-lg overflow-hidden mb-4 relative group">
-                          <video
-                            ref={index === currentSubmissionIndex ? videoRef : null}
-                            src={submission.fileUrl}
-                            className="w-full h-64 object-cover"
-                            poster={submission.thumbnailUrl || '/api/placeholder/400/300'}
-                            onError={(e) => {
-                              console.error('Video load error:', e);
-                              // Fallback to placeholder if video fails to load
-                              const target = e.target as HTMLVideoElement;
-                              target.style.display = 'none';
-                              const parent = target.parentElement;
-                              if (parent) {
-                                parent.innerHTML = `
-                                  <div class="w-full h-64 bg-gray-800 flex items-center justify-center">
-                                    <div class="text-center text-white">
-                                      <div class="text-4xl mb-2">🎥</div>
-                                      <div class="text-sm">Video Preview</div>
-                                      <div class="text-xs text-gray-400 mt-1">Click to view</div>
+                          {submission.isYouTube || submission.youtubeUrl ? (
+                            <YouTubePlayer
+                              url={submission.youtubeUrl || submission.fileUrl}
+                              title={submission.assignmentTitle}
+                              className="aspect-video w-full"
+                            />
+                          ) : (
+                            <video
+                              ref={index === currentSubmissionIndex ? videoRef : null}
+                              src={submission.fileUrl}
+                              className="w-full h-64 object-cover"
+                              poster={submission.thumbnailUrl || '/api/placeholder/400/300'}
+                              onError={(e) => {
+                                console.error('Video load error:', e);
+                                // Fallback to placeholder if video fails to load
+                                const target = e.target as HTMLVideoElement;
+                                target.style.display = 'none';
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.innerHTML = `
+                                    <div class="w-full h-64 bg-gray-800 flex items-center justify-center">
+                                      <div class="text-center text-white">
+                                        <div class="text-4xl mb-2">🎥</div>
+                                        <div class="text-sm">Video Preview</div>
+                                        <div class="text-xs text-gray-400 mt-1">Click to view</div>
+                                      </div>
                                     </div>
-                                  </div>
-                                `;
-                              }
-                            }}
-                            onTimeUpdate={index === currentSubmissionIndex ? handleTimeUpdate : undefined}
-                            onLoadedMetadata={index === currentSubmissionIndex ? handleLoadedMetadata : undefined}
-                            onPlay={() => index === currentSubmissionIndex && setIsPlaying(true)}
-                            onPause={() => index === currentSubmissionIndex && setIsPlaying(false)}
-                            onEnded={() => index === currentSubmissionIndex && setIsPlaying(false)}
-                          />
+                                  `;
+                                }
+                              }}
+                              onTimeUpdate={index === currentSubmissionIndex ? handleTimeUpdate : undefined}
+                              onLoadedMetadata={index === currentSubmissionIndex ? handleLoadedMetadata : undefined}
+                              onPlay={() => index === currentSubmissionIndex && setIsPlaying(true)}
+                              onPause={() => index === currentSubmissionIndex && setIsPlaying(false)}
+                              onEnded={() => index === currentSubmissionIndex && setIsPlaying(false)}
+                            />
+                          )}
                           
                           {/* Video Controls Overlay */}
                           {index === currentSubmissionIndex && (
