@@ -97,22 +97,22 @@ body::before {
   pointer-events: none;
 }
 
-/* Custom scrollbar with Cristo Rey colors */
+/* Custom scrollbar with Cristo Rey colors - solid, no gradients */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f8f9fa;
+  background: #f7fafc;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, var(--cristo-rey-blue), var(--cristo-rey-gold));
+  background: #005587;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, var(--cristo-rey-blue-dark), var(--cristo-rey-gold-dark));
+  background: #003d5c;
 }
 
 /* Enhanced focus states */

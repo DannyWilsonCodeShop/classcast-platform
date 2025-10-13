@@ -123,41 +123,6 @@
 }
 
 /* ========================================
-   GRADIENTS - Subtle & Professional
-   ======================================== */
-
-.gradient-blue-subtle {
-  background: linear-gradient(135deg, 
-    rgba(0, 85, 135, 0.05) 0%, 
-    rgba(0, 123, 184, 0.05) 100%);
-}
-
-.gradient-gold-subtle {
-  background: linear-gradient(135deg, 
-    rgba(255, 199, 44, 0.05) 0%, 
-    rgba(255, 214, 102, 0.05) 100%);
-}
-
-.gradient-cristo-rey {
-  background: linear-gradient(135deg, 
-    var(--cristo-rey-blue) 0%, 
-    var(--cristo-rey-blue-light) 100%);
-}
-
-.gradient-cristo-rey-reverse {
-  background: linear-gradient(135deg, 
-    var(--cristo-rey-blue-light) 0%, 
-    var(--cristo-rey-blue) 100%);
-}
-
-/* Professional header gradient */
-.gradient-header {
-  background: linear-gradient(180deg, 
-    rgba(0, 85, 135, 0.02) 0%, 
-    rgba(255, 255, 255, 0) 100%);
-}
-
-/* ========================================
    BADGES - Professional Status Indicators
    ======================================== */
 

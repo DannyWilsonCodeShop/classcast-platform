@@ -774,9 +774,9 @@ const BulkGradingPage: React.FC = () => {
   if (isLoading) {
     return (
       <InstructorRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005587] mx-auto"></div>
             <p className="text-gray-500 mt-4">Loading submissions...</p>
           </div>
         </div>
@@ -787,7 +787,7 @@ const BulkGradingPage: React.FC = () => {
   if (filteredSubmissions.length === 0) {
     return (
       <InstructorRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <div className="text-6xl mb-4">📹</div>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">No Submissions Found</h1>
@@ -809,7 +809,7 @@ const BulkGradingPage: React.FC = () => {
               </button>
               <button
                 onClick={() => router.back()}
-                className="px-6 py-3 bg-gradient-to-r from-yellow-400 to-blue-500 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300"
+                className="px-6 py-3 bg-[#005587] text-white rounded-xl font-bold hover:bg-[#003d5c] hover:shadow-lg transition-all duration-300"
               >
                 ← Back to Dashboard
               </button>
@@ -940,9 +940,9 @@ const BulkGradingPage: React.FC = () => {
                     key={submission.id}
                     className={`p-6 rounded-xl border transition-all duration-300 ${
                       index === currentSubmissionIndex
-                        ? 'border-[#005587] bg-gradient-to-br from-blue-50 to-white shadow-lg ring-2 ring-[#005587]/20'
+                        ? 'border-[#005587] bg-blue-50 shadow-lg ring-2 ring-[#005587]/20'
                         : submission.isPinned && submission.isHighlighted
-                        ? 'border-[#FFC72C] bg-gradient-to-br from-blue-50/30 to-amber-50/30 shadow-lg'
+                        ? 'border-[#FFC72C] bg-amber-50/40 shadow-lg'
                         : submission.isPinned
                         ? 'border-[#005587]/40 bg-blue-50/50 shadow-md'
                         : submission.isHighlighted

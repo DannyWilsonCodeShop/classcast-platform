@@ -316,7 +316,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
   if (loading) {
     return (
       <StudentRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
             <LoadingSpinner size="lg" />
             <p className="mt-4 text-gray-600">Loading assignment...</p>
@@ -332,7 +332,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
   if (error || !displayAssignment) {
     return (
       <StudentRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <EmptyState
             icon="assignment"
             title="Assignment Not Found"
@@ -350,7 +350,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+      <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 sticky top-0 z-40">
           <div className="flex items-center justify-between">
@@ -363,7 +363,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              <div className="w-10 h-10 bg-[#005587] rounded-full flex items-center justify-center text-white font-bold text-lg">
                 📝
               </div>
               <div className="flex-1 min-w-0">
@@ -508,7 +508,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
                   {/* Grade and Feedback Display */}
                   {(submission.grade !== undefined && submission.grade !== null) ? (
-                    <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-blue-200">
+                    <div className="mt-4 p-4 bg-blue-50 rounded-lg border-2 border-[#005587]/30">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-md font-semibold text-blue-900 flex items-center">
                           <span className="mr-2">📊</span>
@@ -545,7 +545,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     </p>
                     <button
                     onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&courseId=${displayAssignment.courseId}`)}
-                      className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all duration-200"
+                      className="px-6 py-3 bg-[#005587] text-white rounded-lg hover:bg-[#003d5c] hover:shadow-lg transition-all duration-200 font-semibold"
                     >
                     <span className="mr-2">🎥</span>
                     Submit Assignment
