@@ -829,6 +829,24 @@ const BulkGradingPage: React.FC = () => {
               </div>
               
               <div className="flex items-center space-x-4">
+                {/* View All Submissions Button */}
+                <button
+                  onClick={() => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const assignmentId = urlParams.get('assignment');
+                    const courseId = urlParams.get('course');
+                    let submissionsUrl = '/instructor/submissions';
+                    if (assignmentId && courseId) {
+                      submissionsUrl += `?assignment=${assignmentId}&course=${courseId}`;
+                    } else if (courseId) {
+                      submissionsUrl += `?course=${courseId}`;
+                    }
+                    router.push(submissionsUrl);
+                  }}
+                  className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium"
+                >
+                  📋 View All Submissions
+                </button>
                 
                 {/* Course Filter */}
                 <select
