@@ -13,11 +13,37 @@ export async function GET(request: NextRequest) {
       return new NextResponse('Missing URL parameter', { status: 400 });
     }
 
-    // Extract the S3 key from the URL
+    // Extract the S3 key from the URL (handle both direct and presigned URLs)
     let s3Key: string;
     try {
       const url = new URL(videoUrl);
       s3Key = url.pathname.substring(1); // Remove leading slash
+      
+      // For presigned URLs, we need to use the full URL as-is
+      // Check if this is a presigned URL (has query parameters)
+      if (url.search) {
+        console.log('Detected presigned URL, using direct fetch instead of S3 client');
+        // For presigned URLs, fetch directly instead of using S3 client
+        const response = await fetch(videoUrl);
+        if (!response.ok) {
+          return new NextResponse('Video not found', { status: 404 });
+        }
+        
+        const buffer = await response.arrayBuffer();
+        
+        return new NextResponse(buffer, {
+          headers: {
+            'Content-Type': response.headers.get('Content-Type') || 'video/mp4',
+            'Content-Length': buffer.byteLength.toString(),
+            'Accept-Ranges': 'bytes',
+            'Cache-Control': 'public, max-age=31536000',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+            'Access-Control-Allow-Headers': 'Range, Content-Range, Content-Length, Content-Type',
+            'X-Content-Type-Options': 'nosniff',
+          },
+        });
+      }
     } catch (error) {
       return new NextResponse('Invalid URL format', { status: 400 });
     }
@@ -95,8 +121,29 @@ export async function HEAD(request: NextRequest) {
     }
 
     const url = new URL(videoUrl);
+    
+    // Handle presigned URLs
+    if (url.search) {
+      console.log('HEAD request for presigned URL, using direct fetch');
+      const response = await fetch(videoUrl, { method: 'HEAD' });
+      if (!response.ok) {
+        return new NextResponse('Video not found', { status: 404 });
+      }
+      
+      return new NextResponse(null, {
+        headers: {
+          'Content-Type': response.headers.get('Content-Type') || 'video/mp4',
+          'Content-Length': response.headers.get('Content-Length') || '0',
+          'Accept-Ranges': 'bytes',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+          'Access-Control-Allow-Headers': 'Range, Content-Range, Content-Length, Content-Type',
+        },
+      });
+    }
+    
+    // Handle direct S3 URLs
     const s3Key = url.pathname.substring(1);
-
     const headCommand = new HeadObjectCommand({
       Bucket: VIDEO_BUCKET,
       Key: s3Key
