@@ -40,6 +40,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         // Transform API response to match VideoReel interface
         const transformedReels: VideoReel[] = rawReels.map((reel: any) => {
           console.log('🎬 Processing reel:', reel.id, 'videoTitle:', reel.videoTitle, 'assignmentTitle:', reel.assignmentTitle, 'studentAvatar:', reel.studentAvatar);
+          console.log('🎬 Raw video URL:', reel.videoUrl, 'Type:', typeof reel.videoUrl);
           
           // Use assignment title if available, otherwise use video title, fallback to generic
           const displayTitle = reel.assignmentTitle || reel.videoTitle || reel.title || 'Video Submission';
@@ -49,7 +50,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
             title: displayTitle,
             description: reel.videoDescription || reel.description || '',
             thumbnail: reel.thumbnailUrl || '/api/placeholder/400/300',
-            videoUrl: getVideoUrl(reel.videoUrl),
+            videoUrl: reel.videoUrl, // Store original URL, process in video element
             duration: reel.duration || 0,
             assignmentId: reel.assignmentId,
             author: {
@@ -327,6 +328,13 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
       >
         <source src={getVideoUrl(currentReel.videoUrl)} type="video/mp4" />
         Your browser does not support the video tag.
+        {/* Debug: Log video URL */}
+        {console.log('🎬 Video URL Debug:', {
+          reelId: currentReel.id,
+          originalUrl: currentReel.videoUrl,
+          processedUrl: getVideoUrl(currentReel.videoUrl),
+          hasUrl: !!currentReel.videoUrl
+        })}
       </video>
 
       {/* Gradient Overlay */}
