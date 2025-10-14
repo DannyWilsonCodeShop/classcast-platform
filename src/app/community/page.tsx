@@ -10,6 +10,7 @@ import { EmptyCommunityState } from '@/components/common/EmptyStateAdvanced';
 interface CommunityPost {
   id: string;
   author: string;
+  authorAvatar?: string;
   authorRole: 'student' | 'instructor';
   title: string;
   content: string;
@@ -41,6 +42,8 @@ export default function CommunityPage() {
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
   const [userCourses, setUserCourses] = useState<any[]>([]);
+  const [showQuickActionModal, setShowQuickActionModal] = useState(false);
+  const [quickActionData, setQuickActionData] = useState<{title: string, content: string, color: string} | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
@@ -214,6 +217,11 @@ export default function CommunityPage() {
       }
       return post;
     }));
+  };
+
+  const handleQuickAction = (title: string, content: string, color: string) => {
+    setQuickActionData({ title, content, color });
+    setShowQuickActionModal(true);
   };
 
   const handleComment = async (postId: string) => {
@@ -392,8 +400,26 @@ export default function CommunityPage() {
                         {/* Post Header */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold bg-gradient-to-br from-blue-500 to-indigo-600">
-                              {post.author.charAt(0).toUpperCase()}
+                            <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600">
+                              {post.authorAvatar ? (
+                                <img 
+                                  src={post.authorAvatar} 
+                                  alt={post.author}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent) {
+                                      parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white font-semibold">${post.author.charAt(0).toUpperCase()}</div>`;
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-white font-semibold">
+                                  {post.author.charAt(0).toUpperCase()}
+                                </div>
+                              )}
                             </div>
                             <div>
                               <div className="flex items-center space-x-2">
@@ -508,12 +534,30 @@ export default function CommunityPage() {
                         {/* Post Header */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center space-x-3">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
+                            <div className={`w-10 h-10 rounded-full overflow-hidden ${
                               post.authorRole === 'instructor' 
                                 ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
                                 : 'bg-gradient-to-br from-green-500 to-emerald-600'
                             }`}>
-                              {post.author.charAt(0).toUpperCase()}
+                              {post.authorAvatar ? (
+                                <img 
+                                  src={post.authorAvatar} 
+                                  alt={post.author}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    const parent = target.parentElement;
+                                    if (parent) {
+                                      parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white font-semibold">${post.author.charAt(0).toUpperCase()}</div>`;
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-white font-semibold">
+                                  {post.author.charAt(0).toUpperCase()}
+                                </div>
+                              )}
                             </div>
                             <div>
                               <div className="flex items-center space-x-2">
@@ -711,15 +755,36 @@ export default function CommunityPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <button className="w-full flex items-center space-x-3 p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors">
+                <button 
+                  onClick={() => handleQuickAction(
+                    'Create Study Group', 
+                    'Looking to form a study group for this topic. Who\'s interested in joining?', 
+                    'blue'
+                  )}
+                  className="w-full flex items-center space-x-3 p-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors"
+                >
                   <span className="text-lg">📝</span>
                   <span className="font-medium">Create Study Group</span>
                 </button>
-                <button className="w-full flex items-center space-x-3 p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors">
+                <button 
+                  onClick={() => handleQuickAction(
+                    'Ask a Question', 
+                    'I have a question about this topic. Can anyone help me understand?', 
+                    'green'
+                  )}
+                  className="w-full flex items-center space-x-3 p-3 bg-green-50 text-green-700 rounded-lg hover:bg-green-100 transition-colors"
+                >
                   <span className="text-lg">❓</span>
                   <span className="font-medium">Ask a Question</span>
                 </button>
-                <button className="w-full flex items-center space-x-3 p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors">
+                <button 
+                  onClick={() => handleQuickAction(
+                    'Share a Resource', 
+                    'Found a helpful resource that might benefit everyone studying this topic.', 
+                    'purple'
+                  )}
+                  className="w-full flex items-center space-x-3 p-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors"
+                >
                   <span className="text-lg">💡</span>
                   <span className="font-medium">Share a Resource</span>
                 </button>
@@ -756,6 +821,101 @@ export default function CommunityPage() {
           </div>
         </div>
       </div>
+
+      {/* Quick Action Modal */}
+      {showQuickActionModal && quickActionData && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
+                quickActionData.color === 'blue' ? 'bg-blue-500' :
+                quickActionData.color === 'green' ? 'bg-green-500' :
+                'bg-purple-500'
+              }`}>
+                {quickActionData.color === 'blue' ? '📝' :
+                 quickActionData.color === 'green' ? '❓' : '💡'}
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">{quickActionData.title}</h3>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-700 mb-4">{quickActionData.content}</p>
+              <div className={`p-4 rounded-lg border-l-4 ${
+                quickActionData.color === 'blue' ? 'bg-blue-50 border-blue-400' :
+                quickActionData.color === 'green' ? 'bg-green-50 border-green-400' :
+                'bg-purple-50 border-purple-400'
+              }`}>
+                <p className="text-sm text-gray-600">
+                  This will create a highlighted community post with your message. Other students will be able to see and respond to it.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowQuickActionModal(false);
+                  setQuickActionData(null);
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    // Create the post with the quick action data
+                    const response = await fetch('/api/community/posts', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        title: quickActionData.title,
+                        content: quickActionData.content,
+                        userId: user?.id,
+                        courseId: newPost.courseId || null,
+                        isAnnouncement: false,
+                        tags: [quickActionData.color], // Use color as tag for highlighting
+                        pinned: true // Make it highlighted/pinned
+                      }),
+                      credentials: 'include'
+                    });
+
+                    if (response.ok) {
+                      const data = await response.json();
+                      console.log('✅ Quick action post created:', data);
+                      
+                      // Refresh posts
+                      await loadData();
+                      
+                      // Close modal
+                      setShowQuickActionModal(false);
+                      setQuickActionData(null);
+                      
+                      alert(`✅ ${quickActionData.title} post created successfully!`);
+                    } else {
+                      const errorData = await response.json();
+                      console.error('❌ Failed to create quick action post:', errorData);
+                      alert(`❌ Failed to create post: ${errorData.error || 'Unknown error'}`);
+                    }
+                  } catch (error) {
+                    console.error('Error creating quick action post:', error);
+                    alert('❌ Failed to create post. Please try again.');
+                  }
+                }}
+                className={`px-4 py-2 text-white rounded-lg hover:opacity-90 transition-colors ${
+                  quickActionData.color === 'blue' ? 'bg-blue-600' :
+                  quickActionData.color === 'green' ? 'bg-green-600' :
+                  'bg-purple-600'
+                }`}
+              >
+                Create Post
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
