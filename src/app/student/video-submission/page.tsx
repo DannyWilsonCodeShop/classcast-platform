@@ -835,6 +835,7 @@ const VideoSubmissionContent: React.FC = () => {
                       src={recordedVideo || uploadedVideo || undefined}
                       controls
                       playsInline
+                      webkit-playsinline="true"
                       className="w-full h-full object-cover rounded-xl"
                     />
                   </div>
@@ -893,6 +894,7 @@ const VideoSubmissionContent: React.FC = () => {
                           src={recordedVideo || uploadedVideo || undefined}
                           controls
                           playsInline
+                          webkit-playsinline="true"
                           className="w-full h-full object-cover rounded-lg"
                         />
                       </div>

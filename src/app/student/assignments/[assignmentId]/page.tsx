@@ -564,6 +564,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                           poster={videoThumbnail || submission.thumbnailUrl || undefined}
                           preload="metadata"
                           playsInline
+                          webkit-playsinline="true"
                           onLoadedMetadata={(e) => {
                             const video = e.currentTarget;
                             setVideoLoaded(true);
@@ -812,6 +813,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                         className="w-full h-full object-cover"
                         preload="metadata"
                         playsInline
+                        webkit-playsinline="true"
                         poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center transition-all">

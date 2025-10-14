@@ -81,6 +81,7 @@ export const VideoPreview: React.FC<VideoPreviewProps> = ({
           onEnded={() => setIsPlaying(false)}
           muted={isMuted}
           playsInline
+          webkit-playsinline="true"
         />
         
         {/* Video Controls Overlay */}
