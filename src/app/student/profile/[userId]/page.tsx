@@ -264,65 +264,71 @@ const StudentProfileViewPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Profile Details - Mobile Optimized */}
+            {/* Profile Details - Balanced Layout */}
             <div className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                {/* School */}
-                {profile.schoolName && (
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">School</label>
-                    <div className="flex items-center space-x-2">
-                      {profile.schoolLogo && (
-                        <img 
-                          src={profile.schoolLogo} 
-                          alt="School Logo" 
-                          className="w-4 h-4 object-contain"
-                        />
-                      )}
-                      <p className="text-gray-900 text-sm sm:text-base">{profile.schoolName}</p>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Basic Info */}
+                <div className="lg:col-span-1 space-y-4">
+                  {/* School */}
+                  {profile.schoolName && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
+                      <div className="flex items-center space-x-2">
+                        {profile.schoolLogo && (
+                          <img 
+                            src={profile.schoolLogo} 
+                            alt="School Logo" 
+                            className="w-4 h-4 object-contain"
+                          />
+                        )}
+                        <p className="text-gray-900 text-sm">{profile.schoolName}</p>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Favorite Subject */}
-                {profile.favoriteSubject && (
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Favorite Subject</label>
-                    <p className="text-gray-900 text-sm sm:text-base">{profile.favoriteSubject}</p>
-                  </div>
-                )}
+                  {/* Favorite Subject */}
+                  {profile.favoriteSubject && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Favorite Subject</label>
+                      <p className="text-gray-900 text-sm">{profile.favoriteSubject}</p>
+                    </div>
+                  )}
 
-                {/* Bio */}
-                {profile.bio && (
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Bio</label>
-                    <p className="text-gray-900 text-sm sm:text-base">{profile.bio}</p>
-                  </div>
-                )}
+                  {/* Hobbies */}
+                  {profile.hobbies && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Hobbies</label>
+                      <p className="text-gray-900 text-sm">{profile.hobbies}</p>
+                    </div>
+                  )}
+                </div>
 
-                {/* Career Goals */}
-                {profile.careerGoals && (
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Career Goals</label>
-                    <p className="text-gray-900 text-sm sm:text-base">{profile.careerGoals}</p>
-                  </div>
-                )}
+                {/* Right Column - Extended Info */}
+                <div className="lg:col-span-2 space-y-4">
+                  {/* Bio */}
+                  {profile.bio && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                      <p className="text-gray-900 text-sm">{profile.bio}</p>
+                    </div>
+                  )}
 
-                {/* Hobbies */}
-                {profile.hobbies && (
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Hobbies</label>
-                    <p className="text-gray-900 text-sm sm:text-base">{profile.hobbies}</p>
-                  </div>
-                )}
+                  {/* Career Goals */}
+                  {profile.careerGoals && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Career Goals</label>
+                      <p className="text-gray-900 text-sm">{profile.careerGoals}</p>
+                    </div>
+                  )}
 
-                {/* Fun Fact */}
-                {profile.funFact && (
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Fun Fact</label>
-                    <p className="text-gray-900 text-sm sm:text-base">{profile.funFact}</p>
-                  </div>
-                )}
+                  {/* Fun Fact */}
+                  {profile.funFact && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Fun Fact</label>
+                      <p className="text-gray-900 text-sm">{profile.funFact}</p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Academic Stats Section */}
