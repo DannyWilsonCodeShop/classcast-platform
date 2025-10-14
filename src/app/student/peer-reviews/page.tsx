@@ -1220,6 +1220,7 @@ const PeerReviewsContent: React.FC = () => {
                 className="w-full h-full object-contain"
                 preload="metadata"
                 crossOrigin="anonymous"
+                playsInline
                 onLoadedMetadata={(e) => {
                   handleVideoLoad(e);
                   // Seek to 2 seconds for thumbnail display
@@ -1443,6 +1444,7 @@ const PeerReviewsContent: React.FC = () => {
                           <video
                             className="w-full h-full object-contain"
                             controls
+                            playsInline
                             src={recordedVideo}
                           />
                         </div>
@@ -1630,6 +1632,7 @@ const PeerReviewsContent: React.FC = () => {
                       className="w-full h-full object-cover"
                       preload="metadata"
                       crossOrigin="anonymous"
+                      playsInline
                       onLoadedMetadata={(e) => {
                         const vid = e.currentTarget;
                         vid.currentTime = 2.0;
