@@ -111,15 +111,16 @@ const StudentProfileViewPage: React.FC = () => {
                   </svg>
                 </Link>
                 
-                {/* ClassCast Logo */}
+                <h1 className="text-2xl font-bold text-[#333333]">Student Profile</h1>
+                
+                {/* MyClassCast Logo */}
                 <div className="flex items-center">
                   <img 
-                    src="/ClassCast Logo.png" 
-                    alt="ClassCast" 
-                    className="h-8 w-auto object-contain"
+                    src="/MyClassCast (800 x 200 px).png" 
+                    alt="MyClassCast" 
+                    className="h-6 w-auto object-contain"
                   />
                 </div>
-                <h1 className="text-2xl font-bold text-[#333333]">Student Profile</h1>
               </div>
             </div>
           </div>
@@ -172,15 +173,16 @@ const StudentProfileViewPage: React.FC = () => {
                 </svg>
               </Link>
               
-              {/* ClassCast Logo */}
+              <h1 className="text-2xl font-bold text-[#333333]">Student Profile</h1>
+              
+              {/* MyClassCast Logo */}
               <div className="flex items-center">
                 <img 
-                  src="/ClassCast Logo.png" 
-                  alt="ClassCast" 
-                  className="h-8 w-auto object-contain"
+                  src="/MyClassCast (800 x 200 px).png" 
+                  alt="MyClassCast" 
+                  className="h-6 w-auto object-contain"
                 />
               </div>
-              <h1 className="text-2xl font-bold text-[#333333]">Student Profile</h1>
             </div>
           </div>
         </div>
