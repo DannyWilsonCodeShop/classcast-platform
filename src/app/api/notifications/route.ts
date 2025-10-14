@@ -1,332 +1,235 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
-import { dynamoDBService } from '../../../lib/dynamodb';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 
-// Initialize SES client
-const sesClient = new SESClient({
-  region: process.env.REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
-});
+const client = new DynamoDBClient({ region: 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(client);
 
-// Email templates
-const emailTemplates = {
-  grade_received: {
-    subject: 'Grade Received - {{assignmentTitle}}',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #003366;">Grade Received</h2>
-        <p>Hello {{firstName}},</p>
-        <p>You have received a grade for your assignment: <strong>{{assignmentTitle}}</strong></p>
-        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #003366;">Grade Details</h3>
-          <p><strong>Score:</strong> {{grade}}/{{maxScore}} ({{percentage}}%)</p>
-          <p><strong>Letter Grade:</strong> {{letterGrade}}</p>
-          {{#if feedback}}
-          <p><strong>Feedback:</strong></p>
-          <div style="background-color: white; padding: 15px; border-left: 4px solid #003366;">
-            {{feedback}}
-          </div>
-          {{/if}}
-        </div>
-        <p>You can view more details in your <a href="{{dashboardUrl}}" style="color: #003366;">student dashboard</a>.</p>
-        <p>Best regards,<br>ClassCast Team</p>
-      </div>
-    `,
-  },
-  assignment_created: {
-    subject: 'New Assignment - {{assignmentTitle}}',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #003366;">New Assignment Available</h2>
-        <p>Hello {{firstName}},</p>
-        <p>A new assignment has been posted for {{courseName}}: <strong>{{assignmentTitle}}</strong></p>
-        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
-          <h3 style="margin-top: 0; color: #003366;">Assignment Details</h3>
-          <p><strong>Due Date:</strong> {{dueDate}}</p>
-          <p><strong>Type:</strong> {{type}}</p>
-          <p><strong>Max Score:</strong> {{maxScore}} points</p>
-          {{#if instructions}}
-          <p><strong>Instructions:</strong></p>
-          <div style="background-color: white; padding: 15px; border-left: 4px solid #003366;">
-            {{instructions}}
-          </div>
-          {{/if}}
-        </div>
-        <p>You can view and submit this assignment in your <a href="{{dashboardUrl}}" style="color: #003366;">student dashboard</a>.</p>
-        <p>Best regards,<br>ClassCast Team</p>
-      </div>
-    `,
-  },
-  assignment_reminder: {
-    subject: 'Assignment Reminder - {{assignmentTitle}}',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #D4AF37;">Assignment Reminder</h2>
-        <p>Hello {{firstName}},</p>
-        <p>This is a reminder that your assignment <strong>{{assignmentTitle}}</strong> is due soon.</p>
-        <div style="background-color: #fff3cd; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #D4AF37;">
-          <h3 style="margin-top: 0; color: #D4AF37;">Due Date</h3>
-          <p><strong>{{dueDate}}</strong></p>
-          <p>Time remaining: {{timeRemaining}}</p>
-        </div>
-        <p>Don't forget to submit your work before the deadline!</p>
-        <p>You can access the assignment in your <a href="{{dashboardUrl}}" style="color: #003366;">student dashboard</a>.</p>
-        <p>Best regards,<br>ClassCast Team</p>
-      </div>
-    `,
-  },
-  submission_received: {
-    subject: 'Submission Received - {{assignmentTitle}}',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #28a745;">Submission Received</h2>
-        <p>Hello {{firstName}},</p>
-        <p>Your submission for <strong>{{assignmentTitle}}</strong> has been received and is being processed.</p>
-        <div style="background-color: #d4edda; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #28a745;">
-          <h3 style="margin-top: 0; color: #28a745;">Submission Details</h3>
-          <p><strong>Submitted:</strong> {{submittedAt}}</p>
-          <p><strong>Status:</strong> {{status}}</p>
-          {{#if files}}
-          <p><strong>Files:</strong></p>
-          <ul>
-            {{#each files}}
-            <li>{{this}}</li>
-            {{/each}}
-          </ul>
-          {{/if}}
-        </div>
-        <p>You will be notified once your submission has been graded.</p>
-        <p>You can track your submission status in your <a href="{{dashboardUrl}}" style="color: #003366;">student dashboard</a>.</p>
-        <p>Best regards,<br>ClassCast Team</p>
-      </div>
-    `,
-  },
-};
+const SUBMISSIONS_TABLE = 'classcast-submissions';
+const ASSIGNMENTS_TABLE = 'classcast-assignments';
+const COURSES_TABLE = 'classcast-courses';
+const PEER_RESPONSES_TABLE = 'classcast-peer-responses';
+const USERS_TABLE = 'classcast-users';
 
-// Helper function to get user details
-async function getUserDetails(userId: string) {
-  try {
-    const response = await dynamoDBService.get({
-      TableName: 'classcast-users',
-      Key: { userId },
-    });
-    return response.Item;
-  } catch (error) {
-    console.error('Error fetching user details:', error);
-    return null;
-  }
-}
-
-// Helper function to send email
-async function sendEmail(to: string, subject: string, html: string) {
-  try {
-    const command = new SendEmailCommand({
-      Source: process.env.FROM_EMAIL || 'noreply@classcast.com',
-      Destination: {
-        ToAddresses: [to],
-      },
-      Message: {
-        Subject: {
-          Data: subject,
-          Charset: 'UTF-8',
-        },
-        Body: {
-          Html: {
-            Data: html,
-            Charset: 'UTF-8',
-          },
-        },
-      },
-    });
-
-    const result = await sesClient.send(command);
-    console.log('Email sent successfully:', result.MessageId);
-    return result;
-  } catch (error) {
-    console.error('Error sending email:', error);
-    throw error;
-  }
-}
-
-// POST /api/notifications - Send notification
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { type, userId, data, email } = body;
-
-    if (!type || !userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Missing required fields: type, userId',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Get user details
-    const user = await getUserDetails(userId);
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'User not found',
-        },
-        { status: 404 }
-      );
-    }
-
-    // Get email template
-    const template = emailTemplates[type as keyof typeof emailTemplates];
-    if (!template) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid notification type',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Prepare template data
-    const templateData = {
-      firstName: user.firstName || 'Student',
-      lastName: user.lastName || '',
-      email: user.email,
-      dashboardUrl: process.env.DASHBOARD_URL || 'https://d166bugwfgjggz.amplifyapp.com',
-      ...data,
-    };
-
-    // Replace template variables
-    let subject = template.subject;
-    let html = template.html;
-
-    Object.keys(templateData).forEach(key => {
-      const value = templateData[key];
-      const regex = new RegExp(`{{${key}}}`, 'g');
-      subject = subject.replace(regex, value);
-      html = html.replace(regex, value);
-    });
-
-    // Send email
-    await sendEmail(user.email, subject, html);
-
-    // Log notification
-    console.log(`Notification sent to ${user.email}: ${type}`);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Notification sent successfully',
-    });
-  } catch (error) {
-    console.error('Error sending notification:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to send notification',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// GET /api/notifications - Get notification preferences
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const userRole = searchParams.get('role'); // 'student' or 'instructor'
 
-    if (!userId) {
+    if (!userId || !userRole) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'User ID is required',
-        },
+        { success: false, error: 'User ID and role are required' },
         { status: 400 }
       );
     }
 
-    // Get user notification preferences
-    const user = await getUserDetails(userId);
-    if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'User not found',
-        },
-        { status: 404 }
-      );
+    console.log('Fetching notifications for:', { userId, userRole });
+
+    const notifications = [];
+
+    if (userRole === 'student') {
+      // Student notifications
+      await Promise.all([
+        // 1. New graded assignments
+        (async () => {
+          try {
+            const submissionsResult = await docClient.send(new ScanCommand({
+              TableName: SUBMISSIONS_TABLE,
+              FilterExpression: 'studentId = :userId AND attribute_exists(grade) AND gradedAt > :oneDayAgo',
+              ExpressionAttributeValues: {
+                ':userId': userId,
+                ':oneDayAgo': new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+              }
+            }));
+
+            if (submissionsResult.Items) {
+              for (const submission of submissionsResult.Items) {
+                // Get assignment details
+                let assignmentTitle = 'Assignment';
+                if (submission.assignmentId) {
+                  const assignmentResult = await docClient.send(new GetCommand({
+                    TableName: ASSIGNMENTS_TABLE,
+                    Key: { assignmentId: submission.assignmentId }
+                  }));
+                  if (assignmentResult.Item) {
+                    assignmentTitle = assignmentResult.Item.title || 'Assignment';
+                  }
+                }
+
+                notifications.push({
+                  id: `graded_${submission.submissionId}`,
+                  type: 'graded',
+                  title: 'Assignment Graded',
+                  message: `${assignmentTitle} has been graded`,
+                  url: `/student/assignments/${submission.assignmentId}`,
+                  timestamp: submission.gradedAt || submission.updatedAt,
+                  priority: 'high'
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching graded assignments:', error);
+          }
+        })(),
+
+        // 2. New peer responses to their submissions
+        (async () => {
+          try {
+            const responsesResult = await docClient.send(new ScanCommand({
+              TableName: PEER_RESPONSES_TABLE,
+              FilterExpression: 'videoId IN (SELECT submissionId FROM classcast-submissions WHERE studentId = :userId) AND submittedAt > :oneDayAgo',
+              ExpressionAttributeValues: {
+                ':userId': userId,
+                ':oneDayAgo': new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+              }
+            }));
+
+            if (responsesResult.Items) {
+              const responseCount = responsesResult.Items.length;
+              if (responseCount > 0) {
+                notifications.push({
+                  id: `peer_responses_${userId}`,
+                  type: 'peer_response',
+                  title: 'New Peer Responses',
+                  message: `${responseCount} new response${responseCount > 1 ? 's' : ''} to your video${responseCount > 1 ? 's' : ''}`,
+                  url: '/student/peer-reviews',
+                  timestamp: new Date().toISOString(),
+                  priority: 'medium'
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching peer responses:', error);
+          }
+        })(),
+
+        // 3. New assignments posted in their courses
+        (async () => {
+          try {
+            // Get student's enrolled courses
+            const coursesResult = await docClient.send(new ScanCommand({
+              TableName: COURSES_TABLE,
+              FilterExpression: 'contains(enrollment.students, :userId)',
+              ExpressionAttributeValues: {
+                ':userId': userId
+              }
+            }));
+
+            if (coursesResult.Items) {
+              const courseIds = coursesResult.Items.map(course => course.courseId);
+              
+              for (const courseId of courseIds) {
+                const assignmentsResult = await docClient.send(new ScanCommand({
+                  TableName: ASSIGNMENTS_TABLE,
+                  FilterExpression: 'courseId = :courseId AND createdAt > :oneDayAgo',
+                  ExpressionAttributeValues: {
+                    ':courseId': courseId,
+                    ':oneDayAgo': new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+                  }
+                }));
+
+                if (assignmentsResult.Items) {
+                  for (const assignment of assignmentsResult.Items) {
+                    notifications.push({
+                      id: `new_assignment_${assignment.assignmentId}`,
+                      type: 'new_assignment',
+                      title: 'New Assignment Posted',
+                      message: `${assignment.title} is now available`,
+                      url: `/student/assignments/${assignment.assignmentId}`,
+                      timestamp: assignment.createdAt,
+                      priority: 'high'
+                    });
+                  }
+                }
+              }
+            }
+  } catch (error) {
+            console.error('Error fetching new assignments:', error);
+          }
+        })()
+      ]);
+
+    } else if (userRole === 'instructor') {
+      // Instructor notifications
+      await Promise.all([
+        // 1. New submissions to grade
+        (async () => {
+          try {
+            const submissionsResult = await docClient.send(new ScanCommand({
+              TableName: SUBMISSIONS_TABLE,
+              FilterExpression: 'attribute_not_exists(grade) AND submittedAt > :oneDayAgo',
+              ExpressionAttributeValues: {
+                ':oneDayAgo': new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+              }
+            }));
+
+            if (submissionsResult.Items) {
+              const ungradedCount = submissionsResult.Items.length;
+              if (ungradedCount > 0) {
+                notifications.push({
+                  id: `ungraded_submissions_${userId}`,
+                  type: 'ungraded',
+                  title: 'Submissions to Grade',
+                  message: `${ungradedCount} new submission${ungradedCount > 1 ? 's' : ''} need${ungradedCount === 1 ? 's' : ''} grading`,
+                  url: '/instructor/grading/bulk',
+                  timestamp: new Date().toISOString(),
+                  priority: 'high'
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching ungraded submissions:', error);
+          }
+        })(),
+
+        // 2. New peer responses to review
+        (async () => {
+          try {
+            const responsesResult = await docClient.send(new ScanCommand({
+              TableName: PEER_RESPONSES_TABLE,
+              FilterExpression: 'submittedAt > :oneDayAgo',
+              ExpressionAttributeValues: {
+                ':oneDayAgo': new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+              }
+            }));
+
+            if (responsesResult.Items) {
+              const responseCount = responsesResult.Items.length;
+              if (responseCount > 0) {
+                notifications.push({
+                  id: `new_peer_responses_${userId}`,
+                  type: 'peer_review',
+                  title: 'New Peer Responses',
+                  message: `${responseCount} new peer response${responseCount > 1 ? 's' : ''} to review`,
+                  url: '/instructor/grading/bulk',
+                  timestamp: new Date().toISOString(),
+                  priority: 'medium'
+                });
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching new peer responses:', error);
+          }
+        })()
+      ]);
     }
 
-    const preferences = user.preferences?.notifications || {
-      email: true,
-      push: false,
-      grade_received: true,
-      assignment_created: true,
-      assignment_reminder: true,
-      submission_received: true,
-    };
+    // Sort notifications by timestamp (newest first)
+    notifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    console.log('Generated notifications:', notifications.length);
 
     return NextResponse.json({
       success: true,
-      data: preferences,
+      notifications: notifications,
+      count: notifications.length
     });
+
   } catch (error) {
-    console.error('Error fetching notification preferences:', error);
+    console.error('Error fetching notifications:', error);
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to fetch notification preferences',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// PUT /api/notifications - Update notification preferences
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { userId, preferences } = body;
-
-    if (!userId || !preferences) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Missing required fields: userId, preferences',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Update user notification preferences
-    await dynamoDBService.update({
-      TableName: 'classcast-users',
-      Key: { userId },
-      UpdateExpression: 'SET preferences.notifications = :preferences, updatedAt = :updatedAt',
-      ExpressionAttributeValues: {
-        ':preferences': preferences,
-        ':updatedAt': new Date().toISOString(),
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Notification preferences updated successfully',
-    });
-  } catch (error) {
-    console.error('Error updating notification preferences:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to update notification preferences',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
+      { success: false, error: 'Failed to fetch notifications' },
       { status: 500 }
     );
   }

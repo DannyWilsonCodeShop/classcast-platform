@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Avatar from '@/components/common/Avatar';
+import NotificationBell from '@/components/common/NotificationBell';
 
 interface DashboardStats {
   activeCourses: number;
@@ -284,8 +285,17 @@ const InstructorDashboard: React.FC = () => {
               />
             </div>
             
-            {/* Right Side - Create Class Buttons and Profile Thumbnail */}
+            {/* Right Side - Notifications, Create Class Buttons and Profile Thumbnail */}
             <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
+              {/* Notification Bell */}
+              {user?.id && (
+                <NotificationBell 
+                  userId={user.id} 
+                  userRole="instructor" 
+                  className="flex-shrink-0"
+                />
+              )}
+              
               <button
                 onClick={() => router.push('/instructor/classes/create')}
                 className="flex items-center space-x-1 sm:space-x-2 bg-indigo-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors shadow-lg hover:shadow-xl"
