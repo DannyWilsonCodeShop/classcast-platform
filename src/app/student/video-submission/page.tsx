@@ -83,7 +83,20 @@ const VideoSubmissionContent: React.FC = () => {
     clearOldVideos();
   }, []);
 
-  const startRecording = async () => {
+  // Start camera preview immediately when component mounts
+  React.useEffect(() => {
+    startCameraPreview();
+    
+    // Cleanup camera on unmount
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
+  }, []);
+
+  const startCameraPreview = async () => {
     try {
       setError(null);
       // Try to get optimal constraints first, fallback to basic if needed
@@ -111,6 +124,49 @@ const VideoSubmissionContent: React.FC = () => {
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        console.log('📹 Camera preview started');
+      }
+    } catch (err) {
+      console.error('Error starting camera preview:', err);
+      setError('Failed to access camera. Please check permissions.');
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      setError(null);
+      
+      // Use existing stream from camera preview, or get new one if needed
+      let stream;
+      if (videoRef.current && videoRef.current.srcObject) {
+        stream = videoRef.current.srcObject as MediaStream;
+        console.log('📹 Using existing camera stream for recording');
+      } else {
+        // Fallback: get new stream if preview wasn't started
+        console.log('📹 No existing stream, getting new camera access');
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 },
+              aspectRatio: { ideal: 16/9 },
+              facingMode: 'user'
+            }, 
+            audio: true 
+          });
+        } catch (error) {
+          console.log('Optimal constraints failed, trying basic constraints:', error);
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: 'user'
+            }, 
+            audio: true 
+          });
+        }
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
       }
 
       const mediaRecorder = new MediaRecorder(stream);
@@ -142,11 +198,8 @@ const VideoSubmissionContent: React.FC = () => {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       
-      // Stop all tracks
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
+      // Don't stop camera tracks - keep preview running
+      console.log('📹 Recording stopped, camera preview continues');
     }
   };
 
