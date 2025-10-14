@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useCallback } from 'react';
 import { PeerSubmissionData } from './StudentCommunityFeed';
+import Avatar from '../common/Avatar';
 
 export interface CommunityInteractionsProps {
   submission: PeerSubmissionData;
@@ -243,11 +244,12 @@ export const CommunityInteractions: React.FC<CommunityInteractionsProps> = ({
               {submission.comments.map((comment) => (
                 <div key={comment.id} className="flex space-x-3">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium text-gray-600">
-                        {comment.authorName.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                    <Avatar
+                      src={comment.authorAvatar}
+                      name={comment.authorName}
+                      size="sm"
+                      className="w-8 h-8"
+                    />
                   </div>
                   <div className="flex-1">
                     <div className="bg-gray-50 rounded-lg px-3 py-2">

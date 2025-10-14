@@ -10,6 +10,7 @@ export interface PeerSubmissionData {
   submissionId: string;
   studentId: string;
   studentName: string;
+  studentAvatar?: string;
   assignmentId: string;
   assignmentTitle: string;
   courseId: string;
@@ -37,6 +38,7 @@ export interface PeerSubmissionData {
   likes: Array<{
     userId: string;
     userName: string;
+    userAvatar?: string;
     createdAt: string;
   }>;
   comments: Array<{
@@ -44,6 +46,7 @@ export interface PeerSubmissionData {
     text: string;
     authorId: string;
     authorName: string;
+    authorAvatar?: string;
     createdAt: string;
     isEdited?: boolean;
   }>;
