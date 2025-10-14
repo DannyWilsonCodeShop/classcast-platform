@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
 const SUBMISSIONS_TABLE = 'classcast-submissions';
-const COMMUNITY_POSTS_TABLE = 'classcast-community-posts';
-const COMMUNITY_COMMENTS_TABLE = 'classcast-community-comments';
 const PEER_RESPONSES_TABLE = 'classcast-peer-responses';
+const VIDEO_INTERACTIONS_TABLE = 'classcast-video-interactions';
 
 export async function GET(
   request: NextRequest,
@@ -24,9 +23,8 @@ export async function GET(
       );
     }
 
-    console.log('Fetching user statistics for:', userId);
+    console.log('Fetching stats for user:', userId);
 
-    // Initialize stats object
     const stats = {
       videoStats: {
         totalVideos: 0,
@@ -34,8 +32,7 @@ export async function GET(
         totalLikes: 0,
         totalComments: 0,
         totalRatings: 0,
-        averageRating: 0,
-        totalRatingSum: 0
+        averageRating: 0
       },
       communityStats: {
         totalPosts: 0,
@@ -49,8 +46,7 @@ export async function GET(
         totalResponses: 0,
         totalResponseLikes: 0,
         totalResponseComments: 0,
-        averageResponseLength: 0,
-        totalResponseWords: 0
+        averageResponseLength: 0
       },
       engagementStats: {
         totalInteractions: 0,
@@ -61,9 +57,9 @@ export async function GET(
       }
     };
 
-    // 1. Get video submission statistics
     try {
-      const submissionsResult = await docClient.send(new ScanCommand({
+      // Fetch user's video submissions
+      const submissionsResponse = await docClient.send(new ScanCommand({
         TableName: SUBMISSIONS_TABLE,
         FilterExpression: 'studentId = :userId',
         ExpressionAttributeValues: {
@@ -71,81 +67,36 @@ export async function GET(
         }
       }));
 
-      if (submissionsResult.Items) {
-        const submissions = submissionsResult.Items;
-        stats.videoStats.totalVideos = submissions.length;
-        
-        submissions.forEach(submission => {
-          stats.videoStats.totalViews += submission.views || 0;
-          stats.videoStats.totalLikes += submission.likes || 0;
-          stats.videoStats.totalComments += (submission.comments?.length || 0);
-          stats.videoStats.totalRatings += submission.ratings || 0;
-          stats.videoStats.totalRatingSum += (submission.averageRating || 0) * (submission.ratings || 0);
-        });
+      if (submissionsResponse.Items) {
+        const userSubmissions = submissionsResponse.Items;
+        stats.videoStats.totalVideos = userSubmissions.length;
 
-        if (stats.videoStats.totalRatings > 0) {
-          stats.videoStats.averageRating = Math.round((stats.videoStats.totalRatingSum / stats.videoStats.totalRatings) * 10) / 10;
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching video stats:', error);
-    }
+        // Calculate total likes, views, and ratings from submissions
+        let totalLikes = 0;
+        let totalViews = 0;
+        let totalRatings = 0;
+        let ratingSum = 0;
 
-    // 2. Get community post statistics
-    try {
-      const postsResult = await docClient.send(new ScanCommand({
-        TableName: COMMUNITY_POSTS_TABLE,
-        FilterExpression: 'userId = :userId',
-        ExpressionAttributeValues: {
-          ':userId': userId
-        }
-      }));
-
-      if (postsResult.Items) {
-        const posts = postsResult.Items;
-        stats.communityStats.totalPosts = posts.length;
-        
-        posts.forEach(post => {
-          stats.communityStats.totalPostLikes += post.likes || 0;
-          stats.communityStats.totalPostComments += post.comments || 0;
+        userSubmissions.forEach((submission: any) => {
+          totalLikes += submission.likes || 0;
+          totalViews += submission.views || 0;
           
-          // Count reactions
-          if (post.reactions) {
-            Object.values(post.reactions).forEach(count => {
-              stats.communityStats.totalPostReactions += count || 0;
-            });
+          if (submission.rating && submission.rating > 0) {
+            totalRatings++;
+            ratingSum += submission.rating;
           }
         });
+
+        stats.videoStats.totalLikes = totalLikes;
+        stats.videoStats.totalViews = totalViews;
+        stats.videoStats.totalRatings = totalRatings;
+        stats.videoStats.averageRating = totalRatings > 0 ? ratingSum / totalRatings : 0;
+        stats.engagementStats.totalLikesReceived = totalLikes;
+        stats.engagementStats.totalViewsReceived = totalViews;
       }
-    } catch (error) {
-      console.error('Error fetching community post stats:', error);
-    }
 
-    // 3. Get community comment statistics
-    try {
-      const commentsResult = await docClient.send(new ScanCommand({
-        TableName: COMMUNITY_COMMENTS_TABLE,
-        FilterExpression: 'userId = :userId',
-        ExpressionAttributeValues: {
-          ':userId': userId
-        }
-      }));
-
-      if (commentsResult.Items) {
-        const comments = commentsResult.Items;
-        stats.communityStats.totalComments = comments.length;
-        
-        comments.forEach(comment => {
-          stats.communityStats.totalCommentLikes += comment.likes || 0;
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching community comment stats:', error);
-    }
-
-    // 4. Get peer review response statistics
-    try {
-      const responsesResult = await docClient.send(new ScanCommand({
+      // Fetch user's peer responses
+      const peerResponsesResponse = await docClient.send(new ScanCommand({
         TableName: PEER_RESPONSES_TABLE,
         FilterExpression: 'reviewerId = :userId',
         ExpressionAttributeValues: {
@@ -153,49 +104,54 @@ export async function GET(
         }
       }));
 
-      if (responsesResult.Items) {
-        const responses = responsesResult.Items;
-        stats.peerReviewStats.totalResponses = responses.length;
-        
-        responses.forEach(response => {
-          stats.peerReviewStats.totalResponseLikes += response.likes || 0;
-          stats.peerReviewStats.totalResponseComments += (response.comments?.length || 0);
-          
-          // Count words in response
-          const wordCount = response.content ? response.content.split(/\s+/).length : 0;
-          stats.peerReviewStats.totalResponseWords += wordCount;
-        });
+      if (peerResponsesResponse.Items) {
+        const userResponses = peerResponsesResponse.Items;
+        stats.peerReviewStats.totalResponses = userResponses.length;
 
-        if (stats.peerReviewStats.totalResponses > 0) {
-          stats.peerReviewStats.averageResponseLength = Math.round(stats.peerReviewStats.totalResponseWords / stats.peerReviewStats.totalResponses);
-        }
+        // Calculate average response length
+        let totalLength = 0;
+        userResponses.forEach((response: any) => {
+          totalLength += response.content ? response.content.length : 0;
+        });
+        stats.peerReviewStats.averageResponseLength = userResponses.length > 0 ? totalLength / userResponses.length : 0;
       }
-    } catch (error) {
-      console.error('Error fetching peer review stats:', error);
+
+      // Fetch video interactions (likes, comments, ratings) for user's videos
+      const videoInteractionsResponse = await docClient.send(new ScanCommand({
+        TableName: VIDEO_INTERACTIONS_TABLE,
+        FilterExpression: 'videoOwnerId = :userId',
+        ExpressionAttributeValues: {
+          ':userId': userId
+        }
+      }));
+
+      if (videoInteractionsResponse.Items) {
+        const interactions = videoInteractionsResponse.Items;
+        
+        interactions.forEach((interaction: any) => {
+          if (interaction.type === 'like') {
+            stats.engagementStats.totalLikesReceived++;
+          } else if (interaction.type === 'comment') {
+            stats.engagementStats.totalCommentsReceived++;
+          } else if (interaction.type === 'rating') {
+            stats.engagementStats.totalReactionsReceived++;
+          }
+        });
+      }
+
+      // Calculate total interactions
+      stats.engagementStats.totalInteractions = 
+        stats.engagementStats.totalLikesReceived + 
+        stats.engagementStats.totalCommentsReceived + 
+        stats.engagementStats.totalViewsReceived + 
+        stats.engagementStats.totalReactionsReceived;
+
+    } catch (dbError) {
+      console.error('Database error fetching user stats:', dbError);
+      // Return default stats if database fails
     }
 
-    // 5. Calculate total engagement statistics
-    stats.engagementStats.totalLikesReceived = 
-      stats.videoStats.totalLikes + 
-      stats.communityStats.totalPostLikes + 
-      stats.communityStats.totalCommentLikes + 
-      stats.peerReviewStats.totalResponseLikes;
-
-    stats.engagementStats.totalCommentsReceived = 
-      stats.videoStats.totalComments + 
-      stats.communityStats.totalPostComments + 
-      stats.peerReviewStats.totalResponseComments;
-
-    stats.engagementStats.totalViewsReceived = stats.videoStats.totalViews;
-    stats.engagementStats.totalReactionsReceived = stats.communityStats.totalPostReactions;
-
-    stats.engagementStats.totalInteractions = 
-      stats.engagementStats.totalLikesReceived + 
-      stats.engagementStats.totalCommentsReceived + 
-      stats.engagementStats.totalViewsReceived + 
-      stats.engagementStats.totalReactionsReceived;
-
-    console.log('User statistics calculated:', stats);
+    console.log('Generated stats for user:', userId, stats);
 
     return NextResponse.json({
       success: true,
@@ -203,9 +159,9 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error fetching user statistics:', error);
+    console.error('Error fetching user stats:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch user statistics' },
+      { success: false, error: 'Failed to fetch user stats' },
       { status: 500 }
     );
   }
