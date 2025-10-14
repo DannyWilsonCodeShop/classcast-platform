@@ -10,6 +10,7 @@ const ASSIGNMENTS_TABLE = 'classcast-assignments';
 const COURSES_TABLE = 'classcast-courses';
 const PEER_RESPONSES_TABLE = 'classcast-peer-responses';
 const USERS_TABLE = 'classcast-users';
+const NOTIFICATIONS_TABLE = 'classcast-notifications';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,6 +28,35 @@ export async function GET(request: NextRequest) {
     console.log('Fetching notifications for:', { userId, userRole });
 
     const notifications = [];
+
+    // First, fetch notifications from the notifications table
+    try {
+      const notificationsResult = await docClient.send(new ScanCommand({
+        TableName: NOTIFICATIONS_TABLE,
+        FilterExpression: 'recipientId = :userId AND isRead = :isRead',
+        ExpressionAttributeValues: {
+          ':userId': userId,
+          ':isRead': false
+        }
+      }));
+
+      if (notificationsResult.Items) {
+        for (const notification of notificationsResult.Items) {
+          notifications.push({
+            id: notification.notificationId,
+            type: notification.type,
+            title: notification.title,
+            message: notification.message,
+            url: notification.relatedType === 'video' ? `/student/peer-reviews?videoId=${notification.relatedId}` : '/student/dashboard',
+            timestamp: notification.createdAt,
+            priority: notification.priority || 'normal',
+            senderName: notification.senderName
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching notifications from table:', error);
+    }
 
     if (userRole === 'student') {
       // Student notifications
