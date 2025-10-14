@@ -222,8 +222,16 @@ const PeerReviewsContent: React.FC = () => {
     return currentAverage + (newRating - oldRating) / 10; // Simplified for demo
   };
 
-  const assignmentId = searchParams.get('assignment');
+  const assignmentId = searchParams.get('assignmentId') || searchParams.get('assignment');
   const courseId = searchParams.get('course');
+  
+  // Advanced debugging
+  console.log('🔍 URL Parameters:', {
+    assignmentId,
+    courseId,
+    videoId: searchParams.get('videoId'),
+    allParams: Object.fromEntries(searchParams.entries())
+  });
 
   // Cleanup media recorder on unmount
   useEffect(() => {
@@ -244,13 +252,20 @@ const PeerReviewsContent: React.FC = () => {
         setIsLoading(true);
         
         // If specific assignment provided, load that assignment's details
+        console.log('🔍 Loading assignment details for:', assignmentId);
         if (assignmentId) {
+          console.log('🔍 Fetching assignment from API...');
           const assignmentResponse = await fetch(`/api/assignments/${assignmentId}`);
           if (assignmentResponse.ok) {
             const assignmentData = await assignmentResponse.json();
+            console.log('🔍 Assignment data loaded:', assignmentData);
             setAssignment(assignmentData);
             setPeerReviewScope(assignmentData.peerReviewScope || 'section');
+          } else {
+            console.error('🔍 Failed to fetch assignment:', assignmentResponse.status);
           }
+        } else {
+          console.warn('🔍 No assignmentId provided, cannot load assignment details');
         }
         
         // Load current user's section
@@ -482,6 +497,38 @@ const PeerReviewsContent: React.FC = () => {
         clearInterval((mediaRecorder as any).durationInterval);
       }
     }
+  };
+
+  const generateThumbnailFromVideo = async (video: HTMLVideoElement, videoId: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          console.error('🎬 Cannot get canvas context for thumbnail generation');
+          resolve('');
+          return;
+        }
+        
+        canvas.width = 400;
+        canvas.height = 300;
+        
+        try {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
+          console.log('🎬 Thumbnail generated successfully for:', videoId);
+          resolve(thumbnail);
+        } catch (canvasError) {
+          console.error('🎬 Canvas security error for video:', videoId, canvasError);
+          // This is likely a CORS issue with S3 videos
+          resolve('');
+        }
+      } catch (error) {
+        console.error('🎬 Error generating thumbnail for video:', videoId, error);
+        resolve('');
+      }
+    });
   };
 
   const generateThumbnail = async (videoBlob: Blob): Promise<string> => {
@@ -741,7 +788,8 @@ const PeerReviewsContent: React.FC = () => {
   })();
 
   const autoSaveResponse = async (content: string) => {
-    if (!currentVideo || !user || !assignmentId) return;
+    const effectiveAssignmentId = assignmentId || currentVideo?.assignmentId;
+    if (!currentVideo || !user || !effectiveAssignmentId) return;
     if (content.trim().length === 0) return;
 
     try {
@@ -751,7 +799,7 @@ const PeerReviewsContent: React.FC = () => {
         reviewerId: user.id,
         reviewerName: `${user.firstName} ${user.lastName}`,
         videoId: currentVideo.id,
-        assignmentId: assignmentId,
+        assignmentId: effectiveAssignmentId,
         content: content,
         isSubmitted: false
       };
@@ -802,8 +850,29 @@ const PeerReviewsContent: React.FC = () => {
   };
 
   const handleSubmitResponse = async () => {
-    if (!currentVideo || !user || !assignmentId) {
-      console.error('Missing required data:', { currentVideo: !!currentVideo, user: !!user, assignmentId });
+    // Use assignmentId from URL or fallback to currentVideo's assignmentId
+    const effectiveAssignmentId = assignmentId || currentVideo?.assignmentId;
+    
+    console.log('🔍 Submit Response Debug:', {
+      currentVideo: !!currentVideo,
+      currentVideoId: currentVideo?.id,
+      currentVideoAssignmentId: currentVideo?.assignmentId,
+      user: !!user,
+      userId: user?.id,
+      urlAssignmentId: assignmentId,
+      effectiveAssignmentId,
+      currentResponse: currentResponse.length,
+      recordedVideo: !!recordedVideo
+    });
+    
+    if (!currentVideo || !user || !effectiveAssignmentId) {
+      console.error('Missing required data:', { 
+        currentVideo: !!currentVideo, 
+        user: !!user, 
+        urlAssignmentId: assignmentId,
+        videoAssignmentId: currentVideo?.assignmentId,
+        effectiveAssignmentId 
+      });
       alert('Missing required data. Please refresh the page and try again.');
       return;
     }
@@ -819,7 +888,7 @@ const PeerReviewsContent: React.FC = () => {
 
     console.log('🚀 Submitting response:', { 
       videoId: currentVideo.id, 
-      assignmentId, 
+      assignmentId: effectiveAssignmentId, 
       hasTextContent, 
       hasVideoContent,
       textLength: currentResponse.trim().length 
@@ -844,7 +913,7 @@ const PeerReviewsContent: React.FC = () => {
         reviewerId: user.id,
         reviewerName: `${user.firstName} ${user.lastName}`,
         videoId: currentVideo.id,
-        assignmentId: assignmentId,
+        assignmentId: effectiveAssignmentId,
         content: currentResponse,
         isSubmitted: true
       };
@@ -1113,6 +1182,20 @@ const PeerReviewsContent: React.FC = () => {
                   video.currentTime = 2.0;
                 }}
                 onTimeUpdate={handleTimeUpdate}
+                onSeeked={(e) => {
+                  const video = e.currentTarget;
+                  console.log('🎬 Main video seeked to:', video.currentTime, 'for video:', currentVideo?.id);
+                  if (currentVideo && !videoThumbnails[currentVideo.id] && video.currentTime >= 2.0 && video.currentTime < 3.0) {
+                    console.log('🎬 Attempting thumbnail generation for main video:', currentVideo.id);
+                    generateThumbnailFromVideo(video, currentVideo.id).then(thumbnail => {
+                      if (thumbnail) {
+                        setVideoThumbnails(prev => ({ ...prev, [currentVideo.id]: thumbnail }));
+                      }
+                    }).catch(error => {
+                      console.error('🎬 Thumbnail generation failed for main video:', currentVideo.id, error);
+                    });
+                  }
+                }}
                 onPlay={() => {
                   setIsPlaying(true);
                   // Track view when video starts playing
