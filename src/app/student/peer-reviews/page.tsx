@@ -94,6 +94,7 @@ const PeerReviewsContent: React.FC = () => {
   const [duration, setDuration] = useState(0);
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const autoScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [autoscrollCountdown, setAutoscrollCountdown] = useState<number | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
@@ -908,6 +909,9 @@ const PeerReviewsContent: React.FC = () => {
       clearTimeout(autoScrollTimeoutRef.current);
     }
     
+    // Clear countdown
+    setAutoscrollCountdown(null);
+    
     setCurrentVideoIndex(index);
     setCurrentResponse(responses.get(peerVideos[index]?.id)?.content || '');
     setShowResponseForm(false);
@@ -929,15 +933,46 @@ const PeerReviewsContent: React.FC = () => {
   // Auto-scroll to next video after video starts playing
   useEffect(() => {
     if (isPlaying && autoScrollEnabled && currentVideoIndex < peerVideos.length - 1) {
+      console.log('🎬 Autoscroll active for video:', currentVideoIndex, 'next in 10 seconds');
+      
       // Clear any existing timeout
       if (autoScrollTimeoutRef.current) {
         clearTimeout(autoScrollTimeoutRef.current);
       }
       
+      // Start countdown
+      setAutoscrollCountdown(10);
+      
       // Set timer to advance to next video (10 seconds for peer review videos)
       autoScrollTimeoutRef.current = setTimeout(() => {
+        console.log('⏭️ Auto-advancing to next video:', currentVideoIndex + 1);
+        setAutoscrollCountdown(null);
         nextVideo();
       }, 10000); // 10 seconds for peer review videos
+      
+      // Update countdown every second
+      const countdownInterval = setInterval(() => {
+        setAutoscrollCountdown(prev => {
+          if (prev === null || prev <= 1) {
+            clearInterval(countdownInterval);
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => {
+        clearInterval(countdownInterval);
+      };
+    } else {
+      setAutoscrollCountdown(null);
+      console.log('🎬 Autoscroll conditions:', {
+        isPlaying,
+        autoScrollEnabled,
+        currentVideoIndex,
+        totalVideos: peerVideos.length,
+        hasNext: currentVideoIndex < peerVideos.length - 1
+      });
     }
     
     // Cleanup timeout on unmount or when video stops playing
@@ -1377,31 +1412,44 @@ const PeerReviewsContent: React.FC = () => {
                 </span>
                 
                 {/* Autoscroll Toggle */}
-                <button
-                  onClick={() => {
-                    setAutoScrollEnabled(!autoScrollEnabled);
-                    if (autoScrollTimeoutRef.current) {
-                      clearTimeout(autoScrollTimeoutRef.current);
-                    }
-                  }}
-                  className={`flex items-center space-x-2 px-3 py-1 rounded-lg transition-colors text-sm ${
-                    autoScrollEnabled 
-                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                  title={autoScrollEnabled ? 'Disable autoscroll (10s)' : 'Enable autoscroll (10s)'}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    {autoScrollEnabled ? (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    ) : (
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    )}
-                  </svg>
-                  <span className="hidden sm:inline">
-                    {autoScrollEnabled ? 'Auto ON' : 'Auto OFF'}
-                  </span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      setAutoScrollEnabled(!autoScrollEnabled);
+                      if (autoScrollTimeoutRef.current) {
+                        clearTimeout(autoScrollTimeoutRef.current);
+                      }
+                      setAutoscrollCountdown(null);
+                    }}
+                    className={`flex items-center space-x-2 px-3 py-1 rounded-lg transition-colors text-sm ${
+                      autoScrollEnabled 
+                        ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                    title={autoScrollEnabled ? 'Disable autoscroll (10s)' : 'Enable autoscroll (10s)'}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      {autoScrollEnabled ? (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      ) : (
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      )}
+                    </svg>
+                    <span className="hidden sm:inline">
+                      {autoScrollEnabled ? 'Auto ON' : 'Auto OFF'}
+                    </span>
+                  </button>
+                  
+                  {/* Countdown Indicator */}
+                  {autoscrollCountdown !== null && autoScrollEnabled && isPlaying && currentVideoIndex < peerVideos.length - 1 && (
+                    <div className="flex items-center space-x-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-sm">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="font-medium">{autoscrollCountdown}s</span>
+                    </div>
+                  )}
+                </div>
               </div>
               
               <button
