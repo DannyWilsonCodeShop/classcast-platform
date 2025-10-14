@@ -50,10 +50,10 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
             videoUrl: reel.videoUrl,
             duration: reel.duration || 0,
             assignmentId: reel.assignmentId,
-            author: {
+          author: {
               id: reel.studentId,
               name: reel.studentName || 'Unknown Author',
-              avatar: reel.studentAvatar || '/api/placeholder/40/40',
+              avatar: reel.studentAvatar || `/api/placeholder/40/40?text=${encodeURIComponent((reel.studentName || 'U').charAt(0))}`,
               course: reel.courseName || 'Unknown Course'
             },
             likes: reel.likes || 0,
@@ -324,18 +324,21 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                 className="flex items-center space-x-1 sm:space-x-2 hover:opacity-80 transition-opacity"
               >
                 <img
-                  src={currentReel.author?.avatar || '/api/placeholder/40/40'}
+                  src={currentReel.author?.avatar || `/api/placeholder/40/40?text=${encodeURIComponent((currentReel.author?.name || 'U').charAt(0))}`}
                   alt={currentReel.author?.name || 'Unknown Author'}
                   className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     console.log('🖼️ Avatar failed to load for:', currentReel.author?.name, 'URL:', target.src);
-                    if (target.src !== '/api/placeholder/40/40') {
-                      target.src = '/api/placeholder/40/40';
+                    
+                    // Try different fallback approaches
+                    const fallbackUrl = `/api/placeholder/40/40?text=${encodeURIComponent((currentReel.author?.name || 'U').charAt(0))}`;
+                    if (target.src !== fallbackUrl) {
+                      target.src = fallbackUrl;
                     }
                   }}
                   onLoad={() => {
-                    console.log('🖼️ Avatar loaded successfully for:', currentReel.author?.name);
+                    console.log('🖼️ Avatar loaded successfully for:', currentReel.author?.name, 'URL:', currentReel.author?.avatar);
                   }}
                 />
                 <span className="text-xs sm:text-sm font-medium">

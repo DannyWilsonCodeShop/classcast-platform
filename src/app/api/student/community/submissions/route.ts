@@ -109,7 +109,22 @@ export async function GET(request: NextRequest) {
           if (studentResult.Item) {
             studentName = `${studentResult.Item.firstName || ''} ${studentResult.Item.lastName || ''}`.trim() || 'Unknown Student';
             studentEmail = studentResult.Item.email || 'unknown@example.com';
-            studentAvatar = studentResult.Item.avatar || studentResult.Item.profile?.avatar || '/api/placeholder/40/40';
+            
+            // Try multiple avatar sources with better fallback logic
+            const user = studentResult.Item;
+            studentAvatar = user.avatar || 
+                           user.profile?.avatar || 
+                           user.profilePicture || 
+                           user.profileImage ||
+                           `/api/placeholder/40/40?text=${encodeURIComponent((user.firstName || 'U').charAt(0))}`;
+            
+            console.log('🖼️ Avatar sources for', studentName, ':', {
+              avatar: user.avatar,
+              profileAvatar: user.profile?.avatar,
+              profilePicture: user.profilePicture,
+              profileImage: user.profileImage,
+              final: studentAvatar
+            });
           }
         }
         
