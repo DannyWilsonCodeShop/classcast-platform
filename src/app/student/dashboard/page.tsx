@@ -462,7 +462,7 @@ const StudentDashboard: React.FC = () => {
                   </div>
                 </div>
                 <div className="p-2 sm:p-4">
-                  <VideoReels className="h-48 sm:h-64" />
+                  <VideoReels />
                 </div>
               </div>
             </div>
