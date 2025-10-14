@@ -83,13 +83,21 @@ export async function GET(request: NextRequest) {
             }));
 
             const user = userResult.Item;
+            const authorName = user?.firstName && user?.lastName 
+              ? `${user.firstName} ${user.lastName}`
+              : user?.email || 'Unknown User';
+            
+            // Get avatar from multiple possible sources
+            const avatar = user?.avatar || user?.profile?.avatar || user?.profilePicture || user?.profileImage || 
+              `/api/placeholder/40/40?text=${encodeURIComponent(authorName.charAt(0).toUpperCase())}`;
+            
             return {
               id: post.postId || post.id,
               title: post.title,
               content: post.content,
-              author: user?.firstName && user?.lastName 
-                ? `${user.firstName} ${user.lastName}`
-                : user?.email || 'Unknown User',
+              author: authorName,
+              authorAvatar: avatar,
+              authorRole: user?.role || 'student',
               isAnnouncement: post.isAnnouncement || false,
               likes: post.likes || 0,
               comments: post.comments || 0,
@@ -113,6 +121,8 @@ export async function GET(request: NextRequest) {
               title: post.title,
               content: post.content,
               author: 'Unknown User',
+              authorAvatar: '/api/placeholder/40/40?text=U',
+              authorRole: 'student',
               isAnnouncement: post.isAnnouncement || false,
               likes: post.likes || 0,
               comments: post.comments || 0,
