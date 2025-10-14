@@ -16,8 +16,10 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
+  const autoScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const { user } = useAuth();
 
@@ -78,7 +80,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
     loadVideoReels();
   }, [loadVideoReels]);
 
-  // Auto-play current video
+  // Auto-play current video and set up autoscroll
   useEffect(() => {
     if (reels.length > 0 && currentIndex < reels.length) {
       const currentVideo = videoRefs.current[currentIndex];
@@ -86,13 +88,33 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         currentVideo.currentTime = 2.0; // Start at 2 seconds for better preview
         currentVideo.play().then(() => {
           setIsPlaying(true);
+          
+          // Set up autoscroll timer
+          if (autoScrollEnabled && currentIndex < reels.length - 1) {
+            // Clear any existing timeout
+            if (autoScrollTimeoutRef.current) {
+              clearTimeout(autoScrollTimeoutRef.current);
+            }
+            
+            // Set new timeout for autoscroll (5 seconds)
+            autoScrollTimeoutRef.current = setTimeout(() => {
+              setCurrentIndex(currentIndex + 1);
+            }, 5000);
+          }
         }).catch((error) => {
           console.log('Autoplay prevented:', error);
           setIsPlaying(false);
         });
       }
     }
-  }, [currentIndex, reels.length]);
+    
+    // Cleanup timeout on unmount or index change
+    return () => {
+      if (autoScrollTimeoutRef.current) {
+        clearTimeout(autoScrollTimeoutRef.current);
+      }
+    };
+  }, [currentIndex, reels.length, autoScrollEnabled]);
 
   // Pause all other videos
   useEffect(() => {
@@ -154,6 +176,11 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
   };
 
   const navigateToVideo = (direction: 'prev' | 'next') => {
+    // Clear autoscroll timer when user manually navigates
+    if (autoScrollTimeoutRef.current) {
+      clearTimeout(autoScrollTimeoutRef.current);
+    }
+    
     if (direction === 'prev' && currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
     } else if (direction === 'next' && currentIndex < reels.length - 1) {
@@ -176,8 +203,8 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
           <p className="text-gray-600 text-sm">Loading...</p>
-        </div>
-      </div>
+                </div>
+              </div>
     );
   }
 
@@ -279,7 +306,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                 <span className="text-xs sm:text-sm font-medium">
                   {currentReel.author?.name || 'Unknown Author'}
                 </span>
-              </button>
+                </button>
             </div>
             <p className="text-xs sm:text-sm text-gray-300 line-clamp-1 sm:line-clamp-2">
               {currentReel.description}
@@ -357,11 +384,39 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         )}
                 </button>
 
-      {/* Video Counter - Mobile Optimized */}
-      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
-        <span className="text-white text-xs sm:text-sm font-medium">
-          {currentIndex + 1} / {reels.length}
-        </span>
+      {/* Video Counter and Autoscroll Toggle - Mobile Optimized */}
+      <div className="absolute top-2 right-2 sm:top-3 sm:right-3 flex items-center space-x-2">
+        {/* Autoscroll Toggle */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setAutoScrollEnabled(!autoScrollEnabled);
+            if (autoScrollTimeoutRef.current) {
+              clearTimeout(autoScrollTimeoutRef.current);
+            }
+          }}
+          className={`p-1.5 rounded-full transition-all duration-200 ${
+            autoScrollEnabled 
+              ? 'bg-green-500/80 text-white' 
+              : 'bg-gray-500/80 text-white'
+          }`}
+          title={autoScrollEnabled ? 'Disable autoscroll' : 'Enable autoscroll'}
+        >
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {autoScrollEnabled ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            )}
+          </svg>
+                </button>
+        
+        {/* Video Counter */}
+        <div className="bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
+          <span className="text-white text-xs sm:text-sm font-medium">
+            {currentIndex + 1} / {reels.length}
+          </span>
+        </div>
             </div>
 
       {/* Progress Dots - Mobile Optimized */}
@@ -371,6 +426,10 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
             key={index}
             onClick={(e) => {
               e.stopPropagation();
+              // Clear autoscroll timer when user manually navigates
+              if (autoScrollTimeoutRef.current) {
+                clearTimeout(autoScrollTimeoutRef.current);
+              }
               setCurrentIndex(index);
             }}
             className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-200 ${
