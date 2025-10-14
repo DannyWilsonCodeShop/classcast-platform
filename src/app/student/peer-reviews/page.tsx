@@ -571,8 +571,8 @@ const PeerReviewsContent: React.FC = () => {
         canvas.width = thumbWidth;
         canvas.height = thumbHeight;
         
-        // Seek to 25% of video duration for thumbnail
-        video.currentTime = video.duration * 0.25;
+        // Seek to 2 seconds for better thumbnail (avoid black first frame)
+        video.currentTime = Math.min(2.0, video.duration * 0.1); // Use 2 seconds or 10% of duration, whichever is smaller
       };
       
       video.onseeked = () => {
