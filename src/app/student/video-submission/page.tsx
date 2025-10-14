@@ -86,15 +86,28 @@ const VideoSubmissionContent: React.FC = () => {
   const startRecording = async () => {
     try {
       setError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 1280, max: 1920 },
-          height: { ideal: 720, max: 1080 },
-          aspectRatio: { ideal: 16/9 },
-          facingMode: 'user'
-        }, 
-        audio: true 
-      });
+      // Try to get optimal constraints first, fallback to basic if needed
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 },
+            aspectRatio: { ideal: 16/9 },
+            facingMode: 'user'
+          }, 
+          audio: true 
+        });
+      } catch (error) {
+        console.log('Optimal constraints failed, trying basic constraints:', error);
+        // Fallback to basic constraints for mobile devices
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: 'user'
+          }, 
+          audio: true 
+        });
+      }
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -821,6 +834,7 @@ const VideoSubmissionContent: React.FC = () => {
                     <video
                       src={recordedVideo || uploadedVideo || undefined}
                       controls
+                      playsInline
                       className="w-full h-full object-cover rounded-xl"
                     />
                   </div>
@@ -878,6 +892,7 @@ const VideoSubmissionContent: React.FC = () => {
                         <video
                           src={recordedVideo || uploadedVideo || undefined}
                           controls
+                          playsInline
                           className="w-full h-full object-cover rounded-lg"
                         />
                       </div>
