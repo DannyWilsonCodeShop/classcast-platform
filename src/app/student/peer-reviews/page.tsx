@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
 import YouTubePlayer from '@/components/common/YouTubePlayer';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface PeerVideo {
   id: string;
@@ -1253,7 +1254,7 @@ const PeerReviewsContent: React.FC = () => {
                 onPause={() => setIsPlaying(false)}
                 poster={currentVideo.thumbnailUrl !== '/api/placeholder/300/200' ? currentVideo.thumbnailUrl : undefined}
               >
-                <source src={currentVideo.videoUrl} type="video/mp4" />
+                <source src={getVideoUrl(currentVideo.videoUrl)} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
             )}
@@ -1630,7 +1631,7 @@ const PeerReviewsContent: React.FC = () => {
                 <div className="flex items-start space-x-3">
                   <div className="w-16 h-12 bg-black rounded overflow-hidden flex-shrink-0">
                     <video
-                      src={video.videoUrl}
+                      src={getVideoUrl(video.videoUrl)}
                       className="w-full h-full object-cover"
                       preload="metadata"
                       crossOrigin="anonymous"

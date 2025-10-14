@@ -8,6 +8,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import AssignmentResourcesDisplay from '@/components/common/AssignmentResourcesDisplay';
 import { htmlToPlainText } from '@/lib/htmlUtils';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface Assignment {
   assignmentId: string;
@@ -560,7 +561,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                         <video
                           controls
                           className="w-full h-full object-cover"
-                          src={submission.videoUrl}
+                          src={getVideoUrl(submission.videoUrl)}
                           poster={videoThumbnail || submission.thumbnailUrl || undefined}
                           preload="metadata"
                           playsInline
@@ -809,7 +810,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   >
                     <div className="relative bg-black rounded-t-lg overflow-hidden aspect-video">
                       <video
-                        src={video.videoUrl}
+                        src={getVideoUrl(video.videoUrl)}
                         className="w-full h-full object-cover"
                         preload="metadata"
                         playsInline
