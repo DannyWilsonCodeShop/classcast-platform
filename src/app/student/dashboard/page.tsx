@@ -472,7 +472,17 @@ const StudentDashboard: React.FC = () => {
                     </button>
                   </div>
                 </div>
-                <div className="p-2 sm:p-4">
+                <div className="p-2 sm:p-4 relative">
+                  {/* Notifications Bubble Overlay */}
+                  {user?.id && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <NotificationBell 
+                        userId={user.id} 
+                        userRole="student" 
+                        className="bg-white/90 backdrop-blur-sm rounded-full shadow-lg p-2"
+                      />
+                    </div>
+                  )}
                   <VideoReels />
                 </div>
               </div>
