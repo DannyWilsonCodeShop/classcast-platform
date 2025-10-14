@@ -95,6 +95,8 @@ const PeerReviewsContent: React.FC = () => {
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const autoScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [autoscrollCountdown, setAutoscrollCountdown] = useState<number | null>(null);
+  const [videoThumbnails, setVideoThumbnails] = useState<{[key: string]: string}>({});
+  const [showNotification, setShowNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
@@ -153,12 +155,17 @@ const PeerReviewsContent: React.FC = () => {
       } else {
         const errorData = await response.text();
         console.error('Like API failed:', response.status, errorData);
-        alert('Failed to like video. Please try again.');
+        showNotificationMessage('Failed to like video. Please try again.', 'error');
       }
     } catch (error) {
       console.error('Error liking video:', error);
-      alert('Failed to like video. Please try again.');
+      showNotificationMessage('Failed to like video. Please try again.', 'error');
     }
+  };
+
+  const showNotificationMessage = (message: string, type: 'success' | 'error' = 'success') => {
+    setShowNotification({ message, type });
+    setTimeout(() => setShowNotification(null), 3000); // Auto-hide after 3 seconds
   };
 
   const handleRating = async (videoId: string, rating: number) => {
@@ -206,11 +213,11 @@ const PeerReviewsContent: React.FC = () => {
       } else {
         const errorData = await response.text();
         console.error('Rating API failed:', response.status, errorData);
-        alert('Failed to rate video. Please try again.');
+        showNotificationMessage('Failed to rate video. Please try again.', 'error');
       }
     } catch (error) {
       console.error('Error rating video:', error);
-      alert('Failed to rate video. Please try again.');
+      showNotificationMessage('Failed to rate video. Please try again.', 'error');
     }
   };
 
@@ -391,15 +398,15 @@ const PeerReviewsContent: React.FC = () => {
 
   const trackView = async (videoId: string) => {
     try {
-      await fetch('/api/videos/track-view', {
+      await fetch(`/api/videos/${videoId}/view`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          videoId: videoId,
-          userId: 'current_student_id' // In real app, get from auth context
+          userId: user?.id
         }),
+        credentials: 'include'
       });
     } catch (error) {
       console.error('Error tracking view:', error);
@@ -873,7 +880,7 @@ const PeerReviewsContent: React.FC = () => {
         videoAssignmentId: currentVideo?.assignmentId,
         effectiveAssignmentId 
       });
-      alert('Missing required data. Please refresh the page and try again.');
+      showNotificationMessage('Missing required data. Please refresh the page and try again.', 'error');
       return;
     }
     
@@ -882,7 +889,7 @@ const PeerReviewsContent: React.FC = () => {
     const hasVideoContent = recordedVideo && recordedChunks.length > 0;
     
     if (!hasTextContent && !hasVideoContent) {
-      alert('Please write a response or record a video before submitting.');
+      showNotificationMessage('Please write a response or record a video before submitting.', 'error');
       return;
     }
 
@@ -971,10 +978,10 @@ const PeerReviewsContent: React.FC = () => {
       setRecordedChunks([]);
       setShowResponseForm(false);
       setSaveStatus('saved');
-      alert('Response submitted successfully!');
+      showNotificationMessage('Response submitted successfully!', 'success');
     } catch (error) {
       console.error('Error submitting response:', error);
-      alert('Failed to submit response. Please try again.');
+      showNotificationMessage('Failed to submit response. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -1004,6 +1011,24 @@ const PeerReviewsContent: React.FC = () => {
   const prevVideo = () => {
     if (currentVideoIndex > 0) {
       goToVideo(currentVideoIndex - 1);
+    }
+  };
+
+  const handleWheel = (e: React.WheelEvent) => {
+    // Prevent default scrolling behavior
+    e.preventDefault();
+    
+    // Navigate based on scroll direction
+    if (e.deltaY > 0) {
+      // Scrolling down - go to next video
+      if (currentVideoIndex < peerVideos.length - 1) {
+        nextVideo();
+      }
+    } else {
+      // Scrolling up - go to previous video
+      if (currentVideoIndex > 0) {
+        prevVideo();
+      }
     }
   };
 
@@ -1105,7 +1130,7 @@ const PeerReviewsContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" onWheel={handleWheel}>
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-2 sm:px-6 py-4">
         <div className="flex items-center justify-between">
@@ -1630,6 +1655,24 @@ const PeerReviewsContent: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Notification */}
+      {showNotification && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className={`px-4 py-3 rounded-lg shadow-lg border-l-4 ${
+            showNotification.type === 'success' 
+              ? 'bg-green-50 border-green-400 text-green-800' 
+              : 'bg-red-50 border-red-400 text-red-800'
+          }`}>
+            <div className="flex items-center space-x-2">
+              <span className="text-lg">
+                {showNotification.type === 'success' ? '✅' : '❌'}
+              </span>
+              <span className="font-medium">{showNotification.message}</span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
