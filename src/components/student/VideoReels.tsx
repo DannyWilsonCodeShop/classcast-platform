@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Play, Pause, Heart, MessageCircle, Share, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import apiClient, { VideoReel } from '@/lib/api';
+import { getAvatarUrl } from '@/lib/avatarUtils';
 
 interface VideoReelsProps {
   className?: string;
@@ -50,10 +51,10 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
             videoUrl: reel.videoUrl,
             duration: reel.duration || 0,
             assignmentId: reel.assignmentId,
-          author: {
+            author: {
               id: reel.studentId,
               name: reel.studentName || 'Unknown Author',
-              avatar: reel.studentAvatar || `/api/placeholder/40/40?text=${encodeURIComponent((reel.studentName || 'U').charAt(0))}`,
+              avatar: getAvatarUrl(reel.studentAvatar, reel.studentName),
               course: reel.courseName || 'Unknown Course'
             },
             likes: reel.likes || 0,
@@ -266,6 +267,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         muted
         loop
         playsInline
+        webkit-playsinline="true"
         preload="metadata"
         crossOrigin="anonymous"
         key={currentReel.id} // Force re-render when video changes
@@ -325,7 +327,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                 className="flex items-center space-x-1 sm:space-x-2 hover:opacity-80 transition-opacity"
               >
                 <img
-                  src={currentReel.author?.avatar || `/api/placeholder/40/40?text=${encodeURIComponent((currentReel.author?.name || 'U').charAt(0))}`}
+                  src={getAvatarUrl(currentReel.author?.avatar, currentReel.author?.name)}
                   alt={currentReel.author?.name || 'Unknown Author'}
                   className="w-5 h-5 sm:w-6 sm:h-6 rounded-full object-cover"
                   onError={(e) => {
