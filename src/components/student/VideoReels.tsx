@@ -6,6 +6,7 @@ import { Play, Pause, Heart, MessageCircle, Share, ChevronLeft, ChevronRight } f
 import { useAuth } from '@/contexts/AuthContext';
 import apiClient, { VideoReel } from '@/lib/api';
 import { getAvatarUrl } from '@/lib/avatarUtils';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface VideoReelsProps {
   className?: string;
@@ -48,7 +49,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
             title: displayTitle,
             description: reel.videoDescription || reel.description || '',
             thumbnail: reel.thumbnailUrl || '/api/placeholder/400/300',
-            videoUrl: reel.videoUrl,
+            videoUrl: getVideoUrl(reel.videoUrl),
             duration: reel.duration || 0,
             assignmentId: reel.assignmentId,
             author: {
@@ -276,7 +277,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
       >
-        <source src={currentReel.videoUrl} type="video/mp4" />
+        <source src={getVideoUrl(currentReel.videoUrl)} type="video/mp4" />
         Your browser does not support the video tag.
       </video>
 
