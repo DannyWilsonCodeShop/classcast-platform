@@ -296,6 +296,16 @@ const InstructorDashboard: React.FC = () => {
                 />
               )}
               
+              {/* Moderation Button */}
+              <button
+                onClick={() => router.push('/instructor/moderation')}
+                className="flex items-center space-x-1 sm:space-x-2 bg-orange-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors shadow-lg hover:shadow-xl"
+                title="Content moderation and student management"
+              >
+                <span className="text-base sm:text-lg">🛡️</span>
+                <span className="font-medium text-xs sm:text-sm hidden sm:inline">Moderate</span>
+              </button>
+              
               <button
                 onClick={() => router.push('/instructor/classes/create')}
                 className="flex items-center space-x-1 sm:space-x-2 bg-indigo-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-purple-600 transition-colors shadow-lg hover:shadow-xl"
