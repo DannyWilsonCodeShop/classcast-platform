@@ -102,39 +102,55 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
       const currentVideo = videoRefs.current[currentIndex];
       if (currentVideo) {
         console.log('🎬 Switching to video:', currentIndex, reels[currentIndex]?.title);
-        currentVideo.currentTime = 2.0; // Start at 2 seconds for better preview
-        currentVideo.play().then(() => {
-          setIsPlaying(true);
-          
-          // Track video view
-          if (user?.id && reels[currentIndex]?.id) {
-            fetch(`/api/videos/${reels[currentIndex].id}/view`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({ userId: user.id })
-            }).catch(error => {
-              console.error('Error tracking video view:', error);
+        
+        // Safari-specific: Wait for video to be ready before attempting autoplay
+        const attemptAutoplay = () => {
+          if (currentVideo.readyState >= 3) { // HAVE_FUTURE_DATA - more reliable for Safari
+            // Don't set currentTime immediately - let Safari handle it
+            currentVideo.play().then(() => {
+              setIsPlaying(true);
+              
+              // Track video view after successful play
+              if (user?.id && reels[currentIndex]?.id) {
+                fetch('/api/videos/track-view', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ 
+                    videoId: reels[currentIndex].id,
+                    userId: user.id 
+                  })
+                }).catch(error => {
+                  console.error('Error tracking video view:', error);
+                });
+              }
+              
+              // Set up autoscroll timer
+              if (autoScrollEnabled && currentIndex < reels.length - 1) {
+                // Clear any existing timeout
+                if (autoScrollTimeoutRef.current) {
+                  clearTimeout(autoScrollTimeoutRef.current);
+                }
+                
+                // Set new timeout for autoscroll (5 seconds)
+                autoScrollTimeoutRef.current = setTimeout(() => {
+                  console.log('⏭️ Auto-scrolling to next video:', currentIndex + 1);
+                  setCurrentIndex(prev => prev + 1);
+                }, 5000);
+              }
+            }).catch((error) => {
+              console.log('Autoplay prevented:', error);
+              setIsPlaying(false);
+              // Safari fallback: Show play button overlay
             });
+          } else {
+            // Wait for video to load more data
+            setTimeout(attemptAutoplay, 200);
           }
-          
-          // Set up autoscroll timer
-          if (autoScrollEnabled && currentIndex < reels.length - 1) {
-            // Clear any existing timeout
-            if (autoScrollTimeoutRef.current) {
-              clearTimeout(autoScrollTimeoutRef.current);
-            }
-            
-            // Set new timeout for autoscroll (5 seconds)
-            autoScrollTimeoutRef.current = setTimeout(() => {
-              console.log('⏭️ Auto-scrolling to next video:', currentIndex + 1);
-              setCurrentIndex(prev => prev + 1);
-            }, 5000);
-          }
-        }).catch((error) => {
-          console.log('Autoplay prevented:', error);
-          setIsPlaying(false);
-        });
+        };
+
+        // Start autoplay attempt after a short delay to ensure video is loaded
+        setTimeout(attemptAutoplay, 100);
       }
     }
     
@@ -273,9 +289,41 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         crossOrigin="anonymous"
         key={currentReel.id} // Force re-render when video changes
         onLoadedData={() => handleVideoLoad(currentIndex)}
-        onError={() => handleVideoError(currentIndex)}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
+        onCanPlay={() => {
+          // Safari: Ensure video is ready for playback
+          const video = videoRefs.current[currentIndex];
+          if (video && !isPlaying && video.readyState >= 3) {
+            video.play().catch(() => {
+              // Autoplay failed, user interaction required
+              setIsPlaying(false);
+            });
+          }
+        }}
+        onLoadedMetadata={() => {
+          // Safari: Set initial time after metadata loads
+          const video = videoRefs.current[currentIndex];
+          if (video && video.readyState >= 1) {
+            // Only set currentTime if video has enough data
+            setTimeout(() => {
+              if (video.readyState >= 2) {
+                video.currentTime = 2.0;
+              }
+            }, 100);
+          }
+        }}
+        onError={(e) => {
+          console.error('Video error:', e);
+          const video = e.currentTarget;
+          console.error('Video error details:', {
+            error: video.error,
+            networkState: video.networkState,
+            readyState: video.readyState,
+            src: video.src
+          });
+          handleVideoError(currentIndex);
+        }}
       >
         <source src={getVideoUrl(currentReel.videoUrl)} type="video/mp4" />
         Your browser does not support the video tag.
@@ -283,6 +331,28 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
 
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+
+      {/* Play Button Overlay for Safari Autoplay Fallback */}
+      {!isPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const video = videoRefs.current[currentIndex];
+              if (video) {
+                video.play().then(() => {
+                  setIsPlaying(true);
+                }).catch((error) => {
+                  console.error('Manual play failed:', error);
+                });
+              }
+            }}
+            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full p-4 transition-all duration-200"
+          >
+            <Play className="w-8 h-8 text-white" />
+          </button>
+        </div>
+      )}
 
       {/* Navigation Arrows */}
       {currentIndex > 0 && (
