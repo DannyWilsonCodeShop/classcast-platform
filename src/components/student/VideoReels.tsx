@@ -19,11 +19,43 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const [generatedThumbnails, setGeneratedThumbnails] = useState<Map<string, string>>(new Map());
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
   const { user } = useAuth();
+
+  // Generate thumbnail from 2-second mark
+  const generateThumbnail = useCallback((video: HTMLVideoElement, videoId: string): Promise<string> => {
+    return new Promise((resolve) => {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        if (!ctx) {
+          resolve('');
+          return;
+        }
+        
+        canvas.width = 400;
+        canvas.height = 300;
+        
+        try {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
+          console.log('🎬 Generated 2-second thumbnail for:', videoId);
+          resolve(thumbnail);
+        } catch (canvasError) {
+          console.error('🎬 Canvas error generating thumbnail:', canvasError);
+          resolve('');
+        }
+      } catch (error) {
+        console.error('🎬 Error generating thumbnail:', error);
+        resolve('');
+      }
+    });
+  }, []);
 
   // Load video reels
   const loadVideoReels = useCallback(async () => {
@@ -289,6 +321,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         preload="metadata"
         crossOrigin="anonymous"
         key={currentReel.id} // Force re-render when video changes
+        poster={generatedThumbnails.get(currentReel.id) || (currentReel.thumbnail !== '/api/placeholder/400/300' ? currentReel.thumbnail : undefined)}
         onLoadedData={() => handleVideoLoad(currentIndex)}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
@@ -303,7 +336,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
           }
         }}
         onLoadedMetadata={() => {
-          // Safari: Set initial time after metadata loads
+          // Safari: Set initial time after metadata loads and generate thumbnail
           const video = videoRefs.current[currentIndex];
           if (video && video.readyState >= 1) {
             // Only set currentTime if video has enough data
@@ -312,6 +345,20 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                 video.currentTime = 2.0;
               }
             }, 100);
+          }
+        }}
+        onSeeked={(e) => {
+          // Generate thumbnail when video seeks to 2 seconds
+          const video = e.currentTarget;
+          const currentReel = reels[currentIndex];
+          if (currentReel && video.currentTime >= 2.0 && video.currentTime < 3.0) {
+            if (!generatedThumbnails.has(currentReel.id)) {
+              generateThumbnail(video, currentReel.id).then(thumbnail => {
+                if (thumbnail) {
+                  setGeneratedThumbnails(prev => new Map(prev.set(currentReel.id, thumbnail)));
+                }
+              });
+            }
           }
         }}
         onError={(e) => {
@@ -328,13 +375,6 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
       >
         <source src={getVideoUrl(currentReel.videoUrl)} type="video/mp4" />
         Your browser does not support the video tag.
-        {/* Debug: Log video URL */}
-        {console.log('🎬 Video URL Debug:', {
-          reelId: currentReel.id,
-          originalUrl: currentReel.videoUrl,
-          processedUrl: getVideoUrl(currentReel.videoUrl),
-          hasUrl: !!currentReel.videoUrl
-        })}
       </video>
 
       {/* Gradient Overlay */}
