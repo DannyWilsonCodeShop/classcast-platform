@@ -483,181 +483,187 @@ const StudentProfilePage: React.FC = () => {
               )}
             </div>
 
-            {/* Profile Details - Mobile Optimized */}
+            {/* Profile Details - Balanced Layout */}
             <div className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                {/* Email - Mobile Optimized */}
-                <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 sm:mb-2">Email</label>
-                  {isEditing ? (
-                    <input
-                      type="email"
-                      value={editedProfile?.email || ''}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm sm:text-base"
-                      placeholder="Email address"
-                    />
-                  ) : (
-                    <p className="text-gray-900 text-sm sm:text-base">{profile?.email}</p>
-                  )}
-                  {errors.email && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.email}</p>}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Basic Info */}
+                <div className="lg:col-span-1 space-y-4">
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    {isEditing ? (
+                      <input
+                        type="email"
+                        value={editedProfile?.email || ''}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="Email address"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.email}</p>
+                    )}
+                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                  </div>
+
+                  {/* School Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editedProfile?.schoolName || ''}
+                        onChange={(e) => handleInputChange('schoolName', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="School name"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.schoolName || 'Not specified'}</p>
+                    )}
+                  </div>
+
+                  {/* Class of */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Class of</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editedProfile?.classOf || ''}
+                        onChange={(e) => handleInputChange('classOf', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="Graduation year"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.classOf || 'Not specified'}</p>
+                    )}
+                  </div>
+
+                  {/* Favorite Subject */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Favorite Subject</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editedProfile?.favoriteSubject || ''}
+                        onChange={(e) => handleInputChange('favoriteSubject', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="Favorite subject"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.favoriteSubject || 'Not specified'}</p>
+                    )}
+                  </div>
+
+                  {/* Hobbies */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Hobbies</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editedProfile?.hobbies || ''}
+                        onChange={(e) => handleInputChange('hobbies', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="What are your hobbies?"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.hobbies || 'No hobbies specified'}</p>
+                    )}
+                  </div>
                 </div>
 
-                {/* School Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={editedProfile?.schoolName || ''}
-                      onChange={(e) => handleInputChange('schoolName', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
-                      placeholder="School name"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{profile?.schoolName || 'Not specified'}</p>
-                  )}
-                </div>
-
-                {/* School Logo */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">School Logo</label>
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <select
-                        value={editedProfile?.schoolLogo || ''}
-                        onChange={(e) => handleInputChange('schoolLogo', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
-                      >
-                        <option value="">Select a school logo</option>
-                        <option value="/logos/cristo-rey-atlanta.png">Cristo Rey Atlanta Jesuit High School</option>
-                      </select>
-                      {editedProfile?.schoolLogo && (
-                        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border">
-                          <img 
-                            src={editedProfile.schoolLogo} 
-                            alt="School Logo" 
-                            className="w-12 h-12 object-contain"
-                          />
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">Selected Logo</p>
-                            <p className="text-xs text-gray-500">Will appear in dashboard header</p>
+                {/* Right Column - Extended Info */}
+                <div className="lg:col-span-2 space-y-4">
+                  {/* School Logo */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">School Logo</label>
+                    {isEditing ? (
+                      <div className="space-y-3">
+                        <select
+                          value={editedProfile?.schoolLogo || ''}
+                          onChange={(e) => handleInputChange('schoolLogo', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        >
+                          <option value="">Select a school logo</option>
+                          <option value="/logos/cristo-rey-atlanta.png">Cristo Rey Atlanta Jesuit High School</option>
+                        </select>
+                        {editedProfile?.schoolLogo && (
+                          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border">
+                            <img 
+                              src={editedProfile.schoolLogo} 
+                              alt="School Logo" 
+                              className="w-12 h-12 object-contain"
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Selected Logo</p>
+                              <p className="text-xs text-gray-500">Will appear in dashboard header</p>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-3">
-                      {profile?.schoolLogo ? (
-                        <>
-                          <img 
-                            src={profile.schoolLogo} 
-                            alt="School Logo" 
-                            className="w-12 h-12 object-contain"
-                          />
-                          <p className="text-gray-900">Cristo Rey Atlanta Jesuit High School</p>
-                        </>
-                      ) : (
-                        <p className="text-gray-500">No logo selected</p>
-                      )}
-                    </div>
-                  )}
-                </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-3">
+                        {profile?.schoolLogo ? (
+                          <>
+                            <img 
+                              src={profile.schoolLogo} 
+                              alt="School Logo" 
+                              className="w-12 h-12 object-contain"
+                            />
+                            <p className="text-gray-900 text-sm">Cristo Rey Atlanta Jesuit High School</p>
+                          </>
+                        ) : (
+                          <p className="text-gray-500 text-sm">No logo selected</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
-                {/* Class of */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Class of</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={editedProfile?.classOf || ''}
-                      onChange={(e) => handleInputChange('classOf', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
-                      placeholder="Graduation year"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{profile?.classOf || 'Not specified'}</p>
-                  )}
-                </div>
+                  {/* Bio */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                    {isEditing ? (
+                      <textarea
+                        value={editedProfile?.bio || ''}
+                        onChange={(e) => handleInputChange('bio', e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="Tell us about yourself"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.bio || 'No bio provided'}</p>
+                    )}
+                  </div>
 
-                {/* Favorite Subject */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Favorite Subject</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={editedProfile?.favoriteSubject || ''}
-                      onChange={(e) => handleInputChange('favoriteSubject', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
-                      placeholder="Favorite subject"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{profile?.favoriteSubject || 'Not specified'}</p>
-                  )}
-                </div>
+                  {/* Career Goals */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Career Goals</label>
+                    {isEditing ? (
+                      <textarea
+                        value={editedProfile?.careerGoals || ''}
+                        onChange={(e) => handleInputChange('careerGoals', e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="What are your career goals?"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.careerGoals || 'No career goals specified'}</p>
+                    )}
+                  </div>
 
-                {/* Bio */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-                  {isEditing ? (
-                    <textarea
-                      value={editedProfile?.bio || ''}
-                      onChange={(e) => handleInputChange('bio', e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
-                      placeholder="Tell us about yourself"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{profile?.bio || 'No bio provided'}</p>
-                  )}
-                </div>
-
-                {/* Career Goals */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Career Goals</label>
-                  {isEditing ? (
-                    <textarea
-                      value={editedProfile?.careerGoals || ''}
-                      onChange={(e) => handleInputChange('careerGoals', e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
-                      placeholder="What are your career goals?"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{profile?.careerGoals || 'No career goals specified'}</p>
-                  )}
-                </div>
-
-                {/* Hobbies */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Hobbies</label>
-                  {isEditing ? (
-                    <input
-                      type="text"
-                      value={editedProfile?.hobbies || ''}
-                      onChange={(e) => handleInputChange('hobbies', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
-                      placeholder="What are your hobbies?"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{profile?.hobbies || 'No hobbies specified'}</p>
-                  )}
-                </div>
-
-                {/* Fun Fact */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Fun Fact</label>
-                  {isEditing ? (
-                    <textarea
-                      value={editedProfile?.funFact || ''}
-                      onChange={(e) => handleInputChange('funFact', e.target.value)}
-                      rows={2}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
-                      placeholder="Share a fun fact about yourself"
-                    />
-                  ) : (
-                    <p className="text-gray-900">{profile?.funFact || 'No fun fact provided'}</p>
-                  )}
+                  {/* Fun Fact */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Fun Fact</label>
+                    {isEditing ? (
+                      <textarea
+                        value={editedProfile?.funFact || ''}
+                        onChange={(e) => handleInputChange('funFact', e.target.value)}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="Share a fun fact about yourself"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.funFact || 'No fun fact provided'}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
