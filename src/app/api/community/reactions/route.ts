@@ -36,20 +36,38 @@ export async function POST(request: NextRequest) {
     const post = getResult.Item;
     const currentReactions = post.reactions || {};
     const currentReactionCount = currentReactions[reactionType] || 0;
+    
+    // Track which users have reacted (to prevent double reactions)
+    const reactedBy = post.reactedBy || {};
+    const reactionUsers = reactedBy[reactionType] || [];
+    
+    // Check if user already reacted
+    if (reactionUsers.includes(userId)) {
+      return NextResponse.json(
+        { success: false, error: 'User already reacted to this post' },
+        { status: 400 }
+      );
+    }
 
-    // Update reaction count
+    // Update reaction count and track user
     const updatedReactions = {
       ...currentReactions,
       [reactionType]: currentReactionCount + 1
     };
+    
+    const updatedReactedBy = {
+      ...reactedBy,
+      [reactionType]: [...reactionUsers, userId]
+    };
 
-    // Update post with new reaction count
+    // Update post with new reaction count and user tracking
     await docClient.send(new UpdateCommand({
       TableName: COMMUNITY_POSTS_TABLE,
       Key: { postId: postId },
-      UpdateExpression: 'SET reactions = :reactions, updatedAt = :updatedAt',
+      UpdateExpression: 'SET reactions = :reactions, reactedBy = :reactedBy, updatedAt = :updatedAt',
       ExpressionAttributeValues: {
         ':reactions': updatedReactions,
+        ':reactedBy': updatedReactedBy,
         ':updatedAt': new Date().toISOString()
       }
     }));
@@ -99,20 +117,38 @@ export async function DELETE(request: NextRequest) {
     const post = getResult.Item;
     const currentReactions = post.reactions || {};
     const currentReactionCount = currentReactions[reactionType] || 0;
+    
+    // Track which users have reacted
+    const reactedBy = post.reactedBy || {};
+    const reactionUsers = reactedBy[reactionType] || [];
+    
+    // Check if user has reacted
+    if (!reactionUsers.includes(userId)) {
+      return NextResponse.json(
+        { success: false, error: 'User has not reacted to this post' },
+        { status: 400 }
+      );
+    }
 
-    // Update reaction count (ensure it doesn't go below 0)
+    // Update reaction count and remove user
     const updatedReactions = {
       ...currentReactions,
       [reactionType]: Math.max(0, currentReactionCount - 1)
     };
+    
+    const updatedReactedBy = {
+      ...reactedBy,
+      [reactionType]: reactionUsers.filter(id => id !== userId)
+    };
 
-    // Update post with new reaction count
+    // Update post with new reaction count and user tracking
     await docClient.send(new UpdateCommand({
       TableName: COMMUNITY_POSTS_TABLE,
       Key: { postId: postId },
-      UpdateExpression: 'SET reactions = :reactions, updatedAt = :updatedAt',
+      UpdateExpression: 'SET reactions = :reactions, reactedBy = :reactedBy, updatedAt = :updatedAt',
       ExpressionAttributeValues: {
         ':reactions': updatedReactions,
+        ':reactedBy': updatedReactedBy,
         ':updatedAt': new Date().toISOString()
       }
     }));

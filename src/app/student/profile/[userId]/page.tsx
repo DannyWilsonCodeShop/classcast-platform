@@ -34,6 +34,37 @@ interface StudentProfile {
     averageGrade: number;
     completedAssignments: number;
   };
+  engagementStats?: {
+    videoStats: {
+      totalVideos: number;
+      totalViews: number;
+      totalLikes: number;
+      totalComments: number;
+      totalRatings: number;
+      averageRating: number;
+    };
+    communityStats: {
+      totalPosts: number;
+      totalPostLikes: number;
+      totalPostComments: number;
+      totalPostReactions: number;
+      totalComments: number;
+      totalCommentLikes: number;
+    };
+    peerReviewStats: {
+      totalResponses: number;
+      totalResponseLikes: number;
+      totalResponseComments: number;
+      averageResponseLength: number;
+    };
+    engagementStats: {
+      totalInteractions: number;
+      totalLikesReceived: number;
+      totalCommentsReceived: number;
+      totalViewsReceived: number;
+      totalReactionsReceived: number;
+    };
+  };
 }
 
 const StudentProfileViewPage: React.FC = () => {
@@ -54,18 +85,34 @@ const StudentProfileViewPage: React.FC = () => {
         setIsLoading(true);
         setError(null);
         
-        const response = await fetch(`/api/students/${userId}/profile`, {
-          credentials: 'include'
-        });
+        // Fetch profile and engagement stats in parallel
+        const [profileResponse, statsResponse] = await Promise.all([
+          fetch(`/api/students/${userId}/profile`, {
+            credentials: 'include'
+          }),
+          fetch(`/api/users/${userId}/stats`, {
+            credentials: 'include'
+          })
+        ]);
         
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            setProfile(data.profile);
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          if (profileData.success) {
+            let profile = profileData.profile;
+            
+            // Add engagement stats if available
+            if (statsResponse.ok) {
+              const statsData = await statsResponse.json();
+              if (statsData.success) {
+                profile.engagementStats = statsData.stats;
+              }
+            }
+            
+            setProfile(profile);
           } else {
-            setError(data.error || 'Failed to load profile');
+            setError(profileData.error || 'Failed to load profile');
           }
-        } else if (response.status === 404) {
+        } else if (profileResponse.status === 404) {
           setError('Student profile not found');
         } else {
           setError('Failed to load profile');
@@ -278,10 +325,10 @@ const StudentProfileViewPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Stats Section */}
+              {/* Academic Stats Section */}
               {profile.stats && (
                 <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">Activity Stats</h3>
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">📚 Academic Performance</h3>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="text-center">
                       <div className="text-lg sm:text-xl font-bold text-[#4A90E2]">{profile.stats.totalSubmissions}</div>
@@ -294,6 +341,121 @@ const StudentProfileViewPage: React.FC = () => {
                     <div className="text-center">
                       <div className="text-lg sm:text-xl font-bold text-[#4A90E2]">{profile.stats.averageGrade}%</div>
                       <div className="text-xs sm:text-sm text-gray-600">Average</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Engagement Stats Section */}
+              {profile.engagementStats && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">🎯 Engagement Statistics</h3>
+                  
+                  {/* Video Engagement */}
+                  <div className="mb-6">
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-3">🎥 Video Content</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div className="text-center p-3 bg-blue-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-blue-600">{profile.engagementStats.videoStats.totalVideos}</div>
+                        <div className="text-xs text-gray-600">Videos</div>
+                      </div>
+                      <div className="text-center p-3 bg-green-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-green-600">{profile.engagementStats.videoStats.totalViews}</div>
+                        <div className="text-xs text-gray-600">Views</div>
+                      </div>
+                      <div className="text-center p-3 bg-red-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-red-600">{profile.engagementStats.videoStats.totalLikes}</div>
+                        <div className="text-xs text-gray-600">Likes</div>
+                      </div>
+                      <div className="text-center p-3 bg-purple-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-purple-600">{profile.engagementStats.videoStats.totalComments}</div>
+                        <div className="text-xs text-gray-600">Comments</div>
+                      </div>
+                      <div className="text-center p-3 bg-yellow-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-yellow-600">{profile.engagementStats.videoStats.averageRating}</div>
+                        <div className="text-xs text-gray-600">Avg Rating</div>
+                      </div>
+                      <div className="text-center p-3 bg-indigo-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-indigo-600">{profile.engagementStats.videoStats.totalRatings}</div>
+                        <div className="text-xs text-gray-600">Ratings</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Community Engagement */}
+                  <div className="mb-6">
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-3">💬 Community Activity</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div className="text-center p-3 bg-orange-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-orange-600">{profile.engagementStats.communityStats.totalPosts}</div>
+                        <div className="text-xs text-gray-600">Posts</div>
+                      </div>
+                      <div className="text-center p-3 bg-pink-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-pink-600">{profile.engagementStats.communityStats.totalPostLikes}</div>
+                        <div className="text-xs text-gray-600">Post Likes</div>
+                      </div>
+                      <div className="text-center p-3 bg-teal-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-teal-600">{profile.engagementStats.communityStats.totalPostReactions}</div>
+                        <div className="text-xs text-gray-600">Reactions</div>
+                      </div>
+                      <div className="text-center p-3 bg-cyan-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-cyan-600">{profile.engagementStats.communityStats.totalComments}</div>
+                        <div className="text-xs text-gray-600">Comments</div>
+                      </div>
+                      <div className="text-center p-3 bg-emerald-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-emerald-600">{profile.engagementStats.communityStats.totalCommentLikes}</div>
+                        <div className="text-xs text-gray-600">Comment Likes</div>
+                      </div>
+                      <div className="text-center p-3 bg-rose-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-rose-600">{profile.engagementStats.communityStats.totalPostComments}</div>
+                        <div className="text-xs text-gray-600">Post Comments</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Peer Review Engagement */}
+                  <div className="mb-6">
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-3">🤝 Peer Reviews</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="text-center p-3 bg-violet-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-violet-600">{profile.engagementStats.peerReviewStats.totalResponses}</div>
+                        <div className="text-xs text-gray-600">Responses</div>
+                      </div>
+                      <div className="text-center p-3 bg-amber-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-amber-600">{profile.engagementStats.peerReviewStats.totalResponseLikes}</div>
+                        <div className="text-xs text-gray-600">Response Likes</div>
+                      </div>
+                      <div className="text-center p-3 bg-lime-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-lime-600">{profile.engagementStats.peerReviewStats.averageResponseLength}</div>
+                        <div className="text-xs text-gray-600">Avg Words</div>
+                      </div>
+                      <div className="text-center p-3 bg-sky-50 rounded-lg">
+                        <div className="text-sm sm:text-base font-bold text-sky-600">{profile.engagementStats.peerReviewStats.totalResponseComments}</div>
+                        <div className="text-xs text-gray-600">Response Comments</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Total Engagement Summary */}
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+                    <h4 className="text-xs sm:text-sm font-medium text-gray-800 mb-3">🌟 Total Engagement</h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="text-center">
+                        <div className="text-lg sm:text-xl font-bold text-blue-600">{profile.engagementStats.engagementStats.totalInteractions}</div>
+                        <div className="text-xs text-gray-600">Total Interactions</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg sm:text-xl font-bold text-red-600">{profile.engagementStats.engagementStats.totalLikesReceived}</div>
+                        <div className="text-xs text-gray-600">Total Likes</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg sm:text-xl font-bold text-green-600">{profile.engagementStats.engagementStats.totalViewsReceived}</div>
+                        <div className="text-xs text-gray-600">Total Views</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg sm:text-xl font-bold text-purple-600">{profile.engagementStats.engagementStats.totalCommentsReceived}</div>
+                        <div className="text-xs text-gray-600">Total Comments</div>
+                      </div>
                     </div>
                   </div>
                 </div>
