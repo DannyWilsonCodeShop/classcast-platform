@@ -97,6 +97,7 @@ const PeerReviewsContent: React.FC = () => {
   const [autoscrollCountdown, setAutoscrollCountdown] = useState<number | null>(null);
   const [videoThumbnails, setVideoThumbnails] = useState<{[key: string]: string}>({});
   const [showNotification, setShowNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [lastScrollTime, setLastScrollTime] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
@@ -397,17 +398,28 @@ const PeerReviewsContent: React.FC = () => {
   };
 
   const trackView = async (videoId: string) => {
+    if (!videoId || !user?.id) {
+      console.log('Skipping view tracking - missing videoId or userId');
+      return;
+    }
+    
     try {
-      await fetch(`/api/videos/${videoId}/view`, {
+      const response = await fetch(`/api/videos/${videoId}/view`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user?.id
+          userId: user.id
         }),
         credentials: 'include'
       });
+      
+      if (!response.ok) {
+        console.log('View tracking failed:', response.status, response.statusText);
+      } else {
+        console.log('✅ View tracked successfully for:', videoId);
+      }
     } catch (error) {
       console.error('Error tracking view:', error);
     }
@@ -1015,18 +1027,26 @@ const PeerReviewsContent: React.FC = () => {
   };
 
   const handleWheel = (e: React.WheelEvent) => {
-    // Prevent default scrolling behavior
-    e.preventDefault();
+    // Debounce scroll events to avoid rapid navigation
+    const now = Date.now();
+    if (now - lastScrollTime < 500) return; // 500ms debounce
+    
+    // Use a threshold to avoid accidental navigation
+    if (Math.abs(e.deltaY) < 100) return;
+    
+    setLastScrollTime(now);
     
     // Navigate based on scroll direction
     if (e.deltaY > 0) {
       // Scrolling down - go to next video
       if (currentVideoIndex < peerVideos.length - 1) {
+        console.log('🖱️ Scroll navigation: Next video');
         nextVideo();
       }
     } else {
       // Scrolling up - go to previous video
       if (currentVideoIndex > 0) {
+        console.log('🖱️ Scroll navigation: Previous video');
         prevVideo();
       }
     }
@@ -1526,6 +1546,9 @@ const PeerReviewsContent: React.FC = () => {
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
                   Video {currentVideoIndex + 1} of {peerVideos.length}
+                </span>
+                <span className="text-xs text-gray-500 hidden sm:inline">
+                  (Scroll to navigate)
                 </span>
                 
                 {/* Autoscroll Toggle */}
