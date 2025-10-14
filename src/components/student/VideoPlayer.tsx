@@ -260,6 +260,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             className="w-full h-auto max-h-[80vh] cursor-pointer"
             onClick={handleVideoClick}
             playsInline
+            webkit-playsinline="true"
             preload="metadata"
           />
 
