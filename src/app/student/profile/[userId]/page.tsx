@@ -270,64 +270,52 @@ const StudentProfileViewPage: React.FC = () => {
                 {/* Left Column - Basic Info */}
                 <div className="lg:col-span-1 space-y-4">
                   {/* School */}
-                  {profile.schoolName && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
-                      <div className="flex items-center space-x-2">
-                        {profile.schoolLogo && (
-                          <img 
-                            src={profile.schoolLogo} 
-                            alt="School Logo" 
-                            className="w-4 h-4 object-contain"
-                          />
-                        )}
-                        <p className="text-gray-900 text-sm">{profile.schoolName}</p>
-                      </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
+                    <div className="flex items-center space-x-2">
+                      {profile.schoolLogo && (
+                        <img 
+                          src={profile.schoolLogo} 
+                          alt="School Logo" 
+                          className="w-4 h-4 object-contain"
+                        />
+                      )}
+                      <p className="text-gray-900 text-sm">{profile.schoolName || 'Not specified'}</p>
                     </div>
-                  )}
+                  </div>
 
                   {/* Favorite Subject */}
-                  {profile.favoriteSubject && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Favorite Subject</label>
-                      <p className="text-gray-900 text-sm">{profile.favoriteSubject}</p>
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Favorite Subject</label>
+                    <p className="text-gray-900 text-sm">{profile.favoriteSubject || 'Not specified'}</p>
+                  </div>
 
                   {/* Hobbies */}
-                  {profile.hobbies && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Hobbies</label>
-                      <p className="text-gray-900 text-sm">{profile.hobbies}</p>
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Hobbies</label>
+                    <p className="text-gray-900 text-sm">{profile.hobbies || 'Not specified'}</p>
+                  </div>
                 </div>
 
                 {/* Right Column - Extended Info */}
                 <div className="lg:col-span-2 space-y-4">
                   {/* Bio */}
-                  {profile.bio && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-                      <p className="text-gray-900 text-sm">{profile.bio}</p>
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                    <p className="text-gray-900 text-sm">{profile.bio || 'No bio provided'}</p>
+                  </div>
 
                   {/* Career Goals */}
-                  {profile.careerGoals && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Career Goals</label>
-                      <p className="text-gray-900 text-sm">{profile.careerGoals}</p>
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Career Goals</label>
+                    <p className="text-gray-900 text-sm">{profile.careerGoals || 'No career goals specified'}</p>
+                  </div>
 
                   {/* Fun Fact */}
-                  {profile.funFact && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Fun Fact</label>
-                      <p className="text-gray-900 text-sm">{profile.funFact}</p>
-                    </div>
-                  )}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Fun Fact</label>
+                    <p className="text-gray-900 text-sm">{profile.funFact || 'No fun fact provided'}</p>
+                  </div>
                 </div>
               </div>
 
