@@ -11,6 +11,7 @@ import Avatar from '@/components/common/Avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Wifi, WifiOff, Plus } from 'lucide-react';
+import NotificationBell from '@/components/common/NotificationBell';
 
 interface DashboardStats {
   activeCourses: number;
@@ -403,8 +404,17 @@ const StudentDashboard: React.FC = () => {
               />
             </div>
             
-            {/* Right Side - Join Class Button and Profile Thumbnail */}
+            {/* Right Side - Notifications, Join Class Button and Profile Thumbnail */}
             <div className="flex items-center space-x-1 sm:space-x-3 flex-shrink-0">
+              {/* Notification Bell */}
+              {user?.id && (
+                <NotificationBell 
+                  userId={user.id} 
+                  userRole="student" 
+                  className="flex-shrink-0"
+                />
+              )}
+              
               <button
                 onClick={() => setShowEnrollmentModal(true)}
                 className="text-indigo-600 hover:text-purple-600 transition-colors p-1 sm:p-2"
@@ -412,12 +422,13 @@ const StudentDashboard: React.FC = () => {
               >
                 <Plus className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
-        <Avatar
-          user={user}
-          size="lg"
-          onClick={() => router.push('/student/profile')}
-          className="shadow-lg"
-        />
+              
+              <Avatar
+                user={user}
+                size="lg"
+                onClick={() => router.push('/student/profile')}
+                className="shadow-lg"
+              />
             </div>
           </div>
         </div>
