@@ -104,12 +104,12 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         
         // Safari-specific: Wait for video to be ready before attempting autoplay
         const attemptAutoplay = () => {
-          if (currentVideo.readyState >= 2) { // HAVE_CURRENT_DATA
-            currentVideo.currentTime = 2.0; // Start at 2 seconds for better preview
+          if (currentVideo.readyState >= 3) { // HAVE_FUTURE_DATA - more reliable for Safari
+            // Don't set currentTime immediately - let Safari handle it
             currentVideo.play().then(() => {
               setIsPlaying(true);
               
-              // Track video view
+              // Track video view after successful play
               if (user?.id && reels[currentIndex]?.id) {
                 fetch('/api/videos/track-view', {
                   method: 'POST',
@@ -144,12 +144,12 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
             });
           } else {
             // Wait for video to load more data
-            setTimeout(attemptAutoplay, 100);
+            setTimeout(attemptAutoplay, 200);
           }
         };
 
-        // Start autoplay attempt
-        attemptAutoplay();
+        // Start autoplay attempt after a short delay to ensure video is loaded
+        setTimeout(attemptAutoplay, 100);
       }
     }
     
@@ -288,13 +288,12 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         crossOrigin="anonymous"
         key={currentReel.id} // Force re-render when video changes
         onLoadedData={() => handleVideoLoad(currentIndex)}
-        onError={() => handleVideoError(currentIndex)}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onCanPlay={() => {
           // Safari: Ensure video is ready for playback
           const video = videoRefs.current[currentIndex];
-          if (video && !isPlaying) {
+          if (video && !isPlaying && video.readyState >= 3) {
             video.play().catch(() => {
               // Autoplay failed, user interaction required
               setIsPlaying(false);
@@ -304,9 +303,25 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         onLoadedMetadata={() => {
           // Safari: Set initial time after metadata loads
           const video = videoRefs.current[currentIndex];
-          if (video) {
-            video.currentTime = 2.0;
+          if (video && video.readyState >= 1) {
+            // Only set currentTime if video has enough data
+            setTimeout(() => {
+              if (video.readyState >= 2) {
+                video.currentTime = 2.0;
+              }
+            }, 100);
           }
+        }}
+        onError={(e) => {
+          console.error('Video error:', e);
+          const video = e.currentTarget;
+          console.error('Video error details:', {
+            error: video.error,
+            networkState: video.networkState,
+            readyState: video.readyState,
+            src: video.src
+          });
+          handleVideoError(currentIndex);
         }}
       >
         <source src={currentReel.videoUrl} type="video/mp4" />
