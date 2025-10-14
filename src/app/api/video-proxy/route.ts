@@ -23,18 +23,17 @@ export async function GET(request: NextRequest) {
       // Check if this is a presigned URL (has query parameters)
       if (url.search) {
         console.log('Detected presigned URL, using direct fetch instead of S3 client');
-        // For presigned URLs, fetch directly instead of using S3 client
+        // For presigned URLs, stream the response instead of loading into memory
         const response = await fetch(videoUrl);
         if (!response.ok) {
           return new NextResponse('Video not found', { status: 404 });
         }
         
-        const buffer = await response.arrayBuffer();
-        
-        return new NextResponse(buffer, {
+        // Stream the response to avoid loading large files into memory
+        return new NextResponse(response.body, {
           headers: {
             'Content-Type': response.headers.get('Content-Type') || 'video/mp4',
-            'Content-Length': buffer.byteLength.toString(),
+            'Content-Length': response.headers.get('Content-Length') || '0',
             'Accept-Ranges': 'bytes',
             'Cache-Control': 'public, max-age=31536000',
             'Access-Control-Allow-Origin': '*',
@@ -74,23 +73,11 @@ export async function GET(request: NextRequest) {
         return new NextResponse('Video not found', { status: 404 });
       }
 
-      // Convert the stream to buffer
-      const chunks: Uint8Array[] = [];
-      const reader = result.Body.transformToWebStream().getReader();
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        chunks.push(value);
-      }
-      
-      const buffer = Buffer.concat(chunks);
-
-      // Return the video with proper headers for Safari/mobile compatibility
-      return new NextResponse(buffer, {
+      // Stream the response directly to avoid loading large files into memory
+      return new NextResponse(result.Body.transformToWebStream(), {
         headers: {
           'Content-Type': contentType,
-          'Content-Length': buffer.length.toString(),
+          'Content-Length': result.ContentLength?.toString() || '0',
           'Accept-Ranges': 'bytes',
           'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
           'Access-Control-Allow-Origin': '*',
