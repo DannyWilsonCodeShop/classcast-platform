@@ -12,6 +12,7 @@ interface Notification {
   url: string;
   timestamp: string;
   priority: 'high' | 'medium' | 'low';
+  senderName?: string;
 }
 
 interface NotificationBellProps {
@@ -27,6 +28,23 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, userRole, c
   const [lastFetch, setLastFetch] = useState<number>(0);
   const popupRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Mark notification as read
+  const markAsRead = async (notificationId: string) => {
+    try {
+      const response = await fetch(`/api/notifications/${notificationId}/read`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        // Remove the notification from the list
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+  };
 
   // Fetch notifications
   const fetchNotifications = async () => {
@@ -121,6 +139,10 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, userRole, c
   };
 
   const handleNotificationClick = (notification: Notification) => {
+    // Mark as read if it's from the notifications table (has senderName)
+    if (notification.senderName) {
+      markAsRead(notification.id);
+    }
     setIsOpen(false);
     router.push(notification.url);
   };
@@ -201,6 +223,11 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, userRole, c
                       <p className="text-xs text-gray-600 mt-1 line-clamp-2">
                         {notification.message}
                       </p>
+                      {notification.senderName && (
+                        <p className="text-xs text-blue-600 mt-1">
+                          From: {notification.senderName}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-400 mt-2">
                         {formatTimestamp(notification.timestamp)}
                       </p>

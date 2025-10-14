@@ -183,6 +183,43 @@ export async function POST(request: NextRequest) {
 
     await dynamodbService.putItem('classcast-peer-responses', peerResponse);
 
+    // Send notification to video author if response is submitted
+    if (isSubmitted) {
+      try {
+        // Get video details to find the author
+        const videoResult = await dynamodbService.getItem('classcast-submissions', { submissionId: videoId });
+        const video = videoResult.Item;
+        
+        if (video && video.studentId && video.studentId !== reviewerId) {
+          // Create notification for the video author
+          const notificationResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/notifications/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipientId: video.studentId,
+              senderId: reviewerId,
+              senderName: reviewerName,
+              type: 'peer_response',
+              title: 'New Response to Your Video',
+              message: `${reviewerName} responded to your video: "${video.videoTitle || 'Video Submission'}"`,
+              relatedId: videoId,
+              relatedType: 'video',
+              priority: 'normal'
+            })
+          });
+
+          if (notificationResponse.ok) {
+            console.log('✅ Notification sent to video author:', video.studentId);
+          } else {
+            console.error('❌ Failed to send notification:', await notificationResponse.text());
+          }
+        }
+      } catch (notificationError) {
+        console.error('Error sending notification:', notificationError);
+        // Don't fail the response creation if notification fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: peerResponse,
@@ -240,6 +277,49 @@ export async function PUT(request: NextRequest) {
       updateExpression,
       expressionAttributeValues
     );
+
+    // Send notification to video author if response is being submitted
+    if (isSubmitted) {
+      try {
+        // Get the existing response to find video and reviewer info
+        const responseResult = await dynamodbService.getItem('classcast-peer-responses', { id });
+        const response = responseResult.Item;
+        
+        if (response && response.videoId && response.reviewerId && response.reviewerName) {
+          // Get video details to find the author
+          const videoResult = await dynamodbService.getItem('classcast-submissions', { submissionId: response.videoId });
+          const video = videoResult.Item;
+          
+          if (video && video.studentId && video.studentId !== response.reviewerId) {
+            // Create notification for the video author
+            const notificationResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/notifications/create`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                recipientId: video.studentId,
+                senderId: response.reviewerId,
+                senderName: response.reviewerName,
+                type: 'peer_response',
+                title: 'New Response to Your Video',
+                message: `${response.reviewerName} responded to your video: "${video.videoTitle || 'Video Submission'}"`,
+                relatedId: response.videoId,
+                relatedType: 'video',
+                priority: 'normal'
+              })
+            });
+
+            if (notificationResponse.ok) {
+              console.log('✅ Notification sent to video author:', video.studentId);
+            } else {
+              console.error('❌ Failed to send notification:', await notificationResponse.text());
+            }
+          }
+        }
+      } catch (notificationError) {
+        console.error('Error sending notification:', notificationError);
+        // Don't fail the response update if notification fails
+      }
+    }
 
     return NextResponse.json({
       success: true,
