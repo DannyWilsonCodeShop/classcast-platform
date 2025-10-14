@@ -404,12 +404,13 @@ const PeerReviewsContent: React.FC = () => {
     }
     
     try {
-      const response = await fetch(`/api/videos/${videoId}/view`, {
+      const response = await fetch('/api/videos/track-view', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          videoId: videoId,
           userId: user.id
         }),
         credentials: 'include'
@@ -1222,6 +1223,7 @@ const PeerReviewsContent: React.FC = () => {
                 crossOrigin="anonymous"
                 playsInline
                 webkit-playsinline="true"
+                muted
                 onLoadedMetadata={(e) => {
                   handleVideoLoad(e);
                   // Seek to 2 seconds for thumbnail display
@@ -1229,6 +1231,16 @@ const PeerReviewsContent: React.FC = () => {
                   video.currentTime = 2.0;
                 }}
                 onTimeUpdate={handleTimeUpdate}
+                onCanPlay={() => {
+                  // Safari: Ensure video is ready for playback
+                  const video = videoRef.current;
+                  if (video && !isPlaying) {
+                    video.play().catch(() => {
+                      // Autoplay failed, user interaction required
+                      setIsPlaying(false);
+                    });
+                  }
+                }}
                 onSeeked={(e) => {
                   const video = e.currentTarget;
                   console.log('🎬 Main video seeked to:', video.currentTime, 'for video:', currentVideo?.id);
@@ -1636,9 +1648,13 @@ const PeerReviewsContent: React.FC = () => {
                       crossOrigin="anonymous"
                       playsInline
                       webkit-playsinline="true"
+                      muted
                       onLoadedMetadata={(e) => {
                         const vid = e.currentTarget;
                         vid.currentTime = 2.0;
+                      }}
+                      onError={(e) => {
+                        console.error('Video thumbnail failed to load:', video.id);
                       }}
                       poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
                     />
