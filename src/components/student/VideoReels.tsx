@@ -168,7 +168,11 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                 // Set new timeout for autoscroll (5 seconds)
                 autoScrollTimeoutRef.current = setTimeout(() => {
                   console.log('⏭️ Auto-scrolling to next video:', currentIndex + 1);
-                  setCurrentIndex(prev => prev + 1);
+                  setCurrentIndex(prev => {
+                    // Ensure we don't go beyond array bounds
+                    const nextIndex = prev + 1;
+                    return nextIndex < reels.length ? nextIndex : prev;
+                  });
                 }, 5000);
               }
             }).catch((error) => {
@@ -203,6 +207,32 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
       }
     });
   }, [currentIndex]);
+
+  // Add non-passive wheel event listener to prevent passive event warnings
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheelEvent = (e: WheelEvent) => {
+      // Only prevent default if we can actually navigate
+      if ((e.deltaY > 0 && currentIndex < reels.length - 1) || 
+          (e.deltaY < 0 && currentIndex > 0)) {
+        e.preventDefault();
+        if (e.deltaY > 0) {
+          navigateToVideo('next');
+        } else {
+          navigateToVideo('prev');
+        }
+      }
+    };
+
+    // Add event listener with passive: false to allow preventDefault
+    container.addEventListener('wheel', handleWheelEvent, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheelEvent);
+    };
+  }, [currentIndex, reels.length]);
 
   const handleVideoClick = (reel: VideoReel & { assignmentId?: string }) => {
     // Navigate to peer reviews page with this video
@@ -267,14 +297,6 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
     }
   };
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    if (e.deltaY > 0) {
-      navigateToVideo('next');
-    } else {
-      navigateToVideo('prev');
-    }
-  };
 
   if (isLoading) {
     return (
@@ -301,11 +323,22 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
 
   const currentReel = reels[currentIndex];
 
+  // Safety check to prevent crashes
+  if (!currentReel) {
+    return (
+      <div className={`w-full h-64 sm:h-80 lg:aspect-video bg-gray-100 rounded-xl flex items-center justify-center ${className}`}>
+        <div className="text-center">
+          <div className="text-4xl mb-2">⚠️</div>
+          <p className="text-gray-600 text-sm">Video not available</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       ref={containerRef}
       className={`relative w-full h-64 sm:h-80 lg:aspect-video bg-black rounded-xl overflow-hidden cursor-pointer group ${className}`}
-      onWheel={handleWheel}
       onClick={() => handleVideoClick(currentReel)}
     >
       {/* Video Player */}

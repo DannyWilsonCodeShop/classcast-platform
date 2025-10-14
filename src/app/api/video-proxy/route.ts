@@ -26,7 +26,14 @@ export async function GET(request: NextRequest) {
         // For presigned URLs, stream the response instead of loading into memory
         const response = await fetch(videoUrl);
         if (!response.ok) {
+          console.error('Failed to fetch presigned URL:', response.status, response.statusText);
           return new NextResponse('Video not found', { status: 404 });
+        }
+        
+        // Check if response body is readable
+        if (!response.body) {
+          console.error('Response body is not readable');
+          return new NextResponse('Video not available', { status: 500 });
         }
         
         // Stream the response to avoid loading large files into memory
