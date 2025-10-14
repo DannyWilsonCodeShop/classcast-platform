@@ -267,6 +267,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         loop
         playsInline
         preload="metadata"
+        crossOrigin="anonymous"
         key={currentReel.id} // Force re-render when video changes
         onLoadedData={() => handleVideoLoad(currentIndex)}
         onError={() => handleVideoError(currentIndex)}

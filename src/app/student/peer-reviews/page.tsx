@@ -170,6 +170,13 @@ const PeerReviewsContent: React.FC = () => {
     try {
       console.log('⭐ Rating video:', videoId, 'rating:', rating, 'user:', user.id);
       
+      // Find the current video to get the content creator ID
+      const currentVideo = peerVideos.find(v => v.id === videoId);
+      if (!currentVideo) {
+        console.error('Video not found for rating:', videoId);
+        return;
+      }
+
       const response = await fetch(`/api/videos/${videoId}/interactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -179,7 +186,8 @@ const PeerReviewsContent: React.FC = () => {
           userId: user.id,
           userName: `${user.firstName} ${user.lastName}`,
           userAvatar: user.avatar || '/api/placeholder/40/40',
-          rating: rating
+          rating: rating,
+          contentCreatorId: currentVideo.studentId // Add the content creator ID
         })
       });
 
@@ -1097,6 +1105,7 @@ const PeerReviewsContent: React.FC = () => {
                 ref={videoRef}
                 className="w-full h-full object-contain"
                 preload="metadata"
+                crossOrigin="anonymous"
                 onLoadedMetadata={(e) => {
                   handleVideoLoad(e);
                   // Seek to 2 seconds for thumbnail display
@@ -1489,6 +1498,7 @@ const PeerReviewsContent: React.FC = () => {
                       src={video.videoUrl}
                       className="w-full h-full object-cover"
                       preload="metadata"
+                      crossOrigin="anonymous"
                       onLoadedMetadata={(e) => {
                         const vid = e.currentTarget;
                         vid.currentTime = 2.0;
