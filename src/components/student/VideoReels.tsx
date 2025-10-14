@@ -320,6 +320,9 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         webkit-playsinline="true"
         preload="metadata"
         crossOrigin="anonymous"
+        controls={false}
+        disablePictureInPicture
+        controlsList="nodownload nofullscreen noremoteplayback"
         key={currentReel.id} // Force re-render when video changes
         poster={generatedThumbnails.get(currentReel.id) || (currentReel.thumbnail !== '/api/placeholder/400/300' ? currentReel.thumbnail : undefined)}
         onLoadedData={() => handleVideoLoad(currentIndex)}

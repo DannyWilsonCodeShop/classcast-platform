@@ -38,8 +38,12 @@ export async function GET(request: NextRequest) {
             'Cache-Control': 'public, max-age=31536000',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-            'Access-Control-Allow-Headers': 'Range, Content-Range, Content-Length, Content-Type',
+            'Access-Control-Allow-Headers': 'Range, Content-Range, Content-Length, Content-Type, Accept, Origin, X-Requested-With',
+            'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
             'X-Content-Type-Options': 'nosniff',
+            // Safari-specific headers for better video compatibility
+            'Cross-Origin-Resource-Policy': 'cross-origin',
+            'Cross-Origin-Embedder-Policy': 'unsafe-none',
           },
         });
       }
@@ -82,9 +86,12 @@ export async function GET(request: NextRequest) {
           'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-          'Access-Control-Allow-Headers': 'Range, Content-Range, Content-Length, Content-Type',
-          // Safari-specific headers
+          'Access-Control-Allow-Headers': 'Range, Content-Range, Content-Length, Content-Type, Accept, Origin, X-Requested-With',
+          'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
+          // Safari-specific headers for better video compatibility
           'X-Content-Type-Options': 'nosniff',
+          'Cross-Origin-Resource-Policy': 'cross-origin',
+          'Cross-Origin-Embedder-Policy': 'unsafe-none',
         },
       });
     } catch (s3Error) {
@@ -152,4 +159,19 @@ export async function HEAD(request: NextRequest) {
     console.error('Error in HEAD request:', error);
     return new NextResponse('Video not found', { status: 404 });
   }
+}
+
+// Handle OPTIONS requests for CORS preflight
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+      'Access-Control-Allow-Headers': 'Range, Content-Range, Content-Length, Content-Type, Accept, Origin, X-Requested-With',
+      'Access-Control-Expose-Headers': 'Content-Length, Content-Range, Accept-Ranges',
+      'Cross-Origin-Resource-Policy': 'cross-origin',
+      'Cross-Origin-Embedder-Policy': 'unsafe-none',
+    },
+  });
 }
