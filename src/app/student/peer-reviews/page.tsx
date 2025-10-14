@@ -1205,11 +1205,11 @@ const PeerReviewsContent: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-col h-[calc(100vh-80px)]">
+      <div className="flex flex-col min-h-screen">
         {/* Video Player Section */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 mb-4">
           {/* Video Player */}
-          <div className="bg-black relative aspect-video w-full">
+          <div className="bg-black relative aspect-video w-full max-w-4xl mx-auto rounded-lg overflow-hidden shadow-lg">
             {currentVideo.isYouTube || currentVideo.youtubeUrl ? (
               <YouTubePlayer
                 url={currentVideo.youtubeUrl || currentVideo.videoUrl}
@@ -1620,28 +1620,29 @@ const PeerReviewsContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Video List - Scrollable */}
-        <div className="flex-1 bg-white overflow-y-auto">
-          <div className="p-4 border-b border-gray-200">
-            <h3 className="font-semibold text-gray-800 mb-2">All Peer Videos ({peerVideos.length})</h3>
-            <div className="text-sm text-gray-600">
-              {responseStats.submittedResponses} of {assignment?.minResponsesRequired || 0} responses submitted
-            </div>
-          </div>
-          
-          <div className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Video List - All Videos as Cards */}
+        <div className="flex-1 bg-gray-50">
+          <div className="p-6">
+            <div className="max-w-7xl mx-auto">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">All Peer Videos ({peerVideos.length})</h3>
+                <div className="text-sm text-gray-600">
+                  {responseStats.submittedResponses} of {assignment?.minResponsesRequired || 0} responses submitted
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {peerVideos.map((video, index) => (
                 <div
                   key={video.id}
                   onClick={() => goToVideo(index)}
-                  className={`bg-white rounded-lg shadow-sm border-2 cursor-pointer transition-all hover:shadow-md ${
+                  className={`bg-white rounded-xl shadow-md border-2 cursor-pointer transition-all hover:shadow-lg hover:scale-105 ${
                     index === currentVideoIndex
-                      ? 'border-blue-500 ring-2 ring-blue-200'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-blue-500 ring-4 ring-blue-200 shadow-blue-200'
+                      : 'border-gray-200 hover:border-blue-300'
                   }`}
                 >
-                  <div className="aspect-video bg-black rounded-t-lg overflow-hidden">
+                  <div className="aspect-video bg-black rounded-t-xl overflow-hidden relative">
                     <video
                       src={getVideoUrl(video.videoUrl)}
                       className="w-full h-full object-cover"
@@ -1659,13 +1660,21 @@ const PeerReviewsContent: React.FC = () => {
                       }}
                       poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
                     />
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 hover:opacity-100 transition-opacity">
+                      <div className="bg-white bg-opacity-90 rounded-full p-3">
+                        <svg className="w-8 h-8 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-3">
-                    <h4 className="font-medium text-gray-800 text-sm truncate mb-1">
+                  <div className="p-4">
+                    <h4 className="font-semibold text-gray-800 text-sm truncate mb-2">
                       {video.title}
                     </h4>
-                    <p className="text-xs text-gray-600 truncate mb-1">
-                      {video.studentName}
+                    <p className="text-xs text-gray-600 truncate mb-2">
+                      By {video.studentName}
                     </p>
                     {video.sectionName && (
                       <div className="flex items-center mt-1">
@@ -1697,6 +1706,7 @@ const PeerReviewsContent: React.FC = () => {
                   </div>
                 </div>
             ))}
+              </div>
             </div>
           </div>
         </div>
