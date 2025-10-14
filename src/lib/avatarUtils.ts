@@ -19,9 +19,9 @@ export function getAvatarUrl(avatarUrl: string | undefined | null, fallbackText?
     return avatarUrl;
   }
 
-  // If it's an S3 URL, use the proxy
+  // If it's an S3 URL, use direct access (S3 permissions are now fixed)
   if (avatarUrl.includes('amazonaws.com') || avatarUrl.includes('s3.')) {
-    return `/api/avatar-proxy?url=${encodeURIComponent(avatarUrl)}`;
+    return avatarUrl; // Use direct S3 URL since permissions are fixed
   }
 
   // For other URLs (like data URLs or external URLs), return as-is
@@ -44,7 +44,7 @@ export function getAvatarUrlWithSize(avatarUrl: string | undefined | null, size:
   }
 
   if (avatarUrl.includes('amazonaws.com') || avatarUrl.includes('s3.')) {
-    return `/api/avatar-proxy?url=${encodeURIComponent(avatarUrl)}`;
+    return avatarUrl; // Use direct S3 URL since permissions are fixed
   }
 
   return avatarUrl;
