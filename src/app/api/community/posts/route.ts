@@ -93,7 +93,18 @@ export async function GET(request: NextRequest) {
               isAnnouncement: post.isAnnouncement || false,
               likes: post.likes || 0,
               comments: post.comments || 0,
-              timestamp: post.timestamp || post.createdAt || new Date().toISOString()
+              timestamp: post.timestamp || post.createdAt || new Date().toISOString(),
+              reactions: post.reactions || {
+                like: 0,
+                love: 0,
+                helpful: 0,
+                celebrate: 0
+              },
+              isLiked: post.isLiked || false,
+              isBookmarked: post.isBookmarked || false,
+              tags: post.tags || [],
+              trending: post.trending || false,
+              pinned: post.pinned || false
             };
           } catch (error) {
             console.error(`Error enriching post ${post.id} with user data:`, error);
@@ -105,7 +116,18 @@ export async function GET(request: NextRequest) {
               isAnnouncement: post.isAnnouncement || false,
               likes: post.likes || 0,
               comments: post.comments || 0,
-              timestamp: post.timestamp || post.createdAt || new Date().toISOString()
+              timestamp: post.timestamp || post.createdAt || new Date().toISOString(),
+              reactions: post.reactions || {
+                like: 0,
+                love: 0,
+                helpful: 0,
+                celebrate: 0
+              },
+              isLiked: post.isLiked || false,
+              isBookmarked: post.isBookmarked || false,
+              tags: post.tags || [],
+              trending: post.trending || false,
+              pinned: post.pinned || false
             };
           }
         })
