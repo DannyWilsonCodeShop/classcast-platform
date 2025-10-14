@@ -186,6 +186,8 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [gradingSubmission, setGradingSubmission] = useState<string | null>(null);
   const [grades, setGrades] = useState<{[key: string]: { grade: number | '', feedback: string }}>({});
   const [peerResponses, setPeerResponses] = useState<PeerResponse[]>([]);
+  const [removingStudent, setRemovingStudent] = useState<string | null>(null);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState<{studentId: string, studentName: string} | null>(null);
   const [expandedPeerResponses, setExpandedPeerResponses] = useState<Set<string>>(new Set());
   const [collapsedVideos, setCollapsedVideos] = useState<Set<string>>(new Set());
 
@@ -448,6 +450,46 @@ const InstructorCourseDetailPage: React.FC = () => {
       alert('Failed to delete course. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRemoveStudent = async (studentId: string, studentName: string) => {
+    try {
+      setRemovingStudent(studentId);
+      
+      const response = await fetch(`/api/instructor/courses/${courseId}/students/${studentId}/remove`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Student removal report:', data.report);
+        
+        // Remove student from local state
+        setStudents(prev => prev.filter(student => student.studentId !== studentId));
+        
+        // Update course enrollment count
+        if (course) {
+          setCourse(prev => prev ? {
+            ...prev,
+            enrollmentCount: Math.max(0, prev.enrollmentCount - 1)
+          } : null);
+        }
+        
+        alert(`✅ ${studentName} has been removed from the course.\n\nRemoved:\n• ${data.report.submissionsDeleted} video submissions\n• ${data.report.peerResponsesDeleted} peer responses\n• ${data.report.communityPostsDeleted} community posts\n• ${data.report.communityCommentsDeleted} community comments\n• ${data.report.s3ObjectsDeleted} files from storage`);
+        
+        setShowRemoveConfirm(null);
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Student removal failed:', errorData);
+        alert(`❌ Failed to remove student: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error removing student:', error);
+      alert('❌ Failed to remove student. Please try again.');
+    } finally {
+      setRemovingStudent(null);
     }
   };
 
@@ -1166,13 +1208,31 @@ const InstructorCourseDetailPage: React.FC = () => {
                         key={student.studentId}
                         className="bg-gray-50 rounded-xl p-4 border border-gray-200"
                       >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">
-                            {student.name.charAt(0).toUpperCase()}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                              {student.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-800">{student.name}</h3>
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-800">{student.name}</h3>
-                          </div>
+                          
+                          {/* Remove Student Button */}
+                          <button
+                            onClick={() => setShowRemoveConfirm({studentId: student.studentId, studentName: student.name})}
+                            disabled={removingStudent === student.studentId}
+                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Remove student from course"
+                          >
+                            {removingStudent === student.studentId ? (
+                              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                            ) : (
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            )}
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -1284,6 +1344,61 @@ const InstructorCourseDetailPage: React.FC = () => {
                   isEditing={true}
                   assignmentId={editingAssignment.assignmentId}
                 />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Remove Student Confirmation Modal */}
+        {showRemoveConfirm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">Remove Student</h3>
+              </div>
+              
+              <div className="mb-6">
+                <p className="text-gray-700 mb-4">
+                  Are you sure you want to remove <strong>{showRemoveConfirm.studentName}</strong> from this course?
+                </p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h4 className="font-medium text-red-800 mb-2">⚠️ This will permanently delete:</h4>
+                  <ul className="text-sm text-red-700 space-y-1">
+                    <li>• All video submissions and files</li>
+                    <li>• All peer responses they wrote</li>
+                    <li>• All community posts and comments</li>
+                    <li>• All associated data and files</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={() => setShowRemoveConfirm(null)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+                  disabled={removingStudent === showRemoveConfirm.studentId}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleRemoveStudent(showRemoveConfirm.studentId, showRemoveConfirm.studentName)}
+                  disabled={removingStudent === showRemoveConfirm.studentId}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-red-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  {removingStudent === showRemoveConfirm.studentId ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Removing...</span>
+                    </div>
+                  ) : (
+                    'Remove Student'
+                  )}
+                </button>
               </div>
             </div>
           </div>
