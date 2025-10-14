@@ -156,19 +156,52 @@ export default function CommunityPage() {
     }
   };
 
-  const handleReaction = (postId: string, reactionType: keyof CommunityPost['reactions']) => {
-    setPosts(posts.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          reactions: {
-            ...post.reactions,
-            [reactionType]: post.reactions[reactionType] + 1
+  const handleReaction = async (postId: string, reactionType: keyof CommunityPost['reactions']) => {
+    if (!user?.id) {
+      console.error('No user ID available for reaction');
+      return;
+    }
+
+    try {
+      console.log('🎯 Adding reaction:', { postId, reactionType, userId: user.id });
+      
+      const response = await fetch('/api/community/reactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          postId,
+          userId: user.id,
+          reactionType
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Reaction added successfully:', data);
+        
+        // Update local state with new reaction counts
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              reactions: {
+                ...post.reactions,
+                ...data.reactions
+              }
+            };
           }
-        };
+          return post;
+        }));
+      } else {
+        const errorData = await response.text();
+        console.error('❌ Reaction API failed:', response.status, errorData);
+        alert('Failed to add reaction. Please try again.');
       }
-      return post;
-    }));
+    } catch (error) {
+      console.error('Error adding reaction:', error);
+      alert('Failed to add reaction. Please try again.');
+    }
   };
 
   const handleBookmark = (postId: string) => {
@@ -181,6 +214,57 @@ export default function CommunityPage() {
       }
       return post;
     }));
+  };
+
+  const handleComment = async (postId: string) => {
+    if (!user?.id) {
+      console.error('No user ID available for comment');
+      return;
+    }
+
+    const commentContent = prompt('Write your comment:');
+    if (!commentContent || commentContent.trim().length === 0) {
+      return;
+    }
+
+    try {
+      console.log('💬 Adding comment:', { postId, userId: user.id, content: commentContent });
+      
+      const response = await fetch('/api/community/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          postId,
+          userId: user.id,
+          content: commentContent.trim(),
+          authorName: `${user.firstName} ${user.lastName}`
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Comment added successfully:', data);
+        
+        // Update local state with new comment count
+        setPosts(posts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: (post.comments || 0) + 1
+            };
+          }
+          return post;
+        }));
+      } else {
+        const errorData = await response.text();
+        console.error('❌ Comment API failed:', response.status, errorData);
+        alert('Failed to add comment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      alert('Failed to add comment. Please try again.');
+    }
   };
 
 
@@ -391,7 +475,10 @@ export default function CommunityPage() {
                           </div>
                           
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <button className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
+                            <button 
+                              onClick={() => handleComment(post.id)}
+                              className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
+                            >
                               <span>💬</span>
                               <span>{post.comments}</span>
                             </button>
@@ -519,7 +606,10 @@ export default function CommunityPage() {
                           </div>
                           
                           <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            <button className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
+                            <button 
+                              onClick={() => handleComment(post.id)}
+                              className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
+                            >
                               <span>💬</span>
                               <span>{post.comments}</span>
                             </button>
