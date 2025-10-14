@@ -92,6 +92,8 @@ const PeerReviewsContent: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const autoScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
   const [lastSaved, setLastSaved] = useState<string | null>(null);
@@ -901,6 +903,11 @@ const PeerReviewsContent: React.FC = () => {
   };
 
   const goToVideo = (index: number) => {
+    // Clear autoscroll timer when user manually navigates
+    if (autoScrollTimeoutRef.current) {
+      clearTimeout(autoScrollTimeoutRef.current);
+    }
+    
     setCurrentVideoIndex(index);
     setCurrentResponse(responses.get(peerVideos[index]?.id)?.content || '');
     setShowResponseForm(false);
@@ -918,6 +925,28 @@ const PeerReviewsContent: React.FC = () => {
       goToVideo(currentVideoIndex - 1);
     }
   };
+
+  // Auto-scroll to next video after video starts playing
+  useEffect(() => {
+    if (isPlaying && autoScrollEnabled && currentVideoIndex < peerVideos.length - 1) {
+      // Clear any existing timeout
+      if (autoScrollTimeoutRef.current) {
+        clearTimeout(autoScrollTimeoutRef.current);
+      }
+      
+      // Set timer to advance to next video (10 seconds for peer review videos)
+      autoScrollTimeoutRef.current = setTimeout(() => {
+        nextVideo();
+      }, 10000); // 10 seconds for peer review videos
+    }
+    
+    // Cleanup timeout on unmount or when video stops playing
+    return () => {
+      if (autoScrollTimeoutRef.current) {
+        clearTimeout(autoScrollTimeoutRef.current);
+      }
+    };
+  }, [isPlaying, autoScrollEnabled, currentVideoIndex, peerVideos.length]);
 
   if (isLoading) {
     return (
@@ -1341,9 +1370,40 @@ const PeerReviewsContent: React.FC = () => {
               >
                 ← Previous
               </button>
-              <span className="text-sm text-gray-600">
-                Video {currentVideoIndex + 1} of {peerVideos.length}
-              </span>
+              
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600">
+                  Video {currentVideoIndex + 1} of {peerVideos.length}
+                </span>
+                
+                {/* Autoscroll Toggle */}
+                <button
+                  onClick={() => {
+                    setAutoScrollEnabled(!autoScrollEnabled);
+                    if (autoScrollTimeoutRef.current) {
+                      clearTimeout(autoScrollTimeoutRef.current);
+                    }
+                  }}
+                  className={`flex items-center space-x-2 px-3 py-1 rounded-lg transition-colors text-sm ${
+                    autoScrollEnabled 
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  title={autoScrollEnabled ? 'Disable autoscroll (10s)' : 'Enable autoscroll (10s)'}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {autoScrollEnabled ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    )}
+                  </svg>
+                  <span className="hidden sm:inline">
+                    {autoScrollEnabled ? 'Auto ON' : 'Auto OFF'}
+                  </span>
+                </button>
+              </div>
+              
               <button
                 onClick={nextVideo}
                 disabled={currentVideoIndex === peerVideos.length - 1}
