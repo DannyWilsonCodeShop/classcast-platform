@@ -27,6 +27,8 @@ interface PeerVideo {
 interface PeerResponse {
   responseId: string;
   videoId: string;
+  reviewerId: string;
+  reviewerName: string;
   content: string;
   submittedAt: string;
   isSubmitted: boolean;
@@ -38,9 +40,11 @@ const PeerReviewsContent: React.FC = () => {
   const { user } = useAuth();
   
   const [peerVideos, setPeerVideos] = useState<PeerVideo[]>([]);
-  const [responses, setResponses] = useState<Map<string, PeerResponse>>(new Map());
+  const [responses, setResponses] = useState<Map<string, PeerResponse>>(new Map()); // Current user's responses
+  const [allResponses, setAllResponses] = useState<Map<string, PeerResponse[]>>(new Map()); // All peer responses per video
   const [responseTexts, setResponseTexts] = useState<Map<string, string>>(new Map());
   const [showResponseForms, setShowResponseForms] = useState<Set<string>>(new Set());
+  const [collapsedResponses, setCollapsedResponses] = useState<Set<string>>(new Set()); // Track which response sections are collapsed
   const [isLoading, setIsLoading] = useState(true);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
@@ -66,9 +70,9 @@ const PeerReviewsContent: React.FC = () => {
             const videosResponse = await fetch(
               `/api/student/community/submissions?studentId=${user?.id}&assignmentId=${assignmentId}`
             );
-            
-            if (videosResponse.ok) {
-              const videosData = await videosResponse.json();
+        
+        if (videosResponse.ok) {
+          const videosData = await videosResponse.json();
               console.log('🎥 [Peer Reviews] Loaded', videosData.length, 'videos for current assignment');
               allVideos = [...videosData];
             }
@@ -82,9 +86,9 @@ const PeerReviewsContent: React.FC = () => {
         try {
           const allVideosResponse = await fetch(
             `/api/student/community/submissions?studentId=${user?.id}`,
-            { credentials: 'include' }
-          );
-          
+        { credentials: 'include' }
+      );
+      
           if (allVideosResponse.ok) {
             const allVideosData = await allVideosResponse.json();
             console.log('🎥 [Peer Reviews] Loaded', allVideosData.length, 'total videos from community');
@@ -93,11 +97,11 @@ const PeerReviewsContent: React.FC = () => {
               // If we loaded current assignment first, append other videos
               const otherVideos = allVideosData.filter((v: PeerVideo) => v.assignmentId !== assignmentId);
               allVideos = [...allVideos, ...otherVideos];
-            } else {
+      } else {
               // Otherwise, use all videos
               allVideos = allVideosData;
             }
-          } else {
+      } else {
             console.error('🎥 [Peer Reviews] Failed to fetch all videos:', allVideosResponse.status);
           }
         } catch (err) {
@@ -118,6 +122,7 @@ const PeerReviewsContent: React.FC = () => {
         // Load existing responses for all videos
         if (user?.id && allVideos.length > 0) {
           const responsesMap = new Map();
+          const allResponsesMap = new Map();
           
           // Fetch responses for each video individually
           for (const video of allVideos) {
@@ -130,13 +135,19 @@ const PeerReviewsContent: React.FC = () => {
               if (responsesResponse.ok) {
                 const responsesData = await responsesResponse.json();
                 if (responsesData.success && responsesData.data) {
+                  const allVideoResponses = Array.isArray(responsesData.data) ? responsesData.data : [];
+                  
                   // Find responses by this reviewer
-                  const myResponse = Array.isArray(responsesData.data)
-                    ? responsesData.data.find((r: any) => r.reviewerId === user.id)
-                    : null;
+                  const myResponse = allVideoResponses.find((r: any) => r.reviewerId === user.id);
                   
                   if (myResponse) {
                     responsesMap.set(video.id, myResponse);
+                  }
+                  
+                  // Store all responses for this video (excluding the current user's)
+                  const otherResponses = allVideoResponses.filter((r: any) => r.reviewerId !== user.id);
+                  if (otherResponses.length > 0) {
+                    allResponsesMap.set(video.id, otherResponses);
                   }
                 }
               }
@@ -146,6 +157,7 @@ const PeerReviewsContent: React.FC = () => {
           }
           
           setResponses(responsesMap);
+          setAllResponses(allResponsesMap);
         }
       } catch (error) {
         console.error('Error loading videos:', error);
@@ -157,7 +169,7 @@ const PeerReviewsContent: React.FC = () => {
     if (user?.id) {
       console.log('🎥 [Peer Reviews] User authenticated, loading videos...', { userId: user.id });
       loadAllVideos();
-    } else {
+        } else {
       console.log('🎥 [Peer Reviews] No user ID, skipping video load', { user });
       setIsLoading(false);
     }
@@ -185,7 +197,7 @@ const PeerReviewsContent: React.FC = () => {
             : v
         ));
       }
-    } catch (error) {
+          } catch (error) {
       console.error('Error liking video:', error);
     }
   };
@@ -197,17 +209,17 @@ const PeerReviewsContent: React.FC = () => {
       const currentVideo = peerVideos.find(v => v.id === videoId);
       const response = await fetch(`/api/videos/${videoId}/interactions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
           type: 'rating',
           userId: user.id,
           userName: `${user.firstName} ${user.lastName}`,
           userAvatar: user.avatar,
           rating: rating,
           contentCreatorId: currentVideo?.studentId
-        })
-      });
+          })
+        });
 
       if (response.ok) {
         setPeerVideos(prev => prev.map(v => 
@@ -233,6 +245,18 @@ const PeerReviewsContent: React.FC = () => {
     });
   };
 
+  const toggleResponsesCollapse = (videoId: string) => {
+    setCollapsedResponses(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(videoId)) {
+        newSet.delete(videoId);
+      } else {
+        newSet.add(videoId);
+      }
+      return newSet;
+    });
+  };
+
   const updateResponseText = (videoId: string, text: string) => {
     setResponseTexts(new Map(responseTexts.set(videoId, text)));
   };
@@ -243,16 +267,16 @@ const PeerReviewsContent: React.FC = () => {
       setShowNotification({ message: 'Response must be at least 50 characters', type: 'error' });
       return;
     }
-
+    
     try {
       setSubmitting(videoId);
       const video = peerVideos.find(v => v.id === videoId);
       
       const response = await fetch('/api/peer-responses', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
           videoId,
           assignmentId: video?.assignmentId,
           reviewerId: user?.id,
@@ -260,8 +284,8 @@ const PeerReviewsContent: React.FC = () => {
           content: responseText.trim(),
           isSubmitted: true,
           responseType: 'text'
-        })
-      });
+          })
+        });
 
       if (response.ok) {
         const data = await response.json();
@@ -309,12 +333,12 @@ const PeerReviewsContent: React.FC = () => {
           <p className="text-gray-600 mb-6">
             There are currently no peer submissions available for review.
           </p>
-          <button
-            onClick={() => router.push('/student/dashboard')}
+            <button
+              onClick={() => router.push('/student/dashboard')}
             className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
           >
             ← Back to Dashboard
-          </button>
+            </button>
         </div>
       </div>
     );
@@ -337,15 +361,15 @@ const PeerReviewsContent: React.FC = () => {
             <div>
               <h1 className="text-2xl font-bold text-gray-800">Peer Video Reviews</h1>
               <p className="text-sm text-gray-600">{peerVideos.length} videos to review</p>
+              </div>
+            </div>
+              <img
+                src="/MyClassCast (800 x 200 px).png"
+                alt="MyClassCast"
+            className="h-8 w-auto object-contain"
+              />
             </div>
           </div>
-          <img
-            src="/MyClassCast (800 x 200 px).png"
-            alt="MyClassCast"
-            className="h-8 w-auto object-contain"
-          />
-        </div>
-      </div>
 
       {/* All Videos in Continuous Vertical Scroll */}
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-8">
@@ -355,33 +379,33 @@ const PeerReviewsContent: React.FC = () => {
             {(index === 0 || video.assignmentId !== peerVideos[index - 1].assignmentId) && (
               <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-3">
                 <h3 className="text-white font-semibold text-lg">{video.assignmentTitle}</h3>
-              </div>
+        </div>
             )}
 
-            {/* Video Player */}
+          {/* Video Player */}
             <div className="bg-black relative aspect-video w-full">
               {video.videoUrl?.includes('youtube.com') || video.videoUrl?.includes('youtu.be') ? (
-                <YouTubePlayer
+              <YouTubePlayer
                   url={video.videoUrl}
                   title={video.title}
-                  className="w-full h-full"
-                />
-              ) : (
-                <video
-                  className="w-full h-full object-contain"
+                className="w-full h-full"
+              />
+            ) : (
+              <video
+                className="w-full h-full object-contain"
                   controls
-                  preload="metadata"
-                  crossOrigin="anonymous"
-                  playsInline
-                  webkit-playsinline="true"
+                preload="metadata"
+                crossOrigin="anonymous"
+                playsInline
+                webkit-playsinline="true"
                   poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
                 >
                   <source src={getVideoUrl(video.videoUrl)} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              )}
-            </div>
-
+                Your browser does not support the video tag.
+              </video>
+            )}
+                </div>
+                
             {/* Video Info and Actions */}
             <div className="p-6">
               {/* Video Details */}
@@ -392,8 +416,8 @@ const PeerReviewsContent: React.FC = () => {
                   <span>👤 {video.studentName}</span>
                   <span>📅 {new Date(video.submittedAt).toLocaleDateString()}</span>
                   <span>⏱️ {formatTime(video.duration)}</span>
-                </div>
-              </div>
+            </div>
+          </div>
 
               {/* Action Buttons */}
               <div className="flex items-center justify-between mb-6 pb-6 border-b border-gray-200">
@@ -413,20 +437,20 @@ const PeerReviewsContent: React.FC = () => {
                 {/* Rating Stars */}
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-600">Rate:</span>
-                  <div className="flex items-center space-x-1">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
+                <div className="flex items-center space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
                         onClick={() => handleRating(video.id, star)}
                         className={`text-2xl transition-colors ${
                           video.userRating && star <= video.userRating
-                            ? 'text-yellow-400'
-                            : 'text-gray-300 hover:text-yellow-300'
-                        }`}
-                      >
+                          ? 'text-yellow-400'
+                          : 'text-gray-300 hover:text-yellow-300'
+                      }`}
+                    >
                         {video.userRating && star <= video.userRating ? '★' : '☆'}
-                      </button>
-                    ))}
+                    </button>
+                  ))}
                   </div>
                   <span className="text-sm text-gray-500 ml-2">
                     ({(video.averageRating || 0).toFixed(1)})
@@ -444,15 +468,15 @@ const PeerReviewsContent: React.FC = () => {
                 >
                   {responses.has(video.id) ? '✓ Responded' : 'Write Response'}
                 </button>
-              </div>
+          </div>
 
-              {/* Response Form */}
+          {/* Response Form */}
               {showResponseForms.has(video.id) && !responses.has(video.id) && (
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                     Your Response to {video.studentName}'s Video
-                  </label>
-                  <textarea
+                </label>
+                    <textarea
                     value={responseTexts.get(video.id) || ''}
                     onChange={(e) => updateResponseText(video.id, e.target.value)}
                     className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
@@ -466,29 +490,29 @@ const PeerReviewsContent: React.FC = () => {
                         : 'text-gray-500'
                     }`}>
                       {responseTexts.get(video.id)?.length || 0} / 50 characters minimum
-                    </span>
-                    <div className="flex items-center space-x-2">
-                      <button
+                      </span>
+                      <div className="flex items-center space-x-2">
+                          <button
                         onClick={() => toggleResponseForm(video.id)}
                         className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
                       >
                         Cancel
-                      </button>
-                      <button
+                          </button>
+                            <button
                         onClick={() => handleSubmitResponse(video.id)}
                         disabled={!responseTexts.get(video.id) || responseTexts.get(video.id)!.length < 50 || submitting === video.id}
-                        className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                      >
+                              className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                            >
                         {submitting === video.id ? 'Submitting...' : 'Submit Response'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+                            </button>
+                              </div>
+                          </div>
+                      </div>
+                    )}
 
               {/* Existing Response Display */}
               {responses.has(video.id) && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-semibold text-green-700">✓ Your Response</span>
                     <span className="text-xs text-gray-500">
@@ -498,6 +522,57 @@ const PeerReviewsContent: React.FC = () => {
                   <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
                     {responses.get(video.id)!.content}
                   </p>
+                </div>
+              )}
+
+              {/* Peer Responses Section (Collapsible) */}
+              {allResponses.has(video.id) && allResponses.get(video.id)!.length > 0 && (
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  {/* Collapsible Header */}
+                  <button
+                    onClick={() => toggleResponsesCollapse(video.id)}
+                    className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-sm font-semibold text-gray-700">
+                        💬 Peer Responses
+                      </span>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                        {allResponses.get(video.id)!.length}
+                      </span>
+                    </div>
+                    <svg
+                      className={`w-5 h-5 text-gray-500 transition-transform ${
+                        collapsedResponses.has(video.id) ? '' : 'rotate-180'
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Collapsible Content */}
+                  {!collapsedResponses.has(video.id) && (
+                    <div className="divide-y divide-gray-200">
+                      {allResponses.get(video.id)!.map((response) => (
+                        <div key={response.responseId} className="p-4 bg-white">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-900">
+                              {response.reviewerName}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {new Date(response.submittedAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">
+                            {response.content}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
