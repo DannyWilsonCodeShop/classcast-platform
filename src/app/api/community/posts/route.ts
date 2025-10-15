@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, GetCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { validateContent, scanContentWithOpenAI, shouldFlagForReview } from '@/lib/contentModeration';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -191,6 +192,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ========================================
+    // CONTENT MODERATION - Real-time blocking
+    // ========================================
+    const fullContent = `${title}\n${content}`;
+    const moderationResult = validateContent(fullContent);
+    
+    if (!moderationResult.isAllowed) {
+      console.log('🚫 Community post blocked by moderation:', moderationResult.reason);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: moderationResult.reason,
+          suggestions: moderationResult.suggestions,
+          moderation: {
+            profanity: moderationResult.profanity,
+            pii: moderationResult.pii
+          }
+        },
+        { status: 400 }
+      );
+    }
+
     const postId = `post_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
 
@@ -216,6 +239,47 @@ export async function POST(request: NextRequest) {
 
       await docClient.send(putCommand);
       console.log('Community post created:', postId);
+
+      // ========================================
+      // ASYNC CONTENT MODERATION - OpenAI scanning
+      // ========================================
+      scanContentWithOpenAI(fullContent).then(async (openAIResult) => {
+        if (openAIResult) {
+          const flagCheck = shouldFlagForReview(openAIResult);
+          
+          if (flagCheck.shouldFlag) {
+            console.log('⚠️ Community post flagged by OpenAI moderation:', flagCheck.severity, flagCheck.categories);
+            
+            // Create moderation flag
+            try {
+              await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/moderation/flag`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contentId: postId,
+                  contentType: 'community-post',
+                  content: fullContent,
+                  authorId: userId,
+                  authorName: 'Community Member', // TODO: Get actual name
+                  courseId,
+                  flagReason: `OpenAI moderation flagged: ${flagCheck.categories.join(', ')}`,
+                  severity: flagCheck.severity,
+                  categories: flagCheck.categories,
+                  moderationData: openAIResult
+                })
+              });
+              
+              if (flagCheck.severity === 'high') {
+                console.log('🚨 HIGH SEVERITY FLAG - Instructor notification needed');
+              }
+            } catch (error) {
+              console.error('Error creating moderation flag:', error);
+            }
+          }
+        }
+      }).catch(error => {
+        console.error('Error in async moderation:', error);
+      });
 
       return NextResponse.json({
         success: true,
