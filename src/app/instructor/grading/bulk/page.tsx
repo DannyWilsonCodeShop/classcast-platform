@@ -447,18 +447,25 @@ const BulkGradingPage: React.FC = () => {
   const generateThumbnail = (video: HTMLVideoElement, submissionId: string) => {
     if (videoThumbnails[submissionId]) return; // Already generated
     
-    const canvas = document.createElement('canvas');
-    canvas.width = 400;
-    canvas.height = 300;
-    const ctx = canvas.getContext('2d');
-    
-    if (ctx) {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
-      setVideoThumbnails(prev => ({
-        ...prev,
-        [submissionId]: thumbnail
-      }));
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 300;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
+        setVideoThumbnails(prev => ({
+          ...prev,
+          [submissionId]: thumbnail
+        }));
+        console.log('✅ Thumbnail generated for:', submissionId);
+      }
+    } catch (error) {
+      // CORS error when trying to export canvas - this is expected for proxied videos
+      // Just skip thumbnail generation, video will still play fine
+      console.log('ℹ️ Could not generate thumbnail (CORS restriction):', submissionId);
     }
   };
 
