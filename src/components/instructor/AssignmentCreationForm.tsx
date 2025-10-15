@@ -67,6 +67,9 @@ interface FormData {
   allSections: boolean;
   peerReviewScope: 'section' | 'course';
   resources: AssignmentResource[];
+  instructionalVideoUrl: string; // NEW: Instructor's explanation video
+  instructionalVideoType: 'youtube' | 'upload' | 'none'; // NEW: Video type
+  instructionalVideoFile: File | null; // NEW: Uploaded video file
 }
 
 const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
@@ -118,7 +121,10 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     targetSections: [],
     allSections: true,
     peerReviewScope: initialData?.peerReviewScope || 'section',
-    resources: initialData?.resources || []
+    resources: initialData?.resources || [],
+    instructionalVideoUrl: initialData?.instructionalVideoUrl || '',
+    instructionalVideoType: 'none',
+    instructionalVideoFile: null
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -212,6 +218,35 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     }
 
     try {
+      let instructionalVideoUrl = formData.instructionalVideoUrl;
+
+      // Handle video file upload if needed
+      if (formData.instructionalVideoType === 'upload' && formData.instructionalVideoFile) {
+        console.log('📤 Uploading instructional video...');
+        const uploadFormData = new FormData();
+        uploadFormData.append('video', formData.instructionalVideoFile);
+        uploadFormData.append('type', 'instructional');
+        
+        try {
+          const uploadResponse = await fetch('/api/upload/instructional-video', {
+            method: 'POST',
+            body: uploadFormData
+          });
+          
+          if (uploadResponse.ok) {
+            const uploadResult = await uploadResponse.json();
+            instructionalVideoUrl = uploadResult.videoUrl;
+            console.log('✅ Instructional video uploaded:', instructionalVideoUrl);
+          } else {
+            throw new Error('Failed to upload instructional video');
+          }
+        } catch (uploadError) {
+          console.error('Error uploading instructional video:', uploadError);
+          alert('Failed to upload instructional video. Please try again.');
+          return;
+        }
+      }
+
       const assignmentData: Partial<Assignment> = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -240,6 +275,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         requireLiveRecording: formData.requireLiveRecording,
         allowYouTubeUrl: formData.allowYouTubeUrl,
         resources: formData.resources,
+        instructionalVideoUrl: formData.instructionalVideoType !== 'none' ? instructionalVideoUrl : undefined,
         rubric: formData.rubricType === 'ai_generated' ? formData.aiGeneratedRubric : 
                 formData.rubricType === 'upload' ? { type: 'uploaded', file: formData.rubricFile } : 
                 undefined,
@@ -601,6 +637,131 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
               className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[200px]"
             />
           </details>
+        </div>
+
+        {/* Instructional Video Section */}
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-center">
+            <span className="mr-2">🎬</span>
+            Instructional Video (Optional)
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Add a video explaining the assignment requirements to help students understand expectations
+          </p>
+
+          <div className="space-y-4">
+            {/* Video Type Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Video Type
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, instructionalVideoType: 'none', instructionalVideoUrl: '', instructionalVideoFile: null }))}
+                  className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                    formData.instructionalVideoType === 'none'
+                      ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  No Video
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, instructionalVideoType: 'youtube', instructionalVideoFile: null }))}
+                  className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                    formData.instructionalVideoType === 'youtube'
+                      ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  📺 YouTube
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, instructionalVideoType: 'upload', instructionalVideoUrl: '' }))}
+                  className={`px-4 py-3 rounded-lg border-2 transition-all ${
+                    formData.instructionalVideoType === 'upload'
+                      ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
+                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                  }`}
+                >
+                  📤 Upload
+                </button>
+              </div>
+            </div>
+
+            {/* YouTube URL Input */}
+            {formData.instructionalVideoType === 'youtube' && (
+              <div>
+                <label htmlFor="instructionalVideoUrl" className="block text-sm font-medium text-gray-700 mb-2">
+                  YouTube URL
+                </label>
+                <input
+                  type="url"
+                  id="instructionalVideoUrl"
+                  value={formData.instructionalVideoUrl}
+                  onChange={(e) => setFormData(prev => ({ ...prev, instructionalVideoUrl: e.target.value }))}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Paste the full YouTube URL of your instructional video
+                </p>
+              </div>
+            )}
+
+            {/* Video Upload */}
+            {formData.instructionalVideoType === 'upload' && (
+              <div>
+                <label htmlFor="instructionalVideoFile" className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload Video
+                </label>
+                <input
+                  type="file"
+                  id="instructionalVideoFile"
+                  accept="video/mp4,video/webm,video/mov"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setFormData(prev => ({ ...prev, instructionalVideoFile: file }));
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                />
+                {formData.instructionalVideoFile && (
+                  <p className="mt-2 text-sm text-green-600 flex items-center">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    {formData.instructionalVideoFile.name} ({(formData.instructionalVideoFile.size / (1024 * 1024)).toFixed(2)} MB)
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-gray-500">
+                  Supported formats: MP4, WebM, MOV (max 500MB)
+                </p>
+              </div>
+            )}
+
+            {/* Preview */}
+            {formData.instructionalVideoType !== 'none' && (formData.instructionalVideoUrl || formData.instructionalVideoFile) && (
+              <div className="bg-white border border-purple-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                  <svg className="w-4 h-4 mr-1 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Students Will See
+                </h4>
+                <p className="text-xs text-purple-700">
+                  ✓ Instructional video will appear at the top of the assignment page
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Students can watch your explanation before starting their work
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Visual Identity */}
