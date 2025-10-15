@@ -587,12 +587,13 @@ const StudentDashboard: React.FC = () => {
                       <div key={post.id} className="p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group"
                            onClick={() => router.push(`/community#post-${post.id}`)}>
                         <div className="flex items-start space-x-2">
-                          <img
+                          <Avatar
                             src={typeof post.author === 'object' && post.author?.avatar 
                               ? post.author.avatar 
-                              : '/api/placeholder/40/40'}
-                            alt={typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}
-                            className="w-5 h-5 rounded-full object-cover flex-shrink-0 border border-gray-200"
+                              : undefined}
+                            name={typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}
+                            size="sm"
+                            className="w-5 h-5 flex-shrink-0"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-1 mb-1">
