@@ -184,28 +184,34 @@ aws dynamodb create-table \
 
 ---
 
-## 🔔 Email Notifications (Optional Enhancement)
+## 🔔 Automated Notifications (ACTIVE!)
 
-Currently logging `🚨 HIGH SEVERITY FLAG` to console.
+### ✅ Email Notifications
+- **Sender:** noreply@classcast.com
+- **Recipients:** All instructors (auto-fetched from database)
+- **Triggers:** Medium/High severity flags only
+- **Format:** Professional HTML email with content preview
+- **Setup:** ⚠️ Requires email verification (see below)
 
-**To add email notifications:**
+### ✅ In-App Notifications
+- **Location:** Notification bell (top right of instructor dashboard)
+- **Recipients:** All instructors
+- **Triggers:** Medium/High severity flags
+- **Features:** Red badge, click to go to moderation dashboard
+- **Setup:** ✅ Already working (no setup needed)
 
-1. Set up AWS SES or SendGrid
-2. Add to `/src/app/api/peer-responses/route.ts` and `/src/app/api/community/posts/route.ts`:
+### 📧 Email Verification Required
 
-```typescript
-if (flagCheck.severity === 'high') {
-  // Send email to instructor
-  await fetch('/api/notifications/send-email', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      to: 'instructor@school.edu',
-      subject: '🚨 High Severity Content Flagged',
-      body: `Content from ${authorName} has been flagged as high severity...`
-    })
-  });
-}
+AWS SES needs to verify `noreply@classcast.com` before sending:
+
+**Check your email inbox for `noreply@classcast.com`:**
+1. AWS sent a verification email
+2. Click the verification link
+3. Done! Emails will start sending
+
+**To resend verification email:**
+```bash
+aws ses verify-email-identity --email-address noreply@classcast.com --region us-east-1
 ```
 
 ---
