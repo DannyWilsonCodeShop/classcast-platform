@@ -45,6 +45,7 @@ const PeerReviewsContent: React.FC = () => {
   const [responseTexts, setResponseTexts] = useState<Map<string, string>>(new Map());
   const [showResponseForms, setShowResponseForms] = useState<Set<string>>(new Set());
   const [collapsedResponses, setCollapsedResponses] = useState<Set<string>>(new Set()); // Track which response sections are collapsed
+  const [generatedThumbnails, setGeneratedThumbnails] = useState<Map<string, string>>(new Map()); // Video thumbnails from 2-second mark
   const [isLoading, setIsLoading] = useState(true);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
@@ -261,6 +262,31 @@ const PeerReviewsContent: React.FC = () => {
     setResponseTexts(new Map(responseTexts.set(videoId, text)));
   };
 
+  // Generate thumbnail from video at 2-second mark
+  const generateThumbnail = (videoElement: HTMLVideoElement, videoId: string) => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoElement.videoWidth;
+      canvas.height = videoElement.videoHeight;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
+        
+        setGeneratedThumbnails(prev => {
+          const newMap = new Map(prev);
+          newMap.set(videoId, thumbnailUrl);
+          return newMap;
+        });
+        
+        console.log('🎬 Generated 2-second thumbnail for:', videoId);
+      }
+    } catch (error) {
+      console.error('Error generating thumbnail for:', videoId, error);
+    }
+  };
+
   const handleSubmitResponse = async (videoId: string) => {
     const responseText = responseTexts.get(videoId);
     if (!responseText || responseText.trim().length < 50) {
@@ -398,7 +424,24 @@ const PeerReviewsContent: React.FC = () => {
                 crossOrigin="anonymous"
                 playsInline
                 webkit-playsinline="true"
-                  poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
+                poster={
+                  generatedThumbnails.get(video.id) || 
+                  (video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined)
+                }
+                onLoadedMetadata={(e) => {
+                  const videoElement = e.currentTarget;
+                  if (!generatedThumbnails.has(video.id) && videoElement.duration >= 2) {
+                    // Seek to 2 seconds to generate thumbnail
+                    videoElement.currentTime = Math.min(2.0, videoElement.duration * 0.1);
+                  }
+                }}
+                onSeeked={(e) => {
+                  const videoElement = e.currentTarget;
+                  if (!generatedThumbnails.has(video.id) && videoElement.currentTime >= 1.5) {
+                    generateThumbnail(videoElement, video.id);
+                    videoElement.currentTime = 0; // Reset to start
+                  }
+                }}
                 >
                   <source src={getVideoUrl(video.videoUrl)} type="video/mp4" />
                 Your browser does not support the video tag.
