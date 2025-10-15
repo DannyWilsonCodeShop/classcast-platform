@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { communityService, CommunityStats, TrendingTopic, OnlineUser } from '@/services/communityService';
 import { EmptyCommunityState } from '@/components/common/EmptyStateAdvanced';
+import Avatar from '@/components/common/Avatar';
 
 interface CommunityPost {
   id: string;
@@ -400,27 +401,12 @@ export default function CommunityPage() {
                         {/* Post Header */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600">
-                              {post.authorAvatar ? (
-                                <img 
-                                  src={post.authorAvatar} 
-                                  alt={post.author}
-                                  className="w-full h-full object-cover"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.style.display = 'none';
-                                    const parent = target.parentElement;
-                                    if (parent) {
-                                      parent.innerHTML = `<div class="w-full h-full flex items-center justify-center text-white font-semibold">${post.author.charAt(0).toUpperCase()}</div>`;
-                                    }
-                                  }}
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-white font-semibold">
-                                  {post.author.charAt(0).toUpperCase()}
-                                </div>
-                              )}
-                            </div>
+                            <Avatar
+                              src={post.authorAvatar}
+                              name={post.author}
+                              size="md"
+                              className="w-10 h-10"
+                            />
                             <div>
                               <div className="flex items-center space-x-2">
                                 <h3 className="font-semibold text-gray-900">{post.author}</h3>
@@ -887,7 +873,7 @@ export default function CommunityPage() {
                       console.log('✅ Quick action post created:', data);
                       
                       // Refresh posts
-                      await loadData();
+                      await loadCommunityData();
                       
                       // Close modal
                       setShowQuickActionModal(false);
