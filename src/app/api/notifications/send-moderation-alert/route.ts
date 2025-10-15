@@ -28,36 +28,40 @@ export async function POST(request: NextRequest) {
 
     console.log('📧 Sending moderation alert email...', { flagId, severity });
 
-    // Get all instructors (or filter by courseId if provided)
+    // Get instructor emails - check for override first
     let instructorEmails: string[] = [];
     
-    try {
-      const scanParams: any = {
-        TableName: USERS_TABLE,
-        FilterExpression: '#role = :instructorRole',
-        ExpressionAttributeNames: {
-          '#role': 'role'
-        },
-        ExpressionAttributeValues: {
-          ':instructorRole': 'instructor'
-        }
-      };
+    // Check for override email (for testing or centralized notifications)
+    const overrideEmail = process.env.INSTRUCTOR_ALERT_EMAIL;
+    
+    if (overrideEmail) {
+      console.log('📧 Using override instructor email:', overrideEmail);
+      instructorEmails = [overrideEmail];
+    } else {
+      // Get all instructors from database
+      try {
+        const scanParams: any = {
+          TableName: USERS_TABLE,
+          FilterExpression: '#role = :instructorRole',
+          ExpressionAttributeNames: {
+            '#role': 'role'
+          },
+          ExpressionAttributeValues: {
+            ':instructorRole': 'instructor'
+          }
+        };
 
-      // If courseId is provided, you could filter by course enrollment here
-      // For now, we'll send to all instructors
+        // If courseId is provided, you could filter by course enrollment here
+        // For now, we'll send to all instructors
 
-      const result = await docClient.send(new ScanCommand(scanParams));
-      instructorEmails = (result.Items || [])
-        .map((user: any) => user.email)
-        .filter((email: string) => email); // Filter out any null/undefined emails
+        const result = await docClient.send(new ScanCommand(scanParams));
+        instructorEmails = (result.Items || [])
+          .map((user: any) => user.email)
+          .filter((email: string) => email); // Filter out any null/undefined emails
 
-      console.log(`📧 Found ${instructorEmails.length} instructor emails`);
-    } catch (dbError) {
-      console.error('Error fetching instructors:', dbError);
-      // Continue with fallback - use env variable if set
-      const fallbackEmail = process.env.INSTRUCTOR_EMAIL;
-      if (fallbackEmail) {
-        instructorEmails = [fallbackEmail];
+        console.log(`📧 Found ${instructorEmails.length} instructor emails from database`);
+      } catch (dbError) {
+        console.error('Error fetching instructors:', dbError);
       }
     }
 
