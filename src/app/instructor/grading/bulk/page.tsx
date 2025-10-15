@@ -1060,12 +1060,28 @@ const BulkGradingPage: React.FC = () => {
                                 }
                               }}
                               onTimeUpdate={index === currentSubmissionIndex ? handleTimeUpdate : undefined}
-                              onLoadedMetadata={index === currentSubmissionIndex ? handleLoadedMetadata : undefined}
-                              onSeeked={(e) => {
+                              onLoadedMetadata={(e) => {
+                                const video = e.currentTarget;
+                                
+                                // Call the main metadata handler for current submission
                                 if (index === currentSubmissionIndex) {
-                                  const video = e.currentTarget;
-                                  if (!videoThumbnails[submission.id] && video.currentTime >= 2.0 && video.currentTime < 3.0) {
-                                    generateThumbnail(video, submission.id);
+                                  handleLoadedMetadata(e);
+                                }
+                                
+                                // Generate thumbnail for ALL videos at 2-second mark
+                                if (!videoThumbnails[submission.id] && video.duration >= 2) {
+                                  video.currentTime = Math.min(2.0, video.duration * 0.1);
+                                }
+                              }}
+                              onSeeked={(e) => {
+                                const video = e.currentTarget;
+                                
+                                // Generate thumbnail when seek to 2 seconds completes
+                                if (!videoThumbnails[submission.id] && video.currentTime >= 1.5 && video.currentTime <= 3.0) {
+                                  generateThumbnail(video, submission.id);
+                                  // Reset to start after thumbnail generation
+                                  if (index !== currentSubmissionIndex) {
+                                    video.currentTime = 0;
                                   }
                                 }
                               }}
