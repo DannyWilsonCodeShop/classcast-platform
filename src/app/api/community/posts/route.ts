@@ -269,8 +269,56 @@ export async function POST(request: NextRequest) {
                 })
               });
               
-              if (flagCheck.severity === 'high') {
-                console.log('🚨 HIGH SEVERITY FLAG - Instructor notification needed');
+              // Send email notification to instructor for medium/high severity
+              if (flagCheck.severity === 'high' || flagCheck.severity === 'medium') {
+                console.log(`🚨 ${flagCheck.severity.toUpperCase()} SEVERITY FLAG - Sending notifications`);
+                
+                try {
+                  // Send email notification
+                  const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/notifications/send-moderation-alert`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      flagId: postId,
+                      severity: flagCheck.severity,
+                      contentType: 'community-post',
+                      content: fullContent,
+                      authorName: 'Community Member', // TODO: Get actual user name
+                      categories: flagCheck.categories,
+                      courseId
+                    })
+                  });
+
+                  if (emailResponse.ok) {
+                    console.log('✅ Email notification sent');
+                  } else {
+                    console.error('❌ Email notification failed');
+                  }
+
+                  // Create in-app notification for instructors
+                  const notifResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/notifications/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      recipientRole: 'instructor', // Send to all instructors
+                      senderId: 'system',
+                      senderName: 'Content Moderation',
+                      type: 'moderation_flag',
+                      title: `${flagCheck.severity === 'high' ? '🚨' : '⚠️'} Content Flagged for Review`,
+                      message: `${flagCheck.severity.toUpperCase()} severity: Community post flagged for ${flagCheck.categories.join(', ')}`,
+                      relatedId: postId,
+                      relatedType: 'moderation-flag',
+                      priority: flagCheck.severity === 'high' ? 'high' : 'normal',
+                      actionUrl: '/instructor/moderation'
+                    })
+                  });
+
+                  if (notifResponse.ok) {
+                    console.log('✅ In-app notification created');
+                  }
+                } catch (emailError) {
+                  console.error('Error sending notifications:', emailError);
+                }
               }
             } catch (error) {
               console.error('Error creating moderation flag:', error);
