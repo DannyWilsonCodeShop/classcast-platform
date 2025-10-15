@@ -867,9 +867,6 @@ const BulkGradingPage: React.FC = () => {
                     className="h-8 w-auto"
                   />
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-800 mb-1">
-                      Video Grading Interface
-                    </h1>
                     <p className="text-gray-600 text-sm">
                       {currentSubmissionIndex + 1} of {filteredSubmissions.length} submissions
                     </p>
@@ -975,6 +972,12 @@ const BulkGradingPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
+              </div>
+
+              {/* Page Title */}
+              <div className="mb-6">
+                <h1 className="text-2xl font-bold text-gray-800">Bulk Grading Interface</h1>
+                <p className="text-sm text-gray-600 mt-1">Review and grade video submissions</p>
               </div>
 
               {/* Video List - Vertical Scrolling */}
@@ -1441,7 +1444,8 @@ const BulkGradingPage: React.FC = () => {
                         </div>
 
                         {/* Student's Peer Responses (What THEY wrote to others) */}
-                        {submission.assignment?.enablePeerResponses && getPeerResponsesForStudent(submission.studentId).length > 0 && (
+                        {submission.assignment?.enablePeerResponses ? (
+                          getPeerResponsesForStudent(submission.studentId).length > 0 ? (
                           <div className="border border-indigo-200 rounded-lg overflow-hidden mb-4">
                             {/* Collapsible Header */}
                             <button
@@ -1573,6 +1577,50 @@ const BulkGradingPage: React.FC = () => {
                                 </div>
                               </div>
                             )}
+                          </div>
+                          ) : (
+                            // Student has NOT submitted any peer responses (but they were required)
+                            <div className="border border-red-200 rounded-lg overflow-hidden mb-4 bg-red-50">
+                              <div className="p-4">
+                                <div className="flex items-center space-x-3">
+                                  <div className="flex-shrink-0">
+                                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="text-sm font-semibold text-red-800 mb-1">
+                                      ⚠️ No Peer Responses Submitted
+                                    </h3>
+                                    <p className="text-xs text-red-700">
+                                      This student has not submitted any peer responses yet.
+                                      {submission.assignment?.minResponsesRequired && (
+                                        <> Required: {submission.assignment.minResponsesRequired} response{submission.assignment.minResponsesRequired > 1 ? 's' : ''}</>
+                                      )}
+                                    </p>
+                                  </div>
+                                  <div className="flex-shrink-0">
+                                    <span className="px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
+                                      Incomplete
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        ) : (
+                          // Peer responses NOT required for this assignment
+                          <div className="border border-gray-200 rounded-lg overflow-hidden mb-4 bg-gray-50">
+                            <div className="p-3">
+                              <div className="flex items-center space-x-2">
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span className="text-xs text-gray-600">
+                                  Peer responses not required for this assignment
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         )}
 
