@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import YouTubePlayer from '@/components/common/YouTubePlayer';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface Submission {
   id: string;
@@ -1009,12 +1010,16 @@ const BulkGradingPage: React.FC = () => {
                           ) : (
                             <video
                               ref={index === currentSubmissionIndex ? videoRef : null}
-                              src={submission.fileUrl}
+                              src={getVideoUrl(submission.fileUrl)}
                               className="w-full h-64 object-cover"
                               poster={videoThumbnails[submission.id] || submission.thumbnailUrl || '/api/placeholder/400/300'}
                               preload="metadata"
+                              playsInline
+                              webkit-playsinline="true"
+                              crossOrigin="anonymous"
+                              controls
                               onError={(e) => {
-                                console.error('Video load error:', e);
+                                console.error('Video load error for submission:', submission.id, submission.fileUrl);
                                 // Fallback to placeholder if video fails to load
                                 const target = e.target as HTMLVideoElement;
                                 target.style.display = 'none';
