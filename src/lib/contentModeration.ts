@@ -1,321 +1,331 @@
-import OpenAI from 'openai';
+/**
+ * Content Moderation Utility
+ * 
+ * Provides real-time and async content moderation for student submissions
+ * - Profanity filtering
+ * - PII detection (SSN, credit cards, etc.)
+ * - OpenAI Moderation API integration
+ */
 
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-}) : null;
+// ========================================
+// PROFANITY FILTER
+// ========================================
 
-export interface ContentModerationResult {
-  isAppropriate: boolean;
-  confidence: number;
-  categories: {
-    violence: number;
-    hate: number;
-    harassment: number;
-    sexual: number;
-    selfHarm: number;
-    spam: number;
-    misinformation: number;
-  };
-  flags: string[];
-  suggestions: string[];
-  reasoning: string;
-}
+const PROFANITY_LIST = [
+  // Common inappropriate words (educational context)
+  'fuck', 'shit', 'bitch', 'ass', 'damn', 'hell', 'crap',
+  'bastard', 'dick', 'cock', 'pussy', 'whore', 'slut',
+  // Slurs and hate speech (partial list - extend as needed)
+  'nigger', 'nigga', 'faggot', 'fag', 'retard', 'retarded',
+  // Add more as needed
+];
 
-export interface VideoModerationResult extends ContentModerationResult {
-  videoAnalysis: {
-    hasAudio: boolean;
-    audioTranscription?: string;
-    visualContent: string[];
-    duration: number;
-  };
-}
+// Common leetspeak/obfuscation patterns
+const OBFUSCATION_MAP: Record<string, string> = {
+  '@': 'a',
+  '4': 'a',
+  '3': 'e',
+  '1': 'i',
+  '!': 'i',
+  '0': 'o',
+  '$': 's',
+  '5': 's',
+  '7': 't',
+  '+': 't',
+};
 
-export interface TextModerationResult extends ContentModerationResult {
-  textAnalysis: {
-    wordCount: number;
-    language: string;
-    sentiment: 'positive' | 'neutral' | 'negative';
-    topics: string[];
-  };
-}
-
-export class ContentModerationService {
-  private static instance: ContentModerationService;
+/**
+ * Normalize text to detect obfuscated profanity
+ */
+function normalizeText(text: string): string {
+  let normalized = text.toLowerCase();
   
-  public static getInstance(): ContentModerationService {
-    if (!ContentModerationService.instance) {
-      ContentModerationService.instance = new ContentModerationService();
+  // Replace obfuscation characters
+  Object.entries(OBFUSCATION_MAP).forEach(([symbol, letter]) => {
+    normalized = normalized.replace(new RegExp(symbol, 'g'), letter);
+  });
+  
+  // Remove non-alphanumeric except spaces
+  normalized = normalized.replace(/[^a-z0-9\s]/g, '');
+  
+  return normalized;
+}
+
+/**
+ * Check if text contains profanity
+ */
+export function containsProfanity(text: string): { 
+  hasProfanity: boolean; 
+  words: string[];
+  severity: 'none' | 'mild' | 'severe';
+} {
+  const normalized = normalizeText(text);
+  const words = normalized.split(/\s+/);
+  const foundWords: string[] = [];
+  
+  // Check each word against profanity list
+  for (const word of words) {
+    for (const profanity of PROFANITY_LIST) {
+      if (word.includes(profanity) || profanity.includes(word)) {
+        foundWords.push(word);
+      }
     }
-    return ContentModerationService.instance;
   }
+  
+  // Determine severity
+  let severity: 'none' | 'mild' | 'severe' = 'none';
+  if (foundWords.length > 0) {
+    // Severe slurs and hate speech
+    const severeWords = ['nigger', 'nigga', 'faggot', 'fag'];
+    const hasSevere = foundWords.some(w => 
+      severeWords.some(sw => w.includes(sw))
+    );
+    severity = hasSevere ? 'severe' : 'mild';
+  }
+  
+  return {
+    hasProfanity: foundWords.length > 0,
+    words: foundWords,
+    severity
+  };
+}
 
-  /**
-   * Moderate text content for appropriateness
-   */
-  async moderateText(text: string, context?: string): Promise<TextModerationResult> {
-    if (!openai) {
-      // Return a safe default when OpenAI is not configured
-      console.warn('OpenAI API key not configured, using basic content moderation');
-      return this.basicTextModeration(text);
+// ========================================
+// PII DETECTION
+// ========================================
+
+/**
+ * Patterns for common PII
+ */
+const PII_PATTERNS = {
+  // Social Security Number: XXX-XX-XXXX
+  ssn: /\b\d{3}-\d{2}-\d{4}\b/g,
+  
+  // Credit Card: Various formats
+  creditCard: /\b(?:\d{4}[\s-]?){3}\d{4}\b/g,
+  
+  // Phone Number: Various formats
+  phone: /\b(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/g,
+  
+  // Email: Basic email pattern
+  email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g,
+  
+  // Address: Street numbers and common address patterns
+  address: /\b\d{1,5}\s+([A-Z][a-z]+\s+){1,3}(Street|St|Avenue|Ave|Road|Rd|Lane|Ln|Drive|Dr|Court|Ct|Boulevard|Blvd)\b/gi,
+};
+
+/**
+ * Check if text contains PII
+ */
+export function containsPII(text: string): {
+  hasPII: boolean;
+  types: string[];
+  severity: 'none' | 'low' | 'high';
+  matches: Record<string, string[]>;
+} {
+  const matches: Record<string, string[]> = {};
+  const types: string[] = [];
+  
+  // Check each PII pattern
+  Object.entries(PII_PATTERNS).forEach(([type, pattern]) => {
+    const found = text.match(pattern);
+    if (found && found.length > 0) {
+      types.push(type);
+      matches[type] = found;
     }
-
-    try {
-      const prompt = `Analyze the following text content for appropriateness in an educational setting. Consider context: ${context || 'general educational content'}
-
-Text to analyze: "${text}"
-
-Please provide a detailed analysis including:
-1. Overall appropriateness (true/false)
-2. Confidence score (0-1)
-3. Risk categories with scores (0-1):
-   - violence: potential for violent content
-   - hate: hate speech or discriminatory language
-   - harassment: bullying or harassment
-   - sexual: inappropriate sexual content
-   - selfHarm: content promoting self-harm
-   - spam: spam or irrelevant content
-   - misinformation: false or misleading information
-4. Specific flags (array of concerning elements)
-5. Suggestions for improvement
-6. Reasoning for the decision
-
-Respond in JSON format only.`;
-
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an AI content moderator for an educational platform. Analyze content for appropriateness, safety, and educational value. Be thorough but fair in your assessment.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        max_tokens: 1000,
-        temperature: 0.3,
-      });
-
-      const analysis = JSON.parse(response.choices[0]?.message?.content || '{}');
+  });
+  
+  // Determine severity
+  let severity: 'none' | 'low' | 'high' = 'none';
+  if (types.length > 0) {
+    // SSN and credit cards are high severity
+    const highSeverityTypes = ['ssn', 'creditCard'];
+    const hasHighSeverity = types.some(t => highSeverityTypes.includes(t));
+    severity = hasHighSeverity ? 'high' : 'low';
+  }
       
       return {
-        isAppropriate: analysis.isAppropriate || false,
-        confidence: analysis.confidence || 0,
-        categories: analysis.categories || {
-          violence: 0,
-          hate: 0,
-          harassment: 0,
-          sexual: 0,
-          selfHarm: 0,
-          spam: 0,
-          misinformation: 0
-        },
-        flags: analysis.flags || [],
-        suggestions: analysis.suggestions || [],
-        reasoning: analysis.reasoning || 'No analysis available',
-        textAnalysis: {
-          wordCount: text.split(' ').length,
-          language: 'en', // Could be enhanced with language detection
-          sentiment: this.analyzeSentiment(text),
-          topics: this.extractTopics(text)
-        }
-      };
-    } catch (error) {
-      console.error('Error moderating text content:', error);
-      throw new Error('Failed to moderate text content');
-    }
-  }
+    hasPII: types.length > 0,
+    types,
+    severity,
+    matches
+  };
+}
 
-  /**
-   * Moderate video content for appropriateness
-   */
-  async moderateVideo(videoUrl: string, metadata?: {
-    title?: string;
-    description?: string;
-    duration?: number;
-  }): Promise<VideoModerationResult> {
-    if (!openai) {
-      // Return a safe default when OpenAI is not configured
-      console.warn('OpenAI API key not configured, using basic video moderation');
-      return this.basicVideoModeration(metadata);
-    }
+// ========================================
+// REAL-TIME VALIDATION
+// ========================================
 
-    try {
-      // For now, we'll analyze video metadata and any provided description
-      // In a full implementation, you'd use video analysis APIs
-      const analysisText = `
-        Video Title: ${metadata?.title || 'Untitled'}
-        Description: ${metadata?.description || 'No description provided'}
-        Duration: ${metadata?.duration || 0} seconds
-        URL: ${videoUrl}
-      `;
+export interface ModerationResult {
+  isAllowed: boolean;
+  reason?: string;
+  profanity?: ReturnType<typeof containsProfanity>;
+  pii?: ReturnType<typeof containsPII>;
+  suggestions?: string[];
+}
 
-      const textResult = await this.moderateText(analysisText, 'video content');
-      
+/**
+ * Validate content before submission (real-time blocking)
+ */
+export function validateContent(text: string): ModerationResult {
+  // Check profanity
+  const profanityCheck = containsProfanity(text);
+  
+  // Check PII
+  const piiCheck = containsPII(text);
+  
+  // Block severe profanity
+  if (profanityCheck.severity === 'severe') {
       return {
-        ...textResult,
-        videoAnalysis: {
-          hasAudio: true, // Would be determined by actual video analysis
-          audioTranscription: undefined, // Would be generated from video audio
-          visualContent: ['educational content'], // Would be analyzed from video frames
-          duration: metadata?.duration || 0
-        }
-      };
-    } catch (error) {
-      console.error('Error moderating video content:', error);
-      throw new Error('Failed to moderate video content');
-    }
+      isAllowed: false,
+      reason: 'Content contains inappropriate language that violates community guidelines.',
+      profanity: profanityCheck,
+      suggestions: [
+        'Please remove inappropriate language',
+        'Remember to keep content respectful and educational'
+      ]
+    };
   }
-
-  /**
-   * Moderate assignment submissions
-   */
-  async moderateSubmission(content: string, type: 'text' | 'video', context?: {
-    assignmentId: string;
-    studentId: string;
-    courseId: string;
-  }): Promise<ContentModerationResult> {
-    const moderationContext = `Assignment submission for ${context?.courseId || 'course'} by student ${context?.studentId || 'unknown'}`;
-    
-    if (type === 'video') {
-      return this.moderateVideo(content, { description: moderationContext });
-    } else {
-      return this.moderateText(content, moderationContext);
-    }
-  }
-
-  /**
-   * Moderate forum posts and comments
-   */
-  async moderateForumPost(content: string, context?: {
-    forumId: string;
-    threadId?: string;
-    userId: string;
-  }): Promise<ContentModerationResult> {
-    const moderationContext = `Forum post in ${context?.forumId || 'forum'} by user ${context?.userId || 'unknown'}`;
-    return this.moderateText(content, moderationContext);
-  }
-
-  /**
-   * Moderate user profiles and bios
-   */
-  async moderateProfile(content: string, context?: {
-    userId: string;
-    profileType: 'bio' | 'status' | 'about';
-  }): Promise<ContentModerationResult> {
-    const moderationContext = `User profile ${context?.profileType || 'content'} for user ${context?.userId || 'unknown'}`;
-    return this.moderateText(content, moderationContext);
-  }
-
-  /**
-   * Get moderation guidelines
-   */
-  getModerationGuidelines(): string[] {
-    return [
-      'Content should be appropriate for educational environments',
-      'No hate speech, harassment, or discriminatory language',
-      'No violent, graphic, or disturbing content',
-      'No inappropriate sexual content',
-      'No content promoting self-harm or dangerous activities',
-      'No spam, irrelevant, or off-topic content',
-      'No false or misleading information',
-      'Respectful communication and constructive feedback',
-      'Content should add value to the learning community',
-      'Follow platform terms of service and community guidelines'
-    ];
-  }
-
-  /**
-   * Analyze sentiment of text content
-   */
-  private analyzeSentiment(text: string): 'positive' | 'neutral' | 'negative' {
-    const positiveWords = ['good', 'great', 'excellent', 'amazing', 'wonderful', 'helpful', 'thanks', 'love', 'like'];
-    const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'dislike', 'angry', 'frustrated', 'annoying'];
-    
-    const words = text.toLowerCase().split(/\s+/);
-    const positiveCount = words.filter(word => positiveWords.some(pw => word.includes(pw))).length;
-    const negativeCount = words.filter(word => negativeWords.some(nw => word.includes(nw))).length;
-    
-    if (positiveCount > negativeCount) return 'positive';
-    if (negativeCount > positiveCount) return 'negative';
-    return 'neutral';
-  }
-
-  /**
-   * Extract topics from text content
-   */
-  private extractTopics(text: string): string[] {
-    // Simple topic extraction - could be enhanced with NLP libraries
-    const commonTopics = [
-      'education', 'learning', 'study', 'homework', 'assignment',
-      'course', 'class', 'teacher', 'student', 'school',
-      'technology', 'programming', 'science', 'math', 'history',
-      'literature', 'art', 'music', 'sports', 'health'
-    ];
-    
-    const words = text.toLowerCase().split(/\s+/);
-    return commonTopics.filter(topic => 
-      words.some(word => word.includes(topic))
-    );
-  }
-
-  /**
-   * Basic text moderation when OpenAI is not available
-   */
-  private basicTextModeration(text: string): TextModerationResult {
-    const lowerText = text.toLowerCase();
-    const inappropriateWords = ['spam', 'inappropriate', 'offensive']; // Basic word list
-    
-    const hasInappropriateContent = inappropriateWords.some(word => 
-      lowerText.includes(word)
-    );
-    
+  
+  // Block high-severity PII (SSN, credit cards)
+  if (piiCheck.severity === 'high') {
     return {
-      isAppropriate: !hasInappropriateContent,
-      confidence: hasInappropriateContent ? 0.8 : 0.6,
-      categories: {
-        violence: 0,
-        hate: 0,
-        harassment: 0,
-        sexual: 0,
-        selfHarm: 0,
-        spam: hasInappropriateContent ? 0.8 : 0,
-        misinformation: 0
+      isAllowed: false,
+      reason: 'Content contains sensitive personal information (SSN or credit card numbers).',
+      pii: piiCheck,
+      suggestions: [
+        'Please remove any Social Security Numbers or credit card numbers',
+        'Do not share sensitive personal information in submissions'
+      ]
+    };
+  }
+  
+  // Warn about mild profanity or low-severity PII
+  const warnings: string[] = [];
+  if (profanityCheck.severity === 'mild') {
+    warnings.push('Content may contain mild inappropriate language');
+  }
+  if (piiCheck.severity === 'low') {
+    warnings.push(`Content may contain personal information: ${piiCheck.types.join(', ')}`);
+  }
+  
+  return {
+    isAllowed: true,
+    profanity: profanityCheck,
+    pii: piiCheck,
+    suggestions: warnings.length > 0 ? warnings : undefined
+  };
+}
+
+// ========================================
+// OPENAI MODERATION API
+// ========================================
+
+export interface OpenAIModerationResult {
+  flagged: boolean;
+  categories: {
+    hate: boolean;
+    'hate/threatening': boolean;
+    harassment: boolean;
+    'harassment/threatening': boolean;
+    'self-harm': boolean;
+    'self-harm/intent': boolean;
+    'self-harm/instructions': boolean;
+    sexual: boolean;
+    'sexual/minors': boolean;
+    violence: boolean;
+    'violence/graphic': boolean;
+  };
+  category_scores: {
+    hate: number;
+    'hate/threatening': number;
+    harassment: number;
+    'harassment/threatening': number;
+    'self-harm': number;
+    'self-harm/intent': number;
+    'self-harm/instructions': number;
+    sexual: number;
+    'sexual/minors': number;
+    violence: number;
+    'violence/graphic': number;
+  };
+}
+
+/**
+ * Scan content with OpenAI Moderation API (async)
+ */
+export async function scanContentWithOpenAI(text: string): Promise<OpenAIModerationResult | null> {
+  try {
+    const apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      console.warn('OpenAI API key not configured, skipping moderation');
+      return null;
+    }
+    
+    const response = await fetch('https://api.openai.com/v1/moderations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
       },
-      flags: hasInappropriateContent ? ['basic-filter'] : [],
-      suggestions: hasInappropriateContent ? ['Please review your content for appropriateness'] : [],
-      reasoning: hasInappropriateContent ? 'Content flagged by basic word filter' : 'Content appears appropriate',
-      textAnalysis: {
-        wordCount: text.split(' ').length,
-        language: 'en',
-        sentiment: 'neutral',
-        topics: []
-      }
-    };
-  }
-
-  /**
-   * Basic video moderation when OpenAI is not available
-   */
-  private basicVideoModeration(metadata?: {
-    title?: string;
-    description?: string;
-    duration?: number;
-  }): VideoModerationResult {
-    const textResult = this.basicTextModeration(
-      `${metadata?.title || ''} ${metadata?.description || ''}`
-    );
+      body: JSON.stringify({
+        input: text
+      })
+    });
     
-    return {
-      ...textResult,
-      videoAnalysis: {
-        hasAudio: true,
-        visualContent: [],
-        duration: metadata?.duration || 0
-      }
-    };
+    if (!response.ok) {
+      console.error('OpenAI Moderation API error:', response.status);
+      return null;
+    }
+    
+    const data = await response.json();
+    return data.results[0];
+  } catch (error) {
+    console.error('Error calling OpenAI Moderation API:', error);
+    return null;
   }
 }
 
-export const contentModerationService = ContentModerationService.getInstance();
+/**
+ * Determine if OpenAI moderation result should flag content for review
+ */
+export function shouldFlagForReview(result: OpenAIModerationResult): {
+  shouldFlag: boolean;
+  severity: 'low' | 'medium' | 'high';
+  categories: string[];
+} {
+  if (!result.flagged) {
+    return {
+      shouldFlag: false,
+      severity: 'low',
+      categories: []
+    };
+  }
+  
+  const flaggedCategories: string[] = [];
+  let maxScore = 0;
+  
+  // Find flagged categories and max score
+  Object.entries(result.categories).forEach(([category, isFlagged]) => {
+    if (isFlagged) {
+      flaggedCategories.push(category);
+      const score = result.category_scores[category as keyof typeof result.category_scores];
+      maxScore = Math.max(maxScore, score);
+    }
+  });
+  
+  // Determine severity based on max score
+  let severity: 'low' | 'medium' | 'high' = 'low';
+  if (maxScore >= 0.9) {
+    severity = 'high';
+  } else if (maxScore >= 0.7) {
+    severity = 'medium';
+  }
+  
+  return {
+    shouldFlag: true,
+    severity,
+    categories: flaggedCategories
+  };
+}
