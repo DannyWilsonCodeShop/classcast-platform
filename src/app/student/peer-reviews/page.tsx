@@ -44,7 +44,8 @@ const PeerReviewsContent: React.FC = () => {
   const [allResponses, setAllResponses] = useState<Map<string, PeerResponse[]>>(new Map()); // All peer responses per video
   const [responseTexts, setResponseTexts] = useState<Map<string, string>>(new Map());
   const [showResponseForms, setShowResponseForms] = useState<Set<string>>(new Set());
-  const [collapsedResponses, setCollapsedResponses] = useState<Set<string>>(new Set()); // Track which response sections are collapsed
+  const [collapsedResponses, setCollapsedResponses] = useState<Set<string>>(new Set()); // Track which peer response sections are collapsed
+  const [collapsedMyResponses, setCollapsedMyResponses] = useState<Set<string>>(new Set()); // Track which of my response sections are collapsed
   const [generatedThumbnails, setGeneratedThumbnails] = useState<Map<string, string>>(new Map()); // Video thumbnails from 2-second mark
   const [isLoading, setIsLoading] = useState(true);
   const [submitting, setSubmitting] = useState<string | null>(null);
@@ -94,15 +95,15 @@ const PeerReviewsContent: React.FC = () => {
             const allVideosData = await allVideosResponse.json();
             console.log('🎥 [Peer Reviews] Loaded', allVideosData.length, 'total videos from community');
             
-            if (assignmentId) {
+        if (assignmentId) {
               // If we loaded current assignment first, append other videos
               const otherVideos = allVideosData.filter((v: PeerVideo) => v.assignmentId !== assignmentId);
               allVideos = [...allVideos, ...otherVideos];
-      } else {
+          } else {
               // Otherwise, use all videos
               allVideos = allVideosData;
-            }
-      } else {
+          }
+        } else {
             console.error('🎥 [Peer Reviews] Failed to fetch all videos:', allVideosResponse.status);
           }
         } catch (err) {
@@ -189,7 +190,7 @@ const PeerReviewsContent: React.FC = () => {
           isLiked: !peerVideos.find(v => v.id === videoId)?.userLiked
         })
       });
-
+      
       if (response.ok) {
         const data = await response.json();
         setPeerVideos(prev => prev.map(v => 
@@ -198,7 +199,7 @@ const PeerReviewsContent: React.FC = () => {
             : v
         ));
       }
-          } catch (error) {
+    } catch (error) {
       console.error('Error liking video:', error);
     }
   };
@@ -212,7 +213,7 @@ const PeerReviewsContent: React.FC = () => {
         method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({
+        body: JSON.stringify({
           type: 'rating',
           userId: user.id,
           userName: `${user.firstName} ${user.lastName}`,
@@ -258,6 +259,18 @@ const PeerReviewsContent: React.FC = () => {
     });
   };
 
+  const toggleMyResponseCollapse = (videoId: string) => {
+    setCollapsedMyResponses(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(videoId)) {
+        newSet.delete(videoId);
+        } else {
+        newSet.add(videoId);
+      }
+      return newSet;
+    });
+  };
+
   const updateResponseText = (videoId: string, text: string) => {
     setResponseTexts(new Map(responseTexts.set(videoId, text)));
   };
@@ -270,7 +283,7 @@ const PeerReviewsContent: React.FC = () => {
       canvas.height = videoElement.videoHeight;
       const ctx = canvas.getContext('2d');
       
-      if (ctx) {
+        if (ctx) {
         ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
         const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.8);
         
@@ -299,7 +312,7 @@ const PeerReviewsContent: React.FC = () => {
       const video = peerVideos.find(v => v.id === videoId);
       
       const response = await fetch('/api/peer-responses', {
-        method: 'POST',
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
@@ -553,37 +566,63 @@ const PeerReviewsContent: React.FC = () => {
                       </div>
                     )}
 
-              {/* Existing Response Display */}
+              {/* Your Response Display (Collapsible) */}
               {responses.has(video.id) && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-green-700">✓ Your Response</span>
-                    <span className="text-xs text-gray-500">
-                      Submitted: {new Date(responses.get(video.id)!.submittedAt).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
-                    {responses.get(video.id)!.content}
-                  </p>
+                <div className="border border-green-200 rounded-lg overflow-hidden mb-4">
+                  {/* Collapsible Header */}
+                <button
+                    onClick={() => toggleMyResponseCollapse(video.id)}
+                    className="w-full flex items-center justify-between p-4 bg-green-50 hover:bg-green-100 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-sm font-semibold text-green-700">
+                        ✓ Your Response
+                      </span>
+              </div>
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xs text-gray-500">
+                        {new Date(responses.get(video.id)!.submittedAt).toLocaleDateString()}
+                </span>
+                      <svg
+                        className={`w-5 h-5 text-green-600 transition-transform ${
+                          collapsedMyResponses.has(video.id) ? '' : 'rotate-180'
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                    </div>
+                  </button>
+                  
+                  {/* Collapsible Content */}
+                  {!collapsedMyResponses.has(video.id) && (
+                    <div className="p-4 bg-white">
+                      <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                        {responses.get(video.id)!.content}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
-
+              
               {/* Peer Responses Section (Collapsible) */}
               {allResponses.has(video.id) && allResponses.get(video.id)!.length > 0 && (
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                   {/* Collapsible Header */}
-                  <button
+              <button
                     onClick={() => toggleResponsesCollapse(video.id)}
                     className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
                   >
                     <div className="flex items-center space-x-3">
                       <span className="text-sm font-semibold text-gray-700">
                         💬 Peer Responses
-                      </span>
+                </span>
                       <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
                         {allResponses.get(video.id)!.length}
-                      </span>
-                    </div>
+                </span>
+            </div>
                     <svg
                       className={`w-5 h-5 text-gray-500 transition-transform ${
                         collapsedResponses.has(video.id) ? '' : 'rotate-180'
@@ -595,7 +634,7 @@ const PeerReviewsContent: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-
+                  
                   {/* Collapsible Content */}
                   {!collapsedResponses.has(video.id) && (
                     <div className="divide-y divide-gray-200">
@@ -604,23 +643,23 @@ const PeerReviewsContent: React.FC = () => {
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-gray-900">
                               {response.reviewerName}
-                            </span>
-                            <span className="text-xs text-gray-500">
+                        </span>
+                        <span className="text-xs text-gray-500">
                               {new Date(response.submittedAt).toLocaleDateString()}
-                            </span>
-                          </div>
+                        </span>
+                        </div>
                           <p className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">
                             {response.content}
                           </p>
-                        </div>
+                      </div>
                       ))}
                     </div>
-                  )}
-                </div>
+                      )}
+                    </div>
               )}
-            </div>
-          </div>
-        ))}
+                </div>
+              </div>
+            ))}
       </div>
 
       {/* Notification Toast */}
