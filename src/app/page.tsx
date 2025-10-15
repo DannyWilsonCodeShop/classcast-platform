@@ -633,8 +633,8 @@ export default function HomePage() {
                 <li><Link href="/products" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">Features</Link></li>
                 <li><Link href="/products" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">AI Tools</Link></li>
                 <li><Link href="/products" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">Pricing</Link></li>
-                <li><Link href="/resources" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">API</Link></li>
-                <li><Link href="/resources" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">Documentation</Link></li>
+                <li><Link href="/about" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">About Us</Link></li>
+                <li><Link href="/support" className="text-gray-300 hover:text-blue-400 transition-colors duration-300">Support</Link></li>
               </ul>
             </div>
             
