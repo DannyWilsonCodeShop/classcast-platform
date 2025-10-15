@@ -102,26 +102,37 @@ const PeerReviewsContent: React.FC = () => {
           }
         }
         
-        // Load existing responses
-        if (user?.id) {
-          const responsesResponse = await fetch(`/api/peer-responses?reviewerId=${user.id}`, {
-            credentials: 'include'
-          });
+        // Load existing responses for all videos
+        if (user?.id && allVideos.length > 0) {
+          const responsesMap = new Map();
           
-          if (responsesResponse.ok) {
-            const responsesData = await responsesResponse.json();
-            const responsesMap = new Map();
-            if (Array.isArray(responsesData)) {
-              responsesData.forEach((resp: any) => {
-                responsesMap.set(resp.videoId, resp);
-              });
-            } else if (responsesData.responses) {
-              responsesData.responses.forEach((resp: any) => {
-                responsesMap.set(resp.videoId, resp);
-              });
+          // Fetch responses for each video individually
+          for (const video of allVideos) {
+            try {
+              const responsesResponse = await fetch(
+                `/api/peer-responses?assignmentId=${video.assignmentId}&videoId=${video.id}`, 
+                { credentials: 'include' }
+              );
+              
+              if (responsesResponse.ok) {
+                const responsesData = await responsesResponse.json();
+                if (responsesData.success && responsesData.data) {
+                  // Find responses by this reviewer
+                  const myResponse = Array.isArray(responsesData.data)
+                    ? responsesData.data.find((r: any) => r.reviewerId === user.id)
+                    : null;
+                  
+                  if (myResponse) {
+                    responsesMap.set(video.id, myResponse);
+                  }
+                }
+              }
+            } catch (err) {
+              console.error('Error loading responses for video:', video.id, err);
             }
-            setResponses(responsesMap);
           }
+          
+          setResponses(responsesMap);
         }
       } catch (error) {
         console.error('Error loading videos:', error);
