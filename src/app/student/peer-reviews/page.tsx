@@ -52,45 +52,59 @@ const PeerReviewsContent: React.FC = () => {
   useEffect(() => {
     const loadAllVideos = async () => {
       try {
+        console.log('🎥 [Peer Reviews] Starting video load...', { userId: user?.id, assignmentId, videoId });
         setIsLoading(true);
         
         // Load ALL student assignments
+        console.log('🎥 [Peer Reviews] Fetching student assignments...');
         const allAssignmentsResponse = await fetch(`/api/student/assignments?userId=${user?.id}`, {
           credentials: 'include'
         });
+        
+        console.log('🎥 [Peer Reviews] Assignments response status:', allAssignmentsResponse.status);
         
         let allVideos: PeerVideo[] = [];
         
         if (allAssignmentsResponse.ok) {
           const assignmentsData = await allAssignmentsResponse.json();
           const studentAssignments = assignmentsData.assignments || [];
+          console.log('🎥 [Peer Reviews] Found assignments:', studentAssignments.length);
           
           // Find the current assignment index
           const currentAssignmentIndex = assignmentId 
             ? studentAssignments.findIndex((a: any) => a.assignmentId === assignmentId)
             : 0;
           
+          console.log('🎥 [Peer Reviews] Current assignment index:', currentAssignmentIndex);
+          
           // Start from current assignment and load videos in order
           const assignmentsToLoad = currentAssignmentIndex >= 0
             ? studentAssignments.slice(currentAssignmentIndex)
             : studentAssignments;
           
+          console.log('🎥 [Peer Reviews] Loading videos from', assignmentsToLoad.length, 'assignments');
+          
           // Load videos for each assignment in sequence
           for (const assignment of assignmentsToLoad) {
             try {
+              console.log('🎥 [Peer Reviews] Fetching videos for assignment:', assignment.assignmentId, assignment.title);
               const videosResponse = await fetch(
                 `/api/student/community/submissions?studentId=${user?.id}&assignmentId=${assignment.assignmentId}`
               );
               
               if (videosResponse.ok) {
                 const videosData = await videosResponse.json();
+                console.log('🎥 [Peer Reviews] Loaded', videosData.length, 'videos for', assignment.title);
                 allVideos = [...allVideos, ...videosData];
+              } else {
+                console.error('🎥 [Peer Reviews] Failed to fetch videos for assignment:', assignment.assignmentId, videosResponse.status);
               }
             } catch (err) {
               console.error('Error loading videos for assignment:', assignment.assignmentId, err);
             }
           }
           
+          console.log('🎥 [Peer Reviews] Total videos loaded:', allVideos.length);
           setPeerVideos(allVideos);
           
           // Scroll to specific video if videoId is provided
@@ -100,6 +114,8 @@ const PeerReviewsContent: React.FC = () => {
               element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 500);
           }
+        } else {
+          console.error('🎥 [Peer Reviews] Failed to fetch assignments:', allAssignmentsResponse.status);
         }
         
         // Load existing responses for all videos
@@ -142,7 +158,11 @@ const PeerReviewsContent: React.FC = () => {
     };
 
     if (user?.id) {
+      console.log('🎥 [Peer Reviews] User authenticated, loading videos...', { userId: user.id });
       loadAllVideos();
+    } else {
+      console.log('🎥 [Peer Reviews] No user ID, skipping video load', { user });
+      setIsLoading(false);
     }
   }, [user?.id, assignmentId, videoId]);
 
