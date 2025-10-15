@@ -32,6 +32,7 @@ interface Assignment {
   minResponsesRequired?: number;
   maxResponsesPerVideo?: number;
   enablePeerResponses?: boolean;
+  instructionalVideoUrl?: string; // NEW: Instructor's explanation video
 }
 
 interface Submission {
@@ -540,6 +541,48 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
             {/* Assignment Details */}
             <div className="space-y-6">
+                  {/* Instructional Video */}
+                  {displayAssignment.instructionalVideoUrl && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                        <span className="mr-2">🎬</span>
+                        Watch This First: Assignment Explanation
+                      </h3>
+                      <div className="bg-purple-50 border-2 border-purple-200 rounded-xl overflow-hidden">
+                        <div className="aspect-video bg-black">
+                          {displayAssignment.instructionalVideoUrl.includes('youtube.com') || displayAssignment.instructionalVideoUrl.includes('youtu.be') ? (
+                            <iframe
+                              src={displayAssignment.instructionalVideoUrl.replace('watch?v=', 'embed/')}
+                              className="w-full h-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <video
+                              controls
+                              className="w-full h-full"
+                              preload="metadata"
+                              playsInline
+                              webkit-playsinline="true"
+                              crossOrigin="anonymous"
+                            >
+                              <source src={getVideoUrl(displayAssignment.instructionalVideoUrl)} type="video/mp4" />
+                              Your browser does not support the video tag.
+                            </video>
+                          )}
+                        </div>
+                        <div className="p-4 bg-purple-100">
+                          <p className="text-sm text-purple-800 flex items-center">
+                            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                            Your instructor created this video to explain the assignment requirements
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
                     <div className="prose prose-sm max-w-none">
