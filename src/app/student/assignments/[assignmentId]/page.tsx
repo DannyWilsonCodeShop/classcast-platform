@@ -82,6 +82,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const [showResponsesDropdown, setShowResponsesDropdown] = useState(false);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState<{[key: string]: string}>({});
+  const [allAssignments, setAllAssignments] = useState<Assignment[]>([]);
+  const [nextAssignment, setNextAssignment] = useState<Assignment | null>(null);
 
   const assignmentId = params.assignmentId as string;
 
@@ -100,6 +102,20 @@ const StudentAssignmentDetailPage: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('Student assignments API response:', data);
+        
+        // Store all assignments for next assignment functionality
+        if (data.assignments) {
+          setAllAssignments(data.assignments);
+          
+          // Find current assignment index and determine next assignment
+          const currentIndex = data.assignments.findIndex((a: Assignment) => a.assignmentId === assignmentId);
+          if (currentIndex !== -1 && currentIndex < data.assignments.length - 1) {
+            setNextAssignment(data.assignments[currentIndex + 1]);
+          } else {
+            setNextAssignment(null);
+          }
+        }
+        
         const foundAssignment = data.assignments?.find((a: Assignment) => a.assignmentId === assignmentId);
         
         if (foundAssignment) {
@@ -849,6 +865,35 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Next Assignment Button */}
+          {nextAssignment && (
+            <div className="mt-6 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Ready for the next challenge?</h3>
+                  <p className="text-sm text-gray-600">
+                    Next: <span className="font-medium">{nextAssignment.title}</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Due: {new Date(nextAssignment.dueDate).toLocaleDateString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => router.push(`/student/assignments/${nextAssignment.assignmentId}`)}
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  Next Assignment →
+                </button>
+              </div>
             </div>
           )}
         </div>
