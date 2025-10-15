@@ -77,19 +77,22 @@ export async function GET(request: NextRequest) {
       const enrichedPosts = await Promise.all(
         posts.map(async (post: any) => {
           try {
+            console.log('🔍 Enriching post with userId:', post.userId);
             const userResult = await docClient.send(new GetCommand({
               TableName: USERS_TABLE,
               Key: { userId: post.userId }
             }));
 
             const user = userResult.Item;
+            console.log('👤 User data fetched:', user ? `${user.firstName} ${user.lastName}` : 'Not found');
+            
             const authorName = user?.firstName && user?.lastName 
               ? `${user.firstName} ${user.lastName}`
               : user?.email || 'Unknown User';
             
-            // Get avatar from multiple possible sources
-            const avatar = user?.avatar || user?.profile?.avatar || user?.profilePicture || user?.profileImage || 
-              `/api/placeholder/40/40?text=${encodeURIComponent(authorName.charAt(0).toUpperCase())}`;
+            // Get avatar from multiple possible sources - only use real S3 URLs
+            const avatar = user?.avatar || user?.profile?.avatar || user?.profilePicture || user?.profileImage || undefined;
+            console.log('🖼️ Avatar URL:', avatar || 'No avatar found');
             
             return {
               id: post.postId || post.id,
@@ -121,7 +124,7 @@ export async function GET(request: NextRequest) {
               title: post.title,
               content: post.content,
               author: 'Unknown User',
-              authorAvatar: '/api/placeholder/40/40?text=U',
+              authorAvatar: undefined,
               authorRole: 'student',
               isAnnouncement: post.isAnnouncement || false,
               likes: post.likes || 0,

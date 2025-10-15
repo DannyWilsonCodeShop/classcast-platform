@@ -44,10 +44,9 @@ interface Assignment {
 interface CommunityPost {
   id: string;
   title: string;
-  author: string | {
-    name: string;
-    avatar: string;
-  };
+  author: string;
+  authorAvatar?: string;
+  authorRole?: string;
   isAnnouncement: boolean;
   likes: number;
   comments: number;
@@ -588,16 +587,14 @@ const StudentDashboard: React.FC = () => {
                            onClick={() => router.push(`/community#post-${post.id}`)}>
                         <div className="flex items-start space-x-2">
                           <Avatar
-                            src={typeof post.author === 'object' && post.author?.avatar 
-                              ? post.author.avatar 
-                              : undefined}
-                            name={typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}
+                            src={post.authorAvatar && !post.authorAvatar.includes('placeholder') ? post.authorAvatar : undefined}
+                            name={post.author || 'Unknown'}
                             size="sm"
                             className="w-5 h-5 flex-shrink-0"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-1 mb-1">
-                              <p className="text-xs font-medium text-gray-800 truncate">{typeof post.author === 'string' ? post.author : post.author?.name || 'Unknown'}</p>
+                              <p className="text-xs font-medium text-gray-800 truncate">{post.author || 'Unknown'}</p>
                               {post.isAnnouncement && (
                                 <span className="px-1 py-0.5 bg-indigo-600 text-white text-xs rounded-full flex-shrink-0">
                                   📢
