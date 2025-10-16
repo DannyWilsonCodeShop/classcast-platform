@@ -720,7 +720,7 @@ const VideoSubmissionContent: React.FC = () => {
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-bold text-gray-900">
-                Video Submission
+                Video Submission <span className="text-xs text-blue-500">v2.1</span>
               </h1>
               <p className="text-xs text-gray-600">
                 Record and submit your video assignment
@@ -868,9 +868,9 @@ const VideoSubmissionContent: React.FC = () => {
                   </div>
                 )}
 
-                {/* YouTube URL Input */}
+                {/* YouTube URL Input - v2.0 REBUILT */}
                 {activeTab === 'youtube' && (
-                  <div className="mb-6">
+                  <div className="mb-6" data-version="2.0">
                     <div className="max-w-2xl mx-auto">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         YouTube Video URL
@@ -922,10 +922,15 @@ const VideoSubmissionContent: React.FC = () => {
                         />
                         <button
                           type="button"
+                          id="youtube-submit-btn-v2"
+                          data-testid="youtube-submit"
+                          style={{ cursor: 'pointer' }}
                           onMouseDown={() => console.log('🖱️ Mouse DOWN on YouTube Submit button')}
                           onMouseUp={() => console.log('🖱️ Mouse UP on YouTube Submit button')}
+                          onMouseEnter={() => console.log('🖱️ Mouse ENTER on YouTube Submit button')}
+                          onMouseLeave={() => console.log('🖱️ Mouse LEAVE YouTube Submit button')}
                           onClick={(e) => {
-                            console.log('🖱️ YouTube Submit button CLICKED!');
+                            console.log('===== 🖱️ YouTube Submit button CLICKED! =====');
                             console.log('🔗 Current YouTube URL:', youtubeUrl);
                             console.log('🔗 URL length:', youtubeUrl.length);
                             console.log('⏳ Is uploading:', isUploading);
@@ -948,13 +953,13 @@ const VideoSubmissionContent: React.FC = () => {
                             console.log('✅ Calling handleYouTubeSubmit...');
                             handleYouTubeSubmit();
                           }}
-                          className={`px-6 py-3 rounded-lg font-semibold transition-colors cursor-pointer ${
+                          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
                             !youtubeUrl || isUploading
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              ? 'bg-gray-300 text-gray-500'
                               : 'bg-blue-500 text-white hover:bg-blue-600'
                           }`}
                         >
-                          {isUploading ? 'Submitting...' : 'Submit YouTube Video'}
+                          {isUploading ? 'Submitting...' : '▶️ Submit YouTube Video'}
                         </button>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
