@@ -922,14 +922,29 @@ const VideoSubmissionContent: React.FC = () => {
                         />
                         <button
                           type="button"
+                          onMouseDown={() => console.log('🖱️ Mouse DOWN on YouTube Submit button')}
+                          onMouseUp={() => console.log('🖱️ Mouse UP on YouTube Submit button')}
                           onClick={(e) => {
-                            console.log('🖱️ YouTube Submit button clicked!');
+                            console.log('🖱️ YouTube Submit button CLICKED!');
                             console.log('🔗 Current YouTube URL:', youtubeUrl);
                             console.log('🔗 URL length:', youtubeUrl.length);
                             console.log('⏳ Is uploading:', isUploading);
                             console.log('🔍 Button disabled:', !youtubeUrl || isUploading);
+                            console.log('🔍 youtubeUrl truthy?:', !!youtubeUrl);
                             e.preventDefault();
                             e.stopPropagation();
+                            
+                            if (!youtubeUrl) {
+                              console.log('❌ Cannot submit: No YouTube URL');
+                              return;
+                            }
+                            
+                            if (isUploading) {
+                              console.log('❌ Cannot submit: Already uploading');
+                              return;
+                            }
+                            
+                            console.log('✅ Calling handleYouTubeSubmit...');
                             handleYouTubeSubmit();
                           }}
                           className="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
