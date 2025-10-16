@@ -22,7 +22,9 @@ function extractYouTubeVideoId(url: string): string | null {
     }
     // Handle youtu.be/... format
     if (urlObj.hostname === 'youtu.be') {
-      return urlObj.pathname.substring(1);
+      // Extract video ID from pathname and strip any trailing query params
+      const videoId = urlObj.pathname.substring(1).split('?')[0];
+      return videoId || null;
     }
     return null;
   } catch {
