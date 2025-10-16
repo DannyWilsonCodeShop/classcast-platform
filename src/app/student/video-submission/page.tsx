@@ -881,14 +881,30 @@ const VideoSubmissionContent: React.FC = () => {
                           value={youtubeUrl}
                           onChange={(e) => {
                             const newValue = e.target.value;
-                            console.log('📝 YouTube URL changed to:', newValue);
+                            console.log('📝 YouTube URL changed to:', newValue.substring(0, 100));
                             console.log('📝 URL length:', newValue.length);
+                            
+                            // Prevent setting huge values
+                            if (newValue.length > 500) {
+                              console.log('⚠️ URL too long, rejecting');
+                              setError('YouTube URL is too long. Please paste only the URL.');
+                              return;
+                            }
+                            
                             setYoutubeUrl(newValue);
                           }}
                           onPaste={(e) => {
                             const pastedText = e.clipboardData.getData('text');
-                            console.log('📋 YouTube URL pasted:', pastedText);
+                            console.log('📋 YouTube URL pasted:', pastedText.substring(0, 100));
                             console.log('📋 Pasted text length:', pastedText.length);
+                            
+                            // Prevent pasting huge content (likely clipboard issue)
+                            if (pastedText.length > 500) {
+                              console.log('⚠️ Pasted content too large, likely not a YouTube URL');
+                              e.preventDefault();
+                              setError('Pasted content is too large. Please paste only the YouTube URL (should be less than 100 characters).');
+                              return;
+                            }
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
