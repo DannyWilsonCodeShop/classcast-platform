@@ -1048,20 +1048,35 @@ const VideoSubmissionContent: React.FC = () => {
                 <div className="text-center mb-8">
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">Review Your Video</h2>
                   <p className="text-gray-600">
-                    {recordedVideo ? 'Review your recording before submitting' : 'Review your uploaded video before submitting'}
+                    {recordedVideo 
+                      ? 'Review your recording before submitting' 
+                      : youtubeUrl 
+                        ? 'Review your YouTube video before submitting'
+                        : 'Review your uploaded video before submitting'}
                   </p>
             </div>
 
                 {/* Video Preview */}
                 <div className="relative bg-black rounded-xl overflow-hidden mb-6">
                   <div className="aspect-video w-full max-w-2xl mx-auto">
-                    <video
-                      src={recordedVideo || uploadedVideo || undefined}
-                      controls
-                      playsInline
-                      webkit-playsinline="true"
-                      className="w-full h-full object-cover rounded-xl"
-                    />
+                    {youtubeUrl ? (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${extractYouTubeVideoId(youtubeUrl)}`}
+                        title="YouTube video player"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full rounded-xl"
+                      />
+                    ) : (
+                      <video
+                        src={recordedVideo || uploadedVideo || undefined}
+                        controls
+                        playsInline
+                        webkit-playsinline="true"
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -1150,22 +1165,38 @@ const VideoSubmissionContent: React.FC = () => {
                     disabled={isUploading}
                     className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {recordedVideo ? 'Retake Video' : 'Choose Different File'}
+                    {recordedVideo ? 'Retake Video' : youtubeUrl ? 'Choose Different URL' : 'Choose Different File'}
                   </button>
                   <button
-                    onClick={uploadVideo}
+                    onClick={(e) => {
+                      console.log('🖱️ REVIEW SECTION Submit button clicked!');
+                      console.log('📹 recordedVideo:', !!recordedVideo);
+                      console.log('📁 uploadedVideo:', !!uploadedVideo);
+                      console.log('▶️ youtubeUrl:', youtubeUrl);
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      if (youtubeUrl) {
+                        console.log('✅ Calling handleYouTubeSubmit from review section...');
+                        handleYouTubeSubmit();
+                      } else {
+                        console.log('✅ Calling uploadVideo...');
+                        uploadVideo();
+                      }
+                    }}
                     disabled={isUploading || success}
+                    style={{ cursor: 'pointer' }}
                     className="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                   >
                     {isUploading ? (
                       <>
                         <LoadingSpinner size="sm" />
-                        <span>Uploading...</span>
+                        <span>{youtubeUrl ? 'Submitting...' : 'Uploading...'}</span>
                       </>
                     ) : (
                       <>
-                        <span className="text-xl">📤</span>
-                        <span>Submit Video</span>
+                        <span className="text-xl">{youtubeUrl ? '▶️' : '📤'}</span>
+                        <span>{youtubeUrl ? 'Submit YouTube Video' : 'Submit Video'}</span>
                       </>
                     )}
                   </button>
