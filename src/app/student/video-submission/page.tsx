@@ -482,14 +482,25 @@ const VideoSubmissionContent: React.FC = () => {
   };
 
   const handleYouTubeSubmit = async () => {
-    if (!youtubeUrl) return;
+    console.log('🎬 handleYouTubeSubmit called with URL:', youtubeUrl);
+    
+    if (!youtubeUrl) {
+      console.log('❌ No YouTube URL provided');
+      return;
+    }
 
     // Validate YouTube URL
-    if (!isValidYouTubeUrl(youtubeUrl)) {
+    console.log('🔍 Validating YouTube URL...');
+    const isValid = isValidYouTubeUrl(youtubeUrl);
+    console.log('🔍 URL validation result:', isValid);
+    
+    if (!isValid) {
+      console.log('❌ Invalid YouTube URL');
       setError('Please enter a valid YouTube URL');
       return;
     }
 
+    console.log('✅ YouTube URL is valid, proceeding with submission...');
     setError(null);
     setIsUploading(true);
     setUploadProgress(0);
@@ -868,12 +879,24 @@ const VideoSubmissionContent: React.FC = () => {
                         <input
                           type="url"
                           value={youtubeUrl}
-                          onChange={(e) => setYoutubeUrl(e.target.value)}
+                          onChange={(e) => {
+                            console.log('📝 YouTube URL changed to:', e.target.value);
+                            setYoutubeUrl(e.target.value);
+                          }}
+                          onPaste={(e) => {
+                            console.log('📋 YouTube URL pasted:', e.clipboardData.getData('text'));
+                          }}
                           placeholder="https://www.youtube.com/watch?v=..."
                           className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         <button
-                          onClick={handleYouTubeSubmit}
+                          onClick={(e) => {
+                            console.log('🖱️ YouTube Submit button clicked!');
+                            console.log('🔗 Current YouTube URL:', youtubeUrl);
+                            console.log('⏳ Is uploading:', isUploading);
+                            e.preventDefault();
+                            handleYouTubeSubmit();
+                          }}
                           className="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                           disabled={!youtubeUrl || isUploading}
                         >
