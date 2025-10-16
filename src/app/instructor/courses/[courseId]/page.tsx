@@ -1261,6 +1261,7 @@ const InstructorCourseDetailPage: React.FC = () => {
           onClose={() => setShowSettingsModal(false)}
           course={course}
           onUpdate={handleCourseUpdate}
+          instructorId={user?.id}
         />
 
         {/* Assignment Editing Modal */}
