@@ -111,7 +111,15 @@ export default function AboutPage() {
                       </li>
                       <li className="flex items-start">
                         <span className="text-red-500 mr-2">•</span>
-                        Students miss the transformative power of teaching others
+                        Creating, distributing, and grading video content is complex and time-consuming
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-red-500 mr-2">•</span>
+                        Difficult to encourage students to watch and engage with peer videos
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-red-500 mr-2">•</span>
+                        Video grading workflows are scattered across multiple tools
                       </li>
                     </ul>
                   </div>
@@ -127,19 +135,27 @@ export default function AboutPage() {
                     <ul className="space-y-3 text-green-700">
                       <li className="flex items-start">
                         <span className="text-green-500 mr-2">•</span>
-                        Video-based peer teaching and feedback
+                        <strong>All-in-one platform</strong> for video creation, distribution, and grading
                       </li>
                       <li className="flex items-start">
                         <span className="text-green-500 mr-2">•</span>
-                        Students create content to teach classmates
+                        <strong>Seamless workflow</strong> that flows from video to video, assignment to assignment
                       </li>
                       <li className="flex items-start">
                         <span className="text-green-500 mr-2">•</span>
-                        AI-enhanced assessment and feedback
+                        <strong>Speed controls & navigation</strong> make watching peer videos engaging and efficient
                       </li>
                       <li className="flex items-start">
                         <span className="text-green-500 mr-2">•</span>
-                        Reaches Bloom's highest cognitive levels
+                        <strong>AI-assisted grading</strong> and feedback generation saves time and improves quality
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-500 mr-2">•</span>
+                        <strong>Comprehensive peer review</strong> system encourages student engagement
+                      </li>
+                      <li className="flex items-start">
+                        <span className="text-green-500 mr-2">•</span>
+                        <strong>Makes creating, grading, and providing feedback easy and fun!</strong>
                       </li>
                     </ul>
                   </div>
