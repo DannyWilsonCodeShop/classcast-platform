@@ -25,6 +25,9 @@ interface Course {
   icon?: string;
   subject?: string;
   ungradedSubmissions?: number;
+  userRole?: 'primary' | 'co-instructor'; // NEW: User's role in this course
+  instructorName?: string; // NEW: Primary instructor name
+  coInstructorName?: string; // NEW: Co-instructor name
 }
 
 interface RecentSubmission {
@@ -498,6 +501,16 @@ const InstructorDashboard: React.FC = () => {
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
                               <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">{course.title}</h3>
+                              {/* User Role Indicator */}
+                              {course.userRole && (
+                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
+                                  course.userRole === 'primary' 
+                                    ? 'bg-indigo-100 text-indigo-700' 
+                                    : 'bg-green-100 text-green-700'
+                                }`}>
+                                  {course.userRole === 'primary' ? '👑 Primary' : '👥 Co-Instructor'}
+                                </span>
+                              )}
                               {(course.ungradedSubmissions || 0) > 0 && (
                                 <span className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full animate-pulse flex-shrink-0">
                                   <span>🔔</span>

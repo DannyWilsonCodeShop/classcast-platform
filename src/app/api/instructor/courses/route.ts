@@ -22,12 +22,13 @@ export async function GET(request: NextRequest) {
 
     console.log('Fetching courses for instructor ID:', instructorId);
 
-    // Get courses for the specific instructor
+    // Get courses for the specific instructor (both as primary instructor and co-instructor)
     const result = await docClient.send(new ScanCommand({
       TableName: COURSES_TABLE,
-      FilterExpression: 'instructorId = :instructorId',
+      FilterExpression: 'instructorId = :instructorId OR coInstructorId = :coInstructorId',
       ExpressionAttributeValues: {
-        ':instructorId': instructorId
+        ':instructorId': instructorId,
+        ':coInstructorId': instructorId
       }
     }));
 
@@ -63,7 +64,11 @@ export async function GET(request: NextRequest) {
           year: course.year,
           status: course.status || 'active',
           createdAt: course.createdAt,
-          updatedAt: course.updatedAt
+          updatedAt: course.updatedAt,
+          // NEW: Indicate user's role in this course
+          userRole: course.instructorId === instructorId ? 'primary' : 'co-instructor',
+          instructorName: course.instructorName || 'Unknown Instructor',
+          coInstructorName: course.coInstructorName || null
         })),
         debug: {
           requestedInstructorId: instructorId,
