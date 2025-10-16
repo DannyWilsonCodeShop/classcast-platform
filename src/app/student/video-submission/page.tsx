@@ -83,9 +83,18 @@ const VideoSubmissionContent: React.FC = () => {
     clearOldVideos();
   }, []);
 
-  // Start camera preview immediately when component mounts
+  // Start camera preview only when on 'record' tab and not yet recorded
   React.useEffect(() => {
-    startCameraPreview();
+    if (activeTab === 'record' && !recordedVideo) {
+      startCameraPreview();
+    } else {
+      // Stop camera if switching away from record tab
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
+    }
     
     // Cleanup camera on unmount
     return () => {
@@ -94,7 +103,7 @@ const VideoSubmissionContent: React.FC = () => {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [activeTab, recordedVideo]);
 
   const startCameraPreview = async () => {
     try {
@@ -821,13 +830,30 @@ const VideoSubmissionContent: React.FC = () => {
                       <p className="text-xs text-gray-500 mt-2">
                         Paste the full URL of your YouTube video. The video should be unlisted or public.
                       </p>
-                      {youtubeUrl && (
-                        <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <p className="text-sm text-blue-800">
-                            <strong>📌 Important:</strong> Make sure your YouTube video is set to "Unlisted" or "Public" 
-                            so your instructor can view it. Private videos cannot be accessed.
-                          </p>
-                        </div>
+                      {youtubeUrl && isValidYouTubeUrl(youtubeUrl) && (
+                        <>
+                          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-blue-800">
+                              <strong>📌 Important:</strong> Make sure your YouTube video is set to "Unlisted" or "Public" 
+                              so your instructor can view it. Private videos cannot be accessed.
+                            </p>
+                          </div>
+                          <div className="mt-4">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Video Preview:</h4>
+                            <div className="relative bg-black rounded-xl overflow-hidden">
+                              <div className="aspect-video w-full">
+                                <iframe
+                                  src={`https://www.youtube.com/embed/${extractYouTubeVideoId(youtubeUrl)}`}
+                                  title="YouTube video player"
+                                  frameBorder="0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                  className="w-full h-full"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
