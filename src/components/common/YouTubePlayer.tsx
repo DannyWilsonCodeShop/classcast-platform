@@ -75,18 +75,28 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
           rel: 0,
           modestbranding: 1,
           playsinline: 1,
-          enablejsapi: 1
+          enablejsapi: 1,
+          origin: window.location.origin // Add origin for CORS
         },
         events: {
           onReady: (event: any) => {
             console.log('✅ YouTube player ready, setting speed to:', playbackSpeed);
-            event.target.setPlaybackRate(playbackSpeed);
+            try {
+              event.target.setPlaybackRate(playbackSpeed);
+            } catch (err) {
+              console.warn('Could not set initial playback rate:', err);
+            }
             if (onPlayerReady) {
               onPlayerReady(event.target);
             }
           },
           onError: (event: any) => {
-            console.error('YouTube player error:', event.data);
+            console.error('YouTube player error code:', event.data);
+            // Error codes: 2 = Invalid video ID, 5 = HTML5 player error, 100 = Video not found, 101/150 = Embedding disabled
+          },
+          onStateChange: (event: any) => {
+            // -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (video cued)
+            console.log('YouTube player state changed:', event.data);
           }
         }
       });
