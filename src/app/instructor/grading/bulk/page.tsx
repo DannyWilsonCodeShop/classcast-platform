@@ -1036,6 +1036,7 @@ const BulkGradingPage: React.FC = () => {
                               url={submission.youtubeUrl || submission.fileUrl}
                               title={submission.assignmentTitle}
                               className="aspect-video w-full"
+                              playbackSpeed={playbackSpeed}
                             />
                           ) : (
                             <video

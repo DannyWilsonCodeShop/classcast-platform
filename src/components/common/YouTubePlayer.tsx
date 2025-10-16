@@ -1,5 +1,7 @@
-import React from 'react';
-import { getYouTubeEmbedUrl } from '@/lib/youtube';
+'use client';
+
+import React, { useEffect, useRef } from 'react';
+import { extractYouTubeVideoId } from '@/lib/youtube';
 
 interface YouTubePlayerProps {
   url: string;
@@ -9,6 +11,16 @@ interface YouTubePlayerProps {
   controls?: boolean;
   width?: string | number;
   height?: string | number;
+  playbackSpeed?: number; // NEW: Support for playback speed
+  onPlayerReady?: (player: any) => void; // NEW: Callback when player is ready
+}
+
+// Declare YouTube IFrame API types
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
 }
 
 export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
@@ -18,11 +30,93 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   autoplay = false,
   controls = true,
   width = '100%',
-  height = '100%'
+  height = '100%',
+  playbackSpeed = 1.0,
+  onPlayerReady
 }) => {
-  const embedUrl = getYouTubeEmbedUrl(url);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<any>(null);
+  const videoId = extractYouTubeVideoId(url);
 
-  if (!embedUrl) {
+  useEffect(() => {
+    if (!videoId) return;
+
+    // Load YouTube IFrame API script if not already loaded
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+      // Wait for API to load
+      window.onYouTubeIframeAPIReady = () => {
+        initializePlayer();
+      };
+    } else {
+      initializePlayer();
+    }
+
+    function initializePlayer() {
+      if (!containerRef.current || playerRef.current) return;
+
+      // Create a unique div for this player instance
+      const playerId = `youtube-player-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      const playerDiv = document.createElement('div');
+      playerDiv.id = playerId;
+      containerRef.current.appendChild(playerDiv);
+
+      playerRef.current = new window.YT.Player(playerId, {
+        videoId: videoId,
+        width: '100%',
+        height: '100%',
+        playerVars: {
+          autoplay: autoplay ? 1 : 0,
+          controls: controls ? 1 : 0,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+          enablejsapi: 1
+        },
+        events: {
+          onReady: (event: any) => {
+            console.log('✅ YouTube player ready, setting speed to:', playbackSpeed);
+            event.target.setPlaybackRate(playbackSpeed);
+            if (onPlayerReady) {
+              onPlayerReady(event.target);
+            }
+          },
+          onError: (event: any) => {
+            console.error('YouTube player error:', event.data);
+          }
+        }
+      });
+    }
+
+    return () => {
+      if (playerRef.current && playerRef.current.destroy) {
+        try {
+          playerRef.current.destroy();
+        } catch (err) {
+          console.warn('Error destroying YouTube player:', err);
+        }
+        playerRef.current = null;
+      }
+    };
+  }, [videoId, autoplay, controls]);
+
+  // Update playback speed when it changes
+  useEffect(() => {
+    if (playerRef.current && playerRef.current.setPlaybackRate) {
+      try {
+        playerRef.current.setPlaybackRate(playbackSpeed);
+        console.log('📺 YouTube playback speed updated to:', playbackSpeed);
+      } catch (err) {
+        console.warn('Could not set playback speed:', err);
+      }
+    }
+  }, [playbackSpeed]);
+
+  if (!videoId) {
     return (
       <div className={`bg-gray-100 flex items-center justify-center p-8 rounded-lg ${className}`}>
         <div className="text-center">
@@ -33,26 +127,12 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
     );
   }
 
-  // Build URL with parameters
-  const params = new URLSearchParams();
-  if (autoplay) params.append('autoplay', '1');
-  if (!controls) params.append('controls', '0');
-  params.append('rel', '0'); // Don't show related videos
-  params.append('modestbranding', '1'); // Minimal YouTube branding
-
-  const finalUrl = `${embedUrl}?${params.toString()}`;
-
   return (
-    <div className={className} style={{ width, height }}>
-      <iframe
-        src={finalUrl}
-        title={title}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        className="w-full h-full rounded-lg"
-        style={{ border: 'none' }}
-      />
-    </div>
+    <div 
+      ref={containerRef}
+      className={className} 
+      style={{ width, height }}
+    />
   );
 };
 
