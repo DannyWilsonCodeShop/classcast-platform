@@ -103,6 +103,7 @@ exports.handler = async (event) => {
             role: { S: role },
             status: { S: 'active' },
             enabled: { BOOL: true },
+            schoolLogo: { S: '/logos/cristo-rey-atlanta.png' }, // Default school logo
             createdAt: { S: new Date().toISOString() },
             updatedAt: { S: new Date().toISOString() },
             lastLogin: { S: new Date().toISOString() },
