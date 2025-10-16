@@ -54,6 +54,7 @@ interface CourseSettingsModalProps {
   course: Course | null;
   onUpdate: (updateData: Partial<Course>) => Promise<{ success: boolean; message: string }>;
   onDelete?: (courseId: string) => Promise<{ success: boolean; message: string }>;
+  instructorId?: string; // NEW: Add instructor ID prop
 }
 
 const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
@@ -61,7 +62,8 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
   onClose,
   course,
   onUpdate,
-  onDelete
+  onDelete,
+  instructorId
 }) => {
   const [formData, setFormData] = useState<Partial<Course>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -163,6 +165,19 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
     if (!course?.courseId || !sectionForm.sectionName.trim()) return;
 
     try {
+      const finalInstructorId = instructorId || course.instructorId || course.instructor?.id;
+      
+      if (!finalInstructorId) {
+        setError('Instructor ID is missing. Please refresh the page and try again.');
+        return;
+      }
+
+      console.log('Creating section with data:', {
+        courseId: course.courseId,
+        sectionName: sectionForm.sectionName,
+        instructorId: finalInstructorId
+      });
+
       const response = await fetch('/api/sections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -174,7 +189,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
           maxEnrollment: sectionForm.maxEnrollment,
           location: sectionForm.location.trim() || undefined,
           schedule: sectionForm.schedule.days.length > 0 ? sectionForm.schedule : undefined,
-          instructorId: course.instructorId || ''
+          instructorId: finalInstructorId
         })
       });
 

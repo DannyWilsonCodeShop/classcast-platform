@@ -109,10 +109,21 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!courseId || !sectionName || !instructorId) {
+      console.error('Section creation validation failed:', {
+        courseId: !!courseId,
+        sectionName: !!sectionName,
+        instructorId: !!instructorId,
+        receivedBody: body
+      });
       return NextResponse.json(
         { 
           success: false, 
-          error: 'Course ID, section name, and instructor ID are required' 
+          error: 'Course ID, section name, and instructor ID are required',
+          missing: {
+            courseId: !courseId,
+            sectionName: !sectionName,
+            instructorId: !instructorId
+          }
         },
         { status: 400 }
       );
