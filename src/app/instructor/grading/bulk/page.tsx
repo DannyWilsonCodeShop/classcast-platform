@@ -19,6 +19,8 @@ interface Submission {
   grade?: number;
   feedback?: string;
   fileUrl: string;
+  youtubeUrl?: string;
+  isYouTube?: boolean;
   thumbnailUrl: string;
   duration: number; // in seconds
   fileSize: number; // in bytes
@@ -364,6 +366,8 @@ const BulkGradingPage: React.FC = () => {
               grade: sub.grade,
               feedback: sub.instructorFeedback,
               fileUrl: sub.videoUrl,
+              youtubeUrl: sub.youtubeUrl || null,
+              isYouTube: sub.isYouTube || false,
               thumbnailUrl: sub.thumbnailUrl || '/api/placeholder/300/200',
               duration: sub.duration || 0,
               fileSize: sub.fileSize || 0,
