@@ -113,6 +113,12 @@ const PeerReviewsContent: React.FC = () => {
         console.log('🎥 [Peer Reviews] Total videos loaded:', allVideos.length);
         setPeerVideos(allVideos);
         
+        // Initialize all dropdowns as collapsed by default
+        const allVideoIds = new Set(allVideos.map(v => v.id));
+        setCollapsedResponses(allVideoIds);
+        setCollapsedMyResponses(allVideoIds);
+        console.log('🔽 [Peer Reviews] All dropdowns initialized as collapsed');
+        
         // Scroll to specific video if videoId is provided
         if (videoId && allVideos.length > 0) {
           setTimeout(() => {
