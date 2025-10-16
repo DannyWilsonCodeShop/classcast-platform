@@ -82,6 +82,8 @@ export interface VideoReel {
   description: string;
   thumbnail: string;
   videoUrl: string;
+  youtubeUrl?: string;
+  isYouTube?: boolean;
   duration: number;
   assignmentId?: string;
   author?: {

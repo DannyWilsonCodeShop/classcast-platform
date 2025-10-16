@@ -12,6 +12,24 @@ interface VideoReelsProps {
   className?: string;
 }
 
+// Helper function to extract YouTube video ID
+function extractYouTubeVideoId(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    // Handle youtube.com/watch?v=... format
+    if (urlObj.hostname.includes('youtube.com')) {
+      return urlObj.searchParams.get('v');
+    }
+    // Handle youtu.be/... format
+    if (urlObj.hostname === 'youtu.be') {
+      return urlObj.pathname.substring(1);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
   const [reels, setReels] = useState<VideoReel[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -341,83 +359,97 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
       className={`relative w-full h-64 sm:h-80 lg:aspect-video bg-black rounded-xl overflow-hidden cursor-pointer group ${className}`}
       onClick={() => handleVideoClick(currentReel)}
     >
-      {/* Video Player */}
-      <video
-        ref={(el) => {
-          videoRefs.current[currentIndex] = el;
-        }}
-        className="w-full h-full object-cover"
-        muted
-        loop
-        playsInline
-        webkit-playsinline="true"
-        preload="metadata"
-        crossOrigin="anonymous"
-        controls={false}
-        disablePictureInPicture
-        controlsList="nodownload nofullscreen noremoteplayback"
-        key={currentReel.id} // Force re-render when video changes
-        poster={generatedThumbnails.get(currentReel.id) || (currentReel.thumbnail !== '/api/placeholder/400/300' ? currentReel.thumbnail : undefined)}
-        onLoadedData={() => handleVideoLoad(currentIndex)}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onCanPlay={() => {
-          // Safari: Ensure video is ready for playback
-          const video = videoRefs.current[currentIndex];
-          if (video && !isPlaying && video.readyState >= 3) {
-            video.play().catch(() => {
-              // Autoplay failed, user interaction required
-              setIsPlaying(false);
-            });
-          }
-        }}
-        onLoadedMetadata={() => {
-          // Safari: Set initial time after metadata loads and generate thumbnail
-          const video = videoRefs.current[currentIndex];
-          if (video && video.readyState >= 1) {
-            // Only set currentTime if video has enough data
-            setTimeout(() => {
-              if (video.readyState >= 2) {
-                video.currentTime = 2.0;
-              }
-            }, 100);
-          }
-        }}
-        onSeeked={(e) => {
-          // Generate thumbnail when video seeks to 2 seconds
-          const video = e.currentTarget;
-          const currentReel = reels[currentIndex];
-          if (currentReel && video.currentTime >= 2.0 && video.currentTime < 3.0) {
-            if (!generatedThumbnails.has(currentReel.id)) {
-              generateThumbnail(video, currentReel.id).then(thumbnail => {
-                if (thumbnail) {
-                  setGeneratedThumbnails(prev => new Map(prev.set(currentReel.id, thumbnail)));
-                }
+      {/* Video Player - Conditional rendering for YouTube vs Regular videos */}
+      {currentReel.isYouTube || currentReel.youtubeUrl || currentReel.videoUrl?.includes('youtube.com') || currentReel.videoUrl?.includes('youtu.be') ? (
+        // YouTube iframe for YouTube videos
+        <iframe
+          className="w-full h-full"
+          src={`https://www.youtube.com/embed/${extractYouTubeVideoId(currentReel.youtubeUrl || currentReel.videoUrl)}?autoplay=1&mute=1&loop=1&playlist=${extractYouTubeVideoId(currentReel.youtubeUrl || currentReel.videoUrl)}&controls=0&modestbranding=1&rel=0`}
+          title={currentReel.title}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          key={currentReel.id}
+        />
+      ) : (
+        // Regular video element for uploaded videos
+        <video
+          ref={(el) => {
+            videoRefs.current[currentIndex] = el;
+          }}
+          className="w-full h-full object-cover"
+          muted
+          loop
+          playsInline
+          webkit-playsinline="true"
+          preload="metadata"
+          crossOrigin="anonymous"
+          controls={false}
+          disablePictureInPicture
+          controlsList="nodownload nofullscreen noremoteplayback"
+          key={currentReel.id} // Force re-render when video changes
+          poster={generatedThumbnails.get(currentReel.id) || (currentReel.thumbnail !== '/api/placeholder/400/300' ? currentReel.thumbnail : undefined)}
+          onLoadedData={() => handleVideoLoad(currentIndex)}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onCanPlay={() => {
+            // Safari: Ensure video is ready for playback
+            const video = videoRefs.current[currentIndex];
+            if (video && !isPlaying && video.readyState >= 3) {
+              video.play().catch(() => {
+                // Autoplay failed, user interaction required
+                setIsPlaying(false);
               });
             }
-          }
-        }}
-        onError={(e) => {
-          console.error('Video error:', e);
-          const video = e.currentTarget;
-          console.error('Video error details:', {
-            error: video.error,
-            networkState: video.networkState,
-            readyState: video.readyState,
-            src: video.src
-          });
-          handleVideoError(currentIndex);
-        }}
-      >
-        <source src={getVideoUrl(currentReel.videoUrl)} type="video/mp4" />
-        Your browser does not support the video tag.
-      </video>
+          }}
+          onLoadedMetadata={() => {
+            // Safari: Set initial time after metadata loads and generate thumbnail
+            const video = videoRefs.current[currentIndex];
+            if (video && video.readyState >= 1) {
+              // Only set currentTime if video has enough data
+              setTimeout(() => {
+                if (video.readyState >= 2) {
+                  video.currentTime = 2.0;
+                }
+              }, 100);
+            }
+          }}
+          onSeeked={(e) => {
+            // Generate thumbnail when video seeks to 2 seconds
+            const video = e.currentTarget;
+            const currentReel = reels[currentIndex];
+            if (currentReel && video.currentTime >= 2.0 && video.currentTime < 3.0) {
+              if (!generatedThumbnails.has(currentReel.id)) {
+                generateThumbnail(video, currentReel.id).then(thumbnail => {
+                  if (thumbnail) {
+                    setGeneratedThumbnails(prev => new Map(prev.set(currentReel.id, thumbnail)));
+                  }
+                });
+              }
+            }
+          }}
+          onError={(e) => {
+            console.error('Video error:', e);
+            const video = e.currentTarget;
+            console.error('Video error details:', {
+              error: video.error,
+              networkState: video.networkState,
+              readyState: video.readyState,
+              src: video.src
+            });
+            handleVideoError(currentIndex);
+          }}
+        >
+          <source src={getVideoUrl(currentReel.videoUrl)} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      )}
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
 
-      {/* Play Button Overlay for Safari Autoplay Fallback */}
-      {!isPlaying && (
+      {/* Play Button Overlay for Safari Autoplay Fallback - Hide for YouTube videos */}
+      {!isPlaying && !(currentReel.isYouTube || currentReel.youtubeUrl || currentReel.videoUrl?.includes('youtube.com') || currentReel.videoUrl?.includes('youtu.be')) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/30">
           <button
             onClick={(e) => {
