@@ -10,6 +10,29 @@ import AssignmentResourcesDisplay from '@/components/common/AssignmentResourcesD
 import { htmlToPlainText } from '@/lib/htmlUtils';
 import { getVideoUrl } from '@/lib/videoUtils';
 
+// Helper function to extract YouTube video ID
+function extractYouTubeVideoId(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    // Handle youtube.com/watch?v=... format
+    if (urlObj.hostname.includes('youtube.com')) {
+      return urlObj.searchParams.get('v');
+    }
+    // Handle youtu.be/... format
+    if (urlObj.hostname === 'youtu.be') {
+      return urlObj.pathname.substring(1);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+// Helper function to check if URL is a YouTube URL
+function isYouTubeUrl(url: string): boolean {
+  return url?.includes('youtube.com') || url?.includes('youtu.be');
+}
+
 interface Assignment {
   assignmentId: string;
   title: string;
@@ -617,47 +640,60 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     <h4 className="text-md font-semibold text-gray-800 mb-2">Your Submission</h4>
                     <div className="bg-white rounded-lg p-4 border border-gray-200">
                       <div className="aspect-video bg-black rounded-lg overflow-hidden mb-3 relative">
-                        <video
-                          controls
-                          className="w-full h-full object-cover"
-                          src={getVideoUrl(submission.videoUrl)}
-                          poster={videoThumbnail || submission.thumbnailUrl || undefined}
-                          preload="metadata"
-                          playsInline
-                          webkit-playsinline="true"
-                          onLoadedMetadata={(e) => {
-                            const video = e.currentTarget;
-                            setVideoLoaded(true);
-                            if (video.duration && !isNaN(video.duration)) {
-                              setVideoDuration(Math.floor(video.duration));
-                            }
-                            
-                            // Generate thumbnail from frame at 2 seconds if not already generated
-                            if (!videoThumbnail) {
-                              video.currentTime = 2.0;
-                            }
-                          }}
-                          onSeeked={(e) => {
-                            const video = e.currentTarget;
-                            if (!videoThumbnail && video.currentTime >= 2.0 && video.currentTime < 3.0) {
-                              const canvas = document.createElement('canvas');
-                              canvas.width = 400;
-                              canvas.height = 300;
-                              const ctx = canvas.getContext('2d');
-                              if (ctx) {
-                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                                const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
-                                setVideoThumbnail(thumbnail);
+                        {isYouTubeUrl(submission.videoUrl) || submission.youtubeUrl || submission.isYouTube ? (
+                          // YouTube iframe for YouTube videos
+                          <iframe
+                            className="w-full h-full"
+                            src={`https://www.youtube.com/embed/${extractYouTubeVideoId(submission.youtubeUrl || submission.videoUrl)}`}
+                            title={submission.videoTitle || 'YouTube video'}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        ) : (
+                          // Regular video element for uploaded videos
+                          <video
+                            controls
+                            className="w-full h-full object-cover"
+                            src={getVideoUrl(submission.videoUrl)}
+                            poster={videoThumbnail || submission.thumbnailUrl || undefined}
+                            preload="metadata"
+                            playsInline
+                            webkit-playsinline="true"
+                            onLoadedMetadata={(e) => {
+                              const video = e.currentTarget;
+                              setVideoLoaded(true);
+                              if (video.duration && !isNaN(video.duration)) {
+                                setVideoDuration(Math.floor(video.duration));
                               }
-                            }
-                          }}
-                          onError={() => {
-                            console.error('Video failed to load');
-                            setVideoLoaded(false);
-                          }}
-                        >
-                          Your browser does not support the video tag.
-                        </video>
+                              
+                              // Generate thumbnail from frame at 2 seconds if not already generated
+                              if (!videoThumbnail) {
+                                video.currentTime = 2.0;
+                              }
+                            }}
+                            onSeeked={(e) => {
+                              const video = e.currentTarget;
+                              if (!videoThumbnail && video.currentTime >= 2.0 && video.currentTime < 3.0) {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = 400;
+                                canvas.height = 300;
+                                const ctx = canvas.getContext('2d');
+                                if (ctx) {
+                                  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                  const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
+                                  setVideoThumbnail(thumbnail);
+                                }
+                              }
+                            }}
+                            onError={() => {
+                              console.error('Video failed to load');
+                              setVideoLoaded(false);
+                            }}
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                        )}
                         {!videoLoaded && (
                           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
                             <div className="text-white text-sm">Loading video...</div>
