@@ -158,14 +158,21 @@ export async function GET(request: NextRequest) {
       let signedVideoUrl = submission.videoUrl;
       if (submission.videoUrl) {
         try {
-          const s3Key = extractS3KeyFromUrl(submission.videoUrl);
-          if (s3Key) {
-            const command = new GetObjectCommand({
-              Bucket: VIDEO_BUCKET,
-              Key: s3Key,
-            });
-            signedVideoUrl = await getSignedUrl(s3Client, command, { expiresIn: SIGNED_URL_EXPIRY });
-            console.log('Generated signed URL for peer video:', s3Key);
+          // Check if it's a YouTube URL - if so, use it as-is
+          if (submission.isYouTube || submission.youtubeUrl || submission.videoUrl.includes('youtube.com') || submission.videoUrl.includes('youtu.be')) {
+            console.log('Using YouTube URL as-is:', submission.videoUrl);
+            signedVideoUrl = submission.youtubeUrl || submission.videoUrl;
+          } else {
+            // Extract S3 key from URL for non-YouTube videos
+            const s3Key = extractS3KeyFromUrl(submission.videoUrl);
+            if (s3Key) {
+              const command = new GetObjectCommand({
+                Bucket: VIDEO_BUCKET,
+                Key: s3Key,
+              });
+              signedVideoUrl = await getSignedUrl(s3Client, command, { expiresIn: SIGNED_URL_EXPIRY });
+              console.log('Generated signed URL for peer video:', s3Key);
+            }
           }
         } catch (error) {
           console.warn('Could not generate signed URL for video:', error);
@@ -185,6 +192,8 @@ export async function GET(request: NextRequest) {
         courseName,
         sectionId: submission.sectionId,
         videoUrl: signedVideoUrl,
+        youtubeUrl: submission.youtubeUrl || null,
+        isYouTube: submission.isYouTube || false,
         videoTitle: submission.videoTitle || 'Video Submission',
         videoDescription: submission.videoDescription || '',
         duration: submission.duration || 0,
