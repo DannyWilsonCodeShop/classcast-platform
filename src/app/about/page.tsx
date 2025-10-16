@@ -80,6 +80,119 @@ export default function AboutPage() {
               </div>
             </div>
 
+            {/* Development Journey */}
+            <div className="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-3xl shadow-xl border border-indigo-100 p-8 mb-20">
+              <div className="max-w-5xl mx-auto">
+                <h3 className="text-3xl font-bold text-gray-900 mb-6 text-center">
+                  Built by an Educator, Powered by Innovation
+                </h3>
+                
+                <div className="space-y-6 text-gray-700 leading-relaxed">
+                  <p className="text-lg text-center max-w-3xl mx-auto">
+                    ClassCast isn't just an idea - it's a <strong>fully-functional, production-grade platform</strong> built from the ground up by Danny Wilson, combining his deep educational expertise with modern software development.
+                  </p>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                    {/* From Teacher to Developer */}
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-indigo-100">
+                      <div className="flex items-center mb-4">
+                        <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-2xl">👨‍💻</span>
+                        </div>
+                        <h4 className="text-xl font-bold text-gray-900">From Teacher to Full-Stack Developer</h4>
+                      </div>
+                      <p className="text-gray-700">
+                        With 12+ years of teaching experience, Danny identified a critical gap in educational technology and decided to build the solution himself. What started as a vision became a complete, production-ready platform serving real students today.
+                      </p>
+                    </div>
+
+                    {/* Technical Achievement */}
+                    <div className="bg-white rounded-2xl p-6 shadow-lg border border-purple-100">
+                      <div className="flex items-center mb-4">
+                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-2xl">⚡</span>
+                        </div>
+                        <h4 className="text-xl font-bold text-gray-900">Enterprise-Grade Technology</h4>
+                      </div>
+                      <p className="text-gray-700">
+                        ClassCast is built on modern cloud infrastructure (AWS), featuring real-time video processing, AI-powered content moderation, secure authentication, and a responsive design that works seamlessly across all devices.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Tech Stack Highlights */}
+                  <div className="bg-white rounded-2xl p-6 shadow-lg mt-6">
+                    <h4 className="text-xl font-bold text-gray-900 mb-4 text-center">Platform Capabilities</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                        <span className="text-2xl">🎥</span>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">Video Recording & Upload</p>
+                          <p className="text-xs text-gray-600">Webcam, file upload, YouTube integration</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                        <span className="text-2xl">🤖</span>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">AI-Powered Features</p>
+                          <p className="text-xs text-gray-600">Content moderation, grading assistance</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                        <span className="text-2xl">⚡</span>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">Real-Time Interactions</p>
+                          <p className="text-xs text-gray-600">Live notifications, instant feedback</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+                        <span className="text-2xl">📊</span>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">Advanced Analytics</p>
+                          <p className="text-xs text-gray-600">Engagement tracking, performance insights</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
+                        <span className="text-2xl">🔒</span>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">Enterprise Security</p>
+                          <p className="text-xs text-gray-600">JWT auth, encrypted data, PII protection</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 p-3 bg-indigo-50 rounded-lg">
+                        <span className="text-2xl">☁️</span>
+                        <div>
+                          <p className="font-semibold text-gray-900 text-sm">Cloud Infrastructure</p>
+                          <p className="text-xs text-gray-600">Scalable, reliable, globally distributed</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Development Approach */}
+                  <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white mt-6">
+                    <div className="flex items-start gap-4">
+                      <span className="text-3xl">💡</span>
+                      <div>
+                        <h4 className="text-xl font-bold mb-3">A New Era of Development</h4>
+                        <p className="text-indigo-100 mb-3">
+                          ClassCast represents a new paradigm in software development - where <strong>domain expertise</strong> meets <strong>AI-augmented coding</strong>. Danny leveraged cutting-edge AI tools to accelerate development while maintaining complete control over architecture, features, and user experience.
+                        </p>
+                        <p className="text-indigo-100 text-sm">
+                          <strong>Result:</strong> A production-ready platform that would typically require a team of developers and months of work - built by one educator with a clear vision and the determination to make it real.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* The Problem & Solution */}
             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 mb-20">
               <div className="max-w-4xl mx-auto">
