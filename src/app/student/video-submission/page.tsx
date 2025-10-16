@@ -83,30 +83,64 @@ const VideoSubmissionContent: React.FC = () => {
     clearOldVideos();
   }, []);
 
+  // Helper function to stop camera
+  const stopCamera = React.useCallback(() => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      console.log('📹 Stopping camera');
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => {
+        track.stop();
+        console.log(`📹 Stopped track: ${track.kind}`);
+      });
+      videoRef.current.srcObject = null;
+    }
+  }, []);
+
+  // Stop camera when page visibility changes (tab switch, navigate away, etc.)
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('📹 Page hidden, stopping camera');
+        stopCamera();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      console.log('📹 Page unloading, stopping camera');
+      stopCamera();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [stopCamera]);
+
   // Start camera preview only when on 'record' tab and not yet recorded
   React.useEffect(() => {
     if (activeTab === 'record' && !recordedVideo) {
       startCameraPreview();
     } else {
       // Stop camera if switching away from record tab
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-        videoRef.current.srcObject = null;
-      }
+      console.log('📹 Switching away from record tab or video recorded, stopping camera');
+      stopCamera();
     }
     
     // Cleanup camera on unmount
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-      }
+      console.log('📹 Component unmounting, stopping camera');
+      stopCamera();
     };
-  }, [activeTab, recordedVideo]);
+  }, [activeTab, recordedVideo, stopCamera]);
 
   const startCameraPreview = async () => {
     try {
+      // First, stop any existing camera
+      stopCamera();
+      
       setError(null);
       // Try to get optimal constraints first, fallback to basic if needed
       let stream;
@@ -503,6 +537,8 @@ const VideoSubmissionContent: React.FC = () => {
 
       setUploadProgress(50);
 
+      console.log('📤 Submitting YouTube video:', submissionData);
+      
       const submissionResponse = await fetch('/api/video-submissions', {
         method: 'POST',
         headers: {
@@ -511,8 +547,13 @@ const VideoSubmissionContent: React.FC = () => {
         body: JSON.stringify(submissionData),
       });
 
+      console.log('📥 Response status:', submissionResponse.status);
+      
+      const responseData = await submissionResponse.json();
+      console.log('📥 Response data:', responseData);
+
       if (!submissionResponse.ok) {
-        throw new Error('Failed to submit YouTube video');
+        throw new Error(responseData.error || 'Failed to submit YouTube video');
       }
 
       setUploadProgress(100);
@@ -525,7 +566,8 @@ const VideoSubmissionContent: React.FC = () => {
 
     } catch (err) {
       console.error('Error submitting YouTube URL:', err);
-      setError('Failed to submit YouTube URL. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit YouTube URL. Please try again.';
+      setError(`YouTube Submission Error: ${errorMessage}`);
     } finally {
       setIsUploading(false);
     }
@@ -652,7 +694,10 @@ const VideoSubmissionContent: React.FC = () => {
         <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3">
             <div className="flex items-center space-x-3">
               <button
-              onClick={() => router.push('/student/dashboard')}
+              onClick={() => {
+                stopCamera();
+                router.push('/student/dashboard');
+              }}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -686,7 +731,9 @@ const VideoSubmissionContent: React.FC = () => {
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30 mb-6">
               <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
                 <button
-                  onClick={() => setActiveTab('record')}
+                  onClick={() => {
+                    setActiveTab('record');
+                  }}
                   className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                     activeTab === 'record'
                       ? 'bg-white text-blue-600 shadow-sm'
@@ -696,7 +743,10 @@ const VideoSubmissionContent: React.FC = () => {
                   🎥 Live Recording
                 </button>
                 <button
-                  onClick={() => setActiveTab('upload')}
+                  onClick={() => {
+                    stopCamera();
+                    setActiveTab('upload');
+                  }}
                   className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                     activeTab === 'upload'
                       ? 'bg-white text-blue-600 shadow-sm'
@@ -706,7 +756,10 @@ const VideoSubmissionContent: React.FC = () => {
                   📁 Upload Video
                 </button>
                 <button
-                  onClick={() => setActiveTab('youtube')}
+                  onClick={() => {
+                    stopCamera();
+                    setActiveTab('youtube');
+                  }}
                   className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                     activeTab === 'youtube'
                       ? 'bg-white text-blue-600 shadow-sm'
