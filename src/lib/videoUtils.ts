@@ -3,7 +3,7 @@
  */
 
 /**
- * Get the proper video URL, using proxy for S3 URLs to ensure Safari/mobile compatibility
+ * Get the proper video URL - use direct S3 URLs (presigned URLs already have auth)
  */
 export function getVideoUrl(videoUrl: string | undefined | null): string {
   if (!videoUrl) {
@@ -15,11 +15,12 @@ export function getVideoUrl(videoUrl: string | undefined | null): string {
     return videoUrl;
   }
 
-  // If it's an S3 URL, use the proxy for better Safari/mobile compatibility
+  // If it's an S3 presigned URL, use it directly (they already have auth tokens)
+  // This avoids 413 errors from proxy trying to handle long URLs
   if (videoUrl.includes('amazonaws.com') || videoUrl.includes('s3.')) {
-    // Always use the proxy for S3 URLs to ensure Safari compatibility
-    // The proxy now streams responses to avoid 413 errors
-    return `/api/video-proxy?url=${encodeURIComponent(videoUrl)}`;
+    // Use direct S3 URLs - presigned URLs have auth built-in
+    console.log('🎬 Using direct S3 URL (no proxy)');
+    return videoUrl;
   }
 
   // For other URLs (like data URLs or external URLs), return as-is
