@@ -646,14 +646,20 @@ const StudentAssignmentDetailPage: React.FC = () => {
                       <div className="aspect-video bg-black rounded-lg overflow-hidden mb-3 relative">
                         {isYouTubeUrl(submission.videoUrl) || submission.youtubeUrl || submission.isYouTube ? (
                           // YouTube iframe for YouTube videos
-                          <iframe
-                            className="w-full h-full"
-                            src={`https://www.youtube.com/embed/${extractYouTubeVideoId(submission.youtubeUrl || submission.videoUrl)}`}
-                            title={submission.videoTitle || 'YouTube video'}
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
+                          <>
+                            <iframe
+                              className="w-full h-full"
+                              src={`https://www.youtube.com/embed/${extractYouTubeVideoId(submission.youtubeUrl || submission.videoUrl)}`}
+                              title={submission.videoTitle || 'YouTube video'}
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              onLoad={() => {
+                                setVideoLoaded(true);
+                                console.log('✅ YouTube iframe loaded');
+                              }}
+                            />
+                          </>
                         ) : (
                           // Regular video element for uploaded videos
                           <video

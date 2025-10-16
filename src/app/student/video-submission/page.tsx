@@ -411,11 +411,6 @@ const VideoSubmissionContent: React.FC = () => {
       // Simulate successful upload
       setSuccess(true);
       
-      // Auto-redirect to dashboard after 3 seconds
-      setTimeout(() => {
-    router.push('/student/dashboard');
-      }, 3000);
-      
       // Store only metadata in localStorage for local reference
       const videoInfo = {
         id: `video-${Date.now()}`,
@@ -569,11 +564,6 @@ const VideoSubmissionContent: React.FC = () => {
 
       setUploadProgress(100);
       setSuccess(true);
-
-      // Auto-redirect to dashboard after 3 seconds
-      setTimeout(() => {
-        router.push('/student/dashboard');
-      }, 3000);
 
     } catch (err) {
       console.error('Error submitting YouTube URL:', err);
