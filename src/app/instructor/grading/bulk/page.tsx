@@ -1376,10 +1376,20 @@ const BulkGradingPage: React.FC = () => {
                             </label>
                             <input
                               type="number"
-                              value={index === currentSubmissionIndex ? currentGrade : ''}
+                              value={index === currentSubmissionIndex ? currentGrade : (submission.grade || '')}
                               onChange={(e) => {
+                                // Allow editing for current submission
                                 if (index === currentSubmissionIndex) {
                                   handleGradeChange(e.target.value ? Number(e.target.value) : '');
+                                } else {
+                                  // If they click on a non-current submission's input, select it
+                                  selectSubmission(index);
+                                }
+                              }}
+                              onFocus={() => {
+                                // When focusing an input, make sure this submission is selected
+                                if (index !== currentSubmissionIndex) {
+                                  selectSubmission(index);
                                 }
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
