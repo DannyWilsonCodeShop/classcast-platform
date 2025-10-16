@@ -95,15 +95,21 @@ export async function GET(
       let signedVideoUrl = submission.videoUrl;
       if (submission.videoUrl) {
         try {
-          // Extract S3 key from URL
-          const s3Key = extractS3KeyFromUrl(submission.videoUrl);
-          if (s3Key) {
-            const command = new GetObjectCommand({
-              Bucket: VIDEO_BUCKET,
-              Key: s3Key,
-            });
-            signedVideoUrl = await getSignedUrl(s3Client, command, { expiresIn: SIGNED_URL_EXPIRY });
-            console.log('Generated signed URL for video:', s3Key);
+          // Check if it's a YouTube URL - if so, use it as-is
+          if (submission.isYouTube || submission.youtubeUrl || submission.videoUrl.includes('youtube.com') || submission.videoUrl.includes('youtu.be')) {
+            console.log('Using YouTube URL as-is:', submission.videoUrl);
+            signedVideoUrl = submission.youtubeUrl || submission.videoUrl;
+          } else {
+            // Extract S3 key from URL for non-YouTube videos
+            const s3Key = extractS3KeyFromUrl(submission.videoUrl);
+            if (s3Key) {
+              const command = new GetObjectCommand({
+                Bucket: VIDEO_BUCKET,
+                Key: s3Key,
+              });
+              signedVideoUrl = await getSignedUrl(s3Client, command, { expiresIn: SIGNED_URL_EXPIRY });
+              console.log('Generated signed URL for video:', s3Key);
+            }
           }
         } catch (error) {
           console.warn('Could not generate signed URL for video:', error);
