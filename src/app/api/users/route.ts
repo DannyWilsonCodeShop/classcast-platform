@@ -72,6 +72,7 @@ export async function POST(request: NextRequest) {
       lastName: body.lastName,
       role: body.role as UserRole,
       status: UserStatus.ACTIVE,
+      schoolLogo: '/logos/cristo-rey-atlanta.png', // Default school logo
       createdAt: new Date().toISOString(),
       lastLoginAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

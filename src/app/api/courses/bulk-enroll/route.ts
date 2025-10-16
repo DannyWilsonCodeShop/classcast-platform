@@ -235,11 +235,13 @@ async function createUserRecord(student: StudentEnrollment, userId: string) {
     lastName: student.lastName || '',
     role: 'student',
     status: 'active',
+    schoolLogo: '/logos/cristo-rey-atlanta.png', // Default school logo
     createdAt: now,
     lastLoginAt: now,
     profile: {
       avatar: `/api/placeholder/40/40`,
-      bio: ''
+      bio: '',
+      schoolLogo: '/logos/cristo-rey-atlanta.png' // Default school logo
     }
   };
 
