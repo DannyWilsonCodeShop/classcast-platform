@@ -42,16 +42,12 @@ export default function AboutPage() {
                   <div className="absolute inset-0 bg-gradient-to-br from-indigo-400 to-purple-500 rounded-2xl transform rotate-3"></div>
                   <div className="relative bg-white rounded-2xl p-4 shadow-2xl">
                     <Image
-                      src="/danny-wilson-profile.jpg"
+                      src="/headshot.jpeg"
                       alt="Danny Wilson - ClassCast Founder"
                       width={400}
                       height={500}
                       className="w-full h-auto rounded-xl object-cover"
                       priority
-                      onError={(e) => {
-                        // Fallback to placeholder if image not found
-                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjUwMCIgdmlld0JveD0iMCAwIDQwMCA1MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iNTAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxjaXJjbGUgY3g9IjIwMCIgY3k9IjIwMCIgcj0iODAiIGZpbGw9IiNEMUQ1REIiLz4KPHN2ZyB4PSIxNjAiIHk9IjE2MCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9IiM5Q0EzQUYiPgo8cGF0aCBkPSJNMTIgMTJDMTQuMjA5MSAxMiAxNiAxMC4yMDkxIDE2IDhDMTYgNS43OTA5IDE0LjIwOTEgNCAxMiA0QzkuNzkwODYgNCA4IDUuNzkwOSA4IDhDOCAxMC4yMDkxIDkuNzkwODYgMTIgMTIgMTJaTTEyIDE0QzguNjg2MjkgMTQgNiAxNi42ODYzIDYgMjBINThWMTZDNjQgMTQuNjg2MyA4LjY4NjI5IDEyIDEyIDEyWiIgZmlsbD0iIzY3NzM4MCIvPgo8L3N2Zz4KPC9zdmc+';
-                      }}
                     />
                   </div>
                 </div>
@@ -73,11 +69,11 @@ export default function AboutPage() {
                     For over <strong>12 years</strong>, Danny has dedicated his life to teaching and inspiring students across multiple disciplines. His journey spans teaching <strong>Math, Computer Science, and Music</strong> to both <strong>soldiers and students</strong>, developing a deep understanding of how people learn best.
                   </p>
                   
-                  <p>
+                  <p className="text-lg">
                     Throughout his teaching career, Danny observed a fundamental truth: <strong>students who teach others reach the highest levels of learning</strong>. This insight aligns perfectly with <strong>Bloom's Taxonomy</strong>, where "Create" and "Teach" represent the pinnacle of cognitive development.
                   </p>
                   
-                  <p>
+                  <p className="text-lg">
                     However, traditional educational platforms were missing this crucial peer-to-peer teaching component. Students were consuming content but rarely creating and teaching others. Danny recognized this gap and set out to build a solution.
                   </p>
                 </div>
