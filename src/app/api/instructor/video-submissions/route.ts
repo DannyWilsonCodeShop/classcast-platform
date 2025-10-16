@@ -198,15 +198,27 @@ export async function GET(request: NextRequest) {
           let signedVideoUrl = submission.videoUrl;
           if (submission.videoUrl) {
             try {
-              // Extract S3 key from URL
-              const s3Key = extractS3KeyFromUrl(submission.videoUrl);
-              if (s3Key) {
-                const command = new GetObjectCommand({
-                  Bucket: VIDEO_BUCKET,
-                  Key: s3Key,
-                });
-                signedVideoUrl = await getSignedUrl(s3Client, command, { expiresIn: SIGNED_URL_EXPIRY });
-                console.log('Generated signed URL for video:', s3Key);
+              // Check if it's a YouTube URL - if so, use it as-is
+              const isYouTube = submission.isYouTube || 
+                               submission.youtubeUrl || 
+                               submission.videoUrl.includes('youtube.com') || 
+                               submission.videoUrl.includes('youtu.be');
+              
+              if (isYouTube) {
+                // Use YouTube URL directly (no S3 processing)
+                signedVideoUrl = submission.youtubeUrl || submission.videoUrl;
+                console.log('Using YouTube URL directly (instructor grading):', signedVideoUrl);
+              } else {
+                // Extract S3 key and generate presigned URL for S3 videos
+                const s3Key = extractS3KeyFromUrl(submission.videoUrl);
+                if (s3Key) {
+                  const command = new GetObjectCommand({
+                    Bucket: VIDEO_BUCKET,
+                    Key: s3Key,
+                  });
+                  signedVideoUrl = await getSignedUrl(s3Client, command, { expiresIn: SIGNED_URL_EXPIRY });
+                  console.log('Generated signed URL for video:', s3Key);
+                }
               }
             } catch (error) {
               console.warn('Could not generate signed URL for video:', error);
@@ -217,6 +229,8 @@ export async function GET(request: NextRequest) {
           return {
             ...submission,
             videoUrl: signedVideoUrl,
+            youtubeUrl: submission.youtubeUrl || null,
+            isYouTube: submission.isYouTube || false,
             student: studentInfo ? {
               id: studentInfo.userId,
               name: `${studentInfo.firstName || ''} ${studentInfo.lastName || ''}`.trim() || 'Unknown Student',
