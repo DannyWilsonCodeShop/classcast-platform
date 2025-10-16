@@ -783,14 +783,53 @@ const InstructorDashboard: React.FC = () => {
                 const data = await response.json();
                 console.log('Class cloned successfully:', data);
 
-                // Refresh courses list
+                // Refresh courses list with proper enrichment
                 const coursesResponse = await fetch('/api/courses', {
                   credentials: 'include',
                 });
                 if (coursesResponse.ok) {
                   const coursesData = await coursesResponse.json();
-                  if (coursesData.success && Array.isArray(coursesData.courses)) {
-                    setCourses(coursesData.courses);
+                  console.log('Refreshing courses after clone:', coursesData);
+                  
+                  // Use the same format as initial load
+                  const coursesArray = coursesData.data?.courses || coursesData.courses || [];
+                  
+                  if (Array.isArray(coursesArray)) {
+                    // Map courseId to id for compatibility
+                    const mappedCourses = coursesArray.map((course: any) => ({
+                      ...course,
+                      id: course.id || course.courseId,
+                      courseId: course.id || course.courseId
+                    }));
+                    
+                    // Fetch ungraded submission counts for each course
+                    const coursesWithSubmissionCounts = await Promise.all(
+                      mappedCourses.map(async (course: any) => {
+                        try {
+                          const submissionsResponse = await fetch(`/api/instructor/video-submissions?courseId=${course.id}`);
+                          if (submissionsResponse.ok) {
+                            const submissionsData = await submissionsResponse.json();
+                            const submissions = submissionsData.submissions || [];
+                            const ungradedCount = submissions.filter((sub: any) => 
+                              sub.grade === null || sub.grade === undefined
+                            ).length;
+                            return {
+                              ...course,
+                              ungradedSubmissions: ungradedCount
+                            };
+                          }
+                        } catch (error) {
+                          console.error(`Error fetching submissions for course ${course.id}:`, error);
+                        }
+                        return {
+                          ...course,
+                          ungradedSubmissions: 0
+                        };
+                      })
+                    );
+                    
+                    setCourses(coursesWithSubmissionCounts);
+                    console.log('Courses refreshed successfully after clone:', coursesWithSubmissionCounts.length);
                   }
                 }
 
