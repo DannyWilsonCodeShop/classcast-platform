@@ -929,13 +929,14 @@ const VideoSubmissionContent: React.FC = () => {
                             console.log('🔗 Current YouTube URL:', youtubeUrl);
                             console.log('🔗 URL length:', youtubeUrl.length);
                             console.log('⏳ Is uploading:', isUploading);
-                            console.log('🔍 Button disabled:', !youtubeUrl || isUploading);
+                            console.log('🔍 Button should be disabled?:', !youtubeUrl || isUploading);
                             console.log('🔍 youtubeUrl truthy?:', !!youtubeUrl);
                             e.preventDefault();
                             e.stopPropagation();
                             
                             if (!youtubeUrl) {
                               console.log('❌ Cannot submit: No YouTube URL');
+                              setError('Please enter a YouTube URL first');
                               return;
                             }
                             
@@ -947,10 +948,13 @@ const VideoSubmissionContent: React.FC = () => {
                             console.log('✅ Calling handleYouTubeSubmit...');
                             handleYouTubeSubmit();
                           }}
-                          className="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                          disabled={!youtubeUrl || isUploading}
+                          className={`px-6 py-3 rounded-lg font-semibold transition-colors cursor-pointer ${
+                            !youtubeUrl || isUploading
+                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                              : 'bg-blue-500 text-white hover:bg-blue-600'
+                          }`}
                         >
-                          {isUploading ? 'Submitting...' : 'Submit'}
+                          {isUploading ? 'Submitting...' : 'Submit YouTube Video'}
                         </button>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
