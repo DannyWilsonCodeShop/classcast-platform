@@ -884,14 +884,18 @@ const VideoSubmissionContent: React.FC = () => {
                             console.log('📝 YouTube URL changed to:', newValue.substring(0, 100));
                             console.log('📝 URL length:', newValue.length);
                             
-                            // Prevent setting huge values
+                            // Prevent setting huge values but still update for validation
                             if (newValue.length > 500) {
-                              console.log('⚠️ URL too long, rejecting');
-                              setError('YouTube URL is too long. Please paste only the URL.');
+                              console.log('⚠️ URL too long, clearing and showing error');
+                              setYoutubeUrl(''); // Clear the field
+                              setError('YouTube URL is too long. Please paste only the URL (should be less than 100 characters).');
                               return;
                             }
                             
+                            // Clear any previous errors
+                            setError(null);
                             setYoutubeUrl(newValue);
+                            console.log('✅ YouTube URL state updated');
                           }}
                           onPaste={(e) => {
                             const pastedText = e.clipboardData.getData('text');
@@ -937,6 +941,11 @@ const VideoSubmissionContent: React.FC = () => {
                       <p className="text-xs text-gray-500 mt-2">
                         Paste the full URL of your YouTube video. The video should be unlisted or public.
                       </p>
+                      {/* Debug info */}
+                      <div className="mt-2 text-xs text-gray-500">
+                        Debug: URL length: {youtubeUrl.length}, Valid: {isValidYouTubeUrl(youtubeUrl) ? 'Yes' : 'No'}, Button enabled: {youtubeUrl && !isUploading ? 'Yes' : 'No'}
+                      </div>
+                      
                       {youtubeUrl && isValidYouTubeUrl(youtubeUrl) && (
                         <>
                           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
