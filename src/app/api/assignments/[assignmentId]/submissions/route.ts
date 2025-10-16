@@ -97,7 +97,12 @@ export async function GET(
         try {
           // Check if it's a YouTube URL - if so, use it as-is
           if (submission.isYouTube || submission.youtubeUrl || submission.videoUrl.includes('youtube.com') || submission.videoUrl.includes('youtu.be')) {
-            console.log('Using YouTube URL as-is:', submission.videoUrl);
+            console.log('✅ YouTube submission detected:', {
+              submissionId: submission.submissionId,
+              isYouTube: submission.isYouTube,
+              youtubeUrl: submission.youtubeUrl,
+              videoUrl: submission.videoUrl
+            });
             signedVideoUrl = submission.youtubeUrl || submission.videoUrl;
           } else {
             // Extract S3 key from URL for non-YouTube videos
@@ -120,6 +125,8 @@ export async function GET(
       return {
         ...submission,
         videoUrl: signedVideoUrl,
+        youtubeUrl: submission.youtubeUrl || null,
+        isYouTube: submission.isYouTube || false,
         studentName,
         studentEmail
       };
