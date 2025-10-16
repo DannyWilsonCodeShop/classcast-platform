@@ -38,8 +38,15 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   const playerRef = useRef<any>(null);
   const videoId = extractYouTubeVideoId(url);
 
+  console.log('🎬 YouTubePlayer rendering:', { url, videoId, playbackSpeed });
+
   useEffect(() => {
-    if (!videoId) return;
+    if (!videoId) {
+      console.error('❌ No video ID extracted from URL:', url);
+      return;
+    }
+    
+    console.log('🎬 Initializing YouTube player for video ID:', videoId);
 
     // Load YouTube IFrame API script if not already loaded
     if (!window.YT) {
@@ -57,13 +64,23 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
     }
 
     function initializePlayer() {
-      if (!containerRef.current || playerRef.current) return;
+      if (!containerRef.current) {
+        console.error('❌ Container ref not available');
+        return;
+      }
+      
+      if (playerRef.current) {
+        console.log('⚠️ Player already exists, skipping initialization');
+        return;
+      }
 
       // Create a unique div for this player instance
       const playerId = `youtube-player-${Date.now()}-${Math.random().toString(36).substring(7)}`;
       const playerDiv = document.createElement('div');
       playerDiv.id = playerId;
       containerRef.current.appendChild(playerDiv);
+      
+      console.log('🎬 Creating YouTube player element:', playerId);
 
       playerRef.current = new window.YT.Player(playerId, {
         videoId: videoId,
@@ -141,8 +158,15 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
     <div 
       ref={containerRef}
       className={className} 
-      style={{ width, height }}
-    />
+      style={{ width, height, position: 'relative' }}
+    >
+      {/* Fallback iframe in case Player API fails */}
+      {!playerRef.current && videoId && (
+        <div style={{ position: 'absolute', inset: 0, opacity: 0.5 }}>
+          <p className="text-center text-gray-500 text-sm p-4">Loading YouTube player...</p>
+        </div>
+      )}
+    </div>
   );
 };
 
