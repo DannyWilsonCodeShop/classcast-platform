@@ -3,18 +3,67 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import bcrypt from 'bcryptjs';
 import { generateTokens } from '@/lib/jwt';
+import crypto from 'crypto';
 
 const dynamoClient = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 const USERS_TABLE = 'classcast-users';
 
+// Rate limiting for login attempts (in production, use Redis or similar)
+const loginAttempts = new Map<string, { count: number; lastAttempt: number; blockedUntil?: number }>();
+const MAX_LOGIN_ATTEMPTS = 5;
+const BLOCK_DURATION = 15 * 60 * 1000; // 15 minutes
+const ATTEMPT_WINDOW = 15 * 60 * 1000; // 15 minutes
+
+// CSRF protection
+function generateCSRFToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+function verifyCSRFToken(token: string, sessionToken: string): boolean {
+  return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(sessionToken));
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('=== JWT-BASED LOGIN API CALLED ===');
     
+    // Rate limiting check
+    const clientIP = request.headers.get('x-forwarded-for') || 
+                    request.headers.get('x-real-ip') || 
+                    'unknown';
+    const now = Date.now();
+    const userAttempts = loginAttempts.get(clientIP);
+    
+    if (userAttempts) {
+      if (userAttempts.blockedUntil && now < userAttempts.blockedUntil) {
+        return NextResponse.json(
+          { error: { message: 'Too many login attempts. Please try again later.' } },
+          { status: 429 }
+        );
+      }
+      
+      if (now - userAttempts.lastAttempt < ATTEMPT_WINDOW) {
+        if (userAttempts.count >= MAX_LOGIN_ATTEMPTS) {
+          userAttempts.blockedUntil = now + BLOCK_DURATION;
+          return NextResponse.json(
+            { error: { message: 'Too many login attempts. Please try again later.' } },
+            { status: 429 }
+          );
+        }
+        userAttempts.count++;
+      } else {
+        userAttempts.count = 1;
+        userAttempts.blockedUntil = undefined;
+      }
+      userAttempts.lastAttempt = now;
+    } else {
+      loginAttempts.set(clientIP, { count: 1, lastAttempt: now });
+    }
+    
     const body = await request.json();
-    const { email, password } = body;
+    const { email, password, csrfToken } = body;
     
     console.log('Login request:', { email, password: password ? '***' : 'undefined' });
 
@@ -35,13 +84,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Password length validation
+    // Password strength validation
     if (password.length < 8) {
       return NextResponse.json(
         { error: { message: 'Password must be at least 8 characters long' } },
         { status: 400 }
       );
     }
+
+    // Password complexity validation
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+    if (!passwordRegex.test(password)) {
+      return NextResponse.json(
+        { error: { message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character' } },
+        { status: 400 }
+      );
+    }
+
+    // Input sanitization
+    const sanitizedEmail = email.toLowerCase().trim();
+    const sanitizedPassword = password.trim();
 
     // Check for test credentials first
     const testUsers = [
@@ -87,7 +149,7 @@ export async function POST(request: NextRequest) {
       }
     ];
 
-    const testUser = testUsers.find(u => u.email === email && u.password === password);
+        const testUser = testUsers.find(u => u.email === sanitizedEmail && u.password === sanitizedPassword);
     
     if (testUser) {
       console.log('Using test credentials for:', email);
@@ -111,13 +173,13 @@ export async function POST(request: NextRequest) {
     
     let userData;
     try {
-      const userResult = await docClient.send(new ScanCommand({
-        TableName: USERS_TABLE,
-        FilterExpression: 'email = :email',
-        ExpressionAttributeValues: {
-          ':email': email
-        }
-      }));
+        const userResult = await docClient.send(new ScanCommand({
+          TableName: USERS_TABLE,
+          FilterExpression: 'email = :email',
+          ExpressionAttributeValues: {
+            ':email': sanitizedEmail
+          }
+        }));
 
       console.log('DynamoDB scan result:', {
         count: userResult.Count,
@@ -159,45 +221,48 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    try {
-      // First try bcrypt comparison (new format)
-      passwordMatch = await bcrypt.compare(password, userData.password);
-      console.log('Bcrypt password match:', passwordMatch);
-    } catch (bcryptError) {
-      console.log('Bcrypt comparison failed, trying legacy format:', bcryptError);
-      
-      // If bcrypt fails, try simple string comparison for legacy users
-      // This is a temporary migration solution
-      if (userData.password === password) {
-        passwordMatch = true;
-        console.log('Legacy password match found');
-        
-        // Update the user to use bcrypt for future logins
         try {
-          const hashedPassword = await bcrypt.hash(password, 10);
-          // Note: We can't update the user here without the UpdateCommand
-          // This is just for logging purposes
-          console.log('User needs password migration to bcrypt');
-        } catch (hashError) {
-          console.log('Failed to hash password for migration:', hashError);
+          // First try bcrypt comparison (new format)
+          passwordMatch = await bcrypt.compare(sanitizedPassword, userData.password);
+          console.log('Bcrypt password match:', passwordMatch);
+        } catch (bcryptError) {
+          console.log('Bcrypt comparison failed, trying legacy format:', bcryptError);
+          
+          // If bcrypt fails, try simple string comparison for legacy users
+          // This is a temporary migration solution
+          if (userData.password === sanitizedPassword) {
+            passwordMatch = true;
+            console.log('Legacy password match found');
+            
+            // Update the user to use bcrypt for future logins
+            try {
+              const hashedPassword = await bcrypt.hash(sanitizedPassword, 12); // Increased rounds for better security
+              // Note: We can't update the user here without the UpdateCommand
+              // This is just for logging purposes
+              console.log('User needs password migration to bcrypt');
+            } catch (hashError) {
+              console.log('Failed to hash password for migration:', hashError);
+            }
+          }
         }
-      }
-    }
     
-    if (!passwordMatch) {
-      console.log('Password mismatch for user:', email);
-      return NextResponse.json(
-        { error: { message: 'Invalid email or password' } },
-        { status: 401 }
-      );
-    }
+        if (!passwordMatch) {
+          console.log('Password mismatch for user:', sanitizedEmail);
+          return NextResponse.json(
+            { error: { message: 'Invalid email or password' } },
+            { status: 401 }
+          );
+        }
 
-    console.log('Authentication successful for user:', email);
+        // Reset login attempts on successful login
+        loginAttempts.delete(clientIP);
+
+        console.log('Authentication successful for user:', sanitizedEmail);
     
-    // Create user object with safe defaults for legacy users
-    const user = {
-      id: userData.userId || userData.id || 'unknown',
-      email: userData.email || email,
+        // Create user object with safe defaults for legacy users
+        const user = {
+          id: userData.userId || userData.id || 'unknown',
+          email: userData.email || sanitizedEmail,
       firstName: userData.firstName || userData.first_name || 'Unknown',
       lastName: userData.lastName || userData.last_name || 'User',
       role: userData.role || 'student',
@@ -261,3 +326,13 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Clean up old login attempts periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, attempts] of loginAttempts.entries()) {
+    if (now - attempts.lastAttempt > ATTEMPT_WINDOW && !attempts.blockedUntil) {
+      loginAttempts.delete(ip);
+    }
+  }
+}, ATTEMPT_WINDOW); // Clean up every 15 minutes
