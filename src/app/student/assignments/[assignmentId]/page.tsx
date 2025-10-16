@@ -64,6 +64,8 @@ interface Submission {
   studentId: string;
   courseId: string;
   videoUrl: string;
+  youtubeUrl?: string;
+  isYouTube?: boolean;
   videoTitle: string;
   videoDescription: string;
   duration: number;
