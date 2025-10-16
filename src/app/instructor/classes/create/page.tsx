@@ -20,6 +20,9 @@ interface ClassFormData {
   gradingPolicy: string;
   startDate: string;
   endDate: string;
+  coInstructorEmail: string; // NEW: Co-instructor email
+  coInstructorName?: string; // NEW: Co-instructor name (fetched)
+  coInstructorId?: string; // NEW: Co-instructor ID (fetched)
   createAssignment: boolean;
   assignmentTitle?: string;
   assignmentDescription?: string;
@@ -59,6 +62,9 @@ const CreateClassPage: React.FC = () => {
   const [showSectionForm, setShowSectionForm] = useState(false);
   const [newSection, setNewSection] = useState({name: '', code: '', maxEnrollment: 30});
   const [previewClassCode, setPreviewClassCode] = useState('');
+  const [coInstructorSearchResults, setCoInstructorSearchResults] = useState<Array<{id: string, name: string, email: string}>>([]);
+  const [isSearchingCoInstructor, setIsSearchingCoInstructor] = useState(false);
+  const [showCoInstructorResults, setShowCoInstructorResults] = useState(false);
   const [formData, setFormData] = useState<ClassFormData>({
     title: '',
     description: '',
@@ -74,6 +80,9 @@ const CreateClassPage: React.FC = () => {
     gradingPolicy: '',
     startDate: '',
     endDate: '',
+    coInstructorEmail: '', // NEW: Initialize co-instructor fields
+    coInstructorName: undefined,
+    coInstructorId: undefined,
     createAssignment: false,
     assignmentTitle: '',
     assignmentDescription: '',
@@ -240,6 +249,63 @@ const CreateClassPage: React.FC = () => {
       ...prev,
       allowedFileTypes: prev.allowedFileTypes?.filter(type => type !== fileType) || []
     }));
+  };
+
+  // Co-instructor search functionality
+  const searchCoInstructor = async (email: string) => {
+    if (!email || email.length < 3) {
+      setCoInstructorSearchResults([]);
+      setShowCoInstructorResults(false);
+      return;
+    }
+
+    setIsSearchingCoInstructor(true);
+    try {
+      const response = await fetch(`/api/users/search?email=${encodeURIComponent(email)}&role=instructor`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCoInstructorSearchResults(data.users || []);
+        setShowCoInstructorResults(true);
+      } else {
+        console.error('Failed to search for co-instructor');
+        setCoInstructorSearchResults([]);
+        setShowCoInstructorResults(false);
+      }
+    } catch (error) {
+      console.error('Error searching for co-instructor:', error);
+      setCoInstructorSearchResults([]);
+      setShowCoInstructorResults(false);
+    } finally {
+      setIsSearchingCoInstructor(false);
+    }
+  };
+
+  const selectCoInstructor = (instructor: {id: string, name: string, email: string}) => {
+    setFormData(prev => ({
+      ...prev,
+      coInstructorEmail: instructor.email,
+      coInstructorName: instructor.name,
+      coInstructorId: instructor.id
+    }));
+    setShowCoInstructorResults(false);
+    setCoInstructorSearchResults([]);
+  };
+
+  const clearCoInstructor = () => {
+    setFormData(prev => ({
+      ...prev,
+      coInstructorEmail: '',
+      coInstructorName: undefined,
+      coInstructorId: undefined
+    }));
+    setShowCoInstructorResults(false);
+    setCoInstructorSearchResults([]);
   };
 
   const formatFileSize = (bytes: number): string => {
@@ -450,7 +516,11 @@ const CreateClassPage: React.FC = () => {
             enableDiscussions: true,
             enableAnnouncements: true,
             privacy: formData.privacy
-          }
+          },
+          // NEW: Include co-instructor data
+          coInstructorId: formData.coInstructorId || undefined,
+          coInstructorEmail: formData.coInstructorEmail || undefined,
+          coInstructorName: formData.coInstructorName || undefined
         }),
       });
 
@@ -787,6 +857,147 @@ const CreateClassPage: React.FC = () => {
                 <p className="text-sm text-gray-500 mt-2">
                   You can change this setting later in your course settings.
                 </p>
+              </div>
+            </div>
+
+            {/* Co-Instructor Section */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+              <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+                <span className="mr-2">👥</span>
+                Co-Instructor (Optional)
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Add a co-instructor who can help with grading and posting assignments. They'll have access to this class on their dashboard.
+              </p>
+              
+              <div className="space-y-4">
+                {/* Co-instructor search */}
+                <div className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Search by Email Address
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      value={formData.coInstructorEmail}
+                      onChange={(e) => {
+                        const email = e.target.value;
+                        setFormData(prev => ({ ...prev, coInstructorEmail: email }));
+                        if (email.length >= 3) {
+                          searchCoInstructor(email);
+                        } else {
+                          setShowCoInstructorResults(false);
+                          setCoInstructorSearchResults([]);
+                        }
+                      }}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                      placeholder="Enter instructor email address..."
+                      disabled={!!formData.coInstructorId}
+                    />
+                    {isSearchingCoInstructor && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
+                    {formData.coInstructorId && (
+                      <button
+                        type="button"
+                        onClick={clearCoInstructor}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Search Results Dropdown */}
+                  {showCoInstructorResults && coInstructorSearchResults.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                      {coInstructorSearchResults.map((instructor) => (
+                        <button
+                          key={instructor.id}
+                          type="button"
+                          onClick={() => selectCoInstructor(instructor)}
+                          className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors"
+                        >
+                          <div className="font-medium text-gray-900">{instructor.name}</div>
+                          <div className="text-sm text-gray-600">{instructor.email}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* No Results Message */}
+                  {showCoInstructorResults && coInstructorSearchResults.length === 0 && !isSearchingCoInstructor && formData.coInstructorEmail.length >= 3 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4">
+                      <div className="text-center text-gray-500">
+                        <svg className="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                        </svg>
+                        <p className="text-sm">No instructor found with this email address.</p>
+                        <p className="text-xs text-gray-400 mt-1">Make sure they have an instructor account.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Selected Co-instructor Display */}
+                {formData.coInstructorId && formData.coInstructorName && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="font-medium text-green-800">{formData.coInstructorName}</div>
+                          <div className="text-sm text-green-600">{formData.coInstructorEmail}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+                          ✓ Co-Instructor Added
+                        </span>
+                        <button
+                          type="button"
+                          onClick={clearCoInstructor}
+                          className="text-green-600 hover:text-red-600 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-3 text-sm text-green-700">
+                      <p>✅ Can view and grade submissions</p>
+                      <p>✅ Can create and manage assignments</p>
+                      <p>✅ Will see this class on their dashboard</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Help Text */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="text-sm text-blue-800">
+                      <p className="font-medium mb-1">Co-instructor permissions:</p>
+                      <ul className="space-y-1 text-blue-700">
+                        <li>• View all student submissions and grades</li>
+                        <li>• Create, edit, and delete assignments</li>
+                        <li>• Access class analytics and reports</li>
+                        <li>• Cannot delete the class or remove the primary instructor</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
