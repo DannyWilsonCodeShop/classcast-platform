@@ -85,7 +85,10 @@ export async function POST(request: NextRequest) {
       learningObjectives,
       gradingPolicy,
       resources,
-      settings
+      settings,
+      coInstructorId, // NEW: Co-instructor support
+      coInstructorEmail, // NEW: Co-instructor email
+      coInstructorName // NEW: Co-instructor name
     } = body;
 
     // Input validation
@@ -147,6 +150,9 @@ export async function POST(request: NextRequest) {
       semester: semester || 'Fall+Spring',
       year: year || new Date().getFullYear(),
       instructorId: instructorId.trim(),
+      coInstructorId: coInstructorId?.trim() || null, // NEW: Add co-instructor
+      coInstructorEmail: coInstructorEmail?.trim() || null,
+      coInstructorName: coInstructorName?.trim() || null,
       maxStudents: maxStudents || 30,
       startDate: startDate || new Date().toISOString(),
       endDate: endDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
