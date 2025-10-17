@@ -289,9 +289,8 @@ const InstructorCourseDetailPage: React.FC = () => {
         }
       }
 
-      // Fetch real students from API
-      const students: Student[] = [];
-      setStudents(students);
+      // Fetch enrolled students from the course enrollment
+      await fetchEnrolledStudents();
 
       // Fetch sections for this course
       await fetchSections();
@@ -319,6 +318,42 @@ const InstructorCourseDetailPage: React.FC = () => {
     } catch (err) {
       console.error('Error fetching sections:', err);
       // Don't set error for sections as it's not critical
+    }
+  };
+
+  const fetchEnrolledStudents = async () => {
+    try {
+      const response = await fetch(`/api/courses/enrollment?courseId=${courseId}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          const enrolledStudents = data.data?.students || [];
+          console.log('Enrolled students:', enrolledStudents);
+          
+          // Transform enrollment data to Student format
+          const transformedStudents: Student[] = enrolledStudents.map((student: any) => ({
+            studentId: student.userId,
+            name: `${student.firstName || ''} ${student.lastName || ''}`.trim() || student.email,
+            email: student.email,
+            avatar: student.avatar,
+            enrollmentDate: student.enrolledAt,
+            status: student.status || 'active',
+            currentGrade: 0, // TODO: Calculate from submissions
+            assignmentsSubmitted: 0, // TODO: Count from submissions
+            assignmentsTotal: assignments.length,
+            lastActivity: student.enrolledAt, // TODO: Get actual last activity
+          }));
+          
+          setStudents(transformedStudents);
+          console.log('Set students:', transformedStudents.length);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching enrolled students:', err);
+      // Don't set error as it's not critical
     }
   };
 
