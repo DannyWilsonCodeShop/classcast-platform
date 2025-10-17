@@ -36,9 +36,15 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
+  const currentSpeedRef = useRef<number>(playbackSpeed); // Store current speed
   const videoId = extractYouTubeVideoId(url);
 
   console.log('🎬 YouTubePlayer rendering:', { url, videoId, playbackSpeed });
+  
+  // Update the current speed ref whenever playbackSpeed changes
+  useEffect(() => {
+    currentSpeedRef.current = playbackSpeed;
+  }, [playbackSpeed]);
 
   useEffect(() => {
     if (!videoId) {
@@ -97,11 +103,14 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
         },
         events: {
           onReady: (event: any) => {
-            console.log('✅ YouTube player ready, setting speed to:', playbackSpeed);
+            const currentSpeed = currentSpeedRef.current;
+            console.log('✅ YouTube player ready for video:', videoId, 'setting speed to:', currentSpeed);
             try {
-              event.target.setPlaybackRate(playbackSpeed);
+              // Use the current speed from the ref (in case it changed during initialization)
+              event.target.setPlaybackRate(currentSpeed);
+              console.log('✅ Speed successfully set to:', currentSpeed, 'for video:', videoId);
             } catch (err) {
-              console.warn('Could not set initial playback rate:', err);
+              console.warn('⚠️ Could not set initial playback rate for video:', videoId, err);
             }
             if (onPlayerReady) {
               onPlayerReady(event.target);
@@ -133,15 +142,29 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
 
   // Update playback speed when it changes
   useEffect(() => {
-    if (playerRef.current && playerRef.current.setPlaybackRate) {
-      try {
-        playerRef.current.setPlaybackRate(playbackSpeed);
-        console.log('📺 YouTube playback speed updated to:', playbackSpeed);
-      } catch (err) {
-        console.warn('Could not set playback speed:', err);
-      }
+    if (!playerRef.current) {
+      console.log('⏸️ Player not yet initialized, will apply speed on ready');
+      return;
     }
-  }, [playbackSpeed]);
+
+    // Check if player has the method and is in a ready state
+    if (playerRef.current.setPlaybackRate && typeof playerRef.current.setPlaybackRate === 'function') {
+      try {
+        // Only set speed if player is ready (getPlayerState returns a valid state)
+        const playerState = playerRef.current.getPlayerState?.();
+        if (playerState !== undefined) {
+          playerRef.current.setPlaybackRate(playbackSpeed);
+          console.log('📺 YouTube playback speed updated to:', playbackSpeed, 'for video:', videoId);
+        } else {
+          console.log('⏸️ Player not ready yet, will set speed when ready');
+        }
+      } catch (err) {
+        console.warn('⚠️ Could not set playback speed for video:', videoId, err);
+      }
+    } else {
+      console.warn('⚠️ setPlaybackRate method not available on player');
+    }
+  }, [playbackSpeed, videoId]);
 
   if (!videoId) {
     return (
