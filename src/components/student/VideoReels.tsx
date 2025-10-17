@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import apiClient, { VideoReel } from '@/lib/api';
 import { getAvatarUrl } from '@/lib/avatarUtils';
 import { getVideoUrl } from '@/lib/videoUtils';
+import { VideoCommentModal } from '@/components/student/VideoCommentModal';
 
 interface VideoReelsProps {
   className?: string;
@@ -40,6 +41,8 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
   const [likedVideos, setLikedVideos] = useState<Set<string>>(new Set());
   const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
   const [generatedThumbnails, setGeneratedThumbnails] = useState<Map<string, string>>(new Map());
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [selectedVideoForComment, setSelectedVideoForComment] = useState<VideoReel | null>(null);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const autoScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -254,10 +257,45 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
     };
   }, [currentIndex, reels.length]);
 
-  const handleVideoClick = (reel: VideoReel & { assignmentId?: string }) => {
-    // Navigate to peer reviews page with this video
-    const url = `/student/peer-reviews?assignmentId=${reel.assignmentId || 'unknown'}&videoId=${reel.id}`;
-    router.push(url);
+  const handleCommentClick = (reel: VideoReel & { assignmentId?: string }) => {
+    // Open comment modal instead of navigating
+    setSelectedVideoForComment(reel);
+    setShowCommentModal(true);
+  };
+
+  const handleCommentSubmit = async (comment: string) => {
+    if (!selectedVideoForComment || !user) return;
+
+    try {
+      const response = await fetch(`/api/videos/${selectedVideoForComment.id}/interactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          type: 'comment',
+          userId: user.id,
+          userName: `${user.firstName} ${user.lastName}`,
+          userAvatar: user.avatar || '',
+          content: comment
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit comment');
+      }
+
+      // Update comment count in the UI
+      setReels(prev => prev.map(r => 
+        r.id === selectedVideoForComment.id 
+          ? { ...r, comments: (r.comments || 0) + 1 }
+          : r
+      ));
+
+      console.log('✅ Comment submitted successfully');
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      throw error;
+    }
   };
 
   const handleLike = async (videoId: string, e: React.MouseEvent) => {
@@ -356,10 +394,10 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
   }
 
   return (
+    <>
     <div 
       ref={containerRef}
       className={`relative w-full h-64 sm:h-80 lg:aspect-video bg-black rounded-xl overflow-hidden cursor-pointer group ${className}`}
-      onClick={() => handleVideoClick(currentReel)}
     >
       {/* Video Player - Conditional rendering for YouTube vs Regular videos */}
       {currentReel.isYouTube || currentReel.youtubeUrl || currentReel.videoUrl?.includes('youtube.com') || currentReel.videoUrl?.includes('youtu.be') ? (
@@ -562,16 +600,17 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                // Navigate to comments/peer reviews
-                handleVideoClick(currentReel);
+                      // Open comment modal
+                      handleCommentClick(currentReel);
                     }}
-              className="p-2 sm:p-3 bg-white/20 text-white rounded-full hover:bg-white/30 transition-all duration-200"
+                    className="p-2 sm:p-3 bg-white/20 text-white rounded-full hover:bg-white/30 transition-all duration-200"
+                    title="Leave a comment"
                   >
-              <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
-            <span className="text-xs text-white">
-              {currentReel.comments || 0}
-            </span>
+                  <span className="text-xs text-white">
+                    {currentReel.comments || 0}
+                  </span>
                 
                 <button
                   onClick={(e) => {
@@ -669,6 +708,22 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                   ))}
                 </div>
     </div>
+
+    {/* Comment Modal */}
+    {selectedVideoForComment && (
+      <VideoCommentModal
+        isOpen={showCommentModal}
+        onClose={() => {
+          setShowCommentModal(false);
+          setSelectedVideoForComment(null);
+        }}
+        videoId={selectedVideoForComment.id}
+        videoTitle={selectedVideoForComment.title || 'Video'}
+        authorName={selectedVideoForComment.author?.name || 'Student'}
+        onCommentSubmit={handleCommentSubmit}
+      />
+    )}
+    </>
   );
 };
 
