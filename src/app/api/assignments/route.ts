@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { awsConfig } from '@/lib/aws-config';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
 const client = new DynamoDBClient({ region: awsConfig.region });
 const docClient = DynamoDBDocumentClient.from(client);
+const sesClient = new SESClient({ region: process.env.REGION || 'us-east-1' });
 
 const ASSIGNMENTS_TABLE = awsConfig.dynamodb.tables.assignments;
+const COURSES_TABLE = 'classcast-courses';
+const USERS_TABLE = 'classcast-users';
 
 export async function GET(request: NextRequest) {
   try {
@@ -276,6 +280,12 @@ export async function POST(request: NextRequest) {
       Item: assignment
     }));
 
+    // Send email notifications to enrolled students (don't await - fire and forget)
+    sendAssignmentNotifications(assignment, courseId).catch(error => {
+      console.error('Error sending assignment notifications:', error);
+      // Don't fail the assignment creation if emails fail
+    });
+
     return NextResponse.json({
       success: true,
       data: assignment,
@@ -291,5 +301,192 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * Send email notifications to all enrolled students when a new assignment is created
+ */
+async function sendAssignmentNotifications(assignment: any, courseId: string) {
+  try {
+    console.log(`📧 Sending assignment notifications for ${assignment.assignmentId}`);
+
+    // Get course details
+    const courseResult = await docClient.send(new GetCommand({
+      TableName: COURSES_TABLE,
+      Key: { courseId }
+    }));
+
+    const course = courseResult.Item;
+    if (!course) {
+      console.warn('Course not found, skipping email notifications');
+      return;
+    }
+
+    const courseName = course.title || course.courseName || 'Your Course';
+    const enrolledStudents = course.enrollment?.students || [];
+
+    console.log(`Found ${enrolledStudents.length} enrolled students`);
+
+    if (enrolledStudents.length === 0) {
+      console.log('No students enrolled, skipping notifications');
+      return;
+    }
+
+    // Get student details for each enrolled student
+    const studentEmails = [];
+    for (const enrolledStudent of enrolledStudents) {
+      try {
+        const userResult = await docClient.send(new GetCommand({
+          TableName: USERS_TABLE,
+          Key: { userId: enrolledStudent.userId }
+        }));
+
+        const user = userResult.Item;
+        if (user && user.email) {
+          studentEmails.push({
+            email: user.email,
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+          });
+        }
+      } catch (error) {
+        console.error(`Error fetching user ${enrolledStudent.userId}:`, error);
+      }
+    }
+
+    console.log(`Sending emails to ${studentEmails.length} students`);
+
+    // Format due date
+    const dueDate = new Date(assignment.dueDate);
+    const dueDateFormatted = dueDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Send email to each student
+    const emailPromises = studentEmails.map(async (student) => {
+      try {
+        const emailHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>New Assignment - ClassCast</title>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { background: linear-gradient(135deg, #005587, #0077b6); color: white; padding: 30px 20px; border-radius: 8px 8px 0 0; text-align: center; }
+              .header h1 { margin: 0; font-size: 28px; }
+              .content { background: #f8fafc; padding: 30px; border-radius: 0 0 8px 8px; }
+              .assignment-box { background: white; padding: 25px; border-radius: 8px; border-left: 4px solid #005587; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+              .assignment-box h2 { margin-top: 0; color: #005587; }
+              .due-date { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin: 15px 0; }
+              .due-date strong { color: #856404; }
+              .button { display: inline-block; background: #005587; color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
+              .button:hover { background: #004466; }
+              .footer { text-align: center; margin-top: 30px; color: #64748b; font-size: 14px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+              .course-info { background: #e0f2fe; padding: 15px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #0077b6; }
+              .course-info strong { color: #0c4a6e; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>📚 New Assignment Posted</h1>
+                <p style="margin: 10px 0 0 0; font-size: 16px;">ClassCast</p>
+              </div>
+              
+              <div class="content">
+                <p>Hello ${student.name}!</p>
+                
+                <p>A new assignment has been posted in your course:</p>
+                
+                <div class="course-info">
+                  <strong>📖 Course:</strong> ${courseName}
+                </div>
+                
+                <div class="assignment-box">
+                  <h2>${assignment.title}</h2>
+                  ${assignment.description ? `<p>${assignment.description}</p>` : ''}
+                  <p><strong>Points:</strong> ${assignment.maxScore} points</p>
+                </div>
+                
+                <div class="due-date">
+                  <strong>⏰ Due Date:</strong> ${dueDateFormatted}
+                </div>
+                
+                <p style="text-align: center;">
+                  <a href="${process.env.NEXT_PUBLIC_BASE_URL || 'https://class-cast.com'}/student/assignments/${assignment.assignmentId}" class="button">
+                    View Assignment
+                  </a>
+                </p>
+                
+                <div class="footer">
+                  <p>This notification was sent from ClassCast Learning Management System.</p>
+                  <p>If you have questions about this assignment, please contact your instructor.</p>
+                </div>
+              </div>
+            </div>
+          </body>
+          </html>
+        `;
+
+        const command = new SendEmailCommand({
+          Source: process.env.SES_SENDER_EMAIL || 'noreply@class-cast.com',
+          Destination: {
+            ToAddresses: [student.email]
+          },
+          Message: {
+            Subject: {
+              Data: `[ClassCast] New Assignment: ${assignment.title}`,
+              Charset: 'UTF-8'
+            },
+            Body: {
+              Html: {
+                Data: emailHtml,
+                Charset: 'UTF-8'
+              },
+              Text: {
+                Data: `
+New Assignment Posted
+
+Hello ${student.name}!
+
+A new assignment has been posted in ${courseName}:
+
+Title: ${assignment.title}
+${assignment.description ? `Description: ${assignment.description}` : ''}
+Points: ${assignment.maxScore}
+Due Date: ${dueDateFormatted}
+
+View the assignment at: ${process.env.NEXT_PUBLIC_BASE_URL || 'https://class-cast.com'}/student/assignments/${assignment.assignmentId}
+
+---
+This notification was sent from ClassCast Learning Management System.
+                `.trim(),
+                Charset: 'UTF-8'
+              }
+            }
+          }
+        });
+
+        await sesClient.send(command);
+        console.log(`✅ Email sent to ${student.email}`);
+      } catch (error) {
+        console.error(`Failed to send email to ${student.email}:`, error);
+      }
+    });
+
+    await Promise.allSettled(emailPromises);
+    console.log(`📧 Finished sending ${emailPromises.length} assignment notification emails`);
+
+  } catch (error) {
+    console.error('Error in sendAssignmentNotifications:', error);
+    throw error;
   }
 }
