@@ -126,37 +126,55 @@ export default function CommunityPage() {
 
   const handleSubmitPost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newPost.title.trim() || !newPost.content.trim()) return;
+    
+    if (!newPost.title.trim() || !newPost.content.trim()) {
+      alert('Please enter both a title and content for your post');
+      return;
+    }
+
+    if (!user?.id) {
+      alert('You must be logged in to create a post');
+      return;
+    }
 
     try {
+      console.log('Creating post:', { title: newPost.title, userId: user.id });
+      
       // Create post via API
       const response = await fetch('/api/community/posts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           title: newPost.title,
           content: newPost.content,
-          userId: user?.id,
+          userId: user.id,
           courseId: newPost.courseId || null,
           isAnnouncement: false
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.post) {
-          setPosts([data.post, ...posts]);
-          setNewPost({ title: '', content: '', courseId: '' });
-        } else {
-          console.error('Failed to create post:', data.error);
-        }
+      console.log('Post creation response status:', response.status);
+      const data = await response.json();
+      console.log('Post creation response data:', data);
+
+      if (response.ok && data.success) {
+        console.log('✅ Post created successfully!');
+        // Reload all posts to get the updated list
+        await loadPosts();
+        // Clear form
+        setNewPost({ title: '', content: '', courseId: '' });
+        // Show success message
+        alert('Post created successfully!');
       } else {
-        console.error('Failed to create post:', response.status);
+        console.error('Failed to create post:', data.error || response.statusText);
+        alert(`Failed to create post: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error creating post:', error);
+      alert('An error occurred while creating your post. Please try again.');
     }
   };
 
