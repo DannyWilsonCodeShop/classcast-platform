@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-const UnsubscribeSuccessPage: React.FC = () => {
+const UnsubscribeSuccessContent: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
@@ -112,6 +112,21 @@ const UnsubscribeSuccessPage: React.FC = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const UnsubscribeSuccessPage: React.FC = () => {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <UnsubscribeSuccessContent />
+    </Suspense>
   );
 };
 
