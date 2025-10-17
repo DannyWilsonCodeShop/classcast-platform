@@ -26,10 +26,14 @@ export function extractYouTubeVideoId(url: string): string | null {
 
 /**
  * Generate YouTube embed URL from video ID or full URL
+ * Uses youtube-nocookie.com for better compatibility with school firewalls
  */
-export function getYouTubeEmbedUrl(urlOrId: string): string | null {
-  // If it's already an embed URL, return it
-  if (urlOrId.includes('youtube.com/embed/')) {
+export function getYouTubeEmbedUrl(urlOrId: string, useNoCookie: boolean = true): string | null {
+  // If it's already an embed URL, return it (but convert to nocookie if requested)
+  if (urlOrId.includes('youtube.com/embed/') || urlOrId.includes('youtube-nocookie.com/embed/')) {
+    if (useNoCookie && urlOrId.includes('youtube.com/embed/')) {
+      return urlOrId.replace('youtube.com', 'youtube-nocookie.com');
+    }
     return urlOrId;
   }
 
@@ -40,7 +44,9 @@ export function getYouTubeEmbedUrl(urlOrId: string): string | null {
 
   if (!videoId) return null;
 
-  return `https://www.youtube.com/embed/${videoId}`;
+  // Use youtube-nocookie.com domain for better firewall compatibility
+  const domain = useNoCookie ? 'youtube-nocookie.com' : 'youtube.com';
+  return `https://www.${domain}/embed/${videoId}`;
 }
 
 /**

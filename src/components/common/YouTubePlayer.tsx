@@ -55,9 +55,10 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
     console.log('🎬 Initializing YouTube player for video ID:', videoId);
 
     // Load YouTube IFrame API script if not already loaded
+    // Using youtube-nocookie.com for better compatibility with school firewalls
     if (!window.YT) {
       const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
+      tag.src = 'https://www.youtube-nocookie.com/iframe_api';
       const firstScriptTag = document.getElementsByTagName('script')[0];
       firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
 

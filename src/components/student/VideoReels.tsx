@@ -404,7 +404,7 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
         // YouTube iframe for YouTube videos
         <iframe
           className="w-full h-full"
-          src={`https://www.youtube.com/embed/${extractYouTubeVideoId(currentReel.youtubeUrl || currentReel.videoUrl)}?autoplay=1&mute=1&loop=1&playlist=${extractYouTubeVideoId(currentReel.youtubeUrl || currentReel.videoUrl)}&controls=0&modestbranding=1&rel=0`}
+          src={`https://www.youtube-nocookie.com/embed/${extractYouTubeVideoId(currentReel.youtubeUrl || currentReel.videoUrl)}?autoplay=1&mute=1&loop=1&playlist=${extractYouTubeVideoId(currentReel.youtubeUrl || currentReel.videoUrl)}&controls=0&modestbranding=1&rel=0`}
           title={currentReel.title}
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
