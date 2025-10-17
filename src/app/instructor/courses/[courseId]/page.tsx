@@ -332,24 +332,48 @@ const InstructorCourseDetailPage: React.FC = () => {
         const data = await response.json();
         if (data.success) {
           const enrolledStudents = data.data?.students || [];
-          console.log('Enrolled students:', enrolledStudents);
+          console.log('Enrolled students from API:', enrolledStudents);
           
-          // Transform enrollment data to Student format
-          const transformedStudents: Student[] = enrolledStudents.map((student: any) => ({
-            studentId: student.userId,
-            name: `${student.firstName || ''} ${student.lastName || ''}`.trim() || student.email,
-            email: student.email,
-            avatar: student.avatar,
-            enrollmentDate: student.enrolledAt,
-            status: student.status || 'active',
-            currentGrade: 0, // TODO: Calculate from submissions
-            assignmentsSubmitted: 0, // TODO: Count from submissions
-            assignmentsTotal: assignments.length,
-            lastActivity: student.enrolledAt, // TODO: Get actual last activity
-          }));
+          // Fetch full user details for each enrolled student
+          const transformedStudents: Student[] = await Promise.all(
+            enrolledStudents.map(async (student: any) => {
+              let userName = student.email;
+              let userAvatar = student.avatar || '/api/placeholder/40/40';
+              
+              // Fetch full user details
+              try {
+                const userResponse = await fetch(`/api/users/${student.userId}`, {
+                  credentials: 'include',
+                });
+                
+                if (userResponse.ok) {
+                  const userData = await userResponse.json();
+                  if (userData.success && userData.user) {
+                    userName = `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim() || userData.user.email;
+                    userAvatar = userData.user.avatar || userAvatar;
+                  }
+                }
+              } catch (userError) {
+                console.warn('Could not fetch user details for:', student.userId);
+              }
+              
+              return {
+                studentId: student.userId,
+                name: userName,
+                email: student.email,
+                avatar: userAvatar,
+                enrollmentDate: student.enrolledAt,
+                status: student.status || 'active',
+                currentGrade: 0, // TODO: Calculate from submissions
+                assignmentsSubmitted: 0, // TODO: Count from submissions
+                assignmentsTotal: assignments.length,
+                lastActivity: student.enrolledAt, // TODO: Get actual last activity
+              };
+            })
+          );
           
           setStudents(transformedStudents);
-          console.log('Set students:', transformedStudents.length);
+          console.log('Set students with details:', transformedStudents);
         }
       }
     } catch (err) {
