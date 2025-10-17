@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Pause, Heart, MessageCircle, Share, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Pause, Heart, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import apiClient, { VideoReel } from '@/lib/api';
 import { getAvatarUrl } from '@/lib/avatarUtils';
@@ -611,22 +611,6 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
                   <span className="text-xs text-white">
                     {currentReel.comments || 0}
                   </span>
-                
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                // Share functionality
-                if (navigator.share) {
-                  navigator.share({
-                    title: currentReel.title,
-                    url: window.location.href,
-                  });
-                }
-              }}
-              className="p-2 sm:p-3 bg-white/20 text-white rounded-full hover:bg-white/30 transition-all duration-200"
-            >
-              <Share className="w-4 h-4 sm:w-5 sm:h-5" />
-                </button>
               </div>
             </div>
       </div>
