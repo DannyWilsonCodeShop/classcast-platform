@@ -1,76 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand, ScanCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
-import { S3Client, DeleteObjectCommand, DeleteObjectsCommand } from '@aws-sdk/client-s3';
+import { DynamoDBService } from '@/lib/dynamodb';
+import { S3Client, DeleteObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
 
-const client = new DynamoDBClient({ region: 'us-east-1' });
-const docClient = DynamoDBDocumentClient.from(client);
-const s3Client = new S3Client({ region: 'us-east-1' });
+const dynamodbService = new DynamoDBService();
 
-const SUBMISSIONS_TABLE = 'classcast-submissions';
-const PEER_RESPONSES_TABLE = 'classcast-peer-responses';
-const COMMUNITY_POSTS_TABLE = 'classcast-community-posts';
-const COMMUNITY_COMMENTS_TABLE = 'classcast-community-comments';
-const COURSES_TABLE = 'classcast-courses';
-const USERS_TABLE = 'classcast-users';
-const VIDEO_BUCKET = process.env.VIDEO_BUCKET || 'classcast-videos-463470937777-us-east-1';
+// Initialize S3 client
+const s3Client = new S3Client({
+  region: process.env.REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
 
-// Helper function to extract S3 key from S3 URL
-function extractS3KeyFromUrl(url: string): string | null {
-  try {
-    const urlObj = new URL(url);
-    let key = urlObj.pathname.substring(1);
-    if (key.startsWith(`${VIDEO_BUCKET}/`)) {
-      key = key.substring(VIDEO_BUCKET.length + 1);
-    }
-    return key || null;
-  } catch (error) {
-    console.error('Error extracting S3 key from URL:', error);
-    return null;
-  }
-}
+const VIDEO_BUCKET = process.env.S3_VIDEO_BUCKET_NAME || 'classcast-videos-463470937777-us-east-1';
 
-// Helper function to delete multiple objects from S3
-async function deleteObjectsFromS3(keys: string[]): Promise<{ success: number; failed: number; errors: string[] }> {
-  if (keys.length === 0) return { success: 0, failed: 0, errors: [] };
-
-  const results = { success: 0, failed: 0, errors: [] as string[] };
-
-  try {
-    // Delete in batches of 1000 (S3 limit)
-    for (let i = 0; i < keys.length; i += 1000) {
-      const batch = keys.slice(i, i + 1000);
-      
-      const deleteCommand = new DeleteObjectsCommand({
-        Bucket: VIDEO_BUCKET,
-        Delete: {
-          Objects: batch.map(key => ({ Key: key })),
-          Quiet: false
-        }
-      });
-
-      const result = await s3Client.send(deleteCommand);
-      
-      if (result.Deleted) {
-        results.success += result.Deleted.length;
-      }
-      
-      if (result.Errors) {
-        results.failed += result.Errors.length;
-        result.Errors.forEach(error => {
-          results.errors.push(`${error.Key}: ${error.Message}`);
-        });
-      }
-    }
-  } catch (error) {
-    console.error('Error deleting objects from S3:', error);
-    results.failed += keys.length;
-    results.errors.push(`Batch delete failed: ${error}`);
-  }
-
-  return results;
-}
-
+/**
+ * DELETE /api/instructor/courses/[courseId]/students/[studentId]/remove
+ * 
+ * Comprehensively removes a student from a course, including:
+ * - Unenrolling from course enrollment list
+ * - Deleting all video submissions
+ * - Deleting all S3 video files
+ * - Deleting all peer responses written by student
+ * - Deleting all community posts by student
+ * - Deleting all community comments by student
+ * - Deleting all interactions (likes, ratings, views)
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ courseId: string; studentId: string }> }
@@ -78,230 +34,267 @@ export async function DELETE(
   try {
     const { courseId, studentId } = await params;
 
-    if (!courseId || !studentId) {
-      return NextResponse.json(
-        { success: false, error: 'Course ID and Student ID are required' },
-        { status: 400 }
-      );
-    }
+    console.log(`🗑️ Starting comprehensive removal of student ${studentId} from course ${courseId}`);
 
-    console.log('🗑️ Removing student from course:', { courseId, studentId });
-
-    const removalReport = {
-      studentRemoved: false,
+    // Initialize counters for reporting
+    const report = {
       submissionsDeleted: 0,
       peerResponsesDeleted: 0,
       communityPostsDeleted: 0,
       communityCommentsDeleted: 0,
+      interactionsDeleted: 0,
       s3ObjectsDeleted: 0,
-      s3Errors: [] as string[],
-      errors: [] as string[]
+      errors: [] as string[],
     };
 
-    // Step 1: Get student information
-    let studentInfo = null;
-    try {
-      const studentResult = await docClient.send(new GetCommand({
-        TableName: USERS_TABLE,
-        Key: { userId: studentId }
-      }));
-      studentInfo = studentResult.Item;
-      console.log('👤 Student info:', studentInfo?.firstName, studentInfo?.lastName);
-    } catch (error) {
-      console.error('Error fetching student info:', error);
-      removalReport.errors.push('Failed to fetch student information');
-    }
+    // Step 1: Get all video submissions by this student for this course
+    console.log('📹 Step 1: Finding video submissions...');
+    const submissionsResult = await dynamodbService.scan({
+      TableName: 'classcast-submissions',
+      FilterExpression: 'studentId = :studentId AND courseId = :courseId',
+      ExpressionAttributeValues: {
+        ':studentId': studentId,
+        ':courseId': courseId,
+      },
+    });
 
-    // Step 2: Get all submissions by this student
-    const s3KeysToDelete: string[] = [];
-    try {
-      const submissionsResult = await docClient.send(new ScanCommand({
-        TableName: SUBMISSIONS_TABLE,
-        FilterExpression: 'studentId = :studentId',
-        ExpressionAttributeValues: {
-          ':studentId': studentId
-        }
-      }));
+    const submissions = submissionsResult.Items || [];
+    console.log(`Found ${submissions.length} video submissions to delete`);
 
-      if (submissionsResult.Items) {
-        console.log('📹 Found submissions:', submissionsResult.Items.length);
-        
-        // Collect S3 keys for deletion
-        submissionsResult.Items.forEach(submission => {
-          if (submission.videoUrl) {
-            const videoKey = extractS3KeyFromUrl(submission.videoUrl);
-            if (videoKey) s3KeysToDelete.push(videoKey);
+    // Step 2: Delete video files from S3 and submission records
+    for (const submission of submissions) {
+      try {
+        // Delete video file from S3
+        if (submission.videoUrl && !submission.isYouTube) {
+          try {
+            // Extract S3 key from URL
+            const s3Key = extractS3KeyFromUrl(submission.videoUrl);
+            if (s3Key) {
+              await s3Client.send(
+                new DeleteObjectCommand({
+                  Bucket: VIDEO_BUCKET,
+                  Key: s3Key,
+                })
+              );
+              report.s3ObjectsDeleted++;
+              console.log(`✅ Deleted S3 object: ${s3Key}`);
+            }
+          } catch (s3Error) {
+            console.error(`Failed to delete S3 object for submission ${submission.submissionId}:`, s3Error);
+            report.errors.push(`S3 deletion failed for ${submission.submissionId}`);
           }
-          if (submission.thumbnailUrl && submission.thumbnailUrl.startsWith('https://')) {
+        }
+
+        // Delete thumbnail from S3 if it exists
+        if (submission.thumbnailUrl) {
+          try {
             const thumbnailKey = extractS3KeyFromUrl(submission.thumbnailUrl);
-            if (thumbnailKey) s3KeysToDelete.push(thumbnailKey);
+            if (thumbnailKey) {
+              await s3Client.send(
+                new DeleteObjectCommand({
+                  Bucket: VIDEO_BUCKET,
+                  Key: thumbnailKey,
+                })
+              );
+              report.s3ObjectsDeleted++;
+              console.log(`✅ Deleted thumbnail: ${thumbnailKey}`);
+            }
+          } catch (s3Error) {
+            console.error(`Failed to delete thumbnail for submission ${submission.submissionId}:`, s3Error);
           }
+        }
+
+        // Delete submission record from DynamoDB
+        await dynamodbService.deleteItem('classcast-submissions', {
+          submissionId: submission.submissionId,
         });
-
-        // Delete submissions from DynamoDB
-        for (const submission of submissionsResult.Items) {
-          try {
-            await docClient.send(new DeleteCommand({
-              TableName: SUBMISSIONS_TABLE,
-              Key: { submissionId: submission.submissionId || submission.id }
-            }));
-            removalReport.submissionsDeleted++;
-          } catch (error) {
-            console.error('Error deleting submission:', error);
-            removalReport.errors.push(`Failed to delete submission ${submission.submissionId}`);
-          }
-        }
+        report.submissionsDeleted++;
+        console.log(`✅ Deleted submission record: ${submission.submissionId}`);
+      } catch (error) {
+        console.error(`Error deleting submission ${submission.submissionId}:`, error);
+        report.errors.push(`Submission deletion failed: ${submission.submissionId}`);
       }
-    } catch (error) {
-      console.error('Error fetching submissions:', error);
-      removalReport.errors.push('Failed to fetch student submissions');
     }
 
-    // Step 3: Delete peer responses by this student
-    try {
-      const responsesResult = await docClient.send(new ScanCommand({
-        TableName: PEER_RESPONSES_TABLE,
-        FilterExpression: 'reviewerId = :studentId',
-        ExpressionAttributeValues: {
-          ':studentId': studentId
-        }
-      }));
+    // Step 3: Delete all peer responses written by this student (across all courses)
+    console.log('💬 Step 3: Deleting peer responses...');
+    const peerResponsesResult = await dynamodbService.scan({
+      TableName: 'classcast-peer-responses',
+      FilterExpression: 'reviewerId = :studentId',
+      ExpressionAttributeValues: {
+        ':studentId': studentId,
+      },
+    });
 
-      if (responsesResult.Items) {
-        console.log('💬 Found peer responses:', responsesResult.Items.length);
-        
-        for (const response of responsesResult.Items) {
-          try {
-            await docClient.send(new DeleteCommand({
-              TableName: PEER_RESPONSES_TABLE,
-              Key: { id: response.id || response.responseId }
-            }));
-            removalReport.peerResponsesDeleted++;
-          } catch (error) {
-            console.error('Error deleting peer response:', error);
-            removalReport.errors.push(`Failed to delete peer response ${response.id}`);
-          }
-        }
+    const peerResponses = peerResponsesResult.Items || [];
+    console.log(`Found ${peerResponses.length} peer responses to delete`);
+
+    for (const response of peerResponses) {
+      try {
+        await dynamodbService.deleteItem('classcast-peer-responses', {
+          responseId: response.responseId,
+        });
+        report.peerResponsesDeleted++;
+        console.log(`✅ Deleted peer response: ${response.responseId}`);
+      } catch (error) {
+        console.error(`Error deleting peer response ${response.responseId}:`, error);
+        report.errors.push(`Peer response deletion failed: ${response.responseId}`);
       }
-    } catch (error) {
-      console.error('Error fetching peer responses:', error);
-      removalReport.errors.push('Failed to fetch peer responses');
     }
 
-    // Step 4: Delete community posts by this student
-    try {
-      const postsResult = await docClient.send(new ScanCommand({
-        TableName: COMMUNITY_POSTS_TABLE,
-        FilterExpression: 'userId = :studentId',
-        ExpressionAttributeValues: {
-          ':studentId': studentId
-        }
-      }));
+    // Step 4: Delete all community posts by this student
+    console.log('📝 Step 4: Deleting community posts...');
+    const communityPostsResult = await dynamodbService.scan({
+      TableName: 'classcast-community-posts',
+      FilterExpression: 'authorId = :studentId AND courseId = :courseId',
+      ExpressionAttributeValues: {
+        ':studentId': studentId,
+        ':courseId': courseId,
+      },
+    });
 
-      if (postsResult.Items) {
-        console.log('📝 Found community posts:', postsResult.Items.length);
-        
-        for (const post of postsResult.Items) {
-          try {
-            await docClient.send(new DeleteCommand({
-              TableName: COMMUNITY_POSTS_TABLE,
-              Key: { postId: post.postId || post.id }
-            }));
-            removalReport.communityPostsDeleted++;
-          } catch (error) {
-            console.error('Error deleting community post:', error);
-            removalReport.errors.push(`Failed to delete community post ${post.postId}`);
-          }
-        }
+    const communityPosts = communityPostsResult.Items || [];
+    console.log(`Found ${communityPosts.length} community posts to delete`);
+
+    for (const post of communityPosts) {
+      try {
+        await dynamodbService.deleteItem('classcast-community-posts', {
+          postId: post.postId,
+        });
+        report.communityPostsDeleted++;
+        console.log(`✅ Deleted community post: ${post.postId}`);
+      } catch (error) {
+        console.error(`Error deleting community post ${post.postId}:`, error);
+        report.errors.push(`Community post deletion failed: ${post.postId}`);
       }
-    } catch (error) {
-      console.error('Error fetching community posts:', error);
-      removalReport.errors.push('Failed to fetch community posts');
     }
 
-    // Step 5: Delete community comments by this student
-    try {
-      const commentsResult = await docClient.send(new ScanCommand({
-        TableName: COMMUNITY_COMMENTS_TABLE,
-        FilterExpression: 'userId = :studentId',
-        ExpressionAttributeValues: {
-          ':studentId': studentId
-        }
-      }));
+    // Step 5: Delete all community comments by this student
+    console.log('💭 Step 5: Deleting community comments...');
+    const communityCommentsResult = await dynamodbService.scan({
+      TableName: 'classcast-community-comments',
+      FilterExpression: 'authorId = :studentId',
+      ExpressionAttributeValues: {
+        ':studentId': studentId,
+      },
+    });
 
-      if (commentsResult.Items) {
-        console.log('💬 Found community comments:', commentsResult.Items.length);
-        
-        for (const comment of commentsResult.Items) {
-          try {
-            await docClient.send(new DeleteCommand({
-              TableName: COMMUNITY_COMMENTS_TABLE,
-              Key: { commentId: comment.commentId || comment.id }
-            }));
-            removalReport.communityCommentsDeleted++;
-          } catch (error) {
-            console.error('Error deleting community comment:', error);
-            removalReport.errors.push(`Failed to delete community comment ${comment.commentId}`);
-          }
-        }
+    const communityComments = communityCommentsResult.Items || [];
+    console.log(`Found ${communityComments.length} community comments to delete`);
+
+    for (const comment of communityComments) {
+      try {
+        await dynamodbService.deleteItem('classcast-community-comments', {
+          commentId: comment.commentId,
+        });
+        report.communityCommentsDeleted++;
+        console.log(`✅ Deleted community comment: ${comment.commentId}`);
+      } catch (error) {
+        console.error(`Error deleting community comment ${comment.commentId}:`, error);
+        report.errors.push(`Community comment deletion failed: ${comment.commentId}`);
       }
-    } catch (error) {
-      console.error('Error fetching community comments:', error);
-      removalReport.errors.push('Failed to fetch community comments');
     }
 
-    // Step 6: Delete files from S3
-    if (s3KeysToDelete.length > 0) {
-      console.log('🗂️ Deleting S3 objects:', s3KeysToDelete.length);
-      const s3Result = await deleteObjectsFromS3(s3KeysToDelete);
-      removalReport.s3ObjectsDeleted = s3Result.success;
-      removalReport.s3Errors = s3Result.errors;
+    // Step 6: Delete all interactions (likes, ratings, views) by this student
+    console.log('👍 Step 6: Deleting interactions...');
+    const interactionsResult = await dynamodbService.scan({
+      TableName: 'classcast-peer-interactions',
+      FilterExpression: 'userId = :studentId',
+      ExpressionAttributeValues: {
+        ':studentId': studentId,
+      },
+    });
+
+    const interactions = interactionsResult.Items || [];
+    console.log(`Found ${interactions.length} interactions to delete`);
+
+    for (const interaction of interactions) {
+      try {
+        await dynamodbService.deleteItem('classcast-peer-interactions', {
+          id: interaction.id,
+        });
+        report.interactionsDeleted++;
+        console.log(`✅ Deleted interaction: ${interaction.id}`);
+      } catch (error) {
+        console.error(`Error deleting interaction ${interaction.id}:`, error);
+        report.errors.push(`Interaction deletion failed: ${interaction.id}`);
+      }
     }
 
     // Step 7: Remove student from course enrollment
-    try {
-      const courseResult = await docClient.send(new GetCommand({
-        TableName: COURSES_TABLE,
-        Key: { courseId: courseId }
-      }));
+    console.log('🎓 Step 7: Removing from course enrollment...');
+    const course = await dynamodbService.getItem('classcast-courses', { courseId });
 
-      if (courseResult.Item) {
-        const course = courseResult.Item;
-        const updatedStudents = (course.enrollment?.students || []).filter(
-          (student: any) => student.userId !== studentId && student.id !== studentId
-        );
+    if (course) {
+      const updatedStudents =
+        course.enrollment?.students?.filter((s: any) => s.userId !== studentId) || [];
 
-        await docClient.send(new UpdateCommand({
-          TableName: COURSES_TABLE,
-          Key: { courseId: courseId },
-          UpdateExpression: 'SET enrollment.students = :students, updatedAt = :updatedAt',
-          ExpressionAttributeValues: {
-            ':students': updatedStudents,
-            ':updatedAt': new Date().toISOString()
-          }
-        }));
-
-        removalReport.studentRemoved = true;
-        console.log('✅ Student removed from course enrollment');
-      }
-    } catch (error) {
-      console.error('Error removing student from course:', error);
-      removalReport.errors.push('Failed to remove student from course enrollment');
+      await dynamodbService.updateItem(
+        'classcast-courses',
+        { courseId },
+        'SET enrollment.students = :students, currentEnrollment = :enrollment',
+        {
+          ':students': updatedStudents,
+          ':enrollment': updatedStudents.length,
+        }
+      );
+      console.log(`✅ Removed student from course enrollment`);
+    } else {
+      console.warn(`⚠️ Course ${courseId} not found`);
+      report.errors.push('Course not found');
     }
 
-    console.log('📊 Student removal report:', removalReport);
+    // Final report
+    console.log('✅ Student removal complete!');
+    console.log('📊 Deletion Report:', report);
 
     return NextResponse.json({
       success: true,
-      message: `Student ${studentInfo?.firstName} ${studentInfo?.lastName} has been removed from the course`,
-      report: removalReport
+      message: 'Student removed successfully',
+      report,
     });
-
   } catch (error) {
-    console.error('Error removing student from course:', error);
+    console.error('❌ Error removing student:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to remove student from course' },
+      {
+        success: false,
+        error: 'Failed to remove student',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * Helper function to extract S3 key from URL
+ */
+function extractS3KeyFromUrl(url: string): string | null {
+  try {
+    if (!url) return null;
+
+    // If it's already just a key (no protocol), return it
+    if (!url.startsWith('http')) {
+      return url;
+    }
+
+    // Parse the URL
+    const urlObj = new URL(url);
+    
+    // Extract path and remove leading slash
+    let path = urlObj.pathname;
+    if (path.startsWith('/')) {
+      path = path.substring(1);
+    }
+
+    // If path is empty, return null
+    if (!path) {
+      return null;
+    }
+
+    return path;
+  } catch (error) {
+    console.error('Error extracting S3 key from URL:', url, error);
+    return null;
   }
 }
