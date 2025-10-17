@@ -1,389 +1,307 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
-import Avatar from '@/components/common/Avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
 
-interface StudentProfile {
-  id: string;
+interface PeerProfile {
+  userId: string;
   firstName: string;
   lastName: string;
   email: string;
-  avatar?: string;
+  avatar: string;
   bio?: string;
-  careerGoals?: string;
+  schoolName?: string;
   classOf?: string;
-  funFact?: string;
   favoriteSubject?: string;
   hobbies?: string;
-  schoolName?: string;
-  schoolLogo?: string;
-  enrollmentDate?: string;
-  lastActive?: string;
-  courses?: Array<{
-    id: string;
-    name: string;
-    code: string;
-    instructor: string;
-  }>;
-  stats?: {
-    totalSubmissions: number;
-    averageGrade: number;
-    completedAssignments: number;
-  };
-  engagementStats?: {
+  stats: {
     videoStats: {
       totalVideos: number;
       totalViews: number;
       totalLikes: number;
-      totalComments: number;
-      totalRatings: number;
       averageRating: number;
-    };
-    communityStats: {
-      totalPosts: number;
-      totalPostLikes: number;
-      totalPostComments: number;
-      totalPostReactions: number;
-      totalComments: number;
-      totalCommentLikes: number;
+      totalRatings: number;
     };
     peerReviewStats: {
       totalResponses: number;
-      totalResponseLikes: number;
-      totalResponseComments: number;
       averageResponseLength: number;
     };
     engagementStats: {
-      totalInteractions: number;
       totalLikesReceived: number;
-      totalCommentsReceived: number;
       totalViewsReceived: number;
-      totalReactionsReceived: number;
     };
   };
 }
 
-const StudentProfileViewPage: React.FC = () => {
-  const { user } = useAuth();
-  const router = useRouter();
+const PeerProfilePage: React.FC = () => {
   const params = useParams();
-  const userId = params.userId as string;
-  
-  const [profile, setProfile] = useState<StudentProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const { user: currentUser } = useAuth();
+  const [profile, setProfile] = useState<PeerProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const userId = params.userId as string;
+
   useEffect(() => {
-    const fetchStudentProfile = async () => {
-      if (!userId) return;
-      
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        // Fetch profile and engagement stats in parallel
-        const [profileResponse, statsResponse] = await Promise.all([
-          fetch(`/api/students/${userId}/profile`, {
-            credentials: 'include'
-          }),
-          fetch(`/api/users/${userId}/stats`, {
-            credentials: 'include'
-          })
-        ]);
-        
-        if (profileResponse.ok) {
-          const profileData = await profileResponse.json();
-          if (profileData.success) {
-            let profile = profileData.profile;
-            
-            // Add engagement stats if available
-            if (statsResponse.ok) {
-              const statsData = await statsResponse.json();
-              if (statsData.success) {
-                profile.engagementStats = statsData.stats;
-              }
-            }
-            
-            setProfile(profile);
-          } else {
-            setError(profileData.error || 'Failed to load profile');
-          }
-        } else if (profileResponse.status === 404) {
-          setError('Student profile not found');
-        } else {
-          setError('Failed to load profile');
-        }
-      } catch (error) {
-        console.error('Error fetching student profile:', error);
-        setError('Failed to load profile');
-      } finally {
-        setIsLoading(false);
+    // If viewing own profile, redirect to main profile page
+    if (currentUser && userId === currentUser.id) {
+      router.push('/student/profile');
+      return;
+    }
+
+    if (userId) {
+      fetchPeerProfile();
+    }
+  }, [userId, currentUser]);
+
+  const fetchPeerProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch user details
+      const userResponse = await fetch(`/api/users/${userId}`, {
+        credentials: 'include',
+      });
+
+      if (!userResponse.ok) {
+        throw new Error('Failed to fetch user profile');
       }
-    };
 
-    fetchStudentProfile();
-  }, [userId]);
+      const userData = await userResponse.json();
+      if (!userData.success) {
+        throw new Error(userData.error || 'Failed to fetch user profile');
+      }
 
-  if (isLoading) {
+      // Fetch peer stats
+      const statsResponse = await fetch(`/api/student/peer-profile?studentId=${userId}`, {
+        credentials: 'include',
+      });
+
+      let stats = {
+        videoStats: { totalVideos: 0, totalViews: 0, totalLikes: 0, averageRating: 0, totalRatings: 0 },
+        peerReviewStats: { totalResponses: 0, averageResponseLength: 0 },
+        engagementStats: { totalLikesReceived: 0, totalViewsReceived: 0 },
+      };
+
+      if (statsResponse.ok) {
+        const statsData = await statsResponse.json();
+        if (statsData.success && statsData.stats) {
+          stats = statsData.stats;
+        }
+      }
+
+      const peerProfile: PeerProfile = {
+        userId: userData.user.userId,
+        firstName: userData.user.firstName || '',
+        lastName: userData.user.lastName || '',
+        email: userData.user.email || '',
+        avatar: userData.user.avatar || '',
+        bio: userData.user.bio || '',
+        schoolName: userData.user.schoolName || '',
+        classOf: userData.user.classOf || '',
+        favoriteSubject: userData.user.favoriteSubject || '',
+        hobbies: userData.user.hobbies || '',
+        stats,
+      };
+
+      setProfile(peerProfile);
+    } catch (err) {
+      console.error('Error fetching peer profile:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
     return (
       <StudentRoute>
-        <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center">
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading profile...</p>
+            <LoadingSpinner size="lg" />
+            <p className="mt-4 text-gray-600">Loading profile...</p>
           </div>
         </div>
       </StudentRoute>
     );
   }
 
-  if (error) {
+  if (error || !profile) {
     return (
       <StudentRoute>
-        <div className="min-h-screen bg-[#F5F5F5]">
-          {/* Header with Back Button */}
-          <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
-            <div className="max-w-4xl mx-auto flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Link 
-                  href="/student/dashboard"
-                  className="text-[#4A90E2] hover:text-[#357ABD] transition-colors duration-200"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </Link>
-                
-                <h1 className="text-2xl font-bold text-[#333333]">Student Profile</h1>
-                
-                {/* MyClassCast Logo */}
-                <div className="flex items-center">
-                  <img 
-                    src="/MyClassCast (800 x 200 px).png" 
-                    alt="MyClassCast" 
-                    className="h-6 w-auto object-contain"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Error Message */}
-          <div className="max-w-4xl mx-auto px-4 py-8">
-            <div className="bg-white rounded-xl shadow-sm p-6 text-center">
-              <div className="text-6xl mb-4">😕</div>
-              <h2 className="text-xl font-bold text-gray-800 mb-2">Profile Not Found</h2>
-              <p className="text-gray-600 mb-6">{error}</p>
-              <button
-                onClick={() => router.back()}
-                className="px-6 py-3 bg-[#4A90E2] text-white rounded-lg hover:bg-[#357ABD] transition-colors font-medium"
-              >
-                Go Back
-              </button>
-            </div>
-          </div>
-        </div>
-      </StudentRoute>
-    );
-  }
-
-  if (!profile) {
-    return (
-      <StudentRoute>
-        <div className="min-h-screen bg-[#F5F5F5] flex items-center justify-center">
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-6xl mb-4">👤</div>
-            <p className="text-gray-600">No profile data available</p>
+            <div className="text-6xl mb-4">😞</div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">Profile Not Found</h1>
+            <p className="text-gray-600 mb-6">{error || 'Could not load this student\'s profile'}</p>
+            <button
+              onClick={() => router.back()}
+              className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+            >
+              Go Back
+            </button>
           </div>
         </div>
       </StudentRoute>
     );
   }
+
+  const fullName = `${profile.firstName} ${profile.lastName}`.trim() || 'Student';
 
   return (
     <StudentRoute>
-      <div className="min-h-screen bg-[#F5F5F5]">
-        {/* Header with Back Button */}
-        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Link 
-                href="/student/dashboard"
-                className="text-[#4A90E2] hover:text-[#357ABD] transition-colors duration-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </Link>
-              
-              <h1 className="text-2xl font-bold text-[#333333]">Student Profile</h1>
-              
-              {/* MyClassCast Logo */}
-              <div className="flex items-center">
-                <img 
-                  src="/MyClassCast (800 x 200 px).png" 
-                  alt="MyClassCast" 
-                  className="h-6 w-auto object-contain"
-                />
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center text-gray-600 hover:text-gray-800 mb-4 transition-colors"
+            >
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back
+            </button>
+
+            <div className="flex items-center space-x-6">
+              {/* Avatar */}
+              <div className="relative">
+                {profile.avatar && !profile.avatar.includes('placeholder') ? (
+                  <img
+                    src={profile.avatar}
+                    alt={fullName}
+                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+                  />
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg">
+                    {profile.firstName?.[0] || profile.email[0].toUpperCase()}
+                  </div>
+                )}
+              </div>
+
+              {/* Basic Info */}
+              <div className="flex-1">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">{fullName}</h1>
+                {profile.bio && (
+                  <p className="text-gray-600 mb-3">{profile.bio}</p>
+                )}
+                <div className="flex items-center space-x-4 text-sm text-gray-500">
+                  {profile.schoolName && (
+                    <span>🏫 {profile.schoolName}</span>
+                  )}
+                  {profile.classOf && (
+                    <span>🎓 Class of {profile.classOf}</span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Main Content - Mobile Optimized */}
-        <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
-          {/* Profile Card - Mobile Optimized */}
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            {/* Profile Header - Mobile Optimized */}
-            <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-4 sm:p-6 text-white">
-              <div className="flex items-center space-x-3 sm:space-x-4">
-                {/* Avatar */}
-                <div className="relative">
-                  <Avatar
-                    user={profile}
-                    size="lg"
-                    showBorder={true}
-                    className="border-white"
-                  />
-                </div>
-
-                {/* Name and Info - Mobile Optimized */}
-                <div className="flex-1">
-                  <h2 className="text-lg sm:text-xl font-bold">
-                    {profile.firstName} {profile.lastName}
-                  </h2>
-                  <p className="text-white/80 text-sm sm:text-base">Student</p>
-                  {profile.classOf && (
-                    <p className="text-white/70 text-xs sm:text-sm">Class of {profile.classOf}</p>
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* About Section */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">About</h2>
+                <div className="space-y-4">
+                  {profile.favoriteSubject && (
+                    <div>
+                      <div className="text-sm font-medium text-gray-500 mb-1">Favorite Subject</div>
+                      <div className="text-gray-900">{profile.favoriteSubject}</div>
+                    </div>
+                  )}
+                  {profile.hobbies && (
+                    <div>
+                      <div className="text-sm font-medium text-gray-500 mb-1">Hobbies</div>
+                      <div className="text-gray-900">{profile.hobbies}</div>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Profile Details - Balanced Layout */}
-            <div className="p-4 sm:p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Left Column - Basic Info */}
-                <div className="lg:col-span-1 space-y-4">
-                  {/* School */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
-                    <div className="flex items-center space-x-2">
-                      {profile.schoolLogo && (
-                        <img 
-                          src={profile.schoolLogo} 
-                          alt="School Logo" 
-                          className="w-4 h-4 object-contain"
-                        />
-                      )}
-                      <p className="text-gray-900 text-sm">{profile.schoolName || 'Not specified'}</p>
+            {/* Stats Section */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-6">Activity & Engagement</h2>
+                
+                {/* Video Stats */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">📹 Video Contributions</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-blue-50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-blue-600">{profile.stats.videoStats.totalVideos}</div>
+                      <div className="text-sm text-gray-600">Videos</div>
                     </div>
-                  </div>
-
-                  {/* Favorite Subject */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Favorite Subject</label>
-                    <p className="text-gray-900 text-sm">{profile.favoriteSubject || 'Not specified'}</p>
-                  </div>
-
-                  {/* Hobbies */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Hobbies</label>
-                    <p className="text-gray-900 text-sm">{profile.hobbies || 'Not specified'}</p>
+                    <div className="bg-green-50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-green-600">{profile.stats.videoStats.totalViews}</div>
+                      <div className="text-sm text-gray-600">Views</div>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-purple-600">{profile.stats.videoStats.totalLikes}</div>
+                      <div className="text-sm text-gray-600">Likes</div>
+                    </div>
+                    <div className="bg-yellow-50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {profile.stats.videoStats.totalRatings > 0 
+                          ? profile.stats.videoStats.averageRating.toFixed(1)
+                          : 'N/A'}
+                      </div>
+                      <div className="text-sm text-gray-600">Avg Rating</div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Right Column - Extended Info */}
-                <div className="lg:col-span-2 space-y-4">
-                  {/* Bio */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
-                    <p className="text-gray-900 text-sm">{profile.bio || 'No bio provided'}</p>
+                {/* Peer Review Stats */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">💬 Peer Reviews</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-indigo-50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-indigo-600">{profile.stats.peerReviewStats.totalResponses}</div>
+                      <div className="text-sm text-gray-600">Responses Given</div>
+                    </div>
+                    <div className="bg-pink-50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-pink-600">
+                        {profile.stats.peerReviewStats.averageResponseLength > 0
+                          ? Math.round(profile.stats.peerReviewStats.averageResponseLength)
+                          : 0}
+                      </div>
+                      <div className="text-sm text-gray-600">Avg Words/Response</div>
+                    </div>
                   </div>
+                </div>
 
-                  {/* Career Goals */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Career Goals</label>
-                    <p className="text-gray-900 text-sm">{profile.careerGoals || 'No career goals specified'}</p>
-                  </div>
-
-                  {/* Fun Fact */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Fun Fact</label>
-                    <p className="text-gray-900 text-sm">{profile.funFact || 'No fun fact provided'}</p>
+                {/* Engagement Stats */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">🌟 Total Engagement</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-rose-50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-rose-600">{profile.stats.engagementStats.totalLikesReceived}</div>
+                      <div className="text-sm text-gray-600">Likes Received</div>
+                    </div>
+                    <div className="bg-teal-50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-teal-600">{profile.stats.engagementStats.totalViewsReceived}</div>
+                      <div className="text-sm text-gray-600">Video Views</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Academic Stats Section */}
-              {profile.stats && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">📚 Academic Performance</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-lg sm:text-xl font-bold text-[#4A90E2]">{profile.stats.totalSubmissions}</div>
-                      <div className="text-xs sm:text-sm text-gray-600">Submissions</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg sm:text-xl font-bold text-[#4A90E2]">{profile.stats.completedAssignments}</div>
-                      <div className="text-xs sm:text-sm text-gray-600">Completed</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg sm:text-xl font-bold text-[#4A90E2]">{profile.stats.averageGrade}%</div>
-                      <div className="text-xs sm:text-sm text-gray-600">Average</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Engagement Stats Section - Simplified */}
-              {profile.engagementStats && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">🌟 Total Engagement</h3>
-                  
-                  {/* Total Engagement Summary */}
-                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-blue-600">{profile.engagementStats.engagementStats.totalInteractions}</div>
-                        <div className="text-xs text-gray-600">Total Interactions</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-red-600">{profile.engagementStats.engagementStats.totalLikesReceived}</div>
-                        <div className="text-xs text-gray-600">Total Likes</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-green-600">{profile.engagementStats.engagementStats.totalViewsReceived}</div>
-                        <div className="text-xs text-gray-600">Total Views</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-purple-600">{profile.engagementStats.engagementStats.totalCommentsReceived}</div>
-                        <div className="text-xs text-gray-600">Total Comments</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Courses Section */}
-              {profile.courses && profile.courses.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">Enrolled Courses</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {profile.courses.map((course) => (
-                      <div key={course.id} className="p-3 bg-gray-50 rounded-lg">
-                        <div className="font-medium text-sm text-gray-900">{course.name}</div>
-                        <div className="text-xs text-gray-600">{course.code}</div>
-                        <div className="text-xs text-gray-500">Instructor: {course.instructor}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* Note */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  💡 This is a peer's public profile. You can see their contributions and engagement stats.
+                  To view more details or their videos, check the community feed or peer review sections.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -392,4 +310,4 @@ const StudentProfileViewPage: React.FC = () => {
   );
 };
 
-export default StudentProfileViewPage;
+export default PeerProfilePage;
