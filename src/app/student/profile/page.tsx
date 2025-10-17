@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api, User } from '@/lib/api';
 import { PasswordReset } from '@/components/PasswordReset';
+import { NotificationPreferences } from '@/components/NotificationPreferences';
 
 interface ProfileData {
   id?: string;
@@ -66,6 +67,7 @@ const StudentProfilePage: React.FC = () => {
   const [editedProfile, setEditedProfile] = useState<ProfileData | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [showNotificationPrefs, setShowNotificationPrefs] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -352,6 +354,12 @@ const StudentProfilePage: React.FC = () => {
                     className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 font-medium"
                   >
                     Change Password
+                  </button>
+                  <button
+                    onClick={() => setShowNotificationPrefs(true)}
+                    className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors duration-200 font-medium"
+                  >
+                    🔔 Notifications
                   </button>
                   <button
                     onClick={logout}
@@ -799,6 +807,15 @@ const StudentProfilePage: React.FC = () => {
         {/* Password Reset Modal */}
         {showPasswordReset && (
           <PasswordReset onClose={() => setShowPasswordReset(false)} />
+        )}
+
+        {/* Notification Preferences Modal */}
+        {showNotificationPrefs && user && (
+          <NotificationPreferences
+            userId={user.id}
+            isOpen={showNotificationPrefs}
+            onClose={() => setShowNotificationPrefs(false)}
+          />
         )}
       </div>
     </StudentRoute>

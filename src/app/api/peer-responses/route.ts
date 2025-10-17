@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBService } from '@/lib/dynamodb';
 import { validateContent, scanContentWithOpenAI, shouldFlagForReview } from '@/lib/contentModeration';
+import { sendPeerFeedbackNotification } from '@/lib/emailNotifications';
 
 const dynamodbService = new DynamoDBService();
 
@@ -205,6 +206,26 @@ export async function POST(request: NextRequest) {
     };
 
     await dynamodbService.putItem('classcast-peer-responses', peerResponse);
+
+    // Send email notification to video owner (fire and forget)
+    if (isSubmitted && body.videoOwnerId && body.videoOwnerEmail && body.assignmentTitle) {
+      sendPeerFeedbackNotification(
+        body.videoOwnerId,
+        body.videoOwnerEmail,
+        body.videoOwnerName || body.videoOwnerEmail,
+        {
+          reviewerName: reviewerName || 'A peer',
+          content: content.trim(),
+          assignmentTitle: body.assignmentTitle,
+          videoId,
+          assignmentId,
+        },
+        body.courseName || 'Your Course'
+      ).catch(error => {
+        console.error('Failed to send peer feedback notification email:', error);
+        // Don't fail the response creation if email fails
+      });
+    }
 
     // ========================================
     // ASYNC CONTENT MODERATION - OpenAI scanning
