@@ -3,6 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { awsConfig } from '@/lib/aws-config';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import { shouldSendEmailNotification } from '@/lib/notificationPreferences';
 
 const client = new DynamoDBClient({ region: awsConfig.region });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -345,6 +346,7 @@ async function sendAssignmentNotifications(assignment: any, courseId: string) {
         const user = userResult.Item;
         if (user && user.email) {
           studentEmails.push({
+            userId: enrolledStudent.userId,
             email: user.email,
             name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
           });
@@ -370,6 +372,19 @@ async function sendAssignmentNotifications(assignment: any, courseId: string) {
     // Send email to each student
     const emailPromises = studentEmails.map(async (student) => {
       try {
+        // Check if student wants this type of notification
+        const shouldSend = await shouldSendEmailNotification(
+          student.userId,
+          'newAssignments'
+        );
+
+        if (!shouldSend) {
+          console.log(`Skipping email to ${student.email} - notifications disabled`);
+          return;
+        }
+
+        const unsubscribeUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://class-cast.com'}/api/unsubscribe?userId=${student.userId}&token=placeholder`;
+
         const emailHtml = `
           <!DOCTYPE html>
           <html>
@@ -429,6 +444,11 @@ async function sendAssignmentNotifications(assignment: any, courseId: string) {
                 <div class="footer">
                   <p>This notification was sent from ClassCast Learning Management System.</p>
                   <p>If you have questions about this assignment, please contact your instructor.</p>
+                  <p style="margin-top: 15px;">
+                    <a href="${unsubscribeUrl}" style="color: #64748b; text-decoration: underline;">
+                      Unsubscribe from email notifications
+                    </a>
+                  </p>
                 </div>
               </div>
             </div>

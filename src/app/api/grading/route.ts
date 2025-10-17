@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dynamoDBService } from '../../../lib/dynamodb';
+import { sendGradedAssignmentNotification } from '@/lib/emailNotifications';
 
 // GET /api/grading - Get submissions for grading
 export async function GET(request: NextRequest) {
@@ -132,25 +133,25 @@ export async function POST(request: NextRequest) {
       }, {} as any),
     });
 
-    // Send notification to student
-    try {
-      await fetch('/api/notifications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'grade_received',
-          userId: body.studentId,
-          data: {
-            assignmentTitle: body.assignmentTitle,
-            grade: grade,
-            letterGrade: letterGrade,
-            feedback: feedback,
-          },
-        }),
+    // Send email notification to student (fire and forget)
+    if (body.studentId && body.studentEmail && body.assignmentTitle) {
+      sendGradedAssignmentNotification(
+        body.studentId,
+        body.studentEmail,
+        body.studentName || body.studentEmail,
+        {
+          title: body.assignmentTitle,
+          description: body.assignmentDescription,
+          grade: Number(grade),
+          maxScore: maxScore || 100,
+          feedback: feedback,
+          assignmentId: body.assignmentId,
+        },
+        body.courseName || 'Your Course'
+      ).catch(error => {
+        console.error('Failed to send grade notification email:', error);
+        // Don't fail the grading if email fails
       });
-    } catch (notificationError) {
-      console.error('Failed to send grade notification:', notificationError);
-      // Don't fail the grading if notification fails
     }
 
     return NextResponse.json({
