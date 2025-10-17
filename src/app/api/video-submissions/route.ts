@@ -31,6 +31,11 @@ export async function GET(request: NextRequest) {
 
       const result = await docClient.send(queryCommand);
       submissions = result.Items || [];
+      
+      // Further filter by courseId if provided
+      if (courseId) {
+        submissions = submissions.filter((s: any) => s.courseId === courseId);
+      }
     } else if (studentId) {
       // Get submissions for a specific student
       const queryCommand = new QueryCommand({
@@ -44,6 +49,11 @@ export async function GET(request: NextRequest) {
 
       const result = await docClient.send(queryCommand);
       submissions = result.Items || [];
+      
+      // Further filter by courseId if provided
+      if (courseId) {
+        submissions = submissions.filter((s: any) => s.courseId === courseId);
+      }
     } else if (courseId) {
       // Get all submissions for a course
       const scanCommand = new ScanCommand({
