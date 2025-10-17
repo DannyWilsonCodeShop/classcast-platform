@@ -262,6 +262,7 @@ const InstructorCourseDetailPage: React.FC = () => {
             submissionType: assignment.assignmentType === 'video' ? 'video' : 
                            assignment.assignmentType === 'text' ? 'text' : 'file',
             submissionsCount: assignment.submissionsCount || 0,
+            gradedCount: assignment.gradedCount || 0,
             createdAt: assignment.createdAt,
             // Peer Review Settings
             enablePeerResponses: assignment.enablePeerResponses || false,
