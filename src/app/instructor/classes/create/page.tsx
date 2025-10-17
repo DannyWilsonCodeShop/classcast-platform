@@ -97,7 +97,7 @@ const CreateClassPage: React.FC = () => {
     groupAssignment: false,
     maxGroupSize: 2,
     allowedFileTypes: ['mp4', 'webm', 'mov', 'avi'],
-    maxFileSize: 100 * 1024 * 1024, // 100MB
+    maxFileSize: 500 * 1024 * 1024, // 500MB
     enablePeerResponses: false,
     responseDueDate: '',
     minResponsesRequired: 2,
@@ -585,7 +585,7 @@ const CreateClassPage: React.FC = () => {
                 groupAssignment: formData.groupAssignment || false,
                 maxGroupSize: formData.maxGroupSize || 2,
                 allowedFileTypes: formData.allowedFileTypes || ['mp4', 'webm', 'mov'],
-                maxFileSize: formData.maxFileSize || 100 * 1024 * 1024,
+                maxFileSize: formData.maxFileSize || 500 * 1024 * 1024,
                 individualSubmission: !formData.groupAssignment,
                 autoGrade: false,
                 peerReview: formData.enablePeerResponses || false,
@@ -1476,7 +1476,7 @@ const CreateClassPage: React.FC = () => {
                           Maximum File Size
                         </label>
                         <select
-                          value={formData.maxFileSize || 100 * 1024 * 1024}
+                          value={formData.maxFileSize || 500 * 1024 * 1024}
                           onChange={(e) => handleInputChange('maxFileSize', parseInt(e.target.value))}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         >
@@ -1486,6 +1486,8 @@ const CreateClassPage: React.FC = () => {
                           <option value={25 * 1024 * 1024}>25 MB</option>
                           <option value={50 * 1024 * 1024}>50 MB</option>
                           <option value={100 * 1024 * 1024}>100 MB</option>
+                          <option value={250 * 1024 * 1024}>250 MB</option>
+                          <option value={500 * 1024 * 1024}>500 MB</option>
                         </select>
                       </div>
 

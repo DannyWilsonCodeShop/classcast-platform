@@ -96,7 +96,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     groupAssignment: initialData?.groupAssignment || false,
     maxGroupSize: initialData?.maxGroupSize || 2,
     allowedFileTypes: initialData?.allowedFileTypes || ['mp4', 'webm', 'mov', 'avi'],
-    maxFileSize: initialData?.maxFileSize || 100 * 1024 * 1024, // 100MB for videos
+    maxFileSize: initialData?.maxFileSize || 500 * 1024 * 1024, // 500MB for videos
     enablePeerResponses: initialData?.enablePeerResponses || false,
     minResponsesRequired: initialData?.minResponsesRequired || 2,
     maxResponsesPerVideo: initialData?.maxResponsesPerVideo || 3,
@@ -1039,6 +1039,8 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                 <option value={25 * 1024 * 1024}>25 MB</option>
                 <option value={50 * 1024 * 1024}>50 MB</option>
                 <option value={100 * 1024 * 1024}>100 MB</option>
+                <option value={250 * 1024 * 1024}>250 MB</option>
+                <option value={500 * 1024 * 1024}>500 MB</option>
               </select>
             </div>
 

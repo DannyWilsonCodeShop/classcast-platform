@@ -71,7 +71,7 @@ export async function GET(
       status: 'not-started', // Default status
       submissionType: assignment.assignmentType === 'video' ? 'video' : 'file',
       allowedFileTypes: assignment.allowedFileTypes || [],
-      maxFileSize: assignment.maxFileSize || 100 * 1024 * 1024, // 100MB default
+      maxFileSize: assignment.maxFileSize || 500 * 1024 * 1024, // 500MB default
       courseId: assignment.courseId,
       courseName: courseInfo?.title || courseInfo?.courseName || 'Unknown Course',
       courseCode: courseInfo?.courseCode || courseInfo?.code || 'N/A',

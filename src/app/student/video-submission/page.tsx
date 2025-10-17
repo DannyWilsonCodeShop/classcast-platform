@@ -583,8 +583,8 @@ const VideoSubmissionContent: React.FC = () => {
         return;
       }
       
-      // Validate file size (max 100MB)
-      const maxSize = 100 * 1024 * 1024; // 100MB
+      // Validate file size (max 500MB)
+      const maxSize = 500 * 1024 * 1024; // 500MB
       if (file.size > maxSize) {
         const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
         setError(
@@ -845,7 +845,7 @@ const VideoSubmissionContent: React.FC = () => {
                         Choose File
                       </button>
                       <p className="text-xs text-gray-500 mt-2">
-                        Maximum file size: 100MB
+                        Maximum file size: 500MB
                       </p>
                     </div>
                     <input

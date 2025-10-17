@@ -64,7 +64,7 @@ const CreateAssignmentContent: React.FC = () => {
         groupAssignment: assignmentData.groupAssignment || false,
         maxGroupSize: assignmentData.maxGroupSize || 4,
         allowedFileTypes: assignmentData.allowedFileTypes || ['mp4', 'mov', 'avi'],
-        maxFileSize: assignmentData.maxFileSize || 100 * 1024 * 1024,
+        maxFileSize: assignmentData.maxFileSize || 500 * 1024 * 1024,
         status: assignmentData.status || 'draft'
       };
 

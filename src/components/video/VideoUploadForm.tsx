@@ -41,9 +41,9 @@ export default function VideoUploadForm({ assignmentId, assignmentTitle, onSubmi
         return;
       }
       
-      // Validate file size (max 100MB)
-      if (file.size > 100 * 1024 * 1024) {
-        alert('File size must be less than 100MB');
+      // Validate file size (max 500MB)
+      if (file.size > 500 * 1024 * 1024) {
+        alert('File size must be less than 500MB');
         return;
       }
       
