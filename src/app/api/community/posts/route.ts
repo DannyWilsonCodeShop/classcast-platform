@@ -428,10 +428,12 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error creating community post:', error);
+    console.error('Full error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Failed to create post' 
+        error: 'Failed to create post',
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     );
