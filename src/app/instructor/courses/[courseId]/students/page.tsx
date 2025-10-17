@@ -373,7 +373,12 @@ const InstructorStudentsPage: React.FC = () => {
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
               <div className="text-center">
                 <div className="text-3xl font-bold text-rose-500 mb-2">
-                  {students.length > 0 ? Math.round(students.reduce((sum, s) => sum + (s.currentGrade || 0), 0) / students.length) : 0}%
+                  {(() => {
+                    const studentsWithGrades = students.filter(s => s.currentGrade !== undefined && s.currentGrade > 0);
+                    if (studentsWithGrades.length === 0) return 'N/A';
+                    const avg = studentsWithGrades.reduce((sum, s) => sum + (s.currentGrade || 0), 0) / studentsWithGrades.length;
+                    return Math.round(avg) + '%';
+                  })()}
                 </div>
                 <div className="text-sm text-gray-600">Average Grade</div>
               </div>
@@ -499,7 +504,10 @@ const InstructorStudentsPage: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
-                            <button className="text-indigo-600 hover:text-indigo-900 transition-colors">
+                            <button 
+                              onClick={() => router.push(`/instructor/students/${student.studentId}/profile`)}
+                              className="text-indigo-600 hover:text-indigo-900 transition-colors"
+                            >
                               View Profile
                             </button>
                             <button className="text-emerald-600 hover:text-emerald-900 transition-colors">
