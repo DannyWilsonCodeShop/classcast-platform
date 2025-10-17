@@ -65,12 +65,19 @@ export async function GET(request: NextRequest) {
         expressionAttributeValues[':studentId'] = studentId;
       }
       
+      // Exclude hidden/deleted submissions
+      filters.push('(attribute_not_exists(#hidden) OR #hidden = :false)');
+      expressionAttributeValues[':false'] = false;
+      
       filterExpression = filters.join(' AND ');
       
       const submissionsResult = await docClient.send(new ScanCommand({
         TableName: SUBMISSIONS_TABLE,
         ...(filterExpression && {
           FilterExpression: filterExpression,
+          ExpressionAttributeNames: {
+            '#hidden': 'hidden'
+          },
           ExpressionAttributeValues: expressionAttributeValues
         })
       }));
