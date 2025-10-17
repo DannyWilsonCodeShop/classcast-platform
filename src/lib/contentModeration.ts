@@ -35,6 +35,13 @@ const OBFUSCATION_MAP: Record<string, string> = {
 };
 
 /**
+ * Escape special regex characters
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Normalize text to detect obfuscated profanity
  */
 function normalizeText(text: string): string {
@@ -42,7 +49,9 @@ function normalizeText(text: string): string {
   
   // Replace obfuscation characters
   Object.entries(OBFUSCATION_MAP).forEach(([symbol, letter]) => {
-    normalized = normalized.replace(new RegExp(symbol, 'g'), letter);
+    // Escape special regex characters like +, *, etc.
+    const escapedSymbol = escapeRegex(symbol);
+    normalized = normalized.replace(new RegExp(escapedSymbol, 'g'), letter);
   });
   
   // Remove non-alphanumeric except spaces
