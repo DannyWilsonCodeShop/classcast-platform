@@ -3,11 +3,13 @@
 import React from 'react';
 
 interface AvatarProps {
-  user: {
+  user?: {
     firstName?: string;
     lastName?: string;
     avatar?: string;
   } | null;
+  src?: string;
+  name?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   showBorder?: boolean;
@@ -16,11 +18,16 @@ interface AvatarProps {
 
 const Avatar: React.FC<AvatarProps> = ({ 
   user, 
+  src,
+  name,
   size = 'md', 
   className = '', 
   showBorder = false,
   onClick 
 }) => {
+  // Support both user object and src/name props
+  const avatarUrl = src || user?.avatar;
+  const displayName = name || (user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : '');
   const sizeClasses = {
     sm: 'w-6 h-6 text-xs',
     md: 'w-8 h-8 text-sm',
@@ -29,6 +36,13 @@ const Avatar: React.FC<AvatarProps> = ({
   };
 
   const getInitials = () => {
+    if (name) {
+      const parts = name.trim().split(' ');
+      if (parts.length >= 2) {
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+      }
+      return name.charAt(0).toUpperCase();
+    }
     if (!user) return 'U';
     const first = user.firstName?.charAt(0) || '';
     const last = user.lastName?.charAt(0) || '';
@@ -46,42 +60,42 @@ const Avatar: React.FC<AvatarProps> = ({
   };
 
   const renderAvatar = () => {
-    if (!user) {
+    if (!avatarUrl && !user) {
       return (
         <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white font-bold">
-          U
+          {getInitials()}
         </div>
       );
     }
 
-    // Check if user has a valid profile picture
-    const hasProfilePicture = user.avatar && 
-      (isImageUrl(user.avatar) || isEmoji(user.avatar)) && 
-      user.avatar !== '/api/placeholder/40/40' && 
-      user.avatar !== '/api/placeholder/80/80' &&
-      !user.avatar.includes('placeholder');
+    // Check if we have a valid profile picture
+    const hasProfilePicture = avatarUrl && 
+      (isImageUrl(avatarUrl) || isEmoji(avatarUrl)) && 
+      avatarUrl !== '/api/placeholder/40/40' && 
+      avatarUrl !== '/api/placeholder/80/80' &&
+      !avatarUrl.includes('placeholder');
 
-    if (hasProfilePicture && user.avatar) {
+    if (hasProfilePicture && avatarUrl) {
       // Check if it's an emoji
-      if (isEmoji(user.avatar)) {
+      if (isEmoji(avatarUrl)) {
         return (
           <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
-            <span className="text-2xl">{user.avatar}</span>
+            <span className="text-2xl">{avatarUrl}</span>
           </div>
         );
       }
       
       // Check if it's an image URL
-      if (isImageUrl(user.avatar)) {
+      if (isImageUrl(avatarUrl)) {
         // Handle S3 URLs with proxy for CORS
-        const imageSrc = user.avatar.includes('s3.amazonaws.com') || user.avatar.includes('s3.') 
-          ? `/api/avatar-proxy?url=${encodeURIComponent(user.avatar)}`
-          : user.avatar;
+        const imageSrc = avatarUrl.includes('s3.amazonaws.com') || avatarUrl.includes('s3.') 
+          ? `/api/avatar-proxy?url=${encodeURIComponent(avatarUrl)}`
+          : avatarUrl;
           
         return (
           <img
             src={imageSrc}
-            alt={`${user.firstName || ''} ${user.lastName || ''}`}
+            alt={displayName || 'User avatar'}
             className="w-full h-full object-cover"
             onError={(e) => {
               // Fallback to initials if image fails to load
