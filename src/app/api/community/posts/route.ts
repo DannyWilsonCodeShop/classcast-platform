@@ -79,6 +79,34 @@ export async function GET(request: NextRequest) {
         posts.map(async (post: any) => {
           try {
             console.log('🔍 Enriching post with userId:', post.userId);
+            
+            if (!post.userId) {
+              console.log('⚠️ Post has no userId, using default');
+              return {
+                id: post.postId || post.id,
+                title: post.title,
+                content: post.content,
+                author: 'Unknown User',
+                authorAvatar: undefined,
+                authorRole: 'student',
+                isAnnouncement: post.isAnnouncement || false,
+                likes: post.likes || 0,
+                comments: post.comments || 0,
+                timestamp: post.timestamp || post.createdAt || new Date().toISOString(),
+                reactions: post.reactions || {
+                  like: 0,
+                  love: 0,
+                  helpful: 0,
+                  celebrate: 0
+                },
+                isLiked: post.isLiked || false,
+                isBookmarked: post.isBookmarked || false,
+                tags: post.tags || [],
+                trending: post.trending || false,
+                pinned: post.pinned || false
+              };
+            }
+            
             const userResult = await docClient.send(new GetCommand({
               TableName: USERS_TABLE,
               Key: { userId: post.userId }
@@ -87,12 +115,46 @@ export async function GET(request: NextRequest) {
             const user = userResult.Item;
             console.log('👤 User data fetched:', user ? `${user.firstName} ${user.lastName}` : 'Not found');
             
-            const authorName = user?.firstName && user?.lastName 
-              ? `${user.firstName} ${user.lastName}`
-              : user?.email || 'Unknown User';
+            if (!user) {
+              console.log('⚠️ User not found in database, using default');
+              return {
+                id: post.postId || post.id,
+                title: post.title,
+                content: post.content,
+                author: '[Deleted User]',
+                authorAvatar: undefined,
+                authorRole: 'student',
+                isAnnouncement: post.isAnnouncement || false,
+                likes: post.likes || 0,
+                comments: post.comments || 0,
+                timestamp: post.timestamp || post.createdAt || new Date().toISOString(),
+                reactions: post.reactions || {
+                  like: 0,
+                  love: 0,
+                  helpful: 0,
+                  celebrate: 0
+                },
+                isLiked: post.isLiked || false,
+                isBookmarked: post.isBookmarked || false,
+                tags: post.tags || [],
+                trending: post.trending || false,
+                pinned: post.pinned || false
+              };
+            }
             
-            // Get avatar from multiple possible sources - only use real S3 URLs
-            const avatar = user?.avatar || user?.profile?.avatar || user?.profilePicture || user?.profileImage || undefined;
+            const authorName = user.firstName && user.lastName 
+              ? `${user.firstName} ${user.lastName}`.trim()
+              : user.email?.split('@')[0] || 'Unknown User';
+            
+            // Get avatar - handle emoji avatars and S3 URLs
+            let avatar = user.avatar || user.profile?.avatar || user.profilePicture || user.profileImage || undefined;
+            
+            // If avatar is an emoji (single character or emoji), don't use it as URL
+            if (avatar && avatar.length <= 4 && !/^https?:\/\//.test(avatar)) {
+              console.log('🖼️ Avatar is emoji, not using as image:', avatar);
+              avatar = undefined;
+            }
+            
             console.log('🖼️ Avatar URL:', avatar || 'No avatar found');
             
             return {
@@ -101,7 +163,7 @@ export async function GET(request: NextRequest) {
               content: post.content,
               author: authorName,
               authorAvatar: avatar,
-              authorRole: user?.role || 'student',
+              authorRole: user.role || 'student',
               isAnnouncement: post.isAnnouncement || false,
               likes: post.likes || 0,
               comments: post.comments || 0,
@@ -119,12 +181,12 @@ export async function GET(request: NextRequest) {
               pinned: post.pinned || false
             };
           } catch (error) {
-            console.error(`Error enriching post ${post.id} with user data:`, error);
+            console.error(`Error enriching post ${post.postId || post.id} with user data:`, error);
             return {
               id: post.postId || post.id,
               title: post.title,
               content: post.content,
-              author: 'Unknown User',
+              author: '[Error Loading User]',
               authorAvatar: undefined,
               authorRole: 'student',
               isAnnouncement: post.isAnnouncement || false,
