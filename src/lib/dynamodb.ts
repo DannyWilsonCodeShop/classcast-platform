@@ -252,11 +252,14 @@ export class DynamoDBService {
   }
 
   async getUserByEmail(email: string): Promise<User | null> {
+    // Normalize email to lowercase for case-insensitive lookup
+    const normalizedEmail = email.toLowerCase().trim();
+    
     const response = await this.query<User>({
       TableName: TABLE_NAMES.USERS,
       IndexName: 'EmailIndex',
       KeyConditionExpression: 'email = :email',
-      ExpressionAttributeValues: { ':email': email },
+      ExpressionAttributeValues: { ':email': normalizedEmail },
     });
 
     return response.Items[0] || null;

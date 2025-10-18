@@ -61,13 +61,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Normalize email to lowercase for consistency
+    const normalizedEmail = body.email.toLowerCase().trim();
+
     // Generate unique user ID
     const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
     // Create user object
     const user: User = {
       userId,
-      email: body.email.toLowerCase(),
+      email: normalizedEmail,
       firstName: body.firstName,
       lastName: body.lastName,
       role: body.role as UserRole,
