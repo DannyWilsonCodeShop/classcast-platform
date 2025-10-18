@@ -293,6 +293,11 @@ const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string }> = ({ item, formatTimestamp }) => {
   const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
   const isYouTube = !!videoId;
+  const [imageError, setImageError] = React.useState(false);
+  
+  // Check if avatar is emoji or valid image
+  const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
+  const hasValidAvatar = item.author?.avatar && !item.author.avatar.includes('placeholder') && !imageError;
 
   return (
     <div className="bg-white border-b border-gray-200">
@@ -300,13 +305,16 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-            {item.author?.avatar && !item.author.avatar.includes('placeholder') ? (
+            {isEmoji ? (
+              <span className="text-2xl">{item.author?.avatar}</span>
+            ) : hasValidAvatar ? (
               <Image
                 src={item.author.avatar}
                 alt={item.author.name}
                 width={40}
                 height={40}
                 className="w-full h-full object-cover"
+                onError={() => setImageError(true)}
               />
             ) : (
               <span className="text-gray-600 font-semibold text-sm">
@@ -369,8 +377,12 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
 
 // Community Feed Item
 const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string }> = ({ item, formatTimestamp }) => {
+  const [imageError, setImageError] = React.useState(false);
+  const [showComments, setShowComments] = React.useState(false);
+  
   // Check if avatar is emoji (single character, 2-4 bytes)
   const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
+  const hasValidAvatar = item.author?.avatar && !item.author.avatar.includes('placeholder') && !imageError;
 
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-4">
@@ -379,13 +391,14 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
         <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
           {isEmoji ? (
             <span className="text-2xl">{item.author?.avatar}</span>
-          ) : item.author?.avatar && !item.author.avatar.includes('placeholder') ? (
+          ) : hasValidAvatar ? (
             <Image
               src={item.author.avatar}
               alt={item.author.name}
               width={40}
               height={40}
               className="w-full h-full object-cover"
+              onError={() => setImageError(true)}
             />
           ) : (
             <span className="text-gray-600 font-semibold text-sm">
@@ -411,13 +424,25 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
           </svg>
           <span className="text-sm">{item.likes}</span>
         </button>
-        <button className="flex items-center space-x-1 hover:text-blue-500 transition-colors">
+        <button 
+          onClick={() => setShowComments(!showComments)}
+          className="flex items-center space-x-1 hover:text-blue-500 transition-colors"
+        >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
-          <span className="text-sm">{item.comments}</span>
+          <span className="text-sm">{item.comments} {item.comments === 1 ? 'comment' : 'comments'}</span>
         </button>
       </div>
+
+      {/* Collapsible Comments Section */}
+      {showComments && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="space-y-3">
+            <p className="text-sm text-gray-500 italic">Comments section coming soon...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
