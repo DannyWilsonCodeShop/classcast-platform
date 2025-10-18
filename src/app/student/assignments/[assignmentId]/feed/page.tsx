@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
+import { GroupAssignmentModal } from '@/components/student/GroupAssignmentModal';
 
 interface VideoSubmission {
   submissionId: string;
@@ -28,6 +29,23 @@ interface AssignmentDetails {
   courseId: string;
   courseName?: string;
   courseInitials?: string;
+  groupAssignment?: boolean;
+  maxGroupSize?: number;
+}
+
+interface Group {
+  groupId: string;
+  groupName: string;
+  joinCode: string;
+  members: Array<{
+    userId: string;
+    firstName: string;
+    lastName: string;
+    role: 'leader' | 'member';
+  }>;
+  currentSize: number;
+  maxSize: number;
+  status: 'forming' | 'ready' | 'submitted';
 }
 
 const AssignmentFeedPage: React.FC = () => {
@@ -39,6 +57,8 @@ const AssignmentFeedPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [assignment, setAssignment] = useState<AssignmentDetails | null>(null);
   const [videos, setVideos] = useState<VideoSubmission[]>([]);
+  const [myGroup, setMyGroup] = useState<Group | null>(null);
+  const [showGroupModal, setShowGroupModal] = useState(false);
 
   useEffect(() => {
     if (assignmentId) {
@@ -54,6 +74,16 @@ const AssignmentFeedPage: React.FC = () => {
 
       if (assignmentData.success) {
         setAssignment(assignmentData.assignment);
+        
+        // If it's a group assignment, check if user has a group
+        if (assignmentData.assignment.groupAssignment && user?.id) {
+          const groupRes = await fetch(`/api/groups/my-group?assignmentId=${assignmentId}&userId=${user.id}`);
+          const groupData = await groupRes.json();
+          
+          if (groupData.success && groupData.hasGroup) {
+            setMyGroup(groupData.group);
+          }
+        }
       }
 
       // Fetch video submissions for this assignment
@@ -159,12 +189,72 @@ const AssignmentFeedPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Group Assignment Section */}
+              {assignment.groupAssignment && (
+                <div className="px-4 py-4 bg-purple-50 border-b border-purple-100">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <h3 className="text-sm font-semibold text-purple-900">Group Assignment (max {assignment.maxGroupSize} students)</h3>
+                  </div>
+
+                  {myGroup ? (
+                    <div className="bg-white rounded-lg p-4 border-2 border-purple-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <p className="font-semibold text-gray-900">{myGroup.groupName}</p>
+                          <p className="text-xs text-gray-500">Code: <span className="font-mono font-bold text-purple-600">{myGroup.joinCode}</span></p>
+                        </div>
+                        <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                          {myGroup.currentSize}/{myGroup.maxSize}
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        {myGroup.members.map((member) => (
+                          <div key={member.userId} className="flex items-center space-x-2 text-sm">
+                            <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                              <circle cx="12" cy="12" r="8" />
+                            </svg>
+                            <span className="text-gray-700">
+                              {member.firstName} {member.lastName}
+                              {member.role === 'leader' && <span className="text-purple-600 ml-1">(Leader)</span>}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      {myGroup.currentSize < myGroup.maxSize && (
+                        <p className="text-xs text-gray-500 mt-2 italic">
+                          Share code <span className="font-mono font-bold">{myGroup.joinCode}</span> with {myGroup.maxSize - myGroup.currentSize} more {myGroup.maxSize - myGroup.currentSize === 1 ? 'classmate' : 'classmates'}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setShowGroupModal(true)}
+                      className="w-full p-4 bg-white border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-all"
+                    >
+                      <p className="font-medium text-gray-900 mb-1">Form or Join a Group</p>
+                      <p className="text-xs text-gray-600">Required before submitting</p>
+                    </button>
+                  )}
+                </div>
+              )}
+
               {/* Recording Options */}
               <div className="px-4 py-4 bg-gradient-to-b from-blue-50 to-white">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">📹 Submit Your Video</h3>
+                <h3 className="text-sm font-semibold text-gray-900 mb-3">
+                  📹 {assignment.groupAssignment ? 'Submit Group Video' : 'Submit Your Video'}
+                </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <button
-                    onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&mode=record`)}
+                    onClick={() => {
+                      if (assignment.groupAssignment && !myGroup) {
+                        alert('Please form or join a group first');
+                        return;
+                      }
+                      router.push(`/student/video-submission?assignmentId=${assignmentId}&mode=record${myGroup ? `&groupId=${myGroup.groupId}` : ''}`);
+                    }}
                     className="flex flex-col items-center p-4 bg-white border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all"
                   >
                     <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mb-2">
@@ -176,7 +266,13 @@ const AssignmentFeedPage: React.FC = () => {
                     <span className="text-xs text-gray-500">Live recording</span>
                   </button>
                   <button
-                    onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&mode=upload`)}
+                    onClick={() => {
+                      if (assignment.groupAssignment && !myGroup) {
+                        alert('Please form or join a group first');
+                        return;
+                      }
+                      router.push(`/student/video-submission?assignmentId=${assignmentId}&mode=upload${myGroup ? `&groupId=${myGroup.groupId}` : ''}`);
+                    }}
                     className="flex flex-col items-center p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all"
                   >
                     <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mb-2">
@@ -223,6 +319,20 @@ const AssignmentFeedPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Group Modal */}
+        {showGroupModal && assignment && (
+          <GroupAssignmentModal
+            assignmentId={assignmentId}
+            assignmentTitle={assignment.title}
+            maxGroupSize={assignment.maxGroupSize || 4}
+            onClose={() => setShowGroupModal(false)}
+            onGroupFormed={(group) => {
+              setMyGroup(group);
+              setShowGroupModal(false);
+            }}
+          />
+        )}
       </div>
     </StudentRoute>
   );
