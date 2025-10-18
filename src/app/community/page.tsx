@@ -45,6 +45,7 @@ export default function CommunityPage() {
   const [userCourses, setUserCourses] = useState<any[]>([]);
   const [showQuickActionModal, setShowQuickActionModal] = useState(false);
   const [quickActionData, setQuickActionData] = useState<{title: string, content: string, color: string} | null>(null);
+  const [editableQuickActionContent, setEditableQuickActionContent] = useState('');
 
   useEffect(() => {
     if (isLoading) return;
@@ -240,6 +241,7 @@ export default function CommunityPage() {
 
   const handleQuickAction = (title: string, content: string, color: string) => {
     setQuickActionData({ title, content, color });
+    setEditableQuickActionContent(content); // Initialize with template content
     setShowQuickActionModal(true);
   };
 
@@ -843,14 +845,23 @@ export default function CommunityPage() {
             </div>
             
             <div className="mb-6">
-              <p className="text-gray-700 mb-4">{quickActionData.content}</p>
-              <div className={`p-4 rounded-lg border-l-4 ${
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Your Message
+              </label>
+              <textarea
+                value={editableQuickActionContent}
+                onChange={(e) => setEditableQuickActionContent(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                rows={5}
+                placeholder="Write your message here..."
+              />
+              <div className={`mt-3 p-3 rounded-lg border-l-4 ${
                 quickActionData.color === 'blue' ? 'bg-blue-50 border-blue-400' :
                 quickActionData.color === 'green' ? 'bg-green-50 border-green-400' :
                 'bg-purple-50 border-purple-400'
               }`}>
-                <p className="text-sm text-gray-600">
-                  This will create a highlighted community post with your message. Other students will be able to see and respond to it.
+                <p className="text-xs text-gray-600">
+                  This will create a highlighted community post. Other students will be able to see and respond to it.
                 </p>
               </div>
             </div>
@@ -860,6 +871,7 @@ export default function CommunityPage() {
                 onClick={() => {
                   setShowQuickActionModal(false);
                   setQuickActionData(null);
+                  setEditableQuickActionContent('');
                 }}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
               >
@@ -867,6 +879,11 @@ export default function CommunityPage() {
               </button>
               <button
                 onClick={async () => {
+                  if (!editableQuickActionContent.trim()) {
+                    alert('Please enter a message');
+                    return;
+                  }
+
                   try {
                     // Create the post with the quick action data
                     const response = await fetch('/api/community/posts', {
@@ -876,7 +893,7 @@ export default function CommunityPage() {
                       },
                       body: JSON.stringify({
                         title: quickActionData.title,
-                        content: quickActionData.content,
+                        content: editableQuickActionContent, // Use the edited content
                         userId: user?.id,
                         courseId: newPost.courseId || null,
                         isAnnouncement: false,
@@ -896,6 +913,7 @@ export default function CommunityPage() {
                       // Close modal
                       setShowQuickActionModal(false);
                       setQuickActionData(null);
+                      setEditableQuickActionContent('');
                       
                       alert(`✅ ${quickActionData.title} post created successfully!`);
                     } else {
