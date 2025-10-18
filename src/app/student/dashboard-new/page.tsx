@@ -53,6 +53,15 @@ const StudentDashboardNew: React.FC = () => {
     ? feed.filter(item => item.courseId === selectedCourse || item.type === 'community')
     : feed;
 
+  // When a course is selected, separate assignments and other content
+  const courseAssignments = selectedCourse 
+    ? filteredFeed.filter(item => item.type === 'assignment' && item.courseId === selectedCourse)
+    : [];
+  
+  const otherFeedItems = selectedCourse
+    ? filteredFeed.filter(item => item.type !== 'assignment')
+    : filteredFeed;
+
   const handlePostSubmit = async () => {
     if (!postContent.trim()) return;
 
@@ -195,7 +204,22 @@ const StudentDashboardNew: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-0">
-              {filteredFeed.map((item) => (
+              {/* Show assignments first when course is selected */}
+              {selectedCourse && courseAssignments.length > 0 && (
+                <div className="bg-gradient-to-b from-blue-50 to-white border-b-4 border-blue-200 pb-4">
+                  <div className="px-4 pt-4 pb-2">
+                    <h2 className="text-sm font-semibold text-blue-900 uppercase tracking-wide">
+                      📚 Assignments
+                    </h2>
+                  </div>
+                  {courseAssignments.map((item) => (
+                    <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} />
+                  ))}
+                </div>
+              )}
+
+              {/* Other feed items */}
+              {otherFeedItems.map((item) => (
                 <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} />
               ))}
             </div>
@@ -449,14 +473,23 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 
 // Assignment Feed Item
 const AssignmentFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string }> = ({ item, formatTimestamp }) => {
+  const router = useRouter();
+  
   const getStatusColor = () => {
     if (item.status === 'past_due') return 'bg-red-50 border-red-200 text-red-700';
     if (item.status === 'active') return 'bg-yellow-50 border-yellow-200 text-yellow-700';
     return 'bg-green-50 border-green-200 text-green-700';
   };
 
+  const handleClick = () => {
+    router.push(`/student/assignments/${item.id}/feed`);
+  };
+
   return (
-    <div className={`border-b border-gray-200 px-4 py-4 ${getStatusColor()}`}>
+    <div 
+      onClick={handleClick}
+      className={`border-b border-gray-200 px-4 py-4 cursor-pointer hover:opacity-90 transition-opacity ${getStatusColor()}`}
+    >
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
@@ -478,9 +511,9 @@ const AssignmentFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp
           </span>
         )}
       </div>
-      <button className="mt-2 px-4 py-2 bg-white text-current rounded-lg text-sm font-medium hover:bg-white/80 transition-colors">
-        View Assignment
-      </button>
+      <div className="mt-2 px-4 py-2 bg-white text-current rounded-lg text-sm font-medium inline-block">
+        View Submissions →
+      </div>
     </div>
   );
 };
