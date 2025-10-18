@@ -95,9 +95,12 @@ exports.handler = async (event) => {
         await cognitoClient.send(setPasswordCommand);
 
         // Create user profile in DynamoDB
+        // Normalize email to lowercase for consistency
+        const normalizedEmail = email.toLowerCase().trim();
+
         const userProfile = {
-            userId: { S: email },
-            email: { S: email },
+            userId: { S: normalizedEmail },
+            email: { S: normalizedEmail },
             firstName: { S: firstName },
             lastName: { S: lastName },
             role: { S: role },

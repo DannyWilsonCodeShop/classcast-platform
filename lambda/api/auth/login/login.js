@@ -27,7 +27,10 @@ exports.handler = async (event) => {
   try {
     // Parse the request body
     const body = JSON.parse(event.body);
-    const { email, password } = body;
+    let { email, password } = body;
+
+    // Normalize email to lowercase for case-insensitive login
+    email = email ? email.toLowerCase().trim() : email;
 
     console.log('Login API called with:', { email, password: '***' });
 

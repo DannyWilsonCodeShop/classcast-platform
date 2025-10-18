@@ -10,7 +10,10 @@ const USER_POOL_CLIENT_ID = process.env.CLIENT_ID || '7tbaq74itv3gdda1bt25iqafvh
 exports.handler = async (event) => {
     try {
         const body = JSON.parse(event.body);
-        const { email, password } = body;
+        let { email, password } = body;
+
+        // Normalize email to lowercase for case-insensitive login
+        email = email ? email.toLowerCase().trim() : email;
 
         // Basic validation
         if (!email || !password) {
