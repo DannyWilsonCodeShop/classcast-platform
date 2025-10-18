@@ -175,9 +175,12 @@ exports.handler = async (event) => {
 
       // Create user profile in DynamoDB
       try {
+        // Normalize email to lowercase for consistency
+        const normalizedEmail = email.toLowerCase().trim();
+
         const userProfile = {
-          userId: email, // Use email as userId
-          email: email,
+          userId: normalizedEmail, // Use normalized email as userId
+          email: normalizedEmail,
           firstName: firstName,
           lastName: lastName,
           role: role,
