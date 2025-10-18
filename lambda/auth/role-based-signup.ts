@@ -630,6 +630,7 @@ async function createUserProfile(data: RoleBasedSignupRequest, userId: string): 
     department: data.department,
     bio: data.bio,
     phoneNumber: data.phoneNumber,
+    schoolLogo: '/logos/cristo-rey-atlanta.png', // Default Cristo Rey logo
     status: 'pending',
     enabled: false,
     createdAt: new Date().toISOString(),

@@ -377,6 +377,7 @@ async function createUserProfile(data: SignupRequest, userId: string): Promise<v
     instructorId: data.instructorId,
     bio: data.bio,
     phoneNumber: data.phoneNumber,
+    schoolLogo: '/logos/cristo-rey-atlanta.png', // Default Cristo Rey logo
     status: 'pending', // Will be updated to 'active' after confirmation
     enabled: false, // Will be enabled after confirmation
     createdAt: new Date().toISOString(),

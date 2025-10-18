@@ -184,6 +184,7 @@ exports.handler = async (event) => {
           studentId: studentId,
           instructorId: role === 'instructor' ? `INS-${Date.now()}` : undefined,
           department: role === 'instructor' ? department : undefined,
+          schoolLogo: '/logos/cristo-rey-atlanta.png', // Default Cristo Rey logo
           status: 'active',
           enabled: true,
           createdAt: new Date().toISOString(),

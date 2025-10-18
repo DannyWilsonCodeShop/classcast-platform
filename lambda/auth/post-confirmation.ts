@@ -51,6 +51,7 @@ export const handler: PostConfirmationTriggerHandler = async (event) => {
           instructorId: role === 'instructor' ? instructorId : undefined,
           bio,
           avatar,
+          schoolLogo: '/logos/cristo-rey-atlanta.png', // Default Cristo Rey logo
           status: 'active',
           enabled: true,
           createdAt: new Date().toISOString(),
