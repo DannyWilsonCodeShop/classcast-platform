@@ -97,35 +97,37 @@ const StudentDashboardNew: React.FC = () => {
       <div className="min-h-screen bg-gray-50 pb-20">
         {/* Top Bar */}
         <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
             {/* ClassCast Logo */}
-            <div className="flex items-center">
-              <h1 className="text-xl font-bold text-gray-900">ClassCast</h1>
+            <div className="flex items-center flex-shrink-0">
+              <Image
+                src="/MyClassCast (800 x 200 px).png"
+                alt="MyClassCast"
+                width={120}
+                height={30}
+                className="h-7 w-auto object-contain"
+                priority
+              />
             </div>
 
             {/* Community Post Bar */}
             <button
               onClick={() => setShowPostComposer(!showPostComposer)}
-              className="flex-1 mx-4 px-4 py-2 bg-gray-100 rounded-full text-left text-gray-500 text-sm hover:bg-gray-200 transition-colors"
+              className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-left text-gray-500 text-sm hover:bg-gray-200 transition-colors"
             >
               Post to community...
             </button>
 
             {/* School Logo */}
-            <div className="w-8 h-8 flex-shrink-0">
-              {user?.schoolLogo ? (
-                <Image
-                  src={user.schoolLogo}
-                  alt="School"
-                  width={32}
-                  height={32}
-                  className="w-full h-full object-contain rounded"
-                />
-              ) : (
-                <div className="w-full h-full bg-blue-500 rounded flex items-center justify-center text-white text-xs font-bold">
-                  S
-                </div>
-              )}
+            <div className="w-10 h-10 flex-shrink-0">
+              <Image
+                src="/logos/cristo-rey-atlanta.png"
+                alt="Cristo Rey Atlanta"
+                width={40}
+                height={40}
+                className="w-full h-full object-contain"
+                priority
+              />
             </div>
           </div>
 
