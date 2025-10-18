@@ -3,6 +3,7 @@ export interface Course {
   title: string;
   description: string;
   code: string; // e.g., "CS-101", "MATH-201"
+  courseInitials?: string; // e.g., "MAT", "ENG", "HIS" - for mobile bottom nav
   department: string;
   credits: number;
   semester: string; // e.g., "Fall 2024", "Spring 2025"
