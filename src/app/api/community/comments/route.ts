@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, UpdateCommand, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -64,10 +64,21 @@ export async function POST(request: NextRequest) {
       comment: comment
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error adding comment:', error);
+    console.error('Full error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    
+    // Check if table doesn't exist
+    if (error.name === 'ResourceNotFoundException') {
+      console.error('❌ Table does not exist:', error.message);
+      return NextResponse.json(
+        { success: false, error: 'Comments feature not yet configured. Please contact administrator.' },
+        { status: 503 }
+      );
+    }
+    
     return NextResponse.json(
-      { success: false, error: 'Failed to add comment' },
+      { success: false, error: 'Failed to add comment', details: error.message },
       { status: 500 }
     );
   }
@@ -87,13 +98,15 @@ export async function GET(request: NextRequest) {
 
     console.log('Fetching comments for post:', postId);
 
-    // Get comments for the post
-    const result = await docClient.send(new ScanCommand({
+    // Get comments for the post using the PostIdIndex for better performance
+    const result = await docClient.send(new QueryCommand({
       TableName: COMMUNITY_COMMENTS_TABLE,
-      FilterExpression: 'postId = :postId',
+      IndexName: 'PostIdIndex',
+      KeyConditionExpression: 'postId = :postId',
       ExpressionAttributeValues: {
         ':postId': postId
-      }
+      },
+      ScanIndexForward: true // Sort by createdAt ascending (oldest first)
     }));
 
     const comments = (result.Items || []).sort((a, b) => {
