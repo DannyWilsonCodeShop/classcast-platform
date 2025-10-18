@@ -91,8 +91,18 @@ const AssignmentFeedPage: React.FC = () => {
       const videosData = await videosRes.json();
 
       if (videosData.success) {
+        let submissions = videosData.submissions || [];
+        
+        // If it's a group assignment and user has a group, filter to show only group member videos
+        if (assignmentData.assignment.groupAssignment && groupData?.hasGroup && groupData.group) {
+          const groupMemberIds = groupData.group.memberIds || groupData.group.members.map((m: any) => m.userId);
+          submissions = submissions.filter((sub: VideoSubmission) => 
+            groupMemberIds.includes(sub.studentId)
+          );
+        }
+        
         // Sort by most recent first
-        const sorted = (videosData.submissions || []).sort((a: VideoSubmission, b: VideoSubmission) => 
+        const sorted = submissions.sort((a: VideoSubmission, b: VideoSubmission) => 
           new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
         );
         setVideos(sorted);
@@ -243,9 +253,14 @@ const AssignmentFeedPage: React.FC = () => {
 
               {/* Recording Options */}
               <div className="px-4 py-4 bg-gradient-to-b from-blue-50 to-white">
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                  📹 {assignment.groupAssignment ? 'Submit Group Video' : 'Submit Your Video'}
-                </h3>
+                {assignment.groupAssignment ? (
+                  <>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1">📹 Submit Your Video</h3>
+                    <p className="text-xs text-gray-600 mb-3">Each group member can submit their own video</p>
+                  </>
+                ) : (
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">📹 Submit Your Video</h3>
+                )}
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => {
@@ -284,6 +299,13 @@ const AssignmentFeedPage: React.FC = () => {
                     <span className="text-xs text-gray-500">Pre-recorded</span>
                   </button>
                 </div>
+                {assignment.groupAssignment && myGroup && (
+                  <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                    <p className="text-xs text-purple-700">
+                      💡 Each member can submit a video. All videos will be visible to the group and instructor.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -292,8 +314,15 @@ const AssignmentFeedPage: React.FC = () => {
           {!loading && videos.length > 0 && (
             <div className="bg-white border-b border-gray-200 px-4 py-3">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
-                🎬 Student Submissions
+                {assignment?.groupAssignment 
+                  ? '🎬 Group Member Videos' 
+                  : '🎬 Student Submissions'}
               </h3>
+              {assignment?.groupAssignment && myGroup && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Videos from your group: {myGroup.groupName}
+                </p>
+              )}
             </div>
           )}
         </div>
