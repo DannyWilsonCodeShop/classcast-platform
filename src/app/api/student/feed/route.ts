@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { getYouTubeVideoId } from '@/lib/youtube';
 
 const dynamoClient = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
@@ -74,15 +75,17 @@ export async function GET(request: NextRequest) {
       )
       .forEach(sub => {
         const course = studentCourses.find(c => c.courseId === sub.courseId);
+        const videoId = sub.videoUrl ? getYouTubeVideoId(sub.videoUrl) : null;
+        
         feedItems.push({
           id: sub.submissionId,
           type: 'video',
           timestamp: sub.submittedAt || sub.createdAt,
           courseId: sub.courseId,
           courseName: course?.name || course?.courseName,
-          courseInitials: course?.courseInitials,
+          courseInitials: course?.courseInitials || course?.code?.substring(0, 3).toUpperCase(),
           videoUrl: sub.videoUrl,
-          thumbnailUrl: sub.thumbnailUrl,
+          thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
           title: sub.videoTitle || sub.title,
           author: {
             id: sub.studentId,

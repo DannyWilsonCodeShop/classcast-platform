@@ -9,6 +9,7 @@ interface ClassFormData {
   title: string;
   description: string;
   classCode: string;
+  courseInitials: string;
   backgroundColor: string;
   department: string;
   semester: string;
@@ -69,6 +70,7 @@ const CreateClassPage: React.FC = () => {
     title: '',
     description: '',
     classCode: '',
+    courseInitials: '',
     backgroundColor: 'indigo-600',
     department: '',
     semester: 'Fall+Spring',
@@ -484,6 +486,7 @@ const CreateClassPage: React.FC = () => {
           description: formData.description,
           code: formData.classCode,
           classCode: formData.classCode,
+          courseInitials: formData.courseInitials || formData.classCode.substring(0, 3).toUpperCase(),
           department: formData.department,
           credits: 3, // Default credits
           semester: formData.semester,
@@ -710,6 +713,23 @@ const CreateClassPage: React.FC = () => {
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     Students will use this code to join your class. You can edit it if needed.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Course Initials <span className="text-blue-600">(for mobile navigation)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.courseInitials}
+                    onChange={(e) => handleInputChange('courseInitials', e.target.value.toUpperCase())}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent uppercase"
+                    placeholder="e.g., MAT, ENG, HIS"
+                    maxLength={3}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    3-letter abbreviation for mobile bottom navigation (e.g., "MAT" for MAT250)
                   </p>
                 </div>
 

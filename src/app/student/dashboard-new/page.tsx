@@ -5,6 +5,8 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { FeedItem } from '@/app/api/student/feed/route';
 import Image from 'next/image';
+import { getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
+import { useRouter } from 'next/navigation';
 
 interface Course {
   courseId: string;
@@ -16,6 +18,7 @@ interface Course {
 
 const StudentDashboardNew: React.FC = () => {
   const { user } = useAuth();
+  const router = useRouter();
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +47,11 @@ const StudentDashboardNew: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Filter feed by selected course
+  const filteredFeed = selectedCourse 
+    ? feed.filter(item => item.courseId === selectedCourse || item.type === 'community')
+    : feed;
 
   const handlePostSubmit = async () => {
     if (!postContent.trim()) return;
@@ -156,6 +164,21 @@ const StudentDashboardNew: React.FC = () => {
 
         {/* Feed */}
         <div className="max-w-2xl mx-auto">
+          {/* Active Filter Indicator */}
+          {selectedCourse && (
+            <div className="sticky top-[57px] z-40 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between">
+              <span className="text-sm text-blue-700 font-medium">
+                Showing: {courses.find(c => c.courseId === selectedCourse)?.name}
+              </span>
+              <button
+                onClick={() => setSelectedCourse(null)}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Show All
+              </button>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -164,9 +187,13 @@ const StudentDashboardNew: React.FC = () => {
             <div className="text-center py-12 px-4">
               <p className="text-gray-500">No posts yet. Start by posting something!</p>
             </div>
+          ) : filteredFeed.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <p className="text-gray-500">No posts in this course yet.</p>
+            </div>
           ) : (
             <div className="space-y-0">
-              {feed.map((item) => (
+              {filteredFeed.map((item) => (
                 <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} />
               ))}
             </div>
@@ -202,7 +229,10 @@ const StudentDashboardNew: React.FC = () => {
             ))}
 
             {/* Join Class Button */}
-            <button className="flex flex-col items-center justify-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <button 
+              onClick={() => router.push('/student/enroll')}
+              className="flex flex-col items-center justify-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
               <div className="w-10 h-10 rounded-full border-2 border-gray-300 border-dashed flex items-center justify-center text-gray-400">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -212,9 +242,12 @@ const StudentDashboardNew: React.FC = () => {
             </button>
 
             {/* Profile Button */}
-            <button className="flex flex-col items-center justify-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <button 
+              onClick={() => router.push('/student/profile')}
+              className="flex flex-col items-center justify-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
               <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                {user?.avatar ? (
+                {user?.avatar && !user.avatar.includes('placeholder') ? (
                   <Image
                     src={user.avatar}
                     alt={user.firstName || 'User'}
@@ -256,13 +289,16 @@ const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 
 // Video Feed Item
 const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string }> = ({ item, formatTimestamp }) => {
+  const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
+  const isYouTube = !!videoId;
+
   return (
     <div className="bg-white border-b border-gray-200">
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-            {item.author?.avatar ? (
+            {item.author?.avatar && !item.author.avatar.includes('placeholder') ? (
               <Image
                 src={item.author.avatar}
                 alt={item.author.name}
@@ -288,9 +324,16 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
         )}
       </div>
 
-      {/* Video Player - Mobile Optimized (9:16 aspect ratio) */}
-      <div className="relative w-full bg-black" style={{ aspectRatio: '9/16', maxHeight: '70vh' }}>
-        {item.videoUrl && (
+      {/* Video Player - Mobile Optimized (16:9 aspect ratio for better mobile viewing) */}
+      <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>
+        {isYouTube ? (
+          <iframe
+            src={getYouTubeEmbedUrl(item.videoUrl || '')}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
           <video
             src={item.videoUrl}
             controls
@@ -324,12 +367,17 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
 
 // Community Feed Item
 const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string }> = ({ item, formatTimestamp }) => {
+  // Check if avatar is emoji (single character, 2-4 bytes)
+  const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
+
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-4">
       {/* Header */}
       <div className="flex items-center space-x-3 mb-3">
         <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-          {item.author?.avatar ? (
+          {isEmoji ? (
+            <span className="text-2xl">{item.author?.avatar}</span>
+          ) : item.author?.avatar && !item.author.avatar.includes('placeholder') ? (
             <Image
               src={item.author.avatar}
               alt={item.author.name}
@@ -350,7 +398,7 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
       </div>
 
       {/* Content */}
-      {item.title && <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>}
+      {item.title && item.title !== item.content && <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>}
       <p className="text-gray-700 whitespace-pre-wrap">{item.content}</p>
 
       {/* Actions */}

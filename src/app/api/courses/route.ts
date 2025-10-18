@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
       description,
       code,
       classCode,
+      courseInitials,
       department,
       semester,
       year,
@@ -145,6 +146,7 @@ export async function POST(request: NextRequest) {
       description: description?.trim() || '',
       code: code.trim(),
       classCode: classCode.trim(),
+      courseInitials: courseInitials?.trim().toUpperCase() || code.substring(0, 3).toUpperCase(),
       department: department?.trim() || '',
       credits: 3, // Default credits
       semester: semester || 'Fall+Spring',
