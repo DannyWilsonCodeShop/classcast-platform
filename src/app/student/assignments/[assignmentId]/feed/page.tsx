@@ -177,7 +177,10 @@ const AssignmentFeedPage: React.FC = () => {
               {/* Assignment Details */}
               <div className="px-4 py-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-900 mb-2">{assignment.title}</h2>
-                <p className="text-sm text-gray-700 mb-3">{assignment.description}</p>
+                <div 
+                  className="text-sm text-gray-700 mb-3 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: assignment.description }}
+                />
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm">

@@ -485,6 +485,22 @@ const AssignmentFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp
     router.push(`/student/assignments/${item.id}/feed`);
   };
 
+  // Strip HTML tags and get clean preview text
+  const getCleanPreview = (html: string) => {
+    if (!html) return '';
+    return html
+      .replace(/<[^>]*>/g, '') // Remove all HTML tags
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .trim()
+      .substring(0, 120) // Limit preview length
+      + (html.length > 120 ? '...' : '');
+  };
+
   return (
     <div 
       onClick={handleClick}
@@ -498,7 +514,9 @@ const AssignmentFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp
             </svg>
             <h3 className="font-semibold">{item.title}</h3>
           </div>
-          <p className="text-sm mb-2">{item.description}</p>
+          <p className="text-sm mb-2 line-clamp-2 text-gray-600">
+            {getCleanPreview(item.description || '')}
+          </p>
           {item.dueDate && (
             <p className="text-xs">
               Due: {new Date(item.dueDate).toLocaleDateString()} at {new Date(item.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
