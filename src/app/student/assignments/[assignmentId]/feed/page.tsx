@@ -343,7 +343,7 @@ const AssignmentFeedPage: React.FC = () => {
           ) : (
             <div className="space-y-0">
               {videos.map((video) => (
-                <VideoSubmissionCard key={video.submissionId} video={video} formatTimestamp={formatTimestamp} />
+                <VideoSubmissionCard key={video.submissionId} video={video} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchVideos} />
               ))}
             </div>
           )}
@@ -368,14 +368,36 @@ const AssignmentFeedPage: React.FC = () => {
 };
 
 // Video Submission Card Component
-const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (timestamp: string) => string }> = ({ video, formatTimestamp }) => {
+const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void }> = ({ video, formatTimestamp, currentUserId, onDelete }) => {
   const [imageError, setImageError] = React.useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const videoId = getYouTubeVideoId(video.videoUrl);
   const isYouTube = !!videoId;
   
   // Check if avatar is emoji
   const isEmoji = video.studentAvatar && video.studentAvatar.length <= 4 && !video.studentAvatar.startsWith('http');
   const hasValidAvatar = video.studentAvatar && !video.studentAvatar.includes('placeholder') && !imageError;
+  
+  // Check if this is the current user's video
+  const isMyVideo = currentUserId && video.studentId === currentUserId;
+
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`/api/video-submissions/${video.submissionId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setShowDeleteConfirm(false);
+        onDelete?.(); // Refresh videos
+      } else {
+        alert('Failed to delete video');
+      }
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      alert('Error deleting video');
+    }
+  };
 
   return (
     <div className="bg-white border-b border-gray-200">
@@ -407,7 +429,51 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
             <p className="text-xs text-gray-500">{formatTimestamp(video.submittedAt)}</p>
           </div>
         </div>
+        {isMyVideo && (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="p-2 hover:bg-red-50 rounded-full transition-colors"
+            title="Delete video"
+          >
+            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Delete Video?</h3>
+                <p className="text-sm text-gray-600">This action cannot be undone</p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Video Player - Mobile Optimized */}
       <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>

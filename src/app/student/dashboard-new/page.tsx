@@ -217,7 +217,7 @@ const StudentDashboardNew: React.FC = () => {
                   </div>
                   <div className="px-4 pt-4 space-y-3">
                     {courseAssignments.map((item) => (
-                      <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} />
+                      <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} />
                     ))}
                   </div>
                 </div>
@@ -225,7 +225,7 @@ const StudentDashboardNew: React.FC = () => {
 
               {/* Other feed items */}
               {otherFeedItems.map((item) => (
-                <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} />
+                <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} />
               ))}
             </div>
           )}
@@ -302,9 +302,9 @@ const StudentDashboardNew: React.FC = () => {
 };
 
 // Feed Item Component
-const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string }> = ({ item, formatTimestamp }) => {
+const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
   if (item.type === 'video') {
-    return <VideoFeedItem item={item} formatTimestamp={formatTimestamp} />;
+    return <VideoFeedItem item={item} formatTimestamp={formatTimestamp} currentUserId={currentUserId} onDelete={onDelete} />;
   }
   
   if (item.type === 'community') {
@@ -319,16 +319,38 @@ const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 };
 
 // Video Feed Item
-const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string }> = ({ item, formatTimestamp }) => {
+const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
   const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
   const isYouTube = !!videoId;
   const [imageError, setImageError] = React.useState(false);
   const [isMuted, setIsMuted] = React.useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   
   // Check if avatar is emoji or valid image
   const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
   const hasValidAvatar = item.author?.avatar && !item.author.avatar.includes('placeholder') && !imageError;
+  
+  // Check if this is the current user's video
+  const isMyVideo = currentUserId && item.author?.id === currentUserId;
+
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`/api/video-submissions/${item.id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setShowDeleteConfirm(false);
+        onDelete?.(); // Refresh feed
+      } else {
+        alert('Failed to delete video');
+      }
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      alert('Error deleting video');
+    }
+  };
 
   // Auto-play video when in view (Intersection Observer)
   React.useEffect(() => {
@@ -384,12 +406,58 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
           </div>
         </div>
-        {item.courseInitials && (
-          <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
-            {item.courseInitials}
-          </span>
-        )}
+        <div className="flex items-center space-x-2">
+          {item.courseInitials && (
+            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
+              {item.courseInitials}
+            </span>
+          )}
+          {isMyVideo && (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="p-2 hover:bg-red-50 rounded-full transition-colors"
+              title="Delete video"
+            >
+              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Delete Video?</h3>
+                <p className="text-sm text-gray-600">This action cannot be undone</p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Video Player - Auto-play when in view */}
       <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>
