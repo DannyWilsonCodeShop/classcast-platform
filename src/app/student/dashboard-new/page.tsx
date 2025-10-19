@@ -206,15 +206,20 @@ const StudentDashboardNew: React.FC = () => {
             <div className="space-y-0">
               {/* Show assignments first when course is selected */}
               {selectedCourse && courseAssignments.length > 0 && (
-                <div className="bg-gradient-to-b from-blue-50 to-white border-b-4 border-blue-200 pb-4">
-                  <div className="px-4 pt-4 pb-2">
-                    <h2 className="text-sm font-semibold text-blue-900 uppercase tracking-wide">
-                      📚 Assignments
+                <div className="bg-white border-b-8 border-gray-200 pb-6">
+                  <div className="px-4 pt-6 pb-3 bg-gradient-to-r from-blue-600 to-purple-600">
+                    <h2 className="text-base font-bold text-white uppercase tracking-wide flex items-center space-x-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      <span>Assignments for {courses.find(c => c.courseId === selectedCourse)?.name}</span>
                     </h2>
                   </div>
-                  {courseAssignments.map((item) => (
-                    <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} />
-                  ))}
+                  <div className="px-4 pt-4 space-y-3">
+                    {courseAssignments.map((item) => (
+                      <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} />
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -318,10 +323,38 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
   const isYouTube = !!videoId;
   const [imageError, setImageError] = React.useState(false);
+  const [isMuted, setIsMuted] = React.useState(true);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
   
   // Check if avatar is emoji or valid image
   const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
   const hasValidAvatar = item.author?.avatar && !item.author.avatar.includes('placeholder') && !imageError;
+
+  // Auto-play video when in view (Intersection Observer)
+  React.useEffect(() => {
+    if (!videoRef.current || isYouTube) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            videoRef.current?.play().catch(() => {
+              // Auto-play failed (browser restriction), that's okay
+            });
+          } else {
+            videoRef.current?.pause();
+          }
+        });
+      },
+      { threshold: 0.5 } // Play when 50% visible
+    );
+
+    observer.observe(videoRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isYouTube]);
 
   return (
     <div className="bg-white border-b border-gray-200">
@@ -358,22 +391,45 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
         )}
       </div>
 
-      {/* Video Player - Mobile Optimized (16:9 aspect ratio for better mobile viewing) */}
+      {/* Video Player - Auto-play when in view */}
       <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>
         {isYouTube ? (
           <iframe
-            src={getYouTubeEmbedUrl(item.videoUrl || '')}
+            src={`${getYouTubeEmbedUrl(item.videoUrl || '')}&autoplay=1&mute=1`}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
         ) : (
-          <video
-            src={item.videoUrl}
-            controls
-            className="w-full h-full object-contain"
-            playsInline
-          />
+          <div className="relative w-full h-full">
+            <video
+              ref={videoRef}
+              src={item.videoUrl}
+              className="w-full h-full object-contain"
+              playsInline
+              muted={isMuted}
+              loop
+            />
+            {/* Mute/Unmute Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMuted(!isMuted);
+              }}
+              className="absolute bottom-4 right-4 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition-colors"
+            >
+              {isMuted ? (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                </svg>
+              )}
+            </button>
+          </div>
         )}
       </div>
 
@@ -504,33 +560,58 @@ const AssignmentFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp
   return (
     <div 
       onClick={handleClick}
-      className={`border-b border-gray-200 px-4 py-4 cursor-pointer hover:opacity-90 transition-opacity ${getStatusColor()}`}
+      className={`rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all border-2 ${
+        item.status === 'past_due' 
+          ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-300 hover:border-red-400' 
+          : item.status === 'active'
+          ? 'bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-300 hover:border-yellow-400'
+          : 'bg-gradient-to-br from-green-50 to-green-100 border-green-300 hover:border-green-400'
+      }`}
     >
-      <div className="flex items-start justify-between mb-2">
+      <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-1">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h3 className="font-semibold">{item.title}</h3>
+          <div className="flex items-center space-x-2 mb-2">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              item.status === 'past_due' ? 'bg-red-500' :
+              item.status === 'active' ? 'bg-yellow-500' : 'bg-green-500'
+            }`}>
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="font-bold text-gray-900">{item.title}</h3>
           </div>
-          <p className="text-sm mb-2 line-clamp-2 text-gray-600">
+          <p className="text-sm mb-3 line-clamp-2 text-gray-700">
             {getCleanPreview(item.description || '')}
           </p>
           {item.dueDate && (
-            <p className="text-xs">
-              Due: {new Date(item.dueDate).toLocaleDateString()} at {new Date(item.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </p>
+            <div className="flex items-center space-x-1 text-xs text-gray-700">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-medium">
+                Due: {new Date(item.dueDate).toLocaleDateString()} at {new Date(item.dueDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
           )}
         </div>
         {item.courseInitials && (
-          <span className="px-2 py-1 bg-white/50 text-current text-xs font-semibold rounded ml-2">
+          <span className="px-3 py-1 bg-white text-gray-900 text-xs font-bold rounded-full shadow-sm">
             {item.courseInitials}
           </span>
         )}
       </div>
-      <div className="mt-2 px-4 py-2 bg-white text-current rounded-lg text-sm font-medium inline-block">
-        View Submissions →
+      <div className="flex items-center justify-between pt-3 border-t border-gray-300/50">
+        <div className={`text-xs font-semibold uppercase ${
+          item.status === 'past_due' ? 'text-red-700' :
+          item.status === 'active' ? 'text-yellow-700' : 'text-green-700'
+        }`}>
+          {item.status === 'past_due' ? '🔴 Past Due' :
+           item.status === 'active' ? '🟡 Due Soon' : '🟢 Upcoming'}
+        </div>
+        <div className="px-4 py-2 bg-white text-gray-900 rounded-lg text-sm font-semibold shadow-sm hover:shadow-md transition-shadow">
+          View Assignment →
+        </div>
       </div>
     </div>
   );
