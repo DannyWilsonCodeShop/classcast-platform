@@ -460,7 +460,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       )}
 
       {/* Video Player - Auto-play when in view */}
-      <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>
+      <div className="relative w-full bg-black mb-2" style={{ aspectRatio: '16/9' }}>
         {isYouTube ? (
           <iframe
             src={`${getYouTubeEmbedUrl(item.videoUrl || '')}&autoplay=1&mute=1`}
@@ -502,20 +502,20 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       </div>
 
       {/* Title & Actions */}
-      <div className="px-4 py-3">
-        <p className="font-medium text-gray-900 mb-2">{item.title}</p>
-        <div className="flex items-center space-x-4 text-gray-600">
-          <button className="flex items-center space-x-1 hover:text-red-500 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="px-4 py-4">
+        <p className="font-medium text-gray-900 mb-3">{item.title}</p>
+        <div className="flex items-center space-x-6 text-gray-600">
+          <button className="flex items-center space-x-1.5 hover:text-red-500 transition-colors py-2">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <span className="text-sm">{item.likes}</span>
+            <span className="text-sm font-medium">{item.likes}</span>
           </button>
-          <button className="flex items-center space-x-1 hover:text-blue-500 transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button className="flex items-center space-x-1.5 hover:text-blue-500 transition-colors py-2">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <span className="text-sm">{item.comments}</span>
+            <span className="text-sm font-medium">{item.comments}</span>
           </button>
         </div>
       </div>
