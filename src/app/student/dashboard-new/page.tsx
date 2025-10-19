@@ -318,14 +318,13 @@ const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
   return null;
 };
 
-// Video Feed Item
+// Video Feed Item - Thumbnail Preview (Instagram/TikTok style)
 const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
+  const router = useRouter();
   const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
   const isYouTube = !!videoId;
   const [imageError, setImageError] = React.useState(false);
-  const [isMuted, setIsMuted] = React.useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
-  const videoRef = React.useRef<HTMLVideoElement>(null);
   
   // Check if avatar is emoji or valid image
   const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
@@ -334,15 +333,8 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   // Check if this is the current user's video
   const isMyVideo = currentUserId && item.author?.id === currentUserId;
   
-  // Debug logging
-  if (item.type === 'video') {
-    console.log('🎥 Video item:', {
-      title: item.title,
-      authorId: item.author?.id,
-      currentUserId,
-      isMyVideo
-    });
-  }
+  // Get thumbnail URL
+  const thumbnailUrl = item.thumbnailUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null);
 
   const handleDelete = async () => {
     try {
@@ -362,31 +354,10 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
     }
   };
 
-  // Auto-play video when in view (Intersection Observer)
-  React.useEffect(() => {
-    if (!videoRef.current || isYouTube) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            videoRef.current?.play().catch(() => {
-              // Auto-play failed (browser restriction), that's okay
-            });
-          } else {
-            videoRef.current?.pause();
-          }
-        });
-      },
-      { threshold: 0.5 } // Play when 50% visible
-    );
-
-    observer.observe(videoRef.current);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [isYouTube]);
+  const handleVideoClick = () => {
+    // Navigate to video detail page or open modal
+    router.push(`/student/videos/${item.id}`);
+  };
 
   return (
     <div className="bg-white border-b border-gray-200">
@@ -469,44 +440,37 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
         </div>
       )}
 
-      {/* Video Player - Auto-play when in view */}
-      <div className="relative w-full bg-black mb-2" style={{ aspectRatio: '16/9' }}>
-        {isYouTube ? (
-          <iframe
-            src={`${getYouTubeEmbedUrl(item.videoUrl || '')}&autoplay=1&mute=1`}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <div className="relative w-full h-full">
-            <video
-              ref={videoRef}
-              src={item.videoUrl}
-              className="w-full h-full object-contain"
-              playsInline
-              muted={isMuted}
-              loop
-            />
-            {/* Mute/Unmute Button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsMuted(!isMuted);
+      {/* Video Thumbnail Preview - Clickable */}
+      <div 
+        onClick={handleVideoClick}
+        className="relative w-full bg-black cursor-pointer group"
+        style={{ aspectRatio: '9/16', maxHeight: '600px' }}
+      >
+        {thumbnailUrl ? (
+          <>
+            <img
+              src={thumbnailUrl}
+              alt={item.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to solid color if thumbnail fails
+                e.currentTarget.style.display = 'none';
               }}
-              className="absolute bottom-4 right-4 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition-colors"
-            >
-              {isMuted ? (
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+            />
+            {/* Play Icon Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/40 transition-all">
+              <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
                 </svg>
-              ) : (
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
-                </svg>
-              )}
-            </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
+            <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
           </div>
         )}
       </div>
