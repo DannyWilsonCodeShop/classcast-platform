@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, GetCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, ScanCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -206,6 +206,61 @@ export async function PUT(
       { 
         success: false,
         error: 'Failed to update assignment',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/assignments/[assignmentId] - Delete an assignment
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { assignmentId: string } }
+) {
+  try {
+    const { assignmentId } = params;
+    
+    console.log('Deleting assignment:', assignmentId);
+    
+    // Verify assignment exists first
+    const existingAssignment = await docClient.send(new ScanCommand({
+      TableName: ASSIGNMENTS_TABLE,
+      FilterExpression: 'assignmentId = :assignmentId',
+      ExpressionAttributeValues: {
+        ':assignmentId': assignmentId
+      }
+    }));
+    
+    if (!existingAssignment.Items || existingAssignment.Items.length === 0) {
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Assignment not found' 
+        },
+        { status: 404 }
+      );
+    }
+    
+    // Delete the assignment
+    await docClient.send(new DeleteCommand({
+      TableName: ASSIGNMENTS_TABLE,
+      Key: { assignmentId }
+    }));
+    
+    console.log('Assignment deleted successfully:', assignmentId);
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Assignment deleted successfully'
+    });
+    
+  } catch (error) {
+    console.error('Error deleting assignment:', error);
+    return NextResponse.json(
+      { 
+        success: false,
+        error: 'Failed to delete assignment',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
