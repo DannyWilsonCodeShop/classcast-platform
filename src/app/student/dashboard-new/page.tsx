@@ -333,6 +333,16 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   
   // Check if this is the current user's video
   const isMyVideo = currentUserId && item.author?.id === currentUserId;
+  
+  // Debug logging
+  if (item.type === 'video') {
+    console.log('🎥 Video item:', {
+      title: item.title,
+      authorId: item.author?.id,
+      currentUserId,
+      isMyVideo
+    });
+  }
 
   const handleDelete = async () => {
     try {
