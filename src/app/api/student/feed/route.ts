@@ -64,41 +64,66 @@ export async function GET(request: NextRequest) {
     // Fetch video submissions from enrolled courses (with error handling)
     try {
       const submissionsResult = await docClient.send(new ScanCommand({
-        TableName: 'classcast-video-submissions'
+        TableName: 'classcast-submissions'
       }));
 
       const submissions = submissionsResult.Items || [];
-      submissions
-        .filter(sub => 
-          courseIds.includes(sub.courseId) && 
-          sub.status !== 'deleted' &&
-          !sub.hidden
-        )
-        .forEach(sub => {
-          const course = studentCourses.find(c => c.courseId === sub.courseId);
-          const videoId = sub.videoUrl ? getYouTubeVideoId(sub.videoUrl) : null;
-          
-          feedItems.push({
-            id: sub.submissionId,
-            type: 'video',
-            timestamp: sub.submittedAt || sub.createdAt,
-            courseId: sub.courseId,
-            courseName: course?.name || course?.courseName,
-            courseInitials: course?.courseInitials || course?.code?.substring(0, 3).toUpperCase(),
-            videoUrl: sub.videoUrl,
-            thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
-            title: sub.videoTitle || sub.title,
-            author: {
-              id: sub.studentId,
-              name: `${sub.studentFirstName || ''} ${sub.studentLastName || ''}`.trim(),
-              avatar: sub.studentAvatar
+      
+      // For each submission, get student info to populate author details
+      for (const sub of submissions) {
+        if (!courseIds.includes(sub.courseId) || sub.status === 'deleted' || sub.hidden) {
+          continue;
+        }
+        
+        const course = studentCourses.find(c => c.courseId === sub.courseId);
+        const videoId = sub.videoUrl ? getYouTubeVideoId(sub.videoUrl) : null;
+        
+        // Get student details
+        let studentName = 'Unknown Student';
+        let studentAvatar = null;
+        
+        try {
+          const userResult = await docClient.send(new ScanCommand({
+            TableName: 'classcast-users',
+            FilterExpression: 'userId = :userId',
+            ExpressionAttributeValues: {
+              ':userId': sub.studentId
             },
-            likes: sub.likes || 0,
-            comments: sub.commentCount || 0
-          });
+            Limit: 1
+          }));
+          
+          if (userResult.Items && userResult.Items.length > 0) {
+            const user = userResult.Items[0];
+            studentName = user.firstName && user.lastName 
+              ? `${user.firstName} ${user.lastName}` 
+              : user.email || studentName;
+            studentAvatar = user.avatar;
+          }
+        } catch (userError) {
+          console.warn('Could not fetch student details for submission:', sub.submissionId);
+        }
+        
+        feedItems.push({
+          id: sub.submissionId,
+          type: 'video',
+          timestamp: sub.submittedAt || sub.createdAt,
+          courseId: sub.courseId,
+          courseName: course?.name || course?.courseName,
+          courseInitials: course?.courseInitials || course?.code?.substring(0, 3).toUpperCase(),
+          videoUrl: sub.videoUrl,
+          thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
+          title: sub.videoTitle || sub.title,
+          author: {
+            id: sub.studentId,
+            name: studentName,
+            avatar: studentAvatar
+          },
+          likes: sub.likes || 0,
+          comments: sub.commentCount || 0
         });
+      }
     } catch (videoError: any) {
-      console.log('Video submissions table not available, skipping videos:', videoError.name);
+      console.log('Video submissions table error, skipping videos:', videoError.name);
     }
 
     // Fetch community posts
