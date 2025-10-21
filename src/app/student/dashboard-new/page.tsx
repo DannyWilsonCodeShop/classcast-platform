@@ -7,7 +7,6 @@ import { FeedItem } from '@/app/api/student/feed/route';
 import Image from 'next/image';
 import { getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
 import { useRouter } from 'next/navigation';
-import VideoReels from '@/components/student/VideoReels';
 
 interface Course {
   courseId: string;
@@ -207,11 +206,17 @@ const StudentDashboardNew: React.FC = () => {
             <div className="space-y-0">
               {/* Video Reels Section - TikTok/Instagram Style */}
               {filteredFeed.filter(item => item.type === 'video').length > 0 && (
-                <div className="bg-white border-b-8 border-gray-200">
+                <div className="bg-white border-b-8 border-gray-200 pb-4">
                   <div className="px-4 pt-4 pb-2">
                     <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">📹 Video Submissions</h2>
                   </div>
-                  <VideoReels className="px-0" />
+                  <div className="overflow-x-auto scrollbar-hide px-4">
+                    <div className="flex space-x-3">
+                      {filteredFeed.filter(item => item.type === 'video').map((video) => (
+                        <VideoThumbnailCard key={video.id} video={video} />
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -309,6 +314,79 @@ const StudentDashboardNew: React.FC = () => {
         </div>
       </div>
     </StudentRoute>
+  );
+};
+
+// Video Thumbnail Card - Instagram/TikTok Style
+const VideoThumbnailCard: React.FC<{ video: FeedItem }> = ({ video }) => {
+  const router = useRouter();
+  const videoId = video.videoUrl ? getYouTubeVideoId(video.videoUrl) : null;
+  const isYouTube = !!videoId;
+  
+  // Generate thumbnail URL for YouTube videos
+  const thumbnailUrl = isYouTube && videoId
+    ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
+    : '/api/placeholder/160/240';
+
+  return (
+    <div 
+      onClick={() => router.push(`/student/assignments/${video.assignmentId}/feed`)}
+      className="flex-shrink-0 w-32 cursor-pointer group"
+    >
+      <div className="relative w-32 h-48 rounded-lg overflow-hidden bg-gray-900 shadow-md group-hover:shadow-xl transition-shadow">
+        {/* Thumbnail */}
+        {isYouTube ? (
+          <img
+            src={thumbnailUrl}
+            alt={video.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+            <svg className="w-12 h-12 text-white opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        )}
+        
+        {/* Play overlay */}
+        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full bg-white bg-opacity-90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <svg className="w-6 h-6 text-gray-900 ml-1" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+        </div>
+
+        {/* Gradient overlay at bottom */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black to-transparent" />
+        
+        {/* Author info */}
+        <div className="absolute bottom-2 left-2 right-2">
+          <div className="flex items-center space-x-2 mb-1">
+            <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-gray-700 overflow-hidden flex-shrink-0">
+              {video.author?.avatar && !video.author.avatar.includes('placeholder') ? (
+                <img src={video.author.avatar} alt={video.author.name} className="w-full h-full object-cover" />
+              ) : (
+                <span>{video.author?.name.split(' ').map(n => n[0]).join('')}</span>
+              )}
+            </div>
+            <p className="text-white text-xs font-semibold truncate">{video.author?.name}</p>
+          </div>
+          <p className="text-white text-xs line-clamp-2 leading-tight">{video.title}</p>
+        </div>
+
+        {/* Course badge */}
+        {video.courseInitials && (
+          <div className="absolute top-2 right-2">
+            <span className="px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded-full shadow-lg">
+              {video.courseInitials}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
