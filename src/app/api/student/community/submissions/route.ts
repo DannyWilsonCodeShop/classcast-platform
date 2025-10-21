@@ -59,8 +59,11 @@ export async function GET(request: NextRequest) {
         expressionAttributeValues[':courseId'] = courseId;
       }
       
-      // Exclude current student's own submissions if studentId provided
-      if (studentId) {
+      // Exclude current student's own submissions ONLY if explicitly requested
+      // Note: If studentId is provided, we include ALL videos (for dashboard feed)
+      // If you want to exclude current user, pass excludeCurrentUser=true parameter
+      const excludeCurrentUser = searchParams.get('excludeCurrentUser');
+      if (excludeCurrentUser === 'true' && studentId) {
         filters.push('studentId <> :studentId');
         expressionAttributeValues[':studentId'] = studentId;
       }
