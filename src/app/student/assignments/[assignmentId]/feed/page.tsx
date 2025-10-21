@@ -72,13 +72,15 @@ const AssignmentFeedPage: React.FC = () => {
       const assignmentRes = await fetch(`/api/assignments/${assignmentId}`);
       const assignmentData = await assignmentRes.json();
 
-      if (assignmentData.success) {
+      let groupData: any = null;
+
+      if (assignmentData.success && assignmentData.assignment) {
         setAssignment(assignmentData.assignment);
         
         // If it's a group assignment, check if user has a group
         if (assignmentData.assignment.groupAssignment && user?.id) {
           const groupRes = await fetch(`/api/groups/my-group?assignmentId=${assignmentId}&userId=${user.id}`);
-          const groupData = await groupRes.json();
+          groupData = await groupRes.json();
           
           if (groupData.success && groupData.hasGroup) {
             setMyGroup(groupData.group);
@@ -94,7 +96,7 @@ const AssignmentFeedPage: React.FC = () => {
         let submissions = videosData.submissions || [];
         
         // If it's a group assignment and user has a group, filter to show only group member videos
-        if (assignmentData.assignment.groupAssignment && groupData?.hasGroup && groupData.group) {
+        if (assignmentData?.assignment?.groupAssignment && groupData?.hasGroup && groupData.group) {
           const groupMemberIds = groupData.group.memberIds || groupData.group.members.map((m: any) => m.userId);
           submissions = submissions.filter((sub: VideoSubmission) => 
             groupMemberIds.includes(sub.studentId)
@@ -159,7 +161,7 @@ const AssignmentFeedPage: React.FC = () => {
             {/* School Logo */}
             <div className="w-8 h-8 flex-shrink-0">
               <Image
-                src="/CRAJSmallLogo.png"
+                src="/logos/cristo-rey-atlanta.png"
                 alt="Cristo Rey Atlanta"
                 width={32}
                 height={32}
