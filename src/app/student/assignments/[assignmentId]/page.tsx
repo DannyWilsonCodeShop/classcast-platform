@@ -240,7 +240,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const fetchPeerVideos = React.useCallback(async () => {
     try {
       const response = await fetch(
-        `/api/student/community/submissions?assignmentId=${assignmentId}&studentId=${user?.id}`,
+        `/api/student/community/submissions?assignmentId=${assignmentId}&studentId=${user?.id}&excludeCurrentUser=true`,
         { credentials: 'include' }
       );
       
