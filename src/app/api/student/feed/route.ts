@@ -69,11 +69,27 @@ export async function GET(request: NextRequest) {
 
       const submissions = submissionsResult.Items || [];
       
+      console.log(`📹 Found ${submissions.length} total submissions`);
+      console.log(`🎓 Student courseIds:`, courseIds);
+      
       // For each submission, get student info to populate author details
       for (const sub of submissions) {
-        if (!courseIds.includes(sub.courseId) || sub.status === 'deleted' || sub.hidden) {
+        console.log(`🔍 Checking submission ${sub.submissionId}: courseId=${sub.courseId}, status=${sub.status}, hidden=${sub.hidden}`);
+        
+        if (!courseIds.includes(sub.courseId)) {
+          console.log(`  ❌ Skipped: courseId ${sub.courseId} not in student's courses`);
           continue;
         }
+        if (sub.status === 'deleted') {
+          console.log(`  ❌ Skipped: status is deleted`);
+          continue;
+        }
+        if (sub.hidden) {
+          console.log(`  ❌ Skipped: hidden is true`);
+          continue;
+        }
+        
+        console.log(`  ✅ Including video submission: ${sub.videoTitle || 'Untitled'}`);
         
         const course = studentCourses.find(c => c.courseId === sub.courseId);
         const videoId = sub.videoUrl ? getYouTubeVideoId(sub.videoUrl) : null;
@@ -110,6 +126,7 @@ export async function GET(request: NextRequest) {
           courseId: sub.courseId,
           courseName: course?.name || course?.courseName,
           courseInitials: course?.courseInitials || course?.code?.substring(0, 3).toUpperCase(),
+          assignmentId: sub.assignmentId,
           videoUrl: sub.videoUrl,
           thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
           title: sub.videoTitle || sub.title,
