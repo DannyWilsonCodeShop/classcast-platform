@@ -20,40 +20,77 @@ export async function GET(request: NextRequest) {
 
     if (assignmentId) {
       // Get submissions for a specific assignment
-      const queryCommand = new QueryCommand({
-        TableName: 'classcast-submissions',
-        IndexName: 'AssignmentIdIndex',
-        KeyConditionExpression: 'assignmentId = :assignmentId',
-        ExpressionAttributeValues: {
-          ':assignmentId': assignmentId
-        }
-      });
+      // Try using index first, fall back to scan if index doesn't exist
+      try {
+        const queryCommand = new QueryCommand({
+          TableName: 'classcast-submissions',
+          IndexName: 'AssignmentIdIndex',
+          KeyConditionExpression: 'assignmentId = :assignmentId',
+          ExpressionAttributeValues: {
+            ':assignmentId': assignmentId
+          }
+        });
 
-      const result = await docClient.send(queryCommand);
-      submissions = result.Items || [];
+        const result = await docClient.send(queryCommand);
+        submissions = result.Items || [];
+      } catch (indexError: any) {
+        // If index doesn't exist, fall back to scan
+        console.log('Index not found, falling back to scan. Error:', indexError.name);
+        const scanCommand = new ScanCommand({
+          TableName: 'classcast-submissions',
+          FilterExpression: 'assignmentId = :assignmentId',
+          ExpressionAttributeValues: {
+            ':assignmentId': assignmentId
+          }
+        });
+
+        const result = await docClient.send(scanCommand);
+        submissions = result.Items || [];
+      }
       
       // Further filter by courseId if provided
       if (courseId) {
         submissions = submissions.filter((s: any) => s.courseId === courseId);
       }
+      
+      // Filter out hidden/deleted submissions
+      submissions = submissions.filter((s: any) => !s.isHidden && !s.isDeleted);
     } else if (studentId) {
       // Get submissions for a specific student
-      const queryCommand = new QueryCommand({
-        TableName: 'classcast-submissions',
-        IndexName: 'StudentIdIndex',
-        KeyConditionExpression: 'studentId = :studentId',
-        ExpressionAttributeValues: {
-          ':studentId': studentId
-        }
-      });
+      try {
+        const queryCommand = new QueryCommand({
+          TableName: 'classcast-submissions',
+          IndexName: 'StudentIdIndex',
+          KeyConditionExpression: 'studentId = :studentId',
+          ExpressionAttributeValues: {
+            ':studentId': studentId
+          }
+        });
 
-      const result = await docClient.send(queryCommand);
-      submissions = result.Items || [];
+        const result = await docClient.send(queryCommand);
+        submissions = result.Items || [];
+      } catch (indexError: any) {
+        // If index doesn't exist, fall back to scan
+        console.log('Index not found, falling back to scan. Error:', indexError.name);
+        const scanCommand = new ScanCommand({
+          TableName: 'classcast-submissions',
+          FilterExpression: 'studentId = :studentId',
+          ExpressionAttributeValues: {
+            ':studentId': studentId
+          }
+        });
+
+        const result = await docClient.send(scanCommand);
+        submissions = result.Items || [];
+      }
       
       // Further filter by courseId if provided
       if (courseId) {
         submissions = submissions.filter((s: any) => s.courseId === courseId);
       }
+      
+      // Filter out hidden/deleted submissions
+      submissions = submissions.filter((s: any) => !s.isHidden && !s.isDeleted);
     } else if (courseId) {
       // Get all submissions for a course
       const scanCommand = new ScanCommand({
@@ -66,6 +103,9 @@ export async function GET(request: NextRequest) {
 
       const result = await docClient.send(scanCommand);
       submissions = result.Items || [];
+      
+      // Filter out hidden/deleted submissions
+      submissions = submissions.filter((s: any) => !s.isHidden && !s.isDeleted);
     } else {
       // Get all submissions
       const scanCommand = new ScanCommand({
@@ -74,6 +114,9 @@ export async function GET(request: NextRequest) {
 
       const result = await docClient.send(scanCommand);
       submissions = result.Items || [];
+      
+      // Filter out hidden/deleted submissions
+      submissions = submissions.filter((s: any) => !s.isHidden && !s.isDeleted);
     }
 
     return NextResponse.json({
@@ -86,7 +129,8 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching video submissions:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to fetch video submissions'
+      error: 'Failed to fetch video submissions',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
