@@ -92,7 +92,14 @@ export async function GET(request: NextRequest) {
         console.log(`  ✅ Including video submission: ${sub.videoTitle || 'Untitled'}`);
         
         const course = studentCourses.find(c => c.courseId === sub.courseId);
-        const videoId = sub.videoUrl ? getYouTubeVideoId(sub.videoUrl) : null;
+        
+        let videoId = null;
+        try {
+          videoId = sub.videoUrl ? getYouTubeVideoId(sub.videoUrl) : null;
+          console.log(`  📹 Video URL: ${sub.videoUrl}, YouTube ID: ${videoId || 'none'}`);
+        } catch (youtubeError) {
+          console.warn(`  ⚠️  Error getting YouTube ID:`, youtubeError);
+        }
         
         // Get student details
         let studentName = 'Unknown Student';
@@ -119,25 +126,31 @@ export async function GET(request: NextRequest) {
           console.warn('Could not fetch student details for submission:', sub.submissionId);
         }
         
-        feedItems.push({
-          id: sub.submissionId,
-          type: 'video',
-          timestamp: sub.submittedAt || sub.createdAt,
-          courseId: sub.courseId,
-          courseName: course?.name || course?.courseName,
-          courseInitials: course?.courseInitials || course?.code?.substring(0, 3).toUpperCase(),
-          assignmentId: sub.assignmentId,
-          videoUrl: sub.videoUrl,
-          thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
-          title: sub.videoTitle || sub.title,
-          author: {
-            id: sub.studentId,
-            name: studentName,
-            avatar: studentAvatar
-          },
-          likes: sub.likes || 0,
-          comments: sub.commentCount || 0
-        });
+        try {
+          console.log(`  ➕ Adding video to feed items...`);
+          feedItems.push({
+            id: sub.submissionId,
+            type: 'video',
+            timestamp: sub.submittedAt || sub.createdAt,
+            courseId: sub.courseId,
+            courseName: course?.name || course?.courseName,
+            courseInitials: course?.courseInitials || course?.code?.substring(0, 3).toUpperCase(),
+            assignmentId: sub.assignmentId,
+            videoUrl: sub.videoUrl,
+            thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
+            title: sub.videoTitle || sub.title,
+            author: {
+              id: sub.studentId,
+              name: studentName,
+              avatar: studentAvatar
+            },
+            likes: sub.likes || 0,
+            comments: sub.commentCount || 0
+          });
+          console.log(`  ✓ Video added successfully`);
+        } catch (pushError) {
+          console.error(`  ❌ Error pushing video to feedItems:`, pushError);
+        }
       }
       
       console.log(`\n✅ Successfully added ${feedItems.filter(i => i.type === 'video').length} video items to feed`);
