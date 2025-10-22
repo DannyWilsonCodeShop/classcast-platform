@@ -115,7 +115,7 @@ const StudentDashboardNew: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="min-h-screen bg-gray-50">
         {/* Top Bar */}
         <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
@@ -216,130 +216,29 @@ const StudentDashboardNew: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-0">
-              {/* Video Reels Section - TikTok/Instagram Style */}
-              {filteredFeed.filter(item => item.type === 'video').length > 0 ? (
-                <div className="bg-white border-b-8 border-gray-200 pb-4">
-                  <div className="px-4 pt-4 pb-2">
-                    <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">📹 Video Submissions</h2>
-                  </div>
-                  <div className="overflow-x-auto scrollbar-hide px-4">
-                    <div className="flex space-x-3">
-                      {filteredFeed.filter(item => item.type === 'video').map((video) => (
-                        <VideoThumbnailCard key={video.id} video={video} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="bg-white border-b-8 border-gray-200 py-12 px-4">
+              {/* Community Posts Only */}
+              {filteredFeed.filter(item => item.type === 'community').map((item) => (
+                <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} />
+              ))}
+              
+              {/* Empty state if no community posts */}
+              {filteredFeed.filter(item => item.type === 'community').length === 0 && (
+                <div className="bg-white py-12 px-4">
                   <div className="text-center max-w-sm mx-auto">
                     <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                       <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Videos Yet</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Posts Yet</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Video submissions from your classmates will appear here once they start posting.
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Check back after students submit their video assignments!
+                      Start the conversation by creating a post above!
                     </p>
                   </div>
                 </div>
               )}
-
-              {/* Show assignments first when course is selected */}
-              {selectedCourse && courseAssignments.length > 0 && (
-                <div className="bg-white border-b-8 border-gray-200 pb-6">
-                  <div className="px-4 pt-6 pb-3 bg-gradient-to-r from-blue-600 to-purple-600">
-                    <h2 className="text-base font-bold text-white uppercase tracking-wide flex items-center space-x-2">
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      <span>Assignments for {courses.find(c => c.courseId === selectedCourse)?.name}</span>
-                    </h2>
-                  </div>
-                  <div className="px-4 pt-4 space-y-3">
-                    {courseAssignments.map((item) => (
-                      <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Community Posts and other non-video feed items */}
-              {otherFeedItems.filter(item => item.type !== 'video').map((item) => (
-                <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} />
-              ))}
             </div>
           )}
-        </div>
-
-        {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-          <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-around">
-            {/* Course Buttons (max 3) */}
-            {courses.slice(0, 3).map((course) => (
-              <button
-                key={course.courseId}
-                onClick={() => setSelectedCourse(course.courseId)}
-                className={`relative flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-colors ${
-                  selectedCourse === course.courseId
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                    {course.initials}
-                  </div>
-                  {course.unreadCount > 0 && (
-                    <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                      {course.unreadCount}
-                    </div>
-                  )}
-                </div>
-                <span className="text-xs mt-1">{course.code}</span>
-              </button>
-            ))}
-
-            {/* Join Class Button */}
-            <button 
-              onClick={() => router.push('/student/enroll')}
-              className="flex flex-col items-center justify-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <div className="w-10 h-10 rounded-full border-2 border-gray-300 border-dashed flex items-center justify-center text-gray-400">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
-              <span className="text-xs mt-1">Join</span>
-            </button>
-
-            {/* Profile Button */}
-            <button 
-              onClick={() => router.push('/student/profile')}
-              className="flex flex-col items-center justify-center px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                {user?.avatar && !user.avatar.includes('placeholder') ? (
-                  <Image
-                    src={user.avatar}
-                    alt={user.firstName || 'User'}
-                    width={40}
-                    height={40}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-gray-600 font-semibold">
-                    {user?.firstName?.[0]}{user?.lastName?.[0]}
-                  </span>
-                )}
-              </div>
-              <span className="text-xs mt-1">Profile</span>
-            </button>
-          </div>
         </div>
       </div>
     </StudentRoute>
