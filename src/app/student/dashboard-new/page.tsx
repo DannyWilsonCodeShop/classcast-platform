@@ -49,9 +49,20 @@ const StudentDashboardNew: React.FC = () => {
         setFeed(data.feed);
         setCourses(data.courses);
         
+        // Log all item types
+        const typeCounts = data.feed.reduce((acc: any, item: FeedItem) => {
+          acc[item.type] = (acc[item.type] || 0) + 1;
+          return acc;
+        }, {});
+        console.log('📊 Feed item types:', typeCounts);
+        
         // Log video items specifically
         const videos = data.feed.filter((item: FeedItem) => item.type === 'video');
         console.log('🎬 Video items in feed:', videos.length, videos);
+        
+        // Log assignment items
+        const assignments = data.feed.filter((item: FeedItem) => item.type === 'assignment');
+        console.log('📚 Assignment items in feed:', assignments.length, assignments);
       }
     } catch (error) {
       console.error('Error fetching feed:', error);
