@@ -333,7 +333,7 @@ const VideoThumbnailCard: React.FC<{ video: FeedItem }> = ({ video }) => {
       onClick={() => router.push(`/student/assignments/${video.assignmentId}/feed`)}
       className="flex-shrink-0 w-32 cursor-pointer group"
     >
-      <div className="relative w-32 h-48 rounded-lg overflow-hidden bg-gray-900 shadow-md group-hover:shadow-xl transition-shadow">
+      <div className="relative w-32 h-48 overflow-hidden bg-gray-900 transition-transform group-hover:scale-105">
         {/* Thumbnail */}
         {isYouTube ? (
           <img
