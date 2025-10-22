@@ -139,8 +139,13 @@ export async function GET(request: NextRequest) {
           comments: sub.commentCount || 0
         });
       }
+      
+      console.log(`\n✅ Successfully added ${feedItems.filter(i => i.type === 'video').length} video items to feed`);
     } catch (videoError: any) {
-      console.log('Video submissions table error, skipping videos:', videoError.name);
+      console.error('❌ Video submissions ERROR:', videoError);
+      console.error('Error name:', videoError.name);
+      console.error('Error message:', videoError.message);
+      console.error('Error stack:', videoError.stack);
     }
 
     // Fetch community posts
