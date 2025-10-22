@@ -153,7 +153,7 @@ const StudentDashboardNew: React.FC = () => {
             {/* School Logo */}
             <div className="w-10 h-10 flex-shrink-0">
               <Image
-                src="/logos/cristo-rey-atlanta.png"
+                src="/CRAJSmallLogo.png"
                 alt="Cristo Rey Atlanta"
                 width={40}
                 height={40}
@@ -352,6 +352,14 @@ const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
   const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
   const isYouTube = !!videoId;
+  
+  // Debug logging for video URLs
+  console.log('🎬 VideoFeedItem Debug:', {
+    videoUrl: item.videoUrl,
+    videoId,
+    isYouTube,
+    embedUrl: item.videoUrl ? getYouTubeEmbedUrl(item.videoUrl) : null
+  });
   const [imageError, setImageError] = React.useState(false);
   const [isMuted, setIsMuted] = React.useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
@@ -503,10 +511,11 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       <div className="relative w-full bg-black mb-2" style={{ aspectRatio: '16/9' }}>
         {isYouTube ? (
           <iframe
-            src={`${getYouTubeEmbedUrl(item.videoUrl || '')}&autoplay=1&mute=1`}
+            src={`${getYouTubeEmbedUrl(item.videoUrl || '')}?autoplay=1&mute=1&rel=0&modestbranding=1`}
             className="w-full h-full"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
+            title={item.title || 'Video'}
           />
         ) : (
           <div className="relative w-full h-full">
