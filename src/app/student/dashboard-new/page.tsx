@@ -353,6 +353,8 @@ const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 
 // Video Feed Item
 const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
+  console.log('🚀 VideoFeedItem COMPONENT STARTED for:', item.title);
+  
   const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
   const isYouTube = !!videoId;
   
