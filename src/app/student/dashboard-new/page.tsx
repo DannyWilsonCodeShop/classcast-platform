@@ -333,7 +333,10 @@ const VideoThumbnailCard: React.FC<{ video: FeedItem }> = ({ video }) => {
 
 // Feed Item Component
 const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void; assignmentId?: string }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
+  console.log('🔄 FeedItemComponent rendering:', { type: item.type, title: item.title });
+  
   if (item.type === 'video') {
+    console.log('🎬 Rendering VideoFeedItem for:', item.title);
     return <VideoFeedItem item={item} formatTimestamp={formatTimestamp} currentUserId={currentUserId} onDelete={onDelete} />;
   }
   
@@ -378,7 +381,9 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       title: item.title,
       authorId: item.author?.id,
       currentUserId,
-      isMyVideo
+      isMyVideo,
+      videoUrl: item.videoUrl,
+      author: item.author
     });
   }
 
