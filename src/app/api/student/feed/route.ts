@@ -106,6 +106,7 @@ export async function GET(request: NextRequest) {
         let studentAvatar = null;
         
         try {
+          console.log(`  👤 Fetching user details for studentId: ${sub.studentId}`);
           const userResult = await docClient.send(new ScanCommand({
             TableName: 'classcast-users',
             FilterExpression: 'userId = :userId',
@@ -115,15 +116,20 @@ export async function GET(request: NextRequest) {
             Limit: 1
           }));
           
+          console.log(`  📊 User query result: ${userResult.Items?.length || 0} users found`);
+          
           if (userResult.Items && userResult.Items.length > 0) {
             const user = userResult.Items[0];
             studentName = user.firstName && user.lastName 
               ? `${user.firstName} ${user.lastName}` 
               : user.email || studentName;
-            studentAvatar = user.avatar;
+            studentAvatar = user.avatar || user.profilePicture || user.profile?.avatar;
+            console.log(`  ✓ Found user: ${studentName}, avatar: ${studentAvatar ? 'YES' : 'NO'}`);
+          } else {
+            console.warn(`  ⚠️  No user found for studentId: ${sub.studentId}`);
           }
         } catch (userError) {
-          console.warn('Could not fetch student details for submission:', sub.submissionId);
+          console.error('  ❌ Error fetching student details:', userError);
         }
         
         try {
