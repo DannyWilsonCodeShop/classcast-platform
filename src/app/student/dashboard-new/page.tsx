@@ -34,12 +34,24 @@ const StudentDashboardNew: React.FC = () => {
 
   const fetchFeed = async () => {
     try {
+      console.log('📡 Fetching feed for user:', user?.id);
       const response = await fetch(`/api/student/feed?userId=${user?.id}`);
       const data = await response.json();
+      
+      console.log('📦 Feed data received:', {
+        success: data.success,
+        feedLength: data.feed?.length,
+        coursesLength: data.courses?.length,
+        feed: data.feed
+      });
       
       if (data.success) {
         setFeed(data.feed);
         setCourses(data.courses);
+        
+        // Log video items specifically
+        const videos = data.feed.filter((item: FeedItem) => item.type === 'video');
+        console.log('🎬 Video items in feed:', videos.length, videos);
       }
     } catch (error) {
       console.error('Error fetching feed:', error);
@@ -205,7 +217,7 @@ const StudentDashboardNew: React.FC = () => {
           ) : (
             <div className="space-y-0">
               {/* Video Reels Section - TikTok/Instagram Style */}
-              {filteredFeed.filter(item => item.type === 'video').length > 0 && (
+              {filteredFeed.filter(item => item.type === 'video').length > 0 ? (
                 <div className="bg-white border-b-8 border-gray-200 pb-4">
                   <div className="px-4 pt-4 pb-2">
                     <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide mb-3">📹 Video Submissions</h2>
@@ -216,6 +228,23 @@ const StudentDashboardNew: React.FC = () => {
                         <VideoThumbnailCard key={video.id} video={video} />
                       ))}
                     </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white border-b-8 border-gray-200 py-12 px-4">
+                  <div className="text-center max-w-sm mx-auto">
+                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Videos Yet</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Video submissions from your classmates will appear here once they start posting.
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Check back after students submit their video assignments!
+                    </p>
                   </div>
                 </div>
               )}
