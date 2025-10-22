@@ -216,29 +216,13 @@ const StudentDashboardNew: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-0">
-              {/* Frameless Video Reels */}
-              {filteredFeed.filter(item => item.type === 'video').length > 0 && (
-                <div className="bg-white border-b-4 border-gray-100 pb-4">
-                  <div className="px-4 pt-4 pb-2">
-                    <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">📹 Videos</h2>
-                  </div>
-                  <div className="overflow-x-auto scrollbar-hide px-4">
-                    <div className="flex gap-2">
-                      {filteredFeed.filter(item => item.type === 'video').map((video) => (
-                        <VideoThumbnailCard key={video.id} video={video} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Community Posts */}
-              {filteredFeed.filter(item => item.type === 'community').map((item) => (
-                <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} />
+              {/* All feed items in chronological order (videos + community posts) */}
+              {filteredFeed.map((item) => (
+                <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} assignmentId={item.assignmentId} />
               ))}
               
               {/* Empty state if nothing */}
-              {filteredFeed.filter(item => item.type === 'community' || item.type === 'video').length === 0 && (
+              {filteredFeed.length === 0 && (
                 <div className="bg-white py-12 px-4">
                   <div className="text-center max-w-sm mx-auto">
                     <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -335,7 +319,7 @@ const VideoThumbnailCard: React.FC<{ video: FeedItem }> = ({ video }) => {
 };
 
 // Feed Item Component
-const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
+const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void; assignmentId?: string }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
   if (item.type === 'video') {
     return <VideoFeedItem item={item} formatTimestamp={formatTimestamp} currentUserId={currentUserId} onDelete={onDelete} />;
   }
