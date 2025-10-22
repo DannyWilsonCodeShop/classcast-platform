@@ -5,7 +5,7 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { FeedItem } from '@/app/api/student/feed/route';
 import Image from 'next/image';
-import { getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
+import { extractYouTubeVideoId as getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
 import { useRouter } from 'next/navigation';
 
 interface Course {
