@@ -5,7 +5,7 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
+import { extractYouTubeVideoId as getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
 import { GroupAssignmentModal } from '@/components/student/GroupAssignmentModal';
 
 interface VideoSubmission {
