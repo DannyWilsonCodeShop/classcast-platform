@@ -227,13 +227,15 @@ const StudentDashboardNew: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-0">
-              {/* All feed items in chronological order (videos + community posts) */}
-              {filteredFeed.map((item) => (
-                <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} assignmentId={item.assignmentId} />
-              ))}
+              {/* Only show videos and community posts (NO assignments) */}
+              {filteredFeed
+                .filter(item => item.type === 'video' || item.type === 'community')
+                .map((item) => (
+                  <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} assignmentId={item.assignmentId} />
+                ))}
               
-              {/* Empty state if nothing */}
-              {filteredFeed.length === 0 && (
+              {/* Empty state if no videos/posts */}
+              {filteredFeed.filter(item => item.type === 'video' || item.type === 'community').length === 0 && (
                 <div className="bg-white py-12 px-4">
                   <div className="text-center max-w-sm mx-auto">
                     <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -241,9 +243,9 @@ const StudentDashboardNew: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Content Yet</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Posts Yet</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Videos and posts from your classes will appear here.
+                      Community posts and videos will appear here.
                     </p>
                   </div>
                 </div>
