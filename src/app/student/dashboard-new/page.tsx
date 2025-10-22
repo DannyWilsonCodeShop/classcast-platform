@@ -216,13 +216,29 @@ const StudentDashboardNew: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-0">
-              {/* Community Posts Only */}
+              {/* Frameless Video Reels */}
+              {filteredFeed.filter(item => item.type === 'video').length > 0 && (
+                <div className="bg-white border-b-4 border-gray-100 pb-4">
+                  <div className="px-4 pt-4 pb-2">
+                    <h2 className="text-sm font-bold text-gray-700 uppercase tracking-wide">📹 Videos</h2>
+                  </div>
+                  <div className="overflow-x-auto scrollbar-hide px-4">
+                    <div className="flex gap-2">
+                      {filteredFeed.filter(item => item.type === 'video').map((video) => (
+                        <VideoThumbnailCard key={video.id} video={video} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Community Posts */}
               {filteredFeed.filter(item => item.type === 'community').map((item) => (
                 <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} />
               ))}
               
-              {/* Empty state if no community posts */}
-              {filteredFeed.filter(item => item.type === 'community').length === 0 && (
+              {/* Empty state if nothing */}
+              {filteredFeed.filter(item => item.type === 'community' || item.type === 'video').length === 0 && (
                 <div className="bg-white py-12 px-4">
                   <div className="text-center max-w-sm mx-auto">
                     <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -230,9 +246,9 @@ const StudentDashboardNew: React.FC = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Posts Yet</h3>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Content Yet</h3>
                     <p className="text-sm text-gray-600 mb-4">
-                      Start the conversation by creating a post above!
+                      Videos and posts from your classes will appear here.
                     </p>
                   </div>
                 </div>
