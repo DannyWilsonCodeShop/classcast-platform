@@ -423,7 +423,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   const handleLike = async () => {
     try {
       const action = isLiked ? 'unlike' : 'like';
-      const response = await fetch(`/api/video-submissions/${item.id}/like`, {
+      const response = await fetch(`/api/video-submissions/${item.id}/like?userId=${user?.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
