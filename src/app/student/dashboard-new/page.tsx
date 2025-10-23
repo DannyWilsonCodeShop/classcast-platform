@@ -370,7 +370,11 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   const [isMuted, setIsMuted] = React.useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [likes, setLikes] = React.useState(item.likes || 0);
-  const [isLiked, setIsLiked] = React.useState(false);
+  const [isLiked, setIsLiked] = React.useState(item.isLiked || false);
+  const [comments, setComments] = React.useState(item.comments || 0);
+  const [showComments, setShowComments] = React.useState(false);
+  const [commentText, setCommentText] = React.useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = React.useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   
   // Check if avatar is emoji or valid image
@@ -423,24 +427,62 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
 
   const handleLike = async () => {
     try {
-      const action = isLiked ? 'unlike' : 'like';
-      const response = await fetch(`/api/video-submissions/${item.id}/like?userId=${user?.id}`, {
+      const response = await fetch(`/api/videos/${item.id}/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ 
+          userId: user?.id,
+          isLiked: !isLiked
+        }),
       });
 
       if (response.ok) {
         const data = await response.json();
-        setLikes(data.likes);
-        setIsLiked(!isLiked);
+        if (data.success) {
+          setLikes(data.likes);
+          setIsLiked(data.isLiked);
+        }
       } else {
         console.error('Failed to like video');
       }
     } catch (error) {
       console.error('Error liking video:', error);
+    }
+  };
+
+  const handleComment = async () => {
+    if (!commentText.trim() || isSubmittingComment) return;
+    
+    try {
+      setIsSubmittingComment(true);
+      const response = await fetch(`/api/videos/${item.id}/interactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'comment',
+          userId: user?.id,
+          content: commentText.trim()
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setComments(prev => prev + 1);
+          setCommentText('');
+          // Optionally refresh comments list here
+        }
+      } else {
+        console.error('Failed to post comment');
+      }
+    } catch (error) {
+      console.error('Error posting comment:', error);
+    } finally {
+      setIsSubmittingComment(false);
     }
   };
 
@@ -614,26 +656,122 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             </svg>
             <span className="text-sm font-medium">{likes}</span>
           </button>
-          <button className="flex items-center space-x-1.5 hover:text-blue-500 transition-colors py-2">
+          <button 
+            onClick={() => setShowComments(!showComments)}
+            className="flex items-center space-x-1.5 hover:text-blue-500 transition-colors py-2"
+          >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
-            <span className="text-sm font-medium">{item.comments}</span>
+            <span className="text-sm font-medium">{comments}</span>
           </button>
         </div>
       </div>
+
+      {/* Comments Section */}
+      {showComments && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="space-y-3">
+            {/* Comment Input */}
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Add a comment..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onKeyPress={(e) => e.key === 'Enter' && handleComment()}
+              />
+              <button
+                onClick={handleComment}
+                disabled={!commentText.trim() || isSubmittingComment}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSubmittingComment ? 'Posting...' : 'Post'}
+              </button>
+            </div>
+            
+            {/* Comments List - Placeholder for now */}
+            <div className="text-sm text-gray-500 italic">
+              Comments will appear here...
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 // Community Feed Item
 const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string }> = ({ item, formatTimestamp }) => {
+  const { user } = useAuth();
   const [imageError, setImageError] = React.useState(false);
   const [showComments, setShowComments] = React.useState(false);
+  const [likes, setLikes] = React.useState(item.likes || 0);
+  const [isLiked, setIsLiked] = React.useState(item.isLiked || false);
+  const [comments, setComments] = React.useState(item.comments || 0);
+  const [commentText, setCommentText] = React.useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = React.useState(false);
   
   // Check if avatar is emoji (single character, 2-4 bytes)
   const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
   const hasValidAvatar = item.author?.avatar && !item.author.avatar.includes('placeholder') && !imageError;
+
+  const handleLike = async () => {
+    try {
+      const response = await fetch(`/api/videos/${item.id}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userId: user?.id,
+          isLiked: !isLiked
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setLikes(data.likes);
+          setIsLiked(data.isLiked);
+        }
+      }
+    } catch (error) {
+      console.error('Error liking post:', error);
+    }
+  };
+
+  const handleComment = async () => {
+    if (!commentText.trim() || isSubmittingComment) return;
+    
+    try {
+      setIsSubmittingComment(true);
+      const response = await fetch(`/api/videos/${item.id}/interactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'comment',
+          userId: user?.id,
+          content: commentText.trim()
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setComments(prev => prev + 1);
+          setCommentText('');
+        }
+      }
+    } catch (error) {
+      console.error('Error posting comment:', error);
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
 
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-4">
@@ -669,11 +807,16 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 
       {/* Actions */}
       <div className="flex items-center space-x-4 mt-3 text-gray-600">
-        <button className="flex items-center space-x-1 hover:text-red-500 transition-colors">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button 
+          onClick={handleLike}
+          className={`flex items-center space-x-1 transition-colors ${
+            isLiked ? 'text-red-500' : 'hover:text-red-500'
+          }`}
+        >
+          <svg className="w-5 h-5" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
-          <span className="text-sm">{item.likes}</span>
+          <span className="text-sm">{likes}</span>
         </button>
         <button 
           onClick={() => setShowComments(!showComments)}
@@ -682,7 +825,7 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
-          <span className="text-sm">{item.comments} {item.comments === 1 ? 'comment' : 'comments'}</span>
+          <span className="text-sm">{comments} {comments === 1 ? 'comment' : 'comments'}</span>
         </button>
       </div>
 
@@ -690,7 +833,29 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
       {showComments && (
         <div className="mt-4 pt-4 border-t border-gray-100">
           <div className="space-y-3">
-            <p className="text-sm text-gray-500 italic">Comments section coming soon...</p>
+            {/* Comment Input */}
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                placeholder="Add a comment..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onKeyPress={(e) => e.key === 'Enter' && handleComment()}
+              />
+              <button
+                onClick={handleComment}
+                disabled={!commentText.trim() || isSubmittingComment}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSubmittingComment ? 'Posting...' : 'Post'}
+              </button>
+            </div>
+            
+            {/* Comments List - Placeholder for now */}
+            <div className="text-sm text-gray-500 italic">
+              Comments will appear here...
+            </div>
           </div>
         </div>
       )}
