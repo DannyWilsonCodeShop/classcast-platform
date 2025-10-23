@@ -25,6 +25,9 @@ const StudentDashboardNew: React.FC = () => {
   const [showPostComposer, setShowPostComposer] = useState(false);
   const [postContent, setPostContent] = useState('');
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+  const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
+  const [showJoinClassPopup, setShowJoinClassPopup] = useState(false);
+  const [classAssignments, setClassAssignments] = useState<FeedItem[]>([]);
 
   useEffect(() => {
     if (user?.id) {
@@ -72,10 +75,15 @@ const StudentDashboardNew: React.FC = () => {
     }
   };
 
-  // Filter feed by selected course
+  // Filter feed by selected course and assignment
   const filteredFeed = selectedCourse 
     ? feed.filter(item => item.courseId === selectedCourse || item.type === 'community')
     : feed;
+
+  // Filter by assignment if selected
+  const assignmentFilteredFeed = selectedAssignment
+    ? filteredFeed.filter(item => item.assignmentId === selectedAssignment || item.type === 'community')
+    : filteredFeed;
 
   // When a course is selected, separate assignments and other content
   const courseAssignments = selectedCourse 
@@ -83,8 +91,8 @@ const StudentDashboardNew: React.FC = () => {
     : [];
   
   const otherFeedItems = selectedCourse
-    ? filteredFeed.filter(item => item.type !== 'assignment')
-    : filteredFeed;
+    ? assignmentFilteredFeed.filter(item => item.type !== 'assignment')
+    : assignmentFilteredFeed;
 
   const handlePostSubmit = async () => {
     if (!postContent.trim()) return;
@@ -108,6 +116,28 @@ const StudentDashboardNew: React.FC = () => {
     } catch (error) {
       console.error('Error creating post:', error);
     }
+  };
+
+  const handleCourseClick = (courseId: string) => {
+    if (selectedCourse === courseId) {
+      // If same course clicked, toggle off
+      setSelectedCourse(null);
+      setClassAssignments([]);
+    } else {
+      // Select new course and show its assignments
+      setSelectedCourse(courseId);
+      setSelectedAssignment(null); // Clear assignment filter
+      const assignments = feed.filter(item => item.type === 'assignment' && item.courseId === courseId);
+      setClassAssignments(assignments);
+    }
+  };
+
+  const handleAssignmentClick = (assignmentId: string) => {
+    setSelectedAssignment(assignmentId);
+  };
+
+  const handleUserClick = (userId: string) => {
+    router.push(`/student/peer-profile/${userId}`);
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -256,6 +286,96 @@ const StudentDashboardNew: React.FC = () => {
         </div>
       </div>
 
+      {/* Class Assignments Section - Horizontal Scroll */}
+      {selectedCourse && classAssignments.length > 0 && (
+        <div className="bg-white border-t border-gray-200 px-4 py-4">
+          <div className="max-w-2xl mx-auto">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              {courses.find(c => c.courseId === selectedCourse)?.name} Assignments
+            </h3>
+            <div className="flex space-x-4 overflow-x-auto pb-2">
+              {classAssignments.map((assignment) => (
+                <div
+                  key={assignment.id}
+                  onClick={() => handleAssignmentClick(assignment.id!)}
+                  className={`flex-shrink-0 w-64 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                    selectedAssignment === assignment.id
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+                    {assignment.title}
+                  </h4>
+                  <p className="text-sm text-gray-600 mb-3 line-clamp-3">
+                    {assignment.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+                      assignment.status === 'past_due' ? 'bg-red-100 text-red-700' :
+                      assignment.status === 'active' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {assignment.status === 'past_due' ? 'Past Due' :
+                       assignment.status === 'active' ? 'Due Soon' : 'Upcoming'}
+                    </span>
+                    {assignment.dueDate && (
+                      <span className="text-xs text-gray-500">
+                        {formatTimestamp(assignment.dueDate)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Join Class Popup */}
+      {showJoinClassPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Join a Class</h3>
+              <button
+                onClick={() => setShowJoinClassPopup(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="space-y-4">
+              <p className="text-gray-600">
+                Enter a class code to join a new class or browse available classes.
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowJoinClassPopup(false);
+                    router.push('/student/courses');
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Browse Classes
+                </button>
+                <button
+                  onClick={() => {
+                    setShowJoinClassPopup(false);
+                    // Add class code input functionality here
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Enter Code
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50 shadow-lg">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
@@ -266,8 +386,8 @@ const StudentDashboardNew: React.FC = () => {
               courses.slice(0, 3).map((course) => (
                 <button
                   key={course.courseId}
-                  onClick={() => setSelectedCourse(selectedCourse === course.courseId ? null : course.courseId)}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md ${
+                  onClick={() => handleCourseClick(course.courseId)}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md relative ${
                     selectedCourse === course.courseId 
                       ? 'bg-blue-600 scale-110' 
                       : 'bg-gray-400 hover:bg-gray-500'
@@ -275,6 +395,12 @@ const StudentDashboardNew: React.FC = () => {
                   title={course.name}
                 >
                   {course.initials || course.name.substring(0, 3).toUpperCase()}
+                  {/* Notification indicator */}
+                  {course.unreadCount > 0 && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {course.unreadCount > 9 ? '9+' : course.unreadCount}
+                    </div>
+                  )}
                 </button>
               ))
             ) : (
@@ -284,13 +410,13 @@ const StudentDashboardNew: React.FC = () => {
 
           {/* Join Class Button */}
           <button
-            onClick={() => router.push('/student/courses')}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-md"
+            onClick={() => setShowJoinClassPopup(true)}
+            className="w-12 h-12 rounded-full bg-gray-500 hover:bg-gray-600 flex items-center justify-center text-white transition-colors shadow-md"
+            title="Join Class"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
-            <span className="text-sm font-medium">Join Class</span>
           </button>
 
           {/* Profile Avatar */}
@@ -433,6 +559,9 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   const [showComments, setShowComments] = React.useState(false);
   const [commentText, setCommentText] = React.useState('');
   const [isSubmittingComment, setIsSubmittingComment] = React.useState(false);
+  const [showRespond, setShowRespond] = React.useState(false);
+  const [respondText, setRespondText] = React.useState('');
+  const [isSubmittingRespond, setIsSubmittingRespond] = React.useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   
   // Check if avatar is emoji or valid image
@@ -557,6 +686,45 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
     }
   };
 
+  const handleRespond = async () => {
+    if (!respondText.trim() || isSubmittingRespond || !user) return;
+    
+    try {
+      setIsSubmittingRespond(true);
+      console.log('🔄 Attempting to submit response for video:', item.id, 'with user:', user.id);
+      const response = await fetch(`/api/videos/${item.id}/interactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'response',
+          userId: user.id,
+          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+          userAvatar: user.avatar || '/api/placeholder/40/40',
+          content: respondText.trim()
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Response submitted:', data);
+        if (data.success) {
+          setRespondText('');
+          setShowRespond(false);
+          // Optionally show success message
+        }
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Failed to submit response:', errorData);
+      }
+    } catch (error) {
+      console.error('❌ Error submitting response:', error);
+    } finally {
+      setIsSubmittingRespond(false);
+    }
+  };
+
   // Auto-play video when in view (Intersection Observer)
   React.useEffect(() => {
     if (!videoRef.current || isYouTube) return;
@@ -587,7 +755,10 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
     <div className="bg-white border-b border-gray-200">
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+        <div 
+          onClick={() => item.author?.id && handleUserClick(item.author.id)}
+          className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-1 -m-1 transition-colors"
+        >
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
             {isEmoji ? (
               <span className="text-2xl">{item.author?.avatar}</span>
@@ -607,7 +778,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             )}
           </div>
           <div>
-            <p className="font-semibold text-sm text-gray-900">{item.author?.name}</p>
+            <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
             <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
           </div>
         </div>
@@ -737,8 +908,10 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             <span className="text-sm font-medium">{comments}</span>
           </button>
           <button 
-            onClick={() => router.push(`/student/grading/${item.id}`)}
-            className="flex items-center space-x-1.5 hover:text-green-500 transition-colors py-2"
+            onClick={() => setShowRespond(!showRespond)}
+            className={`flex items-center space-x-1.5 transition-colors py-2 ${
+              showRespond ? 'text-green-500' : 'hover:text-green-500'
+            }`}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -775,6 +948,34 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             <div className="text-sm text-gray-500 italic">
               Comments will appear here...
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Respond Section */}
+      {showRespond && (
+        <div className="mt-4 pt-4 border-t border-gray-100">
+          <div className="space-y-3">
+            <h4 className="text-sm font-semibold text-gray-900">Submit Your Response</h4>
+            <div className="flex space-x-2">
+              <textarea
+                value={respondText}
+                onChange={(e) => setRespondText(e.target.value)}
+                placeholder="Write your response here..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                rows={3}
+              />
+              <button
+                onClick={handleRespond}
+                disabled={!respondText.trim() || isSubmittingRespond}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isSubmittingRespond ? 'Submitting...' : 'Submit'}
+              </button>
+            </div>
+            <p className="text-xs text-gray-500">
+              This response will be submitted for grading and assessment.
+            </p>
           </div>
         </div>
       )}
@@ -859,7 +1060,10 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
   return (
     <div className="bg-white border-b border-gray-200 px-4 py-4">
       {/* Header */}
-      <div className="flex items-center space-x-3 mb-3">
+      <div 
+        onClick={() => item.author?.id && handleUserClick(item.author.id)}
+        className="flex items-center space-x-3 mb-3 cursor-pointer hover:bg-gray-50 rounded-lg p-1 -m-1 transition-colors"
+      >
         <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
           {isEmoji ? (
             <span className="text-2xl">{item.author?.avatar}</span>
@@ -879,7 +1083,7 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
           )}
         </div>
         <div className="flex-1">
-          <p className="font-semibold text-sm text-gray-900">{item.author?.name}</p>
+          <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
           <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
         </div>
       </div>
