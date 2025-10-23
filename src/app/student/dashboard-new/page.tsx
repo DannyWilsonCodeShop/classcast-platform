@@ -368,6 +368,8 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   const [imageError, setImageError] = React.useState(false);
   const [isMuted, setIsMuted] = React.useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const [likes, setLikes] = React.useState(item.likes || 0);
+  const [isLiked, setIsLiked] = React.useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
   
   // Check if avatar is emoji or valid image
@@ -415,6 +417,29 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
     } catch (error) {
       console.error('Error deleting video:', error);
       alert('Error deleting video');
+    }
+  };
+
+  const handleLike = async () => {
+    try {
+      const action = isLiked ? 'unlike' : 'like';
+      const response = await fetch(`/api/video-submissions/${item.id}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLikes(data.likes);
+        setIsLiked(!isLiked);
+      } else {
+        console.error('Failed to like video');
+      }
+    } catch (error) {
+      console.error('Error liking video:', error);
     }
   };
 
@@ -572,11 +597,21 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       <div className="px-4 py-4">
         <p className="font-medium text-gray-900 mb-3">{item.title}</p>
         <div className="flex items-center space-x-6 text-gray-600">
-          <button className="flex items-center space-x-1.5 hover:text-red-500 transition-colors py-2">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button 
+            onClick={handleLike}
+            className={`flex items-center space-x-1.5 transition-colors py-2 ${
+              isLiked ? 'text-red-500' : 'hover:text-red-500'
+            }`}
+          >
+            <svg 
+              className="w-6 h-6" 
+              fill={isLiked ? 'currentColor' : 'none'} 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <span className="text-sm font-medium">{item.likes}</span>
+            <span className="text-sm font-medium">{likes}</span>
           </button>
           <button className="flex items-center space-x-1.5 hover:text-blue-500 transition-colors py-2">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
