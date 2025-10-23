@@ -102,7 +102,7 @@ export async function GET(request: NextRequest) {
         }
         
         // Get student details
-        let studentName = 'Unknown Student';
+        let studentName = '';
         let studentAvatar = null;
         
         try {
@@ -193,6 +193,8 @@ export async function GET(request: NextRequest) {
             console.log(`  ✓ Found user: ${studentName}, avatar: ${studentAvatar ? 'YES' : 'NO'}`);
           } else {
             console.warn(`  ⚠️  No user found for studentId: ${sub.studentId} after trying all strategies`);
+            // Use email as fallback if available, otherwise use a generic name
+            studentName = sub.studentId.includes('@') ? sub.studentId : 'Student';
           }
         } catch (userError) {
           console.error('  ❌ Error fetching student details:', userError);
@@ -242,7 +244,7 @@ export async function GET(request: NextRequest) {
     
     // Process community posts with user lookup
     for (const post of posts.filter(p => p.status !== 'deleted' && !p.hidden)) {
-      let authorName = post.userName || 'Unknown User';
+      let authorName = post.userName || '';
       let authorAvatar = post.userAvatar;
       
       // If we don't have user info in the post, try to fetch it
@@ -262,6 +264,10 @@ export async function GET(request: NextRequest) {
           }
         } catch (userError) {
           console.warn(`Failed to fetch user data for community post author ${post.userId}:`, userError);
+          // Use email as fallback if available, otherwise use a generic name
+          if (!authorName) {
+            authorName = post.userId.includes('@') ? post.userId : 'User';
+          }
         }
       }
       
