@@ -736,6 +736,15 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             </svg>
             <span className="text-sm font-medium">{comments}</span>
           </button>
+          <button 
+            onClick={() => router.push(`/student/grading/${item.id}`)}
+            className="flex items-center space-x-1.5 hover:text-green-500 transition-colors py-2"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-sm font-medium">Respond</span>
+          </button>
         </div>
       </div>
 
@@ -776,6 +785,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
 // Community Feed Item
 const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string }> = ({ item, formatTimestamp }) => {
   const { user } = useAuth();
+  const router = useRouter();
   const [imageError, setImageError] = React.useState(false);
   const [showComments, setShowComments] = React.useState(false);
   const [likes, setLikes] = React.useState(item.likes || 0);
@@ -899,6 +909,15 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
           <span className="text-sm">{comments} {comments === 1 ? 'comment' : 'comments'}</span>
+        </button>
+        <button 
+          onClick={() => router.push(`/student/grading/${item.id}`)}
+          className="flex items-center space-x-1 hover:text-green-500 transition-colors"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span className="text-sm">Respond</span>
         </button>
       </div>
 
