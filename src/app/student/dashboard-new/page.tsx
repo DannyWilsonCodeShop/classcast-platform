@@ -354,6 +354,7 @@ const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 
 // Video Feed Item
 const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
+  const { user } = useAuth();
   console.log('🚀 VideoFeedItem COMPONENT STARTED for:', item.title);
   
   const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
@@ -426,37 +427,46 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   };
 
   const handleLike = async () => {
+    if (!user) {
+      console.error('User not available for like action');
+      return;
+    }
+    
     try {
+      console.log('🔄 Attempting to like video:', item.id, 'with user:', user.id);
       const response = await fetch(`/api/videos/${item.id}/like`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          userId: user?.id,
+          userId: user.id,
           isLiked: !isLiked
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Like response:', data);
         if (data.success) {
           setLikes(data.likes);
           setIsLiked(data.isLiked);
         }
       } else {
-        console.error('Failed to like video');
+        const errorData = await response.json();
+        console.error('❌ Failed to like video:', errorData);
       }
     } catch (error) {
-      console.error('Error liking video:', error);
+      console.error('❌ Error liking video:', error);
     }
   };
 
   const handleComment = async () => {
-    if (!commentText.trim() || isSubmittingComment) return;
+    if (!commentText.trim() || isSubmittingComment || !user) return;
     
     try {
       setIsSubmittingComment(true);
+      console.log('🔄 Attempting to post comment on video:', item.id, 'with user:', user.id);
       const response = await fetch(`/api/videos/${item.id}/interactions`, {
         method: 'POST',
         headers: {
@@ -464,23 +474,27 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
         },
         body: JSON.stringify({
           type: 'comment',
-          userId: user?.id,
+          userId: user.id,
+          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+          userAvatar: user.avatar || '/api/placeholder/40/40',
           content: commentText.trim()
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
+        console.log('✅ Comment response:', data);
         if (data.success) {
           setComments(prev => prev + 1);
           setCommentText('');
           // Optionally refresh comments list here
         }
       } else {
-        console.error('Failed to post comment');
+        const errorData = await response.json();
+        console.error('❌ Failed to post comment:', errorData);
       }
     } catch (error) {
-      console.error('Error posting comment:', error);
+      console.error('❌ Error posting comment:', error);
     } finally {
       setIsSubmittingComment(false);
     }
@@ -743,7 +757,7 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
   };
 
   const handleComment = async () => {
-    if (!commentText.trim() || isSubmittingComment) return;
+    if (!commentText.trim() || isSubmittingComment || !user) return;
     
     try {
       setIsSubmittingComment(true);
@@ -754,7 +768,9 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
         },
         body: JSON.stringify({
           type: 'comment',
-          userId: user?.id,
+          userId: user.id,
+          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+          userAvatar: user.avatar || '/api/placeholder/40/40',
           content: commentText.trim()
         }),
       });
