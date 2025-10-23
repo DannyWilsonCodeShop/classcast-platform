@@ -255,6 +255,63 @@ const StudentDashboardNew: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Bottom Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50 shadow-lg">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          {/* Course Buttons (up to 3) */}
+          <div className="flex items-center space-x-2">
+            {console.log('🏫 Courses for bottom nav:', courses)}
+            {courses.length > 0 ? (
+              courses.slice(0, 3).map((course) => (
+                <button
+                  key={course.courseId}
+                  onClick={() => setSelectedCourse(selectedCourse === course.courseId ? null : course.courseId)}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md ${
+                    selectedCourse === course.courseId 
+                      ? 'bg-blue-600 scale-110' 
+                      : 'bg-gray-400 hover:bg-gray-500'
+                  }`}
+                  title={course.name}
+                >
+                  {course.initials || course.name.substring(0, 3).toUpperCase()}
+                </button>
+              ))
+            ) : (
+              <div className="text-xs text-gray-500 px-2">No courses</div>
+            )}
+          </div>
+
+          {/* Join Class Button */}
+          <button
+            onClick={() => router.push('/student/courses')}
+            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-md"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span className="text-sm font-medium">Join Class</span>
+          </button>
+
+          {/* Profile Avatar */}
+          <button
+            onClick={() => router.push('/student/profile')}
+            className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+          >
+            {user?.avatar && !user.avatar.includes('placeholder') ? (
+              <img 
+                src={user.avatar} 
+                alt={user.firstName || 'Profile'} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-gray-600 font-semibold text-lg">
+                {user?.firstName?.[0] || user?.email?.[0] || 'U'}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
     </StudentRoute>
   );
 };
@@ -966,62 +1023,6 @@ const AssignmentFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp
         </div>
       </div>
 
-      {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50 shadow-lg">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          {/* Course Buttons (up to 3) */}
-          <div className="flex items-center space-x-2">
-            {console.log('🏫 Courses for bottom nav:', courses)}
-            {courses.length > 0 ? (
-              courses.slice(0, 3).map((course) => (
-                <button
-                  key={course.courseId}
-                  onClick={() => setSelectedCourse(selectedCourse === course.courseId ? null : course.courseId)}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md ${
-                    selectedCourse === course.courseId 
-                      ? 'bg-blue-600 scale-110' 
-                      : 'bg-gray-400 hover:bg-gray-500'
-                  }`}
-                  title={course.name}
-                >
-                  {course.initials || course.name.substring(0, 3).toUpperCase()}
-                </button>
-              ))
-            ) : (
-              <div className="text-xs text-gray-500 px-2">No courses</div>
-            )}
-          </div>
-
-          {/* Join Class Button */}
-          <button
-            onClick={() => router.push('/student/courses')}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors shadow-md"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <span className="text-sm font-medium">Join Class</span>
-          </button>
-
-          {/* Profile Avatar */}
-          <button
-            onClick={() => router.push('/student/profile')}
-            className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-          >
-            {user?.avatar && !user.avatar.includes('placeholder') ? (
-              <img 
-                src={user.avatar} 
-                alt={user.firstName || 'Profile'} 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-gray-600 font-semibold text-lg">
-                {user?.firstName?.[0] || user?.email?.[0] || 'U'}
-              </span>
-            )}
-          </button>
-        </div>
-      </div>
     </div>
   );
 };
