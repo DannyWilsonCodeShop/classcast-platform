@@ -77,13 +77,45 @@ export async function GET(request: NextRequest) {
     const enrichedVideos = await Promise.all(
       videos.map(async (video: any) => {
         try {
-          // Get user information
-          const userResult = await docClient.send(new GetCommand({
-            TableName: USERS_TABLE,
-            Key: { userId: video.userId }
-          }));
-
-          const user = userResult.Item;
+          // Try multiple lookup strategies for user data
+          let user = null;
+          
+          // Strategy 1: Direct lookup with video.userId
+          try {
+            const directResult = await docClient.send(new GetCommand({
+              TableName: USERS_TABLE,
+              Key: { userId: video.userId }
+            }));
+            user = directResult.Item;
+          } catch (directError) {
+            // Strategy 2: Scan by userId field
+            try {
+              const scanResult = await docClient.send(new ScanCommand({
+                TableName: USERS_TABLE,
+                FilterExpression: 'userId = :userId',
+                ExpressionAttributeValues: {
+                  ':userId': video.userId
+                },
+                Limit: 1
+              }));
+              user = scanResult.Items?.[0];
+            } catch (scanError) {
+              // Strategy 3: Scan by email field
+              try {
+                const emailScanResult = await docClient.send(new ScanCommand({
+                  TableName: USERS_TABLE,
+                  FilterExpression: 'email = :email',
+                  ExpressionAttributeValues: {
+                    ':email': video.userId
+                  },
+                  Limit: 1
+                }));
+                user = emailScanResult.Items?.[0];
+              } catch (emailError) {
+                console.warn(`Could not find user for video ${video.id} with userId: ${video.userId}`);
+              }
+            }
+          }
           
           return {
             ...video,
