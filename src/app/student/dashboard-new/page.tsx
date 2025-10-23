@@ -374,6 +374,15 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
   const hasValidAvatar = item.author?.avatar && !item.author.avatar.includes('placeholder') && !imageError;
   
+  // Debug avatar logic
+  console.log('🖼️ Avatar debug:', {
+    authorAvatar: item.author?.avatar,
+    isEmoji,
+    hasValidAvatar,
+    imageError,
+    authorName: item.author?.name
+  });
+  
   // Check if this is the current user's video
   const isMyVideo = currentUserId && item.author?.id === currentUserId;
   
@@ -385,7 +394,9 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       currentUserId,
       isMyVideo,
       videoUrl: item.videoUrl,
-      author: item.author
+      author: item.author,
+      authorName: item.author?.name,
+      authorAvatar: item.author?.avatar
     });
   }
 
@@ -743,20 +754,25 @@ const AssignmentFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           {/* Course Buttons (up to 3) */}
           <div className="flex items-center space-x-2">
-            {courses.slice(0, 3).map((course) => (
-              <button
-                key={course.courseId}
-                onClick={() => setSelectedCourse(selectedCourse === course.courseId ? null : course.courseId)}
-                className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all ${
-                  selectedCourse === course.courseId 
-                    ? 'bg-blue-600 scale-110' 
-                    : 'bg-gray-400 hover:bg-gray-500'
-                }`}
-                title={course.name}
-              >
-                {course.initials || course.name.substring(0, 3).toUpperCase()}
-              </button>
-            ))}
+            {console.log('🏫 Courses for bottom nav:', courses)}
+            {courses.length > 0 ? (
+              courses.slice(0, 3).map((course) => (
+                <button
+                  key={course.courseId}
+                  onClick={() => setSelectedCourse(selectedCourse === course.courseId ? null : course.courseId)}
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all ${
+                    selectedCourse === course.courseId 
+                      ? 'bg-blue-600 scale-110' 
+                      : 'bg-gray-400 hover:bg-gray-500'
+                  }`}
+                  title={course.name}
+                >
+                  {course.initials || course.name.substring(0, 3).toUpperCase()}
+                </button>
+              ))
+            ) : (
+              <div className="text-xs text-gray-500">No courses</div>
+            )}
           </div>
 
           {/* Join Class Button */}
