@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { extractYouTubeVideoId as getYouTubeVideoId } from '@/lib/youtube';
 
 const dynamoClient = new DynamoDBClient({ region: 'us-east-1' });
@@ -107,26 +107,92 @@ export async function GET(request: NextRequest) {
         
         try {
           console.log(`  👤 Fetching user details for studentId: ${sub.studentId}`);
-          const userResult = await docClient.send(new ScanCommand({
-            TableName: 'classcast-users',
-            FilterExpression: 'userId = :userId',
-            ExpressionAttributeValues: {
-              ':userId': sub.studentId
-            },
-            Limit: 1
-          }));
           
-          console.log(`  📊 User query result: ${userResult.Items?.length || 0} users found`);
+          // Try multiple lookup strategies since studentId might not match userId
+          let user = null;
           
-          if (userResult.Items && userResult.Items.length > 0) {
-            const user = userResult.Items[0];
+          // Strategy 1: Direct lookup with studentId as userId
+          try {
+            const directResult = await docClient.send(new GetCommand({
+              TableName: 'classcast-users',
+              Key: { userId: sub.studentId }
+            }));
+            user = directResult.Item;
+            if (user) {
+              console.log(`  ✓ Found user with direct lookup`);
+            }
+          } catch (directError) {
+            console.log(`  🔄 Direct lookup failed, trying scan...`);
+          }
+          
+          // Strategy 2: Scan by userId field
+          if (!user) {
+            try {
+              const scanResult = await docClient.send(new ScanCommand({
+                TableName: 'classcast-users',
+                FilterExpression: 'userId = :userId',
+                ExpressionAttributeValues: {
+                  ':userId': sub.studentId
+                },
+                Limit: 1
+              }));
+              user = scanResult.Items?.[0];
+              if (user) {
+                console.log(`  ✓ Found user with userId scan`);
+              }
+            } catch (scanError) {
+              console.log(`  🔄 userId scan failed, trying email scan...`);
+            }
+          }
+          
+          // Strategy 3: Scan by email field (in case studentId is actually an email)
+          if (!user) {
+            try {
+              const emailScanResult = await docClient.send(new ScanCommand({
+                TableName: 'classcast-users',
+                FilterExpression: 'email = :email',
+                ExpressionAttributeValues: {
+                  ':email': sub.studentId
+                },
+                Limit: 1
+              }));
+              user = emailScanResult.Items?.[0];
+              if (user) {
+                console.log(`  ✓ Found user with email scan`);
+              }
+            } catch (emailError) {
+              console.log(`  🔄 email scan failed, trying studentId field scan...`);
+            }
+          }
+          
+          // Strategy 4: Scan by studentId field (if it exists in users table)
+          if (!user) {
+            try {
+              const studentIdScanResult = await docClient.send(new ScanCommand({
+                TableName: 'classcast-users',
+                FilterExpression: 'studentId = :studentId',
+                ExpressionAttributeValues: {
+                  ':studentId': sub.studentId
+                },
+                Limit: 1
+              }));
+              user = studentIdScanResult.Items?.[0];
+              if (user) {
+                console.log(`  ✓ Found user with studentId field scan`);
+              }
+            } catch (studentIdError) {
+              console.log(`  ❌ All lookup strategies failed`);
+            }
+          }
+          
+          if (user) {
             studentName = user.firstName && user.lastName 
               ? `${user.firstName} ${user.lastName}` 
               : user.email || studentName;
             studentAvatar = user.avatar || user.profilePicture || user.profile?.avatar;
             console.log(`  ✓ Found user: ${studentName}, avatar: ${studentAvatar ? 'YES' : 'NO'}`);
           } else {
-            console.warn(`  ⚠️  No user found for studentId: ${sub.studentId}`);
+            console.warn(`  ⚠️  No user found for studentId: ${sub.studentId} after trying all strategies`);
           }
         } catch (userError) {
           console.error('  ❌ Error fetching student details:', userError);
@@ -173,24 +239,47 @@ export async function GET(request: NextRequest) {
     }));
 
     const posts = postsResult.Items || [];
-    posts
-      .filter(post => post.status !== 'deleted' && !post.hidden)
-      .forEach(post => {
-        feedItems.push({
-          id: post.postId,
-          type: 'community',
-          timestamp: post.createdAt,
-          content: post.content,
-          title: post.title,
-          author: {
-            id: post.userId,
-            name: post.userName || 'Unknown User',
-            avatar: post.userAvatar
-          },
-          likes: post.likeCount || 0,
-          comments: post.commentCount || 0
-        });
+    
+    // Process community posts with user lookup
+    for (const post of posts.filter(p => p.status !== 'deleted' && !p.hidden)) {
+      let authorName = post.userName || 'Unknown User';
+      let authorAvatar = post.userAvatar;
+      
+      // If we don't have user info in the post, try to fetch it
+      if (!post.userName || !post.userAvatar) {
+        try {
+          const userResult = await docClient.send(new GetCommand({
+            TableName: 'classcast-users',
+            Key: { userId: post.userId }
+          }));
+          
+          if (userResult.Item) {
+            const user = userResult.Item;
+            authorName = user.firstName && user.lastName 
+              ? `${user.firstName} ${user.lastName}` 
+              : user.email || authorName;
+            authorAvatar = user.avatar || user.profilePicture || user.profile?.avatar || authorAvatar;
+          }
+        } catch (userError) {
+          console.warn(`Failed to fetch user data for community post author ${post.userId}:`, userError);
+        }
+      }
+      
+      feedItems.push({
+        id: post.postId,
+        type: 'community',
+        timestamp: post.createdAt,
+        content: post.content,
+        title: post.title,
+        author: {
+          id: post.userId,
+          name: authorName,
+          avatar: authorAvatar
+        },
+        likes: post.likeCount || 0,
+        comments: post.commentCount || 0
       });
+    }
 
     // Fetch assignments from enrolled courses
     const assignmentsResult = await docClient.send(new ScanCommand({
