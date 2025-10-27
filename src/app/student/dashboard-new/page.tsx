@@ -485,7 +485,7 @@ const StudentDashboardNew: React.FC = () => {
           <div className="flex items-center space-x-2">
             {/* Community Button */}
             <button
-              onClick={() => router.push('/student/community')}
+              onClick={() => window.open('https://class-cast.com/community', '_blank')}
               className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
               title="Community"
             >
