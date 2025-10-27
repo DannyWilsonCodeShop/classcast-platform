@@ -212,7 +212,7 @@ const StudentDashboardNew: React.FC = () => {
     <StudentRoute>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
         {/* Top Bar */}
-        <div className="sticky top-0 z-50 bg-white border-b-2 border-purple-200 shadow-lg">
+        <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-100/80 via-blue-100/80 to-pink-100/80 backdrop-blur-sm border-b-2 border-purple-300/50 shadow-lg">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
             {/* ClassCast Logo */}
             <div className="flex items-center flex-shrink-0">
@@ -450,7 +450,7 @@ const StudentDashboardNew: React.FC = () => {
       )}
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-600 to-blue-600 border-t-2 border-white/20 px-4 py-3 z-50 shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400/90 via-blue-400/90 to-pink-400/90 backdrop-blur-md border-t-2 border-white/30 px-4 py-3 z-50 shadow-2xl">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
           {/* Course Buttons */}
           <div className="flex items-center space-x-2">
