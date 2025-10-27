@@ -212,7 +212,7 @@ const StudentDashboardNew: React.FC = () => {
     <StudentRoute>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
         {/* Top Bar */}
-        <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-blue-600 border-b-2 border-white/20 shadow-lg">
+        <div className="sticky top-0 z-50 bg-white border-b-2 border-purple-200 shadow-lg">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
             {/* ClassCast Logo */}
             <div className="flex items-center flex-shrink-0">
@@ -450,7 +450,7 @@ const StudentDashboardNew: React.FC = () => {
       )}
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-600 to-blue-600 border-t-2 border-white/20 px-4 py-3 z-50 shadow-2xl">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
           {/* Course Buttons */}
           <div className="flex items-center space-x-2">
@@ -486,7 +486,7 @@ const StudentDashboardNew: React.FC = () => {
             {/* Community Button */}
             <button
               onClick={() => router.push('/student/community')}
-              className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center text-white transition-colors shadow-md"
+              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
               title="Community"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -497,7 +497,7 @@ const StudentDashboardNew: React.FC = () => {
             {/* Messages Button */}
             <button
               onClick={() => router.push('/student/messages')}
-              className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center text-white transition-colors shadow-md"
+              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
               title="Messages"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -508,7 +508,7 @@ const StudentDashboardNew: React.FC = () => {
             {/* Notifications Button */}
             <button
               onClick={() => router.push('/student/notifications')}
-              className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center text-white transition-colors shadow-md relative"
+              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm relative"
               title="Notifications"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -523,7 +523,7 @@ const StudentDashboardNew: React.FC = () => {
             {/* Join Class Button */}
             <button
               onClick={() => setShowJoinClassPopup(true)}
-              className="w-12 h-12 rounded-full bg-gray-500 hover:bg-gray-600 flex items-center justify-center text-white transition-colors shadow-md"
+              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
               title="Join Class"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -535,7 +535,7 @@ const StudentDashboardNew: React.FC = () => {
           {/* Profile Avatar */}
           <button
             onClick={() => router.push('/student/profile')}
-            className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+            className="w-12 h-12 rounded-full bg-white/30 hover:bg-white/40 flex items-center justify-center overflow-hidden shadow-lg backdrop-blur-sm hover:shadow-xl transition-all border-2 border-white/20"
           >
             {user?.avatar && !user.avatar.includes('placeholder') ? (
               <img 
@@ -544,7 +544,7 @@ const StudentDashboardNew: React.FC = () => {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-gray-600 font-semibold text-lg">
+              <span className="text-white font-bold text-lg">
                 {user?.firstName?.[0] || user?.email?.[0] || 'U'}
               </span>
             )}
