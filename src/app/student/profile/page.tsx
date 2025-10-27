@@ -70,6 +70,8 @@ const StudentProfilePage: React.FC = () => {
   const [showNotificationPrefs, setShowNotificationPrefs] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [studyBuddies, setStudyBuddies] = useState<any[]>([]);
+  const [followers, setFollowers] = useState<any[]>([]);
 
   // Popular emojis for avatars
   const emojiOptions = [
@@ -118,6 +120,9 @@ const StudentProfilePage: React.FC = () => {
       
       // Load engagement statistics
       loadEngagementStats(user.id);
+      
+      // Load Study Buddy connections
+      loadStudyBuddyConnections(user.id);
     }
   }, [user, profile]);
 
@@ -137,6 +142,63 @@ const StudentProfilePage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading engagement stats:', error);
+    }
+  };
+
+  // Load Study Buddy connections
+  const loadStudyBuddyConnections = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/connections?userId=${userId}`);
+      const data = await response.json();
+      
+      if (data.success && data.connections) {
+        const following: any[] = [];
+        const followers: any[] = [];
+        
+        // Separate connections based on who initiated them
+        data.connections.forEach((conn: any) => {
+          if (conn.status === 'accepted') {
+            if (conn.requesterId === userId) {
+              following.push(conn.requestedId);
+            } else if (conn.requestedId === userId) {
+              followers.push(conn.requesterId);
+            }
+          }
+        });
+        
+        // Load user details for Study Buddies (following)
+        const followingUsers = await Promise.all(
+          following.map(async (id) => {
+            try {
+              const userResponse = await fetch(`/api/profile?userId=${id}`);
+              const userData = await userResponse.json();
+              return userData.success ? userData.data : null;
+            } catch (err) {
+              console.error(`Error fetching user ${id}:`, err);
+              return null;
+            }
+          })
+        );
+        
+        // Load user details for followers
+        const followerUsers = await Promise.all(
+          followers.map(async (id) => {
+            try {
+              const userResponse = await fetch(`/api/profile?userId=${id}`);
+              const userData = await userResponse.json();
+              return userData.success ? userData.data : null;
+            } catch (err) {
+              console.error(`Error fetching user ${id}:`, err);
+              return null;
+            }
+          })
+        );
+        
+        setStudyBuddies(followingUsers.filter(u => u !== null));
+        setFollowers(followerUsers.filter(u => u !== null));
+      }
+    } catch (error) {
+      console.error('Error loading Study Buddy connections:', error);
     }
   };
 
@@ -695,6 +757,93 @@ const StudentProfilePage: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Study Buddies Section */}
+            <div className="border-t border-gray-200 p-4 sm:p-6">
+              <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">👥 Study Buddies</h3>
+              
+              {/* Study Buddy Stats */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-blue-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">{studyBuddies.length}</div>
+                  <div className="text-xs text-gray-600 mt-1">Following</div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">{followers.length}</div>
+                  <div className="text-xs text-gray-600 mt-1">Followers</div>
+                </div>
+              </div>
+
+              {/* Study Buddies List */}
+              {studyBuddies.length > 0 && (
+                <div className="mb-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Your Study Buddies</h4>
+                  <div className="flex flex-wrap gap-3">
+                    {studyBuddies.map((buddy) => (
+                      <div
+                        key={buddy.id}
+                        onClick={() => router.push(`/student/peer-profile/${buddy.id}`)}
+                        className="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {buddy.avatar && !buddy.avatar.includes('placeholder') ? (
+                            <img 
+                              src={buddy.avatar} 
+                              alt={buddy.firstName || 'User'} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-gray-600 text-xs font-semibold">
+                              {buddy.firstName?.[0] || buddy.email?.[0] || 'U'}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm text-gray-900">
+                          {buddy.firstName && buddy.lastName 
+                            ? `${buddy.firstName} ${buddy.lastName}` 
+                            : buddy.email || 'User'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Followers List */}
+              {followers.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Study Buddies Following You</h4>
+                  <div className="flex flex-wrap gap-3">
+                    {followers.map((follower) => (
+                      <div
+                        key={follower.id}
+                        onClick={() => router.push(`/student/peer-profile/${follower.id}`)}
+                        className="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200"
+                      >
+                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {follower.avatar && !follower.avatar.includes('placeholder') ? (
+                            <img 
+                              src={follower.avatar} 
+                              alt={follower.firstName || 'User'} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-gray-600 text-xs font-semibold">
+                              {follower.firstName?.[0] || follower.email?.[0] || 'U'}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-sm text-gray-900">
+                          {follower.firstName && follower.lastName 
+                            ? `${follower.firstName} ${follower.lastName}` 
+                            : follower.email || 'User'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Engagement Statistics Section - Enhanced */}

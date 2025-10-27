@@ -28,12 +28,65 @@ const StudentDashboardNew: React.FC = () => {
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
   const [showJoinClassPopup, setShowJoinClassPopup] = useState(false);
   const [classAssignments, setClassAssignments] = useState<FeedItem[]>([]);
+  const [connections, setConnections] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user?.id) {
       fetchFeed();
+      loadConnections();
     }
   }, [user]);
+
+  const loadConnections = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const response = await fetch(`/api/connections?userId=${user.id}`);
+      const data = await response.json();
+      
+      if (data.success && data.connections) {
+        // Create a set of all connected user IDs (both requested and accepted)
+        const connectedIds = new Set<string>();
+        data.connections.forEach((conn: any) => {
+          if (conn.status === 'accepted') {
+            // Add both users to the set
+            if (conn.requesterId !== user.id) connectedIds.add(conn.requesterId);
+            if (conn.requestedId !== user.id) connectedIds.add(conn.requestedId);
+          }
+        });
+        setConnections(connectedIds);
+      }
+    } catch (error) {
+      console.error('Error loading connections:', error);
+    }
+  };
+
+  const handleStudyBuddy = async (targetUserId: string) => {
+    if (!user?.id || !targetUserId) return;
+    
+    try {
+      const response = await fetch('/api/connections', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          requesterId: user.id,
+          requestedId: targetUserId,
+          status: 'accepted' // Auto-accept for simplicity (or use 'pending' for approval)
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Update local state
+        setConnections(prev => new Set(prev).add(targetUserId));
+      } else {
+        console.error('Failed to add study buddy:', data.error);
+      }
+    } catch (error) {
+      console.error('Error adding study buddy:', error);
+    }
+  };
 
   const fetchFeed = async () => {
     try {
@@ -262,7 +315,16 @@ const StudentDashboardNew: React.FC = () => {
               {filteredFeed
                 .filter(item => item.type === 'video' || item.type === 'community')
                 .map((item) => (
-                  <FeedItemComponent key={item.id} item={item} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchFeed} assignmentId={item.assignmentId} />
+                  <FeedItemComponent 
+                    key={item.id} 
+                    item={item} 
+                    formatTimestamp={formatTimestamp} 
+                    currentUserId={user?.id} 
+                    onDelete={fetchFeed} 
+                    assignmentId={item.assignmentId}
+                    onStudyBuddy={handleStudyBuddy}
+                    isConnected={connections.has(item.authorId || '')}
+                  />
                 ))}
               
               {/* Empty state if no videos/posts */}
@@ -376,67 +438,93 @@ const StudentDashboardNew: React.FC = () => {
         </div>
       )}
 
-      {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50 shadow-lg">
+      {/* Bottom Navigation Bar - Enhanced */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-50 via-white to-blue-50 border-t-2 border-blue-200 px-4 py-4 z-50 shadow-2xl">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          {/* Course Buttons (up to 3) */}
-          <div className="flex items-center space-x-2">
+          {/* Left: Course Buttons with Gradient */}
+          <div className="flex items-center space-x-3">
             {console.log('🏫 Courses for bottom nav:', courses)}
             {courses.length > 0 ? (
               courses.slice(0, 3).map((course) => (
                 <button
                   key={course.courseId}
                   onClick={() => handleCourseClick(course.courseId)}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md relative ${
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xs transition-all shadow-lg hover:shadow-xl relative ${
                     selectedCourse === course.courseId 
-                      ? 'bg-blue-600 scale-110' 
-                      : 'bg-gray-400 hover:bg-gray-500'
+                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 scale-110 ring-2 ring-blue-400 ring-offset-2' 
+                      : 'bg-gradient-to-br from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600'
                   }`}
                   title={course.name}
                 >
-                  {course.initials || course.name.substring(0, 3).toUpperCase()}
-                  {/* Notification indicator */}
-                  {course.unreadCount > 0 && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {course.unreadCount > 9 ? '9+' : course.unreadCount}
+                  <div className="text-center">
+                    <div className="text-sm leading-none mb-0.5">
+                      {course.initials || course.name.substring(0, 3).toUpperCase()}
                     </div>
+                  </div>
+                  
+                  {/* Notification indicator with pulse animation */}
+                  {course.unreadCount > 0 && (
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                      <span className="font-bold">{course.unreadCount > 9 ? '9+' : course.unreadCount}</span>
+                    </div>
+                  )}
+                  
+                  {/* Active indicator pulse */}
+                  {selectedCourse === course.courseId && (
+                    <div className="absolute inset-0 rounded-2xl animate-ping bg-blue-400 opacity-20" />
                   )}
                 </button>
               ))
             ) : (
-              <div className="text-xs text-gray-500 px-2">No courses</div>
+              <div className="text-xs text-gray-500 px-2 bg-white rounded-lg py-2 border border-gray-200">
+                No courses
+              </div>
             )}
           </div>
 
-          {/* Join Class Button */}
+          {/* Center: Join Class Button with Gradient */}
           <button
             onClick={() => setShowJoinClassPopup(true)}
-            className="w-12 h-12 rounded-full bg-gray-500 hover:bg-gray-600 flex items-center justify-center text-white transition-colors shadow-md"
+            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 flex items-center justify-center text-white transition-all shadow-lg hover:shadow-xl hover:scale-110"
             title="Join Class"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
+            {/* Subtle ring animation */}
+            <div className="absolute inset-0 rounded-2xl border-2 border-blue-400 animate-pulse opacity-50" />
           </button>
 
-          {/* Profile Avatar */}
+          {/* Right: Profile Avatar with Gradient Background */}
           <button
             onClick={() => router.push('/student/profile')}
-            className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-110 border-2 border-blue-300 relative group"
           >
             {user?.avatar && !user.avatar.includes('placeholder') ? (
-              <img 
-                src={user.avatar} 
-                alt={user.firstName || 'Profile'} 
-                className="w-full h-full object-cover"
-              />
+              <>
+                <img 
+                  src={user.avatar} 
+                  alt={user.firstName || 'Profile'} 
+                  className="w-full h-full object-cover rounded-2xl"
+                />
+                {/* Overlay on hover */}
+                <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-20 transition-opacity rounded-2xl" />
+              </>
             ) : (
-              <span className="text-gray-600 font-semibold text-lg">
+              <span className="text-blue-700 font-bold text-xl">
                 {user?.firstName?.[0] || user?.email?.[0] || 'U'}
               </span>
             )}
+            
+            {/* Notification badge */}
+            <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+            </div>
           </button>
         </div>
+        
+        {/* Decorative elements */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-50/50 to-transparent pointer-events-none" />
       </div>
     </StudentRoute>
   );
@@ -516,16 +604,16 @@ const VideoThumbnailCard: React.FC<{ video: FeedItem }> = ({ video }) => {
 };
 
 // Feed Item Component
-const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void; assignmentId?: string }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
+const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void; assignmentId?: string; onStudyBuddy?: (userId: string) => void; isConnected?: boolean }> = ({ item, formatTimestamp, currentUserId, onDelete, onStudyBuddy, isConnected }) => {
   console.log('🔄 FeedItemComponent rendering:', { type: item.type, title: item.title });
   
   if (item.type === 'video') {
     console.log('🎬 Rendering VideoFeedItem for:', item.title);
-    return <VideoFeedItem item={item} formatTimestamp={formatTimestamp} currentUserId={currentUserId} onDelete={onDelete} />;
+    return <VideoFeedItem item={item} formatTimestamp={formatTimestamp} currentUserId={currentUserId} onDelete={onDelete} onStudyBuddy={onStudyBuddy} isConnected={isConnected} />;
   }
   
   if (item.type === 'community') {
-    return <CommunityFeedItem item={item} formatTimestamp={formatTimestamp} />;
+    return <CommunityFeedItem item={item} formatTimestamp={formatTimestamp} onStudyBuddy={onStudyBuddy} isConnected={isConnected} />;
   }
   
   if (item.type === 'assignment') {
@@ -536,7 +624,7 @@ const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 };
 
 // Video Feed Item
-const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void }> = ({ item, formatTimestamp, currentUserId, onDelete }) => {
+const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void; onStudyBuddy?: (userId: string) => void; isConnected?: boolean }> = ({ item, formatTimestamp, currentUserId, onDelete, onStudyBuddy, isConnected }) => {
   const { user } = useAuth();
   console.log('🚀 VideoFeedItem COMPONENT STARTED for:', item.title);
   
@@ -788,6 +876,26 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
               {item.courseInitials}
             </span>
           )}
+          {/* Study Buddy Button - only show if not current user */}
+          {item.author?.id && item.author.id !== currentUserId && onStudyBuddy && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onStudyBuddy(item.author!.id!);
+              }}
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all font-medium text-sm ${
+                isConnected 
+                  ? 'bg-green-500 hover:bg-green-600 text-white shadow-md' 
+                  : 'bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg'
+              }`}
+              title={isConnected ? 'Study Buddy' : 'Connect as Study Buddy'}
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              </svg>
+              <span>{isConnected ? 'Connected' : 'Connect'}</span>
+            </button>
+          )}
           {isMyVideo && (
             <button
               onClick={() => setShowDeleteConfirm(true)}
@@ -984,7 +1092,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
 };
 
 // Community Feed Item
-const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string }> = ({ item, formatTimestamp }) => {
+const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; onStudyBuddy?: (userId: string) => void; isConnected?: boolean }> = ({ item, formatTimestamp, onStudyBuddy, isConnected }) => {
   const { user } = useAuth();
   const router = useRouter();
   const [imageError, setImageError] = React.useState(false);
@@ -1082,9 +1190,31 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
             </span>
           )}
         </div>
-        <div className="flex-1">
-          <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
-          <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
+        <div className="flex-1 flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
+            <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
+          </div>
+          {/* Study Buddy Button - only show if not current user */}
+          {item.author?.id && item.author.id !== user?.id && onStudyBuddy && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onStudyBuddy(item.author!.id!);
+              }}
+              className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all font-medium text-sm ${
+                isConnected 
+                  ? 'bg-green-500 hover:bg-green-600 text-white shadow-md' 
+                  : 'bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg'
+              }`}
+              title={isConnected ? 'Study Buddy' : 'Connect as Study Buddy'}
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+              </svg>
+              <span>{isConnected ? 'Connected' : 'Connect'}</span>
+            </button>
+          )}
         </div>
       </div>
 
