@@ -210,9 +210,9 @@ const StudentDashboardNew: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
         {/* Top Bar */}
-        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-600 to-blue-600 border-b-2 border-white/20 shadow-lg">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
             {/* ClassCast Logo */}
             <div className="flex items-center flex-shrink-0">
@@ -229,9 +229,9 @@ const StudentDashboardNew: React.FC = () => {
             {/* Community Post Bar */}
             <button
               onClick={() => setShowPostComposer(!showPostComposer)}
-              className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-left text-gray-500 text-sm hover:bg-gray-200 transition-colors"
+              className="flex-1 px-4 py-2 bg-white/90 rounded-full text-left text-gray-600 text-sm hover:bg-white transition-all shadow-md"
             >
-              Post to community...
+              ✨ Post to community...
             </button>
 
             {/* School Logo */}
@@ -280,17 +280,18 @@ const StudentDashboardNew: React.FC = () => {
           )}
         </div>
 
-        {/* Feed */}
+          {/* Feed */}
         <div className="max-w-2xl mx-auto pb-20">
           {/* Active Filter Indicator */}
           {selectedCourse && (
-            <div className="sticky top-[57px] z-40 bg-blue-50 border-b border-blue-200 px-4 py-2 flex items-center justify-between">
-              <span className="text-sm text-blue-700 font-medium">
+            <div className="sticky top-[57px] z-40 bg-gradient-to-r from-indigo-500 to-purple-500 border-b-2 border-white/20 px-4 py-3 flex items-center justify-between shadow-lg">
+              <span className="text-sm text-white font-semibold flex items-center gap-2">
+                <span className="text-lg">📚</span>
                 Showing: {courses.find(c => c.courseId === selectedCourse)?.name}
               </span>
               <button
                 onClick={() => setSelectedCourse(null)}
-                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                className="text-white hover:bg-white/20 px-3 py-1 rounded-lg text-sm font-medium transition-colors"
               >
                 Show All
               </button>
@@ -299,15 +300,25 @@ const StudentDashboardNew: React.FC = () => {
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-gradient-to-r from-purple-500 via-blue-500 to-pink-500"></div>
             </div>
           ) : feed.length === 0 ? (
             <div className="text-center py-12 px-4">
-              <p className="text-gray-500">No posts yet. Start by posting something!</p>
+              <div className="inline-block p-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full mb-4">
+                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <p className="text-gray-600 font-medium">No posts yet. Start by posting something!</p>
             </div>
           ) : filteredFeed.length === 0 ? (
             <div className="text-center py-12 px-4">
-              <p className="text-gray-500">No posts in this course yet.</p>
+              <div className="inline-block p-6 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-full mb-4">
+                <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+                </svg>
+              </div>
+              <p className="text-gray-600 font-medium">No posts in this course yet.</p>
             </div>
           ) : (
             <div className="space-y-0">
@@ -854,7 +865,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   }, [isYouTube]);
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-gradient-to-r from-white via-purple-50/30 to-blue-50/30 border-b-2 border-purple-200/50 shadow-md mb-2">
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div 
@@ -886,7 +897,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
         </div>
         <div className="flex items-center space-x-2">
           {item.courseInitials && (
-            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">
+            <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-semibold rounded-full shadow-lg">
               {item.courseInitials}
             </span>
           )}
@@ -1185,11 +1196,11 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 px-4 py-4">
+    <div className="bg-gradient-to-r from-white via-blue-50/30 to-pink-50/30 border-b-2 border-blue-200/50 px-4 py-4 shadow-md mb-2">
       {/* Header */}
       <div 
         onClick={() => item.author?.id && handleUserClick(item.author.id)}
-        className="flex items-center space-x-3 mb-3 cursor-pointer hover:bg-gray-50 rounded-lg p-1 -m-1 transition-colors"
+        className="flex items-center space-x-3 mb-3 cursor-pointer hover:bg-white/50 rounded-lg p-1 -m-1 transition-colors"
       >
         <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
           {isEmoji ? (
