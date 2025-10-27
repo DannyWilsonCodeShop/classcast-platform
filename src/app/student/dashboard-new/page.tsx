@@ -838,6 +838,28 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
     }
   };
 
+  // Track video view when component mounts (dashboard display)
+  React.useEffect(() => {
+    const trackView = async () => {
+      if (!item.id || !user?.id) return;
+      
+      try {
+        console.log('📊 Tracking view for video:', item.id, 'user:', user.id);
+        await fetch(`/api/videos/${item.id}/view`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: user.id })
+        });
+      } catch (error) {
+        console.error('Error tracking view:', error);
+      }
+    };
+
+    // Track view after a short delay to ensure video is actually viewed
+    const timer = setTimeout(trackView, 2000);
+    return () => clearTimeout(timer);
+  }, [item.id, user?.id]);
+
   // Auto-play video when in view (Intersection Observer)
   React.useEffect(() => {
     if (!videoRef.current || isYouTube) return;
