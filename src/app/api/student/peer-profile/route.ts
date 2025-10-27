@@ -199,11 +199,21 @@ export async function GET(request: NextRequest) {
 
     // Format the response to match what the component expects
     const stats = {
-      totalLikes: peerProfile.totalLikesReceived,
-      averageRating: peerProfile.averageRating,
-      totalVideos: peerProfile.totalVideosSubmitted,
-      totalResponses: peerProfile.totalResponsesGiven,
-      totalViews: peerProfile.totalViewsReceived,
+      videoStats: {
+        totalVideos: peerProfile.totalVideosSubmitted,
+        totalViews: peerProfile.totalViewsReceived,
+        totalLikes: peerProfile.totalLikesReceived,
+        averageRating: peerProfile.averageRating,
+        totalRatings: peerProfile.totalRatingsReceived,
+      },
+      peerReviewStats: {
+        totalResponses: peerProfile.totalResponsesGiven,
+        averageResponseLength: 0, // Calculate from responses if needed
+      },
+      engagementStats: {
+        totalLikesReceived: peerProfile.totalLikesReceived,
+        totalViewsReceived: peerProfile.totalViewsReceived,
+      },
       recentActivity: peerProfile.recentActivity.map(activity => ({
         date: activity.timestamp,
         type: activity.type === 'video_submitted' ? 'video' : 'response',
