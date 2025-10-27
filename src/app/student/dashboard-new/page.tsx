@@ -438,93 +438,107 @@ const StudentDashboardNew: React.FC = () => {
         </div>
       )}
 
-      {/* Bottom Navigation Bar - Enhanced */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-blue-50 via-white to-blue-50 border-t-2 border-blue-200 px-4 py-4 z-50 shadow-2xl">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          {/* Left: Course Buttons with Gradient */}
-          <div className="flex items-center space-x-3">
+      {/* Bottom Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-50 shadow-lg">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
+          {/* Course Buttons */}
+          <div className="flex items-center space-x-2">
             {console.log('🏫 Courses for bottom nav:', courses)}
             {courses.length > 0 ? (
               courses.slice(0, 3).map((course) => (
                 <button
                   key={course.courseId}
                   onClick={() => handleCourseClick(course.courseId)}
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white font-bold text-xs transition-all shadow-lg hover:shadow-xl relative ${
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md relative ${
                     selectedCourse === course.courseId 
-                      ? 'bg-gradient-to-br from-blue-600 to-blue-700 scale-110 ring-2 ring-blue-400 ring-offset-2' 
-                      : 'bg-gradient-to-br from-gray-400 to-gray-500 hover:from-gray-500 hover:to-gray-600'
+                      ? 'bg-blue-600 scale-110' 
+                      : 'bg-gray-400 hover:bg-gray-500'
                   }`}
                   title={course.name}
                 >
-                  <div className="text-center">
-                    <div className="text-sm leading-none mb-0.5">
-                      {course.initials || course.name.substring(0, 3).toUpperCase()}
-                    </div>
-                  </div>
-                  
-                  {/* Notification indicator with pulse animation */}
+                  {course.initials || course.name.substring(0, 3).toUpperCase()}
+                  {/* Notification indicator */}
                   {course.unreadCount > 0 && (
-                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                      <span className="font-bold">{course.unreadCount > 9 ? '9+' : course.unreadCount}</span>
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      {course.unreadCount > 9 ? '9+' : course.unreadCount}
                     </div>
-                  )}
-                  
-                  {/* Active indicator pulse */}
-                  {selectedCourse === course.courseId && (
-                    <div className="absolute inset-0 rounded-2xl animate-ping bg-blue-400 opacity-20" />
                   )}
                 </button>
               ))
             ) : (
-              <div className="text-xs text-gray-500 px-2 bg-white rounded-lg py-2 border border-gray-200">
-                No courses
-              </div>
+              <div className="text-xs text-gray-500 px-2">No courses</div>
             )}
           </div>
 
-          {/* Center: Join Class Button with Gradient */}
-          <button
-            onClick={() => setShowJoinClassPopup(true)}
-            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 flex items-center justify-center text-white transition-all shadow-lg hover:shadow-xl hover:scale-110"
-            title="Join Class"
-          >
-            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            {/* Subtle ring animation */}
-            <div className="absolute inset-0 rounded-2xl border-2 border-blue-400 animate-pulse opacity-50" />
-          </button>
+          {/* Center Buttons */}
+          <div className="flex items-center space-x-2">
+            {/* Community Button */}
+            <button
+              onClick={() => router.push('/student/community')}
+              className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center text-white transition-colors shadow-md"
+              title="Community"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </button>
 
-          {/* Right: Profile Avatar with Gradient Background */}
+            {/* Messages Button */}
+            <button
+              onClick={() => router.push('/student/messages')}
+              className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center text-white transition-colors shadow-md"
+              title="Messages"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </button>
+
+            {/* Notifications Button */}
+            <button
+              onClick={() => router.push('/student/notifications')}
+              className="w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center text-white transition-colors shadow-md relative"
+              title="Notifications"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {/* Notification badge */}
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                <div className="w-2 h-2 bg-white rounded-full" />
+              </div>
+            </button>
+
+            {/* Join Class Button */}
+            <button
+              onClick={() => setShowJoinClassPopup(true)}
+              className="w-12 h-12 rounded-full bg-gray-500 hover:bg-gray-600 flex items-center justify-center text-white transition-colors shadow-md"
+              title="Join Class"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Profile Avatar */}
           <button
             onClick={() => router.push('/student/profile')}
-            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-110 border-2 border-blue-300 relative group"
+            className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden shadow-md hover:shadow-lg transition-shadow"
           >
             {user?.avatar && !user.avatar.includes('placeholder') ? (
-              <>
-                <img 
-                  src={user.avatar} 
-                  alt={user.firstName || 'Profile'} 
-                  className="w-full h-full object-cover rounded-2xl"
-                />
-                {/* Overlay on hover */}
-                <div className="absolute inset-0 bg-blue-600 opacity-0 group-hover:opacity-20 transition-opacity rounded-2xl" />
-              </>
+              <img 
+                src={user.avatar} 
+                alt={user.firstName || 'Profile'} 
+                className="w-full h-full object-cover"
+              />
             ) : (
-              <span className="text-blue-700 font-bold text-xl">
+              <span className="text-gray-600 font-semibold text-lg">
                 {user?.firstName?.[0] || user?.email?.[0] || 'U'}
               </span>
             )}
-            
-            {/* Notification badge */}
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            </div>
           </button>
         </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-50/50 to-transparent pointer-events-none" />
       </div>
     </StudentRoute>
   );
