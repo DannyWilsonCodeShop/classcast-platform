@@ -1002,7 +1002,12 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
 
       {/* Title & Actions */}
       <div className="px-4 py-4">
-        <p className="font-medium text-gray-900 mb-3">{item.title}</p>
+        <button 
+          onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed`)}
+          className="font-medium text-gray-900 hover:text-blue-600 transition-colors text-left w-full mb-3"
+        >
+          {item.title}
+        </button>
         <div className="flex items-center space-x-6 text-gray-600">
           <button 
             onClick={handleLike}
