@@ -8,6 +8,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
 
+    console.log('📊 Fetching peer profile for studentId:', studentId);
+
     if (!studentId) {
       return NextResponse.json(
         { success: false, error: 'Student ID is required' },
@@ -16,38 +18,56 @@ export async function GET(request: NextRequest) {
     }
 
     // Get student's video submissions
-    const videosResult = await dynamodbService.query({
-      TableName: 'classcast-submissions',
-      IndexName: 'student-index',
-      KeyConditionExpression: 'studentId = :studentId',
-      ExpressionAttributeValues: {
-        ':studentId': studentId
-      }
-    });
+    let videosResult;
+    try {
+      videosResult = await dynamodbService.query({
+        TableName: 'classcast-submissions',
+        IndexName: 'student-index',
+        KeyConditionExpression: 'studentId = :studentId',
+        ExpressionAttributeValues: {
+          ':studentId': studentId
+        }
+      });
+      console.log('📹 Found submissions:', videosResult.Items?.length || 0);
+    } catch (error) {
+      console.error('Error querying submissions:', error);
+      videosResult = { Items: [] };
+    }
 
-    // Get student's interactions (likes given)
-    const likesGivenResult = await dynamodbService.query({
-      TableName: 'classcast-peer-interactions',
-      IndexName: 'user-index',
-      KeyConditionExpression: 'userId = :userId',
-      FilterExpression: 'action = :action',
-      ExpressionAttributeValues: {
-        ':userId': studentId,
-        ':action': 'like'
-      }
-    });
+    // Get student's interactions (likes given) - optional, may not exist
+    let likesGivenResult = { Count: 0, Items: [] };
+    let ratingsGivenResult = { Count: 0, Items: [] };
+    
+    try {
+      likesGivenResult = await dynamodbService.query({
+        TableName: 'classcast-peer-interactions',
+        IndexName: 'user-index',
+        KeyConditionExpression: 'userId = :userId',
+        FilterExpression: 'action = :action',
+        ExpressionAttributeValues: {
+          ':userId': studentId,
+          ':action': 'like'
+        }
+      });
+    } catch (error) {
+      console.log('⚠️ Could not query interactions (table may not exist)');
+    }
 
-    // Get student's ratings given
-    const ratingsGivenResult = await dynamodbService.query({
-      TableName: 'classcast-peer-interactions',
-      IndexName: 'user-index',
-      KeyConditionExpression: 'userId = :userId',
-      FilterExpression: 'action = :action',
-      ExpressionAttributeValues: {
-        ':userId': studentId,
-        ':action': 'rate'
-      }
-    });
+    try {
+      // Get student's ratings given
+      ratingsGivenResult = await dynamodbService.query({
+        TableName: 'classcast-peer-interactions',
+        IndexName: 'user-index',
+        KeyConditionExpression: 'userId = :userId',
+        FilterExpression: 'action = :action',
+        ExpressionAttributeValues: {
+          ':userId': studentId,
+          ':action': 'rate'
+        }
+      });
+    } catch (error) {
+      console.log('⚠️ Could not query ratings (table may not exist)');
+    }
 
     // Get stats directly from video submissions (more reliable)
     const videos = videosResult.Items || [];
@@ -77,15 +97,21 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Get student's responses given
-    const responsesResult = await dynamodbService.query({
-      TableName: 'classcast-peer-responses',
-      IndexName: 'reviewer-index',
-      KeyConditionExpression: 'reviewerId = :reviewerId',
-      ExpressionAttributeValues: {
-        ':reviewerId': studentId
-      }
-    });
+    // Get student's responses given - optional, may not exist
+    let responsesResult = { Count: 0 };
+    
+    try {
+      responsesResult = await dynamodbService.query({
+        TableName: 'classcast-peer-responses',
+        IndexName: 'reviewer-index',
+        KeyConditionExpression: 'reviewerId = :reviewerId',
+        ExpressionAttributeValues: {
+          ':reviewerId': studentId
+        }
+      });
+    } catch (error) {
+      console.log('⚠️ Could not query peer responses (table may not exist)');
+    }
 
     // Calculate peer engagement score
     const totalVideosSubmitted = videos.length;
