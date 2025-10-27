@@ -49,9 +49,8 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Get interactions on student's videos (likes received)
+    // Get stats directly from video submissions (more reliable)
     const videos = videosResult.Items || [];
-    const videoIds = videos.map(v => v.id);
     
     let totalLikesReceived = 0;
     let totalRatingsReceived = 0;
@@ -59,53 +58,24 @@ export async function GET(request: NextRequest) {
     let ratingSum = 0;
     const ratingDistribution = { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 };
 
-    for (const videoId of videoIds) {
-      const likesResult = await dynamodbService.query({
-        TableName: 'classcast-peer-interactions',
-        IndexName: 'video-index',
-        KeyConditionExpression: 'videoId = :videoId',
-        FilterExpression: 'action = :action',
-        ExpressionAttributeValues: {
-          ':videoId': videoId,
-          ':action': 'like'
-        }
-      });
-
-      const ratingsResult = await dynamodbService.query({
-        TableName: 'classcast-peer-interactions',
-        IndexName: 'video-index',
-        KeyConditionExpression: 'videoId = :videoId',
-        FilterExpression: 'action = :action',
-        ExpressionAttributeValues: {
-          ':videoId': videoId,
-          ':action': 'rate'
-        }
-      });
-
-      const viewsResult = await dynamodbService.query({
-        TableName: 'classcast-peer-interactions',
-        IndexName: 'video-index',
-        KeyConditionExpression: 'videoId = :videoId',
-        FilterExpression: 'action = :action',
-        ExpressionAttributeValues: {
-          ':videoId': videoId,
-          ':action': 'view'
-        }
-      });
-
-      totalLikesReceived += likesResult.Count || 0;
-      totalRatingsReceived += ratingsResult.Count || 0;
-      totalViewsReceived += viewsResult.Count || 0;
-
-      // Process ratings
-      (ratingsResult.Items || []).forEach(rating => {
-        const ratingValue = rating.rating;
+    // Aggregate stats from submissions directly
+    videos.forEach((video: any) => {
+      // Add views from the submission itself
+      totalViewsReceived += video.views || 0;
+      
+      // Add likes from the submission itself
+      totalLikesReceived += video.likes || 0;
+      
+      // Add ratings from the submission itself
+      if (video.rating && video.rating > 0) {
+        totalRatingsReceived++;
+        ratingSum += video.rating;
+        const ratingValue = Math.round(video.rating);
         if (ratingValue >= 1 && ratingValue <= 5) {
           ratingDistribution[ratingValue.toString() as keyof typeof ratingDistribution]++;
-          ratingSum += ratingValue;
         }
-      });
-    }
+      }
+    });
 
     // Get student's responses given
     const responsesResult = await dynamodbService.query({
