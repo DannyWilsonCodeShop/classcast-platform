@@ -846,86 +846,40 @@ const StudentProfilePage: React.FC = () => {
               )}
             </div>
 
-            {/* Engagement Statistics Section - Enhanced */}
+            {/* Activity & Engagement Section - Simplified to 4 Key Metrics */}
             {profile?.engagementStats && (
               <div className="border-t border-gray-200 p-4 sm:p-6">
-                <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">📊 Your Performance Stats</h3>
+                <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">📊 Activity & Engagement</h3>
                 
-                {/* Video Performance Stats */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">🎥 Video Performance</h4>
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-blue-600">{profile.engagementStats.videoStats.totalVideos}</div>
-                        <div className="text-xs text-gray-600">Videos Created</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-green-600">{profile.engagementStats.videoStats.totalViews}</div>
-                        <div className="text-xs text-gray-600">Total Views</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-red-600">{profile.engagementStats.videoStats.totalLikes}</div>
-                        <div className="text-xs text-gray-600">Total Likes</div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 mt-3">
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-yellow-600">
-                          {profile.engagementStats.videoStats.averageRating > 0 
-                            ? profile.engagementStats.videoStats.averageRating.toFixed(1) 
-                            : '0.0'
-                          } ⭐
-                        </div>
-                        <div className="text-xs text-gray-600">Average Rating</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-purple-600">{profile.engagementStats.videoStats.totalRatings}</div>
-                        <div className="text-xs text-gray-600">Ratings Received</div>
-                      </div>
-                    </div>
+                {/* 4 Key Metrics in a Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {/* Videos Created */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center border border-blue-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-600">{profile.engagementStats.videoStats.totalVideos}</div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Videos</div>
                   </div>
-                </div>
-
-                {/* Peer Review Stats */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">👥 Peer Engagement</h4>
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4">
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-green-600">{profile.engagementStats.peerReviewStats.totalResponses}</div>
-                        <div className="text-xs text-gray-600">Peer Responses</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-blue-600">
-                          {Math.round(profile.engagementStats.peerReviewStats.averageResponseLength)}
-                        </div>
-                        <div className="text-xs text-gray-600">Avg Response Length</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-lg sm:text-xl font-bold text-purple-600">{profile.engagementStats.engagementStats.totalCommentsReceived}</div>
-                        <div className="text-xs text-gray-600">Comments Received</div>
-                      </div>
-                    </div>
+                  
+                  {/* Total Views */}
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center border border-green-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-green-600">{profile.engagementStats.videoStats.totalViews}</div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Views</div>
                   </div>
-                </div>
-
-                {/* Overall Engagement Summary */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">🌟 Overall Engagement</h4>
-                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
-                    <div className="text-center">
-                      <div className="text-2xl sm:text-3xl font-bold text-purple-600 mb-1">
-                        {profile.engagementStats.engagementStats.totalInteractions}
-                      </div>
-                      <div className="text-sm text-gray-600">Total Interactions</div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {profile.engagementStats.videoStats.totalVideos > 0 
-                          ? `Avg ${Math.round(profile.engagementStats.engagementStats.totalInteractions / profile.engagementStats.videoStats.totalVideos)} per video`
-                          : 'No videos yet'
-                        }
-                      </div>
+                  
+                  {/* Total Likes */}
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 text-center border border-red-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-red-600">{profile.engagementStats.videoStats.totalLikes}</div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Likes</div>
+                  </div>
+                  
+                  {/* Average Rating */}
+                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 text-center border border-yellow-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-yellow-600">
+                      {profile.engagementStats.videoStats.averageRating > 0 
+                        ? profile.engagementStats.videoStats.averageRating.toFixed(1) 
+                        : '0.0'
+                      }
                     </div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Avg Rating</div>
                   </div>
                 </div>
               </div>
