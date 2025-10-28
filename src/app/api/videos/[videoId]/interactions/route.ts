@@ -163,11 +163,37 @@ export async function POST(
     }));
 
     // Update video stats
-    await updateVideoStats(videoId, type, 'increment');
+    const stats = await updateVideoStats(videoId, type, 'increment');
+
+    // For ratings, also calculate and return the average
+    let averageRating = null;
+    if (type === 'rating') {
+      try {
+        const ratingsResult = await docClient.send(new ScanCommand({
+          TableName: INTERACTIONS_TABLE,
+          FilterExpression: 'videoId = :videoId AND #type = :type',
+          ExpressionAttributeValues: {
+            ':videoId': videoId,
+            ':type': 'rating'
+          },
+          ExpressionAttributeNames: {
+            '#type': 'type'
+          }
+        }));
+
+        if (ratingsResult.Items && ratingsResult.Items.length > 0) {
+          const totalRating = ratingsResult.Items.reduce((sum, item) => sum + (item.rating || 0), 0);
+          averageRating = totalRating / ratingsResult.Items.length;
+        }
+      } catch (error) {
+        console.error('Error calculating average rating:', error);
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      interaction: interactionData
+      interaction: interactionData,
+      averageRating: averageRating
     });
 
   } catch (error) {
@@ -250,11 +276,20 @@ export async function DELETE(
 
 async function updateVideoStats(videoId: string, type: string, action: 'increment' | 'decrement') {
   try {
-    // Get current video stats
-    const videoResult = await docClient.send(new GetCommand({
-      TableName: VIDEOS_TABLE,
-      Key: { submissionId: videoId }
-    }));
+    // Try both tables - submissions table for dashboard videos
+    let videoResult;
+    try {
+      videoResult = await docClient.send(new GetCommand({
+        TableName: SUBMISSIONS_TABLE,
+        Key: { submissionId: videoId }
+      }));
+    } catch (error) {
+      // Try VIDEOS_TABLE if SUBMISSIONS_TABLE doesn't work
+      videoResult = await docClient.send(new GetCommand({
+        TableName: VIDEOS_TABLE,
+        Key: { submissionId: videoId }
+      }));
+    }
 
     if (!videoResult.Item) {
       console.error('Video not found:', videoId);
