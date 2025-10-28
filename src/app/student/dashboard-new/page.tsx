@@ -181,7 +181,7 @@ const StudentDashboardNew: React.FC = () => {
   };
 
   const handleUserClick = (userId: string) => {
-    router.push(`/student/peer-profile/${userId}`);
+    router.push(`/student/profile/${userId}`);
   };
 
   const formatTimestamp = (timestamp: string) => {
