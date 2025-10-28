@@ -102,7 +102,9 @@ const StudentDashboardNew: React.FC = () => {
       });
       
       if (data.success) {
-        setFeed(data.feed);
+        // Randomize the feed order so students see different creators first
+        const randomizedFeed = [...data.feed].sort(() => Math.random() - 0.5);
+        setFeed(randomizedFeed);
         setCourses(data.courses);
         console.log('🏫 Courses loaded for bottom nav:', data.courses);
         
@@ -878,11 +880,16 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   }, [isYouTube]);
 
   return (
-    <div className="bg-gradient-to-r from-white via-purple-50/30 to-blue-50/30 border-b-2 border-purple-200/50 shadow-md mb-2">
+    <div className="bg-gradient-to-r from-white via-purple-50/30 to-blue-50/30 border-l-4 border-purple-500 border-b-2 border-purple-200/50 shadow-md mb-2">
       {/* Header */}
-      <div className="px-4 py-3 flex items-center justify-between">
+      <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-purple-50/50 to-blue-50/50">
         <div 
-          onClick={() => item.author?.id && handleUserClick(item.author.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (item.author?.id) {
+              router.push(`/student/profile/${item.author.id}`);
+            }
+          }}
           className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-1 -m-1 transition-colors"
         >
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -917,9 +924,12 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
           {/* Study Buddy Button - only show if not current user */}
           {item.author?.id && item.author.id !== currentUserId && onStudyBuddy && (
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.stopPropagation();
-                onStudyBuddy(item.author!.id!);
+                if (item.author?.id && onStudyBuddy) {
+                  console.log('🔄 Connect button clicked for:', item.author.id);
+                  await onStudyBuddy(item.author.id);
+                }
               }}
               className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all font-medium text-sm ${
                 isConnected 
