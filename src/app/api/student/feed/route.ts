@@ -25,6 +25,7 @@ export interface FeedItem {
   };
   likes?: number;
   comments?: number;
+  isLiked?: boolean; // Track if current user has liked this video
   
   // Community post-specific
   content?: string;
@@ -33,6 +34,7 @@ export interface FeedItem {
   dueDate?: string;
   description?: string;
   status?: 'upcoming' | 'active' | 'past_due';
+  assignmentId?: string; // Add assignmentId for navigation
 }
 
 // GET /api/student/feed - Get unified feed for student
@@ -202,6 +204,11 @@ export async function GET(request: NextRequest) {
         
         try {
           console.log(`  ➕ Adding video to feed items...`);
+          
+          // Check if current user has liked this video
+          const likedBy = sub.likedBy || [];
+          const isLiked = userId ? likedBy.includes(userId) : false;
+          
           feedItems.push({
             id: sub.submissionId,
             type: 'video',
@@ -219,9 +226,10 @@ export async function GET(request: NextRequest) {
               avatar: studentAvatar
             },
             likes: sub.likes || 0,
-            comments: sub.commentCount || 0
+            comments: sub.commentCount || 0,
+            isLiked: isLiked
           });
-          console.log(`  ✓ Video added successfully`);
+          console.log(`  ✓ Video added successfully (isLiked: ${isLiked})`);
         } catch (pushError) {
           console.error(`  ❌ Error pushing video to feedItems:`, pushError);
         }
