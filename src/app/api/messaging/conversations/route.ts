@@ -1,72 +1,87 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, PutCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
-const client = new DynamoDBClient({ region: process.env.REGION });
-const docClient = DynamoDBDocumentClient.from(client);
+const dynamoClient = new DynamoDBClient({ region: 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
+const MESSAGES_TABLE = 'classcast-messages';
+
+// GET /api/messaging/conversations - Get all conversations for a user
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
-    const userRole = searchParams.get('userRole');
 
-    if (!userId || !userRole) {
-      return NextResponse.json({ error: 'User ID and role are required' }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'User ID is required' },
+        { status: 400 }
+      );
     }
 
-    // Query conversations where the user is a participant
-    const params = {
-      TableName: 'classcast-conversations',
-      FilterExpression: 'contains(participants, :userId)',
-      ExpressionAttributeValues: {
-        ':userId': userId
-      }
-    };
-
-    const result = await docClient.send(new ScanCommand(params));
-    
-    // Sort by last message timestamp
-    const conversations = result.Items?.sort((a, b) => 
-      new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime()
-    ) || [];
-
-    return NextResponse.json({ conversations });
-  } catch (error) {
-    console.error('Error fetching conversations:', error);
-    return NextResponse.json({ error: 'Failed to fetch conversations' }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { participants, courseId, assignmentId } = body;
-
-    if (!participants || participants.length < 2) {
-      return NextResponse.json({ error: 'At least 2 participants required' }, { status: 400 });
-    }
-
-    const conversationId = `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    const conversation = {
-      id: conversationId,
-      participants,
-      unreadCount: 0,
-      courseId: courseId || null,
-      assignmentId: assignmentId || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    await docClient.send(new PutCommand({
-      TableName: 'classcast-conversations',
-      Item: conversation
+    // Get all messages where the user is involved
+    const result = await docClient.send(new ScanCommand({
+      TableName: MESSAGES_TABLE
     }));
 
-    return NextResponse.json({ conversation });
+    const allMessages = result.Items || [];
+    
+    // Group messages by conversation and determine the other participant
+    const conversations = new Map<string, any>();
+    
+    allMessages.forEach((message) => {
+      const isFromUser = message.fromUserId === userId;
+      const isToUser = message.toUserId === userId;
+      
+      if (!isFromUser && !isToUser) return; // Not relevant to this user
+      
+      const otherUserId = isFromUser ? message.toUserId : message.fromUserId;
+      const otherUserName = isFromUser ? message.toName : message.fromName;
+      const otherUserAvatar = isFromUser ? message.toAvatar : message.fromAvatar;
+      
+      // Use a consistent key for the conversation
+      const conversationKey = [userId, otherUserId].sort().join('_');
+      
+      if (!conversations.has(conversationKey)) {
+        conversations.set(conversationKey, {
+          userId: otherUserId,
+          userName: otherUserName,
+          userAvatar: otherUserAvatar,
+          lastMessage: message.content,
+          lastTimestamp: message.timestamp,
+          unreadCount: 0
+        });
+      } else {
+        const conversation = conversations.get(conversationKey);
+        
+        // Update if this is a more recent message
+        if (new Date(message.timestamp) > new Date(conversation.lastTimestamp)) {
+          conversation.lastMessage = message.content;
+          conversation.lastTimestamp = message.timestamp;
+        }
+        
+        // Count unread messages (messages to the user that aren't read)
+        if (isToUser && !message.read) {
+          conversation.unreadCount += 1;
+        }
+      }
+    });
+
+    // Convert map to array and sort by last message timestamp
+    const conversationsArray = Array.from(conversations.values())
+      .sort((a, b) => new Date(b.lastTimestamp).getTime() - new Date(a.lastTimestamp).getTime());
+
+    return NextResponse.json({
+      success: true,
+      conversations: conversationsArray
+    });
+
   } catch (error) {
-    console.error('Error creating conversation:', error);
-    return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 });
+    console.error('Error fetching conversations:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch conversations' },
+      { status: 500 }
+    );
   }
 }

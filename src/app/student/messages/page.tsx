@@ -42,6 +42,15 @@ const MessagesPage: React.FC = () => {
   useEffect(() => {
     if (user?.id) {
       loadConversations();
+      
+      // Check if there's a userId parameter in the URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetUserId = urlParams.get('userId');
+      
+      if (targetUserId) {
+        // Load messages for this specific user
+        loadMessages(targetUserId);
+      }
     }
   }, [user]);
 
@@ -73,6 +82,30 @@ const MessagesPage: React.FC = () => {
       if (data.success && data.messages) {
         setMessages(data.messages);
         setSelectedConversation(otherUserId);
+        
+        // If we don't have a conversation with this user yet, create a placeholder
+        if (data.messages.length === 0 && !conversations.find(c => c.userId === otherUserId)) {
+          // Fetch user details for the placeholder
+          try {
+            const userResponse = await fetch(`/api/profile?userId=${otherUserId}`);
+            const userData = await userResponse.json();
+            
+            if (userData.success && userData.data) {
+              const placeholderConversation: Conversation = {
+                userId: otherUserId,
+                userName: `${userData.data.firstName || ''} ${userData.data.lastName || ''}`.trim() || userData.data.email,
+                userAvatar: userData.data.avatar || '/api/placeholder/40/40',
+                lastMessage: '',
+                lastTimestamp: new Date().toISOString(),
+                unreadCount: 0
+              };
+              
+              setConversations(prev => [placeholderConversation, ...prev]);
+            }
+          } catch (err) {
+            console.error('Error fetching user details:', err);
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading messages:', error);

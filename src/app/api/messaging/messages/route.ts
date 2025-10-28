@@ -1,126 +1,182 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, PutCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { sendEmailNotification } from '@/lib/email-service';
+import { DynamoDBDocumentClient, GetCommand, PutCommand, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
-const client = new DynamoDBClient({ region: process.env.REGION });
-const docClient = DynamoDBDocumentClient.from(client);
+const dynamoClient = new DynamoDBClient({ region: 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(dynamoClient);
+const sesClient = new SESClient({ region: 'us-east-1' });
 
+const MESSAGES_TABLE = 'classcast-messages';
+const USERS_TABLE = 'classcast-users';
+
+// GET /api/messaging/messages - Get messages between two users
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const conversationId = searchParams.get('conversationId');
+    const userId1 = searchParams.get('userId1');
+    const userId2 = searchParams.get('userId2');
 
-    if (!conversationId) {
-      return NextResponse.json({ error: 'Conversation ID is required' }, { status: 400 });
+    if (!userId1 || !userId2) {
+      return NextResponse.json(
+        { success: false, error: 'Both user IDs are required' },
+        { status: 400 }
+      );
     }
 
-    // Query messages for the conversation
-    const params = {
-      TableName: 'classcast-messages',
-      IndexName: 'conversationId-timestamp-index',
-      KeyConditionExpression: 'conversationId = :conversationId',
+    // Create a consistent conversation ID (alphabetically sorted)
+    const conversationId = [userId1, userId2].sort().join('_');
+
+    const result = await docClient.send(new ScanCommand({
+      TableName: MESSAGES_TABLE,
+      FilterExpression: 'conversationId = :conversationId',
       ExpressionAttributeValues: {
         ':conversationId': conversationId
-      },
-      ScanIndexForward: false, // Sort by timestamp descending
-      Limit: 50
-    };
+      }
+    }));
 
-    const result = await docClient.send(new QueryCommand(params));
-    const messages = result.Items || [];
+    const messages = (result.Items || [])
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
-    return NextResponse.json({ messages });
+    return NextResponse.json({
+      success: true,
+      messages
+    });
+
   } catch (error) {
     console.error('Error fetching messages:', error);
-    return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch messages' },
+      { status: 500 }
+    );
   }
 }
 
+// POST /api/messaging/messages - Create a new message
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { 
-      conversationId, 
-      senderId, 
-      senderName, 
-      senderRole, 
-      recipientId, 
-      recipientName, 
-      recipientRole, 
-      subject, 
-      content, 
-      courseId, 
-      assignmentId 
-    } = body;
+    const { fromUserId, toUserId, content } = body;
 
-    if (!conversationId || !senderId || !recipientId || !content) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!fromUserId || !toUserId || !content) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields' },
+        { status: 400 }
+      );
     }
 
-    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const timestamp = new Date().toISOString();
+    // Get sender info
+    const senderResult = await docClient.send(new GetCommand({
+      TableName: USERS_TABLE,
+      Key: { userId: fromUserId }
+    }));
+
+    if (!senderResult.Item) {
+      return NextResponse.json(
+        { success: false, error: 'Sender not found' },
+        { status: 404 }
+      );
+    }
+
+    const sender = senderResult.Item;
+    const senderName = `${sender.firstName || ''} ${sender.lastName || ''}`.trim() || sender.email;
+
+    // Get recipient info
+    const recipientResult = await docClient.send(new GetCommand({
+      TableName: USERS_TABLE,
+      Key: { userId: toUserId }
+    }));
+
+    if (!recipientResult.Item) {
+      return NextResponse.json(
+        { success: false, error: 'Recipient not found' },
+        { status: 404 }
+      );
+    }
+
+    const recipient = recipientResult.Item;
+
+    // Create message
+    const messageId = `message_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const conversationId = [fromUserId, toUserId].sort().join('_');
+    const now = new Date().toISOString();
 
     const message = {
       id: messageId,
       conversationId,
-      senderId,
-      senderName,
-      senderRole,
-      recipientId,
-      recipientName,
-      recipientRole,
-      subject: subject || 'No Subject',
-      content,
-      timestamp,
-      isRead: false,
-      courseId: courseId || null,
-      assignmentId: assignmentId || null
+      fromUserId,
+      fromName: senderName,
+      fromAvatar: sender.avatar || '/api/placeholder/40/40',
+      toUserId,
+      toName: `${recipient.firstName || ''} ${recipient.lastName || ''}`.trim() || recipient.email,
+      toAvatar: recipient.avatar || '/api/placeholder/40/40',
+      content: content.trim(),
+      timestamp: now,
+      read: false
     };
 
-    // Save message
     await docClient.send(new PutCommand({
-      TableName: 'classcast-messages',
+      TableName: MESSAGES_TABLE,
       Item: message
     }));
 
-    // Update conversation's last message and timestamp
-    await docClient.send(new UpdateCommand({
-      TableName: 'classcast-conversations',
-      Key: { id: conversationId },
-      UpdateExpression: 'SET lastMessage = :lastMessage, updatedAt = :updatedAt, unreadCount = unreadCount + :increment',
-      ExpressionAttributeValues: {
-        ':lastMessage': {
-          id: messageId,
-          senderName,
-          content: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
-          timestamp
-        },
-        ':updatedAt': timestamp,
-        ':increment': 1
-      }
-    }));
-
-    // Send email notification
+    // Send email notification to recipient
     try {
-      await sendEmailNotification({
-        recipientEmail: `${recipientId}@example.com`, // This should be fetched from user data
-        recipientName,
-        senderName,
-        subject: subject || 'New Message',
-        messageContent: content,
-        conversationUrl: `${process.env.NEXT_PUBLIC_APP_URL}/messaging/${conversationId}`,
-        courseName: courseId ? 'Course Name' : undefined, // This should be fetched from course data
-        assignmentTitle: assignmentId ? 'Assignment Title' : undefined
-      });
+      const emailHtml = `
+        <html>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+              <h2 style="color: #4A90E2;">New Message on MyClassCast</h2>
+              <p>You have received a new message from <strong>${senderName}</strong>:</p>
+              <div style="background-color: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0;">${content}</p>
+              </div>
+              <p>
+                <a href="https://class-cast.com/student/messages" 
+                   style="display: inline-block; background-color: #4A90E2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">
+                  View Messages
+                </a>
+              </p>
+            </div>
+          </body>
+        </html>
+      `;
+
+      await sesClient.send(new SendEmailCommand({
+        Source: 'noreply@myclasscast.com',
+        Destination: {
+          ToAddresses: [recipient.email]
+        },
+        Message: {
+          Subject: {
+            Data: `New message from ${senderName} on MyClassCast`,
+            Charset: 'UTF-8'
+          },
+          Body: {
+            Html: {
+              Data: emailHtml,
+              Charset: 'UTF-8'
+            }
+          }
+        }
+      }));
+
+      console.log('Email notification sent to:', recipient.email);
     } catch (emailError) {
-      console.error('Failed to send email notification:', emailError);
+      console.error('Error sending email notification:', emailError);
       // Don't fail the message creation if email fails
     }
 
-    return NextResponse.json({ message });
+    return NextResponse.json({
+      success: true,
+      message
+    });
+
   } catch (error) {
     console.error('Error creating message:', error);
-    return NextResponse.json({ error: 'Failed to create message' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to create message' },
+      { status: 500 }
+    );
   }
 }
