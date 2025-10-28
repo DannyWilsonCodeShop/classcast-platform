@@ -215,6 +215,122 @@ export async function POST(request: NextRequest) {
 
     await docClient.send(putCommand);
 
+    // Send email notification to admin about new video submission
+    try {
+      // Get student details for email
+      let studentName = 'Unknown Student';
+      let studentEmail = 'Unknown';
+      try {
+        const userResult = await docClient.send(new ScanCommand({
+          TableName: 'classcast-users',
+          FilterExpression: 'userId = :userId',
+          ExpressionAttributeValues: {
+            ':userId': studentId
+          },
+          Limit: 1
+        }));
+        
+        if (userResult.Items && userResult.Items.length > 0) {
+          const user = userResult.Items[0];
+          studentName = user.firstName && user.lastName 
+            ? `${user.firstName} ${user.lastName}` 
+            : user.email || studentName;
+          studentEmail = user.email || studentEmail;
+        }
+      } catch (userError) {
+        console.warn('Could not fetch student name for email:', userError);
+      }
+
+      // Send email notification
+      const { SESClient, SendEmailCommand } = await import('@aws-sdk/client-ses');
+      const sesClient = new SESClient({ region: 'us-east-1' });
+
+      const emailBody = `
+        <html>
+          <body style="font-family: Arial, sans-serif; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <h2 style="color: #3b82f6; margin-bottom: 20px;">📹 New Video Submission</h2>
+              
+              <p>A student has submitted a new video assignment:</p>
+              
+              <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                <p style="margin: 5px 0;"><strong>Student:</strong> ${studentName}</p>
+                <p style="margin: 5px 0;"><strong>Student ID:</strong> ${studentId}</p>
+                <p style="margin: 5px 0;"><strong>Assignment:</strong> ${videoTitle || 'Video Submission'}</p>
+                <p style="margin: 5px 0;"><strong>Submission Method:</strong> ${submissionMethod || (isYouTube ? 'YouTube' : 'Upload')}</p>
+                <p style="margin: 5px 0;"><strong>Submitted At:</strong> ${now}</p>
+                ${description ? `<p style="margin: 5px 0;"><strong>Description:</strong> ${description}</p>` : ''}
+              </div>
+
+              <div style="background: #f9fafb; padding: 15px; margin-top: 20px; border-radius: 4px;">
+                <p style="margin: 0;"><strong>Submission Details:</strong></p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                  <li>Submission ID: ${submissionId}</li>
+                  <li>Assignment ID: ${assignmentId}</li>
+                  <li>Course ID: ${courseId}</li>
+                  ${duration ? `<li>Duration: ${duration} seconds</li>` : ''}
+                  ${fileSize ? `<li>File Size: ${(fileSize / 1024 / 1024).toFixed(2)} MB</li>` : ''}
+                </ul>
+              </div>
+
+              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+              <p style="color: #6b7280; font-size: 12px; text-align: center;">
+                This is an automated notification from ClassCast Platform<br>
+                Generated at ${new Date().toISOString()}
+              </p>
+            </div>
+          </body>
+        </html>
+      `;
+
+      const params = {
+        Source: 'noreply@myclasscast.com',
+        Destination: {
+          ToAddresses: ['wilson.danny@me.com'],
+        },
+        Message: {
+          Subject: {
+            Data: `📹 New Video Submission: ${videoTitle || 'Video Assignment'} by ${studentName}`,
+            Charset: 'UTF-8',
+          },
+          Body: {
+            Html: {
+              Data: emailBody,
+              Charset: 'UTF-8',
+            },
+            Text: {
+              Data: `
+New Video Submission
+
+Student: ${studentName}
+Student ID: ${studentId}
+Assignment: ${videoTitle || 'Video Submission'}
+Submission Method: ${submissionMethod || (isYouTube ? 'YouTube' : 'Upload')}
+Submitted At: ${now}
+
+Submission Details:
+- Submission ID: ${submissionId}
+- Assignment ID: ${assignmentId}
+- Course ID: ${courseId}
+${duration ? `- Duration: ${duration} seconds` : ''}
+${fileSize ? `- File Size: ${(fileSize / 1024 / 1024).toFixed(2)} MB` : ''}
+
+Generated at ${new Date().toISOString()}
+              `,
+              Charset: 'UTF-8',
+            },
+          },
+        },
+      };
+
+      const command = new SendEmailCommand(params);
+      await sesClient.send(command);
+      console.log('✅ Email notification sent for video submission');
+    } catch (emailError) {
+      console.error('Failed to send email notification:', emailError);
+      // Don't fail the submission if email fails
+    }
+
     // Update assignment status to 'submitted' for this student
     try {
       const updateAssignmentCommand = new UpdateCommand({
