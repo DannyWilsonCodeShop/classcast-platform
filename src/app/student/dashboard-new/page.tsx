@@ -683,6 +683,8 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   const [showRespond, setShowRespond] = React.useState(false);
   const [respondText, setRespondText] = React.useState('');
   const [isSubmittingRespond, setIsSubmittingRespond] = React.useState(false);
+  const [userRating, setUserRating] = React.useState<number>(0); // 0 means not rated, 1-5 is the rating
+  const [averageRating, setAverageRating] = React.useState<number>(0); // Average rating from all users
   const videoRef = React.useRef<HTMLVideoElement>(null);
   
   // Sync isLiked state with item prop when it changes
@@ -691,6 +693,27 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
     setLikes(item.likes || 0);
     setComments(item.comments || 0);
   }, [item.isLiked, item.likes, item.comments]);
+  
+  // Load current user's rating for this video
+  React.useEffect(() => {
+    const loadUserRating = async () => {
+      if (!user?.id || !item.id) return;
+      
+      try {
+        const response = await fetch(`/api/videos/${item.id}/rating?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.rating) {
+            setUserRating(data.rating);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user rating:', error);
+      }
+    };
+    
+    loadUserRating();
+  }, [user?.id, item.id]);
   
   // Check if avatar is emoji or valid image
   const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
@@ -850,6 +873,39 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       console.error('❌ Error submitting response:', error);
     } finally {
       setIsSubmittingRespond(false);
+    }
+  };
+
+  const handleRating = async (rating: number) => {
+    if (!user || !item.id) return;
+    
+    try {
+      console.log(`⭐ Rating video ${item.id} with ${rating} stars`);
+      const response = await fetch(`/api/videos/${item.id}/interactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'rating',
+          userId: user.id,
+          rating: rating,
+          contentCreatorId: item.author?.id
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setUserRating(rating);
+          // Update average rating if returned
+          if (data.averageRating !== undefined) {
+            setAverageRating(data.averageRating);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error submitting rating:', error);
     }
   };
 
@@ -1115,6 +1171,36 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             </svg>
             <span className="text-sm font-medium">Respond</span>
           </button>
+        </div>
+        
+        {/* Star Rating */}
+        <div className="mt-2 flex items-center space-x-1">
+          <span className="text-xs text-gray-500 mr-1">Rate:</span>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              onClick={() => handleRating(star)}
+              className="focus:outline-none"
+              type="button"
+            >
+              <svg
+                className={`w-5 h-5 transition-all ${
+                  star <= userRating
+                    ? 'text-yellow-400 fill-yellow-400'
+                    : 'text-gray-300 hover:text-yellow-400'
+                }`}
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </button>
+          ))}
+          {averageRating > 0 && (
+            <span className="ml-2 text-xs text-gray-500">
+              ({averageRating.toFixed(1)} avg)
+            </span>
+          )}
         </div>
       </div>
 
