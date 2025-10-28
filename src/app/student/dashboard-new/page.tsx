@@ -172,17 +172,8 @@ const StudentDashboardNew: React.FC = () => {
   };
 
   const handleCourseClick = (courseId: string) => {
-    if (selectedCourse === courseId) {
-      // If same course clicked, toggle off
-      setSelectedCourse(null);
-      setClassAssignments([]);
-    } else {
-      // Select new course and show its assignments
-      setSelectedCourse(courseId);
-      setSelectedAssignment(null); // Clear assignment filter
-      const assignments = feed.filter(item => item.type === 'assignment' && item.courseId === courseId);
-      setClassAssignments(assignments);
-    }
+    // Navigate to the course page instead of filtering
+    router.push(`/student/courses/${courseId}`);
   };
 
   const handleAssignmentClick = (assignmentId: string) => {
