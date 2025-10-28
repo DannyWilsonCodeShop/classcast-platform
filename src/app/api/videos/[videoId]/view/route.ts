@@ -24,11 +24,30 @@ export async function POST(
 
     console.log('Tracking video view:', { videoId, userId });
 
-    // Get current submission
-    const getResult = await docClient.send(new GetCommand({
-      TableName: SUBMISSIONS_TABLE,
-      Key: { submissionId: videoId }
-    }));
+    // Try to get current submission (try different key patterns)
+    let getResult;
+    try {
+      getResult = await docClient.send(new GetCommand({
+        TableName: SUBMISSIONS_TABLE,
+        Key: { submissionId: videoId }
+      }));
+    } catch (error) {
+      console.log('Error with submissionId, trying id key:', error);
+      try {
+        getResult = await docClient.send(new GetCommand({
+          TableName: SUBMISSIONS_TABLE,
+          Key: { id: videoId }
+        }));
+      } catch (error2) {
+        console.log('Video not found with either key:', videoId);
+        // Don't return error, just log and return success to avoid breaking the UI
+        return NextResponse.json({
+          success: true,
+          views: 0,
+          message: 'Video not found in database'
+        });
+      }
+    }
 
     if (!getResult.Item) {
       console.log('Video not found in submissions table:', videoId);
