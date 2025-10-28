@@ -644,6 +644,7 @@ const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 // Video Feed Item
 const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void; onStudyBuddy?: (userId: string) => void; isConnected?: boolean }> = ({ item, formatTimestamp, currentUserId, onDelete, onStudyBuddy, isConnected }) => {
   const { user } = useAuth();
+  const router = useRouter();
   console.log('🚀 VideoFeedItem COMPONENT STARTED for:', item.title);
   
   const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
