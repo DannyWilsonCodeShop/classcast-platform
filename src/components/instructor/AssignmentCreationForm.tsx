@@ -175,7 +175,9 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
 
     if (!formData.dueDate) {
       newErrors.dueDate = 'Due date is required';
-    } else if (formData.dueDate < new Date()) {
+    } else if (!isEditing && formData.dueDate < new Date()) {
+      // Only validate future dates when creating a new assignment
+      // When editing, allow past dates (assignments might already be due)
       newErrors.dueDate = 'Due date must be in the future';
     }
 
@@ -217,8 +219,12 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     console.log('📝 Form data:', formData);
     console.log('✅ Validating form...');
     
-    if (!validateForm()) {
-      console.log('❌ Form validation failed');
+    const isValid = validateForm();
+    console.log('🔍 Validation result:', isValid);
+    console.log('❌ Errors:', errors);
+    
+    if (!isValid) {
+      console.log('❌ Form validation failed with errors:', errors);
       return;
     }
     
