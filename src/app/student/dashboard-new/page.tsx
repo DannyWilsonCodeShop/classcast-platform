@@ -916,6 +916,8 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
         body: JSON.stringify({
           type: 'rating',
           userId: user.id,
+          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+          userAvatar: user.avatar || '/api/placeholder/40/40',
           rating: rating,
           contentCreatorId: item.author?.id
         }),

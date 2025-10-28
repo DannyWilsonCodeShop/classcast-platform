@@ -26,11 +26,14 @@ export async function POST(
 
     // Try to get current submission (try different key patterns)
     let getResult;
+    let actualKey: { submissionId: string } | { id: string } = { submissionId: videoId };
+    
     try {
       getResult = await docClient.send(new GetCommand({
         TableName: SUBMISSIONS_TABLE,
         Key: { submissionId: videoId }
       }));
+      actualKey = { submissionId: videoId };
     } catch (error) {
       console.log('Error with submissionId, trying id key:', error);
       try {
@@ -38,6 +41,7 @@ export async function POST(
           TableName: SUBMISSIONS_TABLE,
           Key: { id: videoId }
         }));
+        actualKey = { id: videoId };
       } catch (error2) {
         console.log('Video not found with either key:', videoId);
         // Don't return error, just log and return success to avoid breaking the UI
@@ -69,10 +73,10 @@ export async function POST(
       const updatedViews = currentViews + 1;
       const updatedViewedBy = userId ? [...viewedBy, userId] : viewedBy;
 
-      // Update submission with new view count
+      // Update submission with new view count - use the actual key that worked
       await docClient.send(new UpdateCommand({
         TableName: SUBMISSIONS_TABLE,
-        Key: { submissionId: videoId },
+        Key: actualKey,
         UpdateExpression: 'SET views = :views, viewedBy = :viewedBy, updatedAt = :updatedAt',
         ExpressionAttributeValues: {
           ':views': updatedViews,

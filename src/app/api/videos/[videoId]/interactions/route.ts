@@ -6,7 +6,7 @@ import { CreateCommentRequest, CreateResponseRequest, CreateRatingRequest, LikeV
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
-const INTERACTIONS_TABLE = 'classcast-video-interactions';
+const INTERACTIONS_TABLE = 'classcast-peer-interactions';
 const VIDEOS_TABLE = 'classcast-submissions';
 const USERS_TABLE = 'classcast-users';
 
@@ -276,19 +276,28 @@ export async function DELETE(
 
 async function updateVideoStats(videoId: string, type: string, action: 'increment' | 'decrement') {
   try {
-    // Try both tables - submissions table for dashboard videos
+    // Try to get the video from submissions table
     let videoResult;
+    let actualKey: { submissionId: string } | { id: string } = { submissionId: videoId };
+    
     try {
       videoResult = await docClient.send(new GetCommand({
         TableName: SUBMISSIONS_TABLE,
         Key: { submissionId: videoId }
       }));
+      actualKey = { submissionId: videoId };
     } catch (error) {
-      // Try VIDEOS_TABLE if SUBMISSIONS_TABLE doesn't work
-      videoResult = await docClient.send(new GetCommand({
-        TableName: VIDEOS_TABLE,
-        Key: { submissionId: videoId }
-      }));
+      console.log('Trying with id key:', videoId);
+      try {
+        videoResult = await docClient.send(new GetCommand({
+          TableName: SUBMISSIONS_TABLE,
+          Key: { id: videoId }
+        }));
+        actualKey = { id: videoId };
+      } catch (error2) {
+        console.error('Video not found:', videoId);
+        return;
+      }
     }
 
     if (!videoResult.Item) {
@@ -296,52 +305,43 @@ async function updateVideoStats(videoId: string, type: string, action: 'incremen
       return;
     }
 
-    const currentStats = videoResult.Item.stats || {
-      views: 0,
-      likes: 0,
-      comments: 0,
-      responses: 0,
-      averageRating: 0,
-      totalRatings: 0
-    };
+    const submission = videoResult.Item;
+    // Get current stats from individual fields or stats object
+    const currentLikes = submission.likes || submission.stats?.likes || 0;
+    const currentComments = submission.commentCount || submission.stats?.comments || 0;
 
     const multiplier = action === 'increment' ? 1 : -1;
 
-    // Update specific stat based on type
-    let updateExpression = 'SET stats = :stats, updatedAt = :updatedAt';
+    // Build update expression dynamically based on type
+    let updateExpression = 'SET updatedAt = :updatedAt';
     let expressionValues: any = {
-      ':stats': { ...currentStats },
       ':updatedAt': new Date().toISOString()
     };
 
     switch (type) {
       case 'like':
-        expressionValues[':stats'].likes = Math.max(0, currentStats.likes + (1 * multiplier));
+        expressionValues[':likes'] = Math.max(0, currentLikes + (1 * multiplier));
+        updateExpression += ', likes = :likes';
         break;
       case 'comment':
-        expressionValues[':stats'].comments = Math.max(0, currentStats.comments + (1 * multiplier));
-        break;
-      case 'response':
-        expressionValues[':stats'].responses = Math.max(0, currentStats.responses + (1 * multiplier));
+        expressionValues[':comments'] = Math.max(0, currentComments + (1 * multiplier));
+        updateExpression += ', commentCount = :comments';
         break;
       case 'rating':
-        // For ratings, we need to recalculate the average
-        if (action === 'increment') {
-          expressionValues[':stats'].totalRatings = (currentStats.totalRatings || 0) + 1;
-        } else {
-          expressionValues[':stats'].totalRatings = Math.max(0, (currentStats.totalRatings || 0) - 1);
-        }
-        // Recalculate average rating
-        await recalculateAverageRating(videoId, expressionValues[':stats']);
+        // Ratings don't directly update video stats, they're stored in interactions
+        // Just update the timestamp
         break;
     }
 
-    await docClient.send(new UpdateCommand({
-      TableName: VIDEOS_TABLE,
-      Key: { submissionId: videoId },
-      UpdateExpression: updateExpression,
-      ExpressionAttributeValues: expressionValues
-    }));
+    // Only update if there are fields to update
+    if (updateExpression !== 'SET updatedAt = :updatedAt') {
+      await docClient.send(new UpdateCommand({
+        TableName: SUBMISSIONS_TABLE,
+        Key: actualKey,
+        UpdateExpression: updateExpression,
+        ExpressionAttributeValues: expressionValues
+      }));
+    }
 
   } catch (error) {
     console.error('Error updating video stats:', error);
