@@ -779,31 +779,47 @@ const StudentProfilePage: React.FC = () => {
               {studyBuddies.length > 0 && (
                 <div className="mb-4">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Your Study Buddies</h4>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="space-y-2">
                     {studyBuddies.map((buddy) => (
                       <div
                         key={buddy.id}
-                        onClick={() => router.push(`/student/peer-profile/${buddy.id}`)}
-                        className="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200"
+                        className="flex items-center justify-between bg-white rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors border border-gray-200"
                       >
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {buddy.avatar && !buddy.avatar.includes('placeholder') ? (
-                            <img 
-                              src={buddy.avatar} 
-                              alt={buddy.firstName || 'User'} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-gray-600 text-xs font-semibold">
-                              {buddy.firstName?.[0] || buddy.email?.[0] || 'U'}
-                            </span>
-                          )}
+                        <div
+                          onClick={() => router.push(`/student/peer-profile/${buddy.id}`)}
+                          className="flex items-center space-x-2 flex-1 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {buddy.avatar && !buddy.avatar.includes('placeholder') ? (
+                              <img 
+                                src={buddy.avatar} 
+                                alt={buddy.firstName || 'User'} 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-gray-600 text-xs font-semibold">
+                                {buddy.firstName?.[0] || buddy.email?.[0] || 'U'}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-sm text-gray-900">
+                            {buddy.firstName && buddy.lastName 
+                              ? `${buddy.firstName} ${buddy.lastName}` 
+                              : buddy.email || 'User'}
+                          </span>
                         </div>
-                        <span className="text-sm text-gray-900">
-                          {buddy.firstName && buddy.lastName 
-                            ? `${buddy.firstName} ${buddy.lastName}` 
-                            : buddy.email || 'User'}
-                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/student/messages?userId=${buddy.id}`);
+                          }}
+                          className="ml-2 px-3 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <span>Message</span>
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -814,31 +830,47 @@ const StudentProfilePage: React.FC = () => {
               {followers.length > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Study Buddies Following You</h4>
-                  <div className="flex flex-wrap gap-3">
+                  <div className="space-y-2">
                     {followers.map((follower) => (
                       <div
                         key={follower.id}
-                        onClick={() => router.push(`/student/peer-profile/${follower.id}`)}
-                        className="flex items-center space-x-2 bg-white rounded-lg px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors border border-gray-200"
+                        className="flex items-center justify-between bg-white rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors border border-gray-200"
                       >
-                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {follower.avatar && !follower.avatar.includes('placeholder') ? (
-                            <img 
-                              src={follower.avatar} 
-                              alt={follower.firstName || 'User'} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-gray-600 text-xs font-semibold">
-                              {follower.firstName?.[0] || follower.email?.[0] || 'U'}
-                            </span>
-                          )}
+                        <div
+                          onClick={() => router.push(`/student/peer-profile/${follower.id}`)}
+                          className="flex items-center space-x-2 flex-1 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {follower.avatar && !follower.avatar.includes('placeholder') ? (
+                              <img 
+                                src={follower.avatar} 
+                                alt={follower.firstName || 'User'} 
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-gray-600 text-xs font-semibold">
+                                {follower.firstName?.[0] || follower.email?.[0] || 'U'}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-sm text-gray-900">
+                            {follower.firstName && follower.lastName 
+                              ? `${follower.firstName} ${follower.lastName}` 
+                              : follower.email || 'User'}
+                          </span>
                         </div>
-                        <span className="text-sm text-gray-900">
-                          {follower.firstName && follower.lastName 
-                            ? `${follower.firstName} ${follower.lastName}` 
-                            : follower.email || 'User'}
-                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/student/messages?userId=${follower.id}`);
+                          }}
+                          className="ml-2 px-3 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <span>Message</span>
+                        </button>
                       </div>
                     ))}
                   </div>
