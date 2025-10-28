@@ -7,6 +7,7 @@ import { FeedItem } from '@/app/api/student/feed/route';
 import Image from 'next/image';
 import { extractYouTubeVideoId as getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
 import { useRouter } from 'next/navigation';
+import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 
 interface Course {
   courseId: string;
@@ -215,6 +216,42 @@ const StudentDashboardNew: React.FC = () => {
 
   const handleUserClick = (userId: string) => {
     router.push(`/student/profile/${userId}`);
+  };
+
+  const handleClassEnrollment = async (classCode: string, sectionId?: string) => {
+    if (!user?.id) return;
+    
+    try {
+      const response = await fetch('/api/student/enroll', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          classCode: classCode.toUpperCase(),
+          userId: user.id,
+          sectionId: sectionId
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Refresh the feed to show the new course
+          fetchFeed();
+          // Optionally show success message
+          console.log('Successfully enrolled in class');
+        } else {
+          alert(data.error || 'Failed to enroll in class');
+        }
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to enroll in class');
+      }
+    } catch (error) {
+      console.error('Error enrolling in class:', error);
+      alert('Failed to enroll in class');
+    }
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -429,49 +466,12 @@ const StudentDashboardNew: React.FC = () => {
         </div>
       )}
 
-      {/* Join Class Popup */}
-      {showJoinClassPopup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Join a Class</h3>
-              <button
-                onClick={() => setShowJoinClassPopup(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="space-y-4">
-              <p className="text-gray-600">
-                Enter a class code to join a new class or browse available classes.
-              </p>
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    setShowJoinClassPopup(false);
-                    router.push('/student/courses');
-                  }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Browse Classes
-                </button>
-                <button
-                  onClick={() => {
-                    setShowJoinClassPopup(false);
-                    // Add class code input functionality here
-                  }}
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  Enter Code
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Class Enrollment Modal */}
+      <ClassEnrollmentModal
+        isOpen={showJoinClassPopup}
+        onClose={() => setShowJoinClassPopup(false)}
+        onEnroll={handleClassEnrollment}
+      />
 
       {/* Bottom Navigation Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400/90 via-blue-400/90 to-pink-400/90 backdrop-blur-md border-t-2 border-white/30 px-4 py-3 z-50 shadow-2xl">
