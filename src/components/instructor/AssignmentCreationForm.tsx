@@ -213,9 +213,16 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('🔄 Form submit triggered');
+    console.log('📝 Form data:', formData);
+    console.log('✅ Validating form...');
+    
     if (!validateForm()) {
+      console.log('❌ Form validation failed');
       return;
     }
+    
+    console.log('✅ Form validation passed, submitting...');
 
     try {
       let instructionalVideoUrl = formData.instructionalVideoUrl;
@@ -282,9 +289,12 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         status: AssignmentStatus.DRAFT
       };
 
+      console.log('📤 Calling onSubmit with assignment data:', assignmentData);
       await onSubmit(assignmentData);
+      console.log('✅ onSubmit completed successfully');
     } catch (error) {
-      console.error('Error creating assignment:', error);
+      console.error('❌ Error in handleSubmit:', error);
+      alert('Failed to save assignment. Please check the console for details.');
     }
   };
 
