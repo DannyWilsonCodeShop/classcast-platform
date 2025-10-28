@@ -228,69 +228,35 @@ const PeerProfilePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Stats Section */}
+            {/* Stats Section - Simplified to 4 Categories */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-6">Activity & Engagement</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-4">📊 Activity & Engagement</h2>
                 
-                {/* Video Stats */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">📹 Video Contributions</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-blue-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-blue-600">{profile.stats.videoStats.totalVideos}</div>
-                      <div className="text-sm text-gray-600">Videos</div>
-                    </div>
-                    <div className="bg-green-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-green-600">{profile.stats.videoStats.totalViews}</div>
-                      <div className="text-sm text-gray-600">Views</div>
-                    </div>
-                    <div className="bg-purple-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-purple-600">{profile.stats.videoStats.totalLikes}</div>
-                      <div className="text-sm text-gray-600">Likes</div>
-                    </div>
-                    <div className="bg-yellow-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-yellow-600">
-                        {profile.stats.videoStats.totalRatings > 0 
-                          ? profile.stats.videoStats.averageRating.toFixed(1)
-                          : 'N/A'}
-                      </div>
-                      <div className="text-sm text-gray-600">Avg Rating</div>
-                    </div>
+                {/* 4 Key Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center border border-blue-200">
+                    <div className="text-2xl md:text-3xl font-bold text-blue-600">{profile.stats.videoStats.totalVideos}</div>
+                    <div className="text-xs md:text-sm text-gray-700 font-medium mt-1">Videos</div>
                   </div>
-                </div>
-
-                {/* Peer Review Stats */}
-                <div className="mb-6">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">💬 Peer Reviews</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-indigo-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-indigo-600">{profile.stats.peerReviewStats.totalResponses}</div>
-                      <div className="text-sm text-gray-600">Responses Given</div>
-                    </div>
-                    <div className="bg-pink-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-pink-600">
-                        {profile.stats.peerReviewStats.averageResponseLength > 0
-                          ? Math.round(profile.stats.peerReviewStats.averageResponseLength)
-                          : 0}
-                      </div>
-                      <div className="text-sm text-gray-600">Avg Words/Response</div>
-                    </div>
+                  
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center border border-green-200">
+                    <div className="text-2xl md:text-3xl font-bold text-green-600">{profile.stats.videoStats.totalViews}</div>
+                    <div className="text-xs md:text-sm text-gray-700 font-medium mt-1">Views</div>
                   </div>
-                </div>
-
-                {/* Engagement Stats */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">🌟 Total Engagement</h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-rose-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-rose-600">{profile.stats.engagementStats.totalLikesReceived}</div>
-                      <div className="text-sm text-gray-600">Likes Received</div>
+                  
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 text-center border border-red-200">
+                    <div className="text-2xl md:text-3xl font-bold text-red-600">{profile.stats.videoStats.totalLikes}</div>
+                    <div className="text-xs md:text-sm text-gray-700 font-medium mt-1">Likes</div>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 text-center border border-yellow-200">
+                    <div className="text-2xl md:text-3xl font-bold text-yellow-600">
+                      {profile.stats.videoStats.averageRating > 0 
+                        ? profile.stats.videoStats.averageRating.toFixed(1) 
+                        : '0.0'}
                     </div>
-                    <div className="bg-teal-50 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-teal-600">{profile.stats.engagementStats.totalViewsReceived}</div>
-                      <div className="text-sm text-gray-600">Video Views</div>
-                    </div>
+                    <div className="text-xs md:text-sm text-gray-700 font-medium mt-1">Avg Rating</div>
                   </div>
                 </div>
               </div>
