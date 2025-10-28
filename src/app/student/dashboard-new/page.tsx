@@ -1016,45 +1016,47 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
                 </span>
               )}
             </div>
-            <div>
-              <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
+              <div>
+              <div className="flex items-center space-x-2">
+                <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
+                
+                {/* Study Buddy Button - only show if not current user */}
+                {item.author?.id && item.author.id !== currentUserId && onStudyBuddy && (
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (item.author?.id && onStudyBuddy && !isConnecting) {
+                        setIsConnecting(true);
+                        console.log('🔄 Connect button clicked for:', item.author.id);
+                        await onStudyBuddy(item.author.id);
+                        setLocalIsConnected(true);
+                        setIsConnecting(false);
+                      }
+                    }}
+                    disabled={isConnecting}
+                    className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded border transition-all text-xs ${
+                      localIsConnected 
+                        ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100' 
+                        : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
+                    } disabled:opacity-50`}
+                    title={localIsConnected ? 'Study Buddy' : 'Connect as Study Buddy'}
+                  >
+                    {localIsConnected ? (
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                    )}
+                    <span className="font-medium">{localIsConnected ? 'Connected' : (isConnecting ? '...' : 'Connect')}</span>
+                  </button>
+                )}
+              </div>
               <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
             </div>
           </div>
-          
-          {/* Study Buddy Button - only show if not current user */}
-          {item.author?.id && item.author.id !== currentUserId && onStudyBuddy && (
-            <button
-              onClick={async (e) => {
-                e.stopPropagation();
-                if (item.author?.id && onStudyBuddy && !isConnecting) {
-                  setIsConnecting(true);
-                  console.log('🔄 Connect button clicked for:', item.author.id);
-                  await onStudyBuddy(item.author.id);
-                  setLocalIsConnected(true);
-                  setIsConnecting(false);
-                }
-              }}
-              disabled={isConnecting}
-              className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-all text-xs ${
-                localIsConnected 
-                  ? 'bg-green-100 hover:bg-green-200 text-green-700 border border-green-300' 
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-300'
-              } disabled:opacity-50`}
-              title={localIsConnected ? 'Study Buddy' : 'Connect as Study Buddy'}
-            >
-              {localIsConnected ? (
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              ) : (
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              )}
-              <span className="font-medium">{localIsConnected ? 'Connected' : (isConnecting ? 'Connecting...' : 'Connect')}</span>
-            </button>
-          )}
         </div>
         
         <div className="flex items-center space-x-2">
@@ -1161,7 +1163,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
         >
           {item.title}
         </button>
-        <div className="flex items-center space-x-6 text-gray-600">
+        <div className="flex items-center flex-wrap gap-4 text-gray-600">
           <button 
             onClick={handleLike}
             className={`flex items-center space-x-1.5 transition-colors py-2 ${
@@ -1198,36 +1200,36 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             </svg>
             <span className="text-sm font-medium">Respond</span>
           </button>
-        </div>
-        
-        {/* Star Rating */}
-        <div className="mt-2 flex items-center space-x-1">
-          <span className="text-xs text-gray-500 mr-1">Rate:</span>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              onClick={() => handleRating(star)}
-              className="focus:outline-none"
-              type="button"
-            >
-              <svg
-                className={`w-5 h-5 transition-all ${
-                  star <= userRating
-                    ? 'text-yellow-400 fill-yellow-400'
-                    : 'text-gray-300 hover:text-yellow-400'
-                }`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
+          
+          {/* Star Rating - Inline */}
+          <div className="flex items-center space-x-0.5 border-l border-gray-300 pl-4">
+            {[1, 2, 3, 4, 5].map((star) => (
+              <button
+                key={star}
+                onClick={() => handleRating(star)}
+                className="focus:outline-none"
+                type="button"
+                title={`Rate ${star} star${star > 1 ? 's' : ''}`}
               >
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            </button>
-          ))}
-          {averageRating > 0 && (
-            <span className="ml-2 text-xs text-gray-500">
-              ({averageRating.toFixed(1)} avg)
-            </span>
-          )}
+                <svg
+                  className={`w-5 h-5 transition-all ${
+                    star <= userRating
+                      ? 'text-yellow-400 fill-yellow-400'
+                      : 'text-gray-300 hover:text-yellow-400'
+                  }`}
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </button>
+            ))}
+            {averageRating > 0 && (
+              <span className="ml-1.5 text-xs text-gray-500">
+                ({averageRating.toFixed(1)})
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
