@@ -9,7 +9,7 @@ const StudentAssignmentsPage: React.FC = () => {
     <StudentRoute>
       <div className="h-screen overflow-hidden flex flex-col bg-gray-50">
         {/* Header with Back Button */}
-        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 flex-shrink-0">
+        <div className="bg-gradient-to-r from-purple-100/80 via-blue-100/80 to-pink-100/80 backdrop-blur-sm border-b-2 border-purple-300/50 shadow-lg px-4 py-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
