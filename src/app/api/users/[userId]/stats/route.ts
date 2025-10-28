@@ -7,7 +7,7 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 const SUBMISSIONS_TABLE = 'classcast-submissions';
 const PEER_RESPONSES_TABLE = 'classcast-peer-responses';
-const VIDEO_INTERACTIONS_TABLE = 'classcast-video-interactions';
+const VIDEO_INTERACTIONS_TABLE = 'classcast-peer-interactions';
 
 export async function GET(
   request: NextRequest,
@@ -116,18 +116,31 @@ export async function GET(
         stats.peerReviewStats.averageResponseLength = userResponses.length > 0 ? totalLength / userResponses.length : 0;
       }
 
-      // Fetch video interactions (likes, comments, ratings) for user's videos
-      const videoInteractionsResponse = await docClient.send(new ScanCommand({
-        TableName: VIDEO_INTERACTIONS_TABLE,
-        FilterExpression: 'videoOwnerId = :userId',
-        ExpressionAttributeValues: {
-          ':userId': userId
-        }
-      }));
+      // Fetch interactions on user's videos by first getting their submission IDs
+      let submissionIds: string[] = [];
+      try {
+        const subsForOwner = await docClient.send(new ScanCommand({
+          TableName: SUBMISSIONS_TABLE,
+          FilterExpression: 'studentId = :userId',
+          ExpressionAttributeValues: { ':userId': userId },
+          ProjectionExpression: 'submissionId, id'
+        }));
+        submissionIds = (subsForOwner.Items || []).map((s: any) => s.submissionId || s.id).filter(Boolean);
+      } catch {}
 
-      if (videoInteractionsResponse.Items) {
-        const interactions = videoInteractionsResponse.Items;
-        
+      if (submissionIds.length > 0) {
+        // Scan interactions table and aggregate for the user's videos
+        const allInteractionsResp = await docClient.send(new ScanCommand({
+          TableName: VIDEO_INTERACTIONS_TABLE,
+          ProjectionExpression: 'videoId, #type, rating',
+          ExpressionAttributeNames: { '#type': 'type' }
+        }));
+
+        const interactions = (allInteractionsResp.Items || []).filter((it: any) => submissionIds.includes(it.videoId));
+
+        let ratingsCount = 0;
+        let ratingsSum = 0;
+
         interactions.forEach((interaction: any) => {
           if (interaction.type === 'like') {
             stats.engagementStats.totalLikesReceived++;
@@ -135,8 +148,18 @@ export async function GET(
             stats.engagementStats.totalCommentsReceived++;
           } else if (interaction.type === 'rating') {
             stats.engagementStats.totalReactionsReceived++;
+            if (typeof interaction.rating === 'number') {
+              ratingsCount += 1;
+              ratingsSum += interaction.rating;
+            }
           }
         });
+
+        // If submissions didn't have rating summary, use interactions-derived averages
+        if (stats.videoStats.totalRatings === 0 && ratingsCount > 0) {
+          stats.videoStats.totalRatings = ratingsCount;
+          stats.videoStats.averageRating = ratingsSum / ratingsCount;
+        }
       }
 
       // Calculate total interactions
