@@ -116,17 +116,17 @@ const CommunityPage: React.FC = () => {
     <StudentRoute>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 pb-20">
         {/* Header */}
-        <div className="sticky top-0 z-40 bg-gradient-to-r from-purple-600 to-blue-600 border-b-2 border-white/20 shadow-lg">
+        <div className="sticky top-0 z-40 bg-gradient-to-r from-purple-100/80 via-blue-100/80 to-pink-100/80 backdrop-blur-sm border-b-2 border-purple-300/50 shadow-lg">
           <div className="max-w-2xl mx-auto px-4 py-4 flex items-center">
             <button
               onClick={() => router.back()}
-              className="mr-3 p-2 hover:bg-white/20 rounded-full"
+              className="mr-3 p-2 hover:bg-purple-200/50 rounded-full transition-colors"
             >
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h1 className="text-xl font-bold text-white">Community</h1>
+            <h1 className="text-xl font-bold text-gray-800">Community</h1>
           </div>
         </div>
 
