@@ -64,6 +64,8 @@ const StudentDashboardNew: React.FC = () => {
   const handleStudyBuddy = async (targetUserId: string) => {
     if (!user?.id || !targetUserId) return;
     
+    console.log('🔗 Creating study buddy connection:', { requesterId: user.id, requestedId: targetUserId });
+    
     try {
       const response = await fetch('/api/connections', {
         method: 'POST',
@@ -76,15 +78,22 @@ const StudentDashboardNew: React.FC = () => {
       });
 
       const data = await response.json();
+      console.log('🔗 Study buddy response:', data);
       
       if (data.success) {
-        // Update local state
+        // Update local state to reflect connection
         setConnections(prev => new Set(prev).add(targetUserId));
+        console.log('✅ Study buddy connection added successfully');
+        
+        // Optionally reload connections to ensure consistency
+        loadConnections();
       } else {
-        console.error('Failed to add study buddy:', data.error);
+        console.error('❌ Failed to add study buddy:', data.error);
+        alert('Failed to connect as study buddy. Please try again.');
       }
     } catch (error) {
-      console.error('Error adding study buddy:', error);
+      console.error('❌ Error adding study buddy:', error);
+      alert('Failed to connect as study buddy. Please try again.');
     }
   };
 
