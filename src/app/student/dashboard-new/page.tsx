@@ -81,12 +81,9 @@ const StudentDashboardNew: React.FC = () => {
       console.log('🔗 Study buddy response:', data);
       
       if (data.success) {
-        // Update local state to reflect connection
+        // Update local state to reflect connection without reloading feed
         setConnections(prev => new Set(prev).add(targetUserId));
         console.log('✅ Study buddy connection added successfully');
-        
-        // Optionally reload connections to ensure consistency
-        loadConnections();
       } else {
         console.error('❌ Failed to add study buddy:', data.error);
         alert('Failed to connect as study buddy. Please try again.');
@@ -654,6 +651,14 @@ const FeedItemComponent: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void; onStudyBuddy?: (userId: string) => void; isConnected?: boolean }> = ({ item, formatTimestamp, currentUserId, onDelete, onStudyBuddy, isConnected }) => {
   const { user } = useAuth();
   const router = useRouter();
+  const [localIsConnected, setLocalIsConnected] = React.useState(isConnected || false);
+  const [isConnecting, setIsConnecting] = React.useState(false);
+  
+  // Update local state when prop changes
+  React.useEffect(() => {
+    setLocalIsConnected(isConnected || false);
+  }, [isConnected]);
+  
   console.log('🚀 VideoFeedItem COMPONENT STARTED for:', item.title);
   
   const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
@@ -679,6 +684,13 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   const [respondText, setRespondText] = React.useState('');
   const [isSubmittingRespond, setIsSubmittingRespond] = React.useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  
+  // Sync isLiked state with item prop when it changes
+  React.useEffect(() => {
+    setIsLiked(item.isLiked || false);
+    setLikes(item.likes || 0);
+    setComments(item.comments || 0);
+  }, [item.isLiked, item.likes, item.comments]);
   
   // Check if avatar is emoji or valid image
   const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
@@ -893,66 +905,80 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
     <div className="bg-gradient-to-r from-white via-purple-50/30 to-blue-50/30 border-l-4 border-purple-500 border-b-2 border-purple-200/50 shadow-md mb-2">
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-purple-50/50 to-blue-50/50">
-        <div 
-          onClick={(e) => {
-            e.stopPropagation();
-            if (item.author?.id) {
-              router.push(`/student/profile/${item.author.id}`);
-            }
-          }}
-          className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-1 -m-1 transition-colors"
-        >
-          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-            {isEmoji ? (
-              <span className="text-2xl">{item.author?.avatar}</span>
-            ) : hasValidAvatar ? (
-              <Image
-                src={item.author.avatar}
-                alt={item.author.name}
-                width={40}
-                height={40}
-                className="w-full h-full object-cover"
-                onError={() => setImageError(true)}
-              />
-            ) : (
-              <span className="text-gray-600 font-semibold text-sm">
-                {item.author?.name.split(' ').map(n => n[0]).join('')}
-              </span>
-            )}
+        <div className="flex items-center space-x-3">
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              if (item.author?.id) {
+                router.push(`/student/profile/${item.author.id}`);
+              }
+            }}
+            className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-1 -m-1 transition-colors"
+          >
+            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+              {isEmoji ? (
+                <span className="text-2xl">{item.author?.avatar}</span>
+              ) : hasValidAvatar ? (
+                <Image
+                  src={item.author.avatar}
+                  alt={item.author.name}
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                <span className="text-gray-600 font-semibold text-sm">
+                  {item.author?.name.split(' ').map(n => n[0]).join('')}
+                </span>
+              )}
+            </div>
+            <div>
+              <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
+              <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
+            </div>
           </div>
-          <div>
-            <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
-            <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          {item.courseInitials && (
-            <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-semibold rounded-full shadow-lg">
-              {item.courseInitials}
-            </span>
-          )}
+          
           {/* Study Buddy Button - only show if not current user */}
           {item.author?.id && item.author.id !== currentUserId && onStudyBuddy && (
             <button
               onClick={async (e) => {
                 e.stopPropagation();
-                if (item.author?.id && onStudyBuddy) {
+                if (item.author?.id && onStudyBuddy && !isConnecting) {
+                  setIsConnecting(true);
                   console.log('🔄 Connect button clicked for:', item.author.id);
                   await onStudyBuddy(item.author.id);
+                  setLocalIsConnected(true);
+                  setIsConnecting(false);
                 }
               }}
-              className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all font-medium text-sm ${
-                isConnected 
-                  ? 'bg-green-500 hover:bg-green-600 text-white shadow-md' 
-                  : 'bg-blue-500 hover:bg-blue-600 text-white shadow-md hover:shadow-lg'
-              }`}
-              title={isConnected ? 'Study Buddy' : 'Connect as Study Buddy'}
+              disabled={isConnecting}
+              className={`flex items-center space-x-1 px-2 py-1 rounded-md transition-all text-xs ${
+                localIsConnected 
+                  ? 'bg-green-100 hover:bg-green-200 text-green-700 border border-green-300' 
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600 border border-gray-300'
+              } disabled:opacity-50`}
+              title={localIsConnected ? 'Study Buddy' : 'Connect as Study Buddy'}
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-              </svg>
-              <span>{isConnected ? 'Connected' : 'Connect'}</span>
+              {localIsConnected ? (
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              )}
+              <span className="font-medium">{localIsConnected ? 'Connected' : (isConnecting ? 'Connecting...' : 'Connect')}</span>
             </button>
+          )}
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          {item.courseInitials && (
+            <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-semibold rounded-full shadow-lg">
+              {item.courseInitials}
+            </span>
           )}
           {isMyVideo && (
             <button
