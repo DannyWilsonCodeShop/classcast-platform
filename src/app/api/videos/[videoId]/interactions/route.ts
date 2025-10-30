@@ -13,10 +13,10 @@ const USERS_TABLE = 'classcast-users';
 // GET /api/videos/[videoId]/interactions - Get all interactions for a video
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ videoId: string }> }
+  { params }: { params: { videoId: string } }
 ) {
   try {
-    const { videoId } = await params;
+    const { videoId } = params;
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type'); // like, comment, response, rating
 
@@ -55,10 +55,10 @@ export async function GET(
 // POST /api/videos/[videoId]/interactions - Create a new interaction
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ videoId: string }> }
+  { params }: { params: { videoId: string } }
 ) {
   try {
-    const { videoId } = await params;
+    const { videoId } = params;
     const body = await request.json();
     const { type, userId, userName, userAvatar } = body;
 
@@ -138,14 +138,36 @@ export async function POST(
             error: 'Valid rating (1-5) is required'
           }, { status: 400 });
         }
-        if (!body.contentCreatorId) {
+        // Derive content creator ID from the video submission if not provided
+        let contentCreatorId = body.contentCreatorId as string | undefined;
+        if (!contentCreatorId) {
+          try {
+            let getResult = await docClient.send(new GetCommand({
+              TableName: VIDEOS_TABLE,
+              Key: { submissionId: videoId }
+            }));
+            if (!getResult.Item) {
+              getResult = await docClient.send(new GetCommand({
+                TableName: VIDEOS_TABLE,
+                Key: { id: videoId }
+              }));
+            }
+            if (getResult.Item) {
+              // Commonly stored as studentId/authorId on submissions
+              contentCreatorId = getResult.Item.studentId || getResult.Item.authorId || getResult.Item.userId;
+            }
+          } catch (e) {
+            console.warn('Could not derive contentCreatorId for rating', e);
+          }
+        }
+        if (!contentCreatorId) {
           return NextResponse.json({
             success: false,
-            error: 'Content creator ID is required for rating'
+            error: 'Content creator could not be determined'
           }, { status: 400 });
         }
         interactionData.rating = body.rating;
-        interactionData.contentCreatorId = body.contentCreatorId;
+        interactionData.contentCreatorId = contentCreatorId;
         interactionData.comment = body.comment || '';
         break;
 
@@ -211,7 +233,7 @@ export async function DELETE(
   { params }: { params: { videoId: string } }
 ) {
   try {
-    const { videoId } = await params;
+    const { videoId } = params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const type = searchParams.get('type');

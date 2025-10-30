@@ -9,10 +9,10 @@ const SUBMISSIONS_TABLE = 'classcast-submissions';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ videoId: string }> }
+  { params }: { params: { videoId: string } }
 ) {
   try {
-    const { videoId } = await params;
+    const { videoId } = params;
     const { userId } = await request.json();
 
     if (!videoId) {
