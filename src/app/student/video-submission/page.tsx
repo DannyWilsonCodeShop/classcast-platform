@@ -241,10 +241,34 @@ const VideoSubmissionContent: React.FC = () => {
         }
       };
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      mediaRecorder.onstop = async () => {
+        // Prefer a supported mimeType on mobile (iOS often provides video/mp4)
+        const preferredTypes = [
+          'video/mp4;codecs=h264,aac',
+          'video/mp4',
+          'video/webm;codecs=vp9,opus',
+          'video/webm;codecs=vp8,opus',
+          'video/webm',
+        ];
+        let blobType = 'video/webm';
+        for (const t of preferredTypes) {
+          // We cannot query the recorded chunks' codec reliably, but pick first preferred
+          blobType = t.split(';')[0];
+          break;
+        }
+        const blob = new Blob(recordedChunksRef.current, { type: blobType });
         const videoUrl = URL.createObjectURL(blob);
         setRecordedVideo(videoUrl);
+
+        // Auto-upload on mobile immediately after stop to avoid losing data on navigation
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          try {
+            await uploadVideo(blob);
+          } catch (e) {
+            console.error('Auto-upload failed, will allow manual submit:', e);
+          }
+        }
       };
 
       mediaRecorder.start();
@@ -265,8 +289,8 @@ const VideoSubmissionContent: React.FC = () => {
     }
   };
 
-  const uploadVideo = async () => {
-    const videoToUpload = recordedVideo || uploadedVideo;
+  const uploadVideo = async (directBlob?: Blob) => {
+    const videoToUpload = directBlob ? 'BLOB_DIRECT' : (recordedVideo || uploadedVideo);
     if (!videoToUpload) return;
 
     try {
@@ -289,7 +313,12 @@ const VideoSubmissionContent: React.FC = () => {
       let fileName: string;
       let videoType: string;
 
-      if (recordedVideo) {
+      if (directBlob) {
+        // Direct recorded blob provided (mobile auto-upload)
+        videoBlob = directBlob;
+        fileName = `video-submission-${Date.now()}.${directBlob.type.includes('mp4') ? 'mp4' : 'webm'}`;
+        videoType = directBlob.type || 'video/mp4';
+      } else if (recordedVideo) {
         // Handle recorded video
         const response = await fetch(recordedVideo);
         videoBlob = await response.blob();
