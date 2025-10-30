@@ -31,6 +31,7 @@ const VideoSubmissionContent: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const currentStreamRef = useRef<MediaStream | null>(null);
 
   // Load assignment data to get the assignment title
   React.useEffect(() => {
@@ -85,15 +86,18 @@ const VideoSubmissionContent: React.FC = () => {
 
   // Helper function to stop camera
   const stopCamera = React.useCallback(() => {
-    if (videoRef.current && videoRef.current.srcObject) {
+    const stream = (videoRef.current?.srcObject as MediaStream) || currentStreamRef.current;
+    if (stream) {
       console.log('📹 Stopping camera');
-      const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => {
-        track.stop();
+        try { track.stop(); } catch {}
         console.log(`📹 Stopped track: ${track.kind}`);
       });
+    }
+    if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
+    currentStreamRef.current = null;
   }, []);
 
   // Stop camera when page visibility changes (tab switch, navigate away, etc.)
@@ -110,12 +114,26 @@ const VideoSubmissionContent: React.FC = () => {
       stopCamera();
     };
 
+    const handlePageHide = () => {
+      console.log('📹 Page hidden (pagehide), stopping camera');
+      stopCamera();
+    };
+
+    const handleFreeze = () => {
+      console.log('📹 Page freeze, stopping camera');
+      stopCamera();
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+    document.addEventListener('freeze', handleFreeze as any);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+      document.removeEventListener('freeze', handleFreeze as any);
     };
   }, [stopCamera]);
 
@@ -165,6 +183,7 @@ const VideoSubmissionContent: React.FC = () => {
         });
       }
       
+      currentStreamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         console.log('📹 Camera preview started');
@@ -242,12 +261,7 @@ const VideoSubmissionContent: React.FC = () => {
       setIsRecording(false);
       
       // Stop camera tracks after recording is complete
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-        videoRef.current.srcObject = null;
-        console.log('📹 Recording stopped, camera turned off');
-      }
+      stopCamera();
     }
   };
 
