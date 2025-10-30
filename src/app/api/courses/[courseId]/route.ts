@@ -85,7 +85,9 @@ export async function PUT(
     const allowedFields = [
       'title', 'courseName', 'code', 'courseCode', 'description', 'semester', 'year',
       'maxStudents', 'maxEnrollment', 'credits', 'schedule', 'prerequisites',
-      'learningObjectives', 'gradingPolicy', 'classCode', 'settings'
+      'learningObjectives', 'gradingPolicy', 'classCode', 'settings',
+      // New visual identity fields
+      'iconInitials', 'avatar', 'thumbnailUrl'
     ];
 
     for (const [key, value] of Object.entries(body)) {
