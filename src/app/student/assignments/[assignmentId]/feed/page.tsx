@@ -345,7 +345,7 @@ const AssignmentFeedPage: React.FC = () => {
           ) : (
             <div className="space-y-0">
               {videos.map((video) => (
-                <VideoSubmissionCard key={video.submissionId} video={video} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchVideos} />
+                <VideoSubmissionCard key={video.submissionId} video={video} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchAssignmentFeed} />
               ))}
             </div>
           )}
