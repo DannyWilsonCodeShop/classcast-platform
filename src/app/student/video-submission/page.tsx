@@ -26,6 +26,9 @@ const VideoSubmissionContent: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState<string>('');
   const [assignmentTitle, setAssignmentTitle] = useState<string>('');
+  const [existingSubmissions, setExistingSubmissions] = useState<any[]>([]);
+  const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,6 +62,69 @@ const VideoSubmissionContent: React.FC = () => {
     
     loadAssignment();
   }, [assignmentId]);
+
+  // Load existing submissions for this assignment
+  React.useEffect(() => {
+    const loadExistingSubmissions = async () => {
+      if (assignmentId && assignmentId !== 'temp-assignment' && user?.id) {
+        setIsLoadingSubmissions(true);
+        try {
+          const response = await fetch(
+            `/api/video-submissions?assignmentId=${assignmentId}&studentId=${user.id}`,
+            { credentials: 'include' }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.submissions) {
+              // Filter to only show submissions from this student
+              const studentSubmissions = data.submissions.filter(
+                (s: any) => s.studentId === user.id && s.status !== 'deleted' && !s.hidden
+              );
+              setExistingSubmissions(studentSubmissions);
+              console.log('📹 Loaded existing submissions:', studentSubmissions.length);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading existing submissions:', error);
+        } finally {
+          setIsLoadingSubmissions(false);
+        }
+      }
+    };
+
+    loadExistingSubmissions();
+  }, [assignmentId, user?.id]);
+
+  // Delete a submission
+  const handleDeleteSubmission = async (submissionId: string) => {
+    if (!showDeleteConfirm || showDeleteConfirm !== submissionId) {
+      setShowDeleteConfirm(submissionId);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/video-submissions/${submissionId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setExistingSubmissions(prev => prev.filter(s => s.submissionId !== submissionId));
+        setShowDeleteConfirm(null);
+        setSuccess(false);
+        setError(null);
+        console.log('✅ Submission deleted successfully');
+      } else {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete submission');
+      }
+    } catch (error) {
+      console.error('Error deleting submission:', error);
+      setError(error instanceof Error ? error.message : 'Failed to delete submission');
+      setShowDeleteConfirm(null);
+    }
+  };
 
   const clearOldVideos = () => {
     try {
@@ -259,16 +325,7 @@ const VideoSubmissionContent: React.FC = () => {
         const blob = new Blob(recordedChunksRef.current, { type: blobType });
         const videoUrl = URL.createObjectURL(blob);
         setRecordedVideo(videoUrl);
-
-        // Auto-upload on mobile immediately after stop to avoid losing data on navigation
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-        if (isMobile) {
-          try {
-            await uploadVideo(blob);
-          } catch (e) {
-            console.error('Auto-upload failed, will allow manual submit:', e);
-          }
-        }
+        // Stop here - let user preview and confirm before submitting
       };
 
       mediaRecorder.start();
@@ -454,6 +511,33 @@ const VideoSubmissionContent: React.FC = () => {
       // Simulate successful upload
       setSuccess(true);
       
+      // Reload existing submissions to show the new one
+      if (assignmentId && assignmentId !== 'temp-assignment' && user?.id) {
+        try {
+          const response = await fetch(
+            `/api/video-submissions?assignmentId=${assignmentId}&studentId=${user.id}`,
+            { credentials: 'include' }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.submissions) {
+              const studentSubmissions = data.submissions.filter(
+                (s: any) => s.studentId === user.id && s.status !== 'deleted' && !s.hidden
+              );
+              setExistingSubmissions(studentSubmissions);
+            }
+          }
+        } catch (error) {
+          console.error('Error reloading submissions:', error);
+        }
+      }
+      
+      // Clear recorded video to allow new recording
+      setRecordedVideo(null);
+      setUploadedVideo(null);
+      setSelectedFile(null);
+      setYoutubeUrl('');
+      
       // Store only metadata in localStorage for local reference
       const videoInfo = {
         id: `video-${Date.now()}`,
@@ -607,6 +691,30 @@ const VideoSubmissionContent: React.FC = () => {
 
       setUploadProgress(100);
       setSuccess(true);
+      
+      // Reload existing submissions to show the new one
+      if (assignmentId && assignmentId !== 'temp-assignment' && user?.id) {
+        try {
+          const response = await fetch(
+            `/api/video-submissions?assignmentId=${assignmentId}&studentId=${user.id}`,
+            { credentials: 'include' }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.submissions) {
+              const studentSubmissions = data.submissions.filter(
+                (s: any) => s.studentId === user.id && s.status !== 'deleted' && !s.hidden
+              );
+              setExistingSubmissions(studentSubmissions);
+            }
+          }
+        } catch (error) {
+          console.error('Error reloading submissions:', error);
+        }
+      }
+      
+      // Clear YouTube URL to allow new submission
+      setYoutubeUrl('');
 
     } catch (err) {
       console.error('Error submitting YouTube URL:', err);
@@ -1253,6 +1361,91 @@ const VideoSubmissionContent: React.FC = () => {
                         )}
                       </div>
                     </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Existing Submissions Section */}
+            {existingSubmissions.length > 0 && (
+              <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">📹 Previously Posted Videos</h3>
+                {isLoadingSubmissions ? (
+                  <div className="flex items-center justify-center py-8">
+                    <LoadingSpinner size="md" />
+                    <span className="ml-3 text-gray-600">Loading submissions...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {existingSubmissions.map((submission) => (
+                      <div
+                        key={submission.submissionId}
+                        className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-800 mb-2">
+                              {submission.videoTitle || 'Video Submission'}
+                            </h4>
+                            <p className="text-sm text-gray-600 mb-2">
+                              Submitted: {new Date(submission.submittedAt || submission.createdAt).toLocaleString()}
+                            </p>
+                            {submission.duration && (
+                              <p className="text-xs text-gray-500">
+                                Duration: {Math.floor(submission.duration / 60)}:{(submission.duration % 60).toFixed(0).padStart(2, '0')}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            {submission.isYouTube || submission.youtubeUrl ? (
+                              <a
+                                href={submission.youtubeUrl || submission.videoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                              >
+                                ▶️ View on YouTube
+                              </a>
+                            ) : (
+                              <a
+                                href={submission.videoUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                              >
+                                ▶️ View Video
+                              </a>
+                            )}
+                            {showDeleteConfirm === submission.submissionId ? (
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleDeleteSubmission(submission.submissionId)}
+                                  className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                  ✓ Confirm Delete
+                                </button>
+                                <button
+                                  onClick={() => setShowDeleteConfirm(null)}
+                                  className="px-3 py-1.5 bg-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-400 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleDeleteSubmission(submission.submissionId)}
+                                className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors"
+                              >
+                                🗑️ Delete
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {submission.videoDescription && (
+                          <p className="text-sm text-gray-700 mt-2">{submission.videoDescription}</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
