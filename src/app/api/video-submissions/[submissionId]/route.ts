@@ -10,10 +10,10 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 // DELETE /api/video-submissions/[submissionId] - Soft delete a video submission
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { submissionId: string } }
+  { params }: { params: Promise<{ submissionId: string }> }
 ) {
   try {
-    const { submissionId } = params;
+    const { submissionId } = await params;
 
     if (!submissionId) {
       return NextResponse.json(
