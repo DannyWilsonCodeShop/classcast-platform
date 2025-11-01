@@ -13,7 +13,9 @@ export async function DELETE(
   { params }: { params: Promise<{ submissionId: string }> }
 ) {
   try {
+    console.log('🗑️ DELETE video submission called, awaiting params...');
     const { submissionId } = await params;
+    console.log('🗑️ Attempting to delete submission:', submissionId);
 
     if (!submissionId) {
       return NextResponse.json(
@@ -55,6 +57,7 @@ export async function DELETE(
     });
 
     await docClient.send(updateCommand);
+    console.log('✅ Submission soft-deleted in classcast-submissions:', submissionId);
 
     // Also soft delete the corresponding video entry if it exists
     try {
@@ -91,13 +94,14 @@ export async function DELETE(
       // Don't fail the deletion if video update fails
     }
 
+    console.log('✅ Video submission deleted successfully:', submissionId);
     return NextResponse.json({
       success: true,
       message: 'Video submission deleted successfully'
     });
 
   } catch (error) {
-    console.error('Error deleting video submission:', error);
+    console.error('❌ Error deleting video submission:', error);
     return NextResponse.json(
       {
         success: false,
