@@ -861,7 +861,7 @@ const VideoSubmissionContent: React.FC = () => {
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-bold text-gray-900">
-                Video Submission <span className="text-xs text-blue-500">v2.1</span>
+                Video Submission <span className="text-xs text-blue-500">v2.2</span>
               </h1>
               <p className="text-xs text-gray-600">
                 Record and submit your video assignment
