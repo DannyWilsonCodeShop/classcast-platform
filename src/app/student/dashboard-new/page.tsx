@@ -703,6 +703,11 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   const [isMuted, setIsMuted] = React.useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [likes, setLikes] = React.useState(item.likes || 0);
+  
+  // Reset image error state when videoId changes
+  React.useEffect(() => {
+    setImageError(false);
+  }, [videoId]);
   const [isLiked, setIsLiked] = React.useState(item.isLiked || false);
   const [comments, setComments] = React.useState(item.comments || 0);
   const [showComments, setShowComments] = React.useState(false);
@@ -1119,11 +1124,12 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       <div className="relative w-full bg-black mb-2" style={{ aspectRatio: '16/9' }}>
         {isYouTube && videoId ? (
           <div className="relative w-full h-full group">
-            <Image
-              src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+            <img
+              src={imageError 
+                ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+                : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+              }
               alt={item.title || 'Video'}
-              width={1280}
-              height={720}
               className="w-full h-full object-cover cursor-pointer"
               onClick={(e) => {
                 const iframe = document.createElement('iframe');
@@ -1134,9 +1140,11 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
                 iframe.title = item.title || 'Video';
                 e.currentTarget.parentElement?.replaceChild(iframe, e.currentTarget);
               }}
-              onError={(e) => {
-                // Fallback to standard thumbnail
-                e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+              onError={() => {
+                // Use state to prevent infinite loop
+                if (!imageError) {
+                  setImageError(true);
+                }
               }}
             />
             {/* Play button overlay */}
