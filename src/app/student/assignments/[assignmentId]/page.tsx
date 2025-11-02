@@ -112,6 +112,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const [replyText, setReplyText] = useState<{[key: string]: string}>({});
   const [allAssignments, setAllAssignments] = useState<Assignment[]>([]);
   const [nextAssignment, setNextAssignment] = useState<Assignment | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const assignmentId = params.assignmentId as string;
 
@@ -305,6 +307,35 @@ const StudentAssignmentDetailPage: React.FC = () => {
       console.error('Error fetching responses to my submission:', error);
     }
   }, [submission?.submissionId]);
+
+  // Delete submission handler
+  const handleDeleteSubmission = async () => {
+    if (!submission?.submissionId) return;
+    
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/video-submissions/${submission.submissionId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Clear the submission state
+        setSubmission(null);
+        setShowDeleteConfirm(false);
+        // Refresh the page data
+        await fetchSubmission();
+        await fetchPeerVideos();
+      } else {
+        console.error('Failed to delete submission');
+        alert('Failed to delete submission. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error deleting submission:', error);
+      alert('An error occurred while deleting. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (assignmentId && user?.id) {
@@ -641,7 +672,19 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   
                   {/* Video Submission Display */}
                   <div className="mt-4">
-                    <h4 className="text-md font-semibold text-gray-800 mb-2">Your Submission</h4>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-md font-semibold text-gray-800">Your Submission</h4>
+                      <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg border border-red-200 hover:border-red-300 transition-colors flex items-center space-x-1"
+                        title="Delete submission"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>Delete</span>
+                      </button>
+                    </div>
                     <div className="bg-white rounded-lg p-4 border border-gray-200">
                       <div className="aspect-video bg-black rounded-lg overflow-hidden mb-3 relative">
                         {isYouTubeUrl(submission.videoUrl) || submission.youtubeUrl || submission.isYouTube ? (
@@ -666,7 +709,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                             controls
                             className="w-full h-full object-cover"
                             src={getVideoUrl(submission.videoUrl)}
-                            poster={videoThumbnail || submission.thumbnailUrl || undefined}
+                            poster={submission.thumbnailUrl || undefined}
                             preload="metadata"
                             playsInline
                             webkit-playsinline="true"
@@ -675,25 +718,6 @@ const StudentAssignmentDetailPage: React.FC = () => {
                               setVideoLoaded(true);
                               if (video.duration && !isNaN(video.duration)) {
                                 setVideoDuration(Math.floor(video.duration));
-                              }
-                              
-                              // Generate thumbnail from frame at 2 seconds if not already generated
-                              if (!videoThumbnail) {
-                                video.currentTime = 2.0;
-                              }
-                            }}
-                            onSeeked={(e) => {
-                              const video = e.currentTarget;
-                              if (!videoThumbnail && video.currentTime >= 2.0 && video.currentTime < 3.0) {
-                                const canvas = document.createElement('canvas');
-                                canvas.width = 400;
-                                canvas.height = 300;
-                                const ctx = canvas.getContext('2d');
-                                if (ctx) {
-                                  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                                  const thumbnail = canvas.toDataURL('image/jpeg', 0.8);
-                                  setVideoThumbnail(thumbnail);
-                                }
                               }
                             }}
                             onError={() => {
@@ -987,6 +1011,41 @@ const StudentAssignmentDetailPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Delete Submission?</h3>
+                <p className="text-sm text-gray-600">This action cannot be undone</p>
+              </div>
+            </div>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteSubmission}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </StudentRoute>
   );
 };
