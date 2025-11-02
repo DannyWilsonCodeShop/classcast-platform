@@ -1118,13 +1118,36 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       {/* Video Player - Auto-play when in view */}
       <div className="relative w-full bg-black mb-2" style={{ aspectRatio: '16/9' }}>
         {isYouTube ? (
-          <iframe
-            src={`${getYouTubeEmbedUrl(item.videoUrl || '')}?autoplay=1&mute=1&rel=0&modestbranding=1`}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title={item.title || 'Video'}
-          />
+          <div className="relative w-full h-full group">
+            <Image
+              src={`https://img.youtube.com/vi/${videoState.videoId}/maxresdefault.jpg`}
+              alt={item.title || 'Video'}
+              width={1280}
+              height={720}
+              className="w-full h-full object-cover cursor-pointer"
+              onClick={(e) => {
+                const iframe = document.createElement('iframe');
+                iframe.src = `${getYouTubeEmbedUrl(item.videoUrl || '')}?autoplay=1&mute=0&rel=0&modestbranding=1`;
+                iframe.className = 'w-full h-full';
+                iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                iframe.allowFullscreen = true;
+                iframe.title = item.title || 'Video';
+                e.currentTarget.parentElement?.replaceChild(iframe, e.currentTarget);
+              }}
+              onError={(e) => {
+                // Fallback to standard thumbnail
+                e.currentTarget.src = `https://img.youtube.com/vi/${videoState.videoId}/hqdefault.jpg`;
+              }}
+            />
+            {/* Play button overlay */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center shadow-2xl">
+                <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="relative w-full h-full">
             <video
