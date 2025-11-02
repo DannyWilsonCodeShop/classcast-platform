@@ -1117,10 +1117,10 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
 
       {/* Video Player - Auto-play when in view */}
       <div className="relative w-full bg-black mb-2" style={{ aspectRatio: '16/9' }}>
-        {isYouTube ? (
+        {isYouTube && videoId ? (
           <div className="relative w-full h-full group">
             <Image
-              src={`https://img.youtube.com/vi/${videoState.videoId}/maxresdefault.jpg`}
+              src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
               alt={item.title || 'Video'}
               width={1280}
               height={720}
@@ -1136,7 +1136,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
               }}
               onError={(e) => {
                 // Fallback to standard thumbnail
-                e.currentTarget.src = `https://img.youtube.com/vi/${videoState.videoId}/hqdefault.jpg`;
+                e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
               }}
             />
             {/* Play button overlay */}
