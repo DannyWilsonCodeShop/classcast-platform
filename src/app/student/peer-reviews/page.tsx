@@ -167,6 +167,39 @@ const PeerReviewsContent: React.FC = () => {
           
           setResponses(responsesMap);
           setAllResponses(allResponsesMap);
+          
+          // Fetch user's rating for each video
+          console.log('⭐ [Peer Reviews] Fetching user ratings for', allVideos.length, 'videos');
+          for (const video of allVideos) {
+            try {
+              const ratingResponse = await fetch(
+                `/api/videos/${video.id}/interactions?userId=${user.id}&type=rating`,
+                { credentials: 'include' }
+              );
+              
+              if (ratingResponse.ok) {
+                const ratingData = await ratingResponse.json();
+                if (ratingData.success && ratingData.interactions) {
+                  // Find this user's rating
+                  const userRatingInteraction = ratingData.interactions.find(
+                    (i: any) => i.userId === user.id && i.type === 'rating'
+                  );
+                  
+                  if (userRatingInteraction) {
+                    console.log('⭐ Found rating for video', video.id, ':', userRatingInteraction.rating);
+                    setPeerVideos(prev => prev.map(v => 
+                      v.id === video.id 
+                        ? { ...v, userRating: userRatingInteraction.rating }
+                        : v
+                    ));
+                  }
+                }
+              }
+            } catch (err) {
+              console.error('Error loading rating for video:', video.id, err);
+            }
+          }
+          console.log('⭐ [Peer Reviews] Finished loading user ratings');
         }
       } catch (error) {
         console.error('Error loading videos:', error);
@@ -231,11 +264,19 @@ const PeerReviewsContent: React.FC = () => {
         });
 
       if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Rating saved successfully:', data);
         setPeerVideos(prev => prev.map(v => 
           v.id === videoId 
-            ? { ...v, userRating: rating }
+            ? { 
+                ...v, 
+                userRating: rating,
+                averageRating: data.averageRating || v.averageRating
+              }
             : v
         ));
+      } else {
+        console.error('❌ Failed to save rating:', response.status);
       }
     } catch (error) {
       console.error('Error rating video:', error);
