@@ -45,9 +45,11 @@ export async function DELETE(
     const updateCommand = new UpdateCommand({
       TableName: 'classcast-submissions',
       Key: { submissionId },
-      UpdateExpression: 'SET #status = :status, updatedAt = :updatedAt, hidden = :hidden',
+      UpdateExpression: 'SET #status = :status, #updatedAt = :updatedAt, #hidden = :hidden',
       ExpressionAttributeNames: {
-        '#status': 'status'
+        '#status': 'status',
+        '#updatedAt': 'updatedAt',
+        '#hidden': 'hidden'
       },
       ExpressionAttributeValues: {
         ':status': 'deleted',
@@ -79,7 +81,11 @@ export async function DELETE(
         const updateVideoCommand = new UpdateCommand({
           TableName: 'classcast-videos',
           Key: { id: videoId },
-          UpdateExpression: 'SET hidden = :hidden, updatedAt = :updatedAt',
+          UpdateExpression: 'SET #hidden = :hidden, #updatedAt = :updatedAt',
+          ExpressionAttributeNames: {
+            '#hidden': 'hidden',
+            '#updatedAt': 'updatedAt'
+          },
           ExpressionAttributeValues: {
             ':hidden': true,
             ':updatedAt': new Date().toISOString()
