@@ -20,17 +20,21 @@ export async function GET(request: NextRequest) {
     // Get student's video submissions
     let videosResult;
     try {
-      videosResult = await dynamodbService.query({
+      // Use Scan instead of Query since index may not exist
+      videosResult = await dynamodbService.scan({
         TableName: 'classcast-submissions',
-        IndexName: 'student-index',
-        KeyConditionExpression: 'studentId = :studentId',
+        FilterExpression: 'studentId = :studentId AND (#status <> :deletedStatus OR attribute_not_exists(#status))',
+        ExpressionAttributeNames: {
+          '#status': 'status'
+        },
         ExpressionAttributeValues: {
-          ':studentId': studentId
+          ':studentId': studentId,
+          ':deletedStatus': 'deleted'
         }
       });
       console.log('📹 Found submissions:', videosResult.Items?.length || 0);
     } catch (error) {
-      console.error('Error querying submissions:', error);
+      console.error('Error scanning submissions:', error);
       videosResult = { Items: [] };
     }
 
