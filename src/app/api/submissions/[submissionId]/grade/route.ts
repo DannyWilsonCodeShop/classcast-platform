@@ -9,10 +9,10 @@ const SUBMISSIONS_TABLE = 'classcast-submissions';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { submissionId: string } }
+  { params }: { params: Promise<{ submissionId: string }> }
 ) {
   try {
-    const { submissionId } = params;
+    const { submissionId } = await params;
     const body = await request.json();
     const { grade, feedback, status } = body;
 

@@ -7,7 +7,7 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { submissionId: string } }
+  { params }: { params: Promise<{ submissionId: string }> }
 ) {
   try {
     const { searchParams } = new URL(request.url);
@@ -17,7 +17,7 @@ export async function POST(
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
     }
 
-    const { submissionId } = params;
+    const { submissionId } = await params;
     const { action } = await request.json(); // 'like' or 'unlike'
 
     if (!submissionId) {

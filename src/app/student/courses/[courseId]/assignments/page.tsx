@@ -3,13 +3,13 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { AssignmentList } from '@/components/student/AssignmentList';
 
 interface CourseAssignmentsPageProps {
-  params: {
+  params: Promise<{
     courseId: string;
-  };
+  }>;
 }
 
-const CourseAssignmentsPage: React.FC<CourseAssignmentsPageProps> = ({ params }) => {
-  const { courseId } = params;
+const CourseAssignmentsPage: React.FC<CourseAssignmentsPageProps> = async ({ params }) => {
+  const { courseId } = await params;
 
   return (
     <StudentRoute>
