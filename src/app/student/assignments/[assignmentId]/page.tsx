@@ -950,12 +950,11 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   >
                     <div className="relative bg-black rounded-t-lg overflow-hidden aspect-video">
                       <video
-                        src={getVideoUrl(video.videoUrl)}
+                        src={`${getVideoUrl(video.videoUrl)}#t=2`}
                         className="w-full h-full object-cover"
                         preload="metadata"
                         playsInline
                         webkit-playsinline="true"
-                        poster={video.thumbnailUrl !== '/api/placeholder/300/200' ? video.thumbnailUrl : undefined}
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center transition-all">
                         <div className="bg-white bg-opacity-0 group-hover:bg-opacity-90 rounded-full p-2 transition-all">
