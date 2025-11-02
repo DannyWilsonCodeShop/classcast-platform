@@ -80,7 +80,7 @@ async function deleteVideosFromS3(s3Keys: string[]): Promise<{ success: number; 
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   const deletionReport: {
     courseId: string;
@@ -101,7 +101,7 @@ export async function DELETE(
   };
 
   try {
-    const { courseId } = params;
+    const { courseId } = await params;
 
     if (!courseId) {
       return NextResponse.json(

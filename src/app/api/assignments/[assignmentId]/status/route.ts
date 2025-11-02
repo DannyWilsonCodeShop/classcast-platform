@@ -9,10 +9,10 @@ const ASSIGNMENTS_TABLE = 'classcast-assignments';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { assignmentId: string } }
+  { params }: { params: Promise<{ assignmentId: string }> }
 ) {
   try {
-    const { assignmentId } = params;
+    const { assignmentId } = await params;
     const { status, studentId } = await request.json();
 
     if (!assignmentId || !status) {

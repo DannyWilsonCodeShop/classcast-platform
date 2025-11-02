@@ -9,10 +9,10 @@ const COURSES_TABLE = 'classcast-courses';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { courseId } = params;
+    const { courseId } = await params;
 
     // Get course from database
     let course = null;
@@ -65,10 +65,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { courseId: string } }
+  { params }: { params: Promise<{ courseId: string }> }
 ) {
   try {
-    const { courseId } = params;
+    const { courseId } = await params;
     const body = await request.json();
 
     // Prepare update expression for DynamoDB

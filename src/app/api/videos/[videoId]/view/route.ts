@@ -30,9 +30,9 @@ export async function POST(
     
     try {
       getResult = await docClient.send(new GetCommand({
-        TableName: SUBMISSIONS_TABLE,
-        Key: { submissionId: videoId }
-      }));
+      TableName: SUBMISSIONS_TABLE,
+      Key: { submissionId: videoId }
+    }));
       actualKey = { submissionId: videoId };
     } catch (error) {
       console.log('Error with submissionId, trying id key:', error);

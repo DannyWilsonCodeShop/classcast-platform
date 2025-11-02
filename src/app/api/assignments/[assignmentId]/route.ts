@@ -10,10 +10,10 @@ const COURSES_TABLE = 'classcast-courses';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { assignmentId: string } }
+  { params }: { params: Promise<{ assignmentId: string }> }
 ) {
   try {
-    const { assignmentId } = params;
+    const { assignmentId } = await params;
     
     // Get assignment from database using scan
     let assignment = null;
@@ -112,10 +112,10 @@ export async function GET(
 // PUT /api/assignments/[assignmentId] - Update an assignment
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { assignmentId: string } }
+  { params }: { params: Promise<{ assignmentId: string }> }
 ) {
   try {
-    const { assignmentId } = params;
+    const { assignmentId } = await params;
     const body = await request.json();
     
     console.log('Updating assignment:', assignmentId, body);
@@ -216,10 +216,10 @@ export async function PUT(
 // DELETE /api/assignments/[assignmentId] - Delete an assignment
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { assignmentId: string } }
+  { params }: { params: Promise<{ assignmentId: string }> }
 ) {
   try {
-    const { assignmentId } = params;
+    const { assignmentId } = await params;
     
     console.log('Deleting assignment:', assignmentId);
     

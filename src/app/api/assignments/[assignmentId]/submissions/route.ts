@@ -37,10 +37,10 @@ function extractS3KeyFromUrl(url: string): string | null {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { assignmentId: string } }
+  { params }: { params: Promise<{ assignmentId: string }> }
 ) {
   try {
-    const { assignmentId } = params;
+    const { assignmentId } = await params;
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get('studentId');
 

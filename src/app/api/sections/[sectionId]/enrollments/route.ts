@@ -12,10 +12,10 @@ const USERS_TABLE = 'classcast-users';
 // GET /api/sections/[sectionId]/enrollments - Get students enrolled in a specific section
 export async function GET(
   request: NextRequest,
-  { params }: { params: { sectionId: string } }
+  { params }: { params: Promise<{ sectionId: string }> }
 ) {
   try {
-    const { sectionId } = params;
+    const { sectionId } = await params;
     
     console.log('Fetching enrollments for section:', sectionId);
 

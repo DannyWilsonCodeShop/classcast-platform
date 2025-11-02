@@ -3,10 +3,10 @@ import { DynamoDBService } from '@/lib/dynamodb';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { instructorId: string } }
+  { params }: { params: Promise<{ instructorId: string }> }
 ) {
   try {
-    const { instructorId } = params;
+    const { instructorId } = await params;
     const dynamoDBService = new DynamoDBService();
     
     // Get user from auth context (you'll need to implement this)

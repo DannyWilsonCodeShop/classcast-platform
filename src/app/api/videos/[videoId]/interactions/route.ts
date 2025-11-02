@@ -230,10 +230,10 @@ export async function POST(
 // DELETE /api/videos/[videoId]/interactions - Remove an interaction (like/unlike)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { videoId: string } }
+  { params }: { params: Promise<{ videoId: string }> }
 ) {
   try {
-    const { videoId } = params;
+    const { videoId } = await params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const type = searchParams.get('type');
