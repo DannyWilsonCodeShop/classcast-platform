@@ -382,6 +382,13 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
   
   // Check if this is the current user's video
   const isMyVideo = currentUserId && video.studentId === currentUserId;
+  
+  console.log('🎬 Video card debug:', {
+    videoId: video.submissionId,
+    currentUserId,
+    videoOwnerId: video.studentId,
+    isMyVideo
+  });
 
   const handleDelete = async () => {
     try {
@@ -480,18 +487,42 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
       {/* Video Player - Mobile Optimized */}
       <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>
         {isYouTube ? (
-          <iframe
-            src={getYouTubeEmbedUrl(video.videoUrl)}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+          <div className="relative w-full h-full">
+            <Image
+              src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+              alt={video.videoTitle}
+              width={1280}
+              height={720}
+              className="w-full h-full object-cover cursor-pointer"
+              onClick={(e) => {
+                const iframe = document.createElement('iframe');
+                iframe.src = getYouTubeEmbedUrl(video.videoUrl) + '?autoplay=1';
+                iframe.className = 'w-full h-full';
+                iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+                iframe.allowFullscreen = true;
+                e.currentTarget.parentElement?.replaceChild(iframe, e.currentTarget);
+              }}
+              onError={(e) => {
+                // Fallback to standard thumbnail if maxres doesn't exist
+                e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+              }}
+            />
+            {/* Play button overlay */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center shadow-2xl">
+                <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </div>
+          </div>
         ) : (
           <video
             src={video.videoUrl}
             controls
             className="w-full h-full object-contain"
             playsInline
+            preload="metadata"
           />
         )}
       </div>
