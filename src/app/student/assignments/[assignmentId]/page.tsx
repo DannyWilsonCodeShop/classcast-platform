@@ -308,17 +308,28 @@ const StudentAssignmentDetailPage: React.FC = () => {
     }
   }, [submission?.submissionId]);
 
-  // Delete submission handler
+  // Delete submission handler - using simple POST endpoint to avoid params issues
   const handleDeleteSubmission = async () => {
     if (!submission?.submissionId) return;
     
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/video-submissions/${submission.submissionId}`, {
-        method: 'DELETE',
+      console.log('🗑️ Deleting submission:', submission.submissionId);
+      const response = await fetch('/api/delete-submission', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          submissionId: submission.submissionId
+        }),
       });
 
-      if (response.ok) {
+      const data = await response.json();
+      console.log('Delete response:', data);
+
+      if (response.ok && data.success) {
+        console.log('✅ Submission deleted successfully');
         // Clear the submission state
         setSubmission(null);
         setShowDeleteConfirm(false);
@@ -326,8 +337,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
         await fetchSubmission();
         await fetchPeerVideos();
       } else {
-        console.error('Failed to delete submission');
-        alert('Failed to delete submission. Please try again.');
+        console.error('Failed to delete submission:', data);
+        alert(data.error || 'Failed to delete submission. Please try again.');
       }
     } catch (error) {
       console.error('Error deleting submission:', error);
