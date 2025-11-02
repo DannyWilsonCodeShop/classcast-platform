@@ -33,6 +33,10 @@ interface PeerProfile {
       totalLikesReceived: number;
       totalViewsReceived: number;
     };
+    studyBuddyStats?: {
+      totalStudyBuddies: number;
+      studyBuddyIds: string[];
+    };
   };
 }
 
@@ -228,13 +232,13 @@ const PeerProfilePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Stats Section - Simplified to 4 Categories */}
+            {/* Stats Section - 5 Categories including Study Buddies */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6">
                 <h2 className="text-xl font-bold text-gray-800 mb-4">📊 Activity & Engagement</h2>
                 
-                {/* 4 Key Metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {/* 5 Key Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center border border-blue-200">
                     <div className="text-2xl md:text-3xl font-bold text-blue-600">{profile.stats.videoStats.totalVideos}</div>
                     <div className="text-xs md:text-sm text-gray-700 font-medium mt-1">Videos</div>
@@ -257,6 +261,13 @@ const PeerProfilePage: React.FC = () => {
                         : '0.0'}
                     </div>
                     <div className="text-xs md:text-sm text-gray-700 font-medium mt-1">Avg Rating</div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 text-center border border-purple-200">
+                    <div className="text-2xl md:text-3xl font-bold text-purple-600">
+                      {profile.stats.studyBuddyStats?.totalStudyBuddies || 0}
+                    </div>
+                    <div className="text-xs md:text-sm text-gray-700 font-medium mt-1">Study Buddies</div>
                   </div>
                 </div>
               </div>

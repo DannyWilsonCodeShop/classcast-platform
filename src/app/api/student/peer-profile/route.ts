@@ -113,6 +113,33 @@ export async function GET(request: NextRequest) {
       console.log('⚠️ Could not query peer responses (table may not exist)');
     }
 
+    // Get Study Buddy connections
+    let totalStudyBuddies = 0;
+    let studyBuddyIds: string[] = [];
+    
+    try {
+      const connectionsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/connections?userId=${studentId}`);
+      if (connectionsResponse.ok) {
+        const connectionsData = await connectionsResponse.json();
+        if (connectionsData.success && connectionsData.connections) {
+          // Count accepted connections
+          const acceptedConnections = connectionsData.connections.filter((conn: any) => conn.status === 'accepted');
+          totalStudyBuddies = acceptedConnections.length;
+          
+          // Extract Study Buddy user IDs
+          acceptedConnections.forEach((conn: any) => {
+            if (conn.requesterId === studentId) {
+              studyBuddyIds.push(conn.requestedId);
+            } else if (conn.requestedId === studentId) {
+              studyBuddyIds.push(conn.requesterId);
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.log('⚠️ Could not fetch Study Buddy connections');
+    }
+
     // Calculate peer engagement score
     const totalVideosSubmitted = videos.length;
     const totalResponsesGiven = responsesResult.Count || 0;
@@ -187,6 +214,8 @@ export async function GET(request: NextRequest) {
       totalResponsesGiven,
       totalLikesGiven,
       totalRatingsGiven,
+      totalStudyBuddies,
+      studyBuddyIds,
       peerEngagementScore,
       topRatedVideos,
       recentActivity,
@@ -209,6 +238,10 @@ export async function GET(request: NextRequest) {
       engagementStats: {
         totalLikesReceived: peerProfile.totalLikesReceived,
         totalViewsReceived: peerProfile.totalViewsReceived,
+      },
+      studyBuddyStats: {
+        totalStudyBuddies: peerProfile.totalStudyBuddies,
+        studyBuddyIds: peerProfile.studyBuddyIds,
       },
       recentActivity: peerProfile.recentActivity.map(activity => ({
         date: activity.timestamp,
