@@ -6,7 +6,7 @@ import { CreateCommentRequest, CreateResponseRequest, CreateRatingRequest, LikeV
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
-const INTERACTIONS_TABLE = 'classcast-peer-interactions';
+const INTERACTIONS_TABLE = 'classcast-video-interactions';
 const VIDEOS_TABLE = 'classcast-submissions';
 const SUBMISSIONS_TABLE = 'classcast-submissions';
 const USERS_TABLE = 'classcast-users';
