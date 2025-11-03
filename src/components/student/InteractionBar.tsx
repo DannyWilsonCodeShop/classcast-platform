@@ -34,6 +34,12 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   const [userRating, setUserRating] = React.useState<number>(initialUserRating);
   const [averageRating, setAverageRating] = React.useState<number>(0);
   const [loadingRating, setLoadingRating] = React.useState<boolean>(false);
+  const [commentsList, setCommentsList] = React.useState<any[]>([]);
+  const [responsesList, setResponsesList] = React.useState<any[]>([]);
+  const [showAllComments, setShowAllComments] = React.useState<boolean>(false);
+  const [showResponses, setShowResponses] = React.useState<boolean>(false);
+  const [loadingComments, setLoadingComments] = React.useState<boolean>(false);
+  const [loadingResponses, setLoadingResponses] = React.useState<boolean>(false);
 
   // Load persisted user rating and comment count on mount
   React.useEffect(() => {
@@ -50,14 +56,8 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
             }
           }
         }
-        // Optionally refresh comment count from interactions
-        const c = await fetch(`/api/videos/${videoId}/interactions?type=comment`);
-        if (!cancelled && c.ok) {
-          const data = await c.json();
-          if (data.success && typeof data.count === 'number') {
-            setComments(data.count);
-          }
-        }
+        // Load comments
+        await loadComments();
       } catch (error) {
         console.error('❌ Error loading interactions:', error);
       }
@@ -67,6 +67,38 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
       cancelled = true;
     };
   }, [videoId, currentUser?.id]);
+
+  const loadComments = async () => {
+    try {
+      const c = await fetch(`/api/videos/${videoId}/interactions?type=comment`);
+      if (c.ok) {
+        const data = await c.json();
+        if (data.success) {
+          setComments(data.count || 0);
+          setCommentsList(data.interactions || []);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error loading comments:', error);
+    }
+  };
+
+  const loadResponses = async () => {
+    if (loadingResponses) return;
+    setLoadingResponses(true);
+    try {
+      const r = await fetch(`/api/videos/${videoId}/interactions?type=response`);
+      if (r.ok) {
+        const data = await r.json();
+        if (data.success) {
+          setResponsesList(data.interactions || []);
+        }
+      }
+    } catch (error) {
+      console.error('❌ Error loading responses:', error);
+    }
+    setLoadingResponses(false);
+  };
 
   const handleLike = async () => {
     if (!currentUser?.id) {
@@ -136,6 +168,8 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
           setComments((p) => p + 1);
           setCommentText('');
           onCountsChange?.({ comments: comments + 1 });
+          // Refresh comments list to show new comment
+          await loadComments();
         }
       } else {
         console.error('❌ Comment post failed:', res.status, await res.text().catch(() => 'Unknown error'));
@@ -171,6 +205,8 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         if (data.success) {
           setResponseText('');
           // Responses don't increment comment count since they're for grading
+          // Refresh responses list to show new response
+          await loadResponses();
         }
       } else {
         console.error('❌ Response post failed:', res.status, await res.text().catch(() => 'Unknown error'));
@@ -292,10 +328,24 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         )}
       </div>
 
+      {/* View Responses Button */}
+      <button 
+        onClick={() => {
+          setShowResponses(!showResponses);
+          if (!showResponses) loadResponses();
+        }} 
+        className="flex items-center space-x-1.5 hover:text-purple-500 transition-colors py-2"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <span className="text-sm font-medium">Responses ({responsesList.length})</span>
+      </button>
+
       {/* Inline comments panel */}
       {showComments && (
         <div className="w-full mt-2">
-          <div className="flex space-x-2">
+          <div className="flex space-x-2 mb-3">
             <input
               type="text"
               value={commentText}
@@ -312,9 +362,87 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
               {postingComment ? 'Posting...' : 'Comment'}
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
+          
+          {/* Display Comments */}
+          {commentsList.length > 0 && (
+            <div className="space-y-2">
+              {/* Show first 2 comments */}
+              {commentsList.slice(0, showAllComments ? commentsList.length : 2).map((comment, index) => (
+                <div key={comment.id || index} className="bg-gray-50 rounded-lg p-3 border-l-4 border-blue-400">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-bold">
+                        {comment.userName?.charAt(0) || 'U'}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className="text-sm font-medium text-gray-900">{comment.userName}</span>
+                        <span className="text-xs text-gray-500">
+                          {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : 'Recently'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700">{comment.content}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Show more button */}
+              {commentsList.length > 2 && (
+                <button
+                  onClick={() => setShowAllComments(!showAllComments)}
+                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                >
+                  {showAllComments ? 'Show Less' : `Show ${commentsList.length - 2} More Comments`}
+                </button>
+              )}
+            </div>
+          )}
+          
+          <p className="text-xs text-gray-500 mt-2">
             Comments are casual interactions and not graded.
           </p>
+        </div>
+      )}
+
+      {/* Responses panel */}
+      {showResponses && (
+        <div className="w-full mt-2">
+          <div className="bg-green-50 rounded-lg p-3 border border-green-200">
+            <h4 className="text-sm font-semibold text-green-800 mb-2">Assignment Responses (For Grading)</h4>
+            {loadingResponses ? (
+              <p className="text-sm text-gray-500">Loading responses...</p>
+            ) : responsesList.length > 0 ? (
+              <div className="space-y-2">
+                {responsesList.map((response, index) => (
+                  <div key={response.id || index} className="bg-white rounded-lg p-3 border border-green-300">
+                    <div className="flex items-start space-x-2">
+                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                        <span className="text-white text-xs font-bold">
+                          {response.userName?.charAt(0) || 'U'}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span className="text-sm font-medium text-gray-900">{response.userName}</span>
+                          <span className="text-xs text-gray-500">
+                            {response.createdAt ? new Date(response.createdAt).toLocaleDateString() : 'Recently'}
+                          </span>
+                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+                            For Grading
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700">{response.content}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">No responses yet.</p>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -396,7 +396,7 @@ const StudentDashboardNew: React.FC = () => {
                     onDelete={fetchFeed} 
                     assignmentId={item.assignmentId}
                     onStudyBuddy={handleStudyBuddy}
-                    isConnected={connections.has(item.authorId || '')}
+                    isConnected={connections.has(item.author?.id || '')}
                   />
                 ))}
               
