@@ -7,7 +7,7 @@ const dynamoClient = new DynamoDBClient({
 });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-const INTERACTIONS_TABLE = 'classcast-peer-interactions';
+const INTERACTIONS_TABLE = 'classcast-video-interactions';
 const SUBMISSIONS_TABLE = 'classcast-submissions';
 
 // GET /api/videos/[videoId]/rating - Get user's rating for a video
