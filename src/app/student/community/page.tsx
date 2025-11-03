@@ -168,7 +168,12 @@ const CommunityPage: React.FC = () => {
             >
               <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center flex-shrink-0">
                 {user?.avatar && !user.avatar.includes('placeholder') ? (
-                  <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover rounded-full" />
+                  // Check if avatar is an emoji
+                  /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(user.avatar) ? (
+                    <span className="text-2xl">{user.avatar}</span>
+                  ) : (
+                    <img src={user.avatar} alt={user.firstName} className="w-full h-full object-cover rounded-full" />
+                  )
                 ) : (
                   <span className="text-white font-bold text-lg">
                     {user?.firstName?.[0] || user?.email?.[0] || 'U'}
@@ -202,7 +207,12 @@ const CommunityPage: React.FC = () => {
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {post.userAvatar && !post.userAvatar.includes('placeholder') ? (
-                        <img src={post.userAvatar} alt={post.userName} className="w-full h-full object-cover" />
+                        // Check if avatar is an emoji
+                        /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(post.userAvatar) ? (
+                          <span className="text-lg">{post.userAvatar}</span>
+                        ) : (
+                          <img src={post.userAvatar} alt={post.userName} className="w-full h-full object-cover" />
+                        )
                       ) : (
                         <span className="text-white font-semibold text-sm">
                           {post.userName.split(' ').map(n => n[0]).join('')}

@@ -35,6 +35,13 @@ const Avatar: React.FC<AvatarProps> = ({
     xl: 'w-24 h-24 text-6xl'
   };
 
+  const emojiSizeClasses = {
+    sm: 'text-sm',
+    md: 'text-lg',
+    lg: 'text-3xl',
+    xl: 'text-6xl'
+  };
+
   const getInitials = () => {
     if (name) {
       const parts = name.trim().split(' ');
@@ -82,7 +89,7 @@ const Avatar: React.FC<AvatarProps> = ({
       if (isEmoji(avatarUrl)) {
         return (
           <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
-            <span className="text-2xl">{avatarUrl}</span>
+            <span className={emojiSizeClasses[size]}>{avatarUrl}</span>
           </div>
         );
       }

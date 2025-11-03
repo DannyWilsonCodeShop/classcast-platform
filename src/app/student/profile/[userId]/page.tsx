@@ -177,11 +177,26 @@ const PeerProfilePage: React.FC = () => {
               {/* Avatar */}
               <div className="relative">
                 {profile.avatar && !profile.avatar.includes('placeholder') ? (
-                  <img
-                    src={profile.avatar}
-                    alt={fullName}
-                    className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
-                  />
+                  // Check if avatar is an emoji
+                  /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(profile.avatar) ? (
+                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center border-4 border-white shadow-lg">
+                      <span className="text-6xl">{profile.avatar}</span>
+                    </div>
+                  ) : (
+                    <img
+                      src={profile.avatar}
+                      alt={fullName}
+                      className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+                      onError={(e) => {
+                        // Fallback to initials if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `<div class="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg">${profile.firstName?.[0] || profile.email[0].toUpperCase()}</div>`;
+                        }
+                      }}
+                    />
+                  )
                 ) : (
                   <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg">
                     {profile.firstName?.[0] || profile.email[0].toUpperCase()}
