@@ -35,6 +35,76 @@ function isYouTubeUrl(url: string): boolean {
   return url?.includes('youtube.com') || url?.includes('youtu.be');
 }
 
+// VideoThumbnail component for better thumbnail handling
+const VideoThumbnail: React.FC<{
+  videoUrl: string;
+  thumbnailUrl?: string;
+  studentName: string;
+  className?: string;
+}> = ({ videoUrl, thumbnailUrl, studentName, className = "" }) => {
+  const [showFallback, setShowFallback] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // If we have a valid thumbnail URL, try to use it first
+  if (thumbnailUrl && thumbnailUrl !== '/api/placeholder/300/200' && !showFallback) {
+    return (
+      <div className="relative w-full h-full">
+        <img
+          src={thumbnailUrl}
+          alt={`${studentName}'s video`}
+          className={className}
+          onError={() => setShowFallback(true)}
+          onLoad={() => setImageLoaded(true)}
+        />
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
+            <div className="text-white text-center">
+              <div className="text-lg mb-1">📷</div>
+              <div className="text-xs">Loading...</div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback to video element with poster frame
+  return (
+    <div className="relative w-full h-full">
+      <video
+        src={`${getVideoUrl(videoUrl)}#t=2`}
+        className={className}
+        preload="metadata"
+        playsInline
+        webkit-playsinline="true"
+        muted
+        onLoadedData={(e) => {
+          const videoEl = e.target as HTMLVideoElement;
+          if (videoEl.duration > 2) {
+            videoEl.currentTime = 2;
+          }
+          setVideoLoaded(true);
+        }}
+        onError={() => {
+          console.log('Video failed to load for', studentName);
+          setVideoLoaded(false);
+        }}
+      />
+      
+      {/* Loading state and fallback gradient */}
+      {!videoLoaded && (
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <div className="text-white text-center">
+            <div className="text-2xl mb-1">🎥</div>
+            <div className="text-xs font-medium">{studentName}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface Assignment {
   assignmentId: string;
   title: string;
@@ -74,12 +144,13 @@ interface Submission {
   fileName: string;
   fileSize: number;
   status: string;
-    submittedAt: string;
+  submittedAt: string;
   studentName: string;
   studentEmail: string;
   grade?: number;
   instructorFeedback?: string;
   gradedAt?: string;
+  thumbnailUrl?: string;
 }
 
 interface PeerVideo {
@@ -310,7 +381,11 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
   // Delete submission handler - using simple POST endpoint to avoid params issues
   const handleDeleteSubmission = async () => {
-    if (!submission?.submissionId) return;
+    if (!submission?.submissionId) {
+      console.error('No submission ID available for deletion');
+      alert('Unable to delete: No submission found.');
+      return;
+    }
     
     setIsDeleting(true);
     try {
@@ -320,29 +395,39 @@ const StudentAssignmentDetailPage: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           submissionId: submission.submissionId
         }),
       });
 
       const data = await response.json();
-      console.log('Delete response:', data);
+      console.log('Delete response:', response.status, data);
 
       if (response.ok && data.success) {
         console.log('✅ Submission deleted successfully');
-        // Clear the submission state
+        // Clear the submission state immediately
         setSubmission(null);
         setShowDeleteConfirm(false);
+        setResponsesToMySubmission([]);
+        
         // Refresh the page data
-        await fetchSubmission();
-        await fetchPeerVideos();
+        await Promise.all([
+          fetchSubmission(),
+          fetchPeerVideos(),
+          fetchPeerResponses()
+        ]);
+        
+        // Show success message
+        alert('Submission deleted successfully!');
       } else {
-        console.error('Failed to delete submission:', data);
-        alert(data.error || 'Failed to delete submission. Please try again.');
+        console.error('Failed to delete submission:', response.status, data);
+        const errorMessage = data.error || data.message || 'Failed to delete submission. Please try again.';
+        alert(errorMessage);
       }
     } catch (error) {
       console.error('Error deleting submission:', error);
-      alert('An error occurred while deleting. Please try again.');
+      alert('An error occurred while deleting. Please check your connection and try again.');
     } finally {
       setIsDeleting(false);
     }
@@ -687,13 +772,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
                       <h4 className="text-md font-semibold text-gray-800">Your Submission</h4>
                       <button
                         onClick={() => setShowDeleteConfirm(true)}
-                        className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg border border-red-200 hover:border-red-300 transition-colors flex items-center space-x-1"
+                        disabled={isDeleting}
+                        className="px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 rounded-lg border border-red-200 hover:border-red-300 transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Delete submission"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        <span>Delete</span>
+                        <span>{isDeleting ? 'Deleting...' : 'Delete'}</span>
                       </button>
                     </div>
                     <div className="bg-white rounded-lg p-4 border border-gray-200">
@@ -948,14 +1034,16 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     onClick={() => router.push(`/student/peer-reviews?assignmentId=${assignmentId}&videoId=${video.id}`)}
                     className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-all cursor-pointer group"
                   >
-                    <div className="relative bg-black rounded-t-lg overflow-hidden aspect-video">
-                      <video
-                        src={`${getVideoUrl(video.videoUrl)}#t=2`}
+                    <div className="relative bg-gray-900 rounded-t-lg overflow-hidden aspect-video">
+                      {/* Enhanced video thumbnail with better fallback handling */}
+                      <VideoThumbnail 
+                        videoUrl={video.videoUrl}
+                        thumbnailUrl={video.thumbnailUrl}
+                        studentName={video.studentName}
                         className="w-full h-full object-cover"
-                        preload="metadata"
-                        playsInline
-                        webkit-playsinline="true"
                       />
+                      
+                      {/* Play button overlay */}
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center transition-all">
                         <div className="bg-white bg-opacity-0 group-hover:bg-opacity-90 rounded-full p-2 transition-all">
                           <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 20 20">
@@ -963,6 +1051,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
                           </svg>
                         </div>
                       </div>
+                      
+                      {/* Duration badge */}
                       <div className="absolute bottom-1 right-1 bg-black bg-opacity-75 text-white text-xs px-1.5 py-0.5 rounded">
                         {Math.floor(video.duration / 60)}:{(video.duration % 60).toString().padStart(2, '0')}
                       </div>

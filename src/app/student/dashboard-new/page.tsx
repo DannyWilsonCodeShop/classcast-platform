@@ -632,7 +632,12 @@ const VideoThumbnailCard: React.FC<{ video: FeedItem }> = ({ video }) => {
           <div className="flex items-center space-x-2 mb-1">
             <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-gray-700 overflow-hidden flex-shrink-0">
               {video.author?.avatar && !video.author.avatar.includes('placeholder') ? (
-                <img src={video.author.avatar} alt={video.author.name} className="w-full h-full object-cover" />
+                // Check if avatar is an emoji
+                /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(video.author.avatar) ? (
+                  <span className="text-sm">{video.author.avatar}</span>
+                ) : (
+                  <img src={video.author.avatar} alt={video.author.name} className="w-full h-full object-cover" />
+                )
               ) : (
                 <span>{video.author?.name.split(' ').map(n => n[0]).join('')}</span>
               )}
