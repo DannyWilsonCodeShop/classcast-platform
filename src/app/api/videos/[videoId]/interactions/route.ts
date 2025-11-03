@@ -8,6 +8,7 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 const INTERACTIONS_TABLE = 'classcast-peer-interactions';
 const VIDEOS_TABLE = 'classcast-submissions';
+const SUBMISSIONS_TABLE = 'classcast-submissions';
 const USERS_TABLE = 'classcast-users';
 
 // GET /api/videos/[videoId]/interactions - Get all interactions for a video
@@ -20,6 +21,8 @@ export async function GET(
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type'); // like, comment, response, rating
 
+    console.log('🔍 Fetching interactions for video:', { videoId, type });
+
     let filterExpression = 'videoId = :videoId';
     let expressionValues: any = { ':videoId': videoId };
 
@@ -27,6 +30,9 @@ export async function GET(
       filterExpression += ' AND #type = :type';
       expressionValues[':type'] = type;
     }
+
+    // Add filter to exclude deleted interactions
+    filterExpression += ' AND attribute_not_exists(deleted)';
 
     const command = new ScanCommand({
       TableName: INTERACTIONS_TABLE,
@@ -37,6 +43,8 @@ export async function GET(
 
     const result = await docClient.send(command);
     
+    console.log('✅ Interactions fetched successfully:', { videoId, count: result.Count });
+    
     return NextResponse.json({
       success: true,
       interactions: result.Items || [],
@@ -44,10 +52,11 @@ export async function GET(
     });
 
   } catch (error) {
-    console.error('Error fetching video interactions:', error);
+    console.error('❌ Error fetching video interactions:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to fetch video interactions'
+      error: 'Failed to fetch video interactions',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
@@ -62,10 +71,13 @@ export async function POST(
     const body = await request.json();
     const { type, userId, userName, userAvatar } = body;
 
+    console.log('🚀 Creating interaction:', { videoId, type, userId, userName });
+
     if (!type || !userId || !userName) {
+      console.error('❌ Missing required fields:', { type, userId, userName });
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields'
+        error: 'Missing required fields: type, userId, and userName are required'
       }, { status: 400 });
     }
 
@@ -179,12 +191,14 @@ export async function POST(
     }
 
     // Save interaction
+    console.log('💾 Saving interaction to DynamoDB:', interactionData);
     await docClient.send(new PutCommand({
       TableName: INTERACTIONS_TABLE,
       Item: interactionData
     }));
 
     // Update video stats
+    console.log('📊 Updating video stats...');
     const stats = await updateVideoStats(videoId, type, 'increment');
 
     // For ratings, also calculate and return the average
@@ -193,7 +207,7 @@ export async function POST(
       try {
         const ratingsResult = await docClient.send(new ScanCommand({
           TableName: INTERACTIONS_TABLE,
-          FilterExpression: 'videoId = :videoId AND #type = :type',
+          FilterExpression: 'videoId = :videoId AND #type = :type AND attribute_not_exists(deleted)',
           ExpressionAttributeValues: {
             ':videoId': videoId,
             ':type': 'rating'
@@ -212,6 +226,8 @@ export async function POST(
       }
     }
 
+    console.log('✅ Interaction created successfully:', { interactionId, type, averageRating });
+
     return NextResponse.json({
       success: true,
       interaction: interactionData,
@@ -219,10 +235,11 @@ export async function POST(
     });
 
   } catch (error) {
-    console.error('Error creating video interaction:', error);
+    console.error('❌ Error creating video interaction:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to create video interaction'
+      error: 'Failed to create video interaction',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
@@ -298,6 +315,8 @@ export async function DELETE(
 
 async function updateVideoStats(videoId: string, type: string, action: 'increment' | 'decrement') {
   try {
+    console.log('📊 Updating video stats:', { videoId, type, action });
+    
     // Try to get the video from submissions table
     let videoResult;
     let actualKey: { submissionId: string } | { id: string } = { submissionId: videoId };
@@ -308,22 +327,24 @@ async function updateVideoStats(videoId: string, type: string, action: 'incremen
         Key: { submissionId: videoId }
       }));
       actualKey = { submissionId: videoId };
+      console.log('✅ Found video with submissionId key');
     } catch (error) {
-      console.log('Trying with id key:', videoId);
+      console.log('⚠️ Trying with id key:', videoId);
       try {
         videoResult = await docClient.send(new GetCommand({
           TableName: SUBMISSIONS_TABLE,
           Key: { id: videoId }
         }));
         actualKey = { id: videoId };
+        console.log('✅ Found video with id key');
       } catch (error2) {
-        console.error('Video not found:', videoId);
+        console.error('❌ Video not found with either key:', videoId);
         return;
       }
     }
 
     if (!videoResult.Item) {
-      console.error('Video not found:', videoId);
+      console.error('❌ Video not found in database:', videoId);
       return;
     }
 
@@ -344,14 +365,17 @@ async function updateVideoStats(videoId: string, type: string, action: 'incremen
       case 'like':
         expressionValues[':likes'] = Math.max(0, currentLikes + (1 * multiplier));
         updateExpression += ', likes = :likes';
+        console.log('👍 Updating likes:', { current: currentLikes, new: expressionValues[':likes'] });
         break;
       case 'comment':
         expressionValues[':comments'] = Math.max(0, currentComments + (1 * multiplier));
         updateExpression += ', commentCount = :comments';
+        console.log('💬 Updating comments:', { current: currentComments, new: expressionValues[':comments'] });
         break;
       case 'rating':
         // Ratings don't directly update video stats, they're stored in interactions
         // Just update the timestamp
+        console.log('⭐ Rating interaction - only updating timestamp');
         break;
     }
 
@@ -363,10 +387,13 @@ async function updateVideoStats(videoId: string, type: string, action: 'incremen
         UpdateExpression: updateExpression,
         ExpressionAttributeValues: expressionValues
       }));
+      console.log('✅ Video stats updated successfully');
+    } else {
+      console.log('ℹ️ No stats to update, only timestamp updated');
     }
 
   } catch (error) {
-    console.error('Error updating video stats:', error);
+    console.error('❌ Error updating video stats:', error);
   }
 }
 

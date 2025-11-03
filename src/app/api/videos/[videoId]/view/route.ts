@@ -13,16 +13,18 @@ export async function POST(
 ) {
   try {
     const { videoId } = await params;
-    const { userId } = await request.json();
+    const body = await request.json().catch(() => ({}));
+    const { userId } = body;
 
     if (!videoId) {
+      console.error('❌ Video ID is required');
       return NextResponse.json(
         { success: false, error: 'Video ID is required' },
         { status: 400 }
       );
     }
 
-    console.log('Tracking video view:', { videoId, userId });
+    console.log('📊 Tracking video view:', { videoId, userId });
 
     // Try to get current submission (try different key patterns)
     let getResult;
@@ -30,20 +32,22 @@ export async function POST(
     
     try {
       getResult = await docClient.send(new GetCommand({
-      TableName: SUBMISSIONS_TABLE,
-      Key: { submissionId: videoId }
-    }));
+        TableName: SUBMISSIONS_TABLE,
+        Key: { submissionId: videoId }
+      }));
       actualKey = { submissionId: videoId };
+      console.log('✅ Found video with submissionId key');
     } catch (error) {
-      console.log('Error with submissionId, trying id key:', error);
+      console.log('⚠️ Error with submissionId, trying id key:', error);
       try {
         getResult = await docClient.send(new GetCommand({
           TableName: SUBMISSIONS_TABLE,
           Key: { id: videoId }
         }));
         actualKey = { id: videoId };
+        console.log('✅ Found video with id key');
       } catch (error2) {
-        console.log('Video not found with either key:', videoId);
+        console.log('❌ Video not found with either key:', videoId);
         // Don't return error, just log and return success to avoid breaking the UI
         return NextResponse.json({
           success: true,
@@ -54,7 +58,7 @@ export async function POST(
     }
 
     if (!getResult.Item) {
-      console.log('Video not found in submissions table:', videoId);
+      console.log('❌ Video not found in submissions table:', videoId);
       // Don't return error, just log and return success to avoid breaking the UI
       return NextResponse.json({
         success: true,
@@ -85,7 +89,7 @@ export async function POST(
         }
       }));
 
-      console.log('Video view tracked successfully:', { videoId, views: updatedViews });
+      console.log('✅ Video view tracked successfully:', { videoId, views: updatedViews });
 
       return NextResponse.json({
         success: true,
@@ -93,7 +97,7 @@ export async function POST(
       });
     } else {
       // User already viewed this video, return current count
-      console.log('Video already viewed by user:', { videoId, userId });
+      console.log('ℹ️ Video already viewed by user:', { videoId, userId });
       
       return NextResponse.json({
         success: true,
@@ -103,9 +107,9 @@ export async function POST(
     }
 
   } catch (error) {
-    console.error('Error tracking video view:', error);
+    console.error('❌ Error tracking video view:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to track video view' },
+      { success: false, error: 'Failed to track video view', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
