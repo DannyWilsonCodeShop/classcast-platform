@@ -63,10 +63,20 @@ export async function GET(
       expressionAttributeValues[':studentId'] = studentId;
     }
 
+    // Filter out deleted/hidden submissions
+    filterExpression += ' AND (attribute_not_exists(#status) OR #status <> :deletedStatus)';
+    filterExpression += ' AND (attribute_not_exists(#hidden) OR #hidden <> :hiddenValue)';
+    expressionAttributeValues[':deletedStatus'] = 'deleted';
+    expressionAttributeValues[':hiddenValue'] = true;
+
     // Get submissions for this assignment
     const submissionsResult = await docClient.send(new ScanCommand({
       TableName: SUBMISSIONS_TABLE,
       FilterExpression: filterExpression,
+      ExpressionAttributeNames: {
+        '#status': 'status',
+        '#hidden': 'hidden'
+      },
       ExpressionAttributeValues: expressionAttributeValues
     }));
 

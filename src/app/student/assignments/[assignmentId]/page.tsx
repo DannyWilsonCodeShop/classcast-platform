@@ -105,6 +105,76 @@ const VideoThumbnail: React.FC<{
   );
 };
 
+// VideoThumbnail component for better thumbnail handling
+const VideoThumbnail: React.FC<{
+  videoUrl: string;
+  thumbnailUrl?: string;
+  studentName: string;
+  className?: string;
+}> = ({ videoUrl, thumbnailUrl, studentName, className = "" }) => {
+  const [showFallback, setShowFallback] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // If we have a valid thumbnail URL, try to use it first
+  if (thumbnailUrl && thumbnailUrl !== '/api/placeholder/300/200' && !showFallback) {
+    return (
+      <div className="relative w-full h-full">
+        <img
+          src={thumbnailUrl}
+          alt={`${studentName}'s video`}
+          className={className}
+          onError={() => setShowFallback(true)}
+          onLoad={() => setImageLoaded(true)}
+        />
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center">
+            <div className="text-white text-center">
+              <div className="text-lg mb-1">📷</div>
+              <div className="text-xs">Loading...</div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback to video element with poster frame
+  return (
+    <div className="relative w-full h-full">
+      <video
+        src={`${getVideoUrl(videoUrl)}#t=2`}
+        className={className}
+        preload="metadata"
+        playsInline
+        webkit-playsinline="true"
+        muted
+        onLoadedData={(e) => {
+          const videoEl = e.target as HTMLVideoElement;
+          if (videoEl.duration > 2) {
+            videoEl.currentTime = 2;
+          }
+          setVideoLoaded(true);
+        }}
+        onError={() => {
+          console.log('Video failed to load for', studentName);
+          setVideoLoaded(false);
+        }}
+      />
+      
+      {/* Loading state and fallback gradient */}
+      {!videoLoaded && (
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+          <div className="text-white text-center">
+            <div className="text-2xl mb-1">🎥</div>
+            <div className="text-xs font-medium">{studentName}</div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface Assignment {
   assignmentId: string;
   title: string;
