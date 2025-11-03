@@ -747,9 +747,6 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   // Debug avatar logic
   console.log('🖼️ Avatar debug:', {
     authorAvatar: item.author?.avatar,
-    isEmoji,
-    hasValidAvatar,
-    imageError,
     authorName: item.author?.name
   });
   
