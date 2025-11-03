@@ -9,6 +9,7 @@ import { extractYouTubeVideoId as getYouTubeVideoId, getYouTubeEmbedUrl } from '
 import { useRouter } from 'next/navigation';
 import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
+import Avatar from '@/components/common/Avatar';
 
 interface Course {
   courseId: string;
@@ -564,17 +565,11 @@ const StudentDashboardNew: React.FC = () => {
             onClick={() => router.push('/student/profile')}
             className="w-12 h-12 rounded-full bg-white/30 hover:bg-white/40 flex items-center justify-center overflow-hidden shadow-lg backdrop-blur-sm hover:shadow-xl transition-all border-2 border-white/20"
           >
-            {user?.avatar && !user.avatar.includes('placeholder') ? (
-              <img 
-                src={user.avatar} 
-                alt={user.firstName || 'Profile'} 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-white font-bold text-lg">
-                {user?.firstName?.[0] || user?.email?.[0] || 'U'}
-              </span>
-            )}
+            <Avatar 
+              user={user}
+              size="lg"
+              className="w-full h-full"
+            />
           </button>
         </div>
       </div>
@@ -630,18 +625,12 @@ const VideoThumbnailCard: React.FC<{ video: FeedItem }> = ({ video }) => {
         {/* Author info */}
         <div className="absolute bottom-2 left-2 right-2">
           <div className="flex items-center space-x-2 mb-1">
-            <div className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center text-xs font-semibold text-gray-700 overflow-hidden flex-shrink-0">
-              {video.author?.avatar && !video.author.avatar.includes('placeholder') ? (
-                // Check if avatar is an emoji
-                /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(video.author.avatar) ? (
-                  <span className="text-sm">{video.author.avatar}</span>
-                ) : (
-                  <img src={video.author.avatar} alt={video.author.name} className="w-full h-full object-cover" />
-                )
-              ) : (
-                <span>{video.author?.name.split(' ').map(n => n[0]).join('')}</span>
-              )}
-            </div>
+            <Avatar 
+              src={video.author?.avatar}
+              name={video.author?.name}
+              size="sm"
+              className="w-6 h-6"
+            />
             <p className="text-white text-xs font-semibold truncate">{video.author?.name}</p>
           </div>
           <p className="text-white text-xs line-clamp-2 leading-tight">{video.title}</p>
@@ -753,9 +742,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
     loadUserRating();
   }, [user?.id, item.id]);
   
-  // Check if avatar is emoji or valid image
-  const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
-  const hasValidAvatar = item.author?.avatar && !item.author.avatar.includes('placeholder') && !imageError;
+
   
   // Debug avatar logic
   console.log('🖼️ Avatar debug:', {
@@ -1011,24 +998,12 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             }}
             className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-1 -m-1 transition-colors"
           >
-            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-              {isEmoji ? (
-                <span className="text-2xl">{item.author?.avatar}</span>
-              ) : hasValidAvatar ? (
-                <Image
-                  src={item.author.avatar}
-                  alt={item.author.name}
-                  width={40}
-                  height={40}
-                  className="w-full h-full object-cover"
-                  onError={() => setImageError(true)}
-                />
-              ) : (
-                <span className="text-gray-600 font-semibold text-sm">
-                  {item.author?.name.split(' ').map(n => n[0]).join('')}
-                </span>
-              )}
-            </div>
+            <Avatar 
+              src={item.author?.avatar}
+              name={item.author?.name}
+              size="lg"
+              className="w-10 h-10"
+            />
               <div>
               <div className="flex items-center space-x-2">
                 <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
@@ -1293,9 +1268,7 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
   const [commentText, setCommentText] = React.useState('');
   const [isSubmittingComment, setIsSubmittingComment] = React.useState(false);
   
-  // Check if avatar is emoji (single character, 2-4 bytes)
-  const isEmoji = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
-  const hasValidAvatar = item.author?.avatar && !item.author.avatar.includes('placeholder') && !imageError;
+
 
   const handleLike = async () => {
     try {
@@ -1362,24 +1335,12 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
         onClick={() => item.author?.id && handleUserClick(item.author.id)}
         className="flex items-center space-x-3 mb-3 cursor-pointer hover:bg-white/50 rounded-lg p-1 -m-1 transition-colors"
       >
-        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-          {isEmoji ? (
-            <span className="text-2xl">{item.author?.avatar}</span>
-          ) : hasValidAvatar ? (
-            <Image
-              src={item.author.avatar}
-              alt={item.author.name}
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <span className="text-gray-600 font-semibold text-sm">
-              {item.author?.name.split(' ').map(n => n[0]).join('')}
-            </span>
-          )}
-        </div>
+        <Avatar 
+          src={item.author?.avatar}
+          name={item.author?.name}
+          size="lg"
+          className="w-10 h-10"
+        />
         <div className="flex-1 flex items-center justify-between">
           <div>
             <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
