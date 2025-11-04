@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import Avatar from '@/components/common/Avatar';
 
 interface Course {
   courseId: string;
@@ -52,6 +53,8 @@ interface Student {
   lastActivity: string;
   submissionsCount: number;
   averageGrade: number;
+  sectionId?: string;
+  sectionName?: string;
 }
 
 const InstructorStudentsPage: React.FC = () => {
@@ -64,7 +67,7 @@ const InstructorStudentsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'dropped' | 'completed'>('all');
-  const [sortBy, setSortBy] = useState<'name' | 'grade' | 'enrollment' | 'activity'>('name');
+  const [sortBy, setSortBy] = useState<'name' | 'grade' | 'enrollment' | 'activity' | 'section'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const courseId = params.courseId as string;
@@ -240,6 +243,12 @@ const InstructorStudentsPage: React.FC = () => {
         case 'activity':
           comparison = new Date(a.lastActivity).getTime() - new Date(b.lastActivity).getTime();
           break;
+        case 'section':
+          // Sort by section name, with students without sections at the end
+          const aSectionName = a.sectionName || 'zzz_no_section';
+          const bSectionName = b.sectionName || 'zzz_no_section';
+          comparison = aSectionName.localeCompare(bSectionName);
+          break;
       }
       
       return sortOrder === 'asc' ? comparison : -comparison;
@@ -263,6 +272,65 @@ const InstructorStudentsPage: React.FC = () => {
     if (grade >= 80) return 'text-yellow-600';
     if (grade >= 70) return 'text-orange-600';
     return 'text-red-600';
+  };
+
+  const handleViewStudentSubmissions = (studentId: string, studentName: string) => {
+    // Navigate to bulk grading page filtered for this specific student
+    router.push(`/instructor/grading/bulk?course=${courseId}&student=${studentId}&studentName=${encodeURIComponent(studentName)}`);
+  };
+
+  const handleRemoveStudent = async (studentId: string, studentName: string) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to remove ${studentName} from this course?\n\n` +
+      `This will:\n` +
+      `• Remove them from the course enrollment\n` +
+      `• Delete all their video submissions\n` +
+      `• Delete all their peer responses\n` +
+      `• Delete all their community posts and comments\n\n` +
+      `This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/api/instructor/courses/${courseId}/students/${studentId}/remove`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Student removal report:', data.report);
+        
+        // Remove student from local state
+        setStudents(prev => prev.filter(student => student.studentId !== studentId));
+        
+        // Update course enrollment count
+        if (course) {
+          setCourse(prev => prev ? {
+            ...prev,
+            enrollmentCount: Math.max(0, prev.enrollmentCount - 1)
+          } : null);
+        }
+        
+        alert(
+          `✅ ${studentName} has been removed from the course.\n\n` +
+          `Removed:\n` +
+          `• ${data.report.submissionsDeleted} video submissions\n` +
+          `• ${data.report.peerResponsesDeleted} peer responses\n` +
+          `• ${data.report.communityPostsDeleted} community posts\n` +
+          `• ${data.report.communityCommentsDeleted} community comments\n` +
+          `• ${data.report.s3ObjectsDeleted} files from storage`
+        );
+      } else {
+        const errorData = await response.json();
+        console.error('❌ Student removal failed:', errorData);
+        alert(`❌ Failed to remove student: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error removing student:', error);
+      alert('❌ Failed to remove student. Please try again.');
+    }
   };
 
   if (loading) {
@@ -424,6 +492,7 @@ const InstructorStudentsPage: React.FC = () => {
                   <option value="grade">Sort by Grade</option>
                   <option value="enrollment">Sort by Enrollment</option>
                   <option value="activity">Sort by Activity</option>
+                  <option value="section">Sort by Section</option>
                 </select>
                 <button
                   onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
@@ -449,6 +518,9 @@ const InstructorStudentsPage: React.FC = () => {
                         Status
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Section
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Current Grade
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -468,10 +540,11 @@ const InstructorStudentsPage: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
-                              <img
-                                className="h-10 w-10 rounded-full"
+                              <Avatar
                                 src={student.avatar}
-                                alt={student.name}
+                                name={student.name}
+                                size="lg"
+                                className="h-10 w-10"
                               />
                             </div>
                             <div className="ml-4">
@@ -485,6 +558,15 @@ const InstructorStudentsPage: React.FC = () => {
                             {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
                           </span>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student.sectionName ? (
+                            <span className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                              {student.sectionName}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-xs">No section</span>
+                          )}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium">
                             {student.currentGrade ? (
@@ -497,7 +579,13 @@ const InstructorStudentsPage: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {student.assignmentsSubmitted}/{student.assignmentsTotal}
+                          <button
+                            onClick={() => handleViewStudentSubmissions(student.studentId, student.name)}
+                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors font-medium"
+                            title={`View ${student.name}'s submissions`}
+                          >
+                            {student.assignmentsSubmitted}/{student.assignmentsTotal}
+                          </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {new Date(student.lastActivity).toLocaleDateString()}
@@ -512,6 +600,13 @@ const InstructorStudentsPage: React.FC = () => {
                             </button>
                             <button className="text-emerald-600 hover:text-emerald-900 transition-colors">
                               Message
+                            </button>
+                            <button 
+                              onClick={() => handleRemoveStudent(student.studentId, student.name)}
+                              className="text-red-600 hover:text-red-900 transition-colors"
+                              title={`Remove ${student.name} from course`}
+                            >
+                              Remove
                             </button>
                           </div>
                         </td>

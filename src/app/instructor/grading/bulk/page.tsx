@@ -10,6 +10,8 @@ interface Submission {
   id: string;
   studentName: string;
   studentId: string;
+  sectionId?: string;
+  sectionName?: string;
   assignmentTitle: string;
   assignmentId: string;
   courseName: string;
@@ -54,6 +56,8 @@ const BulkGradingPage: React.FC = () => {
   const [isGrading, setIsGrading] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<string>('all');
   const [selectedAssignment, setSelectedAssignment] = useState<string>('all');
+  const [selectedStudent, setSelectedStudent] = useState<string>('all');
+  const [selectedStudentName, setSelectedStudentName] = useState<string>('');
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -99,15 +103,23 @@ const BulkGradingPage: React.FC = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const courseFilter = urlParams.get('course');
       const assignmentFilter = urlParams.get('assignment');
+      const studentFilter = urlParams.get('student');
+      const studentNameFilter = urlParams.get('studentName');
       const submissionFilter = urlParams.get('submission');
       
-      console.log('URL Parameters:', { courseFilter, assignmentFilter, submissionFilter });
+      console.log('URL Parameters:', { courseFilter, assignmentFilter, studentFilter, studentNameFilter, submissionFilter });
       
       if (courseFilter) {
         setSelectedCourse(courseFilter);
       }
       if (assignmentFilter) {
         setSelectedAssignment(assignmentFilter);
+      }
+      if (studentFilter) {
+        setSelectedStudent(studentFilter);
+      }
+      if (studentNameFilter) {
+        setSelectedStudentName(decodeURIComponent(studentNameFilter));
       }
     }
   }, []);
@@ -357,6 +369,8 @@ const BulkGradingPage: React.FC = () => {
               id: sub.submissionId,
               studentName: sub.student?.name || 'Unknown Student',
               studentId: sub.studentId,
+              sectionId: sub.student?.sectionId || null,
+              sectionName: sub.student?.sectionName || null,
               assignmentTitle: sub.assignment?.title || 'Unknown Assignment',
               assignmentId: sub.assignmentId,
               courseName: sub.courseName || 'Unknown Course',
@@ -427,11 +441,22 @@ const BulkGradingPage: React.FC = () => {
     }
   };
 
-  const handleSpeedChange = (speed: number) => {
-    setPlaybackSpeed(speed);
+  const applyPlaybackSpeedToAllVideos = (speed: number) => {
+    // Apply to main video ref
     if (videoRef.current) {
       videoRef.current.playbackRate = speed;
     }
+    
+    // Apply to all video elements on the page
+    const allVideos = document.querySelectorAll('video');
+    allVideos.forEach((video) => {
+      video.playbackRate = speed;
+    });
+  };
+
+  const handleSpeedChange = (speed: number) => {
+    setPlaybackSpeed(speed);
+    applyPlaybackSpeedToAllVideos(speed);
   };
 
   const handleTimeUpdate = () => {
@@ -751,13 +776,15 @@ const BulkGradingPage: React.FC = () => {
       submission.courseCode.toLowerCase().includes(selectedCourse.toLowerCase()) ||
       submission.courseCode.toLowerCase().replace('-', '').includes(selectedCourse.toLowerCase().replace('-', ''));
     const assignmentMatch = selectedAssignment === 'all' || submission.assignmentId === selectedAssignment;
+    const studentMatch = selectedStudent === 'all' || submission.studentId === selectedStudent;
     
-    return courseMatch && assignmentMatch;
+    return courseMatch && assignmentMatch && studentMatch;
   });
   
   console.log('Filtered submissions count:', filteredSubmissions.length);
   console.log('Selected course:', selectedCourse);
   console.log('Selected assignment:', selectedAssignment);
+  console.log('Selected student:', selectedStudent, selectedStudentName);
   console.log('Total submissions:', submissionsToFilter.length);
 
   const currentSubmission = filteredSubmissions[currentSubmissionIndex];
@@ -873,12 +900,35 @@ const BulkGradingPage: React.FC = () => {
                   <div>
                     <p className="text-gray-600 text-sm">
                       {currentSubmissionIndex + 1} of {filteredSubmissions.length} submissions
+                      {selectedStudentName && (
+                        <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                          👤 {selectedStudentName}
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
               </div>
               
               <div className="flex items-center space-x-4">
+                {/* Back to Students Button - Show when filtering by specific student */}
+                {selectedStudent !== 'all' && selectedStudentName && (
+                  <button
+                    onClick={() => {
+                      const urlParams = new URLSearchParams(window.location.search);
+                      const courseId = urlParams.get('course');
+                      if (courseId) {
+                        router.push(`/instructor/courses/${courseId}/students`);
+                      } else {
+                        router.back();
+                      }
+                    }}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+                  >
+                    👥 Back to Students
+                  </button>
+                )}
+                
                 {/* View All Submissions Button */}
                 <button
                   onClick={() => {
@@ -1049,6 +1099,13 @@ const BulkGradingPage: React.FC = () => {
                               webkit-playsinline="true"
                               crossOrigin="anonymous"
                               controls
+                              onLoadedMetadata={(e) => {
+                                const video = e.target as HTMLVideoElement;
+                                video.playbackRate = playbackSpeed;
+                                if (index === currentSubmissionIndex) {
+                                  handleLoadedMetadata();
+                                }
+                              }}
                               onError={(e) => {
                                 console.error('Video load error for submission:', submission.id, submission.fileUrl);
                                 // Fallback to placeholder if video fails to load
@@ -1139,6 +1196,11 @@ const BulkGradingPage: React.FC = () => {
                           <p className="text-xs text-gray-500 mb-1">
                             {submission.courseName} ({submission.courseCode})
                           </p>
+                          {submission.sectionName && (
+                            <p className="text-xs text-blue-600 mb-1 font-medium">
+                              Section: {submission.sectionName}
+                            </p>
+                          )}
                           <div className="flex items-center space-x-4 mb-3">
                             <p className="text-xs text-gray-500">
                               Video Due: {new Date(assignmentDueDate).toLocaleDateString()}
