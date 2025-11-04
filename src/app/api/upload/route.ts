@@ -50,14 +50,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file size (max 500MB for videos, 10MB for other files)
+    // Validate file size (max 2GB for videos, 10MB for other files)
     const isVideo = file.type.startsWith('video/');
-    const maxSize = isVideo ? 500 * 1024 * 1024 : 10 * 1024 * 1024; // 500MB for videos, 10MB for others
+    const maxSize = isVideo ? 2048 * 1024 * 1024 : 10 * 1024 * 1024; // 2GB for videos, 10MB for others
     if (file.size > maxSize) {
       return NextResponse.json(
         {
           success: false,
-          error: `File size exceeds ${isVideo ? '500MB' : '10MB'} limit`,
+          error: `File size exceeds ${isVideo ? '2GB' : '10MB'} limit`,
         },
         { status: 400 }
       );

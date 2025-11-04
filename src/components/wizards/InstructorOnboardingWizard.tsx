@@ -390,7 +390,7 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
                 groupAssignment: assignmentData.groupAssignment || false,
                 maxGroupSize: assignmentData.maxGroupSize || 4,
                 allowedFileTypes: assignmentData.allowedFileTypes || ['mp4', 'mov', 'avi'],
-                maxFileSize: assignmentData.maxFileSize || 500 * 1024 * 1024, // 500MB
+                maxFileSize: assignmentData.maxFileSize || 2048 * 1024 * 1024, // 2GB
                 status: assignmentData.status || 'draft',
                 courseId: courseData.courseId,
                 instructorId: courseData.instructorId,
