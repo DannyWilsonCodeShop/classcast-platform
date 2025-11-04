@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
       groupAssignment: groupAssignment || false,
       maxGroupSize: maxGroupSize || 4,
       allowedFileTypes: Array.isArray(allowedFileTypes) ? allowedFileTypes : ['mp4', 'mov', 'avi'],
-      maxFileSize: maxFileSize || 500 * 1024 * 1024, // 500MB
+      maxFileSize: maxFileSize || 2048 * 1024 * 1024, // 2GB
       status: status || 'draft',
       rubric: rubric || null,
       // Peer Review Settings
