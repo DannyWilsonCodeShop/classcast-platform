@@ -167,6 +167,11 @@ export const InstructorSubmissionCard: React.FC<InstructorSubmissionCardProps> =
                 <p className="text-xs text-gray-500 truncate">
                   {submission.studentEmail}
                 </p>
+                {submission.sectionName && (
+                  <p className="text-xs text-blue-600 truncate font-medium">
+                    Section: {submission.sectionName}
+                  </p>
+                )}
               </div>
             </div>
 

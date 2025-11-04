@@ -63,24 +63,37 @@ export async function GET(request: NextRequest) {
     const assignmentsWithCounts = await Promise.all(
       filteredAssignments.map(async (assignment) => {
         try {
-          // Get submission count for this assignment
+          // Get submission count for this assignment (exclude deleted/hidden submissions)
           const submissionsResult = await docClient.send(new ScanCommand({
             TableName: 'classcast-submissions',
-            FilterExpression: 'assignmentId = :assignmentId',
+            FilterExpression: 'assignmentId = :assignmentId AND (attribute_not_exists(#status) OR #status <> :deletedStatus) AND (attribute_not_exists(#hidden) OR #hidden <> :hiddenValue)',
+            ExpressionAttributeNames: {
+              '#status': 'status',
+              '#hidden': 'hidden'
+            },
             ExpressionAttributeValues: {
-              ':assignmentId': assignment.assignmentId || assignment.id
+              ':assignmentId': assignment.assignmentId || assignment.id,
+              ':deletedStatus': 'deleted',
+              ':hiddenValue': true
             },
             Select: 'COUNT'
           }));
           
           const submissionsCount = submissionsResult.Count || 0;
           
-          // Get graded count
+          // Get graded count (only submissions with actual grades, not null/undefined)
           const gradedResult = await docClient.send(new ScanCommand({
             TableName: 'classcast-submissions',
-            FilterExpression: 'assignmentId = :assignmentId AND attribute_exists(grade)',
+            FilterExpression: 'assignmentId = :assignmentId AND attribute_exists(grade) AND grade <> :nullValue AND (attribute_not_exists(#status) OR #status <> :deletedStatus) AND (attribute_not_exists(#hidden) OR #hidden <> :hiddenValue)',
+            ExpressionAttributeNames: {
+              '#status': 'status',
+              '#hidden': 'hidden'
+            },
             ExpressionAttributeValues: {
-              ':assignmentId': assignment.assignmentId || assignment.id
+              ':assignmentId': assignment.assignmentId || assignment.id,
+              ':nullValue': null,
+              ':deletedStatus': 'deleted',
+              ':hiddenValue': true
             },
             Select: 'COUNT'
           }));
