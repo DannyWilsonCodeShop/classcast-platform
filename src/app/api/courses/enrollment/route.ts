@@ -284,6 +284,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Enrich students with section information
+    const studentsWithSections = await Promise.all(
+      (course.enrollment?.students || []).map(async (student: any) => {
+        if (student.sectionId) {
+          try {
+            // Get section information
+            const section = await dynamoDBService.getItem<any>('classcast-sections', { sectionId: student.sectionId });
+            return {
+              ...student,
+              sectionName: section?.sectionName || null
+            };
+          } catch (error) {
+            console.warn('Could not fetch section info for student:', student.userId, error);
+            return {
+              ...student,
+              sectionName: null
+            };
+          }
+        }
+        return {
+          ...student,
+          sectionName: null
+        };
+      })
+    );
+
     return NextResponse.json({
       success: true,
       data: {
@@ -291,7 +317,7 @@ export async function GET(request: NextRequest) {
         title: course.title,
         currentEnrollment: course.currentEnrollment,
         maxStudents: course.maxStudents,
-        students: course.enrollment?.students || [],
+        students: studentsWithSections,
         waitlist: course.enrollment?.waitlist || [],
       },
     });

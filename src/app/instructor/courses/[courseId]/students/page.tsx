@@ -199,6 +199,8 @@ const InstructorStudentsPage: React.FC = () => {
                 lastActivity: enrolledStudent.enrolledAt, // Default to enrollment date
                 submissionsCount: submissionsCount,
                 averageGrade: averageGrade,
+                sectionId: enrolledStudent.sectionId || null,
+                sectionName: enrolledStudent.sectionName || null,
               };
             })
           );
