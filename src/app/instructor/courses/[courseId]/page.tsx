@@ -561,19 +561,21 @@ const InstructorCourseDetailPage: React.FC = () => {
         return;
       }
 
-      const response = await fetch('/api/video-submissions', {
+      console.log('🎯 Submitting grade for submission:', { submissionId, grade: gradeData.grade, feedback: gradeData.feedback });
+
+      const response = await fetch(`/api/submissions/${submissionId}/grade`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          submissionId,
           grade: Number(gradeData.grade),
-          instructorFeedback: gradeData.feedback,
+          feedback: gradeData.feedback || '',
           status: 'graded'
         }),
         credentials: 'include',
       });
 
       const data = await response.json();
+      console.log('📊 Grade submission response:', data);
       
       if (data.success) {
         // Update local state

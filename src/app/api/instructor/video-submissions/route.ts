@@ -44,8 +44,9 @@ export async function GET(request: NextRequest) {
     const sectionId = searchParams.get('sectionId');
     const assignmentId = searchParams.get('assignmentId');
     const instructorId = searchParams.get('instructorId');
+    const studentId = searchParams.get('studentId');
 
-    console.log('Video submissions API called with:', { courseId, sectionId, assignmentId, instructorId });
+    console.log('Video submissions API called with:', { courseId, sectionId, assignmentId, instructorId, studentId });
 
     let submissions: any[] = [];
 
@@ -65,8 +66,16 @@ export async function GET(request: NextRequest) {
         });
 
         const result = await docClient.send(queryCommand);
-        submissions = result.Items || [];
-        console.log('Found submissions for assignment (via Query):', submissions.length);
+        let allSubmissions = result.Items || [];
+        console.log('Found submissions for assignment (via Query):', allSubmissions.length);
+        
+        // Filter by student if studentId is provided
+        if (studentId) {
+          submissions = allSubmissions.filter(sub => sub.studentId === studentId);
+          console.log('Filtered submissions for student:', submissions.length);
+        } else {
+          submissions = allSubmissions;
+        }
       } catch (queryError: any) {
         // If index doesn't exist, fall back to Scan with filter
         console.warn('Query failed, falling back to Scan:', queryError.message);
@@ -80,6 +89,12 @@ export async function GET(request: NextRequest) {
         if (courseId) {
           filterExpression += ' AND courseId = :courseId';
           expressionAttributeValues[':courseId'] = courseId;
+        }
+
+        // Also filter by studentId if provided
+        if (studentId) {
+          filterExpression += ' AND studentId = :studentId';
+          expressionAttributeValues[':studentId'] = studentId;
         }
 
         const scanCommand = new ScanCommand({
@@ -104,6 +119,11 @@ export async function GET(request: NextRequest) {
       if (sectionId) {
         filterExpression += ' AND sectionId = :sectionId';
         expressionAttributeValues[':sectionId'] = sectionId;
+      }
+
+      if (studentId) {
+        filterExpression += ' AND studentId = :studentId';
+        expressionAttributeValues[':studentId'] = studentId;
       }
 
       const scanCommand = new ScanCommand({
@@ -132,18 +152,42 @@ export async function GET(request: NextRequest) {
 
       if (courseIds.length > 0) {
         // Get submissions for all instructor's courses
+        let filterExpression = 'courseId IN (:courseIds)';
+        let expressionAttributeValues: any = {
+          ':courseIds': courseIds
+        };
+
+        // Add student filter if provided
+        if (studentId) {
+          filterExpression += ' AND studentId = :studentId';
+          expressionAttributeValues[':studentId'] = studentId;
+        }
+
         const submissionsScanCommand = new ScanCommand({
           TableName: 'classcast-submissions',
-          FilterExpression: 'courseId IN (:courseIds)',
-          ExpressionAttributeValues: {
-            ':courseIds': courseIds
-          }
+          FilterExpression: filterExpression,
+          ExpressionAttributeValues: expressionAttributeValues
         });
 
         const submissionsResult = await docClient.send(submissionsScanCommand);
         submissions = (submissionsResult.Items || []) as any[];
         console.log('Found submissions for instructor courses:', submissions.length);
       }
+    } else if (studentId) {
+      // Get submissions for a specific student
+      console.log('Fetching submissions for student:', studentId);
+      
+      const scanCommand = new ScanCommand({
+        TableName: 'classcast-submissions',
+        FilterExpression: 'studentId = :studentId',
+        ExpressionAttributeValues: {
+          ':studentId': studentId
+        }
+      });
+
+      const result = await docClient.send(scanCommand);
+      submissions = result.Items || [];
+      console.log('Found submissions for student:', submissions.length);
     } else {
       // Get all submissions
       console.log('Fetching all submissions');

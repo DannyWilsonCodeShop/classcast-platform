@@ -96,6 +96,17 @@ const BulkGradingPage: React.FC = () => {
   
   // Peer responses collapse state
   const [collapsedPeerResponses, setCollapsedPeerResponses] = useState<Set<string>>(new Set());
+  
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState<{submissionId: string, studentName: string} | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Bulk selection state
+  const [selectedSubmissions, setSelectedSubmissions] = useState<Set<string>>(new Set());
+  const [showBulkGrading, setShowBulkGrading] = useState(false);
+  const [bulkGrade, setBulkGrade] = useState<number | ''>('');
+  const [bulkFeedback, setBulkFeedback] = useState('');
+  const [isBulkGrading, setIsBulkGrading] = useState(false);
 
   useEffect(() => {
     // Get filters from URL params - only run on client side
@@ -345,12 +356,17 @@ const BulkGradingPage: React.FC = () => {
         const urlParams = new URLSearchParams(window.location.search);
         const assignmentId = urlParams.get('assignment');
         const courseId = urlParams.get('course');
+        const studentId = urlParams.get('student');
         
         let apiUrl = '/api/instructor/video-submissions';
-        if (assignmentId && courseId) {
-          apiUrl += `?assignmentId=${assignmentId}&courseId=${courseId}`;
-        } else if (courseId) {
-          apiUrl += `?courseId=${courseId}`;
+        const params = new URLSearchParams();
+        
+        if (assignmentId) params.append('assignmentId', assignmentId);
+        if (courseId) params.append('courseId', courseId);
+        if (studentId) params.append('studentId', studentId);
+        
+        if (params.toString()) {
+          apiUrl += `?${params.toString()}`;
         }
         
         console.log('Fetching submissions from:', apiUrl);
@@ -767,6 +783,145 @@ const BulkGradingPage: React.FC = () => {
     ));
   };
 
+  // Delete submission function
+  const handleDeleteSubmission = async () => {
+    if (!deleteConfirm) return;
+    
+    setIsDeleting(true);
+    try {
+      console.log('🗑️ Deleting submission:', deleteConfirm.submissionId);
+      
+      const response = await fetch('/api/delete-submission', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          submissionId: deleteConfirm.submissionId
+        }),
+      });
+
+      const data = await response.json();
+      console.log('Delete response:', response.status, data);
+
+      if (response.ok && data.success) {
+        console.log('✅ Submission deleted successfully');
+        
+        // Remove submission from local state
+        setSubmissions(prev => prev.filter(sub => sub.id !== deleteConfirm.submissionId));
+        
+        // Adjust current submission index if needed
+        const deletedIndex = filteredSubmissions.findIndex(sub => sub.id === deleteConfirm.submissionId);
+        if (deletedIndex !== -1 && deletedIndex <= currentSubmissionIndex && currentSubmissionIndex > 0) {
+          setCurrentSubmissionIndex(prev => Math.max(0, prev - 1));
+        }
+        
+        setDeleteConfirm(null);
+        alert(`✅ Video submission by ${deleteConfirm.studentName} has been deleted successfully!`);
+      } else {
+        console.error('Failed to delete submission:', response.status, data);
+        const errorMessage = data.error || data.message || 'Failed to delete submission. Please try again.';
+        alert(`❌ ${errorMessage}`);
+      }
+    } catch (error) {
+      console.error('Error deleting submission:', error);
+      alert('❌ An error occurred while deleting. Please check your connection and try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Bulk selection functions
+  const toggleSubmissionSelection = (submissionId: string) => {
+    setSelectedSubmissions(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(submissionId)) {
+        newSet.delete(submissionId);
+      } else {
+        newSet.add(submissionId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllSubmissions = () => {
+    setSelectedSubmissions(new Set(filteredSubmissions.map(sub => sub.id)));
+  };
+
+  const clearAllSelections = () => {
+    setSelectedSubmissions(new Set());
+  };
+
+  // Bulk grading function
+  const handleBulkGrading = async () => {
+    if (selectedSubmissions.size === 0) {
+      alert('Please select at least one submission to grade.');
+      return;
+    }
+
+    if (!bulkGrade && !bulkFeedback.trim()) {
+      alert('Please enter a grade and/or feedback to apply.');
+      return;
+    }
+
+    setIsBulkGrading(true);
+    try {
+      console.log('🎯 Bulk grading submissions:', Array.from(selectedSubmissions));
+      
+      const promises = Array.from(selectedSubmissions).map(async (submissionId) => {
+        const response = await fetch(`/api/submissions/${submissionId}/grade`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            grade: bulkGrade ? Number(bulkGrade) : undefined,
+            feedback: bulkFeedback.trim() || undefined,
+            status: 'graded'
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`Failed to grade submission ${submissionId}: ${errorData.error || 'Unknown error'}`);
+        }
+
+        return response.json();
+      });
+
+      await Promise.all(promises);
+
+      // Update local state for all graded submissions
+      setSubmissions(prev => prev.map(sub => 
+        selectedSubmissions.has(sub.id)
+          ? {
+              ...sub,
+              grade: bulkGrade ? Number(bulkGrade) : sub.grade,
+              feedback: bulkFeedback.trim() || sub.feedback,
+              status: 'graded' as const
+            }
+          : sub
+      ));
+
+      console.log('✅ Bulk grading completed successfully');
+      alert(`✅ Successfully graded ${selectedSubmissions.size} submissions!`);
+      
+      // Reset bulk grading state
+      setSelectedSubmissions(new Set());
+      setShowBulkGrading(false);
+      setBulkGrade('');
+      setBulkFeedback('');
+      
+    } catch (error) {
+      console.error('❌ Error in bulk grading:', error);
+      alert(`❌ Bulk grading failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsBulkGrading(false);
+    }
+  };
+
   // Use submissions for filtering
   const submissionsToFilter = submissions;
   
@@ -1034,6 +1189,69 @@ const BulkGradingPage: React.FC = () => {
                 <p className="text-sm text-gray-600 mt-1">Review and grade video submissions</p>
               </div>
 
+              {/* Submissions Header with Select All */}
+              {filteredSubmissions.length > 0 && (
+                <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg border">
+                  <div className="flex items-center space-x-3">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedSubmissions.size === filteredSubmissions.length && filteredSubmissions.length > 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            selectAllSubmissions();
+                          } else {
+                            clearAllSelections();
+                          }
+                        }}
+                        className="w-4 h-4 text-[#005587] bg-gray-100 border-gray-300 rounded focus:ring-[#005587] focus:ring-2"
+                      />
+                      <span className="text-sm font-medium text-gray-700">
+                        Select All ({filteredSubmissions.length} submissions)
+                      </span>
+                    </label>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {selectedSubmissions.size > 0 && (
+                      <span>{selectedSubmissions.size} selected</span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Bulk Actions Toolbar */}
+              {selectedSubmissions.size > 0 && (
+                <div className="bg-[#005587] text-white p-4 rounded-lg mb-4 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <span className="font-medium">
+                        {selectedSubmissions.size} submission{selectedSubmissions.size !== 1 ? 's' : ''} selected
+                      </span>
+                      <button
+                        onClick={selectAllSubmissions}
+                        className="text-sm text-blue-200 hover:text-white underline"
+                      >
+                        Select All ({filteredSubmissions.length})
+                      </button>
+                      <button
+                        onClick={clearAllSelections}
+                        className="text-sm text-blue-200 hover:text-white underline"
+                      >
+                        Clear Selection
+                      </button>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => setShowBulkGrading(true)}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        📝 Bulk Grade
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Video List - Vertical Scrolling */}
               <div className="flex-1 overflow-y-auto space-y-6">
                 {filteredSubmissions.map((submission, index) => (
@@ -1059,23 +1277,39 @@ const BulkGradingPage: React.FC = () => {
                           })()
                     }`}
                   >
-                    {/* Pin/Highlight Indicators */}
-                    {(submission.isPinned || submission.isHighlighted) && (
-                      <div className="flex items-center space-x-2 mb-4">
-                        {submission.isPinned && (
-                          <div className="flex items-center space-x-1 px-3 py-1.5 bg-[#005587]/10 text-[#005587] rounded-lg text-xs font-semibold border border-[#005587]/20">
-                            <span>📌</span>
-                            <span>Pinned</span>
-                          </div>
-                        )}
-                        {submission.isHighlighted && (
-                          <div className="flex items-center space-x-1 px-3 py-1.5 bg-[#FFC72C]/15 text-[#CC9900] rounded-lg text-xs font-semibold border border-[#FFC72C]/30">
-                            <span>⭐</span>
-                            <span>Featured</span>
+                    {/* Selection Checkbox and Pin/Highlight Indicators */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        {/* Selection Checkbox */}
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedSubmissions.has(submission.id)}
+                            onChange={() => toggleSubmissionSelection(submission.id)}
+                            className="w-4 h-4 text-[#005587] bg-gray-100 border-gray-300 rounded focus:ring-[#005587] focus:ring-2"
+                          />
+                          <span className="text-sm text-gray-600">Select</span>
+                        </label>
+                        
+                        {/* Pin/Highlight Indicators */}
+                        {(submission.isPinned || submission.isHighlighted) && (
+                          <div className="flex items-center space-x-2">
+                            {submission.isPinned && (
+                              <div className="flex items-center space-x-1 px-3 py-1.5 bg-[#005587]/10 text-[#005587] rounded-lg text-xs font-semibold border border-[#005587]/20">
+                                <span>📌</span>
+                                <span>Pinned</span>
+                              </div>
+                            )}
+                            {submission.isHighlighted && (
+                              <div className="flex items-center space-x-1 px-3 py-1.5 bg-[#FFC72C]/15 text-[#CC9900] rounded-lg text-xs font-semibold border border-[#FFC72C]/30">
+                                <span>⭐</span>
+                                <span>Featured</span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
-                    )}
+                    </div>
                     
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                       {/* Video Player */}
@@ -1100,10 +1334,17 @@ const BulkGradingPage: React.FC = () => {
                               crossOrigin="anonymous"
                               controls
                               onLoadedMetadata={(e) => {
-                                const video = e.target as HTMLVideoElement;
+                                const video = e.currentTarget;
                                 video.playbackRate = playbackSpeed;
+                                
+                                // Call the main metadata handler for current submission
                                 if (index === currentSubmissionIndex) {
                                   handleLoadedMetadata();
+                                }
+                                
+                                // Generate thumbnail for ALL videos at 2-second mark
+                                if (!videoThumbnails[submission.id] && video.duration >= 2) {
+                                  video.currentTime = Math.min(2.0, video.duration * 0.1);
                                 }
                               }}
                               onError={(e) => {
@@ -1125,19 +1366,6 @@ const BulkGradingPage: React.FC = () => {
                                 }
                               }}
                               onTimeUpdate={index === currentSubmissionIndex ? handleTimeUpdate : undefined}
-                              onLoadedMetadata={(e) => {
-                                const video = e.currentTarget;
-                                
-                                // Call the main metadata handler for current submission
-                                if (index === currentSubmissionIndex) {
-                                  handleLoadedMetadata(e);
-                                }
-                                
-                                // Generate thumbnail for ALL videos at 2-second mark
-                                if (!videoThumbnails[submission.id] && video.duration >= 2) {
-                                  video.currentTime = Math.min(2.0, video.duration * 0.1);
-                                }
-                              }}
                               onSeeked={(e) => {
                                 const video = e.currentTarget;
                                 
@@ -1274,6 +1502,16 @@ const BulkGradingPage: React.FC = () => {
                               >
                                 <span>{submission.isHighlighted ? '⭐' : '☆'}</span>
                                 <span>{submission.isHighlighted ? 'Highlighted' : 'Highlight'}</span>
+                              </button>
+                              
+                              {/* Delete Button */}
+                              <button
+                                onClick={() => setDeleteConfirm({ submissionId: submission.id, studentName: submission.studentName })}
+                                className="px-2 py-1 text-xs bg-red-100 text-red-700 hover:bg-red-200 rounded-md transition-colors flex items-center space-x-1"
+                                title="Delete this video submission"
+                              >
+                                <span>🗑️</span>
+                                <span>Delete</span>
                               </button>
                               
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(submission.status)}`}>
@@ -1445,13 +1683,13 @@ const BulkGradingPage: React.FC = () => {
                                   handleGradeChange(e.target.value ? Number(e.target.value) : '');
                                 } else {
                                   // If they click on a non-current submission's input, select it
-                                  selectSubmission(index);
+                                  setCurrentSubmissionIndex(index);
                                 }
                               }}
                               onFocus={() => {
                                 // When focusing an input, make sure this submission is selected
                                 if (index !== currentSubmissionIndex) {
-                                  selectSubmission(index);
+                                  setCurrentSubmissionIndex(index);
                                 }
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -1851,6 +2089,124 @@ const BulkGradingPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Bulk Grading Modal */}
+      {showBulkGrading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-2xl">📝</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Bulk Grade Submissions</h3>
+                <p className="text-sm text-gray-600">
+                  Apply grade and/or feedback to {selectedSubmissions.size} selected submission{selectedSubmissions.size !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="bulkGrade" className="block text-sm font-medium text-gray-700 mb-1">
+                  Grade (0-100)
+                </label>
+                <input
+                  type="number"
+                  id="bulkGrade"
+                  min="0"
+                  max="100"
+                  value={bulkGrade}
+                  onChange={(e) => setBulkGrade(e.target.value ? Number(e.target.value) : '')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent"
+                  placeholder="Enter grade (optional)"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="bulkFeedback" className="block text-sm font-medium text-gray-700 mb-1">
+                  Feedback
+                </label>
+                <textarea
+                  id="bulkFeedback"
+                  value={bulkFeedback}
+                  onChange={(e) => setBulkFeedback(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent resize-none"
+                  placeholder="Enter feedback to apply to all selected submissions (optional)"
+                />
+              </div>
+
+              <div className="text-xs text-gray-500">
+                Note: Only fields with values will be applied. Empty fields will leave existing values unchanged.
+              </div>
+            </div>
+
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowBulkGrading(false);
+                  setBulkGrade('');
+                  setBulkFeedback('');
+                }}
+                disabled={isBulkGrading}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkGrading}
+                disabled={isBulkGrading || (!bulkGrade && !bulkFeedback.trim())}
+                className="flex-1 px-4 py-2 bg-[#005587] text-white rounded-lg hover:bg-[#003d5c] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isBulkGrading ? 'Applying...' : 'Apply to All'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Delete Video Submission?</h3>
+                <p className="text-sm text-gray-600">
+                  Delete {deleteConfirm.studentName}'s video submission
+                </p>
+              </div>
+            </div>
+            
+            <p className="text-sm text-gray-700 mb-4">
+              This action cannot be undone. The video file and all associated data will be permanently removed.
+            </p>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteSubmission}
+                disabled={isDeleting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </InstructorRoute>
   );
 };

@@ -259,21 +259,52 @@ export const InstructorCommunityFeed: React.FC<InstructorCommunityFeedProps> = (
     setShowGradingModal(true);
   }, []);
 
-  const handleGradingComplete = useCallback((id: string, grade: number, feedback: string, notes?: string) => {
-    setSubmissions(prev => prev.map(sub => 
-      sub.id === id
-        ? {
-            ...sub,
-            grade,
-            feedback,
-            instructorNotes: notes,
-            status: 'completed' as const,
-            reviewStatus: 'completed' as const
-          }
-        : sub
-    ));
-    setShowGradingModal(false);
-    setCurrentGradingSubmission(null);
+  const handleGradingComplete = useCallback(async (id: string, grade: number, feedback: string, notes?: string) => {
+    try {
+      console.log('🎯 Saving grade for submission:', { id, grade, feedback, notes });
+      
+      // Save grade to API
+      const response = await fetch(`/api/submissions/${id}/grade`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          grade: Number(grade),
+          feedback: feedback || '',
+          status: 'graded'
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save grade');
+      }
+
+      const result = await response.json();
+      console.log('✅ Grade saved successfully:', result);
+
+      // Update local state only after successful API call
+      setSubmissions(prev => prev.map(sub => 
+        sub.id === id
+          ? {
+              ...sub,
+              grade,
+              feedback,
+              instructorNotes: notes,
+              status: 'completed' as const,
+              reviewStatus: 'completed' as const
+            }
+          : sub
+      ));
+      
+      setShowGradingModal(false);
+      setCurrentGradingSubmission(null);
+    } catch (error) {
+      console.error('❌ Error saving grade:', error);
+      alert(`Failed to save grade: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }, []);
 
   // Handle page change
