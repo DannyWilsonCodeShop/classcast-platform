@@ -5,6 +5,8 @@ export interface InstructorSubmissionData {
   studentName: string;
   studentEmail: string;
   studentAvatar?: string;
+  sectionId?: string;
+  sectionName?: string;
   assignmentId: string;
   assignmentTitle: string;
   courseId: string;

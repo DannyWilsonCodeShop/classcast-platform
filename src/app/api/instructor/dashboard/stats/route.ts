@@ -73,7 +73,10 @@ export async function GET(request: NextRequest) {
     
     // Count ungraded assignments (submissions without grades)
     const ungradedAssignments = allSubmissions.filter(submission => 
-      !submission.grade && submission.status !== 'draft'
+      (submission.grade === null || submission.grade === undefined) && 
+      submission.status !== 'draft' && 
+      submission.status !== 'deleted' && 
+      !submission.hidden
     ).length;
     
     // Count total messages (for now, we'll use a placeholder since we don't have a messages table)

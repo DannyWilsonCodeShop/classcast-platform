@@ -178,6 +178,41 @@ export async function GET(request: NextRequest) {
             console.error('Error fetching student info:', error);
           }
 
+          // Get student's section information from course enrollment
+          let sectionInfo = null;
+          if (studentInfo && submission.courseId) {
+            try {
+              // Get the student's enrollment record to find their section
+              const enrollmentScanCommand = new ScanCommand({
+                TableName: 'classcast-courses',
+                FilterExpression: 'courseId = :courseId',
+                ExpressionAttributeValues: {
+                  ':courseId': submission.courseId
+                }
+              });
+              const enrollmentResult = await docClient.send(enrollmentScanCommand);
+              const course = enrollmentResult.Items?.[0];
+              
+              if (course && course.students) {
+                const studentEnrollment = course.students.find((s: any) => s.userId === submission.studentId);
+                if (studentEnrollment && studentEnrollment.sectionId) {
+                  // Get section details
+                  const sectionScanCommand = new ScanCommand({
+                    TableName: 'classcast-sections',
+                    FilterExpression: 'sectionId = :sectionId',
+                    ExpressionAttributeValues: {
+                      ':sectionId': studentEnrollment.sectionId
+                    }
+                  });
+                  const sectionResult = await docClient.send(sectionScanCommand);
+                  sectionInfo = sectionResult.Items?.[0] || null;
+                }
+              }
+            } catch (error) {
+              console.error('Error fetching section info:', error);
+            }
+          }
+
           // Get assignment info from assignments table
           let assignmentInfo = null;
           try {
@@ -235,12 +270,16 @@ export async function GET(request: NextRequest) {
               id: studentInfo.userId,
               name: `${studentInfo.firstName || ''} ${studentInfo.lastName || ''}`.trim() || 'Unknown Student',
               email: studentInfo.email || 'unknown@example.com',
-              avatar: studentInfo.avatar || null
+              avatar: studentInfo.avatar || null,
+              sectionId: sectionInfo?.sectionId || null,
+              sectionName: sectionInfo?.sectionName || null
             } : {
               id: submission.studentId,
               name: 'Unknown Student',
               email: 'unknown@example.com',
-              avatar: null
+              avatar: null,
+              sectionId: null,
+              sectionName: null
             },
             assignment: assignmentInfo ? {
               id: assignmentInfo.assignmentId,
