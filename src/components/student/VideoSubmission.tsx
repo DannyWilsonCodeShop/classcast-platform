@@ -62,7 +62,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   courseId,
   onSubmissionComplete,
   onSubmissionError,
-  maxFileSize = 500 * 1024 * 1024,
+  maxFileSize = 2048 * 1024 * 1024, // 2GB to match API limit
   allowedVideoTypes = ['video/mp4', 'video/webm', 'video/quicktime'],
   maxDuration = 300,
   showPreview = true,

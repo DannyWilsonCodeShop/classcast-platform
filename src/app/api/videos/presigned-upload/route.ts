@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 300 }); // 5 minutes
+    const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 3600 }); // 1 hour for large uploads
     const videoUrl = `https://classcast-videos-463470937777-us-east-1.s3.us-east-1.amazonaws.com/${fileKey}`;
 
     console.log('Generated presigned URL for:', fileKey);
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
         presignedUrl,
         fileKey,
         videoUrl,
-        expiresIn: 300
+        expiresIn: 3600
       },
       message: 'Presigned URL generated successfully'
     });

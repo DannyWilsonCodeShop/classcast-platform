@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { isValidYouTubeUrl, extractYouTubeVideoId, getYouTubeThumbnail } from '@/lib/youtube';
+import { uploadLargeFile } from '@/lib/uploadUtils';
 
 const VideoSubmissionContent: React.FC = () => {
   const router = useRouter();
@@ -355,16 +356,14 @@ const VideoSubmissionContent: React.FC = () => {
       setError(null);
       setUploadProgress(0);
 
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return prev;
-          }
-          return prev + 10;
-        });
-      }, 200);
+      // Show initial progress
+      setUploadProgress(5);
+      
+      // For large files, show a warning about upload time
+      if (videoBlob.size > 500 * 1024 * 1024) {
+        const fileSizeMB = (videoBlob.size / (1024 * 1024)).toFixed(1);
+        console.log(`📤 Uploading large file (${fileSizeMB}MB). This may take several minutes...`);
+      }
 
       let videoBlob: Blob;
       let fileName: string;
@@ -414,18 +413,21 @@ const VideoSubmissionContent: React.FC = () => {
       const { data: presignedData } = await presignedResponse.json();
       const { presignedUrl, videoUrl } = presignedData;
 
-      // Upload video directly to S3 using presigned URL
-      const uploadResponse = await fetch(presignedUrl, {
-        method: 'PUT',
-        body: videoBlob,
-        headers: {
-          'Content-Type': videoType,
-        },
+      // Upload video directly to S3 using presigned URL with retry logic
+      console.log(`📤 Starting upload of ${(videoBlob.size / (1024 * 1024)).toFixed(1)}MB file...`);
+      
+      const uploadResponse = await uploadLargeFile(presignedUrl, videoBlob, videoType, {
+        timeout: 600000, // 10 minutes for very large files
+        retries: 3,
+        onProgress: (progress) => {
+          // Update progress more accurately based on actual upload progress
+          const uploadProgressPercent = Math.min(90, progress.percentage * 0.9);
+          setUploadProgress(uploadProgressPercent);
+        }
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload video to S3');
-      }
+      console.log(`📥 Upload completed successfully`);
+      clearInterval(progressInterval);
 
       console.log('Video uploaded successfully to S3:', videoUrl);
 
@@ -587,7 +589,27 @@ const VideoSubmissionContent: React.FC = () => {
 
     } catch (err) {
       console.error('Error uploading video:', err);
-      setError('Failed to upload video. Please try again.');
+      
+      let errorMessage = 'Failed to upload video. Please try again.';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('timeout') || err.message.includes('aborted')) {
+          errorMessage = `Upload timed out. This can happen with large files or slow connections.\n\n` +
+                        `💡 Try these solutions:\n` +
+                        `• Use a faster internet connection\n` +
+                        `• Upload during off-peak hours\n` +
+                        `• Use the YouTube URL option for very large files\n` +
+                        `• Compress your video to reduce file size`;
+        } else if (err.message.includes('network') || err.message.includes('fetch')) {
+          errorMessage = `Network error during upload. Please check your internet connection and try again.`;
+        } else if (err.message.includes('413') || err.message.includes('too large')) {
+          errorMessage = `File too large for direct upload. Please use the YouTube URL option instead.`;
+        } else {
+          errorMessage = `Upload failed: ${err.message}`;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsUploading(false);
     }
@@ -751,6 +773,13 @@ const VideoSubmissionContent: React.FC = () => {
         // Switch to YouTube tab to guide the user
         setActiveTab('youtube');
         return;
+      }
+      
+      // Warn about large files that might take a while to upload
+      if (file.size > 500 * 1024 * 1024) { // 500MB
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        const estimatedTime = Math.ceil(file.size / (1024 * 1024 * 2)); // Rough estimate: 2MB/second
+        console.log(`⚠️ Large file detected: ${fileSizeMB}MB (estimated upload time: ${estimatedTime} minutes)`);
       }
       
       setSelectedFile(file);
