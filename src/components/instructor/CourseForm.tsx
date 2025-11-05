@@ -170,6 +170,16 @@ export const CourseForm: React.FC<CourseFormProps> = ({
         learningObjectives: formData.learningObjectives?.filter(obj => obj.trim() !== '') || [],
       };
 
+      // Debug: Log the data being sent
+      console.log('🔍 CourseForm: Submitting course data:', {
+        title: filteredData.title,
+        instructorId: filteredData.instructorId,
+        coInstructorEmail: filteredData.coInstructorEmail,
+        coInstructorName: filteredData.coInstructorName,
+        classCode: filteredData.classCode,
+        backgroundColor: filteredData.backgroundColor
+      });
+
       const result = await onSubmit(filteredData);
       
       if (result.success) {
