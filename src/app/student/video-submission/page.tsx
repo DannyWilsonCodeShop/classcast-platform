@@ -455,7 +455,6 @@ const VideoSubmissionContent: React.FC = () => {
       });
 
       console.log(`📥 Upload completed successfully`);
-      clearInterval(progressInterval);
 
       console.log('Video uploaded successfully to S3:', videoUrl);
 
@@ -535,7 +534,6 @@ const VideoSubmissionContent: React.FC = () => {
         throw new Error('Failed to submit video assignment');
       }
 
-      clearInterval(progressInterval);
       setUploadProgress(100);
 
       // Simulate successful upload
