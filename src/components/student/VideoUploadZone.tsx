@@ -107,15 +107,27 @@ export const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({
     });
 
     if (videoFile) {
+      // Final validation before passing to parent
+      if (typeof videoFile.size !== 'number' || videoFile.size <= 0) {
+        console.error('❌ Dropped file has invalid size before passing to parent:', {
+          file: videoFile,
+          sizeType: typeof videoFile.size,
+          sizeValue: videoFile.size
+        });
+        alert('Dropped file appears to be corrupted or empty. Please try dropping the file again.');
+        return;
+      }
       console.log('✅ Valid video file dropped:', {
         name: videoFile.name,
         size: `${(videoFile.size / (1024 * 1024)).toFixed(2)}MB`,
         type: videoFile.type
       });
-      onFileSelect(videoFile);
+      // Add a small delay to ensure file is fully loaded
+      setTimeout(() => {
+        onFileSelect(videoFile);
+      }, 50);
     } else {
       console.error('❌ No valid video file found in dropped files');
-      // You might want to show an error message to the user here
       alert('Please drop a valid video file. Supported formats: ' + allowedTypes.join(', '));
     }
   }, [allowedTypes, onFileSelect]);
@@ -182,16 +194,28 @@ export const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({
     });
 
     if (videoFile) {
+      // Final validation before passing to parent
+      if (typeof videoFile.size !== 'number' || videoFile.size <= 0) {
+        console.error('❌ File has invalid size before passing to parent:', {
+          file: videoFile,
+          sizeType: typeof videoFile.size,
+          sizeValue: videoFile.size
+        });
+        alert('File appears to be corrupted or empty. Please try selecting the file again.');
+        return;
+      }
       console.log('✅ Valid video file selected:', {
         name: videoFile.name,
         size: `${(videoFile.size / (1024 * 1024)).toFixed(2)}MB`,
         type: videoFile.type,
         lastModified: new Date(videoFile.lastModified).toISOString()
       });
-      onFileSelect(videoFile);
+      // Add a small delay to ensure file is fully loaded
+      setTimeout(() => {
+        onFileSelect(videoFile);
+      }, 50);
     } else {
       console.error('❌ No valid video file found in selection');
-      // You might want to show an error message to the user here
       alert('Please select a valid video file. Supported formats: ' + allowedTypes.join(', '));
     }
 

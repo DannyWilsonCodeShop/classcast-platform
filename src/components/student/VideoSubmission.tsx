@@ -337,6 +337,41 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   const handleUpload = useCallback(async () => {
     if (!selectedFile || !user) return;
 
+    // Additional safety check for file object
+    if (!selectedFile.file) {
+      console.error('❌ No file object in selectedFile');
+      onSubmissionError?.('Invalid file: file object is missing');
+      return;
+    }
+
+    // Comprehensive file validation before upload
+    if (typeof selectedFile.file.size !== 'number' || selectedFile.file.size === undefined || selectedFile.file.size === null) {
+      console.error('❌ File size is invalid before upload:', {
+        file: selectedFile.file,
+        sizeType: typeof selectedFile.file.size,
+        sizeValue: selectedFile.file.size,
+        constructor: selectedFile.file?.constructor?.name
+      });
+      onSubmissionError?.('Invalid file: file size information is missing or corrupted');
+      return;
+    }
+
+    if (!selectedFile.file.type || typeof selectedFile.file.type !== 'string') {
+      console.error('❌ File type is invalid before upload:', {
+        file: selectedFile.file,
+        typeType: typeof selectedFile.file.type,
+        typeValue: selectedFile.file.type
+      });
+      onSubmissionError?.('Invalid file: file type information is missing or corrupted');
+      return;
+    }
+
+    console.log('✅ File validation passed before upload:', {
+      name: selectedFile.file.name,
+      size: `${(selectedFile.file.size / (1024 * 1024)).toFixed(2)}MB`,
+      type: selectedFile.file.type
+    });
+
     setIsUploading(true);
     setUploadProgress(0);
 
@@ -361,7 +396,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         result = await LargeFileUploader.uploadLargeFile({
           file: selectedFile.file,
           folder: 'video-submissions',
-          userId: user.sub,
+          userId: user.id,
           metadata,
           onProgress: (progress) => {
             setUploadProgress(progress);
@@ -383,7 +418,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         const formData = new FormData();
         formData.append('file', selectedFile.file);
         formData.append('folder', 'video-submissions');
-        formData.append('userId', user.sub);
+        formData.append('userId', user.id);
         formData.append('metadata', JSON.stringify(metadata));
 
         const progressInterval = setInterval(() => {
@@ -418,7 +453,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       // Create submission record in database
       const submissionPayload = {
         assignmentId,
-        studentId: user.id || user.sub,
+        studentId: user.id,
         courseId,
         videoUrl: result.data.fileUrl,
         videoTitle: selectedFile.file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
@@ -463,7 +498,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         metadata: {
           assignmentId,
           courseId,
-          studentId: user.id || user.sub,
+          studentId: user.id,
           uploadedAt: submissionResult.submission.submittedAt,
           videoFormat: selectedFile.metadata?.format || 'unknown',
           resolution: selectedFile.metadata ? `${selectedFile.metadata.width}x${selectedFile.metadata.height}` : undefined,
