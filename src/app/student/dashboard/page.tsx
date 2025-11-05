@@ -74,7 +74,7 @@ const StudentDashboard: React.FC = () => {
     if (!user?.id) return;
     
     try {
-      const response = await fetch(`/api/notifications/count?userId=${user.id}`);
+      const response = await fetch(`/api/notifications/count?userId=${user.id}&role=${user.role || 'student'}`);
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
