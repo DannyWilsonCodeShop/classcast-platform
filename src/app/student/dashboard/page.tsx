@@ -11,6 +11,8 @@ import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
 import Avatar from '@/components/common/Avatar';
 import BugReportModal from '@/components/common/BugReportModal';
+import WelcomeTour from '@/components/student/WelcomeTour';
+import InteractiveTour from '@/components/student/InteractiveTour';
 
 import RichTextRenderer from '@/components/common/RichTextRenderer';
 
@@ -38,12 +40,26 @@ const StudentDashboard: React.FC = () => {
   const [notificationCount, setNotificationCount] = useState(0);
   const [showBugReport, setShowBugReport] = useState(false);
   const [includeAllPublicVideos, setIncludeAllPublicVideos] = useState(false);
+  const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+  const [showInteractiveTour, setShowInteractiveTour] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
       fetchFeed();
       loadConnections();
       loadNotificationCount();
+      
+      // Check if user needs to see the welcome tour
+      const hasSeenWelcomeTour = localStorage.getItem('classcast-tour-completed');
+      const hasSeenInteractiveTour = localStorage.getItem('classcast-interactive-tour-completed');
+      
+      if (!hasSeenWelcomeTour) {
+        // Show welcome tour for first-time users
+        setTimeout(() => setShowWelcomeTour(true), 1000);
+      } else if (!hasSeenInteractiveTour) {
+        // Show interactive tour for returning users who haven't seen the new features
+        setTimeout(() => setShowInteractiveTour(true), 1500);
+      }
       
       // Poll for notifications every 30 seconds
       const interval = setInterval(() => {
@@ -278,7 +294,7 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dashboard-container">
         {/* Top Bar */}
         <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-100/80 via-blue-100/80 to-pink-100/80 backdrop-blur-sm border-b-2 border-purple-300/50 shadow-lg">
           <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
@@ -317,16 +333,7 @@ const StudentDashboard: React.FC = () => {
 
 
 
-            {/* Help Button */}
-            <button
-              onClick={() => setShowBugReport(true)}
-              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors flex-shrink-0"
-              title="Report a bug or get help"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
+
 
             {/* School Logo */}
             <div className="w-10 h-10 flex-shrink-0">
@@ -375,7 +382,7 @@ const StudentDashboard: React.FC = () => {
         </div>
 
           {/* Feed */}
-        <div className="max-w-2xl mx-auto pb-20">
+        <div className="max-w-2xl mx-auto pb-20 dashboard-main">
           {/* Explore Mode Indicator */}
           {includeAllPublicVideos && (
             <div className="sticky top-[57px] z-40 bg-gradient-to-r from-orange-500 to-red-500 border-b-2 border-white/20 px-4 py-2 flex items-center justify-between shadow-lg">
@@ -437,7 +444,7 @@ const StudentDashboard: React.FC = () => {
               <p className="text-gray-600 font-medium">No posts in this course yet.</p>
             </div>
           ) : (
-            <div className="space-y-0">
+            <div className="space-y-0 video-feed">
               {/* Only show videos and community posts (NO assignments) */}
               {filteredFeed
                 .filter(item => item.type === 'video' || item.type === 'community')
@@ -497,7 +504,7 @@ const StudentDashboard: React.FC = () => {
                     {assignment.title}
                   </h4>
                   <RichTextRenderer 
-                    content={assignment.description}
+                    content={assignment.description || ''}
                     className="text-sm text-gray-600 mb-3"
                     maxLines={3}
                   />
@@ -531,11 +538,10 @@ const StudentDashboard: React.FC = () => {
       />
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400/90 via-blue-400/90 to-pink-400/90 backdrop-blur-md border-t-2 border-white/30 px-4 py-3 z-50 shadow-2xl">
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400/90 via-blue-400/90 to-pink-400/90 backdrop-blur-md border-t-2 border-white/30 px-4 py-3 z-50 shadow-2xl bottom-nav">
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
           {/* Course Buttons */}
-          <div className="flex items-center space-x-2">
-            {console.log('🏫 Courses for bottom nav:', courses)}
+          <div className="flex items-center space-x-2 course-buttons">
             {courses.length > 0 ? (
               courses.slice(0, 3).map((course) => (
                 <button
@@ -548,15 +554,7 @@ const StudentDashboard: React.FC = () => {
                   }`}
                   title={course.name}
                 >
-                  {course.avatar ? (
-                    <img 
-                      src={course.avatar} 
-                      alt={course.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    course.initials || course.name.substring(0, 3).toUpperCase()
-                  )}
+                  {course.initials || course.name.substring(0, 3).toUpperCase()}
                   {/* Notification indicator */}
                   {course.unreadCount > 0 && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
@@ -571,7 +569,7 @@ const StudentDashboard: React.FC = () => {
           </div>
 
           {/* Center Buttons */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 main-nav">
             {/* Community Button */}
             <button
               onClick={() => router.push('/community')}
@@ -621,12 +619,36 @@ const StudentDashboard: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
             </button>
+
+            {/* Help/Tour Button */}
+            <button
+              onClick={() => setShowInteractiveTour(true)}
+              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
+              title="Take a tour or get help"
+            >
+              {/* Help Icon */}
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+
+            {/* Bug Report Button */}
+            <button
+              onClick={() => setShowBugReport(true)}
+              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
+              title="Report a bug or get help"
+            >
+              {/* Bug Icon */}
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5s-.96.06-1.42.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/>
+              </svg>
+            </button>
           </div>
 
           {/* Profile Avatar */}
           <button
             onClick={() => router.push('/student/profile')}
-            className="w-12 h-12 rounded-full bg-white/30 hover:bg-white/40 flex items-center justify-center overflow-hidden shadow-lg backdrop-blur-sm hover:shadow-xl transition-all border-2 border-white/20"
+            className="w-12 h-12 rounded-full bg-white/30 hover:bg-white/40 flex items-center justify-center overflow-hidden shadow-lg backdrop-blur-sm hover:shadow-xl transition-all border-2 border-white/20 profile-menu user-avatar"
           >
             <Avatar 
               user={user}
@@ -641,6 +663,26 @@ const StudentDashboard: React.FC = () => {
       <BugReportModal 
         isOpen={showBugReport} 
         onClose={() => setShowBugReport(false)} 
+      />
+
+      {/* Welcome Tour */}
+      <WelcomeTour
+        isOpen={showWelcomeTour}
+        onClose={() => setShowWelcomeTour(false)}
+        onComplete={() => {
+          setShowWelcomeTour(false);
+          // Optionally show interactive tour after welcome tour
+          setTimeout(() => setShowInteractiveTour(true), 500);
+        }}
+        userFirstName={user?.firstName}
+      />
+
+      {/* Interactive Tour */}
+      <InteractiveTour
+        isOpen={showInteractiveTour}
+        onClose={() => setShowInteractiveTour(false)}
+        onComplete={() => setShowInteractiveTour(false)}
+        userFirstName={user?.firstName}
       />
     </StudentRoute>
   );
@@ -1405,7 +1447,7 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
     <div className="bg-gradient-to-r from-white via-blue-50/30 to-pink-50/30 border-b-2 border-blue-200/50 px-4 py-4 shadow-md mb-2">
       {/* Header */}
       <div 
-        onClick={() => item.author?.id && handleUserClick(item.author.id)}
+        onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
         className="flex items-center space-x-3 mb-3 cursor-pointer hover:bg-white/50 rounded-lg p-1 -m-1 transition-colors"
       >
         <Avatar 
