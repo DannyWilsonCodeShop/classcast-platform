@@ -291,6 +291,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         instructionalVideoUrl: formData.instructionalVideoType !== 'none' ? instructionalVideoUrl : undefined,
         rubric: formData.rubricType === 'ai_generated' ? formData.aiGeneratedRubric : 
                 formData.rubricType === 'upload' ? { type: 'uploaded', file: formData.rubricFile } : 
+                formData.rubricType === 'custom' ? { type: 'custom', categories: formData.customRubricCategories } :
                 undefined,
         status: AssignmentStatus.DRAFT
       };
@@ -422,6 +423,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
   const addRubricCategory = () => {
     setFormData(prev => ({
       ...prev,
+      rubricType: 'custom', // Automatically set to custom when adding categories
       customRubricCategories: [
         ...prev.customRubricCategories,
         { name: '', points: 0, description: '' }
@@ -432,6 +434,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
   const updateRubricCategory = (index: number, field: 'name' | 'points' | 'description', value: string | number) => {
     setFormData(prev => ({
       ...prev,
+      rubricType: 'custom', // Automatically set to custom when updating categories
       customRubricCategories: prev.customRubricCategories.map((category, i) => 
         i === index ? { ...category, [field]: value } : category
       )
@@ -1384,7 +1387,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label htmlFor="hidePeerVideosUntilInstructorPosts" className="ml-2 text-sm font-medium text-gray-700">
-                  Hide peer videos until instructor posts their own video
+                  Hide peer videos until students post their own video
                 </label>
               </div>
             )}
@@ -1397,10 +1400,10 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                     <span className="text-blue-400 text-lg">ℹ️</span>
                   </div>
                   <div className="ml-3">
-                    <h4 className="text-sm font-medium text-blue-800">Instructor Video Required</h4>
+                    <h4 className="text-sm font-medium text-blue-800">Student Submission Required</h4>
                     <p className="mt-1 text-sm text-blue-700">
-                      Students will not be able to see peer videos until you post your own video submission. 
-                      This ensures students see your example first before viewing their peers' work.
+                      Students will not be able to see peer videos until they submit their own video first. 
+                      This ensures students complete their work before viewing their peers' submissions.
                     </p>
                   </div>
                 </div>
