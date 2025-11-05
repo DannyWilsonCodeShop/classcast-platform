@@ -75,12 +75,15 @@ export const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({
       }
       
       // Check if file has required properties
-      if (typeof file.size !== 'number' || file.size === undefined || file.size === null) {
+      if (typeof file.size !== 'number' || file.size === undefined || file.size === null || isNaN(file.size)) {
         console.warn('❌ Drag/drop file API issue - invalid size property:', {
           hasSize: typeof file.size,
           sizeValue: file.size,
+          isNaN: isNaN(file.size),
           fileName: file.name,
-          constructor: file?.constructor?.name
+          fileType: file.type,
+          constructor: file?.constructor?.name,
+          isFileInstance: file instanceof File
         });
         return false;
       }
@@ -162,12 +165,15 @@ export const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({
       }
       
       // Check if file has required properties (mobile browsers sometimes have issues)
-      if (typeof file.size !== 'number' || file.size === undefined || file.size === null) {
+      if (typeof file.size !== 'number' || file.size === undefined || file.size === null || isNaN(file.size)) {
         console.warn('❌ File API issue - invalid size property:', {
           hasSize: typeof file.size,
           sizeValue: file.size,
+          isNaN: isNaN(file.size),
           fileName: file.name,
-          constructor: file?.constructor?.name
+          fileType: file.type,
+          constructor: file?.constructor?.name,
+          isFileInstance: file instanceof File
         });
         return false;
       }
