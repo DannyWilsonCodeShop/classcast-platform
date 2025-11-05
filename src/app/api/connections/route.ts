@@ -94,6 +94,36 @@ export async function POST(request: NextRequest) {
         }
       }));
 
+      // Create notification when study buddy request is accepted
+      if (status === 'accepted') {
+        try {
+          const notificationResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/notifications/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipientId: requesterId, // Notify the original requester
+              senderId: requestedId,
+              senderName: body.accepterName || 'Your classmate',
+              type: 'study_buddy_accepted',
+              title: '🎉 Study Buddy Request Accepted!',
+              message: `${body.accepterName || 'Your classmate'} accepted your study buddy request!`,
+              relatedId: `${requesterId}_${requestedId}`,
+              relatedType: 'connection',
+              priority: 'medium',
+              actionUrl: `/student/profile/${requestedId}`
+            })
+          });
+
+          if (notificationResponse.ok) {
+            console.log('✅ Study buddy acceptance notification created');
+          } else {
+            console.error('❌ Failed to create study buddy acceptance notification');
+          }
+        } catch (notifError) {
+          console.error('❌ Error creating study buddy acceptance notification:', notifError);
+        }
+      }
+
       return NextResponse.json({
         success: true,
         message: 'Connection updated',
@@ -118,6 +148,34 @@ export async function POST(request: NextRequest) {
         TableName: CONNECTIONS_TABLE,
         Item: connection
       }));
+
+      // Create notification for the requested user about the study buddy request
+      try {
+        const notificationResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/notifications/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recipientId: requestedId,
+            senderId: requesterId,
+            senderName: body.requesterName || 'A classmate',
+            type: 'study_buddy_request',
+            title: '👥 New Study Buddy Request',
+            message: `${body.requesterName || 'A classmate'} wants to connect as your study buddy!`,
+            relatedId: connection.connectionId,
+            relatedType: 'connection',
+            priority: 'medium',
+            actionUrl: `/student/profile/${requesterId}`
+          })
+        });
+
+        if (notificationResponse.ok) {
+          console.log('✅ Study buddy request notification created');
+        } else {
+          console.error('❌ Failed to create study buddy request notification');
+        }
+      } catch (notifError) {
+        console.error('❌ Error creating study buddy request notification:', notifError);
+      }
 
       return NextResponse.json({
         success: true,

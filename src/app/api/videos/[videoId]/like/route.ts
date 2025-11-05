@@ -80,6 +80,36 @@ export async function POST(
     const result = await docClient.send(updateCommand);
     console.log('✅ Like updated successfully:', result.Attributes);
 
+    // Create notification for the video owner when someone likes their video
+    if (isLiked && !isCurrentlyLiked && userId !== submissionData.Item.studentId) {
+      try {
+        const notificationResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/notifications/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recipientId: submissionData.Item.studentId,
+            senderId: userId,
+            senderName: body.userName || 'A classmate',
+            type: 'video_liked',
+            title: '👍 Your video was liked!',
+            message: `${body.userName || 'A classmate'} liked your video "${submissionData.Item.videoTitle || 'Video Submission'}"`,
+            relatedId: submissionId,
+            relatedType: 'video',
+            priority: 'low',
+            actionUrl: `/student/peer-reviews?videoId=${submissionId}`
+          })
+        });
+
+        if (notificationResponse.ok) {
+          console.log('✅ Like notification created');
+        } else {
+          console.error('❌ Failed to create like notification');
+        }
+      } catch (notifError) {
+        console.error('❌ Error creating like notification:', notifError);
+      }
+    }
+
     // Return in format that matches VideoReel interface
     const updatedSubmission = result.Attributes;
     return NextResponse.json({
