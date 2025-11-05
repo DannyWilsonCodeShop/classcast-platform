@@ -68,7 +68,10 @@ export async function GET(
       }));
 
       if (submissionsResponse.Items) {
-        const userSubmissions = submissionsResponse.Items;
+        // Filter out deleted submissions
+        const userSubmissions = submissionsResponse.Items.filter(sub => 
+          sub.status !== 'deleted' && !sub.hidden
+        );
         stats.videoStats.totalVideos = userSubmissions.length;
 
         // Calculate total likes, views, and ratings from submissions
@@ -121,8 +124,14 @@ export async function GET(
       try {
         const subsForOwner = await docClient.send(new ScanCommand({
           TableName: SUBMISSIONS_TABLE,
-          FilterExpression: 'studentId = :userId',
-          ExpressionAttributeValues: { ':userId': userId },
+          FilterExpression: 'studentId = :userId AND #status <> :deletedStatus AND attribute_not_exists(hidden)',
+          ExpressionAttributeValues: { 
+            ':userId': userId,
+            ':deletedStatus': 'deleted'
+          },
+          ExpressionAttributeNames: {
+            '#status': 'status'
+          },
           ProjectionExpression: 'submissionId, id'
         }));
         submissionIds = (subsForOwner.Items || []).map((s: any) => s.submissionId || s.id).filter(Boolean);

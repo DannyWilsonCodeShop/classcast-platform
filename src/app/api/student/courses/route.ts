@@ -114,7 +114,11 @@ export async function GET(request: NextRequest) {
     }));
     
     const userSubmissions = submissionsResult.Items || [];
-    const submittedAssignmentIds = new Set(userSubmissions.map(sub => sub.assignmentId));
+    // Filter out deleted submissions
+    const activeSubmissions = userSubmissions.filter(sub => 
+      sub.status !== 'deleted' && !sub.hidden
+    );
+    const submittedAssignmentIds = new Set(activeSubmissions.map(sub => sub.assignmentId));
     
     // Process each course
     const enrichedCourses = await Promise.all(
