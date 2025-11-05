@@ -22,14 +22,15 @@ export async function GET(request: NextRequest) {
     
     try {
       const coursesResult = await docClient.send(new ScanCommand({
-        TableName: COURSES_TABLE,
-        FilterExpression: 'privacy = :privacy',
-        ExpressionAttributeValues: {
-          ':privacy': 'public'
-        }
+        TableName: COURSES_TABLE
       }));
       
-      courses = coursesResult.Items || [];
+      // Filter for public courses (check both old and new privacy field locations)
+      courses = (coursesResult.Items || []).filter(course => {
+        // Check if privacy is explicitly set to private
+        const isPrivate = course.privacy === 'private' || course.settings?.privacy === 'private';
+        return !isPrivate; // Include if not explicitly private
+      });
     } catch (dbError: any) {
       if (dbError.name === 'ResourceNotFoundException') {
         return NextResponse.json({

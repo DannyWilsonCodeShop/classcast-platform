@@ -92,15 +92,24 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
 
   useEffect(() => {
     if (course && isOpen) {
+      console.log('🔧 Initializing course settings form with:', course);
       setFormData({
-        courseName: course.courseName,
-        courseCode: course.courseCode,
+        courseName: course.courseName || course.title,
+        courseCode: course.courseCode || course.code,
         description: course.description,
         iconInitials: course.iconInitials,
         avatar: course.avatar,
         semester: course.semester,
         year: course.year,
-        maxEnrollment: course.maxEnrollment,
+        maxEnrollment: course.maxEnrollment || course.maxStudents,
+        settings: {
+          privacy: course.settings?.privacy || course.privacy || 'public',
+          allowLateSubmissions: course.settings?.allowLateSubmissions ?? true,
+          latePenalty: course.settings?.latePenalty || 10,
+          allowResubmissions: course.settings?.allowResubmissions ?? false,
+          enableDiscussions: course.settings?.enableDiscussions ?? true,
+          enableAnnouncements: course.settings?.enableAnnouncements ?? true,
+        }
       });
       loadSections();
     }
