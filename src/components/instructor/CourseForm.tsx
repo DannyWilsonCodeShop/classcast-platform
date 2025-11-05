@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Course, CreateCourseData, UpdateCourseData } from '@/types/course';
 import { SEMESTER_OPTIONS } from '@/constants/semesters';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CourseFormProps {
   course: Course | null;
@@ -15,19 +16,24 @@ export const CourseForm: React.FC<CourseFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState<CreateCourseData>({
     title: '',
     description: '',
     code: '',
+    classCode: '',
     department: '',
     credits: 3,
     semester: 'Fall+Spring',
     year: new Date().getFullYear(),
+    backgroundColor: '#4A90E2',
     startDate: '',
     endDate: '',
     maxStudents: 30,
     prerequisites: [],
     learningObjectives: [''],
+    coInstructorEmail: '',
+    coInstructorName: '',
     gradingPolicy: {
       assignments: 40,
       quizzes: 20,
@@ -51,13 +57,14 @@ export const CourseForm: React.FC<CourseFormProps> = ({
       requireAttendance: false,
       enableDiscussions: true,
       enableAnnouncements: true,
+      privacy: 'public' as const,
     },
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Auto-generate course code when title changes
+  // Auto-generate course code and class code when title changes
   useEffect(() => {
     if (formData.title && !course) {
       const courseCode = formData.title
@@ -65,9 +72,20 @@ export const CourseForm: React.FC<CourseFormProps> = ({
         .map(word => word.charAt(0).toUpperCase())
         .join('')
         .substring(0, 3);
-      const randomNum = Math.floor(Math.random() * 90) + 10;
-      const generatedCode = `${courseCode}${randomNum}`;
-      setFormData(prev => ({ ...prev, code: generatedCode }));
+      
+      // Generate course code
+      const courseCodeNum = Math.floor(Math.random() * 90) + 10;
+      const generatedCourseCode = `${courseCode}${courseCodeNum}`;
+      
+      // Generate class code
+      const classCodeNum = Math.floor(Math.random() * 9000) + 1000;
+      const generatedClassCode = `${courseCode}${classCodeNum}`;
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        code: generatedCourseCode,
+        classCode: generatedClassCode
+      }));
     }
   }, [formData.title, course]);
 
@@ -78,15 +96,19 @@ export const CourseForm: React.FC<CourseFormProps> = ({
         title: course.title,
         description: course.description,
         code: course.code,
+        classCode: course.classCode || '',
         department: course.department,
         credits: course.credits,
         semester: course.semester,
         year: course.year,
+        backgroundColor: course.backgroundColor || '#4A90E2',
         startDate: course.startDate.split('T')[0],
         endDate: course.endDate.split('T')[0],
         maxStudents: course.maxStudents,
         prerequisites: course.prerequisites || [],
-        learningObjectives: course.learningObjectives.length > 0 ? course.learningObjectives : [''],
+        learningObjectives: course.learningObjectives?.length > 0 ? course.learningObjectives : [''],
+        coInstructorEmail: course.coInstructorEmail || '',
+        coInstructorName: course.coInstructorName || '',
         gradingPolicy: course.gradingPolicy,
         schedule: course.schedule,
         resources: course.resources,
@@ -102,36 +124,36 @@ export const CourseForm: React.FC<CourseFormProps> = ({
     }));
   };
 
-  const handleNestedInputChange = (parent: string, field: string, value: any) => {
+  const handleNestedInputChange = (parent: keyof CreateCourseData, field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [parent]: {
-        ...prev[parent as keyof typeof prev],
+        ...(prev[parent] as any),
         [field]: value,
       },
     }));
   };
 
-  const handleArrayChange = (field: string, index: number, value: string) => {
+  const handleArrayChange = (field: 'learningObjectives' | 'prerequisites', index: number, value: string) => {
     setFormData(prev => ({
       ...prev,
-      [field]: prev[field as keyof typeof prev].map((item: any, i: number) => 
+      [field]: (prev[field] || []).map((item: string, i: number) => 
         i === index ? value : item
       ),
     }));
   };
 
-  const addArrayItem = (field: string) => {
+  const addArrayItem = (field: 'learningObjectives' | 'prerequisites') => {
     setFormData(prev => ({
       ...prev,
-      [field]: [...prev[field as keyof typeof prev], ''],
+      [field]: [...(prev[field] || []), ''],
     }));
   };
 
-  const removeArrayItem = (field: string, index: number) => {
+  const removeArrayItem = (field: 'learningObjectives' | 'prerequisites', index: number) => {
     setFormData(prev => ({
       ...prev,
-      [field]: prev[field as keyof typeof prev].filter((_: any, i: number) => i !== index),
+      [field]: (prev[field] || []).filter((_: string, i: number) => i !== index),
     }));
   };
 
@@ -141,10 +163,11 @@ export const CourseForm: React.FC<CourseFormProps> = ({
     setError(null);
 
     try {
-      // Filter out empty learning objectives
+      // Filter out empty learning objectives and add instructor ID
       const filteredData = {
         ...formData,
-        learningObjectives: formData.learningObjectives.filter(obj => obj.trim() !== ''),
+        instructorId: user?.id,
+        learningObjectives: formData.learningObjectives?.filter(obj => obj.trim() !== '') || [],
       };
 
       const result = await onSubmit(filteredData);
@@ -200,6 +223,44 @@ export const CourseForm: React.FC<CourseFormProps> = ({
               <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 font-mono text-gray-800">
                 {formData.code || 'Generating...'}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Class Code (for students to join) *
+                <span className="text-xs text-gray-500 ml-1">(Auto-generated)</span>
+              </label>
+              <div className="flex items-center space-x-2">
+                <div className="flex-1 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 font-mono text-gray-800">
+                  {formData.classCode || 'Generating...'}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const courseCode = (formData.title || 'COURSE')
+                      .split(' ')
+                      .map(word => word.charAt(0).toUpperCase())
+                      .join('')
+                      .substring(0, 3);
+                    
+                    // Regenerate course code
+                    const courseCodeNum = Math.floor(Math.random() * 90) + 10;
+                    const generatedCourseCode = `${courseCode}${courseCodeNum}`;
+                    handleInputChange('code', generatedCourseCode);
+                    
+                    // Regenerate class code
+                    const randomNum = Math.floor(Math.random() * 9000) + 1000;
+                    const generatedClassCode = `${courseCode}${randomNum}`;
+                    handleInputChange('classCode', generatedClassCode);
+                  }}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  🔄 Regenerate
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Students will use this code to join your class
+              </p>
             </div>
 
             <div>
@@ -276,6 +337,93 @@ export const CourseForm: React.FC<CourseFormProps> = ({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
+          </div>
+
+          {/* Course Color Theme */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Course Color Theme
+            </label>
+            <div className="grid grid-cols-6 gap-3">
+              {[
+                { name: 'Sky Blue', value: '#4A90E2' },
+                { name: 'Coral', value: '#FF6F61' },
+                { name: 'Golden Yellow', value: '#FFD166' },
+                { name: 'Mint Green', value: '#06D6A0' },
+                { name: 'Lavender', value: '#9B5DE5' },
+                { name: 'Charcoal', value: '#333333' }
+              ].map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() => handleInputChange('backgroundColor', color.value)}
+                  className={`w-12 h-12 rounded-lg border-2 transition-all duration-200 ${
+                    formData.backgroundColor === color.value
+                      ? 'border-gray-800 scale-110 shadow-lg'
+                      : 'border-gray-300 hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: color.value }}
+                  title={color.name}
+                />
+              ))}
+            </div>
+            <p className="text-sm text-gray-500 mt-2">
+              Choose a color theme for your course. This will help students easily identify your class.
+            </p>
+          </div>
+
+          {/* Co-Instructor (Optional) */}
+          <div className="border-t pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Add Co-Instructor (Optional)
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  if (formData.coInstructorEmail) {
+                    // Clear co-instructor data
+                    handleInputChange('coInstructorEmail', '');
+                    handleInputChange('coInstructorName', '');
+                  }
+                }}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                {formData.coInstructorEmail ? 'Remove Co-Instructor' : ''}
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Co-Instructor Name
+                </label>
+                <input
+                  type="text"
+                  value={formData.coInstructorName || ''}
+                  onChange={(e) => handleInputChange('coInstructorName', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., Dr. Jane Smith"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-2">
+                  Co-Instructor Email
+                </label>
+                <input
+                  type="email"
+                  value={formData.coInstructorEmail || ''}
+                  onChange={(e) => handleInputChange('coInstructorEmail', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="jane.smith@school.edu"
+                />
+              </div>
+            </div>
+            
+            <p className="text-sm text-gray-500 mt-2">
+              Add a co-instructor who will have the same permissions to manage this course.
+            </p>
           </div>
 
           {/* Dates */}
@@ -374,11 +522,12 @@ export const CourseForm: React.FC<CourseFormProps> = ({
                   <label key={day} className="flex items-center">
                     <input
                       type="checkbox"
-                      checked={formData.schedule.days.includes(day)}
+                      checked={formData.schedule?.days.includes(day) || false}
                       onChange={(e) => {
+                        const currentDays = formData.schedule?.days || [];
                         const newDays = e.target.checked
-                          ? [...formData.schedule.days, day]
-                          : formData.schedule.days.filter(d => d !== day);
+                          ? [...currentDays, day]
+                          : currentDays.filter(d => d !== day);
                         handleNestedInputChange('schedule', 'days', newDays);
                       }}
                       className="mr-2"
@@ -395,7 +544,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
               </label>
               <input
                 type="text"
-                value={formData.schedule.time}
+                value={formData.schedule?.time || ''}
                 onChange={(e) => handleNestedInputChange('schedule', 'time', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., 10:00 AM - 11:00 AM"
@@ -408,7 +557,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
               </label>
               <input
                 type="text"
-                value={formData.schedule.location}
+                value={formData.schedule?.location || ''}
                 onChange={(e) => handleNestedInputChange('schedule', 'location', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="e.g., Room 101, Online"

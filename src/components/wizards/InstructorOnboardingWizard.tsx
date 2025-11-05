@@ -248,7 +248,13 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
                 learningObjectives: courseData.learningObjectives,
                 gradingPolicy: courseData.gradingPolicy,
                 resources: courseData.resources,
-                settings: courseData.settings
+                settings: {
+                  ...courseData.settings,
+                  backgroundColor: courseData.backgroundColor || '#4A90E2'
+                },
+                // Co-instructor support
+                coInstructorEmail: courseData.coInstructorEmail,
+                coInstructorName: courseData.coInstructorName
               })
             });
 
@@ -491,6 +497,33 @@ const InstructorOnboardingWizard: React.FC<InstructorOnboardingWizardProps> = ({
             >
               Exit Wizard
             </button>
+            
+            {/* Skip Assignment Button - only show on assignment step */}
+            {steps[currentStep].id === 'create-assignment' && (
+              <button
+                onClick={() => {
+                  // Skip assignment creation and go to complete step
+                  setCurrentStep(steps.length - 1);
+                }}
+                className="px-4 py-2 text-orange-600 hover:text-orange-800 border border-orange-300 rounded-lg hover:bg-orange-50 transition-colors"
+              >
+                Skip Assignment
+              </button>
+            )}
+            
+            {/* Finish Course Button - show after course is created */}
+            {courseData.courseId && steps[currentStep].id !== 'complete' && (
+              <button
+                onClick={() => {
+                  // Go directly to complete step
+                  setCurrentStep(steps.length - 1);
+                }}
+                className="px-4 py-2 text-green-600 hover:text-green-800 border border-green-300 rounded-lg hover:bg-green-50 transition-colors"
+              >
+                Finish Course
+              </button>
+            )}
+            
             <button
               onClick={handleNext}
               disabled={isLoading}
@@ -789,6 +822,60 @@ const CourseSetupStep: React.FC<CourseSetupStepProps> = ({ data, onChange }) => 
         </div>
         <p className="text-sm text-gray-500 mt-2">
           Choose a color theme for your course. This will help students easily identify your class.
+        </p>
+      </div>
+
+      {/* Optional Co-Instructor */}
+      <div className="border-t pt-6">
+        <div className="flex items-center justify-between mb-4">
+          <label className="block text-sm font-medium text-gray-700">
+            Add Co-Instructor (Optional)
+          </label>
+          <button
+            type="button"
+            onClick={() => {
+              if (data.coInstructorEmail) {
+                // Clear co-instructor data
+                handleChange('coInstructorEmail', '');
+                handleChange('coInstructorName', '');
+              }
+            }}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            {data.coInstructorEmail ? 'Remove Co-Instructor' : ''}
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              Co-Instructor Name
+            </label>
+            <input
+              type="text"
+              value={data.coInstructorName || ''}
+              onChange={(e) => handleChange('coInstructorName', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+              placeholder="e.g., Dr. Jane Smith"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-2">
+              Co-Instructor Email
+            </label>
+            <input
+              type="email"
+              value={data.coInstructorEmail || ''}
+              onChange={(e) => handleChange('coInstructorEmail', e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent"
+              placeholder="jane.smith@school.edu"
+            />
+          </div>
+        </div>
+        
+        <p className="text-sm text-gray-500 mt-2">
+          Add a co-instructor who will have the same permissions to manage this course.
         </p>
       </div>
     </div>
