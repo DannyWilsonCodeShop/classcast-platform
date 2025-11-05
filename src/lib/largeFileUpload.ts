@@ -30,11 +30,23 @@ export class LargeFileUploader {
    * Determine if file should use large file upload
    */
   static shouldUseLargeFileUpload(file: File): boolean {
-    // Add mobile safety check
-    if (!file || typeof file.size !== 'number') {
-      console.warn('Invalid file object for large file check:', file);
+    // Add comprehensive safety checks
+    if (!file) {
+      console.warn('❌ No file provided for large file check');
       return false;
     }
+    
+    if (typeof file.size !== 'number' || file.size === undefined || file.size === null) {
+      console.warn('❌ Invalid file object for large file check - missing size:', {
+        file: !!file,
+        sizeType: typeof file.size,
+        sizeValue: file.size,
+        constructor: file?.constructor?.name
+      });
+      return false;
+    }
+    
+    console.log(`📏 File size check: ${this.formatFileSize(file.size)} (threshold: ${this.formatFileSize(this.LARGE_FILE_THRESHOLD)})`);
     return file.size > this.LARGE_FILE_THRESHOLD;
   }
 
@@ -45,6 +57,23 @@ export class LargeFileUploader {
     const { file, folder = 'videos', userId, metadata = {}, onProgress, onComplete, onError } = options;
 
     try {
+      // Validate file before starting upload
+      if (!file) {
+        throw new Error('No file provided for upload');
+      }
+      
+      if (typeof file.size !== 'number' || file.size === undefined || file.size === null) {
+        throw new Error('Invalid file: missing size information');
+      }
+      
+      if (!file.name || typeof file.name !== 'string') {
+        throw new Error('Invalid file: missing name information');
+      }
+      
+      if (!file.type || typeof file.type !== 'string') {
+        throw new Error('Invalid file: missing type information');
+      }
+
       console.log(`🚀 Starting large file upload: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB)`);
 
       // Step 1: Get presigned URL

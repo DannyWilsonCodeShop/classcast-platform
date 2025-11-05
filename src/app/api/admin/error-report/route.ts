@@ -1,16 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 
-// Email configuration
-const transporter = nodemailer.createTransporter({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Serverless-compatible email function
+async function sendEmailNotification(to: string, subject: string, html: string) {
+  // Only attempt to send email if SMTP is configured
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.log('⚠️ SMTP not configured, skipping email notification');
+    return { success: false, reason: 'SMTP not configured' };
+  }
+
+  try {
+    // Dynamic import to avoid serverless build issues
+    const nodemailerModule = await import('nodemailer');
+    const nodemailer = nodemailerModule.default;
+    
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      html,
+    });
+
+    console.log('✅ Error report email sent successfully');
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Failed to send error report email:', error);
+    return { success: false, reason: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,15 +125,18 @@ export async function POST(request: NextRequest) {
 </html>
     `;
 
-    // Send email
+    // Send email notification
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@classcast.com';
     
-    await transporter.sendMail({
-      from: process.env.SMTP_FROM || process.env.SMTP_USER,
-      to: adminEmail,
-      subject: emailSubject,
-      html: emailBody,
-    });
+    if (adminEmail) {
+      const emailResult = await sendEmailNotification(adminEmail, emailSubject, emailBody);
+      if (!emailResult.success) {
+        console.log(`⚠️ Email notification failed: ${emailResult.reason}`);
+        // Don't fail the entire request if email fails
+      }
+    } else {
+      console.log('⚠️ No admin email configured, skipping email notification');
+    }
 
     // Also store in database for tracking (optional)
     // You could add database storage here if needed

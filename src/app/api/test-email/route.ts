@@ -1,5 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
+
+// Serverless-compatible email function
+async function createTransporter() {
+  try {
+    // Dynamic import to avoid serverless build issues
+    const nodemailerModule = await import('nodemailer');
+    const nodemailer = nodemailerModule.default;
+    
+    return nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to create email transporter:', error);
+    throw new Error('Email service unavailable');
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,15 +55,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create transporter
-    const transporter = nodemailer.createTransporter({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
+    const transporter = await createTransporter();
 
     // Test connection
     console.log('🔌 Testing SMTP connection...');
