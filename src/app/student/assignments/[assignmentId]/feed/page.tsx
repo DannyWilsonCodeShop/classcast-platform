@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { extractYouTubeVideoId as getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
 import { GroupAssignmentModal } from '@/components/student/GroupAssignmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
+import RichTextRenderer from '@/components/common/RichTextRenderer';
 
 interface VideoSubmission {
   submissionId: string;
@@ -180,7 +181,10 @@ const AssignmentFeedPage: React.FC = () => {
               {/* Assignment Details */}
               <div className="px-4 py-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-900 mb-2">{assignment.title}</h2>
-                <p className="text-sm text-gray-700 mb-3">{assignment.description}</p>
+                <RichTextRenderer 
+                  content={assignment.description}
+                  className="text-sm text-gray-700 mb-3"
+                />
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4 text-sm">

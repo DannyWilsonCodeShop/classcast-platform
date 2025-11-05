@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface ResetPasswordFormData {
+  confirmationCode: string;
   password: string;
   confirmPassword: string;
 }
 
 interface ResetPasswordFormErrors {
+  confirmationCode?: string;
   password?: string;
   confirmPassword?: string;
   general?: string;
@@ -23,6 +25,7 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState<ResetPasswordFormData>({
+    confirmationCode: '',
     password: '',
     confirmPassword: '',
   });
@@ -32,21 +35,26 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Get token from URL parameters
-  const token = searchParams.get('token');
-  const email = searchParams.get('email');
-
-  useEffect(() => {
-    // Validate that we have the required parameters
-    if (!token || !email) {
-      setErrors({
-        general: 'Invalid reset link. Please request a new password reset.'
-      });
-    }
-  }, [token, email]);
+  // Get email from URL parameters (optional)
+  const email = searchParams.get('email') || '';
+  const [userEmail, setUserEmail] = useState(email);
 
   const validateForm = (): boolean => {
     const newErrors: ResetPasswordFormErrors = {};
+
+    // Email validation
+    if (!userEmail.trim()) {
+      newErrors.general = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
+      newErrors.general = 'Please enter a valid email address';
+    }
+
+    // Confirmation code validation
+    if (!formData.confirmationCode.trim()) {
+      newErrors.confirmationCode = 'Confirmation code is required';
+    } else if (formData.confirmationCode.trim().length < 6) {
+      newErrors.confirmationCode = 'Confirmation code must be at least 6 characters';
+    }
 
     // Password validation
     if (!formData.password) {
@@ -91,12 +99,7 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
       return;
     }
 
-    if (!token || !email) {
-      setErrors({
-        general: 'Invalid reset link. Please request a new password reset.'
-      });
-      return;
-    }
+
 
     setIsLoading(true);
     setErrors({});
@@ -109,8 +112,8 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          token,
-          email,
+          email: userEmail,
+          confirmationCode: formData.confirmationCode,
           password: formData.password,
         }),
       });
@@ -204,64 +207,7 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
     );
   }
 
-  if (!token || !email) {
-    return (
-      <div className="w-full max-w-md mx-auto">
-        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
-          <div className="mb-6 text-center">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
-              <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Invalid Reset Link
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              This password reset link is invalid or has expired. Please request a new one.
-            </p>
-          </div>
 
-          <div className="space-y-4">
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-red-800 dark:text-red-200">
-                    Password reset links expire after 24 hours for security reasons. Please request a new one.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex space-x-3">
-              {onSwitchToLogin ? (
-                <button
-                  type="button"
-                  onClick={onSwitchToLogin}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
-                >
-                  Back to Login
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => router.push('/auth/login')}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
-                >
-                  Back to Login
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -276,10 +222,7 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
             Reset Password
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Enter your new password below
-          </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Resetting password for: {email}
+            Enter the confirmation code from your email and your new password
           </p>
         </div>
 
@@ -301,6 +244,58 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
               </div>
             </div>
           )}
+
+          {/* Email Field */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Email Address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              placeholder="Enter your email address"
+              disabled={isLoading}
+            />
+          </div>
+
+          {/* Confirmation Code Field */}
+          <div>
+            <label htmlFor="confirmationCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Confirmation Code
+            </label>
+            <input
+              id="confirmationCode"
+              name="confirmationCode"
+              type="text"
+              autoComplete="off"
+              required
+              value={formData.confirmationCode}
+              onChange={handleInputChange}
+              onKeyPress={handleKeyPress}
+              className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.confirmationCode 
+                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                  : 'border-gray-300 dark:border-gray-600'
+              } bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
+              placeholder="Enter the code from your email"
+              disabled={isLoading}
+            />
+            {errors.confirmationCode && (
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                {errors.confirmationCode}
+              </p>
+            )}
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Check your email for the 6-digit confirmation code
+            </p>
+          </div>
 
           {/* Password Field */}
           <div>
