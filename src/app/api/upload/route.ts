@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { s3Service } from '../../../lib/s3';
 
+// Configure API route for large file uploads
+export const runtime = 'nodejs';
+export const maxDuration = 300; // 5 minutes for large uploads
+
 // Handle CORS preflight requests
 export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
