@@ -11,8 +11,8 @@ import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
 import Avatar from '@/components/common/Avatar';
 import BugReportModal from '@/components/common/BugReportModal';
-import WelcomeTour from '@/components/student/WelcomeTour';
-import InteractiveTour from '@/components/student/InteractiveTour';
+// import WelcomeTour from '@/components/student/WelcomeTour';
+// import InteractiveTour from '@/components/student/InteractiveTour';
 
 import RichTextRenderer from '@/components/common/RichTextRenderer';
 
@@ -49,17 +49,17 @@ const StudentDashboard: React.FC = () => {
       loadConnections();
       loadNotificationCount();
       
-      // Check if user needs to see the welcome tour
-      const hasSeenWelcomeTour = localStorage.getItem('classcast-tour-completed');
-      const hasSeenInteractiveTour = localStorage.getItem('classcast-interactive-tour-completed');
+      // Tour system temporarily disabled
+      // const hasSeenWelcomeTour = localStorage.getItem('classcast-tour-completed');
+      // const hasSeenInteractiveTour = localStorage.getItem('classcast-interactive-tour-completed');
       
-      if (!hasSeenWelcomeTour) {
-        // Show welcome tour for first-time users
-        setTimeout(() => setShowWelcomeTour(true), 1000);
-      } else if (!hasSeenInteractiveTour) {
-        // Show interactive tour for returning users who haven't seen the new features
-        setTimeout(() => setShowInteractiveTour(true), 1500);
-      }
+      // if (!hasSeenWelcomeTour) {
+      //   // Show welcome tour for first-time users
+      //   setTimeout(() => setShowWelcomeTour(true), 1000);
+      // } else if (!hasSeenInteractiveTour) {
+      //   // Show interactive tour for returning users who haven't seen the new features
+      //   setTimeout(() => setShowInteractiveTour(true), 1500);
+      // }
       
       // Poll for notifications every 30 seconds
       const interval = setInterval(() => {
@@ -665,8 +665,8 @@ const StudentDashboard: React.FC = () => {
         onClose={() => setShowBugReport(false)} 
       />
 
-      {/* Welcome Tour */}
-      <WelcomeTour
+      {/* Welcome Tour - Temporarily disabled */}
+      {/* <WelcomeTour
         isOpen={showWelcomeTour}
         onClose={() => setShowWelcomeTour(false)}
         onComplete={() => {
@@ -675,15 +675,15 @@ const StudentDashboard: React.FC = () => {
           setTimeout(() => setShowInteractiveTour(true), 500);
         }}
         userFirstName={user?.firstName}
-      />
+      /> */}
 
-      {/* Interactive Tour */}
-      <InteractiveTour
+      {/* Interactive Tour - Temporarily disabled */}
+      {/* <InteractiveTour
         isOpen={showInteractiveTour}
         onClose={() => setShowInteractiveTour(false)}
         onComplete={() => setShowInteractiveTour(false)}
         userFirstName={user?.firstName}
-      />
+      /> */}
     </StudentRoute>
   );
 };
