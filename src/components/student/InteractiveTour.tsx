@@ -35,6 +35,33 @@ const InteractiveTour: React.FC<InteractiveTourProps> = ({
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
   const tooltipRef = useRef<HTMLDivElement>(null);
 
+  const currentTourStep = tourSteps[currentStep];
+
+  const nextStep = () => {
+    if (currentStep < tourSteps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      completeTour();
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const skipTour = () => {
+    onClose();
+    localStorage.setItem('classcast-interactive-tour-completed', 'true');
+  };
+
+  const completeTour = () => {
+    onComplete();
+    localStorage.setItem('classcast-interactive-tour-completed', 'true');
+    setCurrentStep(0);
+  };
+
   const tourSteps: TourStep[] = [
     {
       id: 'welcome',
@@ -222,7 +249,7 @@ const InteractiveTour: React.FC<InteractiveTourProps> = ({
         style={{
           top: tooltipPosition.top,
           left: tooltipPosition.left,
-          transform: currentTourStep.position === 'center' ? 'translate(-50%, -50%)' : 'none'
+          transform: tourSteps[currentStep].position === 'center' ? 'translate(-50%, -50%)' : 'none'
         }}
       >
         {/* Header */}

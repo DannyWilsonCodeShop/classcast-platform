@@ -12,23 +12,16 @@ interface BugReportModalProps {
 const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
   const [description, setDescription] = useState('');
-  const [steps, setSteps] = useState(['']);
+  const [device, setDevice] = useState('');
+  const [browser, setBrowser] = useState('');
+  const [screenshot, setScreenshot] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const addStep = () => {
-    setSteps([...steps, '']);
-  };
-
-  const updateStep = (index: number, value: string) => {
-    const newSteps = [...steps];
-    newSteps[index] = value;
-    setSteps(newSteps);
-  };
-
-  const removeStep = (index: number) => {
-    if (steps.length > 1) {
-      setSteps(steps.filter((_, i) => i !== index));
+  const handleScreenshotUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setScreenshot(file);
     }
   };
 
@@ -41,8 +34,8 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
         description,
         user?.id,
         user?.email,
-        user?.name || user?.firstName,
-        steps.filter(step => step.trim())
+        user?.firstName || 'Unknown',
+        [device, browser].filter(item => item.trim())
       );
       
       setSubmitted(true);
@@ -50,7 +43,9 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
         onClose();
         setSubmitted(false);
         setDescription('');
-        setSteps(['']);
+        setDevice('');
+        setBrowser('');
+        setScreenshot(null);
       }, 2000);
     } catch (error) {
       console.error('Failed to submit bug report:', error);
@@ -109,50 +104,85 @@ const BugReportModal: React.FC<BugReportModalProps> = ({ isOpen, onClose }) => {
             />
           </div>
 
-          {/* Steps to Reproduce */}
+          {/* Device Type */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Steps to Reproduce (Optional)
+            <label htmlFor="device" className="block text-sm font-semibold text-gray-700 mb-2">
+              What device are you using? (laptop, phone, etc.)
             </label>
-            <div className="space-y-2">
-              {steps.map((step, index) => (
-                <div key={index} className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500 w-6">{index + 1}.</span>
-                  <input
-                    type="text"
-                    value={step}
-                    onChange={(e) => updateStep(index, e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                    placeholder="What did you do?"
-                  />
-                  {steps.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeStep(index)}
-                      className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              ))}
+            <input
+              id="device"
+              type="text"
+              value={device}
+              onChange={(e) => setDevice(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., iPhone, MacBook, Windows laptop, Android tablet..."
+            />
+          </div>
+
+          {/* Browser Type */}
+          <div>
+            <label htmlFor="browser" className="block text-sm font-semibold text-gray-700 mb-2">
+              What type of browser are you using?
+            </label>
+            <input
+              id="browser"
+              type="text"
+              value={browser}
+              onChange={(e) => setBrowser(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="e.g., Chrome, Safari, Firefox, Edge..."
+            />
+          </div>
+
+          {/* Screenshot Upload */}
+          <div>
+            <label htmlFor="screenshot" className="block text-sm font-semibold text-gray-700 mb-2">
+              Upload a screenshot (Optional)
+            </label>
+            <div className="flex items-center space-x-3">
+              <input
+                id="screenshot"
+                type="file"
+                accept="image/*"
+                onChange={handleScreenshotUpload}
+                className="hidden"
+              />
+              <label
+                htmlFor="screenshot"
+                className="flex items-center space-x-2 px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl cursor-pointer hover:bg-gray-100 transition-colors"
+              >
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span className="text-sm text-gray-600">
+                  {screenshot ? screenshot.name : 'Choose image file'}
+                </span>
+              </label>
+              {screenshot && (
+                <button
+                  type="button"
+                  onClick={() => setScreenshot(null)}
+                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition-colors"
+                  title="Remove screenshot"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
-            <button
-              type="button"
-              onClick={addStep}
-              className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              + Add Step
-            </button>
+            {screenshot && (
+              <p className="mt-2 text-sm text-green-600">
+                ✓ Screenshot selected: {screenshot.name}
+              </p>
+            )}
           </div>
 
           {/* User Info Display */}
           <div className="bg-gray-50 rounded-xl p-4">
             <h3 className="text-sm font-semibold text-gray-700 mb-2">Your Information</h3>
             <div className="text-sm text-gray-600 space-y-1">
-              <p><span className="font-medium">Name:</span> {user?.name || user?.firstName || 'Not provided'}</p>
+              <p><span className="font-medium">Name:</span> {user?.firstName || 'Not provided'}</p>
               <p><span className="font-medium">Email:</span> {user?.email || 'Not provided'}</p>
               <p><span className="font-medium">Page:</span> {window.location.pathname}</p>
             </div>
