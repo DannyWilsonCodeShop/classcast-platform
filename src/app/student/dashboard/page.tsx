@@ -41,7 +41,7 @@ const StudentDashboard: React.FC = () => {
   const [showBugReport, setShowBugReport] = useState(false);
   const [includeAllPublicVideos, setIncludeAllPublicVideos] = useState(false);
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
-  const [showInteractiveTour, setShowInteractiveTour] = useState(false);
+
 
   useEffect(() => {
     if (user?.id) {
@@ -620,17 +620,7 @@ const StudentDashboard: React.FC = () => {
               </svg>
             </button>
 
-            {/* Help/Tour Button */}
-            <button
-              onClick={() => setShowInteractiveTour(true)}
-              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
-              title="Take a tour or get help"
-            >
-              {/* Help Icon */}
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </button>
+
 
             {/* Bug Report Button */}
             <button
