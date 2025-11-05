@@ -257,7 +257,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <video
             ref={videoRef}
             src={videoUrl}
-            className="w-full h-auto max-h-[80vh] cursor-pointer"
+            className="w-full h-auto cursor-pointer"
+            style={{ maxHeight: '80vh', objectFit: 'contain' }}
             onClick={handleVideoClick}
             playsInline
             webkit-playsinline="true"
