@@ -10,6 +10,7 @@ import { LiveVideoRecorder } from './LiveVideoRecorder';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ContentModerationChecker from '../common/ContentModerationChecker';
 import { ContentModerationResult } from '@/lib/contentModeration';
+import { LargeFileUploader } from '@/lib/largeFileUpload';
 
 export interface VideoSubmissionProps {
   assignmentId: string;
@@ -264,43 +265,74 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
     try {
       setSelectedFile(prev => prev ? { ...prev, status: 'uploading' } : null);
 
-      const formData = new FormData();
-      formData.append('file', selectedFile.file);
-      formData.append('folder', 'video-submissions');
-      formData.append('userId', user.sub);
-      formData.append('metadata', JSON.stringify({
+      const metadata = {
         assignmentId,
         courseId,
         studentId: user.userId,
         videoDuration: selectedFile.duration,
         videoResolution: selectedFile.metadata ? `${selectedFile.metadata.width}x${selectedFile.metadata.height}` : undefined,
         videoFormat: selectedFile.metadata?.format,
-      }));
+      };
 
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + Math.random() * 10;
+      let result;
+
+      // Use large file upload for files over 100MB
+      if (LargeFileUploader.shouldUseLargeFileUpload(selectedFile.file)) {
+        console.log(`📁 Using large file upload for ${LargeFileUploader.formatFileSize(selectedFile.file.size)} file`);
+        
+        result = await LargeFileUploader.uploadLargeFile({
+          file: selectedFile.file,
+          folder: 'video-submissions',
+          userId: user.sub,
+          metadata,
+          onProgress: (progress) => {
+            setUploadProgress(progress);
+          },
         });
-      }, 200);
 
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+        // Convert to expected format
+        result = {
+          data: {
+            fileUrl: result.fileUrl,
+            fileName: result.fileName,
+            fileSize: result.fileSize,
+          }
+        };
+      } else {
+        // Use regular upload for smaller files
+        console.log(`📁 Using regular upload for ${LargeFileUploader.formatFileSize(selectedFile.file.size)} file`);
+        
+        const formData = new FormData();
+        formData.append('file', selectedFile.file);
+        formData.append('folder', 'video-submissions');
+        formData.append('userId', user.sub);
+        formData.append('metadata', JSON.stringify(metadata));
 
-      clearInterval(progressInterval);
+        const progressInterval = setInterval(() => {
+          setUploadProgress(prev => {
+            if (prev >= 90) {
+              clearInterval(progressInterval);
+              return 90;
+            }
+            return prev + Math.random() * 10;
+          });
+        }, 200);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        clearInterval(progressInterval);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Upload failed');
+        }
+
+        result = await response.json();
+        setUploadProgress(100);
       }
-
-      const result = await response.json();
-      setUploadProgress(100);
 
       setSelectedFile(prev => prev ? { ...prev, status: 'processing' } : null);
       setIsProcessing(true);
@@ -409,6 +441,11 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         <div className="mt-2 text-sm text-gray-500">
           Max file size: {Math.round(maxFileSize / (1024 * 1024))}MB • 
           Max duration: {Math.floor(maxDuration / 60)}m {maxDuration % 60}s
+          {selectedFile && LargeFileUploader.shouldUseLargeFileUpload(selectedFile.file) && (
+            <div className="mt-1 text-blue-600 font-medium">
+              📁 Large file detected - using optimized upload system
+            </div>
+          )}
         </div>
       </div>
 

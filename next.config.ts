@@ -9,9 +9,18 @@ const nextConfig: NextConfig = {
     // Enable server actions (object value for Next.js 15+)
     serverActions: {
       allowedOrigins: ['localhost:3000', 'localhost:3001'],
+      bodySizeLimit: '3gb', // Allow large file uploads
     },
     // Note: typedRoutes is not supported in Turbopack yet
     // typedRoutes: true, // This will cause Turbopack to fail
+  },
+  
+  // Configure API routes for large file uploads
+  api: {
+    bodyParser: {
+      sizeLimit: '3gb', // Allow up to 3GB file uploads
+    },
+    responseLimit: false, // Disable response size limit
   },
   
   // Optimize images
