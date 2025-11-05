@@ -197,6 +197,66 @@ export async function POST(
       Item: interactionData
     }));
 
+    // Create notification for video owner (except for likes - handled in separate API)
+    if (type === 'comment' || type === 'response' || type === 'rating') {
+      try {
+        // Get video owner information
+        const videoResult = await docClient.send(new GetCommand({
+          TableName: SUBMISSIONS_TABLE,
+          Key: { submissionId: videoId }
+        }));
+
+        if (videoResult.Item && videoResult.Item.studentId !== userId) {
+          let notificationTitle = '';
+          let notificationMessage = '';
+          let notificationType = '';
+
+          switch (type) {
+            case 'comment':
+              notificationTitle = '💬 New comment on your video';
+              notificationMessage = `${userName} commented: "${body.content.substring(0, 50)}${body.content.length > 50 ? '...' : ''}"`;
+              notificationType = 'video_comment';
+              break;
+            case 'response':
+              notificationTitle = '📝 New response to your video';
+              notificationMessage = `${userName} responded to your video: "${body.content.substring(0, 50)}${body.content.length > 50 ? '...' : ''}"`;
+              notificationType = 'video_response';
+              break;
+            case 'rating':
+              notificationTitle = '⭐ Your video was rated';
+              notificationMessage = `${userName} gave your video ${body.rating} star${body.rating > 1 ? 's' : ''}${body.comment ? `: "${body.comment.substring(0, 50)}${body.comment.length > 50 ? '...' : ''}"` : ''}`;
+              notificationType = 'video_rating';
+              break;
+          }
+
+          const notificationResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/notifications/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              recipientId: videoResult.Item.studentId,
+              senderId: userId,
+              senderName: userName,
+              type: notificationType,
+              title: notificationTitle,
+              message: notificationMessage,
+              relatedId: videoId,
+              relatedType: 'video',
+              priority: type === 'rating' ? 'medium' : 'low',
+              actionUrl: `/student/peer-reviews?videoId=${videoId}`
+            })
+          });
+
+          if (notificationResponse.ok) {
+            console.log(`✅ ${type} notification created`);
+          } else {
+            console.error(`❌ Failed to create ${type} notification`);
+          }
+        }
+      } catch (notifError) {
+        console.error(`❌ Error creating ${type} notification:`, notifError);
+      }
+    }
+
     // Update video stats
     console.log('📊 Updating video stats...');
     const stats = await updateVideoStats(videoId, type, 'increment');
