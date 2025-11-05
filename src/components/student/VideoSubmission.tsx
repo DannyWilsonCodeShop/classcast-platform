@@ -345,14 +345,23 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
     }
 
     // Comprehensive file validation before upload
-    if (typeof selectedFile.file.size !== 'number' || selectedFile.file.size === undefined || selectedFile.file.size === null) {
+    if (!selectedFile.file || typeof selectedFile.file.size !== 'number' || selectedFile.file.size === undefined || selectedFile.file.size === null) {
       console.error('❌ File size is invalid before upload:', {
+        hasFile: !!selectedFile.file,
         file: selectedFile.file,
-        sizeType: typeof selectedFile.file.size,
-        sizeValue: selectedFile.file.size,
-        constructor: selectedFile.file?.constructor?.name
+        sizeType: selectedFile.file ? typeof selectedFile.file.size : 'no file',
+        sizeValue: selectedFile.file ? selectedFile.file.size : 'no file',
+        constructor: selectedFile.file?.constructor?.name,
+        selectedFileStructure: {
+          hasFile: !!selectedFile.file,
+          hasPreview: !!selectedFile.preview,
+          hasMetadata: !!selectedFile.metadata,
+          status: selectedFile.status
+        }
       });
-      onSubmissionError?.('Invalid file: file size information is missing or corrupted');
+      
+      // Try to recover by asking user to re-select the file
+      onSubmissionError?.('Upload failed. The file appears to be corrupted or the browser lost access to it. Please try selecting the file again.');
       return;
     }
 

@@ -36,12 +36,26 @@ export class LargeFileUploader {
       return false;
     }
     
-    if (typeof file.size !== 'number' || file.size === undefined || file.size === null) {
-      console.warn('❌ Invalid file object for large file check - missing size:', {
+    // Check if file is a proper File object
+    if (!(file instanceof File)) {
+      console.warn('❌ Object is not a File instance:', {
+        type: typeof file,
+        constructor: file?.constructor?.name,
+        hasSize: 'size' in file,
+        hasName: 'name' in file
+      });
+      return false;
+    }
+    
+    if (typeof file.size !== 'number' || file.size === undefined || file.size === null || isNaN(file.size)) {
+      console.warn('❌ Invalid file object for large file check - missing or invalid size:', {
         file: !!file,
         sizeType: typeof file.size,
         sizeValue: file.size,
-        constructor: file?.constructor?.name
+        isNaN: isNaN(file.size),
+        constructor: file?.constructor?.name,
+        fileName: file.name,
+        fileType: file.type
       });
       return false;
     }
