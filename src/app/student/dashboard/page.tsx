@@ -11,6 +11,7 @@ import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
 import Avatar from '@/components/common/Avatar';
 import BugReportModal from '@/components/common/BugReportModal';
+import NotificationBell from '@/components/common/NotificationBell';
 
 interface Course {
   courseId: string;
@@ -298,6 +299,15 @@ const StudentDashboard: React.FC = () => {
             >
               ✨ Post to community...
             </button>
+
+            {/* Notification Bell */}
+            {user && (
+              <NotificationBell 
+                userId={user.id} 
+                userRole="student" 
+                className="flex-shrink-0"
+              />
+            )}
 
             {/* Help Button */}
             <button
