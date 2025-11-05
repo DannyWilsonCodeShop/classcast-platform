@@ -88,19 +88,50 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   const validateVideoFile = useCallback((file: File): string[] => {
     const errors: string[] = [];
     
+    console.log('🔍 Validating video file:', {
+      file: !!file,
+      hasSize: file ? typeof file.size : 'no file',
+      hasType: file ? typeof file.type : 'no file',
+      hasName: file ? typeof file.name : 'no file',
+      size: file?.size,
+      type: file?.type,
+      name: file?.name
+    });
+    
     // Check if file exists and has required properties
     if (!file) {
       errors.push('No file provided');
       return errors;
     }
     
-    if (typeof file.size !== 'number') {
-      errors.push('Invalid file: missing size information');
+    // More robust file validation with detailed error messages
+    if (typeof file.size !== 'number' || file.size === undefined || file.size === null) {
+      console.error('❌ File size validation failed:', {
+        sizeType: typeof file.size,
+        sizeValue: file.size,
+        fileObject: file
+      });
+      errors.push('Invalid file: missing or invalid size information (browser compatibility issue)');
       return errors;
     }
     
-    if (!file.type) {
-      errors.push('Invalid file: missing type information');
+    if (!file.type || typeof file.type !== 'string') {
+      console.error('❌ File type validation failed:', {
+        typeType: typeof file.type,
+        typeValue: file.type,
+        fileObject: file
+      });
+      errors.push('Invalid file: missing or invalid type information (browser compatibility issue)');
+      return errors;
+    }
+    
+    if (!file.name || typeof file.name !== 'string') {
+      console.error('❌ File name validation failed:', {
+        nameType: typeof file.name,
+        nameValue: file.name,
+        fileObject: file
+      });
+      errors.push('Invalid file: missing or invalid name information (browser compatibility issue)');
       return errors;
     }
     
@@ -111,6 +142,12 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
     if (!allowedVideoTypes.includes(file.type)) {
       errors.push(`File type ${file.type} is not supported`);
     }
+    
+    console.log('✅ File validation passed:', {
+      name: file.name,
+      size: `${(file.size / (1024 * 1024)).toFixed(2)}MB`,
+      type: file.type
+    });
     
     return errors;
   }, [maxFileSize, allowedVideoTypes]);
@@ -185,17 +222,30 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   }, [validateVideoFile, showPreview, assignmentId, user?.id]);
 
   const handleFileSelect = useCallback(async (file: File) => {
+    console.log('📁 File selected for upload:', {
+      file: !!file,
+      constructor: file?.constructor?.name,
+      hasSize: file ? typeof file.size : 'no file',
+      hasType: file ? typeof file.type : 'no file',
+      hasName: file ? typeof file.name : 'no file'
+    });
+
     setValidationErrors([]);
     setSelectedFile(null);
 
     // Check if file is valid
     if (!file) {
+      console.error('❌ No file provided to handleFileSelect');
       setValidationErrors(['No file selected']);
       return;
     }
 
+    // Add a small delay to ensure file properties are fully loaded (mobile browser fix)
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     const errors = validateVideoFile(file);
     if (errors.length > 0) {
+      console.error('❌ File validation failed:', errors);
       setValidationErrors(errors);
       return;
     }

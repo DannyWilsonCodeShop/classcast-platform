@@ -40,7 +40,7 @@ export const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({
     e.stopPropagation();
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
@@ -48,56 +48,151 @@ export const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({
 
     const files = Array.from(e.dataTransfer.files);
     
-    // Mobile-specific file validation (though drag/drop rarely works on mobile)
+    console.log('📁 Files dropped:', {
+      fileCount: files.length,
+      files: files.map(f => ({
+        name: f?.name,
+        size: f?.size,
+        type: f?.type,
+        hasSize: typeof f?.size,
+        hasType: typeof f?.type
+      }))
+    });
+
+    if (files.length === 0) {
+      console.warn('⚠️ No files dropped');
+      return;
+    }
+
+    // Add delay for browsers to fully load file properties
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // File validation for drag/drop
     const videoFile = files.find(file => {
-      if (!file) return false;
+      if (!file) {
+        console.warn('❌ Empty file in dropped array');
+        return false;
+      }
       
       // Check if file has required properties
-      if (typeof file.size !== 'number' || typeof file.type !== 'string') {
-        console.warn('Drag/drop file API issue - invalid file properties:', {
+      if (typeof file.size !== 'number' || file.size === undefined || file.size === null) {
+        console.warn('❌ Drag/drop file API issue - invalid size property:', {
           hasSize: typeof file.size,
+          sizeValue: file.size,
+          fileName: file.name,
+          constructor: file?.constructor?.name
+        });
+        return false;
+      }
+      
+      if (typeof file.type !== 'string' || !file.type) {
+        console.warn('❌ Drag/drop file API issue - invalid type property:', {
           hasType: typeof file.type,
+          typeValue: file.type,
           fileName: file.name
         });
         return false;
       }
       
-      return allowedTypes.includes(file.type);
+      if (!allowedTypes.includes(file.type)) {
+        console.warn('❌ Dropped file type not allowed:', {
+          fileType: file.type,
+          allowedTypes,
+          fileName: file.name
+        });
+        return false;
+      }
+      
+      return true;
     });
 
     if (videoFile) {
+      console.log('✅ Valid video file dropped:', {
+        name: videoFile.name,
+        size: `${(videoFile.size / (1024 * 1024)).toFixed(2)}MB`,
+        type: videoFile.type
+      });
       onFileSelect(videoFile);
+    } else {
+      console.error('❌ No valid video file found in dropped files');
+      // You might want to show an error message to the user here
+      alert('Please drop a valid video file. Supported formats: ' + allowedTypes.join(', '));
     }
   }, [allowedTypes, onFileSelect]);
 
-  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    
+    console.log('📁 File input change detected:', {
+      fileCount: files.length,
+      files: files.map(f => ({
+        name: f?.name,
+        size: f?.size,
+        type: f?.type,
+        hasSize: typeof f?.size,
+        hasType: typeof f?.type
+      }))
+    });
+    
+    if (files.length === 0) {
+      console.warn('⚠️ No files selected');
+      return;
+    }
+
+    // Add delay for mobile browsers to fully load file properties
+    await new Promise(resolve => setTimeout(resolve, 100));
     
     // Mobile-specific file validation
     const videoFile = files.find(file => {
-      if (!file) return false;
+      if (!file) {
+        console.warn('❌ Empty file in array');
+        return false;
+      }
       
       // Check if file has required properties (mobile browsers sometimes have issues)
-      if (typeof file.size !== 'number' || typeof file.type !== 'string') {
-        console.warn('Mobile file API issue - invalid file properties:', {
+      if (typeof file.size !== 'number' || file.size === undefined || file.size === null) {
+        console.warn('❌ File API issue - invalid size property:', {
           hasSize: typeof file.size,
+          sizeValue: file.size,
+          fileName: file.name,
+          constructor: file?.constructor?.name
+        });
+        return false;
+      }
+      
+      if (typeof file.type !== 'string' || !file.type) {
+        console.warn('❌ File API issue - invalid type property:', {
           hasType: typeof file.type,
+          typeValue: file.type,
           fileName: file.name
         });
         return false;
       }
       
-      return allowedTypes.includes(file.type);
+      if (!allowedTypes.includes(file.type)) {
+        console.warn('❌ File type not allowed:', {
+          fileType: file.type,
+          allowedTypes,
+          fileName: file.name
+        });
+        return false;
+      }
+      
+      return true;
     });
 
     if (videoFile) {
-      console.log('Mobile file selected:', {
+      console.log('✅ Valid video file selected:', {
         name: videoFile.name,
-        size: videoFile.size,
+        size: `${(videoFile.size / (1024 * 1024)).toFixed(2)}MB`,
         type: videoFile.type,
-        lastModified: videoFile.lastModified
+        lastModified: new Date(videoFile.lastModified).toISOString()
       });
       onFileSelect(videoFile);
+    } else {
+      console.error('❌ No valid video file found in selection');
+      // You might want to show an error message to the user here
+      alert('Please select a valid video file. Supported formats: ' + allowedTypes.join(', '));
     }
 
     // Reset input value to allow selecting the same file again
