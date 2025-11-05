@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
-import { stripHtmlTags } from '@/lib/htmlUtils';
+import RichTextRenderer from '@/components/common/RichTextRenderer';
 
 interface Course {
   courseId: string;
@@ -556,7 +556,11 @@ const InstructorSectionDetailPage: React.FC = () => {
                           </span>
                         </div>
                         
-                        <p className="text-gray-600 text-sm mb-4 line-clamp-3">{stripHtmlTags(assignment.description)}</p>
+                        <RichTextRenderer 
+                          content={assignment.description}
+                          className="text-gray-600 text-sm mb-4"
+                          maxLines={3}
+                        />
                         
                         <div className="space-y-2 text-sm text-gray-500">
                           <div className="flex items-center justify-between">

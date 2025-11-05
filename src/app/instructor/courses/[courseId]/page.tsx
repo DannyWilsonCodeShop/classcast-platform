@@ -9,7 +9,7 @@ import CourseSettingsModal from '@/components/instructor/CourseSettingsModal';
 import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
 import SectionList from '@/components/instructor/SectionList';
 import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
-import { stripHtmlTags } from '@/lib/htmlUtils';
+import RichTextRenderer from '@/components/common/RichTextRenderer';
 
 interface Course {
   courseId: string;
@@ -835,7 +835,11 @@ const InstructorCourseDetailPage: React.FC = () => {
                       </div>
                     </div>
                     
-                    <p className="text-gray-600 mb-4 line-clamp-2 text-sm">{stripHtmlTags(assignment.description)}</p>
+                    <RichTextRenderer 
+                      content={assignment.description}
+                      className="text-gray-600 mb-4 text-sm"
+                      maxLines={2}
+                    />
                     
                     {/* Submission Stats */}
                     <div className="mb-4">
