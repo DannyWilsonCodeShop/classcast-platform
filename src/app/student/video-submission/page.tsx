@@ -348,8 +348,33 @@ const VideoSubmissionContent: React.FC = () => {
   };
 
   const uploadVideo = async (directBlob?: Blob) => {
+    console.log('🎬 uploadVideo called with:', {
+      directBlob: !!directBlob,
+      recordedVideo: !!recordedVideo,
+      uploadedVideo: !!uploadedVideo,
+      selectedFile: !!selectedFile,
+      selectedFileName: selectedFile?.name,
+      selectedFileSize: selectedFile?.size,
+      selectedFileType: selectedFile?.type
+    });
+
     const videoToUpload = directBlob ? 'BLOB_DIRECT' : (recordedVideo || uploadedVideo);
-    if (!videoToUpload) return;
+    if (!videoToUpload) {
+      console.error('❌ No video to upload');
+      return;
+    }
+
+    // Additional validation for uploaded files
+    if (uploadedVideo && !directBlob && !recordedVideo && !selectedFile) {
+      setError('File selection error: Please try selecting your video file again.');
+      return;
+    }
+
+    // Validate selectedFile if it's being used
+    if (uploadedVideo && selectedFile && (!selectedFile.size || selectedFile.size === 0)) {
+      setError('Invalid file: The selected file appears to be empty. Please try selecting a different file.');
+      return;
+    }
 
     try {
       setIsUploading(true);
@@ -358,12 +383,6 @@ const VideoSubmissionContent: React.FC = () => {
 
       // Show initial progress
       setUploadProgress(5);
-      
-      // For large files, show a warning about upload time
-      if (videoBlob.size > 500 * 1024 * 1024) {
-        const fileSizeMB = (videoBlob.size / (1024 * 1024)).toFixed(1);
-        console.log(`📤 Uploading large file (${fileSizeMB}MB). This may take several minutes...`);
-      }
 
       let videoBlob: Blob;
       let fileName: string;
@@ -382,11 +401,20 @@ const VideoSubmissionContent: React.FC = () => {
         videoType = videoBlob.type;
       } else if (selectedFile) {
         // Handle uploaded file
+        if (!selectedFile.size || !selectedFile.name || !selectedFile.type) {
+          throw new Error('Invalid file: Missing file properties. Please try selecting the file again.');
+        }
         videoBlob = selectedFile;
         fileName = selectedFile.name;
         videoType = selectedFile.type;
       } else {
         throw new Error('No video to upload');
+      }
+
+      // For large files, show a warning about upload time
+      if (videoBlob.size > 500 * 1024 * 1024) {
+        const fileSizeMB = (videoBlob.size / (1024 * 1024)).toFixed(1);
+        console.log(`📤 Uploading large file (${fileSizeMB}MB). This may take several minutes...`);
       }
       
       // Use presigned URL for secure S3 upload
@@ -750,6 +778,19 @@ const VideoSubmissionContent: React.FC = () => {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      console.log('📁 File selected:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      });
+
+      // Validate file object integrity
+      if (!file.name || !file.size || !file.type) {
+        setError('Invalid file: File information is incomplete. Please try selecting the file again.');
+        return;
+      }
+
       // Validate file type
       if (!file.type.startsWith('video/')) {
         setError('Please select a valid video file.');
