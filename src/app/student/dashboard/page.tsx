@@ -24,6 +24,58 @@ interface Course {
   unreadCount: number;
 }
 
+// Daily rotating community questions
+const DAILY_QUESTIONS = [
+  "Share a funny moment from your day!",
+  "Quote of the day—go!",
+  "What song is stuck in your head?",
+  "What's one thing you learned today?",
+  "Describe your mood with emojis!",
+  "Favorite school subject and why?",
+  "Coffee, tea, or juice?",
+  "What's your weekend plan?",
+  "One word to describe today?",
+  "Favorite movie or show right now?",
+  "What's your dream vacation spot?",
+  "Post a joke or pun!",
+  "Favorite lunch food?",
+  "What inspires you today?",
+  "What's your go-to study snack?",
+  "Favorite book or author?",
+  "Would you rather fly or be invisible?",
+  "Post a random fun fact!",
+  "What's one goal for this week?",
+  "Who's your favorite historical figure?",
+  "What's your favorite science topic?",
+  "Math: circles or triangles?",
+  "Write a 3-word story!",
+  "Post a cool nature fact!",
+  "If school had a mascot, what's it?",
+  "What's your favorite planet?",
+  "One thing that made you smile?",
+  "What's your favorite season?",
+  "History or literature—pick one!",
+  "What's one thing you're grateful for?",
+  "Favorite word in another language?",
+  "Describe your day as weather!",
+  "What's your favorite sport?",
+  "One emoji that sums up today?",
+  "Share a study tip!",
+  "What's one talent you have?",
+  "Favorite animal and why?",
+  "What invention changed the world?",
+  "If you were a color, which one?",
+  "What's one mystery you'd solve?"
+];
+
+// Function to get today's question based on the date
+const getDailyQuestion = (): string => {
+  const today = new Date();
+  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  const questionIndex = dayOfYear % DAILY_QUESTIONS.length;
+  return DAILY_QUESTIONS[questionIndex];
+};
+
 const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
@@ -41,6 +93,7 @@ const StudentDashboard: React.FC = () => {
   const [showBugReport, setShowBugReport] = useState(false);
   const [includeAllPublicVideos, setIncludeAllPublicVideos] = useState(false);
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
+  const [dailyQuestion] = useState(getDailyQuestion());
 
 
   useEffect(() => {
@@ -315,7 +368,7 @@ const StudentDashboard: React.FC = () => {
               onClick={() => setShowPostComposer(!showPostComposer)}
               className="flex-1 px-4 py-2 bg-white/90 rounded-full text-left text-gray-600 text-sm hover:bg-white transition-all shadow-md"
             >
-              ✨ How are the vibes right now? Post!
+              ✨ {dailyQuestion}
             </button>
 
             {/* Explore Toggle */}
@@ -354,7 +407,7 @@ const StudentDashboard: React.FC = () => {
               <textarea
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
-                placeholder="What's on your mind?"
+                placeholder={dailyQuestion}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={4}
                 autoFocus
