@@ -69,6 +69,14 @@ const InstructorStudentsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'dropped' | 'completed'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'grade' | 'enrollment' | 'activity' | 'section'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
+  // Move student state
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [studentToMove, setStudentToMove] = useState<Student | null>(null);
+  const [availableSections, setAvailableSections] = useState<any[]>([]);
+  const [availableCourses, setAvailableCourses] = useState<any[]>([]);
+  const [moveDestination, setMoveDestination] = useState<{type: 'section' | 'course', id: string, name: string} | null>(null);
+  const [isMoving, setIsMoving] = useState(false);
 
   const courseId = params.courseId as string;
 
@@ -332,6 +340,93 @@ const InstructorStudentsPage: React.FC = () => {
     } catch (error) {
       console.error('Error removing student:', error);
       alert('❌ Failed to remove student. Please try again.');
+    }
+  };
+
+  const handleMoveStudent = async (student: Student) => {
+    setStudentToMove(student);
+    setShowMoveModal(true);
+    
+    // Fetch available sections for this course
+    try {
+      const sectionsResponse = await fetch(`/api/sections?courseId=${courseId}`, {
+        credentials: 'include'
+      });
+      if (sectionsResponse.ok) {
+        const sectionsData = await sectionsResponse.json();
+        setAvailableSections(sectionsData.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching sections:', error);
+    }
+    
+    // Fetch available courses for this instructor
+    try {
+      const coursesResponse = await fetch(`/api/instructor/courses?instructorId=${user?.id}`, {
+        credentials: 'include'
+      });
+      if (coursesResponse.ok) {
+        const coursesData = await coursesResponse.json();
+        // Filter out current course
+        const otherCourses = (coursesData.courses || []).filter((c: any) => c.courseId !== courseId);
+        setAvailableCourses(otherCourses);
+      }
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+    }
+  };
+
+  const confirmMoveStudent = async () => {
+    if (!studentToMove || !moveDestination) return;
+    
+    setIsMoving(true);
+    try {
+      const endpoint = moveDestination.type === 'section' 
+        ? `/api/instructor/students/move-section`
+        : `/api/instructor/students/move-course`;
+        
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          studentId: studentToMove.studentId,
+          fromCourseId: courseId,
+          toCourseId: moveDestination.type === 'course' ? moveDestination.id : courseId,
+          toSectionId: moveDestination.type === 'section' ? moveDestination.id : null,
+          studentName: studentToMove.name,
+          studentEmail: studentToMove.email
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        if (moveDestination.type === 'course') {
+          // Remove student from current course list
+          setStudents(prev => prev.filter(s => s.studentId !== studentToMove.studentId));
+          alert(`✅ ${studentToMove.name} has been moved to ${moveDestination.name} successfully!`);
+        } else {
+          // Update student's section in current list
+          setStudents(prev => prev.map(s => 
+            s.studentId === studentToMove.studentId 
+              ? { ...s, sectionId: moveDestination.id, sectionName: moveDestination.name }
+              : s
+          ));
+          alert(`✅ ${studentToMove.name} has been moved to section ${moveDestination.name} successfully!`);
+        }
+        
+        setShowMoveModal(false);
+        setStudentToMove(null);
+        setMoveDestination(null);
+      } else {
+        alert(`❌ Failed to move student: ${data.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error moving student:', error);
+      alert('❌ Failed to move student. Please try again.');
+    } finally {
+      setIsMoving(false);
     }
   };
 
@@ -604,6 +699,13 @@ const InstructorStudentsPage: React.FC = () => {
                               Message
                             </button>
                             <button 
+                              onClick={() => handleMoveStudent(student)}
+                              className="text-blue-600 hover:text-blue-900 transition-colors"
+                              title={`Move ${student.name} to another section or course`}
+                            >
+                              Move
+                            </button>
+                            <button 
                               onClick={() => handleRemoveStudent(student.studentId, student.name)}
                               className="text-red-600 hover:text-red-900 transition-colors"
                               title={`Remove ${student.name} from course`}
@@ -641,6 +743,136 @@ const InstructorStudentsPage: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Move Student Modal */}
+        {showMoveModal && studentToMove && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Move Student</h3>
+                  <p className="text-sm text-gray-600">Move {studentToMove.name} to a different section or course</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Move to:
+                  </label>
+                  
+                  {/* Move to Different Section */}
+                  <div className="space-y-3">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-800 mb-2">📚 Move to Different Section (Same Course)</h4>
+                      {availableSections.length > 0 ? (
+                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                          {availableSections
+                            .filter(section => section.sectionId !== studentToMove.sectionId)
+                            .map((section) => (
+                            <label key={section.sectionId} className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name="moveDestination"
+                                value={`section-${section.sectionId}`}
+                                onChange={() => setMoveDestination({
+                                  type: 'section',
+                                  id: section.sectionId,
+                                  name: section.sectionName
+                                })}
+                                className="text-blue-600"
+                              />
+                              <span className="text-sm text-gray-700">
+                                {section.sectionName} 
+                                {section.sectionCode && ` (${section.sectionCode})`}
+                                <span className="text-xs text-gray-500 ml-1">
+                                  ({section.currentEnrollment}/{section.maxEnrollment || '∞'} students)
+                                </span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">No other sections available in this course</p>
+                      )}
+                    </div>
+
+                    {/* Move to Different Course */}
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-800 mb-2">🏫 Move to Different Course</h4>
+                      {availableCourses.length > 0 ? (
+                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                          {availableCourses.map((course) => (
+                            <label key={course.courseId} className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name="moveDestination"
+                                value={`course-${course.courseId}`}
+                                onChange={() => setMoveDestination({
+                                  type: 'course',
+                                  id: course.courseId,
+                                  name: `${course.courseName} (${course.courseCode})`
+                                })}
+                                className="text-blue-600"
+                              />
+                              <span className="text-sm text-gray-700">
+                                {course.courseName} ({course.courseCode})
+                                <span className="text-xs text-gray-500 ml-1">
+                                  {course.semester} {course.year}
+                                </span>
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">No other courses available</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {moveDestination && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-sm text-blue-800">
+                      <strong>Selected:</strong> Move to {moveDestination.name}
+                      {moveDestination.type === 'course' && (
+                        <span className="block text-xs text-blue-600 mt-1">
+                          ⚠️ Moving to a different course will transfer all student data including submissions and grades.
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={() => {
+                    setShowMoveModal(false);
+                    setStudentToMove(null);
+                    setMoveDestination(null);
+                  }}
+                  disabled={isMoving}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmMoveStudent}
+                  disabled={isMoving || !moveDestination}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isMoving ? 'Moving...' : 'Move Student'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </InstructorRoute>
   );
