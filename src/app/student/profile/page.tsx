@@ -759,6 +759,45 @@ const StudentProfilePage: React.FC = () => {
               </div>
             </div>
 
+            {/* Activity & Engagement Section - Simplified to 4 Key Metrics */}
+            {profile?.engagementStats && (
+              <div className="border-t border-gray-200 p-4 sm:p-6">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">📊 Activity & Engagement</h3>
+                
+                {/* 4 Key Metrics in a Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {/* Videos Created */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center border border-blue-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-600">{profile.engagementStats.videoStats.totalVideos}</div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Videos</div>
+                  </div>
+                  
+                  {/* Total Views */}
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center border border-green-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-green-600">{profile.engagementStats.videoStats.totalViews}</div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Views</div>
+                  </div>
+                  
+                  {/* Total Likes */}
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 text-center border border-red-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-red-600">{profile.engagementStats.videoStats.totalLikes}</div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Likes</div>
+                  </div>
+                  
+                  {/* Average Rating */}
+                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 text-center border border-yellow-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-yellow-600">
+                      {profile.engagementStats.videoStats.averageRating > 0 
+                        ? profile.engagementStats.videoStats.averageRating.toFixed(1) 
+                        : '0.0'
+                      }
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Avg Rating</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Study Buddies Section */}
             <div className="border-t border-gray-200 p-4 sm:p-6">
               <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">👥 Study Buddies</h3>
@@ -877,45 +916,6 @@ const StudentProfilePage: React.FC = () => {
                 </div>
               )}
             </div>
-
-            {/* Activity & Engagement Section - Simplified to 4 Key Metrics */}
-            {profile?.engagementStats && (
-              <div className="border-t border-gray-200 p-4 sm:p-6">
-                <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">📊 Activity & Engagement</h3>
-                
-                {/* 4 Key Metrics in a Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {/* Videos Created */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center border border-blue-200">
-                    <div className="text-2xl sm:text-3xl font-bold text-blue-600">{profile.engagementStats.videoStats.totalVideos}</div>
-                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Videos</div>
-                  </div>
-                  
-                  {/* Total Views */}
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center border border-green-200">
-                    <div className="text-2xl sm:text-3xl font-bold text-green-600">{profile.engagementStats.videoStats.totalViews}</div>
-                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Views</div>
-                  </div>
-                  
-                  {/* Total Likes */}
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 text-center border border-red-200">
-                    <div className="text-2xl sm:text-3xl font-bold text-red-600">{profile.engagementStats.videoStats.totalLikes}</div>
-                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Likes</div>
-                  </div>
-                  
-                  {/* Average Rating */}
-                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 text-center border border-yellow-200">
-                    <div className="text-2xl sm:text-3xl font-bold text-yellow-600">
-                      {profile.engagementStats.videoStats.averageRating > 0 
-                        ? profile.engagementStats.videoStats.averageRating.toFixed(1) 
-                        : '0.0'
-                      }
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Avg Rating</div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
