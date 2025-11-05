@@ -338,3 +338,119 @@ export function shouldFlagForReview(result: OpenAIModerationResult): {
     categories: flaggedCategories
   };
 }
+// ========================================
+// CONTENT MODERATION SERVICE
+// ========================================
+
+export interface VideoModerationResult {
+  isAppropriate: boolean;
+  confidence: number;
+  flags: string[];
+  reason?: string;
+  metadata?: any;
+}
+
+export interface TextModerationResult {
+  isAppropriate: boolean;
+  confidence: number;
+  flags: string[];
+  reason?: string;
+  profanity?: any;
+  pii?: any;
+}
+
+export interface SubmissionModerationResult {
+  isAppropriate: boolean;
+  confidence: number;
+  flags: string[];
+  reason?: string;
+  type: 'text' | 'video';
+}
+
+/**
+ * Content Moderation Service
+ * Provides unified interface for all content moderation
+ */
+export const contentModerationService = {
+  /**
+   * Moderate text content
+   */
+  async moderateText(content: string, context?: any): Promise<TextModerationResult> {
+    // Use existing validateContent function
+    const validation = validateContent(content);
+    
+    return {
+      isAppropriate: validation.isAllowed,
+      confidence: validation.isAllowed ? 0.9 : 0.1,
+      flags: validation.isAllowed ? [] : [validation.reason || 'Content flagged'],
+      reason: validation.reason,
+      profanity: validation.profanity,
+      pii: validation.pii
+    };
+  },
+
+  /**
+   * Moderate video content (metadata and description)
+   */
+  async moderateVideo(videoUrl: string, metadata?: any): Promise<VideoModerationResult> {
+    // For now, moderate the video metadata (title, description)
+    let contentToCheck = '';
+    
+    if (metadata?.title) {
+      contentToCheck += metadata.title + ' ';
+    }
+    if (metadata?.description) {
+      contentToCheck += metadata.description + ' ';
+    }
+    
+    // If no text content, assume appropriate
+    if (!contentToCheck.trim()) {
+      return {
+        isAppropriate: true,
+        confidence: 0.8,
+        flags: [],
+        metadata
+      };
+    }
+    
+    // Use text moderation for video metadata
+    const textResult = await this.moderateText(contentToCheck.trim());
+    
+    return {
+      isAppropriate: textResult.isAppropriate,
+      confidence: textResult.confidence,
+      flags: textResult.flags,
+      reason: textResult.reason,
+      metadata
+    };
+  },
+
+  /**
+   * Moderate assignment submissions
+   */
+  async moderateSubmission(
+    content: string, 
+    type: 'text' | 'video', 
+    metadata?: any
+  ): Promise<SubmissionModerationResult> {
+    if (type === 'video') {
+      const videoResult = await this.moderateVideo(content, metadata);
+      return {
+        isAppropriate: videoResult.isAppropriate,
+        confidence: videoResult.confidence,
+        flags: videoResult.flags,
+        reason: videoResult.reason,
+        type: 'video'
+      };
+    } else {
+      const textResult = await this.moderateText(content, metadata);
+      return {
+        isAppropriate: textResult.isAppropriate,
+        confidence: textResult.confidence,
+        flags: textResult.flags,
+        reason: textResult.reason,
+        type: 'text'
+      };
+    }
+  }
+};
