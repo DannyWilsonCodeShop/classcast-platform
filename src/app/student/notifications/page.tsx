@@ -29,7 +29,7 @@ const NotificationsPage: React.FC = () => {
 
   const loadNotifications = async () => {
     try {
-      const response = await fetch('/api/notifications');
+      const response = await fetch(`/api/notifications?userId=${user?.id}&role=${user?.role || 'student'}`);
       const data = await response.json();
       
       if (data.success && data.notifications) {
