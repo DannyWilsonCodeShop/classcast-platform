@@ -553,33 +553,7 @@ const InstructorCourseDetailPage: React.FC = () => {
     }
   };
 
-  const handleCourseUpdate = async (updateData: Partial<Course>) => {
-    try {
-      console.log('🔧 Updating course with data:', updateData);
-      
-      const response = await fetch(`/api/courses/${courseId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData),
-        credentials: 'include',
-      });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        // Update local course state
-        setCourse(prev => prev ? { ...prev, ...updateData } : null);
-        console.log('✅ Course updated successfully');
-        return { success: true, message: 'Course updated successfully' };
-      } else {
-        console.error('❌ Course update failed:', data.error);
-        return { success: false, message: data.error || 'Failed to update course' };
-      }
-    } catch (error) {
-      console.error('Error updating course:', error);
-      return { success: false, message: 'Failed to update course' };
-    }
-  };
 
   const handleGradeSubmission = async (submissionId: string) => {
     try {
