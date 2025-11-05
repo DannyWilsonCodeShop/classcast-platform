@@ -486,14 +486,22 @@ const StudentDashboard: React.FC = () => {
                 <button
                   key={course.courseId}
                   onClick={() => handleCourseClick(course.courseId)}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md relative ${
+                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md relative overflow-hidden ${
                     selectedCourse === course.courseId 
                       ? 'bg-blue-600 scale-110' 
                       : 'bg-gray-400 hover:bg-gray-500'
                   }`}
                   title={course.name}
                 >
-                  {course.initials || course.name.substring(0, 3).toUpperCase()}
+                  {course.avatar ? (
+                    <img 
+                      src={course.avatar} 
+                      alt={course.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    course.initials || course.name.substring(0, 3).toUpperCase()
+                  )}
                   {/* Notification indicator */}
                   {course.unreadCount > 0 && (
                     <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">

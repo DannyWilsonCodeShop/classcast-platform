@@ -101,6 +101,12 @@ export async function PUT(
       }
     }
 
+    console.log('📝 Course update data:', {
+      updateExpression: updateExpression.join(', '),
+      expressionAttributeNames,
+      expressionAttributeValues
+    });
+
     if (updateExpression.length === 1) { // Only updatedAt
       return NextResponse.json({
         success: true,
