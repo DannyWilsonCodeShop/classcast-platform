@@ -154,7 +154,8 @@ export class S3Service {
   async generatePresignedUploadUrl(
     key: string,
     contentType: string,
-    expiresIn: number = 3600
+    expiresIn: number = 3600,
+    metadata?: Record<string, string>
   ): Promise<string> {
     try {
       const command = new PutObjectCommand({
@@ -163,6 +164,7 @@ export class S3Service {
         ContentType: contentType,
         ServerSideEncryption: 'AES256',
         CacheControl: this.getCacheControl(contentType),
+        Metadata: metadata,
       });
 
       return await getSignedUrl(this.client, command, { expiresIn });
