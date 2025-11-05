@@ -12,6 +12,7 @@ import InteractionBar from '@/components/student/InteractionBar';
 import Avatar from '@/components/common/Avatar';
 import BugReportModal from '@/components/common/BugReportModal';
 import NotificationBell from '@/components/common/NotificationBell';
+import RichTextRenderer from '@/components/common/RichTextRenderer';
 
 interface Course {
   courseId: string;
@@ -502,9 +503,11 @@ const StudentDashboard: React.FC = () => {
                   <h4 className="font-semibold text-gray-900 mb-2 line-clamp-2">
                     {assignment.title}
                   </h4>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-3">
-                    {assignment.description}
-                  </p>
+                  <RichTextRenderer 
+                    content={assignment.description}
+                    className="text-sm text-gray-600 mb-3"
+                    maxLines={3}
+                  />
                   <div className="flex items-center justify-between">
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
                       assignment.status === 'past_due' ? 'bg-red-100 text-red-700' :

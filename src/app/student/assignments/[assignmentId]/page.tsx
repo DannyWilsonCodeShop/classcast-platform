@@ -7,7 +7,7 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import AssignmentResourcesDisplay from '@/components/common/AssignmentResourcesDisplay';
-import { htmlToPlainText } from '@/lib/htmlUtils';
+import RichTextRenderer from '@/components/common/RichTextRenderer';
 import { getVideoUrl } from '@/lib/videoUtils';
 
 // Helper function to extract YouTube video ID
@@ -739,11 +739,10 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Instructions</h3>
-                    <div className="prose prose-sm max-w-none">
-                      <pre className="whitespace-pre-wrap text-gray-700 font-sans">
-                    {htmlToPlainText(displayAssignment.description)}
-                      </pre>
-                    </div>
+                    <RichTextRenderer 
+                      content={displayAssignment.description}
+                      className="prose prose-sm max-w-none"
+                    />
                   </div>
 
                   <div>
