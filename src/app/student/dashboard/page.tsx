@@ -36,6 +36,7 @@ const StudentDashboard: React.FC = () => {
   const [connections, setConnections] = useState<Set<string>>(new Set());
   const [notificationCount, setNotificationCount] = useState(0);
   const [showBugReport, setShowBugReport] = useState(false);
+  const [includeAllPublicVideos, setIncludeAllPublicVideos] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -50,7 +51,7 @@ const StudentDashboard: React.FC = () => {
       
       return () => clearInterval(interval);
     }
-  }, [user]);
+  }, [user, includeAllPublicVideos]); // Refresh when toggle changes
 
   const loadNotificationCount = async () => {
     if (!user?.id) return;
@@ -127,8 +128,8 @@ const StudentDashboard: React.FC = () => {
 
   const fetchFeed = async () => {
     try {
-      console.log('📡 Fetching feed for user:', user?.id);
-      const response = await fetch(`/api/student/feed?userId=${user?.id}`);
+      console.log('📡 Fetching feed for user:', user?.id, 'includeAllPublic:', includeAllPublicVideos);
+      const response = await fetch(`/api/student/feed?userId=${user?.id}&includeAllPublic=${includeAllPublicVideos}`);
       const data = await response.json();
       
       console.log('📦 Feed data received:', {
@@ -300,6 +301,19 @@ const StudentDashboard: React.FC = () => {
               ✨ Post to community...
             </button>
 
+            {/* Explore Toggle */}
+            <div className="flex items-center space-x-2 flex-shrink-0">
+              <label className="flex items-center space-x-2 text-sm text-gray-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={includeAllPublicVideos}
+                  onChange={(e) => setIncludeAllPublicVideos(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <span className="whitespace-nowrap">🌐 Explore All</span>
+              </label>
+            </div>
+
             {/* Notification Bell */}
             {user && (
               <NotificationBell 
@@ -368,6 +382,28 @@ const StudentDashboard: React.FC = () => {
 
           {/* Feed */}
         <div className="max-w-2xl mx-auto pb-20">
+          {/* Explore Mode Indicator */}
+          {includeAllPublicVideos && (
+            <div className="sticky top-[57px] z-40 bg-gradient-to-r from-orange-500 to-red-500 border-b-2 border-white/20 px-4 py-2 flex items-center justify-between shadow-lg">
+              <div className="flex items-center space-x-2 text-white">
+                <span className="text-lg">🌐</span>
+                <div>
+                  <p className="font-semibold text-sm">Explore Mode Active</p>
+                  <p className="text-xs opacity-90">Showing public videos from all courses</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIncludeAllPublicVideos(false)}
+                className="text-white hover:bg-white/20 rounded-full p-1 transition-colors"
+                title="Return to my courses only"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
           {/* Active Filter Indicator */}
           {selectedCourse && (
             <div className="sticky top-[57px] z-40 bg-gradient-to-r from-indigo-500 to-purple-500 border-b-2 border-white/20 px-4 py-3 flex items-center justify-between shadow-lg">
@@ -1083,8 +1119,15 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
         
         <div className="flex items-center space-x-2">
           {item.courseInitials && (
-            <span className="px-3 py-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-semibold rounded-full shadow-lg">
+            <span className={`px-3 py-1 text-white text-xs font-semibold rounded-full shadow-lg ${
+              item.isFromEnrolledCourse === false 
+                ? 'bg-gradient-to-r from-orange-500 to-red-500' 
+                : 'bg-gradient-to-r from-purple-500 to-blue-500'
+            }`}>
               {item.courseInitials}
+              {item.isFromEnrolledCourse === false && (
+                <span className="ml-1" title="Public video from another course">🌐</span>
+              )}
             </span>
           )}
           {isMyVideo && (
