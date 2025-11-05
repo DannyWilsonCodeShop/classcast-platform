@@ -183,7 +183,13 @@ export async function GET(request: NextRequest) {
           color,
           status: getCourseStatus(assignmentsDue.length, nextDeadline),
           assignmentCount: courseAssignments.length,
-          backgroundColor: color
+          backgroundColor: color,
+          // Add course visual identity fields
+          initials: course.iconInitials || course.code?.substring(0, 3).toUpperCase() || course.name?.substring(0, 3).toUpperCase() || 'CRS',
+          avatar: course.avatar || null,
+          iconInitials: course.iconInitials,
+          // For backward compatibility
+          unreadCount: 0
         };
       })
     );
