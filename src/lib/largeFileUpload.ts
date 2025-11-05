@@ -30,6 +30,11 @@ export class LargeFileUploader {
    * Determine if file should use large file upload
    */
   static shouldUseLargeFileUpload(file: File): boolean {
+    // Add mobile safety check
+    if (!file || typeof file.size !== 'number') {
+      console.warn('Invalid file object for large file check:', file);
+      return false;
+    }
     return file.size > this.LARGE_FILE_THRESHOLD;
   }
 
