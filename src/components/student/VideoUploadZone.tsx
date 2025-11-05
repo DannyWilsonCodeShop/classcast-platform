@@ -47,7 +47,23 @@ export const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({
     setDragCounter(0);
 
     const files = Array.from(e.dataTransfer.files);
-    const videoFile = files.find(file => allowedTypes.includes(file.type));
+    
+    // Mobile-specific file validation (though drag/drop rarely works on mobile)
+    const videoFile = files.find(file => {
+      if (!file) return false;
+      
+      // Check if file has required properties
+      if (typeof file.size !== 'number' || typeof file.type !== 'string') {
+        console.warn('Drag/drop file API issue - invalid file properties:', {
+          hasSize: typeof file.size,
+          hasType: typeof file.type,
+          fileName: file.name
+        });
+        return false;
+      }
+      
+      return allowedTypes.includes(file.type);
+    });
 
     if (videoFile) {
       onFileSelect(videoFile);
@@ -56,9 +72,31 @@ export const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({
 
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const videoFile = files.find(file => allowedTypes.includes(file.type));
+    
+    // Mobile-specific file validation
+    const videoFile = files.find(file => {
+      if (!file) return false;
+      
+      // Check if file has required properties (mobile browsers sometimes have issues)
+      if (typeof file.size !== 'number' || typeof file.type !== 'string') {
+        console.warn('Mobile file API issue - invalid file properties:', {
+          hasSize: typeof file.size,
+          hasType: typeof file.type,
+          fileName: file.name
+        });
+        return false;
+      }
+      
+      return allowedTypes.includes(file.type);
+    });
 
     if (videoFile) {
+      console.log('Mobile file selected:', {
+        name: videoFile.name,
+        size: videoFile.size,
+        type: videoFile.type,
+        lastModified: videoFile.lastModified
+      });
       onFileSelect(videoFile);
     }
 

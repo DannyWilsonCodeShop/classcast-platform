@@ -11,6 +11,8 @@ import LoadingSpinner from '../common/LoadingSpinner';
 import ContentModerationChecker from '../common/ContentModerationChecker';
 import { ContentModerationResult } from '@/lib/contentModeration';
 import { LargeFileUploader } from '@/lib/largeFileUpload';
+import { MobileVideoUpload } from './MobileVideoUpload';
+import { isMobileDevice, logDeviceInfo } from '@/lib/deviceDetection';
 
 export interface VideoSubmissionProps {
   assignmentId: string;
@@ -81,15 +83,35 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   const [moderationResult, setModerationResult] = useState<ContentModerationResult | null>(null);
   const [isModerating, setIsModerating] = useState(false);
   const [recordingMode, setRecordingMode] = useState<'upload' | 'record'>('upload');
+  const [isMobile, setIsMobile] = useState(false);
 
   const validateVideoFile = useCallback((file: File): string[] => {
     const errors: string[] = [];
+    
+    // Check if file exists and has required properties
+    if (!file) {
+      errors.push('No file provided');
+      return errors;
+    }
+    
+    if (typeof file.size !== 'number') {
+      errors.push('Invalid file: missing size information');
+      return errors;
+    }
+    
+    if (!file.type) {
+      errors.push('Invalid file: missing type information');
+      return errors;
+    }
+    
     if (file.size > maxFileSize) {
       errors.push(`File size must be less than ${Math.round(maxFileSize / (1024 * 1024))}MB`);
     }
+    
     if (!allowedVideoTypes.includes(file.type)) {
       errors.push(`File type ${file.type} is not supported`);
     }
+    
     return errors;
   }, [maxFileSize, allowedVideoTypes]);
 
@@ -165,6 +187,12 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   const handleFileSelect = useCallback(async (file: File) => {
     setValidationErrors([]);
     setSelectedFile(null);
+
+    // Check if file is valid
+    if (!file) {
+      setValidationErrors(['No file selected']);
+      return;
+    }
 
     const errors = validateVideoFile(file);
     if (errors.length > 0) {
@@ -429,6 +457,12 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
     };
   }, [selectedFile]);
 
+  // Device detection for mobile-specific handling
+  useEffect(() => {
+    setIsMobile(isMobileDevice());
+    logDeviceInfo(); // Log device info for debugging mobile issues
+  }, []);
+
   const canUpload = selectedFile && selectedFile.status === 'pending' && validationErrors.length === 0;
 
   return (
@@ -496,11 +530,19 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       )}
 
       {!selectedFile && recordingMode === 'upload' && (
-        <VideoUploadZone
-          onFileSelect={handleFileSelect}
-          allowedTypes={allowedVideoTypes}
-          maxFileSize={maxFileSize}
-        />
+        isMobile ? (
+          <MobileVideoUpload
+            onFileSelect={handleFileSelect}
+            allowedTypes={allowedVideoTypes}
+            maxFileSize={maxFileSize}
+          />
+        ) : (
+          <VideoUploadZone
+            onFileSelect={handleFileSelect}
+            allowedTypes={allowedVideoTypes}
+            maxFileSize={maxFileSize}
+          />
+        )
       )}
 
       {!selectedFile && recordingMode === 'record' && enableLiveRecording && (
