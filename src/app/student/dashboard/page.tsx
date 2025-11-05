@@ -11,7 +11,7 @@ import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
 import Avatar from '@/components/common/Avatar';
 import BugReportModal from '@/components/common/BugReportModal';
-import NotificationBell from '@/components/common/NotificationBell';
+
 import RichTextRenderer from '@/components/common/RichTextRenderer';
 
 interface Course {
@@ -299,7 +299,7 @@ const StudentDashboard: React.FC = () => {
               onClick={() => setShowPostComposer(!showPostComposer)}
               className="flex-1 px-4 py-2 bg-white/90 rounded-full text-left text-gray-600 text-sm hover:bg-white transition-all shadow-md"
             >
-              ✨ Post to community...
+              ✨ How are the vibes right now? Post!
             </button>
 
             {/* Explore Toggle */}
@@ -315,14 +315,7 @@ const StudentDashboard: React.FC = () => {
               </label>
             </div>
 
-            {/* Notification Bell */}
-            {user && (
-              <NotificationBell 
-                userId={user.id} 
-                userRole="student" 
-                className="flex-shrink-0"
-              />
-            )}
+
 
             {/* Help Button */}
             <button
