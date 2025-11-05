@@ -3,6 +3,7 @@ export interface Course {
   title: string;
   description: string;
   code: string; // e.g., "CS-101", "MATH-201"
+  classCode?: string; // e.g., "CS1011234" for students to join
   department: string;
   credits: number;
   semester: string; // e.g., "Fall 2024", "Spring 2025"
@@ -11,6 +12,10 @@ export interface Course {
   instructorId: string;
   instructorName: string;
   instructorEmail: string;
+  // Co-instructor support
+  coInstructorId?: string;
+  coInstructorEmail?: string;
+  coInstructorName?: string;
   status: 'draft' | 'published' | 'archived';
   startDate: string;
   endDate: string;
@@ -87,14 +92,24 @@ export interface CreateCourseData {
   code: string;
   classCode?: string;
   department: string;
+  credits?: number;
   semester: string;
   year: number;
-  backgroundColor: string;
+  backgroundColor?: string;
   startDate: string;
   endDate: string;
   maxStudents?: number;
   prerequisites?: string[];
   learningObjectives: string[];
+  // Co-instructor support
+  coInstructorEmail?: string;
+  coInstructorName?: string;
+  instructorId?: string;
+  schedule?: {
+    days: string[];
+    time: string;
+    location: string;
+  };
   gradingPolicy: {
     assignments: number;
     quizzes: number;
@@ -124,6 +139,7 @@ export interface CreateCourseData {
     enableDiscussions: boolean;
     enableAnnouncements: boolean;
     privacy: 'public' | 'private';
+    backgroundColor?: string;
   };
   instructorId?: string;
   courseId?: string;
