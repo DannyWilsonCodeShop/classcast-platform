@@ -69,6 +69,18 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    
+    // Debug: Log received data
+    console.log('🔍 Courses API: Received course creation request:', {
+      title: body.title,
+      instructorId: body.instructorId,
+      coInstructorEmail: body.coInstructorEmail,
+      coInstructorName: body.coInstructorName,
+      classCode: body.classCode,
+      backgroundColor: body.backgroundColor,
+      settings: body.settings
+    });
+    
     const {
       title,
       description,
@@ -86,6 +98,7 @@ export async function POST(request: NextRequest) {
       gradingPolicy,
       resources,
       settings,
+      backgroundColor, // Add backgroundColor from body
       coInstructorId, // NEW: Co-instructor support
       coInstructorEmail, // NEW: Co-instructor email
       coInstructorName // NEW: Co-instructor name
@@ -144,11 +157,12 @@ export async function POST(request: NextRequest) {
       title: title.trim(),
       description: description?.trim() || '',
       code: code.trim(),
-      classCode: classCode.trim(),
+      classCode: classCode?.trim() || '',
       department: department?.trim() || '',
       credits: 3, // Default credits
       semester: semester || 'Fall+Spring',
       year: year || new Date().getFullYear(),
+      backgroundColor: backgroundColor || '#4A90E2', // Add backgroundColor
       instructorId: instructorId.trim(),
       coInstructorId: coInstructorId?.trim() || null, // NEW: Add co-instructor
       coInstructorEmail: coInstructorEmail?.trim() || null,
@@ -174,13 +188,15 @@ export async function POST(request: NextRequest) {
         textbooks: [],
         materials: [],
       },
-      settings: settings || {
+      settings: {
         allowLateSubmissions: true,
         latePenalty: 10,
         allowResubmissions: false,
         enableDiscussions: true,
         enableAnnouncements: true,
         privacy: 'public', // Default to public for backward compatibility
+        backgroundColor: backgroundColor || '#4A90E2',
+        ...(settings || {})
       },
       status: 'published', // Set course as published so students can enroll
       currentEnrollment: 0, // Initialize enrollment count
@@ -198,6 +214,16 @@ export async function POST(request: NextRequest) {
       TableName: COURSES_TABLE,
       Item: course
     }));
+
+    console.log('✅ Course created successfully:', {
+      courseId: course.courseId,
+      title: course.title,
+      instructorId: course.instructorId,
+      coInstructorEmail: course.coInstructorEmail,
+      coInstructorName: course.coInstructorName,
+      backgroundColor: course.backgroundColor,
+      tableName: COURSES_TABLE
+    });
 
     return NextResponse.json({
       success: true,

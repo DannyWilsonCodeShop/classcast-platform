@@ -50,15 +50,24 @@ export async function GET(request: NextRequest) {
     }));
 
     const courses = (coursesResult.Items || []).map(course => ({
+      id: course.courseId, // Dashboard expects 'id'
       courseId: course.courseId,
+      title: course.title, // Dashboard expects 'title'
       courseName: course.courseName || course.title,
       courseCode: course.courseCode || course.code,
       description: course.description,
       semester: course.semester,
       year: course.year,
       status: course.status,
+      studentCount: course.currentEnrollment || course.enrollmentCount || 0, // Dashboard expects 'studentCount'
       enrollmentCount: course.currentEnrollment || course.enrollmentCount || 0,
       maxEnrollment: course.maxEnrollment || course.maxStudents,
+      assignmentsDue: 0, // Dashboard expects this field
+      backgroundColor: course.backgroundColor || course.settings?.backgroundColor || '#4A90E2',
+      // Co-instructor info
+      coInstructorEmail: course.coInstructorEmail,
+      coInstructorName: course.coInstructorName,
+      userRole: course.coInstructorEmail ? 'primary' : 'primary', // Could be enhanced to detect co-instructor role
       createdAt: course.createdAt,
       updatedAt: course.updatedAt
     }));
