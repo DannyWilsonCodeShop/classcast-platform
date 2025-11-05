@@ -26,6 +26,7 @@ export interface FeedItem {
   likes?: number;
   comments?: number;
   isLiked?: boolean; // Track if current user has liked this video
+  isFromEnrolledCourse?: boolean; // Track if video is from student's enrolled course
   
   // Community post-specific
   content?: string;
@@ -42,6 +43,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const includeAllPublic = searchParams.get('includeAllPublic') === 'true'; // New parameter
     
     if (!userId) {
       return NextResponse.json(
@@ -49,6 +51,8 @@ export async function GET(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    console.log(`📡 Fetching feed for user ${userId}, includeAllPublic: ${includeAllPublic}`);
 
     // Get student's enrolled courses
     const coursesResult = await docClient.send(new ScanCommand({
@@ -61,6 +65,18 @@ export async function GET(request: NextRequest) {
     );
 
     const courseIds = studentCourses.map(c => c.courseId);
+    
+    // If includeAllPublic is true, also include public courses
+    let allowedCourseIds = courseIds;
+    if (includeAllPublic) {
+      // Include all courses that are marked as public or don't have privacy settings
+      const publicCourses = allCourses.filter(course => 
+        course.isPublic !== false && course.privacy !== 'private'
+      );
+      allowedCourseIds = [...new Set([...courseIds, ...publicCourses.map(c => c.courseId)])];
+      console.log(`🌐 Including public videos from ${allowedCourseIds.length - courseIds.length} additional courses`);
+    }
+    
     const feedItems: FeedItem[] = [];
 
     // Fetch video submissions from enrolled courses (with error handling)
@@ -78,10 +94,13 @@ export async function GET(request: NextRequest) {
       for (const sub of submissions) {
         console.log(`🔍 Checking submission ${sub.submissionId}: courseId=${sub.courseId}, status=${sub.status}, hidden=${sub.hidden}`);
         
-        if (!courseIds.includes(sub.courseId)) {
-          console.log(`  ❌ Skipped: courseId ${sub.courseId} not in student's courses`);
+        if (!allowedCourseIds.includes(sub.courseId)) {
+          console.log(`  ❌ Skipped: courseId ${sub.courseId} not in allowed courses`);
           continue;
         }
+        
+        // Mark if this video is from a course the student is not enrolled in
+        const isFromEnrolledCourse = courseIds.includes(sub.courseId);
         if (sub.status === 'deleted') {
           console.log(`  ❌ Skipped: status is deleted`);
           continue;
@@ -93,7 +112,8 @@ export async function GET(request: NextRequest) {
         
         console.log(`  ✅ Including video submission: ${sub.videoTitle || 'Untitled'}`);
         
-        const course = studentCourses.find(c => c.courseId === sub.courseId);
+        const course = studentCourses.find(c => c.courseId === sub.courseId) || 
+                      allCourses.find(c => c.courseId === sub.courseId);
         
         let videoId = null;
         try {
@@ -227,7 +247,8 @@ export async function GET(request: NextRequest) {
             },
             likes: sub.likes || 0,
             comments: sub.commentCount || 0,
-            isLiked: isLiked
+            isLiked: isLiked,
+            isFromEnrolledCourse: isFromEnrolledCourse // Add this flag
           });
           console.log(`  ✓ Video added successfully (isLiked: ${isLiked})`);
         } catch (pushError) {

@@ -15,13 +15,7 @@ const nextConfig: NextConfig = {
     // typedRoutes: true, // This will cause Turbopack to fail
   },
   
-  // Configure API routes for large file uploads
-  api: {
-    bodyParser: {
-      sizeLimit: '3gb', // Allow up to 3GB file uploads
-    },
-    responseLimit: false, // Disable response size limit
-  },
+  // Note: API route configuration moved to individual route files in Next.js 15
   
   // Optimize images
   images: {
