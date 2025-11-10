@@ -26,9 +26,10 @@ export async function PUT(
       );
     }
 
-    if (grade === undefined || grade === null) {
+    // At least grade or feedback must be provided
+    if ((grade === undefined || grade === null) && !feedback) {
       return NextResponse.json(
-        { success: false, error: 'Grade is required' },
+        { success: false, error: 'Grade or feedback is required' },
         { status: 400 }
       );
     }
@@ -46,22 +47,42 @@ export async function PUT(
       );
     }
 
-    // Update submission with grade
+    // Update submission with grade and/or feedback
     const now = new Date().toISOString();
+    
+    // Build update expression dynamically based on what's provided
+    const updateParts: string[] = [];
+    const expressionAttributeValues: Record<string, any> = {
+      ':updatedAt': now
+    };
+    const expressionAttributeNames: Record<string, string> = {};
+
+    if (grade !== undefined && grade !== null) {
+      updateParts.push('grade = :grade');
+      expressionAttributeValues[':grade'] = Number(grade);
+      updateParts.push('gradedAt = :gradedAt');
+      expressionAttributeValues[':gradedAt'] = now;
+    }
+
+    if (feedback !== undefined) {
+      updateParts.push('instructorFeedback = :feedback');
+      expressionAttributeValues[':feedback'] = feedback || '';
+    }
+
+    if (status) {
+      updateParts.push('#status = :status');
+      expressionAttributeNames['#status'] = 'status';
+      expressionAttributeValues[':status'] = status;
+    }
+
+    updateParts.push('updatedAt = :updatedAt');
+
     const updateResult = await docClient.send(new UpdateCommand({
       TableName: SUBMISSIONS_TABLE,
       Key: { submissionId },
-      UpdateExpression: 'SET grade = :grade, instructorFeedback = :feedback, #status = :status, gradedAt = :gradedAt, updatedAt = :updatedAt',
-      ExpressionAttributeNames: {
-        '#status': 'status'
-      },
-      ExpressionAttributeValues: {
-        ':grade': Number(grade),
-        ':feedback': feedback || '',
-        ':status': status || 'graded',
-        ':gradedAt': now,
-        ':updatedAt': now
-      },
+      UpdateExpression: `SET ${updateParts.join(', ')}`,
+      ExpressionAttributeNames: Object.keys(expressionAttributeNames).length > 0 ? expressionAttributeNames : undefined,
+      ExpressionAttributeValues: expressionAttributeValues,
       ReturnValues: 'ALL_NEW'
     }));
 
