@@ -2102,8 +2102,8 @@ const BulkGradingPage: React.FC = () => {
 
       {/* Bulk Grading Modal */}
       {showBulkGrading && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                 <span className="text-2xl">📝</span>
@@ -2141,8 +2141,8 @@ const BulkGradingPage: React.FC = () => {
                   id="bulkFeedback"
                   value={bulkFeedback}
                   onChange={(e) => setBulkFeedback(e.target.value)}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent resize-none"
+                  rows={8}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent resize-y"
                   placeholder="Enter feedback to apply to all selected submissions (optional)"
                 />
               </div>
