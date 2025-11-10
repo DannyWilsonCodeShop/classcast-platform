@@ -894,16 +894,26 @@ const BulkGradingPage: React.FC = () => {
       await Promise.all(promises);
 
       // Update local state for all graded submissions
-      setSubmissions(prev => prev.map(sub => 
-        selectedSubmissions.has(sub.id)
-          ? {
-              ...sub,
-              grade: bulkGrade ? Number(bulkGrade) : sub.grade,
-              feedback: bulkFeedback.trim() || sub.feedback,
-              status: 'graded' as const
-            }
-          : sub
-      ));
+      setSubmissions(prev => prev.map(sub => {
+        if (!selectedSubmissions.has(sub.id)) {
+          return sub;
+        }
+        
+        const updates: any = { ...sub, status: 'graded' as const };
+        
+        // Update grade if provided
+        if (bulkGrade) {
+          updates.grade = Number(bulkGrade);
+        }
+        
+        // Update feedback if provided
+        if (bulkFeedback.trim()) {
+          updates.instructorFeedback = bulkFeedback.trim();
+          updates.feedback = bulkFeedback.trim(); // For backward compatibility
+        }
+        
+        return updates;
+      }));
 
       console.log('✅ Bulk grading completed successfully');
       alert(`✅ Successfully graded ${selectedSubmissions.size} submissions!`);
