@@ -33,6 +33,8 @@ interface Submission {
     maxResponsesPerVideo?: number;
     responseWordLimit?: number;
     responseCharacterLimit?: number;
+    maxPoints?: number;
+    maxScore?: number;
   };
   isPinned?: boolean;
   isHighlighted?: boolean;
@@ -1393,29 +1395,6 @@ const BulkGradingPage: React.FC = () => {
                               onEnded={() => index === currentSubmissionIndex && setIsPlaying(false)}
                             />
                           )}
-                          
-                          {/* Video Controls Overlay */}
-                          {index === currentSubmissionIndex && (
-                            <div className="absolute bottom-4 left-4 right-4">
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={handlePlayPause}
-                                  className="w-8 h-8 bg-black/70 text-white rounded-full flex items-center justify-center hover:bg-black/90 transition-colors"
-                                >
-                                  {isPlaying ? '⏸️' : '▶️'}
-                                </button>
-                                
-                                <div className="flex-1 bg-gray-200 rounded-full h-1">
-                                  <div 
-                                    className="bg-blue-500 h-1 rounded-full transition-all duration-200"
-                                    style={{ width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%` }}
-                                  />
-                                </div>
-                                
-                                <span className="text-white text-xs">
-                                  {formatTime(currentTime)} / {formatTime(duration)}
-                                </span>
-                              </div>
                             </div>
                           )}
                         </div>
@@ -1682,7 +1661,7 @@ const BulkGradingPage: React.FC = () => {
                         <div className="space-y-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Grade (0-100)
+                              Grade (0-{submission.assignment?.maxPoints || submission.assignment?.maxScore || 100})
                             </label>
                             <input
                               type="number"
@@ -1704,8 +1683,8 @@ const BulkGradingPage: React.FC = () => {
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               min="0"
-                              max="100"
-                              placeholder="Enter grade"
+                              max={submission.assignment?.maxPoints || submission.assignment?.maxScore || 100}
+                              placeholder={`Enter grade (max: ${submission.assignment?.maxPoints || submission.assignment?.maxScore || 100})`}
                             />
                           </div>
                           

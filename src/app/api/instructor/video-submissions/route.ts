@@ -200,9 +200,16 @@ export async function GET(request: NextRequest) {
       console.log('Found all submissions:', submissions.length);
     }
 
+    // Filter out deleted submissions
+    const activeSubmissions = submissions.filter(sub => 
+      sub.status !== 'deleted' && !sub.hidden
+    );
+    
+    console.log(`Filtered submissions: ${submissions.length} total, ${activeSubmissions.length} active`);
+
     // Enrich submissions with student, assignment data, and signed video URLs
     const enrichedSubmissions = await Promise.all(
-      submissions.map(async (submission) => {
+      activeSubmissions.map(async (submission) => {
         try {
           console.log('Enriching submission:', submission.submissionId);
           
