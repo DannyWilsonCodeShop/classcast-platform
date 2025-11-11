@@ -74,18 +74,18 @@ const SubmissionsListContent: React.FC = () => {
           if (data.success && data.submissions) {
             const transformedSubmissions = data.submissions.map((sub: any) => ({
               id: sub.submissionId || sub.id,
-              studentName: sub.studentName || 'Unknown Student',
-              studentId: sub.studentId,
-              assignmentTitle: sub.assignmentTitle || sub.title,
-              assignmentId: sub.assignmentId,
+              studentName: sub.student?.name || sub.studentName || 'Unknown Student',
+              studentId: sub.studentId || sub.student?.id,
+              assignmentTitle: sub.assignment?.title || sub.assignmentTitle || sub.title || 'Unknown Assignment',
+              assignmentId: sub.assignmentId || sub.assignment?.id,
               courseName: sub.courseName || 'Unknown Course',
               courseCode: sub.courseCode || '',
               submittedAt: sub.submittedAt || sub.createdAt,
-              status: sub.status || 'pending',
+              status: sub.status === 'graded' ? 'graded' : 'pending',
               grade: sub.grade,
               feedback: sub.feedback || sub.instructorFeedback,
               fileUrl: sub.videoUrl || sub.fileUrl,
-              thumbnailUrl: sub.thumbnailUrl || '',
+              thumbnailUrl: sub.thumbnailUrl || '/api/placeholder/300/200',
               duration: sub.duration || 0,
               fileSize: sub.fileSize || 0
             }));
