@@ -818,7 +818,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
           )}
 
               {/* Submission Status */}
-              {submission ? (
+              {submission && (
                 <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                   <h3 className="text-lg font-semibold text-green-800 mb-2">✅ Submitted</h3>
                   <p className="text-green-700 mb-4">
@@ -941,9 +941,6 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   )}
                 </div>
             </div>
-          ) : (
-            // No submission - handled by top section
-            <div></div>
           )}
         </div>
       </div>
