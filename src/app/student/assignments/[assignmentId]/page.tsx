@@ -695,6 +695,44 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   )}
                 </div>
 
+            {/* Submit Assignment Section - Moved to Top */}
+            {!submission && (
+              <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold text-blue-900 mb-2 flex items-center">
+                      <span className="mr-2">🎥</span>
+                      Ready to Submit?
+                    </h3>
+                    <p className="text-blue-700 mb-4">
+                      You haven't submitted this assignment yet. Click below to record and submit your video.
+                    </p>
+                    <div className="flex items-center space-x-4 text-sm text-blue-600">
+                      <span className="flex items-center">
+                        📅 Due: {new Date(displayAssignment.dueDate).toLocaleDateString('en-US', { 
+                          weekday: 'short',
+                          month: 'short', 
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      <span className="flex items-center">
+                        ⭐ Worth: {displayAssignment.points} points
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&courseId=${displayAssignment.courseId}`)}
+                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transition-all duration-200 font-bold text-lg flex items-center space-x-2"
+                  >
+                    <span>🎥</span>
+                    <span>Submit Assignment</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Assignment Details */}
             <div className="space-y-6">
                   {/* Instructional Video */}
@@ -1013,20 +1051,6 @@ const StudentAssignmentDetailPage: React.FC = () => {
                       )}
                     </div>
                   )}
-                </div>
-              ) : (
-                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">📝 Not Submitted</h3>
-                  <p className="text-yellow-700 mb-4">
-                    You haven't submitted this assignment yet. Make sure to submit before the due date.
-                    </p>
-                    <button
-                    onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&courseId=${displayAssignment.courseId}`)}
-                      className="px-6 py-3 bg-[#005587] text-white rounded-lg hover:bg-[#003d5c] hover:shadow-lg transition-all duration-200 font-semibold"
-                    >
-                    <span className="mr-2">🎥</span>
-                    Submit Assignment
-                    </button>
                 </div>
               )}
             </div>
