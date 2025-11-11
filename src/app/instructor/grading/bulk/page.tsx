@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import YouTubePlayer from '@/components/common/YouTubePlayer';
 import { getVideoUrl } from '@/lib/videoUtils';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Submission {
   id: string;
@@ -35,6 +36,9 @@ interface Submission {
     responseCharacterLimit?: number;
     maxPoints?: number;
     maxScore?: number;
+    dueDate?: string;
+    title?: string;
+    description?: string;
   };
   isPinned?: boolean;
   isHighlighted?: boolean;
@@ -51,6 +55,7 @@ interface Submission {
 
 const BulkGradingPage: React.FC = () => {
   const router = useRouter();
+  const { user } = useAuth();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [currentSubmissionIndex, setCurrentSubmissionIndex] = useState(0);
@@ -345,14 +350,17 @@ const BulkGradingPage: React.FC = () => {
     return mockResponses.filter(response => response.reviewerId === studentId);
   };
 
-  // Assignment due date for timing calculations
-  const assignmentDueDate = ''; // TODO: Get from assignment data
-
   // Fetch submissions from API
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
         setIsLoading(true);
+        
+        // Don't fetch if user is not loaded yet
+        if (!user?.userId) {
+          console.log('Waiting for user to load...');
+          return;
+        }
         
         // Get URL parameters for filtering
         const urlParams = new URLSearchParams(window.location.search);
@@ -362,6 +370,9 @@ const BulkGradingPage: React.FC = () => {
         
         let apiUrl = '/api/instructor/video-submissions';
         const params = new URLSearchParams();
+        
+        // Always filter by instructor ID for security
+        params.append('instructorId', user.userId);
         
         if (assignmentId) params.append('assignmentId', assignmentId);
         if (courseId) params.append('courseId', courseId);
@@ -430,7 +441,7 @@ const BulkGradingPage: React.FC = () => {
     };
     
     fetchSubmissions();
-  }, []);
+  }, [user?.userId]);
 
   // Navigate to specific submission if provided in URL
   useEffect(() => {
@@ -1279,7 +1290,7 @@ const BulkGradingPage: React.FC = () => {
                         : submission.isHighlighted
                         ? 'border-[#FFC72C]/60 bg-amber-50/30 shadow-md'
                         : (() => {
-                            const timingStatus = getSubmissionTimingStatus(submission, assignmentDueDate);
+                            const timingStatus = getSubmissionTimingStatus(submission, submission.assignment?.dueDate);
                             if (timingStatus.status === 'late') {
                               return 'border-red-200 bg-red-50/50 hover:border-red-300 hover:shadow-md';
                             } else if (timingStatus.status === 'ontime') {
@@ -1418,7 +1429,11 @@ const BulkGradingPage: React.FC = () => {
                           )}
                           <div className="flex items-center space-x-4 mb-3">
                             <p className="text-xs text-gray-500">
-                              Video Due: {new Date(assignmentDueDate).toLocaleDateString()}
+                              {submission.assignment?.dueDate ? (
+                                <>Video Due: {new Date(submission.assignment.dueDate).toLocaleDateString()}</>
+                              ) : (
+                                <>No due date set</>
+                              )}
                               {submission.assignment?.enablePeerResponses && submission.assignment?.responseDueDate && (
                                 <> • Responses Due: {new Date(submission.assignment.responseDueDate).toLocaleDateString()}</>
                               )}
@@ -1426,7 +1441,7 @@ const BulkGradingPage: React.FC = () => {
                             
                             {/* Timing Status with Icon */}
                             {(() => {
-                              const timingStatus = getSubmissionTimingStatus(submission, assignmentDueDate);
+                              const timingStatus = getSubmissionTimingStatus(submission, submission.assignment?.dueDate);
                               return (
                                 <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
                                   timingStatus.color === 'green' 
@@ -1507,7 +1522,7 @@ const BulkGradingPage: React.FC = () => {
                               
                               {/* Timing Status Indicator */}
                               {(() => {
-                                const timingStatus = getSubmissionTimingStatus(submission, assignmentDueDate);
+                                const timingStatus = getSubmissionTimingStatus(submission, submission.assignment?.dueDate);
                                 return (
                                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                     timingStatus.color === 'green' 
