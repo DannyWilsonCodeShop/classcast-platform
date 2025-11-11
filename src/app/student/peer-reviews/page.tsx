@@ -350,8 +350,10 @@ const PeerReviewsContent: React.FC = () => {
 
   const handleSubmitResponse = async (videoId: string) => {
     const responseText = responseTexts.get(videoId);
-    if (!responseText || responseText.trim().length < 50) {
-      setShowNotification({ message: 'Response must be at least 50 characters', type: 'error' });
+    const wordCount = responseText?.trim().split(/\s+/).filter(w => w.length > 0).length || 0;
+    
+    if (!responseText || wordCount < 50) {
+      setShowNotification({ message: `Response must be at least 50 words (currently ${wordCount} words)`, type: 'error' });
       return;
     }
     
@@ -585,21 +587,31 @@ const PeerReviewsContent: React.FC = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                     Your Response to {video.studentName}'s Video
                 </label>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                    <p className="text-sm text-blue-800">
+                      <strong>📝 Requirement:</strong> Your response must be at least <strong>50 words</strong> to provide meaningful feedback to your peer.
+                    </p>
+                  </div>
                     <textarea
                     value={responseTexts.get(video.id) || ''}
                     onChange={(e) => updateResponseText(video.id, e.target.value)}
                     className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                     rows={6}
-                    placeholder="Write a thoughtful response (minimum 50 characters)..."
+                    placeholder="Write a thoughtful response to your peer's video. Be specific about what they did well and offer constructive suggestions..."
                   />
                   <div className="flex items-center justify-between mt-3">
-                    <span className={`text-sm ${
-                      (responseTexts.get(video.id)?.length || 0) >= 50 
-                        ? 'text-green-600' 
-                        : 'text-gray-500'
-                    }`}>
-                      {responseTexts.get(video.id)?.length || 0} / 50 characters minimum
+                    <div className="flex items-center space-x-4">
+                      <span className={`text-sm font-medium ${
+                        (responseTexts.get(video.id)?.trim().split(/\s+/).filter(w => w.length > 0).length || 0) >= 50 
+                          ? 'text-green-600' 
+                          : 'text-gray-600'
+                      }`}>
+                        {responseTexts.get(video.id)?.trim().split(/\s+/).filter(w => w.length > 0).length || 0} / 50 words minimum
                       </span>
+                      <span className="text-xs text-gray-500">
+                        ({responseTexts.get(video.id)?.length || 0} characters)
+                      </span>
+                    </div>
                       <div className="flex items-center space-x-2">
                           <button
                         onClick={() => toggleResponseForm(video.id)}
@@ -609,7 +621,7 @@ const PeerReviewsContent: React.FC = () => {
                           </button>
                             <button
                         onClick={() => handleSubmitResponse(video.id)}
-                        disabled={!responseTexts.get(video.id) || responseTexts.get(video.id)!.length < 50 || submitting === video.id}
+                        disabled={!responseTexts.get(video.id) || (responseTexts.get(video.id)?.trim().split(/\s+/).filter(w => w.length > 0).length || 0) < 50 || submitting === video.id}
                               className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                             >
                         {submitting === video.id ? 'Submitting...' : 'Submit Response'}

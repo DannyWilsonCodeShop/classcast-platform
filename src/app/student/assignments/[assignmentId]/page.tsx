@@ -1093,9 +1093,12 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
               {peerResponses.length < (displayAssignment.minResponsesRequired || 0) && (
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-sm text-blue-700">
+                  <p className="text-sm text-blue-700 mb-2">
                     💡 <strong>Required:</strong> Review {displayAssignment.minResponsesRequired} peer submissions to complete this assignment. 
                     You've completed {peerResponses.length} of {displayAssignment.minResponsesRequired}.
+                  </p>
+                  <p className="text-xs text-blue-600">
+                    📝 Each response must be at least <strong>50 words</strong> to provide meaningful feedback.
                   </p>
                 </div>
               )}
