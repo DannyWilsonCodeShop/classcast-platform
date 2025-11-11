@@ -861,9 +861,6 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   const [showComments, setShowComments] = React.useState(false);
   const [commentText, setCommentText] = React.useState('');
   const [isSubmittingComment, setIsSubmittingComment] = React.useState(false);
-  const [showRespond, setShowRespond] = React.useState(false);
-  const [respondText, setRespondText] = React.useState('');
-  const [isSubmittingRespond, setIsSubmittingRespond] = React.useState(false);
   const [userRating, setUserRating] = React.useState<number>(0); // 0 means not rated, 1-5 is the rating
   const [averageRating, setAverageRating] = React.useState<number>(0); // Average rating from all users
   const videoRef = React.useRef<HTMLVideoElement>(null);
@@ -1013,51 +1010,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
     }
   };
 
-  const handleRespond = async () => {
-    const wordCount = respondText.trim().split(/\s+/).filter(w => w.length > 0).length;
-    
-    if (!respondText.trim() || isSubmittingRespond || !user) return;
-    
-    if (wordCount < 50) {
-      alert(`Response must be at least 50 words (currently ${wordCount} words)`);
-      return;
-    }
-    
-    try {
-      setIsSubmittingRespond(true);
-      console.log('🔄 Attempting to submit response for video:', item.id, 'with user:', user.id);
-      const response = await fetch(`/api/videos/${item.id}/interactions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'response',
-          userId: user.id,
-          userName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-          userAvatar: user.avatar || '/api/placeholder/40/40',
-          content: respondText.trim()
-        }),
-      });
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Response submitted:', data);
-        if (data.success) {
-          setRespondText('');
-          setShowRespond(false);
-          // Optionally show success message
-        }
-      } else {
-        const errorData = await response.json();
-        console.error('❌ Failed to submit response:', errorData);
-      }
-    } catch (error) {
-      console.error('❌ Error submitting response:', error);
-    } finally {
-      setIsSubmittingRespond(false);
-    }
-  };
 
   const handleRating = async (rating: number) => {
     if (!user || !item.id) return;
@@ -1390,47 +1343,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
         </div>
       )}
 
-      {/* Respond Section */}
-      {showRespond && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="space-y-3">
-            <h4 className="text-sm font-semibold text-gray-900">Submit Your Response</h4>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2">
-              <p className="text-xs text-blue-800">
-                <strong>📝 Requirement:</strong> Your response must be at least <strong>50 words</strong> to provide meaningful feedback.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <textarea
-                value={respondText}
-                onChange={(e) => setRespondText(e.target.value)}
-                placeholder="Write a thoughtful response to your peer's video. Be specific about what they did well and offer constructive suggestions..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
-                rows={4}
-              />
-              <div className="flex items-center justify-between">
-                <span className={`text-xs font-medium ${
-                  (respondText.trim().split(/\s+/).filter(w => w.length > 0).length) >= 50 
-                    ? 'text-green-600' 
-                    : 'text-gray-600'
-                }`}>
-                  {respondText.trim().split(/\s+/).filter(w => w.length > 0).length} / 50 words minimum
-                </span>
-                <button
-                  onClick={handleRespond}
-                  disabled={!respondText.trim() || (respondText.trim().split(/\s+/).filter(w => w.length > 0).length) < 50 || isSubmittingRespond}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isSubmittingRespond ? 'Submitting...' : 'Submit'}
-                </button>
-              </div>
-            </div>
-            <p className="text-xs text-gray-500">
-              This response will be submitted for grading and assessment.
-            </p>
-          </div>
-        </div>
-      )}
+
     </div>
   );
 };
@@ -1581,15 +1494,7 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
           </svg>
           <span className="text-sm">{comments} {comments === 1 ? 'comment' : 'comments'}</span>
         </button>
-        <button 
-          onClick={() => router.push(`/student/grading/${item.id}`)}
-          className="flex items-center space-x-1 hover:text-green-500 transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="text-sm">Respond</span>
-        </button>
+
       </div>
 
       {/* Collapsible Comments Section */}
