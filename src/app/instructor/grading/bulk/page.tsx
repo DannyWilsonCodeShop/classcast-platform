@@ -382,15 +382,19 @@ const BulkGradingPage: React.FC = () => {
           apiUrl += `?${params.toString()}`;
         }
         
-        console.log('Fetching submissions from:', apiUrl);
+        console.log('🔍 Bulk grading: Fetching submissions from:', apiUrl);
+        console.log('🔍 Bulk grading: User ID:', user.userId);
         
         const response = await fetch(apiUrl, {
           credentials: 'include',
         });
         
+        console.log('🔍 Bulk grading: API response status:', response.status);
+        
         if (response.ok) {
           const data = await response.json();
-          console.log('Bulk grading submissions response:', data);
+          console.log('🔍 Bulk grading: API response data:', data);
+          console.log('🔍 Bulk grading: Submissions count:', data.submissions?.length || 0);
           
           if (data.success && data.submissions) {
             // Transform API response to match expected interface
@@ -423,13 +427,33 @@ const BulkGradingPage: React.FC = () => {
             }));
             
             setSubmissions(transformedSubmissions);
-            console.log('Set submissions:', transformedSubmissions.length);
+            console.log('🔍 Bulk grading: Set submissions count:', transformedSubmissions.length);
+            
+            // Debug: Also call the debug endpoint to see instructor data
+            if (transformedSubmissions.length === 0) {
+              console.log('🔍 No submissions found, calling debug endpoint...');
+              try {
+                const debugResponse = await fetch(`/api/debug/instructor-data?instructorId=${user.userId}`, {
+                  credentials: 'include',
+                });
+                if (debugResponse.ok) {
+                  const debugData = await debugResponse.json();
+                  console.log('🔍 Debug instructor data:', debugData);
+                } else {
+                  console.log('🔍 Debug endpoint failed:', debugResponse.status);
+                }
+              } catch (debugError) {
+                console.log('🔍 Debug endpoint error:', debugError);
+              }
+            }
           } else {
-            console.log('No submissions found or API error:', data.error);
+            console.log('🔍 Bulk grading: No submissions found or API error:', data.error);
             setSubmissions([]);
           }
         } else {
-          console.error('Failed to fetch submissions:', response.status);
+          console.error('🔍 Bulk grading: Failed to fetch submissions:', response.status);
+          const errorText = await response.text();
+          console.error('🔍 Bulk grading: Error response:', errorText);
           setSubmissions([]);
         }
       } catch (error) {
