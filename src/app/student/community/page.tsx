@@ -11,9 +11,9 @@ interface Post {
   id: string;
   title: string;
   content: string;
-  userId: string;
-  userName: string;
-  userAvatar: string;
+  userId?: string;
+  author: string;
+  authorAvatar?: string;
   timestamp: string;
   likes: number;
   comments: number;
@@ -206,21 +206,21 @@ const CommunityPage: React.FC = () => {
                   {/* Header */}
                   <div className="flex items-center space-x-3 mb-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {post.userAvatar && !post.userAvatar.includes('placeholder') ? (
+                      {post.authorAvatar && !post.authorAvatar.includes('placeholder') ? (
                         // Check if avatar is an emoji
-                        /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(post.userAvatar) ? (
-                          <span className="text-lg">{post.userAvatar}</span>
+                        /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(post.authorAvatar) ? (
+                          <span className="text-lg">{post.authorAvatar}</span>
                         ) : (
-                          <img src={post.userAvatar} alt={post.userName} className="w-full h-full object-cover" />
+                          <img src={post.authorAvatar} alt={post.author} className="w-full h-full object-cover" />
                         )
                       ) : (
                         <span className="text-white font-semibold text-sm">
-                          {post.userName.split(' ').map(n => n[0]).join('')}
+                          {post.author.split(' ').map(n => n[0]).join('')}
                         </span>
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-sm text-gray-900">{post.userName}</p>
+                      <p className="font-semibold text-sm text-gray-900">{post.author}</p>
                       <p className="text-xs text-gray-500">{formatTimestamp(post.timestamp)}</p>
                     </div>
                   </div>
