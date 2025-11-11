@@ -188,14 +188,7 @@ const SubmissionsListContent: React.FC = () => {
                 </div>
               </div>
               
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => router.push(`/instructor/grading/bulk?assignment=${selectedAssignment}&course=${selectedCourse}`)}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
-                >
-                  Start Grading →
-                </button>
-              </div>
+
             </div>
           </div>
         </div>
