@@ -7,6 +7,7 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import CourseSettingsModal from '@/components/instructor/CourseSettingsModal';
 import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
+import AssignmentDetailsModal from '@/components/instructor/AssignmentDetailsModal';
 import SectionList from '@/components/instructor/SectionList';
 import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
 import RichTextRenderer from '@/components/common/RichTextRenderer';
@@ -181,6 +182,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
+  const [viewingAssignment, setViewingAssignment] = useState<Assignment | null>(null);
   const [activeTab, setActiveTab] = useState<'assignments' | 'submissions' | 'students'>('assignments');
   const [globalPlaybackSpeed, setGlobalPlaybackSpeed] = useState(1.0);
   const [gradingSubmission, setGradingSubmission] = useState<string | null>(null);
@@ -874,13 +876,21 @@ const InstructorCourseDetailPage: React.FC = () => {
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => setEditingAssignment(assignment)}
-                        className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg font-medium hover:bg-indigo-600 transition-colors text-sm"
-                      >
-                        Edit
-                      </button>
+                    <div className="space-y-2">
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => setViewingAssignment(assignment)}
+                          className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors text-sm"
+                        >
+                          👁️ View Details
+                        </button>
+                        <button
+                          onClick={() => setEditingAssignment(assignment)}
+                          className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg font-medium hover:bg-indigo-600 transition-colors text-sm"
+                        >
+                          ✏️ Edit
+                        </button>
+                      </div>
                       <button
                         onClick={async () => {
                           try {
@@ -909,9 +919,9 @@ const InstructorCourseDetailPage: React.FC = () => {
                             router.push(`/instructor/grading/bulk?assignment=${assignment.assignmentId}&course=${courseId}`);
                           }
                         }}
-                        className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                        className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
                       >
-                        Grade Submissions
+                        📊 Grade Submissions
                       </button>
                     </div>
                   </div>
@@ -1471,6 +1481,19 @@ const InstructorCourseDetailPage: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Assignment Details Modal */}
+        {viewingAssignment && (
+          <AssignmentDetailsModal
+            assignment={viewingAssignment}
+            isOpen={!!viewingAssignment}
+            onClose={() => setViewingAssignment(null)}
+            onEdit={() => {
+              setEditingAssignment(viewingAssignment);
+              setViewingAssignment(null);
+            }}
+          />
         )}
 
         {/* Course Settings Modal */}
