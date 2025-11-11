@@ -1395,8 +1395,6 @@ const BulkGradingPage: React.FC = () => {
                               onEnded={() => index === currentSubmissionIndex && setIsPlaying(false)}
                             />
                           )}
-                            </div>
-                          )}
                         </div>
                       </div>
 
