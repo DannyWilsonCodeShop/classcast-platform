@@ -51,6 +51,8 @@ const PeerReviewsContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [submitting, setSubmitting] = useState<string | null>(null);
   const [showNotification, setShowNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [editingResponse, setEditingResponse] = useState<string | null>(null); // Track which response is being edited
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null); // Track which response to delete
 
   const assignmentId = searchParams.get('assignmentId');
   const videoId = searchParams.get('videoId');
@@ -392,6 +394,84 @@ const PeerReviewsContent: React.FC = () => {
     }
   };
 
+  const handleEditResponse = (videoId: string) => {
+    const response = responses.get(videoId);
+    if (response) {
+      setResponseTexts(new Map(responseTexts.set(videoId, response.content)));
+      setEditingResponse(videoId);
+      setShowResponseForms(new Set(showResponseForms).add(videoId));
+    }
+  };
+
+  const handleUpdateResponse = async (videoId: string) => {
+    const responseText = responseTexts.get(videoId);
+    const wordCount = responseText?.trim().split(/\s+/).filter(w => w.length > 0).length || 0;
+    
+    if (!responseText || wordCount < 50) {
+      setShowNotification({ message: `Response must be at least 50 words (currently ${wordCount} words)`, type: 'error' });
+      return;
+    }
+    
+    try {
+      setSubmitting(videoId);
+      const response = responses.get(videoId);
+      
+      const apiResponse = await fetch('/api/peer-responses', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          responseId: response?.responseId,
+          content: responseText.trim(),
+          isSubmitted: true
+        })
+      });
+
+      if (apiResponse.ok) {
+        const data = await apiResponse.json();
+        // Update local state
+        const updatedResponse = { ...response!, content: responseText.trim(), updatedAt: new Date().toISOString() };
+        setResponses(new Map(responses.set(videoId, updatedResponse as PeerResponse)));
+        setEditingResponse(null);
+        toggleResponseForm(videoId);
+        setShowNotification({ message: '✅ Response updated successfully!', type: 'success' });
+      } else {
+        setShowNotification({ message: '❌ Failed to update response', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error updating response:', error);
+      setShowNotification({ message: '❌ Error updating response', type: 'error' });
+    } finally {
+      setSubmitting(null);
+    }
+  };
+
+  const handleDeleteResponse = async (videoId: string) => {
+    const response = responses.get(videoId);
+    if (!response) return;
+    
+    try {
+      const apiResponse = await fetch(`/api/peer-responses?responseId=${response.responseId}&userId=${user?.id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (apiResponse.ok) {
+        // Remove from local state
+        const newResponses = new Map(responses);
+        newResponses.delete(videoId);
+        setResponses(newResponses);
+        setDeleteConfirm(null);
+        setShowNotification({ message: '✅ Response deleted successfully!', type: 'success' });
+      } else {
+        setShowNotification({ message: '❌ Failed to delete response', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error deleting response:', error);
+      setShowNotification({ message: '❌ Error deleting response', type: 'error' });
+    }
+  };
+
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
@@ -632,7 +712,7 @@ const PeerReviewsContent: React.FC = () => {
                     )}
 
               {/* Your Response Display (Collapsible) */}
-              {responses.has(video.id) && (
+              {responses.has(video.id) && !editingResponse && (
                 <div className="border border-green-200 rounded-lg overflow-hidden mb-4">
                   {/* Collapsible Header */}
                 <button
@@ -643,6 +723,11 @@ const PeerReviewsContent: React.FC = () => {
                       <span className="text-sm font-semibold text-green-700">
                         ✓ Your Response
                       </span>
+                      {responses.get(video.id)!.editCount && responses.get(video.id)!.editCount! > 0 && (
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                          Edited {responses.get(video.id)!.editCount} time{responses.get(video.id)!.editCount! > 1 ? 's' : ''}
+                        </span>
+                      )}
               </div>
                     <div className="flex items-center space-x-3">
                       <span className="text-xs text-gray-500">
@@ -664,11 +749,74 @@ const PeerReviewsContent: React.FC = () => {
                   {/* Collapsible Content */}
                   {!collapsedMyResponses.has(video.id) && (
                     <div className="p-4 bg-white">
-                      <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                      <p className="text-gray-700 whitespace-pre-wrap leading-relaxed mb-4">
                         {responses.get(video.id)!.content}
                       </p>
+                      <div className="flex items-center justify-end space-x-2 pt-3 border-t border-gray-100">
+                        <button
+                          onClick={() => handleEditResponse(video.id)}
+                          className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors flex items-center space-x-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => setDeleteConfirm(video.id)}
+                          className="px-3 py-1.5 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors flex items-center space-x-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          <span>Delete</span>
+                        </button>
+                      </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Edit Response Form */}
+              {editingResponse === video.id && (
+                <div className="mb-6 border border-blue-200 rounded-lg p-4 bg-blue-50">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Edit Your Response
+                  </label>
+                  <textarea
+                    value={responseTexts.get(video.id) || ''}
+                    onChange={(e) => updateResponseText(video.id, e.target.value)}
+                    className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    rows={6}
+                    placeholder="Write a thoughtful response to your peer's video..."
+                  />
+                  <div className="flex items-center justify-between mt-3">
+                    <span className={`text-sm font-medium ${
+                      (responseTexts.get(video.id)?.trim().split(/\s+/).filter(w => w.length > 0).length || 0) >= 50 
+                        ? 'text-green-600' 
+                        : 'text-gray-600'
+                    }`}>
+                      {responseTexts.get(video.id)?.trim().split(/\s+/).filter(w => w.length > 0).length || 0} / 50 words minimum
+                    </span>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => {
+                          setEditingResponse(null);
+                          setResponseTexts(new Map(responseTexts.set(video.id, responses.get(video.id)!.content)));
+                        }}
+                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleUpdateResponse(video.id)}
+                        disabled={!responseTexts.get(video.id) || (responseTexts.get(video.id)?.trim().split(/\s+/).filter(w => w.length > 0).length || 0) < 50 || submitting === video.id}
+                        className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {submitting === video.id ? 'Updating...' : 'Update Response'}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
               
@@ -740,6 +888,42 @@ const PeerReviewsContent: React.FC = () => {
                 {showNotification.type === 'success' ? '✅' : '❌'}
               </span>
               <span className="font-semibold">{showNotification.message}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900">Delete Response?</h3>
+                <p className="text-sm text-gray-600">This action cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-700 mb-6">
+              Are you sure you want to delete your response? This will permanently remove your feedback.
+            </p>
+            <div className="flex items-center justify-end space-x-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteResponse(deleteConfirm)}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Delete Response
+              </button>
             </div>
           </div>
         </div>

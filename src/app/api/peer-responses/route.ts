@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
     }
 
     const result = await dynamodbService.query(queryParams);
-    const responses = result.Items || [];
+    const responses = (result.Items || []).filter((r: any) => !r.isDeleted);
 
     // Fetch replies for each response to build threaded conversations
     const responsesWithReplies = await Promise.all(
@@ -375,42 +375,83 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const {
-      id,
+      responseId,
       content,
       isSubmitted = false
     } = body;
 
-    if (!id || !content) {
+    if (!responseId || !content) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
+    // Content moderation for edited content
+    const moderationResult = validateContent(content);
+    
+    if (!moderationResult.isAllowed) {
+      console.log('🚫 Edited content blocked by moderation:', moderationResult.reason);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: moderationResult.reason,
+          suggestions: moderationResult.suggestions,
+          moderation: {
+            profanity: moderationResult.profanity,
+            pii: moderationResult.pii
+          }
+        },
+        { status: 400 }
+      );
+    }
+
     const now = new Date().toISOString();
 
-    const updateExpression = 'SET content = :content, wordCount = :wordCount, characterCount = :characterCount, isSubmitted = :isSubmitted, lastSavedAt = :lastSavedAt, updatedAt = :updatedAt';
+    // Get existing response to save edit history
+    const existingResult = await dynamodbService.getItem('classcast-peer-responses', { responseId });
+    const existingResponse = existingResult.Item;
+
+    if (!existingResponse) {
+      return NextResponse.json(
+        { success: false, error: 'Response not found' },
+        { status: 404 }
+      );
+    }
+
+    // Build edit history
+    const editHistory = existingResponse.editHistory || [];
+    editHistory.push({
+      content: existingResponse.content,
+      editedAt: now,
+      wordCount: existingResponse.wordCount,
+      characterCount: existingResponse.characterCount
+    });
+
+    const updateExpression = 'SET content = :content, wordCount = :wordCount, characterCount = :characterCount, isSubmitted = :isSubmitted, lastSavedAt = :lastSavedAt, updatedAt = :updatedAt, editHistory = :editHistory, editCount = :editCount';
     
-    if (isSubmitted) {
+    if (isSubmitted && !existingResponse.submittedAt) {
       updateExpression += ', submittedAt = :submittedAt';
     }
 
     const expressionAttributeValues: any = {
       ':content': content.trim(),
-      ':wordCount': content.trim().split(/\s+/).length,
+      ':wordCount': content.trim().split(/\s+/).filter(w => w.length > 0).length,
       ':characterCount': content.length,
       ':isSubmitted': isSubmitted,
       ':lastSavedAt': now,
-      ':updatedAt': now
+      ':updatedAt': now,
+      ':editHistory': editHistory,
+      ':editCount': editHistory.length
     };
 
-    if (isSubmitted) {
+    if (isSubmitted && !existingResponse.submittedAt) {
       expressionAttributeValues[':submittedAt'] = now;
     }
 
     await dynamodbService.updateItem(
       'classcast-peer-responses',
-      { id },
+      { responseId },
       updateExpression,
       expressionAttributeValues
     );
@@ -460,12 +501,77 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: isSubmitted ? 'Response submitted successfully' : 'Response updated successfully'
+      message: isSubmitted ? 'Response submitted successfully' : 'Response updated successfully',
+      data: {
+        responseId,
+        content: content.trim(),
+        wordCount: content.trim().split(/\s+/).filter(w => w.length > 0).length,
+        editCount: editHistory.length,
+        updatedAt: now
+      }
     });
   } catch (error) {
     console.error('Error updating peer response:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update peer response' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const responseId = searchParams.get('responseId');
+    const userId = searchParams.get('userId');
+
+    if (!responseId || !userId) {
+      return NextResponse.json(
+        { success: false, error: 'Response ID and User ID are required' },
+        { status: 400 }
+      );
+    }
+
+    // Get the response to verify ownership
+    const responseResult = await dynamodbService.getItem('classcast-peer-responses', { responseId });
+    const response = responseResult.Item;
+
+    if (!response) {
+      return NextResponse.json(
+        { success: false, error: 'Response not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify the user owns this response
+    if (response.reviewerId !== userId) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: You can only delete your own responses' },
+        { status: 403 }
+      );
+    }
+
+    // Soft delete by marking as deleted
+    const now = new Date().toISOString();
+    await dynamodbService.updateItem(
+      'classcast-peer-responses',
+      { responseId },
+      'SET isDeleted = :isDeleted, deletedAt = :deletedAt, updatedAt = :updatedAt',
+      {
+        ':isDeleted': true,
+        ':deletedAt': now,
+        ':updatedAt': now
+      }
+    );
+
+    return NextResponse.json({
+      success: true,
+      message: 'Response deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting peer response:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete peer response' },
       { status: 500 }
     );
   }
