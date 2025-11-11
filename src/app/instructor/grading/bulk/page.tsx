@@ -358,7 +358,8 @@ const BulkGradingPage: React.FC = () => {
         
         // Don't fetch if user is not loaded yet
         if (!user?.userId) {
-          console.log('Waiting for user to load...');
+          console.log('🔍 Bulk grading: Waiting for user to load...');
+          setIsLoading(false);
           return;
         }
         
@@ -439,6 +440,21 @@ const BulkGradingPage: React.FC = () => {
                 if (debugResponse.ok) {
                   const debugData = await debugResponse.json();
                   console.log('🔍 Debug instructor data:', debugData);
+                  
+                  // Also try calling the API the same way the dashboard does
+                  if (debugData.debug?.courses?.length > 0) {
+                    console.log('🔍 Testing API call with first course...');
+                    const firstCourse = debugData.debug.courses[0];
+                    const testResponse = await fetch(`/api/instructor/video-submissions?courseId=${firstCourse.courseId}`, {
+                      credentials: 'include',
+                    });
+                    if (testResponse.ok) {
+                      const testData = await testResponse.json();
+                      console.log('🔍 Test API call with courseId succeeded:', testData);
+                    } else {
+                      console.log('🔍 Test API call with courseId failed:', testResponse.status);
+                    }
+                  }
                 } else {
                   console.log('🔍 Debug endpoint failed:', debugResponse.status);
                 }
@@ -466,6 +482,15 @@ const BulkGradingPage: React.FC = () => {
     
     fetchSubmissions();
   }, [user?.userId]);
+
+  // Debug: Log when user changes
+  useEffect(() => {
+    console.log('🔍 Bulk grading: User state changed:', {
+      hasUser: !!user,
+      userId: user?.userId,
+      userEmail: user?.email
+    });
+  }, [user]);
 
   // Navigate to specific submission if provided in URL
   useEffect(() => {
