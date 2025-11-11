@@ -357,11 +357,13 @@ const BulkGradingPage: React.FC = () => {
         setIsLoading(true);
         
         // Don't fetch if user is not loaded yet
-        if (!user?.userId) {
+        if (!user?.id) {
           console.log('🔍 Bulk grading: Waiting for user to load...');
           setIsLoading(false);
           return;
         }
+        
+        console.log('🔍 Bulk grading: User loaded, proceeding with API call. User ID:', user.id);
         
         // Get URL parameters for filtering
         const urlParams = new URLSearchParams(window.location.search);
@@ -373,7 +375,7 @@ const BulkGradingPage: React.FC = () => {
         const params = new URLSearchParams();
         
         // Always filter by instructor ID for security
-        params.append('instructorId', user.userId);
+        params.append('instructorId', user.id);
         
         if (assignmentId) params.append('assignmentId', assignmentId);
         if (courseId) params.append('courseId', courseId);
@@ -384,7 +386,7 @@ const BulkGradingPage: React.FC = () => {
         }
         
         console.log('🔍 Bulk grading: Fetching submissions from:', apiUrl);
-        console.log('🔍 Bulk grading: User ID:', user.userId);
+        console.log('🔍 Bulk grading: User ID:', user.id);
         
         const response = await fetch(apiUrl, {
           credentials: 'include',
@@ -434,7 +436,7 @@ const BulkGradingPage: React.FC = () => {
             if (transformedSubmissions.length === 0) {
               console.log('🔍 No submissions found, calling debug endpoint...');
               try {
-                const debugResponse = await fetch(`/api/debug/instructor-data?instructorId=${user.userId}`, {
+                const debugResponse = await fetch(`/api/debug/instructor-data?instructorId=${user.id}`, {
                   credentials: 'include',
                 });
                 if (debugResponse.ok) {
@@ -481,13 +483,13 @@ const BulkGradingPage: React.FC = () => {
     };
     
     fetchSubmissions();
-  }, [user?.userId]);
+  }, [user?.id]);
 
   // Debug: Log when user changes
   useEffect(() => {
     console.log('🔍 Bulk grading: User state changed:', {
       hasUser: !!user,
-      userId: user?.userId,
+      userId: user?.id,
       userEmail: user?.email
     });
   }, [user]);
