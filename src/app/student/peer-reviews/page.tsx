@@ -33,6 +33,8 @@ interface PeerResponse {
   content: string;
   submittedAt: string;
   isSubmitted: boolean;
+  editCount?: number;
+  updatedAt?: string;
 }
 
 const PeerReviewsContent: React.FC = () => {
@@ -66,51 +68,45 @@ const PeerReviewsContent: React.FC = () => {
         
         let allVideos: PeerVideo[] = [];
         
-        // Strategy 1: If assignmentId is provided, start from that assignment
+        // If assignmentId is provided, ONLY load videos for that assignment
         if (assignmentId) {
-          console.log('🎥 [Peer Reviews] Loading videos starting from assignment:', assignmentId);
+          console.log('🎥 [Peer Reviews] Loading videos for specific assignment:', assignmentId);
           
-          // Load videos for the current assignment first
           try {
             const videosResponse = await fetch(
-              `/api/student/community/submissions?studentId=${user?.id}&assignmentId=${assignmentId}`
+              `/api/student/community/submissions?studentId=${user?.id}&assignmentId=${assignmentId}`,
+              { credentials: 'include' }
             );
         
-        if (videosResponse.ok) {
-          const videosData = await videosResponse.json();
-              console.log('🎥 [Peer Reviews] Loaded', videosData.length, 'videos for current assignment');
-              allVideos = [...videosData];
+            if (videosResponse.ok) {
+              const videosData = await videosResponse.json();
+              console.log('🎥 [Peer Reviews] Loaded', videosData.length, 'videos for assignment', assignmentId);
+              allVideos = videosData;
+            } else {
+              console.error('🎥 [Peer Reviews] Failed to fetch assignment videos:', videosResponse.status);
             }
           } catch (err) {
-            console.error('Error loading videos for current assignment:', err);
-          }
-        }
-        
-        // Strategy 2: Load ALL videos from community submissions without assignment filter
-        console.log('🎥 [Peer Reviews] Fetching all community videos...');
-        try {
-          const allVideosResponse = await fetch(
-            `/api/student/community/submissions?studentId=${user?.id}`,
-        { credentials: 'include' }
-      );
-      
-          if (allVideosResponse.ok) {
-            const allVideosData = await allVideosResponse.json();
-            console.log('🎥 [Peer Reviews] Loaded', allVideosData.length, 'total videos from community');
-            
-        if (assignmentId) {
-              // If we loaded current assignment first, append other videos
-              const otherVideos = allVideosData.filter((v: PeerVideo) => v.assignmentId !== assignmentId);
-              allVideos = [...allVideos, ...otherVideos];
-          } else {
-              // Otherwise, use all videos
-              allVideos = allVideosData;
+            console.error('Error loading videos for assignment:', err);
           }
         } else {
-            console.error('🎥 [Peer Reviews] Failed to fetch all videos:', allVideosResponse.status);
+          // No specific assignment - load ALL videos from community submissions
+          console.log('🎥 [Peer Reviews] Loading all community videos...');
+          try {
+            const allVideosResponse = await fetch(
+              `/api/student/community/submissions?studentId=${user?.id}`,
+              { credentials: 'include' }
+            );
+        
+            if (allVideosResponse.ok) {
+              const allVideosData = await allVideosResponse.json();
+              console.log('🎥 [Peer Reviews] Loaded', allVideosData.length, 'total videos from community');
+              allVideos = allVideosData;
+            } else {
+              console.error('🎥 [Peer Reviews] Failed to fetch all videos:', allVideosResponse.status);
+            }
+          } catch (err) {
+            console.error('Error loading all community videos:', err);
           }
-        } catch (err) {
-          console.error('Error loading all community videos:', err);
         }
         
         console.log('🎥 [Peer Reviews] Total videos loaded:', allVideos.length);
