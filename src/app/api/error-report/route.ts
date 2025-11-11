@@ -15,7 +15,10 @@ export async function POST(request: NextRequest) {
       timestamp,
       stack,
       component,
-      action
+      action,
+      userEmail,
+      userName,
+      additionalContext
     } = errorData;
 
     // Create detailed error report
@@ -33,11 +36,20 @@ export async function POST(request: NextRequest) {
             <div style="background: #f9fafb; padding: 15px; margin-bottom: 15px; border-radius: 4px;">
               <p style="margin: 5px 0;"><strong>URL:</strong> <code>${url}</code></p>
               <p style="margin: 5px 0;"><strong>User ID:</strong> ${userId || 'Unknown'}</p>
+              <p style="margin: 5px 0;"><strong>User Name:</strong> ${userName || 'Unknown'}</p>
+              <p style="margin: 5px 0;"><strong>User Email:</strong> ${userEmail || 'Unknown'}</p>
               <p style="margin: 5px 0;"><strong>Timestamp:</strong> ${timestamp || new Date().toISOString()}</p>
               <p style="margin: 5px 0;"><strong>Component:</strong> ${component || 'Unknown'}</p>
               <p style="margin: 5px 0;"><strong>Action:</strong> ${action || 'Unknown'}</p>
               <p style="margin: 5px 0;"><strong>User Agent:</strong> ${userAgent || 'Unknown'}</p>
             </div>
+
+            ${additionalContext ? `
+              <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                <h4 style="color: #1e40af; margin-top: 0;">Additional Context:</h4>
+                <pre style="margin: 0; white-space: pre-wrap; font-size: 12px; line-height: 1.5; color: #374151;">${JSON.stringify(additionalContext, null, 2)}</pre>
+              </div>
+            ` : ''}
 
             ${stack ? `
               <div style="background: #1f2937; color: #f3f4f6; padding: 15px; margin-top: 20px; border-radius: 4px; overflow-x: auto;">
@@ -78,9 +90,13 @@ ClassCast Error Alert
 Error: ${error}
 URL: ${url}
 User ID: ${userId || 'Unknown'}
+User Name: ${userName || 'Unknown'}
+User Email: ${userEmail || 'Unknown'}
 Timestamp: ${timestamp || new Date().toISOString()}
 Component: ${component || 'Unknown'}
 Action: ${action || 'Unknown'}
+
+${additionalContext ? `\nAdditional Context:\n${JSON.stringify(additionalContext, null, 2)}` : ''}
 
 ${stack ? `\nStack Trace:\n${stack}` : ''}
             `,
