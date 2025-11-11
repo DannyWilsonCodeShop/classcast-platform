@@ -1430,22 +1430,29 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 
   const handleLike = async () => {
     try {
-      const response = await fetch(`/api/videos/${item.id}/like`, {
+      // Use different API endpoint for community posts vs videos
+      const apiEndpoint = item.type === 'community' 
+        ? '/api/community/posts/like'
+        : `/api/videos/${item.id}/like`;
+      
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          userId: user?.id,
-          isLiked: !isLiked
-        }),
+        body: JSON.stringify(
+          item.type === 'community'
+            ? { postId: item.id, userId: user?.id }
+            : { userId: user?.id, isLiked: !isLiked }
+        ),
       });
 
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setLikes(data.likes);
-          setIsLiked(data.isLiked);
+          // Update local state optimistically
+          setIsLiked(!isLiked);
+          setLikes(isLiked ? likes - 1 : likes + 1);
         }
       }
     } catch (error) {
