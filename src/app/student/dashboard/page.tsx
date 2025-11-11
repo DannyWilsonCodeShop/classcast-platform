@@ -780,8 +780,29 @@ const StudentDashboard: React.FC = () => {
             </div>
 
             <button
-              onClick={() => {
+              onClick={async () => {
                 localStorage.setItem('classcast-peer-response-announcement-seen', 'true');
+                
+                // Create a notification for future reference
+                try {
+                  await fetch('/api/notifications/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      recipientId: user?.id,
+                      senderId: 'system',
+                      senderName: 'ClassCast System',
+                      type: 'system_update',
+                      title: '📝 Peer Response Update - Reference Guide',
+                      message: 'GRADED Responses: Course → Assignment → Peer Responses button (50 words min). CASUAL Comments: Dashboard comment button (not graded). Remember: Dashboard responses are NOT graded!',
+                      priority: 'normal',
+                      actionUrl: '/student/courses'
+                    })
+                  });
+                } catch (error) {
+                  console.error('Failed to create notification:', error);
+                }
+                
                 setShowPeerResponseAnnouncement(false);
               }}
               className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-semibold shadow-lg hover:shadow-xl"
