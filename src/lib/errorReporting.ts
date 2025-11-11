@@ -26,19 +26,21 @@ export class ErrorReporter {
     try {
       // Prepare error details
       const errorDetails = {
-        message: report.error instanceof Error ? report.error.message : report.error,
+        error: report.error instanceof Error ? report.error.message : report.error,
         stack: report.error instanceof Error ? report.error.stack : undefined,
         userId: report.userId,
         userEmail: report.userEmail,
         userName: report.userName,
-        page: report.page || window?.location?.href,
+        url: report.page || window?.location?.href,
         userAgent: report.userAgent || navigator?.userAgent,
         timestamp: report.timestamp || new Date().toISOString(),
+        component: report.additionalContext?.type || 'Unknown',
+        action: report.additionalContext?.description || 'Error occurred',
         additionalContext: report.additionalContext
       };
 
       // Send to error reporting API
-      await fetch('/api/admin/error-report', {
+      await fetch('/api/error-report', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
