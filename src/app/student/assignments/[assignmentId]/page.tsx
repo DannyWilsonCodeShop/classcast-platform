@@ -1054,9 +1054,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
                 </div>
               )}
             </div>
-          </div>
+          ) : (
+            // No submission - handled by top section
+            <div></div>
+          )}
+        </div>
+      </div>
 
-          {/* Peer Submission Reels - Show if submission exists and there are peer videos */}
+      {/* Peer Submission Reels - Show if submission exists and there are peer videos */}
           {submission && peerVideos.length > 0 && (
             <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mt-6">
               <div className="flex items-center justify-between mb-4">
