@@ -514,13 +514,20 @@ const StudentCourseDetailPage: React.FC = () => {
                             </div>
                           </div>
 
-                          {/* Right: Action Button */}
-                          <div className="flex-shrink-0">
+                          {/* Right: Action Buttons */}
+                          <div className="flex-shrink-0 flex flex-col gap-2">
                             <button 
                               onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
                               className="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium whitespace-nowrap"
                             >
                               {assignment.status === 'completed' ? 'View' : 'Open'}
+                            </button>
+                            <button 
+                              onClick={() => router.push(`/student/peer-reviews?assignmentId=${assignment.assignmentId}`)}
+                              className="px-5 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium whitespace-nowrap flex items-center justify-center gap-1"
+                            >
+                              <span>💬</span>
+                              <span>Peer Responses</span>
                             </button>
                           </div>
                         </div>
