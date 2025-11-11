@@ -149,13 +149,20 @@ export async function GET(request: NextRequest) {
 
       const coursesResult = await docClient.send(coursesScanCommand);
       const courseIds = coursesResult.Items?.map(course => course.courseId) || [];
+      
+      console.log('Found courses for instructor:', courseIds.length);
+      console.log('Course IDs:', courseIds);
 
       if (courseIds.length > 0) {
         // Get submissions for all instructor's courses
-        let filterExpression = 'courseId IN (:courseIds)';
-        let expressionAttributeValues: any = {
-          ':courseIds': courseIds
-        };
+        // DynamoDB doesn't support IN operator with arrays, so we need to build OR conditions
+        const courseConditions = courseIds.map((_, index) => `courseId = :courseId${index}`).join(' OR ');
+        let filterExpression = `(${courseConditions})`;
+        
+        let expressionAttributeValues: any = {};
+        courseIds.forEach((courseId, index) => {
+          expressionAttributeValues[`:courseId${index}`] = courseId;
+        });
 
         // Add student filter if provided
         if (studentId) {
@@ -172,6 +179,10 @@ export async function GET(request: NextRequest) {
         const submissionsResult = await docClient.send(submissionsScanCommand);
         submissions = (submissionsResult.Items || []) as any[];
         console.log('Found submissions for instructor courses:', submissions.length);
+        console.log('Course IDs for instructor:', courseIds);
+      } else {
+        console.log('No courses found for instructor:', instructorId);
+        submissions = [];
       }
     } else if (studentId) {
       // Get submissions for a specific student
