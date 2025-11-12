@@ -56,7 +56,7 @@ async function resetPassword(email: string, newPassword: string) {
 }
 
 // Run the script
-const email = 'aabdi28@cristoreyatlanta.org';
+const email = 'aatiku28@cristoreyatlanta.org';
 const newPassword = 'Test1234!';
 
 resetPassword(email, newPassword)
