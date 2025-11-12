@@ -607,9 +607,9 @@ const StudentAssignmentDetailPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <button
-                onClick={() => router.push('/student/assignments')}
+                onClick={() => router.push(`/student/courses/${displayAssignment.courseId}`)}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-                title="Back to Assignments"
+                title="Back to Course"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
