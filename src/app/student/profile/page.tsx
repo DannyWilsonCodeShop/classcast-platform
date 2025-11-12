@@ -846,11 +846,26 @@ const StudentProfilePage: React.FC = () => {
                         >
                           <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                             {buddy.avatar && !buddy.avatar.includes('placeholder') ? (
-                              <img 
-                                src={buddy.avatar} 
-                                alt={buddy.firstName || 'User'} 
-                                className="w-full h-full object-cover"
-                              />
+                              // Check if avatar is an emoji (short string, no http/https)
+                              buddy.avatar.length <= 4 && !buddy.avatar.startsWith('http') ? (
+                                <span className="text-xl">
+                                  {buddy.avatar}
+                                </span>
+                              ) : (
+                                <img 
+                                  src={buddy.avatar} 
+                                  alt={buddy.firstName || 'User'} 
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    // Fallback to initials if image fails
+                                    e.currentTarget.style.display = 'none';
+                                    const parent = e.currentTarget.parentElement;
+                                    if (parent) {
+                                      parent.innerHTML = `<span class="text-gray-600 text-xs font-semibold">${buddy.firstName?.[0] || buddy.email?.[0] || 'U'}</span>`;
+                                    }
+                                  }}
+                                />
+                              )
                             ) : (
                               <span className="text-gray-600 text-xs font-semibold">
                                 {buddy.firstName?.[0] || buddy.email?.[0] || 'U'}
@@ -912,11 +927,26 @@ const StudentProfilePage: React.FC = () => {
                         >
                           <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                             {follower.avatar && !follower.avatar.includes('placeholder') ? (
-                              <img 
-                                src={follower.avatar} 
-                                alt={follower.firstName || 'User'} 
-                                className="w-full h-full object-cover"
-                              />
+                              // Check if avatar is an emoji (short string, no http/https)
+                              follower.avatar.length <= 4 && !follower.avatar.startsWith('http') ? (
+                                <span className="text-xl">
+                                  {follower.avatar}
+                                </span>
+                              ) : (
+                                <img 
+                                  src={follower.avatar} 
+                                  alt={follower.firstName || 'User'} 
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    // Fallback to initials if image fails
+                                    e.currentTarget.style.display = 'none';
+                                    const parent = e.currentTarget.parentElement;
+                                    if (parent) {
+                                      parent.innerHTML = `<span class="text-gray-600 text-xs font-semibold">${follower.firstName?.[0] || follower.email?.[0] || 'U'}</span>`;
+                                    }
+                                  }}
+                                />
+                              )
                             ) : (
                               <span className="text-gray-600 text-xs font-semibold">
                                 {follower.firstName?.[0] || follower.email?.[0] || 'U'}
