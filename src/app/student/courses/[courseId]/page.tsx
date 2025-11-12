@@ -196,7 +196,11 @@ const StudentCourseDetailPage: React.FC = () => {
       if (assignmentsResponse.ok) {
         const assignmentsData = await assignmentsResponse.json();
         if (assignmentsData.assignments) {
-          setAssignments(assignmentsData.assignments);
+          // Sort by createdAt descending (newest first)
+          const sortedAssignments = assignmentsData.assignments.sort((a: Assignment, b: Assignment) => {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+          setAssignments(sortedAssignments);
           return;
         }
       }
@@ -227,7 +231,11 @@ const StudentCourseDetailPage: React.FC = () => {
             resources: assignment.resources || [],
             isSubmitted: false,
           }));
-          setAssignments(transformedAssignments);
+          // Sort by createdAt descending (newest first)
+          const sortedAssignments = transformedAssignments.sort((a: Assignment, b: Assignment) => {
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          });
+          setAssignments(sortedAssignments);
         }
       }
     } catch (assignmentError) {
