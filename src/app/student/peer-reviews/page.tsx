@@ -55,6 +55,7 @@ const PeerReviewsContent: React.FC = () => {
   const [showNotification, setShowNotification] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [editingResponse, setEditingResponse] = useState<string | null>(null); // Track which response is being edited
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null); // Track which response to delete
+  const [courseId, setCourseId] = useState<string | null>(null); // Store courseId for back navigation
 
   const assignmentId = searchParams.get('assignmentId');
   const videoId = searchParams.get('videoId');
@@ -71,6 +72,21 @@ const PeerReviewsContent: React.FC = () => {
         // If assignmentId is provided, ONLY load videos for that assignment
         if (assignmentId) {
           console.log('🎥 [Peer Reviews] Loading videos for specific assignment:', assignmentId);
+          
+          // Fetch assignment details to get courseId for back navigation
+          try {
+            const assignmentResponse = await fetch(`/api/assignments/${assignmentId}`, {
+              credentials: 'include',
+            });
+            if (assignmentResponse.ok) {
+              const assignmentData = await assignmentResponse.json();
+              if (assignmentData.success && assignmentData.data?.assignment?.courseId) {
+                setCourseId(assignmentData.data.assignment.courseId);
+              }
+            }
+          } catch (err) {
+            console.warn('Failed to fetch assignment details:', err);
+          }
           
           try {
             const videosResponse = await fetch(
@@ -502,10 +518,10 @@ const PeerReviewsContent: React.FC = () => {
               There are currently no peer submissions available for review.
             </p>
             <button
-              onClick={() => router.push('/student/dashboard')}
+              onClick={() => router.push(courseId ? `/student/courses/${courseId}` : '/student/dashboard')}
               className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold"
             >
-              ← Back to Dashboard
+              ← Back to {courseId ? 'Course' : 'Dashboard'}
             </button>
           </div>
         </div>
@@ -521,8 +537,9 @@ const PeerReviewsContent: React.FC = () => {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => router.push('/student/dashboard')}
+              onClick={() => router.push(courseId ? `/student/courses/${courseId}` : '/student/dashboard')}
               className="text-gray-600 hover:text-gray-800 transition-colors"
+              title={courseId ? 'Back to Course' : 'Back to Dashboard'}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
