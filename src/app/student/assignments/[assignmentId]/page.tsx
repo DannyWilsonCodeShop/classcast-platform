@@ -244,13 +244,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
         
         if (foundAssignment) {
           console.log('Found assignment via direct API:', foundAssignment);
+          console.log('Assignment maxScore:', foundAssignment.maxScore);
           // Transform the assignment to match our interface
           const transformedAssignment: Assignment = {
             assignmentId: foundAssignment.assignmentId,
             title: foundAssignment.title,
             description: foundAssignment.description,
             dueDate: foundAssignment.dueDate,
-            points: foundAssignment.maxScore || 100,
+            points: foundAssignment.maxScore ?? 100,
             status: 'upcoming',
             submissionType: foundAssignment.assignmentType === 'video' ? 'video' : 'file',
             assignmentType: foundAssignment.assignmentType,
