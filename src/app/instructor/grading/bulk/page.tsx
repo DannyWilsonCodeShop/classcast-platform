@@ -1077,11 +1077,14 @@ const BulkGradingPage: React.FC = () => {
           <div className="text-center">
             <div className="text-6xl mb-4">📹</div>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">No Submissions Found</h1>
-            <p className="text-gray-600 mb-4">No video submissions match your current filter.</p>
+            <p className="text-gray-600 mb-4">No video submissions are available for grading.</p>
             <div className="text-sm text-gray-500 mb-6">
-              <p>Course: {selectedCourse}</p>
-              <p>Assignment: {selectedAssignment}</p>
-              <p>Total submissions: {submissions.length}</p>
+              <p>This could mean:</p>
+              <ul className="list-disc list-inside text-left max-w-md mx-auto mt-2">
+                <li>No students have submitted videos yet</li>
+                <li>The assignment doesn't have any submissions</li>
+                <li>There may be a filter applied</li>
+              </ul>
             </div>
             <div className="space-x-4">
               <button
