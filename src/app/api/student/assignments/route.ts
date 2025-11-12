@@ -150,7 +150,7 @@ export async function GET(request: NextRequest) {
           description: assignment.description || 'No description available',
           dueDate: assignment.dueDate,
           status,
-          points: assignment.maxScore || 100,
+          points: assignment.maxScore ?? 100,
           submissionType: assignment.assignmentType === 'video' ? 'video' : 'file',
           assignmentType: assignment.assignmentType || 'Assignment',
           isSubmitted: !!submission,
