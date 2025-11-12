@@ -36,6 +36,11 @@ export interface FeedItem {
   description?: string;
   status?: 'upcoming' | 'active' | 'past_due';
   assignmentId?: string; // Add assignmentId for navigation
+  
+  // Instructor features
+  isPinned?: boolean;
+  isHighlighted?: boolean;
+  pinnedAt?: string;
 }
 
 // GET /api/student/feed - Get unified feed for student
@@ -248,7 +253,10 @@ export async function GET(request: NextRequest) {
             likes: sub.likes || 0,
             comments: sub.commentCount || 0,
             isLiked: isLiked,
-            isFromEnrolledCourse: isFromEnrolledCourse // Add this flag
+            isFromEnrolledCourse: isFromEnrolledCourse, // Add this flag
+            isPinned: sub.isPinned || false,
+            isHighlighted: sub.isHighlighted || false,
+            pinnedAt: sub.pinnedAt
           });
           console.log(`  ✓ Video added successfully (isLiked: ${isLiked})`);
         } catch (pushError) {
@@ -353,14 +361,26 @@ export async function GET(request: NextRequest) {
           title: assignment.title,
           description: assignment.description,
           dueDate: assignment.dueDate,
-          status
+          status,
+          isPinned: assignment.isPinned || false,
+          isHighlighted: assignment.isHighlighted || false,
+          pinnedAt: assignment.pinnedAt
         });
       });
 
-    // Sort by timestamp (newest first)
-    feedItems.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    // Sort by pinned status first, then by timestamp (newest first)
+    feedItems.sort((a, b) => {
+      // Pinned items go to the top
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      
+      // Then highlighted items
+      if (a.isHighlighted && !b.isHighlighted) return -1;
+      if (!a.isHighlighted && b.isHighlighted) return 1;
+      
+      // Finally sort by timestamp (newest first)
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+    });
 
     return NextResponse.json({
       success: true,

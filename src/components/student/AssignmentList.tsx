@@ -53,8 +53,8 @@ export const AssignmentList: React.FC<AssignmentListProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<AssignmentFiltersState>(initialFilters);
   const [sort, setSort] = useState<AssignmentSortState>({
-    field: 'dueDate',
-    order: 'asc',
+    field: 'createdAt',
+    order: 'desc',
   });
   const [pagination, setPagination] = useState({
     currentPage: 1,
