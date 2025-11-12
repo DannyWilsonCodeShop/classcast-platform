@@ -72,6 +72,8 @@ const StudentProfilePage: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [studyBuddies, setStudyBuddies] = useState<any[]>([]);
   const [followers, setFollowers] = useState<any[]>([]);
+  const [showStudyBuddies, setShowStudyBuddies] = useState(false);
+  const [showFollowers, setShowFollowers] = useState(false);
 
   // Popular emojis for avatars
   const emojiOptions = [
@@ -817,9 +819,23 @@ const StudentProfilePage: React.FC = () => {
               {/* Study Buddies List */}
               {studyBuddies.length > 0 && (
                 <div className="mb-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Your Study Buddies</h4>
-                  <div className="space-y-2">
-                    {studyBuddies.map((buddy) => (
+                  <button
+                    onClick={() => setShowStudyBuddies(!showStudyBuddies)}
+                    className="w-full flex items-center justify-between text-sm font-medium text-gray-700 mb-2 hover:text-gray-900 transition-colors"
+                  >
+                    <span>My Study Buddies ({studyBuddies.length})</span>
+                    <svg
+                      className={`w-5 h-5 transition-transform ${showStudyBuddies ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {showStudyBuddies && (
+                    <div className="space-y-2">
+                      {studyBuddies.map((buddy) => (
                       <div
                         key={buddy.id}
                         className="flex items-center justify-between bg-white rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors border border-gray-200"
@@ -861,16 +877,31 @@ const StudentProfilePage: React.FC = () => {
                         </button>
                       </div>
                     ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Followers List */}
               {followers.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Study Buddies Following You</h4>
-                  <div className="space-y-2">
-                    {followers.map((follower) => (
+                  <button
+                    onClick={() => setShowFollowers(!showFollowers)}
+                    className="w-full flex items-center justify-between text-sm font-medium text-gray-700 mb-2 hover:text-gray-900 transition-colors"
+                  >
+                    <span>Study Buddies Following Me ({followers.length})</span>
+                    <svg
+                      className={`w-5 h-5 transition-transform ${showFollowers ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {showFollowers && (
+                    <div className="space-y-2">
+                      {followers.map((follower) => (
                       <div
                         key={follower.id}
                         className="flex items-center justify-between bg-white rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors border border-gray-200"
@@ -912,7 +943,8 @@ const StudentProfilePage: React.FC = () => {
                         </button>
                       </div>
                     ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
