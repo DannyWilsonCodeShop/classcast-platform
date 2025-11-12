@@ -678,10 +678,14 @@ const InstructorStudentsPage: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <button
                             onClick={() => handleViewStudentSubmissions(student.studentId, student.name)}
-                            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors font-medium"
-                            title={`View ${student.name}'s submissions`}
+                            className="text-blue-600 hover:text-blue-800 hover:underline px-2 py-1 rounded transition-colors font-semibold flex items-center space-x-1"
+                            title={`Click to view ${student.name}'s ${student.submissionsCount} video submissions`}
                           >
-                            {student.assignmentsSubmitted}/{student.assignmentsTotal}
+                            <span>🎥</span>
+                            <span>{student.submissionsCount} videos</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
                           </button>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
