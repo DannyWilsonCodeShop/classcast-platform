@@ -47,6 +47,7 @@ const PeerProfilePage: React.FC = () => {
   const [profile, setProfile] = useState<PeerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [videos, setVideos] = useState<any[]>([]);
 
   const userId = params.userId as string;
 
@@ -114,6 +115,22 @@ const PeerProfilePage: React.FC = () => {
       };
 
       setProfile(peerProfile);
+
+      // Fetch user's videos
+      try {
+        const videosResponse = await fetch(`/api/submissions?studentId=${userId}`, {
+          credentials: 'include',
+        });
+        
+        if (videosResponse.ok) {
+          const videosData = await videosResponse.json();
+          if (videosData.success && videosData.data) {
+            setVideos(videosData.data.slice(0, 6)); // Show up to 6 videos
+          }
+        }
+      } catch (videoErr) {
+        console.warn('Failed to fetch videos:', videoErr);
+      }
     } catch (err) {
       console.error('Error fetching peer profile:', err);
       setError(err instanceof Error ? err.message : 'Failed to load profile');
@@ -291,11 +308,61 @@ const PeerProfilePage: React.FC = () => {
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800">
                   💡 This is a peer's public profile. You can see their contributions and engagement stats.
-                  To view more details or their videos, check the community feed or peer review sections.
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Videos Section */}
+          {videos.length > 0 && (
+            <div className="mt-8">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">🎬 Recent Videos</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {videos.map((video) => (
+                    <div
+                      key={video.submissionId}
+                      className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => {
+                        if (video.assignmentId) {
+                          router.push(`/student/peer-reviews?assignmentId=${video.assignmentId}&videoId=${video.submissionId}`);
+                        }
+                      }}
+                    >
+                      <div className="aspect-video bg-gray-900 relative">
+                        {video.thumbnailUrl ? (
+                          <img
+                            src={video.thumbnailUrl}
+                            alt={video.videoTitle || 'Video'}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-white">
+                            <span className="text-4xl">🎥</span>
+                          </div>
+                        )}
+                        {video.duration && (
+                          <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                            {Math.floor(video.duration / 60)}:{(video.duration % 60).toString().padStart(2, '0')}
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <h3 className="font-medium text-gray-900 text-sm truncate">
+                          {video.videoTitle || 'Untitled Video'}
+                        </h3>
+                        {video.submittedAt && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(video.submittedAt).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </StudentRoute>

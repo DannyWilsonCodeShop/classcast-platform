@@ -552,9 +552,22 @@ const StudentCourseDetailPage: React.FC = () => {
                 {classmates.map((classmate) => (
                   <div
                     key={classmate.userId}
-                    className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg"
+                    onClick={() => router.push(`/student/profile/${classmate.userId}`)}
+                    className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
                   >
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                    {classmate.avatar ? (
+                      <img
+                        src={classmate.avatar}
+                        alt={`${classmate.firstName} ${classmate.lastName}`}
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        onError={(e) => {
+                          // Fallback to initials if image fails to load
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <div className={`w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${classmate.avatar ? 'hidden' : ''}`}>
                       {classmate.firstName?.charAt(0)}{classmate.lastName?.charAt(0)}
                     </div>
                     <div className="flex-1 min-w-0">
