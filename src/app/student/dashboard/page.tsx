@@ -217,9 +217,16 @@ const StudentDashboard: React.FC = () => {
       });
       
       if (data.success) {
-        // Randomize the feed order so students see different creators first
-        const randomizedFeed = [...data.feed].sort(() => Math.random() - 0.5);
-        setFeed(randomizedFeed);
+        // Separate pinned/highlighted items from regular items
+        const pinnedItems = data.feed.filter((item: FeedItem) => item.isPinned || item.isHighlighted);
+        const regularItems = data.feed.filter((item: FeedItem) => !item.isPinned && !item.isHighlighted);
+        
+        // Randomize only the regular items so students see different creators first
+        const randomizedRegular = [...regularItems].sort(() => Math.random() - 0.5);
+        
+        // Combine: pinned items stay at top, regular items are randomized
+        const sortedFeed = [...pinnedItems, ...randomizedRegular];
+        setFeed(sortedFeed);
         setCourses(data.courses);
         console.log('🏫 Courses loaded for bottom nav:', data.courses);
         
@@ -1274,6 +1281,16 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
               {item.isFromEnrolledCourse === false && (
                 <span className="ml-1" title="Public video from another course">🌐</span>
               )}
+            </span>
+          )}
+          {item.isPinned && (
+            <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full border border-yellow-300 shadow-sm" title="Pinned by instructor">
+              📌 Pinned
+            </span>
+          )}
+          {item.isHighlighted && !item.isPinned && (
+            <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full border border-orange-300 shadow-sm" title="Highlighted by instructor">
+              ⭐ Featured
             </span>
           )}
           {isMyVideo && (
