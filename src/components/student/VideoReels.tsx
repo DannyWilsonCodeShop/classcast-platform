@@ -380,6 +380,25 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
   }
 
   const currentReel = reels[currentIndex];
+  const isYouTubeReel =
+    !!currentReel &&
+    (currentReel.isYouTube ||
+      currentReel.youtubeUrl ||
+      currentReel.videoUrl?.includes('youtube.com') ||
+      currentReel.videoUrl?.includes('youtu.be'));
+  const isGoogleDriveReel =
+    !!currentReel &&
+    (currentReel.isGoogleDrive ||
+      currentReel.googleDriveUrl ||
+      currentReel.videoUrl?.includes('drive.google.com'));
+  const externalVideoUrl = currentReel
+    ? isYouTubeReel
+      ? currentReel.youtubeUrl || currentReel.videoUrl
+      : isGoogleDriveReel
+        ? currentReel.googleDriveUrl || currentReel.videoUrl
+        : currentReel.videoUrl
+    : null;
+  const resolvedExternalUrl = getVideoUrl(externalVideoUrl || '');
 
   // Safety check to prevent crashes
   if (!currentReel) {
@@ -399,15 +418,25 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
       ref={containerRef}
       className={`relative w-full h-64 sm:h-80 lg:aspect-video bg-black rounded-xl overflow-hidden cursor-pointer group ${className}`}
     >
-      {/* Video Player - Conditional rendering for YouTube vs Regular videos */}
-      {currentReel.isYouTube || currentReel.youtubeUrl || currentReel.videoUrl?.includes('youtube.com') || currentReel.videoUrl?.includes('youtu.be') ? (
+      {/* Video Player - Conditional rendering for external vs regular videos */}
+      {isYouTubeReel && externalVideoUrl ? (
         // YouTube iframe for YouTube videos
         <iframe
           className="w-full h-full"
-          src={`https://www.youtube-nocookie.com/embed/${extractYouTubeVideoId(currentReel.youtubeUrl || currentReel.videoUrl)}?autoplay=1&mute=1&loop=1&playlist=${extractYouTubeVideoId(currentReel.youtubeUrl || currentReel.videoUrl)}&controls=0&modestbranding=1&rel=0`}
+          src={`https://www.youtube-nocookie.com/embed/${extractYouTubeVideoId(externalVideoUrl)}?autoplay=1&mute=1&loop=1&playlist=${extractYouTubeVideoId(externalVideoUrl)}&controls=0&modestbranding=1&rel=0`}
           title={currentReel.title}
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          key={currentReel.id}
+        />
+      ) : isGoogleDriveReel && resolvedExternalUrl ? (
+        <iframe
+          className="w-full h-full"
+          src={resolvedExternalUrl}
+          title={currentReel.title}
+          frameBorder="0"
+          allow="autoplay"
           allowFullScreen
           key={currentReel.id}
         />
@@ -488,8 +517,8 @@ const VideoReels: React.FC<VideoReelsProps> = ({ className = '' }) => {
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
 
-      {/* Play Button Overlay for Safari Autoplay Fallback - Hide for YouTube videos */}
-      {!isPlaying && !(currentReel.isYouTube || currentReel.youtubeUrl || currentReel.videoUrl?.includes('youtube.com') || currentReel.videoUrl?.includes('youtu.be')) && (
+      {/* Play Button Overlay for Safari Autoplay Fallback - Hide for external videos */}
+      {!isPlaying && !(isYouTubeReel || isGoogleDriveReel) && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/30">
           <button
             onClick={(e) => {

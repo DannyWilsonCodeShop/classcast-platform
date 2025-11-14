@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { isValidYouTubeUrl, extractYouTubeVideoId, getYouTubeThumbnail } from '@/lib/youtube';
+import { isValidGoogleDriveUrl, extractGoogleDriveFileId, getGoogleDrivePreviewUrl, getGoogleDriveThumbnailUrl } from '@/lib/googleDrive';
 import { uploadLargeFile } from '@/lib/uploadUtils';
 
 const VideoSubmissionContent: React.FC = () => {
@@ -30,6 +31,18 @@ const VideoSubmissionContent: React.FC = () => {
   const [existingSubmissions, setExistingSubmissions] = useState<any[]>([]);
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+
+  const isValidExternalUrl = (url: string) => {
+    if (!url) return false;
+    const trimmed = url.trim();
+    return isValidYouTubeUrl(trimmed) || isValidGoogleDriveUrl(trimmed);
+  };
+
+  const trimmedExternalUrl = youtubeUrl.trim();
+  const externalIsYouTube = isValidYouTubeUrl(trimmedExternalUrl);
+  const externalIsGoogleDrive = isValidGoogleDriveUrl(trimmedExternalUrl);
+  const googleDrivePreviewUrl = externalIsGoogleDrive ? getGoogleDrivePreviewUrl(trimmedExternalUrl) : null;
+const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -624,12 +637,12 @@ const VideoSubmissionContent: React.FC = () => {
                         `💡 Try these solutions:\n` +
                         `• Use a faster internet connection\n` +
                         `• Upload during off-peak hours\n` +
-                        `• Use the YouTube URL option for very large files\n` +
+                        `• Use the Link (YouTube / Drive) option for very large files\n` +
                         `• Compress your video to reduce file size`;
         } else if (err.message.includes('network') || err.message.includes('fetch')) {
           errorMessage = `Network error during upload. Please check your internet connection and try again.`;
         } else if (err.message.includes('413') || err.message.includes('too large')) {
-          errorMessage = `File too large for direct upload. Please use the YouTube URL option instead.`;
+          errorMessage = `File too large for direct upload. Please use the Link (YouTube / Drive) option instead.`;
         } else {
           errorMessage = `Upload failed: ${err.message}`;
         }
@@ -652,36 +665,32 @@ const VideoSubmissionContent: React.FC = () => {
   };
 
   const handleYouTubeSubmit = async () => {
-    console.log('🎬 handleYouTubeSubmit called with URL:', youtubeUrl);
+    const trimmedUrl = youtubeUrl.trim();
+    console.log('🎬 handleYouTubeSubmit called with URL:', trimmedUrl);
     
-    if (!youtubeUrl) {
-      console.log('❌ No YouTube URL provided');
+    if (!trimmedUrl) {
+      console.log('❌ No external video URL provided');
       return;
     }
 
-    // Validate YouTube URL
-    console.log('🔍 Validating YouTube URL...');
-    const isValid = isValidYouTubeUrl(youtubeUrl);
-    console.log('🔍 URL validation result:', isValid);
+    // Validate external URL (YouTube or Google Drive)
+    console.log('🔍 Validating external video URL...');
+    const isYouTubeLink = isValidYouTubeUrl(trimmedUrl);
+    const isGoogleDriveLink = isValidGoogleDriveUrl(trimmedUrl);
+    console.log('🔍 URL validation result:', { isYouTubeLink, isGoogleDriveLink });
     
-    if (!isValid) {
-      console.log('❌ Invalid YouTube URL');
-      setError('Please enter a valid YouTube URL');
+    if (!isYouTubeLink && !isGoogleDriveLink) {
+      console.log('❌ Invalid external video URL');
+      setError('Please enter a valid YouTube or Google Drive share link.');
       return;
     }
 
-    console.log('✅ YouTube URL is valid, proceeding with submission...');
+    console.log('✅ External URL is valid, proceeding with submission...');
     setError(null);
     setIsUploading(true);
     setUploadProgress(0);
 
     try {
-      // Extract video ID
-      const videoId = extractYouTubeVideoId(youtubeUrl);
-      if (!videoId) {
-        throw new Error('Could not extract video ID from URL');
-      }
-
       // Get sectionId from assignment if available
       let sectionId;
       try {
@@ -696,29 +705,74 @@ const VideoSubmissionContent: React.FC = () => {
         console.warn('Could not fetch assignment details for sectionId:', error);
       }
 
-      // Submit the YouTube URL as an assignment submission
-      const finalYouTubeTitle = assignmentTitle || `YouTube Submission - ${new Date().toLocaleDateString()}`;
-      console.log('📝 Final YouTube title being sent:', finalYouTubeTitle, 'assignmentTitle:', assignmentTitle);
-      
-      const submissionData = {
-        assignmentId: assignmentId,
-        studentId: user?.id || 'unknown',
-        courseId: courseId,
-        sectionId: sectionId,
-        youtubeUrl: youtubeUrl,
-        videoId: videoId,
-        thumbnailUrl: getYouTubeThumbnail(youtubeUrl, 'hq'),
-        videoTitle: finalYouTubeTitle,
-        videoDescription: 'Student YouTube video submission',
-        submissionMethod: 'youtube',
-        isRecorded: false,
-        isUploaded: false,
-        isYouTube: true
-      };
+      let submissionData: Record<string, any> = {};
+      let submissionMethod = 'external';
+
+      if (isYouTubeLink) {
+        const videoId = extractYouTubeVideoId(trimmedUrl);
+        if (!videoId) {
+          throw new Error('Could not extract video ID from YouTube link.');
+        }
+
+        submissionMethod = 'youtube';
+        const finalYouTubeTitle = assignmentTitle || `YouTube Submission - ${new Date().toLocaleDateString()}`;
+        console.log('📝 Final YouTube title being sent:', finalYouTubeTitle, 'assignmentTitle:', assignmentTitle);
+
+        submissionData = {
+          assignmentId,
+          studentId: user?.id || 'unknown',
+          courseId,
+          sectionId,
+          youtubeUrl: trimmedUrl,
+          videoId,
+          thumbnailUrl: getYouTubeThumbnail(trimmedUrl, 'hq'),
+          videoTitle: finalYouTubeTitle,
+          videoDescription: 'Student YouTube video submission',
+          submissionMethod,
+          isRecorded: false,
+          isUploaded: false,
+          isYouTube: true,
+          isGoogleDrive: false,
+        };
+      } else if (isGoogleDriveLink) {
+        const fileId = extractGoogleDriveFileId(trimmedUrl);
+        if (!fileId) {
+          throw new Error('Could not extract Google Drive file ID from link.');
+        }
+
+        const previewUrl = getGoogleDrivePreviewUrl(fileId);
+        if (!previewUrl) {
+          throw new Error('Could not generate Google Drive preview link.');
+        }
+
+        const thumbnailUrl = getGoogleDriveThumbnailUrl(fileId);
+        const finalDriveTitle = assignmentTitle || `Google Drive Submission - ${new Date().toLocaleDateString()}`;
+        console.log('📝 Final Google Drive title being sent:', finalDriveTitle, 'assignmentTitle:', assignmentTitle);
+
+        submissionMethod = 'google-drive';
+        submissionData = {
+          assignmentId,
+          studentId: user?.id || 'unknown',
+          courseId,
+          sectionId,
+          googleDriveUrl: previewUrl,
+          googleDriveOriginalUrl: trimmedUrl,
+          googleDriveFileId: fileId,
+          videoUrl: previewUrl,
+          thumbnailUrl: thumbnailUrl || undefined,
+          videoTitle: finalDriveTitle,
+          videoDescription: 'Student Google Drive video submission',
+          submissionMethod,
+          isRecorded: false,
+          isUploaded: false,
+          isYouTube: false,
+          isGoogleDrive: true,
+        };
+      }
 
       setUploadProgress(50);
 
-      console.log('📤 Submitting YouTube video:', submissionData);
+      console.log('📤 Submitting external video link:', submissionData);
       
       const submissionResponse = await fetch('/api/video-submissions', {
         method: 'POST',
@@ -734,7 +788,7 @@ const VideoSubmissionContent: React.FC = () => {
       console.log('📥 Response data:', responseData);
 
       if (!submissionResponse.ok) {
-        throw new Error(responseData.error || 'Failed to submit YouTube video');
+        throw new Error(responseData.error || 'Failed to submit external video link');
       }
 
       setUploadProgress(100);
@@ -761,13 +815,13 @@ const VideoSubmissionContent: React.FC = () => {
         }
       }
       
-      // Clear YouTube URL to allow new submission
+      // Clear URL to allow new submission
       setYoutubeUrl('');
 
     } catch (err) {
-      console.error('Error submitting YouTube URL:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to submit YouTube URL. Please try again.';
-      setError(`YouTube Submission Error: ${errorMessage}`);
+      console.error('Error submitting external video link:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit external video link. Please try again.';
+      setError(`External Video Submission Error: ${errorMessage}`);
     } finally {
       setIsUploading(false);
     }
@@ -802,11 +856,11 @@ const VideoSubmissionContent: React.FC = () => {
         setError(
           `⚠️ File Too Large (${fileSizeMB}MB)\n\n` +
           `Your video exceeds the ${Math.round(maxSize / (1024 * 1024))}MB upload limit.\n\n` +
-          `📺 Solution: Upload to YouTube Instead\n\n` +
-          `1. Upload your video to YouTube (set to Unlisted or Public)\n` +
-          `2. Copy the YouTube video URL\n` +
-          `3. Switch to the "YouTube URL" tab above\n` +
-          `4. Paste your video URL and submit\n\n` +
+          `📺 Solution: Upload to YouTube or Google Drive Instead\n\n` +
+          `1. Upload your video to YouTube (Unlisted/Public) or Google Drive (set sharing to "Anyone with the link")\n` +
+          `2. Copy the share link\n` +
+          `3. Switch to the "Link (YouTube / Drive)" tab above\n` +
+          `4. Paste your video link and submit\n\n` +
           `This allows you to submit videos of any size!`
         );
         // Switch to YouTube tab to guide the user
@@ -986,7 +1040,7 @@ const VideoSubmissionContent: React.FC = () => {
                       : 'text-gray-600 hover:text-gray-800'
                   }`}
                 >
-                  ▶️ YouTube URL
+                  ▶️ Link (YouTube / Drive)
                 </button>
               </div>
 
@@ -1010,9 +1064,9 @@ const VideoSubmissionContent: React.FC = () => {
 
               {activeTab === 'youtube' && !youtubeUrl && (
                 <div className="text-center mb-8">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Submit YouTube URL</h2>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Submit Video Link</h2>
                   <p className="text-gray-600">
-                    Paste a link to your video on YouTube
+                    Paste a link to your video hosted on YouTube or Google Drive
                   </p>
                 </div>
               )}
@@ -1082,7 +1136,7 @@ const VideoSubmissionContent: React.FC = () => {
                   <div className="mb-6" data-version="2.0">
                     <div className="max-w-2xl mx-auto">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        YouTube Video URL
+                        Video Link (YouTube or Google Drive)
                       </label>
                       <div className="flex space-x-2">
                         <input
@@ -1097,7 +1151,7 @@ const VideoSubmissionContent: React.FC = () => {
                             if (newValue.length > 500) {
                               console.log('⚠️ URL too long, clearing and showing error');
                               setYoutubeUrl(''); // Clear the field
-                              setError('YouTube URL is too long. Please paste only the URL (should be less than 100 characters).');
+                              setError('Video link is too long. Please paste only the shared link (should be less than 100 characters).');
                               return;
                             }
                             
@@ -1113,9 +1167,9 @@ const VideoSubmissionContent: React.FC = () => {
                             
                             // Prevent pasting huge content (likely clipboard issue)
                             if (pastedText.length > 500) {
-                              console.log('⚠️ Pasted content too large, likely not a YouTube URL');
+                              console.log('⚠️ Pasted content too large, likely not a valid video link');
                               e.preventDefault();
-                              setError('Pasted content is too large. Please paste only the YouTube URL (should be less than 100 characters).');
+                              setError('Pasted content is too large. Please paste only the video link (should be less than 100 characters).');
                               return;
                             }
                           }}
@@ -1126,7 +1180,7 @@ const VideoSubmissionContent: React.FC = () => {
                               handleYouTubeSubmit();
                             }
                           }}
-                          placeholder="https://www.youtube.com/watch?v=..."
+                          placeholder="https://www.youtube.com/watch?v=... or https://drive.google.com/file/d/..."
                           className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                         <button
@@ -1149,8 +1203,8 @@ const VideoSubmissionContent: React.FC = () => {
                             e.stopPropagation();
                             
                             if (!youtubeUrl) {
-                              console.log('❌ Cannot submit: No YouTube URL');
-                              setError('Please enter a YouTube URL first');
+                              console.log('❌ Cannot submit: No external video URL');
+                              setError('Please enter a shareable video link first');
                               return;
                             }
                             
@@ -1168,18 +1222,18 @@ const VideoSubmissionContent: React.FC = () => {
                               : 'bg-blue-500 text-white hover:bg-blue-600'
                           }`}
                         >
-                          {isUploading ? 'Submitting...' : '▶️ Submit YouTube Video'}
+                          {isUploading ? 'Submitting...' : '▶️ Submit Link'}
                         </button>
                       </div>
                       <p className="text-xs text-gray-500 mt-2">
-                        Paste the full URL of your YouTube video. The video should be unlisted or public.
+                        Paste the full share link from YouTube (Unlisted/Public) or Google Drive (set to “Anyone with the link”).
                       </p>
                       {/* Debug info */}
                       <div className="mt-2 text-xs text-gray-500">
-                        Debug: URL length: {youtubeUrl.length}, Valid: {isValidYouTubeUrl(youtubeUrl) ? 'Yes' : 'No'}, Button enabled: {youtubeUrl && !isUploading ? 'Yes' : 'No'}
+                        Debug: URL length: {youtubeUrl.length}, Valid: {isValidExternalUrl(youtubeUrl) ? 'Yes' : 'No'}, Button enabled: {youtubeUrl && !isUploading ? 'Yes' : 'No'}
                       </div>
                       
-                      {youtubeUrl && isValidYouTubeUrl(youtubeUrl) && (
+                      {youtubeUrl && externalIsYouTube && (
                         <>
                           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                             <p className="text-sm text-blue-800">
@@ -1192,10 +1246,34 @@ const VideoSubmissionContent: React.FC = () => {
                             <div className="relative bg-black rounded-xl overflow-hidden">
                               <div className="aspect-video w-full">
                                 <iframe
-                                  src={`https://www.youtube.com/embed/${extractYouTubeVideoId(youtubeUrl)}`}
+                                  src={`https://www.youtube.com/embed/${extractYouTubeVideoId(trimmedExternalUrl)}`}
                                   title="YouTube video player"
                                   frameBorder="0"
                                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                  className="w-full h-full"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {youtubeUrl && externalIsGoogleDrive && googleDrivePreviewUrl && (
+                        <>
+                          <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                            <p className="text-sm text-emerald-800">
+                              <strong>📌 Important:</strong> Ensure your Google Drive link is set to "Anyone with the link can view" so instructors can access it.
+                            </p>
+                          </div>
+                          <div className="mt-4">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Link Preview:</h4>
+                            <div className="relative bg-black rounded-xl overflow-hidden">
+                              <div className="aspect-video w-full">
+                                <iframe
+                                  src={googleDrivePreviewUrl}
+                                  title="Google Drive video preview"
+                                  frameBorder="0"
+                                  allow="autoplay"
                                   allowFullScreen
                                   className="w-full h-full"
                                 />
@@ -1239,10 +1317,10 @@ const VideoSubmissionContent: React.FC = () => {
                       </div>
                       <div className="flex-1">
                         <pre className="text-red-800 text-sm whitespace-pre-wrap font-sans leading-relaxed">{error}</pre>
-                        {error.includes('YouTube') && (
+                        {errorIsLinkIssue && (
                           <div className="mt-4 pt-4 border-t border-red-200">
                             <div className="flex items-center justify-center space-x-2">
-                              <span className="text-blue-600 font-semibold">👆 Switch to YouTube URL tab above</span>
+                              <span className="text-blue-600 font-semibold">👆 Switch to the Link (YouTube / Drive) tab above</span>
                               <span className="animate-bounce text-xl">⬆️</span>
                             </div>
                           </div>
@@ -1405,7 +1483,7 @@ const VideoSubmissionContent: React.FC = () => {
                     ) : (
                       <>
                         <span className="text-xl">{youtubeUrl ? '▶️' : '📤'}</span>
-                        <span>{youtubeUrl ? 'Submit YouTube Video' : 'Submit Video'}</span>
+                        <span>{youtubeUrl ? 'Submit Video Link' : 'Submit Video'}</span>
                       </>
                     )}
                   </button>
@@ -1419,10 +1497,10 @@ const VideoSubmissionContent: React.FC = () => {
                       </div>
                       <div className="flex-1">
                         <pre className="text-red-800 text-sm whitespace-pre-wrap font-sans leading-relaxed">{error}</pre>
-                        {error.includes('YouTube') && (
+                        {errorIsLinkIssue && (
                           <div className="mt-4 pt-4 border-t border-red-200">
                             <div className="flex items-center justify-center space-x-2">
-                              <span className="text-blue-600 font-semibold">👆 Switch to YouTube URL tab above</span>
+                              <span className="text-blue-600 font-semibold">👆 Switch to the Link (YouTube / Drive) tab above</span>
                               <span className="animate-bounce text-xl">⬆️</span>
                             </div>
                           </div>
@@ -1465,25 +1543,35 @@ const VideoSubmissionContent: React.FC = () => {
                             )}
                           </div>
                           <div className="flex items-center space-x-2">
-                            {submission.isYouTube || submission.youtubeUrl ? (
-                              <a
-                                href={submission.youtubeUrl || submission.videoUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
-                              >
-                                ▶️ View on YouTube
-                              </a>
-                            ) : (
-                              <a
-                                href={submission.videoUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
-                              >
-                                ▶️ View Video
-                              </a>
-                            )}
+                            {(() => {
+                              const isYouTubeSubmission = submission.isYouTube || submission.youtubeUrl || (submission.videoUrl && submission.videoUrl.includes('youtube'));
+                              const isGoogleDriveSubmission = submission.isGoogleDrive || submission.googleDriveUrl || (submission.videoUrl && submission.videoUrl.includes('drive.google.com'));
+                              const externalUrl = isYouTubeSubmission
+                                ? (submission.youtubeUrl || submission.videoUrl)
+                                : isGoogleDriveSubmission
+                                  ? (submission.googleDriveUrl || submission.videoUrl)
+                                  : submission.videoUrl;
+                              const linkLabel = isYouTubeSubmission
+                                ? '▶️ View on YouTube'
+                                : isGoogleDriveSubmission
+                                  ? '▶️ View on Google Drive'
+                                  : '▶️ View Video';
+
+                              if (!externalUrl) {
+                                return null;
+                              }
+
+                              return (
+                                <a
+                                  href={externalUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                                >
+                                  {linkLabel}
+                                </a>
+                              );
+                            })()}
                             {showDeleteConfirm === submission.submissionId ? (
                               <div className="flex items-center space-x-2">
                                 <button

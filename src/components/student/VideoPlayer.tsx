@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { getVideoUrl, isGoogleDriveUrl } from '@/lib/videoUtils';
 
 export interface VideoMetadata {
   duration?: number;
@@ -235,6 +236,35 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     );
   }
 
+  const resolvedVideoUrl = getVideoUrl(videoUrl);
+  const isGoogleDrive = isGoogleDriveUrl(videoUrl);
+
+  if (isGoogleDrive) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+        <div className="relative w-full max-w-5xl mx-4 bg-black rounded-lg overflow-hidden">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 z-10 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors focus:outline-none focus:ring-2 focus:ring-white"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <div className="aspect-video w-full bg-black">
+            <iframe
+              src={resolvedVideoUrl}
+              title="Google Drive video preview"
+              className="w-full h-full"
+              allow="autoplay"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
       <div className="relative w-full max-w-6xl mx-4 bg-black rounded-lg overflow-hidden">
@@ -256,7 +286,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         >
           <video
             ref={videoRef}
-            src={videoUrl}
+            src={resolvedVideoUrl}
             className="w-full h-auto cursor-pointer"
             style={{ maxHeight: '80vh', objectFit: 'contain' }}
             onClick={handleVideoClick}

@@ -24,6 +24,8 @@ interface Submission {
   fileUrl: string;
   youtubeUrl?: string;
   isYouTube?: boolean;
+  googleDriveUrl?: string;
+  isGoogleDrive?: boolean;
   thumbnailUrl: string;
   duration: number; // in seconds
   fileSize: number; // in bytes
@@ -1392,15 +1394,48 @@ const BulkGradingPage: React.FC = () => {
                       {/* Video Player */}
                       <div>
                         <div className="bg-black rounded-lg overflow-hidden mb-4 relative group">
-                          {submission.isYouTube || submission.youtubeUrl ? (
-                            <YouTubePlayer
-                              url={submission.youtubeUrl || submission.fileUrl}
-                              title={submission.assignmentTitle}
-                              className="aspect-video w-full"
-                              playbackSpeed={playbackSpeed}
-                            />
-                          ) : (
-                            <video
+                          {(() => {
+                            const isYouTubeSubmission =
+                              submission.isYouTube ||
+                              submission.youtubeUrl ||
+                              submission.fileUrl?.includes('youtube.com') ||
+                              submission.fileUrl?.includes('youtu.be');
+                            const isGoogleDriveSubmission =
+                              submission.isGoogleDrive ||
+                              submission.googleDriveUrl ||
+                              submission.fileUrl?.includes('drive.google.com');
+                            const externalUrl = isYouTubeSubmission
+                              ? submission.youtubeUrl || submission.fileUrl
+                              : isGoogleDriveSubmission
+                                ? submission.googleDriveUrl || submission.fileUrl
+                                : null;
+                            const resolvedExternalUrl = externalUrl ? getVideoUrl(externalUrl) : null;
+
+                            if (isYouTubeSubmission && externalUrl) {
+                              return (
+                                <YouTubePlayer
+                                  url={externalUrl}
+                                  title={submission.assignmentTitle}
+                                  className="aspect-video w-full"
+                                  playbackSpeed={playbackSpeed}
+                                />
+                              );
+                            }
+
+                            if (isGoogleDriveSubmission && resolvedExternalUrl) {
+                              return (
+                                <iframe
+                                  src={resolvedExternalUrl}
+                                  title={submission.assignmentTitle || 'Google Drive video'}
+                                  className="aspect-video w-full"
+                                  allow="autoplay"
+                                  allowFullScreen
+                                />
+                              );
+                            }
+
+                            return (
+                              <video
                               ref={index === currentSubmissionIndex ? videoRef : null}
                               src={getVideoUrl(submission.fileUrl)}
                               className="w-full h-64 object-cover"
@@ -1459,7 +1494,8 @@ const BulkGradingPage: React.FC = () => {
                               onPause={() => index === currentSubmissionIndex && setIsPlaying(false)}
                               onEnded={() => index === currentSubmissionIndex && setIsPlaying(false)}
                             />
-                          )}
+                            );
+                          })()}
                         </div>
                       </div>
 
