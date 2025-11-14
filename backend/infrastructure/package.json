@@ -1,0 +1,23 @@
+{
+  "name": "classcast-infrastructure",
+  "version": "1.0.0",
+  "description": "ClassCast Platform - CDK Infrastructure",
+  "main": "app.js",
+  "scripts": {
+    "build": "tsc",
+    "deploy": "cdk deploy",
+    "destroy": "cdk destroy",
+    "diff": "cdk diff",
+    "synth": "cdk synth"
+  },
+  "dependencies": {
+    "aws-cdk": "^2.1029.3",
+    "aws-cdk-lib": "^2.100.0",
+    "constructs": "^10.3.0",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.18",
+    "typescript": "^5.2.2"
+  }
+}

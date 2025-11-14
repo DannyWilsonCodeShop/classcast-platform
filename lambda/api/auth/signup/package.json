@@ -1,0 +1,11 @@
+{
+  "name": "classcast-auth-signup",
+  "version": "1.0.0",
+  "description": "ClassCast user signup Lambda function",
+  "main": "signup.js",
+  "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.0.0",
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/util-dynamodb": "^3.0.0"
+  }
+}

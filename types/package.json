@@ -1,0 +1,32 @@
+{
+  "name": "@demoproject/types",
+  "version": "1.0.0",
+  "description": "TypeScript types and validation schemas for DemoProject",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "build": "tsc",
+    "validate": "tsc --noEmit",
+    "test": "jest"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "keywords": [
+    "typescript",
+    "validation",
+    "zod",
+    "types",
+    "schemas",
+    "demoproject"
+  ],
+  "author": "DemoProject Team",
+  "license": "MIT"
+}

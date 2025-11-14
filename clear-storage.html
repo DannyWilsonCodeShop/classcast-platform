@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Storage - ClassCast</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .button {
+            background-color: #4A90E2;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            width: 100%;
+        }
+        .button:hover {
+            background-color: #357ABD;
+        }
+        .button.danger {
+            background-color: #e74c3c;
+        }
+        .button.danger:hover {
+            background-color: #c0392b;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Clear Storage - ClassCast</h1>
+        <p>This will clear all localStorage data and help you start fresh with a clean user session.</p>
+        
+        <button class="button" onclick="clearStorage()">Clear All Storage Data</button>
+        <button class="button danger" onclick="clearAndRedirect()">Clear Storage & Go to Profile</button>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function clearStorage() {
+            try {
+                // Clear all localStorage
+                localStorage.clear();
+                
+                // Clear sessionStorage too
+                sessionStorage.clear();
+                
+                // Clear any cookies (if any)
+                document.cookie.split(";").forEach(function(c) { 
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+                });
+                
+                showStatus('✅ All storage data cleared successfully! You can now refresh the page and start fresh.', 'success');
+            } catch (error) {
+                showStatus('❌ Error clearing storage: ' + error.message, 'error');
+            }
+        }
+
+        function clearAndRedirect() {
+            clearStorage();
+            setTimeout(() => {
+                window.location.href = 'https://class-cast.com/student/profile';
+            }, 1000);
+        }
+
+        // Show current storage info
+        window.onload = function() {
+            const authState = localStorage.getItem('authState');
+            if (authState) {
+                try {
+                    const parsed = JSON.parse(authState);
+                    showStatus(`Current user: ${parsed.user?.firstName || 'Unknown'} ${parsed.user?.lastName || ''} (${parsed.user?.email || 'No email'})`, 'info');
+                } catch (e) {
+                    showStatus('Storage data found but could not parse', 'info');
+                }
+            } else {
+                showStatus('No storage data found - you\'re already clean!', 'success');
+            }
+        };
+    </script>
+</body>
+</html>
