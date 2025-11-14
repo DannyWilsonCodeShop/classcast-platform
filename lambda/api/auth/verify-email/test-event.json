@@ -1,0 +1,1 @@
+{"httpMethod":"POST","path":"/prod/auth/verify-email","headers":{"Content-Type":"application/json"},"body":"{\"email\":\"test@example.com\",\"code\":\"123456\"}"}

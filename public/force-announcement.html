@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassCast - Important Update</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #1a202c;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+        }
+        .success {
+            display: none;
+            color: #48bb78;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🔔</div>
+        <h1>Important ClassCast Update</h1>
+        <p>
+            We've made important changes to how peer responses work. 
+            Click the button below to clear your cache and see the new announcement.
+        </p>
+        <button class="button" onclick="clearAndRedirect()">
+            Clear Cache & Continue
+        </button>
+        <div class="success" id="success">
+            ✓ Cache cleared! Redirecting...
+        </div>
+    </div>
+
+    <script>
+        function clearAndRedirect() {
+            // Clear the specific localStorage item
+            localStorage.removeItem('classcast-peer-response-announcement-seen');
+            
+            // Show success message
+            document.getElementById('success').style.display = 'block';
+            
+            // Redirect to dashboard after 1 second
+            setTimeout(() => {
+                window.location.href = '/student/dashboard';
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

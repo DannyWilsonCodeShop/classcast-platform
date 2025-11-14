@@ -1,0 +1,53 @@
+{
+  "name": "cdk",
+  "version": "0.1.0",
+  "description": "AWS CDK infrastructure for DemoProject",
+  "bin": {
+    "cdk": "bin/cdk.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk",
+    "deploy:all": "cdk deploy --all --require-approval never",
+    "deploy:network": "cdk deploy DemoProject-NetworkStack --require-approval never",
+    "deploy:storage": "cdk deploy DemoProject-StorageStack --require-approval never",
+    "deploy:auth": "cdk deploy DemoProject-AuthStack --require-approval never",
+    "deploy:database": "cdk deploy DemoProject-DatabaseStack --require-approval never",
+    "deploy:api-gateway": "cdk deploy DemoProject-ApiGatewayStack --require-approval never",
+    "deploy:application": "cdk deploy DemoProject-ApplicationStack --require-approval never",
+    "destroy:all": "cdk destroy --all --force",
+    "destroy:network": "cdk destroy DemoProject-NetworkStack --force",
+    "destroy:storage": "cdk destroy DemoProject-StorageStack --force",
+    "destroy:auth": "cdk destroy DemoProject-AuthStack --force",
+    "destroy:database": "cdk destroy DemoProject-DatabaseStack --force",
+    "destroy:api-gateway": "cdk destroy DemoProject-ApiGatewayStack --force",
+    "destroy:application": "cdk destroy DemoProject-ApplicationStack --force",
+    "diff": "cdk diff",
+    "status": "cdk list",
+    "outputs": "cdk list-exports",
+    "synth": "cdk synth",
+    "bootstrap": "cdk bootstrap",
+    "clean": "rm -rf dist",
+    "clean:win": "if exist dist rmdir /s dist",
+    "validate": "npm run build && npm run synth"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "22.7.9",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "aws-cdk": "2.1025.0",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.6.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.208.0",
+    "constructs": "^10.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

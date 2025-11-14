@@ -1,0 +1,61 @@
+{
+  "TableName": "classcast-sections",
+  "AttributeDefinitions": [
+    {
+      "AttributeName": "sectionId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "courseId",
+      "AttributeType": "S"
+    },
+    {
+      "AttributeName": "instructorId",
+      "AttributeType": "S"
+    }
+  ],
+  "KeySchema": [
+    {
+      "AttributeName": "sectionId",
+      "KeyType": "HASH"
+    }
+  ],
+  "GlobalSecondaryIndexes": [
+    {
+      "IndexName": "courseId-index",
+      "KeySchema": [
+        {
+          "AttributeName": "courseId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 5,
+        "WriteCapacityUnits": 5
+      }
+    },
+    {
+      "IndexName": "instructorId-index",
+      "KeySchema": [
+        {
+          "AttributeName": "instructorId",
+          "KeyType": "HASH"
+        }
+      ],
+      "Projection": {
+        "ProjectionType": "ALL"
+      },
+      "ProvisionedThroughput": {
+        "ReadCapacityUnits": 5,
+        "WriteCapacityUnits": 5
+      }
+    }
+  ],
+  "ProvisionedThroughput": {
+    "ReadCapacityUnits": 5,
+    "WriteCapacityUnits": 5
+  }
+}

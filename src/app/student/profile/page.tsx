@@ -1,0 +1,1035 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { StudentRoute } from '@/components/auth/ProtectedRoute';
+import Avatar from '@/components/common/Avatar';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { api, User } from '@/lib/api';
+import { PasswordReset } from '@/components/PasswordReset';
+import { NotificationPreferences } from '@/components/NotificationPreferences';
+
+interface ProfileData {
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  avatar?: string;
+  bio?: string;
+  careerGoals?: string;
+  classOf?: string;
+  funFact?: string;
+  favoriteSubject?: string;
+  hobbies?: string;
+  schoolName?: string;
+  schoolLogo?: string;
+  engagementStats?: {
+    videoStats: {
+      totalVideos: number;
+      totalViews: number;
+      totalLikes: number;
+      totalComments: number;
+      totalRatings: number;
+      averageRating: number;
+    };
+    communityStats: {
+      totalPosts: number;
+      totalPostLikes: number;
+      totalPostComments: number;
+      totalPostReactions: number;
+      totalComments: number;
+      totalCommentLikes: number;
+    };
+    peerReviewStats: {
+      totalResponses: number;
+      totalResponseLikes: number;
+      totalResponseComments: number;
+      averageResponseLength: number;
+    };
+    engagementStats: {
+      totalInteractions: number;
+      totalLikesReceived: number;
+      totalCommentsReceived: number;
+      totalViewsReceived: number;
+      totalReactionsReceived: number;
+    };
+  };
+}
+
+const StudentProfilePage: React.FC = () => {
+  const { user, logout, updateUser } = useAuth();
+  const router = useRouter();
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [editedProfile, setEditedProfile] = useState<ProfileData | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
+  const [showNotificationPrefs, setShowNotificationPrefs] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [studyBuddies, setStudyBuddies] = useState<any[]>([]);
+  const [followers, setFollowers] = useState<any[]>([]);
+  const [showStudyBuddies, setShowStudyBuddies] = useState(false);
+  const [showFollowers, setShowFollowers] = useState(false);
+
+  // Popular emojis for avatars
+  const emojiOptions = [
+    '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '🙃',
+    '😉', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😙',
+    '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔',
+    '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥',
+    '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮',
+    '🤧', '🥵', '🥶', '😵', '🤯', '🤠', '🥳', '😎', '🤓', '🧐',
+    '👶', '🧒', '👦', '👧', '🧑', '👨', '👩', '🧓', '👴', '👵',
+    '👱', '👱‍♀️', '👱‍♂️', '🧔', '👨‍🦰', '👩‍🦰', '👨‍🦱', '👩‍🦱', '👨‍🦳', '👩‍🦳',
+    '👨‍🦲', '👩‍🦲', '🤵', '👰', '🤰', '🤱', '👼', '🎅', '🤶', '🦸',
+    '🦹', '🧙', '🧚', '🧛', '🧜', '🧝', '🧞', '🧟', '💆', '💇',
+    '🚶', '🏃', '💃', '🕺', '👯', '🧖', '🧗', '🤺', '🏇', '⛷️',
+    '🏂', '🏌️', '🏄', '🚣', '🏊', '⛹️', '🏋️', '🚴', '🚵', '🤸',
+    '🤼', '🤽', '🤾', '🤹', '🧘', '🛀', '🛌', '👭', '👫', '👬',
+    '💏', '💑', '👪', '🗣️', '👤', '👥', '🫂', '👋', '🤚', '🖐️',
+    '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈',
+    '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '👊', '✊', '🤛',
+    '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳',
+    '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🦷',
+    '🦴', '👀', '👁️', '👅', '👄', '💋', '🩸'
+  ];
+
+  // Initialize profile with clean data and load engagement stats
+  useEffect(() => {
+    if (user && !profile) {
+      const profileData: ProfileData = {
+        id: user.id || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        avatar: user.avatar || '',
+        bio: user.bio || '',
+        careerGoals: user.careerGoals || '',
+        classOf: user.classOf || '',
+        funFact: user.funFact || '',
+        favoriteSubject: user.favoriteSubject || '',
+        hobbies: user.hobbies || '',
+        schoolName: user.schoolName || '',
+        schoolLogo: user.schoolLogo || ''
+      };
+      
+      setProfile(profileData);
+      setEditedProfile(profileData);
+      
+      // Load engagement statistics
+      loadEngagementStats(user.id);
+      
+      // Load Study Buddy connections
+      loadStudyBuddyConnections(user.id);
+    }
+  }, [user, profile]);
+
+  // Load engagement statistics
+  const loadEngagementStats = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/users/${userId}/stats`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setProfile(prev => prev ? { ...prev, engagementStats: data.stats } : null);
+          setEditedProfile(prev => prev ? { ...prev, engagementStats: data.stats } : null);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading engagement stats:', error);
+    }
+  };
+
+  // Load Study Buddy connections
+  const loadStudyBuddyConnections = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/connections?userId=${userId}`);
+      const data = await response.json();
+      
+      if (data.success && data.connections) {
+        const following: any[] = [];
+        const followers: any[] = [];
+        
+        // Separate connections based on who initiated them
+        data.connections.forEach((conn: any) => {
+          if (conn.status === 'accepted') {
+            if (conn.requesterId === userId) {
+              following.push(conn.requestedId);
+            } else if (conn.requestedId === userId) {
+              followers.push(conn.requesterId);
+            }
+          }
+        });
+        
+        // Load user details for Study Buddies (following)
+        const followingUsers = await Promise.all(
+          following.map(async (id) => {
+            try {
+              const userResponse = await fetch(`/api/profile?userId=${id}`);
+              const userData = await userResponse.json();
+              return userData.success ? userData.data : null;
+            } catch (err) {
+              console.error(`Error fetching user ${id}:`, err);
+              return null;
+            }
+          })
+        );
+        
+        // Load user details for followers
+        const followerUsers = await Promise.all(
+          followers.map(async (id) => {
+            try {
+              const userResponse = await fetch(`/api/profile?userId=${id}`);
+              const userData = await userResponse.json();
+              return userData.success ? userData.data : null;
+            } catch (err) {
+              console.error(`Error fetching user ${id}:`, err);
+              return null;
+            }
+          })
+        );
+        
+        setStudyBuddies(followingUsers.filter(u => u !== null));
+        setFollowers(followerUsers.filter(u => u !== null));
+      }
+    } catch (error) {
+      console.error('Error loading Study Buddy connections:', error);
+    }
+  };
+
+  // Handle input changes
+  const handleInputChange = (field: keyof ProfileData, value: string) => {
+    if (!editedProfile) return;
+    
+    setEditedProfile(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji: string) => {
+    setEditedProfile(prev => ({
+      ...prev,
+      avatar: emoji
+    }));
+    setShowEmojiPicker(false);
+    setErrors(prev => ({ ...prev, avatar: '' }));
+  };
+
+  // Handle photo upload
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !editedProfile) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'Please select a valid image file (JPG, PNG, GIF, or WebP)'
+      }));
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'Image size must be less than 5MB'
+      }));
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      // Get presigned URL for image upload
+      const presignedResponse = await fetch('/api/upload/presigned', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          contentType: file.type,
+          userId: editedProfile.email || 'anonymous',
+          folder: 'profile-pictures'
+        }),
+      });
+
+      if (!presignedResponse.ok) {
+        throw new Error('Failed to get presigned URL');
+      }
+
+      const { data: presignedData } = await presignedResponse.json();
+      const { presignedUrl, fileUrl } = presignedData;
+
+      // Upload image directly to S3 using presigned URL
+      const uploadResponse = await fetch(presignedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image to S3');
+      }
+
+      // Update profile with the S3 URL
+      setEditedProfile(prev => ({
+        ...prev,
+        avatar: fileUrl
+      }));
+      setErrors(prev => ({ ...prev, avatar: '' }));
+      
+      console.log('Image uploaded successfully to S3:', fileUrl);
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      setErrors(prev => ({
+        ...prev,
+        avatar: 'Failed to upload image. Please try again.'
+      }));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Validate form
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!editedProfile?.firstName?.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+    if (!editedProfile?.lastName?.trim()) {
+      newErrors.lastName = 'Last name is required';
+    }
+    if (!editedProfile?.email?.trim()) {
+      newErrors.email = 'Email is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Save profile using new clean API
+  const handleSave = async () => {
+    if (!editedProfile || !user) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const isValid = validateForm();
+      if (!isValid) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Use the new clean API to update profile
+      const updatedUser = await api.updateUserProfile(user.id!, editedProfile);
+
+      // Update user in AuthContext
+      updateUser(updatedUser);
+      
+      // Update local state
+      setProfile(editedProfile);
+      setIsEditing(false);
+
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      setError('Failed to save profile. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Cancel editing
+  const handleCancel = () => {
+    setEditedProfile(profile);
+    setErrors({});
+    setIsEditing(false);
+  };
+
+  if (!user || !profile) {
+    return (
+      <StudentRoute>
+        <div className="min-h-screen flex items-center justify-center bg-[#F5F5F5]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4A90E2] mx-auto mb-4"></div>
+            <p className="text-[#333333]">Loading profile...</p>
+          </div>
+        </div>
+      </StudentRoute>
+    );
+  }
+
+  return (
+    <StudentRoute>
+      <div className="min-h-screen bg-[#F5F5F5]">
+        {/* Header with Back Button */}
+        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Link 
+                href="/student/dashboard"
+                className="text-[#4A90E2] hover:text-[#357ABD] transition-colors duration-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </Link>
+              
+              <h1 className="text-2xl font-bold text-[#333333]">Profile</h1>
+              
+              {/* MyClassCast Logo */}
+              <div className="flex items-center">
+                <img 
+                  src="/MyClassCast (800 x 200 px).png" 
+                  alt="MyClassCast" 
+                  className="h-6 w-auto object-contain"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              {!isEditing ? (
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-200 flex items-center space-x-1.5 border border-gray-200"
+                    title="Edit Profile"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    onClick={() => setShowPasswordReset(true)}
+                    className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-200 flex items-center space-x-1.5 border border-gray-200"
+                    title="Change Password"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    <span>Password</span>
+                  </button>
+                  <button
+                    onClick={() => setShowNotificationPrefs(true)}
+                    className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-200 flex items-center space-x-1.5 border border-gray-200"
+                    title="Notification Preferences"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span>Notifications</span>
+                  </button>
+                  <button
+                    onClick={logout}
+                    className="px-3 py-1.5 text-sm text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors duration-200 flex items-center space-x-1.5 border border-gray-200"
+                    title="Logout"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Logout</span>
+                  </button>
+                </>
+              ) : (
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleCancel}
+                    className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-200 border border-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={isLoading}
+                    className="px-3 py-1.5 text-sm text-white bg-gray-700 hover:bg-gray-800 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content - Mobile Optimized */}
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 py-4 sm:py-6">
+          {/* Error Message - Mobile Optimized */}
+          {error && (
+            <div className="mb-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm sm:text-base">{error}</p>
+            </div>
+          )}
+
+          {/* Profile Card - Mobile Optimized */}
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            {/* Profile Header - Mobile Optimized */}
+            <div className="bg-gradient-to-r from-[#4A90E2] to-[#357ABD] p-4 sm:p-6 text-white">
+              <div className="flex items-center space-x-3 sm:space-x-4">
+                {/* Avatar - Mobile Optimized */}
+                <div className="relative">
+                  {isEditing ? (
+                    <Avatar
+                      user={editedProfile || {}}
+                      size="lg"
+                      showBorder={true}
+                      className="border-white"
+                    />
+                  ) : (
+                    <Avatar
+                      user={profile || {}}
+                      size="lg"
+                      showBorder={true}
+                      className="border-white"
+                    />
+                  )}
+                  
+                  {/* Avatar Options (only in edit mode) - Mobile Optimized */}
+                  {isEditing && (
+                    <div className="absolute -bottom-1 -right-1 flex space-x-1">
+                      {/* Photo Upload Button */}
+                      <label className="w-6 h-6 sm:w-7 sm:h-7 bg-blue-500 rounded-full flex items-center justify-center text-white hover:bg-blue-600 transition-colors duration-200 shadow-lg cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          disabled={isUploading}
+                        />
+                        {isUploading ? (
+                          <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        )}
+                      </label>
+                      
+                      {/* Emoji Picker Button */}
+                      <button
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className="w-6 h-6 sm:w-7 sm:h-7 bg-green-500 rounded-full flex items-center justify-center text-white hover:bg-green-600 transition-colors duration-200 shadow-lg"
+                      >
+                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Name and Title - Mobile Optimized */}
+                <div className="flex-1">
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={editedProfile?.firstName || ''}
+                        onChange={(e) => handleInputChange('firstName', e.target.value)}
+                        className="text-lg sm:text-xl font-bold bg-white/20 border border-white/30 rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                        placeholder="First Name"
+                      />
+                      <input
+                        type="text"
+                        value={editedProfile?.lastName || ''}
+                        onChange={(e) => handleInputChange('lastName', e.target.value)}
+                        className="text-lg sm:text-xl font-bold bg-white/20 border border-white/30 rounded-lg px-2 sm:px-3 py-1 sm:py-2 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                        placeholder="Last Name"
+                      />
+                      {errors.firstName && <p className="text-red-200 text-xs sm:text-sm">{errors.firstName}</p>}
+                      {errors.lastName && <p className="text-red-200 text-xs sm:text-sm">{errors.lastName}</p>}
+                    </div>
+                  ) : (
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-bold">
+                        {profile?.firstName} {profile?.lastName}
+                      </h2>
+                      <p className="text-white/80 text-sm sm:text-base">Student</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Avatar Error Display */}
+              {errors.avatar && (
+                <div className="mt-2 text-center">
+                  <p className="text-red-200 text-sm">{errors.avatar}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Profile Details - Balanced Layout */}
+            <div className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Column - Basic Info */}
+                <div className="lg:col-span-1 space-y-4">
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    {isEditing ? (
+                      <input
+                        type="email"
+                        value={editedProfile?.email || ''}
+                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="Email address"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.email}</p>
+                    )}
+                    {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                  </div>
+
+                  {/* School Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">School</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editedProfile?.schoolName || ''}
+                        onChange={(e) => handleInputChange('schoolName', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="School name"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.schoolName || 'Not specified'}</p>
+                    )}
+                  </div>
+
+                  {/* Class of */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Class of</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editedProfile?.classOf || ''}
+                        onChange={(e) => handleInputChange('classOf', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="Graduation year"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.classOf || 'Not specified'}</p>
+                    )}
+                  </div>
+
+                  {/* Favorite Subject */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Favorite Subject</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editedProfile?.favoriteSubject || ''}
+                        onChange={(e) => handleInputChange('favoriteSubject', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="Favorite subject"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.favoriteSubject || 'Not specified'}</p>
+                    )}
+                  </div>
+
+                  {/* Hobbies */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Hobbies</label>
+                    {isEditing ? (
+                      <input
+                        type="text"
+                        value={editedProfile?.hobbies || ''}
+                        onChange={(e) => handleInputChange('hobbies', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="What are your hobbies?"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.hobbies || 'No hobbies specified'}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Column - Extended Info */}
+                <div className="lg:col-span-2 space-y-4">
+                  {/* School Logo */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">School Logo</label>
+                    {isEditing ? (
+                      <div className="space-y-3">
+                        <select
+                          value={editedProfile?.schoolLogo || ''}
+                          onChange={(e) => handleInputChange('schoolLogo', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        >
+                          <option value="">Select a school logo</option>
+                          <option value="/logos/cristo-rey-atlanta.png">Cristo Rey Atlanta Jesuit High School</option>
+                        </select>
+                        {editedProfile?.schoolLogo && (
+                          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border">
+                            <img 
+                              src={editedProfile.schoolLogo} 
+                              alt="School Logo" 
+                              className="w-12 h-12 object-contain"
+                            />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">Selected Logo</p>
+                              <p className="text-xs text-gray-500">Will appear in dashboard header</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-3">
+                        {profile?.schoolLogo ? (
+                          <>
+                            <img 
+                              src={profile.schoolLogo} 
+                              alt="School Logo" 
+                              className="w-12 h-12 object-contain"
+                            />
+                            <p className="text-gray-900 text-sm">Cristo Rey Atlanta Jesuit High School</p>
+                          </>
+                        ) : (
+                          <p className="text-gray-500 text-sm">No logo selected</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bio */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                    {isEditing ? (
+                      <textarea
+                        value={editedProfile?.bio || ''}
+                        onChange={(e) => handleInputChange('bio', e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="Tell us about yourself"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.bio || 'No bio provided'}</p>
+                    )}
+                  </div>
+
+                  {/* Career Goals */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Career Goals</label>
+                    {isEditing ? (
+                      <textarea
+                        value={editedProfile?.careerGoals || ''}
+                        onChange={(e) => handleInputChange('careerGoals', e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="What are your career goals?"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.careerGoals || 'No career goals specified'}</p>
+                    )}
+                  </div>
+
+                  {/* Fun Fact */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Fun Fact</label>
+                    {isEditing ? (
+                      <textarea
+                        value={editedProfile?.funFact || ''}
+                        onChange={(e) => handleInputChange('funFact', e.target.value)}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A90E2] focus:border-transparent text-sm"
+                        placeholder="Share a fun fact about yourself"
+                      />
+                    ) : (
+                      <p className="text-gray-900 text-sm">{profile?.funFact || 'No fun fact provided'}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Activity & Engagement Section - Simplified to 4 Key Metrics */}
+            {profile?.engagementStats && (
+              <div className="border-t border-gray-200 p-4 sm:p-6">
+                <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">📊 Activity & Engagement</h3>
+                
+                {/* 4 Key Metrics in a Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  {/* Videos Created */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 text-center border border-blue-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-blue-600">{profile.engagementStats.videoStats.totalVideos}</div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Videos</div>
+                  </div>
+                  
+                  {/* Total Views */}
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 text-center border border-green-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-green-600">{profile.engagementStats.videoStats.totalViews}</div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Views</div>
+                  </div>
+                  
+                  {/* Total Likes */}
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 text-center border border-red-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-red-600">{profile.engagementStats.videoStats.totalLikes}</div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Likes</div>
+                  </div>
+                  
+                  {/* Average Rating */}
+                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg p-4 text-center border border-yellow-200">
+                    <div className="text-2xl sm:text-3xl font-bold text-yellow-600">
+                      {profile.engagementStats.videoStats.averageRating > 0 
+                        ? profile.engagementStats.videoStats.averageRating.toFixed(1) 
+                        : '0.0'
+                      }
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium mt-1">Avg Rating</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Study Buddies Section */}
+            <div className="border-t border-gray-200 p-4 sm:p-6">
+              <h3 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">👥 Study Buddies</h3>
+              
+              {/* Study Buddy Stats */}
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="bg-blue-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">{studyBuddies.length}</div>
+                  <div className="text-xs text-gray-600 mt-1">Following</div>
+                </div>
+                <div className="bg-green-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">{followers.length}</div>
+                  <div className="text-xs text-gray-600 mt-1">Followers</div>
+                </div>
+              </div>
+
+              {/* Study Buddies List */}
+              {studyBuddies.length > 0 && (
+                <div className="mb-4">
+                  <button
+                    onClick={() => setShowStudyBuddies(!showStudyBuddies)}
+                    className="w-full flex items-center justify-between text-sm font-medium text-gray-700 mb-2 hover:text-gray-900 transition-colors"
+                  >
+                    <span>My Study Buddies ({studyBuddies.length})</span>
+                    <svg
+                      className={`w-5 h-5 transition-transform ${showStudyBuddies ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {showStudyBuddies && (
+                    <div className="space-y-2">
+                      {studyBuddies.map((buddy) => (
+                      <div
+                        key={buddy.id}
+                        className="flex items-center justify-between bg-white rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors border border-gray-200"
+                      >
+                        <div
+                          onClick={() => router.push(`/student/peer-profile/${buddy.id}`)}
+                          className="flex items-center space-x-2 flex-1 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {buddy.avatar && !buddy.avatar.includes('placeholder') ? (
+                              // Check if avatar is an emoji (short string, no http/https)
+                              buddy.avatar.length <= 4 && !buddy.avatar.startsWith('http') ? (
+                                <span className="text-xl">
+                                  {buddy.avatar}
+                                </span>
+                              ) : (
+                                <img 
+                                  src={buddy.avatar} 
+                                  alt={buddy.firstName || 'User'} 
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    // Fallback to initials if image fails
+                                    e.currentTarget.style.display = 'none';
+                                    const parent = e.currentTarget.parentElement;
+                                    if (parent) {
+                                      parent.innerHTML = `<span class="text-gray-600 text-xs font-semibold">${buddy.firstName?.[0] || buddy.email?.[0] || 'U'}</span>`;
+                                    }
+                                  }}
+                                />
+                              )
+                            ) : (
+                              <span className="text-gray-600 text-xs font-semibold">
+                                {buddy.firstName?.[0] || buddy.email?.[0] || 'U'}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-sm text-gray-900">
+                            {buddy.firstName && buddy.lastName 
+                              ? `${buddy.firstName} ${buddy.lastName}` 
+                              : buddy.email || 'User'}
+                          </span>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/student/messages?userId=${buddy.id}`);
+                          }}
+                          className="ml-2 px-3 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <span>Message</span>
+                        </button>
+                      </div>
+                    ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Followers List */}
+              {followers.length > 0 && (
+                <div>
+                  <button
+                    onClick={() => setShowFollowers(!showFollowers)}
+                    className="w-full flex items-center justify-between text-sm font-medium text-gray-700 mb-2 hover:text-gray-900 transition-colors"
+                  >
+                    <span>Study Buddies Following Me ({followers.length})</span>
+                    <svg
+                      className={`w-5 h-5 transition-transform ${showFollowers ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {showFollowers && (
+                    <div className="space-y-2">
+                      {followers.map((follower) => (
+                      <div
+                        key={follower.id}
+                        className="flex items-center justify-between bg-white rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors border border-gray-200"
+                      >
+                        <div
+                          onClick={() => router.push(`/student/peer-profile/${follower.id}`)}
+                          className="flex items-center space-x-2 flex-1 cursor-pointer"
+                        >
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                            {follower.avatar && !follower.avatar.includes('placeholder') ? (
+                              // Check if avatar is an emoji (short string, no http/https)
+                              follower.avatar.length <= 4 && !follower.avatar.startsWith('http') ? (
+                                <span className="text-xl">
+                                  {follower.avatar}
+                                </span>
+                              ) : (
+                                <img 
+                                  src={follower.avatar} 
+                                  alt={follower.firstName || 'User'} 
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    // Fallback to initials if image fails
+                                    e.currentTarget.style.display = 'none';
+                                    const parent = e.currentTarget.parentElement;
+                                    if (parent) {
+                                      parent.innerHTML = `<span class="text-gray-600 text-xs font-semibold">${follower.firstName?.[0] || follower.email?.[0] || 'U'}</span>`;
+                                    }
+                                  }}
+                                />
+                              )
+                            ) : (
+                              <span className="text-gray-600 text-xs font-semibold">
+                                {follower.firstName?.[0] || follower.email?.[0] || 'U'}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-sm text-gray-900">
+                            {follower.firstName && follower.lastName 
+                              ? `${follower.firstName} ${follower.lastName}` 
+                              : follower.email || 'User'}
+                          </span>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/student/messages?userId=${follower.id}`);
+                          }}
+                          className="ml-2 px-3 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                          <span>Message</span>
+                        </button>
+                      </div>
+                    ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Emoji Picker Modal */}
+        {showEmojiPicker && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 max-h-96 overflow-y-auto">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Choose an Avatar</h3>
+                <button
+                  onClick={() => setShowEmojiPicker(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Choose an emoji or use the camera button to upload a photo
+              </p>
+              <div className="grid grid-cols-8 gap-2">
+                {emojiOptions.map((emoji, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleEmojiSelect(emoji)}
+                    className="w-10 h-10 text-2xl hover:bg-gray-100 rounded-lg flex items-center justify-center transition-colors duration-200"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Password Reset Modal */}
+        {showPasswordReset && (
+          <PasswordReset onClose={() => setShowPasswordReset(false)} />
+        )}
+
+        {/* Notification Preferences Modal */}
+        {showNotificationPrefs && user && (
+          <NotificationPreferences
+            userId={user.id}
+            isOpen={showNotificationPrefs}
+            onClose={() => setShowNotificationPrefs(false)}
+          />
+        )}
+      </div>
+    </StudentRoute>
+  );
+};
+
+export default StudentProfilePage;

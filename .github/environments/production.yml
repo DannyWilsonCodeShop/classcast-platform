@@ -1,0 +1,83 @@
+name: production
+url: https://yourdomain.com
+
+# Protection rules for production environment
+protection_rules:
+  # Require a pull request before merging
+  required_pull_request_reviews:
+    required_approving_review_count: 2
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+    
+  # Require status checks to pass before merging
+  required_status_checks:
+    strict: true
+    contexts:
+      - "CI - Continuous Integration"
+      - "lint-and-format"
+      - "unit-tests"
+      - "e2e-tests"
+      - "build-verification"
+      - "infrastructure-validation"
+      - "security-scan"
+      
+  # Restrict pushes that create files that match the specified glob patterns
+  restrictions:
+    users: []
+    teams: []
+    apps: []
+    
+  # Allow specific actors to bypass the above restrictions
+  allowed_actors:
+    users: []
+    teams: []
+    apps: []
+
+# Environment variables for production
+environment_variables:
+  NODE_ENV: production
+  AWS_REGION: us-east-1
+  PRODUCTION_DOMAIN: yourdomain.com
+  
+# Deployment branches
+deployment_branches:
+  - main
+  - release/*
+  
+# Auto-deploy settings
+auto_deploy:
+  enabled: false  # Production requires manual approval
+  branches: []
+  required_checks: []
+  
+# Manual approval settings
+manual_approval:
+  required: true
+  approvers:
+    - "admin-team"
+    - "devops-team"
+  timeout_hours: 24
+  
+# Rollback settings
+rollback:
+  enabled: true
+  automatic: false  # Manual rollback only
+  triggers:
+    - health_check_failure
+    - smoke_test_failure
+    - performance_degradation
+    
+# Monitoring and alerting
+monitoring:
+  health_checks:
+    - endpoint: /api/health
+      interval: 5m
+      timeout: 30s
+      retries: 3
+  alerts:
+    - type: error_rate
+      threshold: 5%
+    - type: response_time
+      threshold: 2000ms
+    - type: availability
+      threshold: 99.9%

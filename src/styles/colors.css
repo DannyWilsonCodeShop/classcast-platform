@@ -1,0 +1,106 @@
+/* Premium Color Palette for ClassCast - Cristo Rey Brand */
+
+:root {
+  /* Cristo Rey Brand Colors - Pantone 301 (Deep Blue) & Pantone 124 (Gold) */
+  --cristo-rey-blue: #005587;        /* Pantone 301 - Primary brand blue */
+  --cristo-rey-blue-dark: #003d5c;   /* Darker shade for hover states */
+  --cristo-rey-blue-light: #007bb8;  /* Lighter shade */
+  --cristo-rey-gold: #FFC72C;        /* Pantone 124 - Brand gold */
+  --cristo-rey-gold-dark: #E5A900;   /* Darker gold for hover */
+  --cristo-rey-gold-light: #FFD666;  /* Lighter gold */
+
+  /* Primary Colors - Cristo Rey Blue Palette */
+  --primary-900: #002840;  /* Deepest blue */
+  --primary-800: #003d5c;  /* Deep blue */
+  --primary-700: #005587;  /* Cristo Rey Blue (Pantone 301) */
+  --primary-600: #007bb8;  /* Medium blue */
+  --primary-500: #0099e6;  /* Light blue */
+  --primary-400: #4db8ff;  /* Very light blue */
+  --primary-300: #99d6ff;  /* Pale blue */
+  --primary-200: #cceaff;  /* Almost white blue */
+  --primary-100: #e6f5ff;  /* Off white with blue tint */
+
+  /* Accent Colors - Cristo Rey Gold Palette */
+  --accent-700: #CC9900;   /* Deep gold */
+  --accent-600: #E5A900;   /* Dark gold */
+  --accent-500: #FFC72C;   /* Cristo Rey Gold (Pantone 124) */
+  --accent-400: #FFD666;   /* Light gold */
+  --accent-300: #FFE599;   /* Very light gold */
+  --accent-200: #FFF2CC;   /* Pale gold */
+  --accent-100: #FFF9E6;   /* Off white with gold tint */
+
+  /* Success Colors - Professional Green */
+  --success-600: #38a169;  /* Professional green */
+  --success-500: #48bb78;  /* Soft green */
+  --success-400: #68d391;  /* Light green */
+  --success-300: #9ae6b4;  /* Very light green */
+  --success-200: #c6f6d5;  /* Pale green */
+  --success-100: #f0fff4;  /* Off white with green tint */
+
+  /* Warning Colors - Professional Burgundy/Amber (no juvenile orange) */
+  --warning-700: #78350f;  /* Deep amber */
+  --warning-600: #92400e;  /* Dark amber */
+  --warning-500: #b45309;  /* Professional amber */
+  --warning-400: #d97706;  /* Medium amber */
+  --warning-300: #fbbf24;  /* Light amber */
+  --warning-200: #fde68a;  /* Very light amber */
+  --warning-100: #fef3c7;  /* Pale amber */
+
+  /* Error Colors - Sophisticated Red */
+  --error-600: #e53e3e;    /* Professional red */
+  --error-500: #f56565;    /* Soft red */
+  --error-400: #fc8181;    /* Light red */
+  --error-300: #feb2b2;    /* Very light red */
+  --error-200: #fed7d7;    /* Pale red */
+  --error-100: #fff5f5;    /* Off white with red tint */
+
+  /* Neutral Colors - Sophisticated Grays */
+  --neutral-900: #1a202c;  /* Deep charcoal */
+  --neutral-800: #2d3748;  /* Rich charcoal */
+  --neutral-700: #4a5568;  /* Muted charcoal */
+  --neutral-600: #718096;  /* Soft charcoal */
+  --neutral-500: #a0aec0;  /* Light charcoal */
+  --neutral-400: #cbd5e0;  /* Very light charcoal */
+  --neutral-300: #e2e8f0;  /* Pale charcoal */
+  --neutral-200: #edf2f7;  /* Almost white */
+  --neutral-100: #f7fafc;  /* Off white */
+  --neutral-50: #ffffff;   /* Pure white */
+
+  /* Typography Colors */
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-700);
+  --text-tertiary: var(--neutral-600);
+  --text-muted: var(--neutral-500);
+  --text-inverse: var(--neutral-50);
+
+  /* Background Colors */
+  --bg-primary: var(--neutral-50);
+  --bg-secondary: var(--neutral-100);
+  --bg-tertiary: var(--neutral-200);
+  --bg-inverse: var(--neutral-900);
+
+  /* Border Colors */
+  --border-primary: var(--neutral-300);
+  --border-secondary: var(--neutral-200);
+  --border-accent: var(--accent-300);
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text-primary: var(--neutral-100);
+    --text-secondary: var(--neutral-300);
+    --text-tertiary: var(--neutral-400);
+    --text-muted: var(--neutral-500);
+    --text-inverse: var(--neutral-900);
+
+    --bg-primary: var(--neutral-900);
+    --bg-secondary: var(--neutral-800);
+    --bg-tertiary: var(--neutral-700);
+    --bg-inverse: var(--neutral-50);
+
+    --border-primary: var(--neutral-600);
+    --border-secondary: var(--neutral-700);
+    --border-accent: var(--accent-500);
+  }
+}
