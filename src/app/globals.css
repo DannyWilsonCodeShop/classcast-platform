@@ -1,0 +1,282 @@
+@import "tailwindcss";
+@import "../styles/colors.css";
+@import "../styles/typography.css";
+@import "../styles/components.css";
+@import "../styles/rich-text.css";
+
+:root {
+  --background: #ffffff;
+  --foreground: #1a202c;
+  --card: #ffffff;
+  --card-foreground: #1a202c;
+  --popover: #ffffff;
+  --popover-foreground: #1a202c;
+  --primary: #005587;
+  --primary-foreground: #ffffff;
+  --secondary: #007bb8;
+  --secondary-foreground: #ffffff;
+  --muted: #f7fafc;
+  --muted-foreground: #718096;
+  --accent: #FFC72C;
+  --accent-foreground: #003d5c;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #005587;
+  --chart-1: #005587;
+  --chart-2: #007bb8;
+  --chart-3: #0099e6;
+  --chart-4: #FFC72C;
+  --chart-5: #38a169;
+  --radius: 0.75rem;
+  --font-geist-sans: "Geist", "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --font-geist-mono: "Geist Mono", "SF Mono", Monaco, Inconsolata, "Roboto Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Courier New", monospace;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* Background image - simplified approach */
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Mobile touch improvements */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+button, [role="button"] {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Ensure buttons are properly sized for touch on mobile */
+@media (max-width: 768px) {
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Add a subtle overlay to ensure text readability - reduced opacity */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Custom scrollbar with Cristo Rey colors - solid, no gradients */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f7fafc;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #005587;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #003d5c;
+}
+
+/* Enhanced focus states */
+.focus-ring:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--cristo-rey-blue);
+  ring-offset: 2px;
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Cristo Rey color utilities */
+.text-cristo-rey-blue {
+  color: var(--cristo-rey-blue);
+}
+
+.text-cristo-rey-gold {
+  color: var(--cristo-rey-gold);
+}
+
+.bg-cristo-rey-blue {
+  background-color: var(--cristo-rey-blue);
+}
+
+.bg-cristo-rey-gold {
+  background-color: var(--cristo-rey-gold);
+}
+
+.border-cristo-rey-blue {
+  border-color: var(--cristo-rey-blue);
+}
+
+.border-cristo-rey-gold {
+  border-color: var(--cristo-rey-gold);
+}
+
+/* Text gradient utilities with Cristo Rey colors */
+.text-gradient-cristo-rey {
+  background: linear-gradient(135deg, var(--cristo-rey-blue), var(--cristo-rey-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-blue-gold {
+  background: linear-gradient(135deg, var(--cristo-rey-blue), var(--cristo-rey-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Button hover effects with Cristo Rey colors */
+.btn-gradient-cristo-rey {
+  background: linear-gradient(135deg, var(--cristo-rey-blue), var(--cristo-rey-gold));
+  transition: all 0.3s ease;
+}
+
+.btn-gradient-cristo-rey:hover {
+  background: linear-gradient(135deg, var(--cristo-rey-blue-dark), var(--cristo-rey-gold-dark));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 51, 102, 0.3);
+}
+
+/* Cristo Rey specific gradients */
+.bg-gradient-cristo-rey {
+  background: linear-gradient(135deg, var(--cristo-rey-blue), var(--cristo-rey-gold));
+}
+
+.bg-gradient-cristo-rey-reverse {
+  background: linear-gradient(135deg, var(--cristo-rey-gold), var(--cristo-rey-blue));
+}
+
+.bg-gradient-cristo-rey-soft {
+  background: linear-gradient(135deg, rgba(0, 51, 102, 0.1), rgba(212, 175, 55, 0.1));
+}
+
+/* Fix text input visibility issues */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+  color: #1f2937 !important; /* text-gray-800 */
+  background-color: #ffffff !important;
+}
+
+/* Dark mode text inputs */
+@media (prefers-color-scheme: dark) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    color: #f9fafb !important; /* text-gray-50 */
+    background-color: #374151 !important; /* bg-gray-700 */
+  }
+}
+
+/* Ensure placeholder text is visible but distinct */
+input::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important; /* text-gray-500 */
+  opacity: 1;
+}
+
+/* Focus states with proper text color */
+input:focus,
+textarea:focus,
+select:focus {
+  color: #1f2937 !important;
+  background-color: #ffffff !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  input:focus,
+  textarea:focus,
+  select:focus {
+    color: #f9fafb !important;
+    background-color: #374151 !important;
+  }
+}
+
+/* Shake animation for error messages */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}

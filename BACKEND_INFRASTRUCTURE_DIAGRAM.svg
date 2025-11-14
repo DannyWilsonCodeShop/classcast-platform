@@ -1,0 +1,192 @@
+<svg width="1200" height="1600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="1600" fill="#f9fafb"/>
+  
+  <!-- Title -->
+  <text x="600" y="40" text-anchor="middle" font-size="32" font-weight="bold" fill="#1f2937">ClassCast Backend Infrastructure &amp; Data Flow</text>
+  
+  <!-- Frontend Layer -->
+  <rect x="50" y="80" width="1100" height="150" rx="10" fill="#ddd6fe" stroke="#8b5cf6" stroke-width="3"/>
+  <text x="600" y="110" text-anchor="middle" font-size="20" font-weight="bold" fill="#6d28d9">FRONTEND LAYER (Next.js 14)</text>
+  
+  <!-- Frontend Components -->
+  <rect x="80" y="140" width="160" height="70" rx="5" fill="#e0e7ff" stroke="#6366f1"/>
+  <text x="160" y="170" text-anchor="middle" font-size="14" fill="#4f46e5">Student Dashboard</text>
+  <text x="160" y="195" text-anchor="middle" font-size="12" fill="#5b21b6">dashboard-new</text>
+  
+  <rect x="260" y="140" width="160" height="70" rx="5" fill="#e0e7ff" stroke="#6366f1"/>
+  <text x="340" y="170" text-anchor="middle" font-size="14" fill="#4f46e5">Community</text>
+  <text x="340" y="195" text-anchor="middle" font-size="12" fill="#5b21b6">/student/community</text>
+  
+  <rect x="440" y="140" width="160" height="70" rx="5" fill="#e0e7ff" stroke="#6366f1"/>
+  <text x="520" y="170" text-anchor="middle" font-size="14" fill="#4f46e5">Messages</text>
+  <text x="520" y="195" text-anchor="middle" font-size="12" fill="#5b21b6">/student/messages</text>
+  
+  <rect x="620" y="140" width="160" height="70" rx="5" fill="#e0e7ff" stroke="#6366f1"/>
+  <text x="700" y="170" text-anchor="middle" font-size="14" fill="#4f46e5">Notifications</text>
+  <text x="700" y="195" text-anchor="middle" font-size="12" fill="#5b21b6">/student/notifications</text>
+  
+  <rect x="800" y="140" width="160" height="70" rx="5" fill="#e0e7ff" stroke="#6366f1"/>
+  <text x="880" y="170" text-anchor="middle" font-size="14" fill="#4f46e5">Profile</text>
+  <text x="880" y="195" text-anchor="middle" font-size="12" fill="#5b21b6">/student/profile</text>
+  
+  <rect x="980" y="140" width="160" height="70" rx="5" fill="#e0e7ff" stroke="#6366f1"/>
+  <text x="1060" y="170" text-anchor="middle" font-size="14" fill="#4f46e5">Assignments</text>
+  <text x="1060" y="195" text-anchor="middle" font-size="12" fill="#5b21b6">/student/assignments</text>
+  
+  <!-- Arrow down -->
+  <line x1="600" y1="230" x2="600" y2="290" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- API Layer -->
+  <rect x="50" y="290" width="1100" height="200" rx="10" fill="#fce7f3" stroke="#ec4899" stroke-width="3"/>
+  <text x="600" y="320" text-anchor="middle" font-size="20" font-weight="bold" fill="#db2777">API LAYER (Next.js Routes)</text>
+  
+  <!-- API Routes -->
+  <rect x="70" y="340" width="180" height="50" rx="5" fill="#fde2e4" stroke="#f43f5e"/>
+  <text x="160" y="365" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">/api/auth/*</text>
+  <text x="160" y="382" text-anchor="middle" font-size="10" fill="#991b1b">Login, Signup</text>
+  
+  <rect x="270" y="340" width="180" height="50" rx="5" fill="#fde2e4" stroke="#f43f5e"/>
+  <text x="360" y="365" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">/api/student/*</text>
+  <text x="360" y="382" text-anchor="middle" font-size="10" fill="#991b1b">Feed, Courses</text>
+  
+  <rect x="470" y="340" width="180" height="50" rx="5" fill="#fde2e4" stroke="#f43f5e"/>
+  <text x="560" y="365" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">/api/videos/*</text>
+  <text x="560" y="382" text-anchor="middle" font-size="10" fill="#991b1b">Upload, Like</text>
+  
+  <rect x="670" y="340" width="180" height="50" rx="5" fill="#fde2e4" stroke="#f43f5e"/>
+  <text x="760" y="365" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">/api/connections</text>
+  <text x="760" y="382" text-anchor="middle" font-size="10" fill="#991b1b">Study Buddies</text>
+  
+  <rect x="870" y="340" width="180" height="50" rx="5" fill="#fde2e4" stroke="#f43f5e"/>
+  <text x="960" y="365" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">/api/messaging/*</text>
+  <text x="960" y="382" text-anchor="middle" font-size="10" fill="#991b1b">Messages</text>
+  
+  <rect x="70" y="410" width="180" height="50" rx="5" fill="#fde2e4" stroke="#f43f5e"/>
+  <text x="160" y="435" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">/api/community/*</text>
+  <text x="160" y="452" text-anchor="middle" font-size="10" fill="#991b1b">Posts</text>
+  
+  <rect x="270" y="410" width="180" height="50" rx="5" fill="#fde2e4" stroke="#f43f5e"/>
+  <text x="360" y="435" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">/api/notifications</text>
+  <text x="360" y="452" text-anchor="middle" font-size="10" fill="#991b1b">Alerts</text>
+  
+  <rect x="470" y="410" width="180" height="50" rx="5" fill="#fde2e4" stroke="#f43f5e"/>
+  <text x="560" y="435" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">/api/assignments/*</text>
+  <text x="560" y="452" text-anchor="middle" font-size="10" fill="#991b1b">Homework</text>
+  
+  <rect x="670" y="410" width="180" height="50" rx="5" fill="#fde2e4" stroke="#f43f5e"/>
+  <text x="760" y="435" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">/api/courses/*</text>
+  <text x="760" y="452" text-anchor="middle" font-size="10" fill="#991b1b">Classes</text>
+  
+  <rect x="870" y="410" width="180" height="50" rx="5" fill="#fde2e4" stroke="#f43f5e"/>
+  <text x="960" y="435" text-anchor="middle" font-size="12" font-weight="bold" fill="#dc2626">/api/interactions</text>
+  <text x="960" y="452" text-anchor="middle" font-size="10" fill="#991b1b">Likes/Comments</text>
+  
+  <!-- Arrow down -->
+  <line x1="600" y1="490" x2="600" y2="550" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Database Layer -->
+  <rect x="50" y="550" width="1100" height="350" rx="10" fill="#dcfce7" stroke="#10b981" stroke-width="3"/>
+  <text x="600" y="580" text-anchor="middle" font-size="20" font-weight="bold" fill="#059669">DATABASE LAYER (AWS DynamoDB)</text>
+  
+  <!-- DynamoDB Tables -->
+  <rect x="70" y="600" width="220" height="60" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="180" y="625" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">📊 classcast-users</text>
+  <text x="180" y="645" text-anchor="middle" font-size="11" fill="#15803d">User profiles</text>
+  
+  <rect x="310" y="600" width="220" height="60" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="420" y="625" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">📼 classcast-submissions</text>
+  <text x="420" y="645" text-anchor="middle" font-size="11" fill="#15803d">Video submissions</text>
+  
+  <rect x="550" y="600" width="220" height="60" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="660" y="625" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">🎬 classcast-videos</text>
+  <text x="660" y="645" text-anchor="middle" font-size="11" fill="#15803d">Video metadata</text>
+  
+  <rect x="790" y="600" width="220" height="60" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="900" y="625" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">📝 classcast-assignments</text>
+  <text x="900" y="645" text-anchor="middle" font-size="11" fill="#15803d">Homework</text>
+  
+  <rect x="70" y="680" width="220" height="60" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="180" y="705" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">👥 classcast-connections</text>
+  <text x="180" y="725" text-anchor="middle" font-size="11" fill="#15803d">Study Buddies</text>
+  
+  <rect x="310" y="680" width="220" height="60" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="420" y="705" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">💬 classcast-posts</text>
+  <text x="420" y="725" text-anchor="middle" font-size="11" fill="#15803d">Community</text>
+  
+  <rect x="550" y="680" width="220" height="60" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="660" y="705" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">📧 classcast-messages</text>
+  <text x="660" y="725" text-anchor="middle" font-size="11" fill="#15803d">Direct messages</text>
+  
+  <rect x="790" y="680" width="220" height="60" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="900" y="705" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">🔔 classcast-notifications</text>
+  <text x="900" y="725" text-anchor="middle" font-size="11" fill="#15803d">Alerts</text>
+  
+  <rect x="70" y="760" width="220" height="60" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="180" y="785" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">❤️ classcast-interactions</text>
+  <text x="180" y="805" text-anchor="middle" font-size="11" fill="#15803d">Likes/Comments</text>
+  
+  <rect x="310" y="760" width="220" height="60" rx="5" fill="#bbf7d0" stroke="#22c55e"/>
+  <text x="420" y="785" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">🎓 classcast-courses</text>
+  <text x="420" y="805" text-anchor="middle" font-size="11" fill="#15803d">Course data</text>
+  
+  <!-- Arrow down -->
+  <line x1="600" y1="910" x2="600" y2="970" stroke="#6b7280" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- AWS Services Layer -->
+  <rect x="50" y="970" width="1100" height="200" rx="10" fill="#fef3c7" stroke="#f59e0b" stroke-width="3"/>
+  <text x="600" y="1000" text-anchor="middle" font-size="20" font-weight="bold" fill="#d97706">AWS SERVICES</text>
+  
+  <!-- S3 -->
+  <rect x="80" y="1020" width="280" height="130" rx="5" fill="#fde68a" stroke="#eab308"/>
+  <text x="220" y="1050" text-anchor="middle" font-size="18" font-weight="bold" fill="#ca8a04">AWS S3</text>
+  <text x="160" y="1075" text-anchor="middle" font-size="14" fill="#a16207">📹 Video Files</text>
+  <text x="160" y="1100" text-anchor="middle" font-size="14" fill="#a16207">🖼️  Profile Pictures</text>
+  <text x="160" y="1125" text-anchor="middle" font-size="14" fill="#a16207">📎 Attachments</text>
+  
+  <!-- Cognito -->
+  <rect x="380" y="1020" width="280" height="130" rx="5" fill="#fde68a" stroke="#eab308"/>
+  <text x="520" y="1050" text-anchor="middle" font-size="18" font-weight="bold" fill="#ca8a04">AWS Cognito</text>
+  <text x="460" y="1075" text-anchor="middle" font-size="14" fill="#a16207">🔐 Authentication</text>
+  <text x="460" y="1100" text-anchor="middle" font-size="14" fill="#a16207">🎫 JWT Tokens</text>
+  <text x="460" y="1125" text-anchor="middle" font-size="14" fill="#a16207">👤 User Identity</text>
+  
+  <!-- Lambda -->
+  <rect x="680" y="1020" width="280" height="130" rx="5" fill="#fde68a" stroke="#eab308"/>
+  <text x="820" y="1050" text-anchor="middle" font-size="18" font-weight="bold" fill="#ca8a04">Lambda Functions</text>
+  <text x="760" y="1075" text-anchor="middle" font-size="14" fill="#a16207">⚙️  Background Jobs</text>
+  <text x="760" y="1100" text-anchor="middle" font-size="14" fill="#a16207">📊 Analytics</text>
+  <text x="760" y="1125" text-anchor="middle" font-size="14" fill="#a16207">🔔 Push Notifications</text>
+  
+  <!-- Data Flow Arrows -->
+  <line x1="220" y1="250" x2="360" y2="350" stroke="#6366f1" stroke-width="2" opacity="0.5"/>
+  <line x1="340" y1="250" x2="360" y2="350" stroke="#6366f1" stroke-width="2" opacity="0.5"/>
+  <line x1="520" y1="250" x2="560" y2="350" stroke="#6366f1" stroke-width="2" opacity="0.5"/>
+  <line x1="700" y1="250" x2="760" y2="350" stroke="#6366f1" stroke-width="2" opacity="0.5"/>
+  <line x1="880" y1="250" x2="960" y2="350" stroke="#6366f1" stroke-width="2" opacity="0.5"/>
+  
+  <line x1="360" y1="470" x2="180" y2="570" stroke="#22c55e" stroke-width="2" opacity="0.5"/>
+  <line x1="560" y1="470" x2="420" y2="570" stroke="#22c55e" stroke-width="2" opacity="0.5"/>
+  <line x1="760" y1="470" x2="660" y2="570" stroke="#22c55e" stroke-width="2" opacity="0.5"/>
+  <line x1="960" y1="470" x2="900" y2="570" stroke="#22c55e" stroke-width="2" opacity="0.5"/>
+  
+  <line x1="420" y1="850" x2="220" y2="1000" stroke="#eab308" stroke-width="2" opacity="0.5"/>
+  <line x1="180" y1="850" x2="520" y2="1000" stroke="#eab308" stroke-width="2" opacity="0.5"/>
+  <line x1="660" y1="850" x2="820" y2="1000" stroke="#eab308" stroke-width="2" opacity="0.5"/>
+  
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#6b7280"/>
+    </marker>
+  </defs>
+  
+  <!-- Legend -->
+  <rect x="50" y="1210" width="1100" height="120" rx="5" fill="#f3f4f6" stroke="#6b7280"/>
+  <text x="600" y="1235" text-anchor="middle" font-size="16" font-weight="bold" fill="#374151">DATA FLOW EXAMPLES</text>
+  
+  <text x="120" y="1260" font-size="12" fill="#059669">1. Login → /api/auth/login → Cognito → JWT → DynamoDB users → Frontend</text>
+  <text x="120" y="1285" font-size="12" fill="#dc2626">2. Upload → /api/videos/upload → S3 Presigned URL → S3 → DynamoDB submissions</text>
+  <text x="120" y="1310" font-size="12" fill="#eab308">3. Feed → /api/student/feed → Query 5+ DynamoDB tables → Merge & Return</text>
+</svg>
+

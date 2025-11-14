@@ -1,0 +1,1636 @@
+'use client';
+
+import React, { useState, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { StudentRoute } from '@/components/auth/ProtectedRoute';
+import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { isValidYouTubeUrl, extractYouTubeVideoId, getYouTubeThumbnail } from '@/lib/youtube';
+import { isValidGoogleDriveUrl, extractGoogleDriveFileId, getGoogleDrivePreviewUrl, getGoogleDriveThumbnailUrl } from '@/lib/googleDrive';
+import { uploadLargeFile } from '@/lib/uploadUtils';
+
+const VideoSubmissionContent: React.FC = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const [isRecording, setIsRecording] = useState(false);
+  
+  // Get assignment and course IDs from URL parameters
+  const assignmentId = searchParams.get('assignmentId') || 'temp-assignment';
+  const courseId = searchParams.get('courseId') || 'temp-course';
+  const [recordedVideo, setRecordedVideo] = useState<string | null>(null);
+  const [uploadedVideo, setUploadedVideo] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<'record' | 'upload' | 'youtube'>('record');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState<string>('');
+  const [assignmentTitle, setAssignmentTitle] = useState<string>('');
+  const [existingSubmissions, setExistingSubmissions] = useState<any[]>([]);
+  const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+
+  const isValidExternalUrl = (url: string) => {
+    if (!url) return false;
+    const trimmed = url.trim();
+    return isValidYouTubeUrl(trimmed) || isValidGoogleDriveUrl(trimmed);
+  };
+
+  const trimmedExternalUrl = youtubeUrl.trim();
+  const externalIsYouTube = isValidYouTubeUrl(trimmedExternalUrl);
+  const externalIsGoogleDrive = isValidGoogleDriveUrl(trimmedExternalUrl);
+  const googleDrivePreviewUrl = externalIsGoogleDrive ? getGoogleDrivePreviewUrl(trimmedExternalUrl) : null;
+const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const currentStreamRef = useRef<MediaStream | null>(null);
+
+  // Load assignment data to get the assignment title
+  React.useEffect(() => {
+    const loadAssignment = async () => {
+      if (assignmentId && assignmentId !== 'temp-assignment') {
+        try {
+          const response = await fetch(`/api/assignments/${assignmentId}`, {
+            credentials: 'include'
+          });
+          if (response.ok) {
+            const data = await response.json();
+            console.log('📝 Assignment data loaded:', data);
+            if (data.success && data.data?.assignment?.title) {
+              console.log('📝 Setting assignment title:', data.data.assignment.title);
+              setAssignmentTitle(data.data.assignment.title);
+            } else {
+              console.log('📝 No assignment title found in response');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading assignment:', error);
+        }
+      }
+    };
+    
+    loadAssignment();
+  }, [assignmentId]);
+
+  // Load existing submissions for this assignment
+  React.useEffect(() => {
+    const loadExistingSubmissions = async () => {
+      if (assignmentId && assignmentId !== 'temp-assignment' && user?.id) {
+        setIsLoadingSubmissions(true);
+        try {
+          const response = await fetch(
+            `/api/video-submissions?assignmentId=${assignmentId}&studentId=${user.id}`,
+            { credentials: 'include' }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.submissions) {
+              // Filter to only show submissions from this student
+              const studentSubmissions = data.submissions.filter(
+                (s: any) => s.studentId === user.id && s.status !== 'deleted' && !s.hidden
+              );
+              setExistingSubmissions(studentSubmissions);
+              console.log('📹 Loaded existing submissions:', studentSubmissions.length);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading existing submissions:', error);
+        } finally {
+          setIsLoadingSubmissions(false);
+        }
+      }
+    };
+
+    loadExistingSubmissions();
+  }, [assignmentId, user?.id]);
+
+  // Delete a submission
+  const handleDeleteSubmission = async (submissionId: string) => {
+    if (!showDeleteConfirm || showDeleteConfirm !== submissionId) {
+      setShowDeleteConfirm(submissionId);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/video-submissions/${submissionId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setExistingSubmissions(prev => prev.filter(s => s.submissionId !== submissionId));
+        setShowDeleteConfirm(null);
+        setSuccess(false);
+        setError(null);
+        console.log('✅ Submission deleted successfully');
+      } else {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to delete submission');
+      }
+    } catch (error) {
+      console.error('Error deleting submission:', error);
+      setError(error instanceof Error ? error.message : 'Failed to delete submission');
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  const clearOldVideos = () => {
+    try {
+      // Clear localStorage if it's getting too full
+      const stored = localStorage.getItem('uploadedVideos');
+      if (stored) {
+        const videos = JSON.parse(stored);
+        if (videos.length > 5) {
+          // Keep only the last 5 videos
+          const recentVideos = videos.slice(-5);
+          localStorage.setItem('uploadedVideos', JSON.stringify(recentVideos));
+        }
+      }
+    } catch (error) {
+      console.warn('Error clearing old videos:', error);
+      // If localStorage is completely full, clear it
+      localStorage.removeItem('uploadedVideos');
+    }
+  };
+
+  // Clear old videos on component mount to prevent quota issues
+  React.useEffect(() => {
+    clearOldVideos();
+  }, []);
+
+  // Helper function to stop camera
+  const stopCamera = React.useCallback(() => {
+    const stream = (videoRef.current?.srcObject as MediaStream) || currentStreamRef.current;
+    if (stream) {
+      console.log('📹 Stopping camera');
+      stream.getTracks().forEach(track => {
+        try { track.stop(); } catch {}
+        console.log(`📹 Stopped track: ${track.kind}`);
+      });
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    currentStreamRef.current = null;
+  }, []);
+
+  // Stop camera when page visibility changes (tab switch, navigate away, etc.)
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        console.log('📹 Page hidden, stopping camera');
+        stopCamera();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      console.log('📹 Page unloading, stopping camera');
+      stopCamera();
+    };
+
+    const handlePageHide = () => {
+      console.log('📹 Page hidden (pagehide), stopping camera');
+      stopCamera();
+    };
+
+    const handleFreeze = () => {
+      console.log('📹 Page freeze, stopping camera');
+      stopCamera();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handlePageHide);
+    document.addEventListener('freeze', handleFreeze as any);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+      document.removeEventListener('freeze', handleFreeze as any);
+    };
+  }, [stopCamera]);
+
+  // Start camera preview only when on 'record' tab and not yet recorded
+  React.useEffect(() => {
+    if (activeTab === 'record' && !recordedVideo) {
+      startCameraPreview();
+    } else {
+      // Stop camera if switching away from record tab
+      console.log('📹 Switching away from record tab or video recorded, stopping camera');
+      stopCamera();
+    }
+    
+    // Cleanup camera on unmount
+    return () => {
+      console.log('📹 Component unmounting, stopping camera');
+      stopCamera();
+    };
+  }, [activeTab, recordedVideo, stopCamera]);
+
+  const startCameraPreview = async () => {
+    try {
+      // First, stop any existing camera
+      stopCamera();
+      
+      setError(null);
+      // Try to get optimal constraints first, fallback to basic if needed
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 1280, max: 1920 },
+            height: { ideal: 720, max: 1080 },
+            aspectRatio: { ideal: 16/9 },
+            facingMode: 'user'
+          }, 
+          audio: true 
+        });
+      } catch (error) {
+        console.log('Optimal constraints failed, trying basic constraints:', error);
+        // Fallback to basic constraints for mobile devices
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: 'user'
+          }, 
+          audio: true 
+        });
+      }
+      
+      currentStreamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        console.log('📹 Camera preview started');
+      }
+    } catch (err) {
+      console.error('Error starting camera preview:', err);
+      setError('Failed to access camera. Please check permissions.');
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      setError(null);
+      
+      // Use existing stream from camera preview, or get new one if needed
+      let stream;
+      if (videoRef.current && videoRef.current.srcObject) {
+        stream = videoRef.current.srcObject as MediaStream;
+        console.log('📹 Using existing camera stream for recording');
+      } else {
+        // Fallback: get new stream if preview wasn't started
+        console.log('📹 No existing stream, getting new camera access');
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              width: { ideal: 1280, max: 1920 },
+              height: { ideal: 720, max: 1080 },
+              aspectRatio: { ideal: 16/9 },
+              facingMode: 'user'
+            }, 
+            audio: true 
+          });
+        } catch (error) {
+          console.log('Optimal constraints failed, trying basic constraints:', error);
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: 'user'
+            }, 
+            audio: true 
+          });
+        }
+        
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }
+
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      recordedChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        // Prefer a supported mimeType on mobile (iOS often provides video/mp4)
+        const preferredTypes = [
+          'video/mp4;codecs=h264,aac',
+          'video/mp4',
+          'video/webm;codecs=vp9,opus',
+          'video/webm;codecs=vp8,opus',
+          'video/webm',
+        ];
+        let blobType = 'video/webm';
+        for (const t of preferredTypes) {
+          // We cannot query the recorded chunks' codec reliably, but pick first preferred
+          blobType = t.split(';')[0];
+          break;
+        }
+        const blob = new Blob(recordedChunksRef.current, { type: blobType });
+        const videoUrl = URL.createObjectURL(blob);
+        setRecordedVideo(videoUrl);
+        // Stop here - let user preview and confirm before submitting
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      } catch (err) {
+      console.error('Error starting recording:', err);
+      setError('Failed to access camera and microphone. Please check permissions.');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      // Stop camera tracks after recording is complete
+      stopCamera();
+    }
+  };
+
+  const uploadVideo = async (directBlob?: Blob) => {
+    console.log('🎬 uploadVideo called with:', {
+      directBlob: !!directBlob,
+      recordedVideo: !!recordedVideo,
+      uploadedVideo: !!uploadedVideo,
+      selectedFile: !!selectedFile,
+      selectedFileName: selectedFile?.name,
+      selectedFileSize: selectedFile?.size,
+      selectedFileType: selectedFile?.type
+    });
+
+    const videoToUpload = directBlob ? 'BLOB_DIRECT' : (recordedVideo || uploadedVideo);
+    if (!videoToUpload) {
+      console.error('❌ No video to upload');
+      return;
+    }
+
+    // Additional validation for uploaded files
+    if (uploadedVideo && !directBlob && !recordedVideo && !selectedFile) {
+      setError('File selection error: Please try selecting your video file again.');
+      return;
+    }
+
+    // Validate selectedFile if it's being used
+    if (uploadedVideo && selectedFile && (!selectedFile.size || selectedFile.size === 0)) {
+      setError('Invalid file: The selected file appears to be empty. Please try selecting a different file.');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setError(null);
+      setUploadProgress(0);
+
+      // Show initial progress
+      setUploadProgress(5);
+
+      let videoBlob: Blob;
+      let fileName: string;
+      let videoType: string;
+
+      if (directBlob) {
+        // Direct recorded blob provided (mobile auto-upload)
+        videoBlob = directBlob;
+        fileName = `video-submission-${Date.now()}.${directBlob.type.includes('mp4') ? 'mp4' : 'webm'}`;
+        videoType = directBlob.type || 'video/mp4';
+      } else if (recordedVideo) {
+        // Handle recorded video
+        const response = await fetch(recordedVideo);
+        videoBlob = await response.blob();
+        fileName = `video-submission-${Date.now()}.webm`;
+        videoType = videoBlob.type;
+      } else if (selectedFile) {
+        // Handle uploaded file
+        if (!selectedFile.size || !selectedFile.name || !selectedFile.type) {
+          throw new Error('Invalid file: Missing file properties. Please try selecting the file again.');
+        }
+        videoBlob = selectedFile;
+        fileName = selectedFile.name;
+        videoType = selectedFile.type;
+      } else {
+        throw new Error('No video to upload');
+      }
+
+      // For large files, show a warning about upload time
+      if (videoBlob.size > 500 * 1024 * 1024) {
+        const fileSizeMB = (videoBlob.size / (1024 * 1024)).toFixed(1);
+        console.log(`📤 Uploading large file (${fileSizeMB}MB). This may take several minutes...`);
+      }
+      
+      // Use presigned URL for secure S3 upload
+      console.log('Uploading video using presigned URL...');
+      
+      // Get presigned URL for video upload
+      const presignedResponse = await fetch('/api/videos/presigned-upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: fileName,
+          contentType: videoType,
+          userId: user?.id || 'unknown',
+          assignmentId: assignmentId
+        }),
+      });
+
+      if (!presignedResponse.ok) {
+        throw new Error('Failed to get presigned URL');
+      }
+
+      const { data: presignedData } = await presignedResponse.json();
+      const { presignedUrl, videoUrl } = presignedData;
+
+      // Upload video directly to S3 using presigned URL with retry logic
+      console.log(`📤 Starting upload of ${(videoBlob.size / (1024 * 1024)).toFixed(1)}MB file...`);
+      
+      const uploadResponse = await uploadLargeFile(presignedUrl, videoBlob, videoType, {
+        timeout: 600000, // 10 minutes for very large files
+        retries: 3,
+        onProgress: (progress) => {
+          // Update progress more accurately based on actual upload progress
+          const uploadProgressPercent = Math.min(90, progress.percentage * 0.9);
+          setUploadProgress(uploadProgressPercent);
+        }
+      });
+
+      console.log(`📥 Upload completed successfully`);
+
+      console.log('Video uploaded successfully to S3:', videoUrl);
+
+      // Store video blob in IndexedDB for persistence
+      const videoId = `video-${Date.now()}`;
+      await storeVideoInIndexedDB(videoId, videoBlob);
+      
+      // Extract video metadata (duration, resolution)
+      let videoDuration = 0;
+      let videoWidth = 1920;
+      let videoHeight = 1080;
+      
+      try {
+        const metadata = await extractVideoMetadata(videoBlob);
+        videoDuration = metadata.duration;
+        videoWidth = metadata.width;
+        videoHeight = metadata.height;
+        console.log('Video metadata extracted:', { duration: videoDuration, width: videoWidth, height: videoHeight });
+      } catch (error) {
+        console.warn('Could not extract video metadata, using defaults:', error);
+        // Try to get duration from the video element if it's displayed
+        if (videoRef.current && videoRef.current.duration) {
+          videoDuration = Math.floor(videoRef.current.duration);
+          console.log('Using duration from video element:', videoDuration);
+        }
+      }
+      
+      // Get assignment details to extract sectionId
+      let sectionId = null;
+      try {
+        const assignmentResponse = await fetch(`/api/assignments/${assignmentId}`, {
+          credentials: 'include',
+        });
+        
+        if (assignmentResponse.ok) {
+          const assignmentData = await assignmentResponse.json();
+          if (assignmentData.success && assignmentData.assignment) {
+            sectionId = assignmentData.assignment.sectionId;
+            console.log('Found sectionId for assignment:', sectionId);
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch assignment details for sectionId:', error);
+      }
+
+      // Now submit the video as an assignment submission
+      const finalVideoTitle = assignmentTitle || `Video Submission - ${new Date().toLocaleDateString()}`;
+      console.log('📝 Final video title being sent:', finalVideoTitle, 'assignmentTitle:', assignmentTitle);
+      
+      const submissionData = {
+        assignmentId: assignmentId, // Use the actual assignment ID from URL params
+        studentId: user?.id || 'unknown',
+        courseId: courseId, // Use the actual course ID from URL params
+        sectionId: sectionId, // Add sectionId if available
+        videoUrl: videoUrl, // Now using the actual S3 URL
+        videoId: videoId, // Store the IndexedDB key for retrieval
+        videoTitle: finalVideoTitle,
+        videoDescription: 'Student video submission',
+        duration: videoDuration, // Use extracted video duration
+        fileName: fileName,
+        fileSize: videoBlob.size,
+        fileType: videoType,
+        isRecorded: !!recordedVideo,
+        isUploaded: !!selectedFile,
+        isLocalStorage: false // Now using S3 storage
+      };
+
+      const submissionResponse = await fetch('/api/video-submissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (!submissionResponse.ok) {
+        throw new Error('Failed to submit video assignment');
+      }
+
+      setUploadProgress(100);
+
+      // Simulate successful upload
+      setSuccess(true);
+      
+      // Reload existing submissions to show the new one
+      if (assignmentId && assignmentId !== 'temp-assignment' && user?.id) {
+        try {
+          const response = await fetch(
+            `/api/video-submissions?assignmentId=${assignmentId}&studentId=${user.id}`,
+            { credentials: 'include' }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.submissions) {
+              const studentSubmissions = data.submissions.filter(
+                (s: any) => s.studentId === user.id && s.status !== 'deleted' && !s.hidden
+              );
+              setExistingSubmissions(studentSubmissions);
+            }
+          }
+        } catch (error) {
+          console.error('Error reloading submissions:', error);
+        }
+      }
+      
+      // Clear recorded video to allow new recording
+      setRecordedVideo(null);
+      setUploadedVideo(null);
+      setSelectedFile(null);
+      setYoutubeUrl('');
+      
+      // Store only metadata in localStorage for local reference
+      const videoInfo = {
+        id: `video-${Date.now()}`,
+        blobUrl: videoToUpload, // Keep blob URL for immediate playback
+        fileName: fileName,
+        uploadedAt: new Date().toISOString(),
+        userId: user?.id || 'unknown',
+        assignmentId: 'temp-assignment',
+        size: videoBlob.size,
+        type: videoType,
+        isRecorded: !!recordedVideo,
+        isUploaded: !!selectedFile,
+        videoUrl: videoUrl, // Store the S3 URL
+        videoData: null // Will be stored separately
+      };
+      
+      // Store metadata in localStorage (small data only)
+      let existingVideos = [];
+      try {
+        const stored = localStorage.getItem('uploadedVideos');
+        existingVideos = stored ? JSON.parse(stored) : [];
+      } catch (error) {
+        console.warn('Error reading from localStorage, starting fresh');
+        existingVideos = [];
+      }
+      
+      existingVideos.push(videoInfo);
+      
+      // Limit to last 10 videos to prevent quota issues
+      if (existingVideos.length > 10) {
+        existingVideos = existingVideos.slice(-10);
+      }
+      
+      try {
+        localStorage.setItem('uploadedVideos', JSON.stringify(existingVideos));
+      } catch (error) {
+        console.warn('localStorage quota exceeded, storing in sessionStorage instead');
+        // Fallback to sessionStorage if localStorage is full
+        sessionStorage.setItem('uploadedVideos', JSON.stringify(existingVideos));
+      }
+      
+      // Store video blob in IndexedDB for persistence
+      await storeVideoInIndexedDB(videoInfo.id, videoBlob);
+
+      // Show success message with video preview
+      // User can choose to view submissions or go to dashboard
+
+    } catch (err) {
+      console.error('Error uploading video:', err);
+      
+      let errorMessage = 'Failed to upload video. Please try again.';
+      
+      if (err instanceof Error) {
+        if (err.message.includes('timeout') || err.message.includes('aborted')) {
+          errorMessage = `Upload timed out. This can happen with large files or slow connections.\n\n` +
+                        `💡 Try these solutions:\n` +
+                        `• Use a faster internet connection\n` +
+                        `• Upload during off-peak hours\n` +
+                        `• Use the Link (YouTube / Drive) option for very large files\n` +
+                        `• Compress your video to reduce file size`;
+        } else if (err.message.includes('network') || err.message.includes('fetch')) {
+          errorMessage = `Network error during upload. Please check your internet connection and try again.`;
+        } else if (err.message.includes('413') || err.message.includes('too large')) {
+          errorMessage = `File too large for direct upload. Please use the Link (YouTube / Drive) option instead.`;
+        } else {
+          errorMessage = `Upload failed: ${err.message}`;
+        }
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const retakeVideo = () => {
+    setRecordedVideo(null);
+    setUploadedVideo(null);
+    setSelectedFile(null);
+    setYoutubeUrl('');
+    setError(null);
+    setSuccess(false);
+    setUploadProgress(0);
+  };
+
+  const handleYouTubeSubmit = async () => {
+    const trimmedUrl = youtubeUrl.trim();
+    console.log('🎬 handleYouTubeSubmit called with URL:', trimmedUrl);
+    
+    if (!trimmedUrl) {
+      console.log('❌ No external video URL provided');
+      return;
+    }
+
+    // Validate external URL (YouTube or Google Drive)
+    console.log('🔍 Validating external video URL...');
+    const isYouTubeLink = isValidYouTubeUrl(trimmedUrl);
+    const isGoogleDriveLink = isValidGoogleDriveUrl(trimmedUrl);
+    console.log('🔍 URL validation result:', { isYouTubeLink, isGoogleDriveLink });
+    
+    if (!isYouTubeLink && !isGoogleDriveLink) {
+      console.log('❌ Invalid external video URL');
+      setError('Please enter a valid YouTube or Google Drive share link.');
+      return;
+    }
+
+    console.log('✅ External URL is valid, proceeding with submission...');
+    setError(null);
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    try {
+      // Get sectionId from assignment if available
+      let sectionId;
+      try {
+        const assignmentResponse = await fetch(`/api/assignments/${assignmentId}`);
+        if (assignmentResponse.ok) {
+          const assignmentData = await assignmentResponse.json();
+          if (assignmentData.success && assignmentData.assignment) {
+            sectionId = assignmentData.assignment.sectionId;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch assignment details for sectionId:', error);
+      }
+
+      let submissionData: Record<string, any> = {};
+      let submissionMethod = 'external';
+
+      if (isYouTubeLink) {
+        const videoId = extractYouTubeVideoId(trimmedUrl);
+        if (!videoId) {
+          throw new Error('Could not extract video ID from YouTube link.');
+        }
+
+        submissionMethod = 'youtube';
+        const finalYouTubeTitle = assignmentTitle || `YouTube Submission - ${new Date().toLocaleDateString()}`;
+        console.log('📝 Final YouTube title being sent:', finalYouTubeTitle, 'assignmentTitle:', assignmentTitle);
+
+        submissionData = {
+          assignmentId,
+          studentId: user?.id || 'unknown',
+          courseId,
+          sectionId,
+          youtubeUrl: trimmedUrl,
+          videoId,
+          thumbnailUrl: getYouTubeThumbnail(trimmedUrl, 'hq'),
+          videoTitle: finalYouTubeTitle,
+          videoDescription: 'Student YouTube video submission',
+          submissionMethod,
+          isRecorded: false,
+          isUploaded: false,
+          isYouTube: true,
+          isGoogleDrive: false,
+        };
+      } else if (isGoogleDriveLink) {
+        const fileId = extractGoogleDriveFileId(trimmedUrl);
+        if (!fileId) {
+          throw new Error('Could not extract Google Drive file ID from link.');
+        }
+
+        const previewUrl = getGoogleDrivePreviewUrl(fileId);
+        if (!previewUrl) {
+          throw new Error('Could not generate Google Drive preview link.');
+        }
+
+        const thumbnailUrl = getGoogleDriveThumbnailUrl(fileId);
+        const finalDriveTitle = assignmentTitle || `Google Drive Submission - ${new Date().toLocaleDateString()}`;
+        console.log('📝 Final Google Drive title being sent:', finalDriveTitle, 'assignmentTitle:', assignmentTitle);
+
+        submissionMethod = 'google-drive';
+        submissionData = {
+          assignmentId,
+          studentId: user?.id || 'unknown',
+          courseId,
+          sectionId,
+          googleDriveUrl: previewUrl,
+          googleDriveOriginalUrl: trimmedUrl,
+          googleDriveFileId: fileId,
+          videoUrl: previewUrl,
+          thumbnailUrl: thumbnailUrl || undefined,
+          videoTitle: finalDriveTitle,
+          videoDescription: 'Student Google Drive video submission',
+          submissionMethod,
+          isRecorded: false,
+          isUploaded: false,
+          isYouTube: false,
+          isGoogleDrive: true,
+        };
+      }
+
+      setUploadProgress(50);
+
+      console.log('📤 Submitting external video link:', submissionData);
+      
+      const submissionResponse = await fetch('/api/video-submissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      console.log('📥 Response status:', submissionResponse.status);
+      
+      const responseData = await submissionResponse.json();
+      console.log('📥 Response data:', responseData);
+
+      if (!submissionResponse.ok) {
+        throw new Error(responseData.error || 'Failed to submit external video link');
+      }
+
+      setUploadProgress(100);
+      setSuccess(true);
+      
+      // Reload existing submissions to show the new one
+      if (assignmentId && assignmentId !== 'temp-assignment' && user?.id) {
+        try {
+          const response = await fetch(
+            `/api/video-submissions?assignmentId=${assignmentId}&studentId=${user.id}`,
+            { credentials: 'include' }
+          );
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.submissions) {
+              const studentSubmissions = data.submissions.filter(
+                (s: any) => s.studentId === user.id && s.status !== 'deleted' && !s.hidden
+              );
+              setExistingSubmissions(studentSubmissions);
+            }
+          }
+        } catch (error) {
+          console.error('Error reloading submissions:', error);
+        }
+      }
+      
+      // Clear URL to allow new submission
+      setYoutubeUrl('');
+
+    } catch (err) {
+      console.error('Error submitting external video link:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to submit external video link. Please try again.';
+      setError(`External Video Submission Error: ${errorMessage}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      console.log('📁 File selected:', {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: file.lastModified
+      });
+
+      // Validate file object integrity
+      if (!file.name || !file.size || !file.type) {
+        setError('Invalid file: File information is incomplete. Please try selecting the file again.');
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('video/')) {
+        setError('Please select a valid video file.');
+        return;
+      }
+      
+      // Validate file size (max 2GB)
+      const maxSize = 2048 * 1024 * 1024; // 2GB
+      if (file.size > maxSize) {
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        setError(
+          `⚠️ File Too Large (${fileSizeMB}MB)\n\n` +
+          `Your video exceeds the ${Math.round(maxSize / (1024 * 1024))}MB upload limit.\n\n` +
+          `📺 Solution: Upload to YouTube or Google Drive Instead\n\n` +
+          `1. Upload your video to YouTube (Unlisted/Public) or Google Drive (set sharing to "Anyone with the link")\n` +
+          `2. Copy the share link\n` +
+          `3. Switch to the "Link (YouTube / Drive)" tab above\n` +
+          `4. Paste your video link and submit\n\n` +
+          `This allows you to submit videos of any size!`
+        );
+        // Switch to YouTube tab to guide the user
+        setActiveTab('youtube');
+        return;
+      }
+      
+      // Warn about large files that might take a while to upload
+      if (file.size > 500 * 1024 * 1024) { // 500MB
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        const estimatedTime = Math.ceil(file.size / (1024 * 1024 * 2)); // Rough estimate: 2MB/second
+        console.log(`⚠️ Large file detected: ${fileSizeMB}MB (estimated upload time: ${estimatedTime} minutes)`);
+      }
+      
+      setSelectedFile(file);
+      setError(null);
+      
+      // Create preview URL
+      const videoUrl = URL.createObjectURL(file);
+      setUploadedVideo(videoUrl);
+    }
+  };
+
+  const handleFileUpload = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Extract video metadata (duration, resolution)
+  const extractVideoMetadata = async (blob: Blob | File): Promise<{
+    duration: number;
+    width: number;
+    height: number;
+  }> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      const url = URL.createObjectURL(blob);
+
+      video.onloadedmetadata = () => {
+        const metadata = {
+          duration: Math.floor(video.duration), // Round to nearest second
+          width: video.videoWidth,
+          height: video.videoHeight,
+        };
+        URL.revokeObjectURL(url);
+        resolve(metadata);
+      };
+
+      video.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Failed to load video metadata'));
+      };
+
+      video.src = url;
+    });
+  };
+
+  // IndexedDB functions for storing video data
+  const storeVideoInIndexedDB = async (videoId: string, videoBlob: Blob): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('VideoStorage', 1);
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const transaction = db.transaction(['videos'], 'readwrite');
+        const store = transaction.objectStore('videos');
+        const putRequest = store.put(videoBlob, videoId);
+        
+        putRequest.onsuccess = () => resolve();
+        putRequest.onerror = () => reject(putRequest.error);
+      };
+      
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains('videos')) {
+          db.createObjectStore('videos');
+        }
+      };
+    });
+  };
+
+  const getVideoFromIndexedDB = async (videoId: string): Promise<Blob | null> => {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('VideoStorage', 1);
+      
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const db = request.result;
+        const transaction = db.transaction(['videos'], 'readonly');
+        const store = transaction.objectStore('videos');
+        const getRequest = store.get(videoId);
+        
+        getRequest.onsuccess = () => resolve(getRequest.result || null);
+        getRequest.onerror = () => reject(getRequest.error);
+      };
+    });
+  };
+
+  return (
+    <StudentRoute>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+        {/* Header */}
+        <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3">
+            <div className="flex items-center space-x-3">
+              <button
+              onClick={() => {
+                stopCamera();
+                router.push('/student/dashboard');
+              }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              🎥
+            </div>
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg font-bold text-gray-900">
+                Video Submission <span className="text-xs text-blue-500">v2.2</span>
+              </h1>
+              <p className="text-xs text-gray-600">
+                Record and submit your video assignment
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <img
+                src="/MyClassCast (800 x 200 px).png"
+                alt="MyClassCast"
+                className="h-6 w-auto object-contain"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6">
+          <div className="max-w-4xl mx-auto">
+            {/* Tab Navigation */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30 mb-6">
+              <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+                <button
+                  onClick={() => {
+                    setActiveTab('record');
+                  }}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'record'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  🎥 Live Recording
+                </button>
+                <button
+                  onClick={() => {
+                    stopCamera();
+                    setActiveTab('upload');
+                  }}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'upload'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  📁 Upload Video
+                </button>
+                <button
+                  onClick={() => {
+                    stopCamera();
+                    setActiveTab('youtube');
+                  }}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'youtube'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  ▶️ Link (YouTube / Drive)
+                </button>
+              </div>
+
+              {activeTab === 'record' && !recordedVideo && (
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Record Your Video</h2>
+                  <p className="text-gray-600">
+                    Click the record button to start recording your video assignment
+                  </p>
+                </div>
+              )}
+
+              {activeTab === 'upload' && !uploadedVideo && (
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Upload Your Video</h2>
+                  <p className="text-gray-600">
+                    Select a video file from your device to upload
+                  </p>
+                </div>
+              )}
+
+              {activeTab === 'youtube' && !youtubeUrl && (
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Submit Video Link</h2>
+                  <p className="text-gray-600">
+                    Paste a link to your video hosted on YouTube or Google Drive
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {!recordedVideo && !uploadedVideo && !youtubeUrl ? (
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30">
+
+                {/* Video Preview */}
+                {activeTab === 'record' && (
+                  <div className="relative bg-black rounded-xl overflow-hidden mb-6">
+                    <div className="aspect-video w-full max-w-2xl mx-auto">
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        muted
+                        playsInline
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                    </div>
+                    {isRecording && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="bg-red-500 text-white px-4 py-2 rounded-full flex items-center space-x-2">
+                          <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                          <span className="font-semibold">Recording...</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Upload Area */}
+                {activeTab === 'upload' && (
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 mb-6">
+                    <div className="text-center">
+                      <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <span className="text-2xl">📁</span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                        Select Video File
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        Choose a video file from your device (MP4, WebM, MOV, etc.)
+                      </p>
+                      <button
+                        onClick={handleFileUpload}
+                        className="px-6 py-3 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                      >
+                        Choose File
+                      </button>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Maximum file size: 500MB
+                      </p>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="video/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                  </div>
+                )}
+
+                {/* YouTube URL Input - v2.0 REBUILT */}
+                {activeTab === 'youtube' && (
+                  <div className="mb-6" data-version="2.0">
+                    <div className="max-w-2xl mx-auto">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Video Link (YouTube or Google Drive)
+                      </label>
+                      <div className="flex space-x-2">
+                        <input
+                          type="url"
+                          value={youtubeUrl}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            console.log('📝 YouTube URL changed to:', newValue.substring(0, 100));
+                            console.log('📝 URL length:', newValue.length);
+                            
+                            // Prevent setting huge values but still update for validation
+                            if (newValue.length > 500) {
+                              console.log('⚠️ URL too long, clearing and showing error');
+                              setYoutubeUrl(''); // Clear the field
+                              setError('Video link is too long. Please paste only the shared link (should be less than 100 characters).');
+                              return;
+                            }
+                            
+                            // Clear any previous errors
+                            setError(null);
+                            setYoutubeUrl(newValue);
+                            console.log('✅ YouTube URL state updated');
+                          }}
+                          onPaste={(e) => {
+                            const pastedText = e.clipboardData.getData('text');
+                            console.log('📋 YouTube URL pasted:', pastedText.substring(0, 100));
+                            console.log('📋 Pasted text length:', pastedText.length);
+                            
+                            // Prevent pasting huge content (likely clipboard issue)
+                            if (pastedText.length > 500) {
+                              console.log('⚠️ Pasted content too large, likely not a valid video link');
+                              e.preventDefault();
+                              setError('Pasted content is too large. Please paste only the video link (should be less than 100 characters).');
+                              return;
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              console.log('⌨️ Enter key pressed, preventing default and submitting');
+                              e.preventDefault();
+                              handleYouTubeSubmit();
+                            }
+                          }}
+                          placeholder="https://www.youtube.com/watch?v=... or https://drive.google.com/file/d/..."
+                          className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        <button
+                          type="button"
+                          id="youtube-submit-btn-v2"
+                          data-testid="youtube-submit"
+                          style={{ cursor: 'pointer' }}
+                          onMouseDown={() => console.log('🖱️ Mouse DOWN on YouTube Submit button')}
+                          onMouseUp={() => console.log('🖱️ Mouse UP on YouTube Submit button')}
+                          onMouseEnter={() => console.log('🖱️ Mouse ENTER on YouTube Submit button')}
+                          onMouseLeave={() => console.log('🖱️ Mouse LEAVE YouTube Submit button')}
+                          onClick={(e) => {
+                            console.log('===== 🖱️ YouTube Submit button CLICKED! =====');
+                            console.log('🔗 Current YouTube URL:', youtubeUrl);
+                            console.log('🔗 URL length:', youtubeUrl.length);
+                            console.log('⏳ Is uploading:', isUploading);
+                            console.log('🔍 Button should be disabled?:', !youtubeUrl || isUploading);
+                            console.log('🔍 youtubeUrl truthy?:', !!youtubeUrl);
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            if (!youtubeUrl) {
+                              console.log('❌ Cannot submit: No external video URL');
+                              setError('Please enter a shareable video link first');
+                              return;
+                            }
+                            
+                            if (isUploading) {
+                              console.log('❌ Cannot submit: Already uploading');
+                              return;
+                            }
+                            
+                            console.log('✅ Calling handleYouTubeSubmit...');
+                            handleYouTubeSubmit();
+                          }}
+                          className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
+                            !youtubeUrl || isUploading
+                              ? 'bg-gray-300 text-gray-500'
+                              : 'bg-blue-500 text-white hover:bg-blue-600'
+                          }`}
+                        >
+                          {isUploading ? 'Submitting...' : '▶️ Submit Link'}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        Paste the full share link from YouTube (Unlisted/Public) or Google Drive (set to “Anyone with the link”).
+                      </p>
+                      {/* Debug info */}
+                      <div className="mt-2 text-xs text-gray-500">
+                        Debug: URL length: {youtubeUrl.length}, Valid: {isValidExternalUrl(youtubeUrl) ? 'Yes' : 'No'}, Button enabled: {youtubeUrl && !isUploading ? 'Yes' : 'No'}
+                      </div>
+                      
+                      {youtubeUrl && externalIsYouTube && (
+                        <>
+                          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p className="text-sm text-blue-800">
+                              <strong>📌 Important:</strong> Make sure your YouTube video is set to "Unlisted" or "Public" 
+                              so your instructor can view it. Private videos cannot be accessed.
+                            </p>
+                          </div>
+                          <div className="mt-4">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Video Preview:</h4>
+                            <div className="relative bg-black rounded-xl overflow-hidden">
+                              <div className="aspect-video w-full">
+                                <iframe
+                                  src={`https://www.youtube.com/embed/${extractYouTubeVideoId(trimmedExternalUrl)}`}
+                                  title="YouTube video player"
+                                  frameBorder="0"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                  className="w-full h-full"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {youtubeUrl && externalIsGoogleDrive && googleDrivePreviewUrl && (
+                        <>
+                          <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
+                            <p className="text-sm text-emerald-800">
+                              <strong>📌 Important:</strong> Ensure your Google Drive link is set to "Anyone with the link can view" so instructors can access it.
+                            </p>
+                          </div>
+                          <div className="mt-4">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Link Preview:</h4>
+                            <div className="relative bg-black rounded-xl overflow-hidden">
+                              <div className="aspect-video w-full">
+                                <iframe
+                                  src={googleDrivePreviewUrl}
+                                  title="Google Drive video preview"
+                                  frameBorder="0"
+                                  allow="autoplay"
+                                  allowFullScreen
+                                  className="w-full h-full"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recording Controls */}
+                {activeTab === 'record' && (
+                  <div className="flex justify-center space-x-4">
+                    {!isRecording ? (
+                      <button
+                        onClick={startRecording}
+                        className="px-8 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+                      >
+                        <span className="text-xl">🔴</span>
+                        <span>Start Recording</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={stopRecording}
+                        className="px-8 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 flex items-center space-x-2"
+                      >
+                        <span className="text-xl">⏹️</span>
+                        <span>Stop Recording</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {error && (
+                  <div className="mt-4 p-6 bg-red-50 border-2 border-red-300 rounded-xl shadow-lg">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 text-2xl">
+                        {error.includes('File Too Large') ? '📦' : '⚠️'}
+                      </div>
+                      <div className="flex-1">
+                        <pre className="text-red-800 text-sm whitespace-pre-wrap font-sans leading-relaxed">{error}</pre>
+                        {errorIsLinkIssue && (
+                          <div className="mt-4 pt-4 border-t border-red-200">
+                            <div className="flex items-center justify-center space-x-2">
+                              <span className="text-blue-600 font-semibold">👆 Switch to the Link (YouTube / Drive) tab above</span>
+                              <span className="animate-bounce text-xl">⬆️</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Review Your Video</h2>
+                  <p className="text-gray-600">
+                    {recordedVideo 
+                      ? 'Review your recording before submitting' 
+                      : youtubeUrl 
+                        ? 'Review your YouTube video before submitting'
+                        : 'Review your uploaded video before submitting'}
+                  </p>
+            </div>
+
+                {/* Video Preview */}
+                <div className="relative bg-black rounded-xl overflow-hidden mb-6">
+                  <div className="aspect-video w-full max-w-2xl mx-auto">
+                    {youtubeUrl ? (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${extractYouTubeVideoId(youtubeUrl)}`}
+                        title="YouTube video player"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        className="w-full h-full rounded-xl"
+                      />
+                    ) : (
+                      <video
+                        src={recordedVideo || uploadedVideo || undefined}
+                        controls
+                        playsInline
+                        webkit-playsinline="true"
+                        className="w-full h-full object-cover rounded-xl"
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Video Info */}
+                {selectedFile && (
+                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                    <h3 className="font-semibold text-gray-800 mb-2">File Information</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                <div>
+                        <p><strong>Name:</strong> {selectedFile.name}</p>
+                        <p><strong>Size:</strong> {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                </div>
+                <div>
+                        <p><strong>Type:</strong> {selectedFile.type}</p>
+                        <p><strong>Last Modified:</strong> {new Date(selectedFile.lastModified).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload Progress */}
+                {isUploading && (
+                  <div className="mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-gray-700">Uploading...</span>
+                      <span className="text-sm text-gray-500">{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Success Message */}
+                {success && (
+                  <div className="mb-6 space-y-4">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-green-600 text-xl">✅</span>
+                        <p className="text-green-800 font-semibold">
+                          Video uploaded successfully! Redirecting to dashboard...
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Video Preview After Upload */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Your Submitted Video:</h4>
+                      <div className="aspect-video w-full max-w-md mx-auto">
+                        <video
+                          src={recordedVideo || uploadedVideo || undefined}
+                          controls
+                          playsInline
+                          webkit-playsinline="true"
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      </div>
+                      <div className="flex justify-center space-x-4 mt-4">
+                        <button
+                          onClick={() => router.push('/student/submissions')}
+                          className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                        >
+                          View All Submissions
+                        </button>
+                        <button
+                          onClick={() => router.push('/student/dashboard')}
+                          className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+                        >
+                          Go to Dashboard
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2 text-center">
+                        This video has been saved and will be available in your submissions.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex justify-center space-x-4">
+                  <button
+                    onClick={retakeVideo}
+                    disabled={isUploading}
+                    className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {recordedVideo ? 'Retake Video' : youtubeUrl ? 'Choose Different URL' : 'Choose Different File'}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      console.log('🖱️ REVIEW SECTION Submit button clicked!');
+                      console.log('📹 recordedVideo:', !!recordedVideo);
+                      console.log('📁 uploadedVideo:', !!uploadedVideo);
+                      console.log('▶️ youtubeUrl:', youtubeUrl);
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      if (youtubeUrl) {
+                        console.log('✅ Calling handleYouTubeSubmit from review section...');
+                        handleYouTubeSubmit();
+                      } else {
+                        console.log('✅ Calling uploadVideo...');
+                        uploadVideo();
+                      }
+                    }}
+                    disabled={isUploading || success}
+                    style={{ cursor: 'pointer' }}
+                    className="px-8 py-3 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-xl font-bold hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    {isUploading ? (
+                      <>
+                        <LoadingSpinner size="sm" />
+                        <span>{youtubeUrl ? 'Submitting...' : 'Uploading...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-xl">{youtubeUrl ? '▶️' : '📤'}</span>
+                        <span>{youtubeUrl ? 'Submit Video Link' : 'Submit Video'}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {error && (
+                  <div className="mt-4 p-6 bg-red-50 border-2 border-red-300 rounded-xl shadow-lg">
+                    <div className="flex items-start space-x-3">
+                      <div className="flex-shrink-0 text-2xl">
+                        {error.includes('File Too Large') ? '📦' : '⚠️'}
+                      </div>
+                      <div className="flex-1">
+                        <pre className="text-red-800 text-sm whitespace-pre-wrap font-sans leading-relaxed">{error}</pre>
+                        {errorIsLinkIssue && (
+                          <div className="mt-4 pt-4 border-t border-red-200">
+                            <div className="flex items-center justify-center space-x-2">
+                              <span className="text-blue-600 font-semibold">👆 Switch to the Link (YouTube / Drive) tab above</span>
+                              <span className="animate-bounce text-xl">⬆️</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Existing Submissions Section */}
+            {existingSubmissions.length > 0 && (
+              <div className="mt-8 bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30">
+                <h3 className="text-xl font-bold text-gray-800 mb-4">📹 Previously Posted Videos</h3>
+                {isLoadingSubmissions ? (
+                  <div className="flex items-center justify-center py-8">
+                    <LoadingSpinner size="md" />
+                    <span className="ml-3 text-gray-600">Loading submissions...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {existingSubmissions.map((submission) => (
+                      <div
+                        key={submission.submissionId}
+                        className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-800 mb-2">
+                              {submission.videoTitle || 'Video Submission'}
+                            </h4>
+                            <p className="text-sm text-gray-600 mb-2">
+                              Submitted: {new Date(submission.submittedAt || submission.createdAt).toLocaleString()}
+                            </p>
+                            {submission.duration && (
+                              <p className="text-xs text-gray-500">
+                                Duration: {Math.floor(submission.duration / 60)}:{(submission.duration % 60).toFixed(0).padStart(2, '0')}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            {(() => {
+                              const isYouTubeSubmission = submission.isYouTube || submission.youtubeUrl || (submission.videoUrl && submission.videoUrl.includes('youtube'));
+                              const isGoogleDriveSubmission = submission.isGoogleDrive || submission.googleDriveUrl || (submission.videoUrl && submission.videoUrl.includes('drive.google.com'));
+                              const externalUrl = isYouTubeSubmission
+                                ? (submission.youtubeUrl || submission.videoUrl)
+                                : isGoogleDriveSubmission
+                                  ? (submission.googleDriveUrl || submission.videoUrl)
+                                  : submission.videoUrl;
+                              const linkLabel = isYouTubeSubmission
+                                ? '▶️ View on YouTube'
+                                : isGoogleDriveSubmission
+                                  ? '▶️ View on Google Drive'
+                                  : '▶️ View Video';
+
+                              if (!externalUrl) {
+                                return null;
+                              }
+
+                              return (
+                                <a
+                                  href={externalUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="px-3 py-1.5 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors"
+                                >
+                                  {linkLabel}
+                                </a>
+                              );
+                            })()}
+                            {showDeleteConfirm === submission.submissionId ? (
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleDeleteSubmission(submission.submissionId)}
+                                  className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors"
+                                >
+                                  ✓ Confirm Delete
+                                </button>
+                                <button
+                                  onClick={() => setShowDeleteConfirm(null)}
+                                  className="px-3 py-1.5 bg-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-400 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => handleDeleteSubmission(submission.submissionId)}
+                                className="px-3 py-1.5 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 transition-colors"
+                              >
+                                🗑️ Delete
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        {submission.videoDescription && (
+                          <p className="text-sm text-gray-700 mt-2">{submission.videoDescription}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Instructions */}
+            <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-blue-800 mb-3">📋 Recording Tips</h3>
+              <ul className="space-y-2 text-sm text-blue-700">
+                <li>• Ensure good lighting and clear audio</li>
+                <li>• Look directly at the camera when speaking</li>
+                <li>• Keep your video concise and focused</li>
+                <li>• Test your recording before submitting</li>
+                <li>• Make sure you have a stable internet connection for upload</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </StudentRoute>
+  );
+};
+
+const VideoSubmissionPage: React.FC = () => {
+  return (
+    <Suspense fallback={<LoadingSpinner size="lg" />}>
+      <VideoSubmissionContent />
+    </Suspense>
+  );
+};
+
+export default VideoSubmissionPage;

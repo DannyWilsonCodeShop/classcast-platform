@@ -1,0 +1,295 @@
+# CI/CD Pipeline Configuration
+# This file centralizes all CI/CD settings and configurations
+
+# Global settings
+global:
+  node_version: '18'
+  npm_version: '9'
+  aws_region: 'us-east-1'
+  docker_registry: 'public.ecr.aws'
+  
+# Environment configurations
+environments:
+  development:
+    name: development
+    branch: develop
+    auto_deploy: true
+    required_checks:
+      - lint-and-format
+      - unit-tests
+      - build-verification
+    protection_rules:
+      required_reviews: 1
+      require_code_owners: false
+      
+  staging:
+    name: staging
+    branch: staging
+    auto_deploy: true
+    required_checks:
+      - lint-and-format
+      - unit-tests
+      - e2e-tests
+      - build-verification
+      - infrastructure-validation
+    protection_rules:
+      required_reviews: 1
+      require_code_owners: false
+    url: https://staging.yourdomain.com
+      
+  production:
+    name: production
+    branch: main
+    auto_deploy: false
+    manual_approval: true
+    required_checks:
+      - lint-and-format
+      - unit-tests
+      - e2e-tests
+      - build-verification
+      - infrastructure-validation
+      - security-scan
+      - performance-test
+    protection_rules:
+      required_reviews: 2
+      require_code_owners: true
+    url: https://yourdomain.com
+
+# CI Pipeline configuration
+ci_pipeline:
+  triggers:
+    - push
+    - pull_request
+    - schedule
+    
+  jobs:
+    - name: lint-and-format
+      description: "Code quality and formatting checks"
+      timeout: 10m
+      runs_on: ubuntu-latest
+      
+    - name: unit-tests
+      description: "Unit test execution with coverage"
+      timeout: 15m
+      runs_on: ubuntu-latest
+      
+    - name: e2e-tests
+      description: "End-to-end test execution"
+      timeout: 30m
+      runs_on: ubuntu-latest
+      
+    - name: security-scan
+      description: "Security vulnerability scanning"
+      timeout: 20m
+      runs_on: ubuntu-latest
+      
+    - name: build-verification
+      description: "Application build verification"
+      timeout: 15m
+      runs_on: ubuntu-latest
+      
+    - name: infrastructure-validation
+      description: "Infrastructure code validation"
+      timeout: 20m
+      runs_on: ubuntu-latest
+      
+    - name: performance-test
+      description: "Performance testing and analysis"
+      timeout: 25m
+      runs_on: ubuntu-latest
+      conditional: pull_request
+
+# CD Pipeline configuration
+cd_pipeline:
+  deployment_strategy: blue-green
+  
+  stages:
+    - name: infrastructure
+      description: "Deploy infrastructure changes"
+      timeout: 45m
+      rollback: true
+      
+    - name: application
+      description: "Deploy application changes"
+      timeout: 30m
+      rollback: true
+      depends_on: infrastructure
+      
+    - name: smoke-tests
+      description: "Run smoke tests against deployed application"
+      timeout: 20m
+      depends_on: application
+      
+    - name: health-check
+      description: "Verify application health and monitoring"
+      timeout: 15m
+      depends_on: smoke-tests
+      
+    - name: rollback
+      description: "Rollback deployment if issues detected"
+      timeout: 20m
+      conditional: failure
+      depends_on: [application, smoke-tests, health-check]
+
+# Testing configuration
+testing:
+  unit_tests:
+    framework: jest
+    coverage_threshold: 80
+    timeout: 10000
+    
+  e2e_tests:
+    framework: playwright
+    browsers: [chromium, firefox, webkit]
+    timeout: 30000
+    retries: 2
+    
+  integration_tests:
+    framework: jest
+    timeout: 15000
+    
+  performance_tests:
+    framework: lighthouse
+    thresholds:
+      performance: 90
+      accessibility: 95
+      best_practices: 90
+      seo: 90
+
+# Security configuration
+security:
+  scanning:
+    - tool: npm-audit
+      level: moderate
+      fail_on_vulnerabilities: true
+      
+    - tool: snyk
+      level: high
+      fail_on_vulnerabilities: true
+      
+    - tool: trivy
+      level: high
+      fail_on_vulnerabilities: true
+      
+  policies:
+    - name: dependency-vulnerabilities
+      description: "Block deployment with high-severity vulnerabilities"
+      enforcement: hard_fail
+      
+    - name: secrets-detection
+      description: "Scan for hardcoded secrets and credentials"
+      enforcement: hard_fail
+      
+    - name: license-compliance
+      description: "Ensure all dependencies have acceptable licenses"
+      enforcement: soft_fail
+
+# Monitoring and alerting
+monitoring:
+  health_checks:
+    - name: application-health
+      endpoint: /api/health
+      interval: 5m
+      timeout: 30s
+      retries: 3
+      
+    - name: database-connectivity
+      endpoint: /api/health/db
+      interval: 10m
+      timeout: 60s
+      retries: 2
+      
+  metrics:
+    - name: response-time
+      threshold: 2000ms
+      alert: true
+      
+    - name: error-rate
+      threshold: 5%
+      alert: true
+      
+    - name: availability
+      threshold: 99.9%
+      alert: true
+      
+  alerts:
+    - name: deployment-failure
+      condition: deployment.status == 'failed'
+      notification: slack
+      priority: high
+      
+    - name: health-check-failure
+      condition: health_check.status == 'failed'
+      notification: slack
+      priority: critical
+      
+    - name: performance-degradation
+      condition: response_time > 2000ms
+      notification: slack
+      priority: medium
+
+# Rollback configuration
+rollback:
+  automatic: false
+  triggers:
+    - health_check_failure
+    - smoke_test_failure
+    - performance_degradation
+    - manual_trigger
+    
+  strategies:
+    - name: quick-rollback
+      description: "Immediate rollback to previous version"
+      timeout: 10m
+      
+    - name: gradual-rollback
+      description: "Gradual rollback with traffic shifting"
+      timeout: 30m
+      
+  verification:
+    - health_check
+    - smoke_tests
+    - performance_metrics
+
+# Notification configuration
+notifications:
+  channels:
+    - name: slack
+      webhook: ${{ secrets.SLACK_WEBHOOK }}
+      channels:
+        - "#deployments"
+        - "#alerts"
+        
+    - name: email
+      recipients:
+        - "devops@yourdomain.com"
+        - "engineering@yourdomain.com"
+        
+    - name: teams
+      webhook: ${{ secrets.TEAMS_WEBHOOK }}
+      
+  events:
+    - deployment_start
+    - deployment_success
+    - deployment_failure
+    - rollback_start
+    - rollback_success
+    - health_check_failure
+    - security_alert
+
+# Artifact management
+artifacts:
+  retention:
+    build_artifacts: 30d
+    test_results: 90d
+    deployment_logs: 180d
+    
+  storage:
+    type: s3
+    bucket: demo-project-artifacts
+    prefix: ci-cd/
+    
+  cleanup:
+    enabled: true
+    schedule: "0 2 * * 0"  # Every Sunday at 2 AM UTC
+    max_age: 90d
