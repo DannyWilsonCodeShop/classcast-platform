@@ -168,10 +168,22 @@ export async function GET(request: NextRequest) {
       let signedVideoUrl = submission.videoUrl;
       if (submission.videoUrl) {
         try {
-          // Check if it's a YouTube URL - if so, use it as-is
-          if (submission.isYouTube || submission.youtubeUrl || submission.videoUrl.includes('youtube.com') || submission.videoUrl.includes('youtu.be')) {
+          const isYouTubeSubmission =
+            submission.isYouTube ||
+            submission.youtubeUrl ||
+            submission.videoUrl.includes('youtube.com') ||
+            submission.videoUrl.includes('youtu.be');
+          const isGoogleDriveSubmission =
+            submission.isGoogleDrive ||
+            submission.googleDriveUrl ||
+            submission.videoUrl.includes('drive.google.com');
+
+          if (isYouTubeSubmission) {
             console.log('Using YouTube URL as-is:', submission.videoUrl);
             signedVideoUrl = submission.youtubeUrl || submission.videoUrl;
+          } else if (isGoogleDriveSubmission) {
+            console.log('Using Google Drive URL as-is:', submission.videoUrl);
+            signedVideoUrl = submission.googleDriveUrl || submission.videoUrl;
           } else {
             // Extract S3 key from URL for non-YouTube videos
             const s3Key = extractS3KeyFromUrl(submission.videoUrl);
@@ -203,7 +215,9 @@ export async function GET(request: NextRequest) {
         sectionId: submission.sectionId,
         videoUrl: signedVideoUrl,
         youtubeUrl: submission.youtubeUrl || null,
+        googleDriveUrl: submission.googleDriveUrl || submission.googleDriveOriginalUrl || null,
         isYouTube: submission.isYouTube || false,
+        isGoogleDrive: submission.isGoogleDrive || false,
         videoTitle: submission.videoTitle || 'Video Submission',
         videoDescription: submission.videoDescription || '',
         duration: submission.duration || 0,

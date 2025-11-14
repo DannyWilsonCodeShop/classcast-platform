@@ -295,16 +295,20 @@ export async function GET(request: NextRequest) {
           let signedVideoUrl = submission.videoUrl;
           if (submission.videoUrl) {
             try {
-              // Check if it's a YouTube URL - if so, use it as-is
-              const isYouTube = submission.isYouTube || 
-                               submission.youtubeUrl || 
-                               submission.videoUrl.includes('youtube.com') || 
-                               submission.videoUrl.includes('youtu.be');
-              
+              const isYouTube = submission.isYouTube ||
+                                submission.youtubeUrl ||
+                                submission.videoUrl.includes('youtube.com') ||
+                                submission.videoUrl.includes('youtu.be');
+              const isGoogleDrive = submission.isGoogleDrive ||
+                                    submission.googleDriveUrl ||
+                                    submission.videoUrl.includes('drive.google.com');
+
               if (isYouTube) {
-                // Use YouTube URL directly (no S3 processing)
                 signedVideoUrl = submission.youtubeUrl || submission.videoUrl;
                 console.log('Using YouTube URL directly (instructor grading):', signedVideoUrl);
+              } else if (isGoogleDrive) {
+                signedVideoUrl = submission.googleDriveUrl || submission.videoUrl;
+                console.log('Using Google Drive URL directly (instructor grading):', signedVideoUrl);
               } else {
                 // Extract S3 key and generate presigned URL for S3 videos
                 const s3Key = extractS3KeyFromUrl(submission.videoUrl);
@@ -327,7 +331,9 @@ export async function GET(request: NextRequest) {
             ...submission,
             videoUrl: signedVideoUrl,
             youtubeUrl: submission.youtubeUrl || null,
+            googleDriveUrl: submission.googleDriveUrl || submission.googleDriveOriginalUrl || null,
             isYouTube: submission.isYouTube || false,
+            isGoogleDrive: submission.isGoogleDrive || false,
             student: studentInfo ? {
               id: studentInfo.userId,
               name: `${studentInfo.firstName || ''} ${studentInfo.lastName || ''}`.trim() || 'Unknown Student',

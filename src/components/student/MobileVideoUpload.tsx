@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
+import { resolveMimeType, getFallbackMimeType } from '@/lib/fileTypeUtils';
 
 export interface MobileVideoUploadProps {
   onFileSelect: (file: File) => void;
@@ -30,7 +31,7 @@ export const MobileVideoUpload: React.FC<MobileVideoUploadProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const validateMobileFile = (file: File): { isValid: boolean; error?: string } => {
+  const validateMobileFile = (file: File): { isValid: boolean; error?: string; resolvedType?: string } => {
     console.log('🔍 Mobile file validation:', {
       name: file?.name,
       size: file?.size,
@@ -67,20 +68,24 @@ export const MobileVideoUpload: React.FC<MobileVideoUploadProps> = ({
       };
     }
 
-    // Check file type
-    if (!allowedTypes.includes(file.type)) {
-      return { 
-        isValid: false, 
-        error: `File type ${file.type} is not supported. Allowed types: ${allowedTypes.join(', ')}` 
+    const { canonicalType, detectedType, isAllowed, resolutionLog } = resolveMimeType(file, allowedTypes);
+    console.log('📱 Mobile file MIME resolution:', { canonicalType, detectedType, isAllowed, resolutionLog });
+
+    if (!isAllowed) {
+      return {
+        isValid: false,
+        error: `File type ${detectedType || getFallbackMimeType()} is not supported. Allowed types: ${allowedTypes.join(', ')}`,
       };
     }
+
+    const resolvedType = canonicalType || detectedType || getFallbackMimeType();
 
     // Additional mobile-specific checks
     if (file.size === 0) {
       return { isValid: false, error: 'File appears to be empty' };
     }
 
-    return { isValid: true };
+    return { isValid: true, resolvedType };
   };
 
   const handleFileInputChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -159,14 +159,18 @@ export async function POST(request: NextRequest) {
       youtubeUrl,
       thumbnailUrl,
       submissionMethod,
-      isYouTube = false
+      isYouTube = false,
+      googleDriveUrl,
+      googleDriveOriginalUrl,
+      googleDriveFileId,
+      isGoogleDrive = false
     } = body;
 
     // For YouTube submissions, we don't need videoUrl, just youtubeUrl
-    if (!assignmentId || !studentId || !courseId || (!videoUrl && !youtubeUrl)) {
+    if (!assignmentId || !studentId || !courseId || (!videoUrl && !youtubeUrl && !googleDriveUrl)) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields: assignmentId, studentId, courseId, and either videoUrl or youtubeUrl'
+        error: 'Missing required fields: assignmentId, studentId, courseId, and a videoUrl, youtubeUrl, or googleDriveUrl'
       }, { status: 400 });
     }
 
@@ -176,28 +180,42 @@ export async function POST(request: NextRequest) {
     // Use provided thumbnail URL or generate placeholder
     const finalThumbnailUrl = thumbnailUrl || `/api/placeholder/400/300?text=${encodeURIComponent(videoTitle || 'Video')}`;
 
+    const finalVideoUrl = isYouTube
+      ? youtubeUrl
+      : isGoogleDrive
+        ? (googleDriveUrl || googleDriveOriginalUrl || videoUrl)
+        : videoUrl;
+
+    const finalFileName = fileName || (isYouTube ? 'youtube-video' : isGoogleDrive ? 'google-drive-video' : 'video.webm');
+    const finalFileType = fileType || (isYouTube ? 'video/youtube' : isGoogleDrive ? 'video/google-drive' : 'video/webm');
+    const finalSubmissionMethod = submissionMethod || (isRecorded ? 'record' : isUploaded ? 'upload' : isYouTube ? 'youtube' : isGoogleDrive ? 'google-drive' : 'unknown');
+
     const submission = {
       submissionId,
       assignmentId,
       studentId,
       courseId,
       sectionId: sectionId || null, // Add sectionId to submission
-      // For YouTube submissions, store both the YouTube URL and use it as videoUrl
-      videoUrl: isYouTube ? youtubeUrl : videoUrl,
+      // Store external video URLs for consistent playback
+      videoUrl: finalVideoUrl,
       youtubeUrl: youtubeUrl || null, // Store YouTube URL separately
+      googleDriveUrl: googleDriveUrl || finalVideoUrl || null,
+      googleDriveOriginalUrl: googleDriveOriginalUrl || googleDriveUrl || null,
+      googleDriveFileId: googleDriveFileId || null,
       videoId: videoId || null,
       videoTitle: videoTitle || 'Video Submission',
       videoDescription: videoDescription || '',
       duration: duration || 0,
-      fileName: fileName || (isYouTube ? 'youtube-video' : 'video.webm'),
+      fileName: finalFileName,
       fileSize: fileSize || 0,
-      fileType: fileType || (isYouTube ? 'video/youtube' : 'video/webm'),
+      fileType: finalFileType,
       thumbnailUrl: finalThumbnailUrl, // Add thumbnail URL
       isRecorded,
       isUploaded,
       isLocalStorage,
       isYouTube, // Flag for YouTube submissions
-      submissionMethod: submissionMethod || (isRecorded ? 'record' : isUploaded ? 'upload' : isYouTube ? 'youtube' : 'unknown'),
+      isGoogleDrive,
+      submissionMethod: finalSubmissionMethod,
       status: 'submitted', // submitted, graded, returned
       grade: null,
       instructorFeedback: null,
@@ -257,9 +275,9 @@ export async function POST(request: NextRequest) {
                 <p style="margin: 5px 0;"><strong>Student:</strong> ${studentName}</p>
                 <p style="margin: 5px 0;"><strong>Student ID:</strong> ${studentId}</p>
                 <p style="margin: 5px 0;"><strong>Assignment:</strong> ${videoTitle || 'Video Submission'}</p>
-                <p style="margin: 5px 0;"><strong>Submission Method:</strong> ${submissionMethod || (isYouTube ? 'YouTube' : 'Upload')}</p>
+                <p style="margin: 5px 0;"><strong>Submission Method:</strong> ${submissionMethod || (isYouTube ? 'YouTube' : isGoogleDrive ? 'Google Drive' : 'Upload')}</p>
                 <p style="margin: 5px 0;"><strong>Submitted At:</strong> ${now}</p>
-                ${description ? `<p style="margin: 5px 0;"><strong>Description:</strong> ${description}</p>` : ''}
+                ${videoDescription ? `<p style="margin: 5px 0;"><strong>Description:</strong> ${videoDescription}</p>` : ''}
               </div>
 
               <div style="background: #f9fafb; padding: 15px; margin-top: 20px; border-radius: 4px;">
@@ -305,7 +323,7 @@ New Video Submission
 Student: ${studentName}
 Student ID: ${studentId}
 Assignment: ${videoTitle || 'Video Submission'}
-Submission Method: ${submissionMethod || (isYouTube ? 'YouTube' : 'Upload')}
+Submission Method: ${submissionMethod || (isYouTube ? 'YouTube' : isGoogleDrive ? 'Google Drive' : 'Upload')}
 Submitted At: ${now}
 
 Submission Details:
@@ -401,9 +419,11 @@ Generated at ${new Date().toISOString()}
         id: videoId,
         title: videoTitle || 'Video Submission',
         description: videoDescription || '',
-        videoUrl: isYouTube ? youtubeUrl : videoUrl,
+        videoUrl: finalVideoUrl,
         youtubeUrl: youtubeUrl || null,
+        googleDriveUrl: googleDriveUrl || googleDriveOriginalUrl || null,
         isYouTube: isYouTube || false,
+        isGoogleDrive,
         thumbnail: finalThumbnailUrl || '/api/placeholder/300/200',
         duration: duration || 0,
         courseId,

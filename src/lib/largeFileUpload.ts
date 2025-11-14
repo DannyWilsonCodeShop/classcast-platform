@@ -3,11 +3,14 @@
  * Handles uploads of large files (>100MB) using presigned URLs
  */
 
+import { getFallbackMimeType } from './fileTypeUtils';
+
 export interface LargeFileUploadOptions {
   file: File;
   folder?: string;
   userId?: string;
   metadata?: Record<string, any>;
+  contentType?: string;
   onProgress?: (progress: number) => void;
   onComplete?: (result: LargeFileUploadResult) => void;
   onError?: (error: Error) => void;
@@ -36,17 +39,6 @@ export class LargeFileUploader {
       return false;
     }
     
-    // Check if file is a proper File object
-    if (!(file instanceof File)) {
-      console.warn('❌ Object is not a File instance:', {
-        type: typeof file,
-        constructor: file?.constructor?.name,
-        hasSize: 'size' in file,
-        hasName: 'name' in file
-      });
-      return false;
-    }
-    
     if (typeof file.size !== 'number' || file.size === undefined || file.size === null || isNaN(file.size)) {
       console.warn('❌ Invalid file object for large file check - missing or invalid size:', {
         file: !!file,
@@ -68,7 +60,16 @@ export class LargeFileUploader {
    * Upload a large file using presigned URL
    */
   static async uploadLargeFile(options: LargeFileUploadOptions): Promise<LargeFileUploadResult> {
-    const { file, folder = 'videos', userId, metadata = {}, onProgress, onComplete, onError } = options;
+    const {
+      file,
+      folder = 'videos',
+      userId,
+      metadata = {},
+      contentType,
+      onProgress,
+      onComplete,
+      onError,
+    } = options;
 
     try {
       // Validate file before starting upload
@@ -79,14 +80,14 @@ export class LargeFileUploader {
       if (typeof file.size !== 'number' || file.size === undefined || file.size === null) {
         throw new Error('Invalid file: missing size information');
       }
-      
       if (!file.name || typeof file.name !== 'string') {
         throw new Error('Invalid file: missing name information');
       }
       
-      if (!file.type || typeof file.type !== 'string') {
-        throw new Error('Invalid file: missing type information');
-      }
+      const resolvedContentType =
+        (contentType && contentType.trim() !== '' ? contentType : null) ||
+        (file.type && file.type.trim() !== '' ? file.type : null) ||
+        getFallbackMimeType();
 
       console.log(`🚀 Starting large file upload: ${file.name} (${(file.size / (1024 * 1024)).toFixed(1)}MB)`);
 
@@ -100,7 +101,7 @@ export class LargeFileUploader {
         body: JSON.stringify({
           fileName: file.name,
           fileSize: file.size,
-          contentType: file.type,
+          contentType: resolvedContentType,
           folder,
           userId,
           metadata,
@@ -123,7 +124,7 @@ export class LargeFileUploader {
 
       // Step 2: Upload directly to S3 with progress tracking
       onProgress?.(10);
-      await this.uploadToS3WithProgress(file, presignedUrl, onProgress);
+      await this.uploadToS3WithProgress(file, presignedUrl, resolvedContentType, onProgress);
 
       // Step 3: Verify upload completion
       onProgress?.(95);
@@ -157,6 +158,7 @@ export class LargeFileUploader {
   private static async uploadToS3WithProgress(
     file: File,
     presignedUrl: string,
+    contentType: string,
     onProgress?: (progress: number) => void
   ): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -195,7 +197,7 @@ export class LargeFileUploader {
 
       // Configure request
       xhr.open('PUT', presignedUrl);
-      xhr.setRequestHeader('Content-Type', file.type);
+      xhr.setRequestHeader('Content-Type', contentType);
       xhr.timeout = 30 * 60 * 1000; // 30 minutes timeout
 
       // Start upload
