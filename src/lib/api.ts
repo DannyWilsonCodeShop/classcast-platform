@@ -84,6 +84,8 @@ export interface VideoReel {
   videoUrl: string;
   youtubeUrl?: string;
   isYouTube?: boolean;
+  googleDriveUrl?: string;
+  isGoogleDrive?: boolean;
   duration: number;
   assignmentId?: string;
   author?: {
@@ -407,14 +409,14 @@ class ApiClient {
   }
 
   async updateUserProfile(userId: string, updates: Partial<User>): Promise<User> {
-    const response = await this.request<{ success: boolean; user: User; message: string }>('/profile/save', {
+    const response = await this.request<{ user: User; message: string }>('/profile/save', {
       method: 'POST',
       body: JSON.stringify({
         userId,
         ...updates
       }),
     });
-    return response.user;
+    return response.data?.user ?? (response as any).user;
   }
 
   // ============================================================================
@@ -459,20 +461,25 @@ class ApiClient {
 
   async getVideos(): Promise<VideoReel[]> {
     const response = await this.request<{ videos: VideoReel[] }>('/videos');
-    return response.videos || [];
+    return response.data?.videos ?? (response as any).videos ?? [];
   }
 
   async getVideoReels(): Promise<{ success: boolean; reels: VideoReel[] }> {
-    const response = await this.request<VideoReel[]>('/student/community/submissions');
+    const response = await this.request<any>('/student/community/submissions');
+    const reels = Array.isArray(response)
+      ? response
+      : Array.isArray(response?.data)
+        ? response.data
+        : [];
     return {
       success: true,
-      reels: response || []
+      reels
     };
   }
 
   async getVideo(videoId: string): Promise<VideoReel> {
     const response = await this.request<{ video: VideoReel }>(`/videos/${videoId}`);
-    return response.video;
+    return response.data?.video ?? (response as any).video;
   }
 
   async createVideo(videoData: Partial<VideoReel>): Promise<VideoReel> {
@@ -480,7 +487,7 @@ class ApiClient {
       method: 'POST',
       body: JSON.stringify(videoData),
     });
-    return response.video;
+    return response.data?.video ?? (response as any).video;
   }
 
   async updateVideo(videoId: string, updates: Partial<VideoReel>): Promise<VideoReel> {
@@ -488,7 +495,7 @@ class ApiClient {
       method: 'PUT',
       body: JSON.stringify(updates),
     });
-    return response.data!.video;
+    return response.data?.video ?? (response as any).video;
   }
 
   async deleteVideo(videoId: string): Promise<void> {
@@ -503,7 +510,7 @@ class ApiClient {
       body: JSON.stringify({}), // Empty body, API will toggle the like
     });
     // API returns the updated video data directly, not in data.video
-    return response as VideoReel;
+    return (response.data ?? response) as VideoReel;
   }
 
   // ============================================================================

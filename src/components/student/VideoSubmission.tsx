@@ -9,10 +9,11 @@ import { VideoValidationErrors } from './VideoValidationErrors';
 import { LiveVideoRecorder } from './LiveVideoRecorder';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ContentModerationChecker from '../common/ContentModerationChecker';
-import { ContentModerationResult } from '@/lib/contentModeration';
+import { ModerationResult } from '@/lib/contentModeration';
 import { LargeFileUploader } from '@/lib/largeFileUpload';
 import { MobileVideoUpload } from './MobileVideoUpload';
 import { isMobileDevice, logDeviceInfo } from '@/lib/deviceDetection';
+import { resolveMimeType, getFallbackMimeType, MimeResolutionResult } from '@/lib/fileTypeUtils';
 
 export interface VideoSubmissionProps {
   assignmentId: string;
@@ -43,6 +44,10 @@ export interface VideoSubmissionData {
     videoFormat: string;
     resolution?: string;
   };
+  isYouTube?: boolean;
+  isGoogleDrive?: boolean;
+  youtubeUrl?: string;
+  googleDriveUrl?: string;
 }
 
 export interface VideoFile {
@@ -58,6 +63,9 @@ export interface VideoFile {
     height?: number;
     format?: string;
   };
+  mimeType?: string;
+  canonicalType?: string;
+  mimeResolutionLog?: string[];
 }
 
 export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
@@ -80,12 +88,12 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [submissionData, setSubmissionData] = useState<VideoSubmissionData | null>(null);
-  const [moderationResult, setModerationResult] = useState<ContentModerationResult | null>(null);
+  const [moderationResult, setModerationResult] = useState<ModerationResult | null>(null);
   const [isModerating, setIsModerating] = useState(false);
   const [recordingMode, setRecordingMode] = useState<'upload' | 'record'>('upload');
   const [isMobile, setIsMobile] = useState(false);
 
-  const validateVideoFile = useCallback((file: File): string[] => {
+  const validateVideoFile = useCallback((file: File, mimeResolution?: MimeResolutionResult): string[] => {
     const errors: string[] = [];
     
     console.log('🔍 Validating video file:', {
@@ -115,16 +123,6 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       return errors;
     }
     
-    if (!file.type || typeof file.type !== 'string') {
-      console.error('❌ File type validation failed:', {
-        typeType: typeof file.type,
-        typeValue: file.type,
-        fileObject: file
-      });
-      errors.push('Invalid file: missing or invalid type information (browser compatibility issue)');
-      return errors;
-    }
-    
     if (!file.name || typeof file.name !== 'string') {
       console.error('❌ File name validation failed:', {
         nameType: typeof file.name,
@@ -139,14 +137,33 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       errors.push(`File size must be less than ${Math.round(maxFileSize / (1024 * 1024))}MB`);
     }
     
-    if (!allowedVideoTypes.includes(file.type)) {
-      errors.push(`File type ${file.type} is not supported`);
+    const resolution = mimeResolution ?? resolveMimeType(file, allowedVideoTypes);
+    const effectiveType = resolution.canonicalType || resolution.detectedType || null;
+
+    if (!effectiveType) {
+      console.error('❌ Unable to resolve MIME type for file:', {
+        name: file.name,
+        resolutionLog: resolution.resolutionLog
+      });
+      errors.push('Unable to determine the video file type. Please try capturing or selecting the video again.');
+      return errors;
+    }
+
+    if (!resolution.isAllowed) {
+      console.error('❌ File type validation failed after MIME resolution:', {
+        effectiveType,
+        resolutionLog: resolution.resolutionLog,
+        allowedVideoTypes
+      });
+      errors.push(`File type ${effectiveType} is not supported. Allowed types: ${allowedVideoTypes.join(', ')}`);
+      return errors;
     }
     
     console.log('✅ File validation passed:', {
       name: file.name,
       size: `${(file.size / (1024 * 1024)).toFixed(2)}MB`,
-      type: file.type
+      type: effectiveType,
+      resolutionLog: resolution.resolutionLog
     });
     
     return errors;
@@ -161,7 +178,8 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       type: 'video/webm'
     });
 
-    const errors = validateVideoFile(file);
+    const mimeResolution = resolveMimeType(file, allowedVideoTypes);
+    const errors = validateVideoFile(file, mimeResolution);
     if (errors.length > 0) {
       setValidationErrors(errors);
       return;
@@ -172,6 +190,9 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       id: crypto.randomUUID(),
       status: 'pending',
       progress: 0,
+      mimeType: mimeResolution.detectedType || undefined,
+      canonicalType: mimeResolution.canonicalType || undefined,
+      mimeResolutionLog: mimeResolution.resolutionLog,
     };
 
     if (showPreview) {
@@ -180,7 +201,10 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
 
     try {
       const metadata = await extractVideoMetadata(file);
-      videoFile.metadata = metadata;
+      videoFile.metadata = {
+        ...metadata,
+        format: mimeResolution.canonicalType || mimeResolution.detectedType || metadata.format,
+      };
       videoFile.duration = metadata.duration;
     } catch (error) {
       console.warn('Failed to extract video metadata:', error);
@@ -243,7 +267,8 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
     // Add a small delay to ensure file properties are fully loaded (mobile browser fix)
     await new Promise(resolve => setTimeout(resolve, 100));
 
-    const errors = validateVideoFile(file);
+    const mimeResolution = resolveMimeType(file, allowedVideoTypes);
+    const errors = validateVideoFile(file, mimeResolution);
     if (errors.length > 0) {
       console.error('❌ File validation failed:', errors);
       setValidationErrors(errors);
@@ -255,6 +280,9 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       id: crypto.randomUUID(),
       status: 'pending',
       progress: 0,
+      mimeType: mimeResolution.detectedType || undefined,
+      canonicalType: mimeResolution.canonicalType || undefined,
+      mimeResolutionLog: mimeResolution.resolutionLog,
     };
 
     if (showPreview) {
@@ -263,7 +291,10 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
 
     try {
       const metadata = await extractVideoMetadata(file);
-      videoFile.metadata = metadata;
+      videoFile.metadata = {
+        ...metadata,
+        format: mimeResolution.canonicalType || mimeResolution.detectedType || metadata.format,
+      };
       videoFile.duration = metadata.duration;
     } catch (error) {
       console.warn('Failed to extract video metadata:', error);
@@ -354,7 +385,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         constructor: selectedFile.file?.constructor?.name,
         selectedFileStructure: {
           hasFile: !!selectedFile.file,
-          hasPreview: !!selectedFile.preview,
+          hasPreview: !!selectedFile.previewUrl,
           hasMetadata: !!selectedFile.metadata,
           status: selectedFile.status
         }
@@ -365,20 +396,17 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       return;
     }
 
-    if (!selectedFile.file.type || typeof selectedFile.file.type !== 'string') {
-      console.error('❌ File type is invalid before upload:', {
-        file: selectedFile.file,
-        typeType: typeof selectedFile.file.type,
-        typeValue: selectedFile.file.type
-      });
-      onSubmissionError?.('Invalid file: file type information is missing or corrupted');
-      return;
-    }
-
+    const effectiveMimeType =
+      selectedFile.canonicalType ||
+      selectedFile.mimeType ||
+      (selectedFile.file.type && selectedFile.file.type.trim() !== '' ? selectedFile.file.type : null) ||
+      getFallbackMimeType();
+    
     console.log('✅ File validation passed before upload:', {
       name: selectedFile.file.name,
       size: `${(selectedFile.file.size / (1024 * 1024)).toFixed(2)}MB`,
-      type: selectedFile.file.type
+      type: effectiveMimeType,
+      resolutionLog: selectedFile.mimeResolutionLog
     });
 
     setIsUploading(true);
@@ -390,34 +418,36 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
       const metadata = {
         assignmentId,
         courseId,
-        studentId: user.userId,
+        studentId: user.id,
         videoDuration: selectedFile.duration,
         videoResolution: selectedFile.metadata ? `${selectedFile.metadata.width}x${selectedFile.metadata.height}` : undefined,
-        videoFormat: selectedFile.metadata?.format,
+        videoFormat: selectedFile.metadata?.format || effectiveMimeType,
       };
 
-      let result;
+      let uploadResponse: { data: { fileKey: string; fileUrl: string; fileName: string; fileSize: number } };
 
       // Use large file upload for files over 100MB
       if (LargeFileUploader.shouldUseLargeFileUpload(selectedFile.file)) {
         console.log(`📁 Using large file upload for ${LargeFileUploader.formatFileSize(selectedFile.file.size)} file`);
         
-        result = await LargeFileUploader.uploadLargeFile({
+        const largeUploadResult = await LargeFileUploader.uploadLargeFile({
           file: selectedFile.file,
           folder: 'video-submissions',
           userId: user.id,
           metadata,
+          contentType: effectiveMimeType,
           onProgress: (progress) => {
             setUploadProgress(progress);
           },
         });
 
         // Convert to expected format
-        result = {
+        uploadResponse = {
           data: {
-            fileUrl: result.fileUrl,
-            fileName: result.fileName,
-            fileSize: result.fileSize,
+            fileKey: largeUploadResult.fileKey,
+            fileUrl: largeUploadResult.fileUrl,
+            fileName: largeUploadResult.fileName,
+            fileSize: largeUploadResult.fileSize,
           }
         };
       } else {
@@ -429,6 +459,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         formData.append('folder', 'video-submissions');
         formData.append('userId', user.id);
         formData.append('metadata', JSON.stringify(metadata));
+        formData.append('contentType', effectiveMimeType);
 
         const progressInterval = setInterval(() => {
           setUploadProgress(prev => {
@@ -452,7 +483,7 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
           throw new Error(errorData.error || 'Upload failed');
         }
 
-        result = await response.json();
+        uploadResponse = await response.json();
         setUploadProgress(100);
       }
 
@@ -464,13 +495,13 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
         assignmentId,
         studentId: user.id,
         courseId,
-        videoUrl: result.data.fileUrl,
+        videoUrl: uploadResponse.data.fileUrl,
         videoTitle: selectedFile.file.name.replace(/\.[^/.]+$/, ''), // Remove file extension
         videoDescription: `Video submission for assignment ${assignmentId}`,
         duration: selectedFile.duration || 0,
-        fileName: result.data.fileName,
+        fileName: uploadResponse.data.fileName,
         fileSize: selectedFile.file.size,
-        fileType: selectedFile.file.type,
+        fileType: effectiveMimeType,
         isUploaded: true,
         isRecorded: false,
         isLocalStorage: false,
@@ -499,10 +530,10 @@ export const VideoSubmission: React.FC<VideoSubmissionProps> = ({
 
       const submissionData: VideoSubmissionData = {
         submissionId: submissionResult.submission.submissionId,
-        fileKey: result.data.fileKey,
-        fileUrl: result.data.fileUrl,
-        fileName: result.data.fileName,
-        fileSize: result.data.fileSize,
+        fileKey: uploadResponse.data.fileKey,
+        fileUrl: uploadResponse.data.fileUrl,
+        fileName: uploadResponse.data.fileName,
+        fileSize: uploadResponse.data.fileSize,
         duration: selectedFile.duration || 0,
         metadata: {
           assignmentId,

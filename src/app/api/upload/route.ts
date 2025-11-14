@@ -30,9 +30,10 @@ export async function POST(request: NextRequest) {
     
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const folder = formData.get('folder') as string || 'uploads';
+    const folder = (formData.get('folder') as string) || 'uploads';
     const userId = formData.get('userId') as string;
     const metadata = formData.get('metadata') as string;
+    const providedContentType = (formData.get('contentType') as string) || '';
 
     console.log('Upload request data:', {
       fileName: file?.name,
@@ -55,7 +56,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate file size (max 2GB for videos, 10MB for other files)
-    const isVideo = file.type.startsWith('video/');
+    const resolvedContentType = (providedContentType && providedContentType.trim() !== '')
+      ? providedContentType
+      : (file.type && file.type.trim() !== '' ? file.type : 'application/octet-stream');
+
+    const isVideo = resolvedContentType.startsWith('video/');
     const maxSize = isVideo ? 2048 * 1024 * 1024 : 10 * 1024 * 1024; // 2GB for videos, 10MB for others
     if (file.size > maxSize) {
       return NextResponse.json(
@@ -100,11 +105,11 @@ export async function POST(request: NextRequest) {
       'application/x-rar-compressed',
     ];
 
-    if (!allowedTypes.includes(file.type)) {
+    if (!allowedTypes.includes(resolvedContentType)) {
       return NextResponse.json(
         {
           success: false,
-          error: `File type ${file.type} is not allowed`,
+          error: `File type ${resolvedContentType} is not allowed`,
           allowedTypes,
         },
         { status: 400 }
@@ -140,7 +145,7 @@ export async function POST(request: NextRequest) {
     console.log('Attempting to upload file to S3:', {
       fileKey,
       fileSize: buffer.length,
-      contentType: file.type,
+      contentType: resolvedContentType,
       bucket: process.env.S3_ASSETS_BUCKET || 'cdk-hnb659fds-assets-463470937777-us-east-1'
     });
 
@@ -149,19 +154,26 @@ export async function POST(request: NextRequest) {
       fileUrl = await s3Service.uploadFile(
         fileKey,
         buffer,
-        file.type,
+        resolvedContentType,
         finalMetadata
       );
       console.log('S3 upload successful:', fileUrl);
     } catch (s3Error) {
       console.error('S3 upload failed:', s3Error);
-      console.error('S3 error details:', {
-        name: s3Error.name,
-        message: s3Error.message,
-        code: s3Error.code,
-        statusCode: s3Error.$metadata?.httpStatusCode
-      });
-      throw s3Error;
+      if (s3Error instanceof Error) {
+        console.error('S3 error details:', {
+          name: s3Error.name,
+          message: s3Error.message,
+          stack: s3Error.stack,
+          // @ts-expect-error AWS SDK error metadata
+          code: s3Error.code,
+          // @ts-expect-error AWS SDK metadata
+          statusCode: s3Error.$metadata?.httpStatusCode,
+        });
+        throw s3Error;
+      }
+      console.error('S3 error details (non-Error):', s3Error);
+      throw new Error('Unknown S3 upload error');
     }
 
     console.log('File uploaded successfully:', {
@@ -177,7 +189,7 @@ export async function POST(request: NextRequest) {
         fileUrl,
         fileName: file.name,
         fileSize: file.size,
-        contentType: file.type,
+        contentType: resolvedContentType,
         metadata: finalMetadata,
       },
       message: 'File uploaded successfully',
@@ -239,7 +251,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Generate unique file key
-    const fileKey = s3Service.generateFileKey(folder, fileName, userId);
+    const fileKey = s3Service.generateFileKey(folder, fileName, userId ?? undefined);
 
     // Generate presigned upload URL
     const presignedUrl = await s3Service.generatePresignedUploadUrl(

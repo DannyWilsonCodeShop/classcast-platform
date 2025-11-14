@@ -105,8 +105,18 @@ export async function GET(
       let signedVideoUrl = submission.videoUrl;
       if (submission.videoUrl) {
         try {
-          // Check if it's a YouTube URL - if so, use it as-is
-          if (submission.isYouTube || submission.youtubeUrl || submission.videoUrl.includes('youtube.com') || submission.videoUrl.includes('youtu.be')) {
+          const isYouTubeSubmission =
+            submission.isYouTube ||
+            submission.youtubeUrl ||
+            submission.videoUrl.includes('youtube.com') ||
+            submission.videoUrl.includes('youtu.be');
+
+          const isGoogleDriveSubmission =
+            submission.isGoogleDrive ||
+            submission.googleDriveUrl ||
+            submission.videoUrl.includes('drive.google.com');
+
+          if (isYouTubeSubmission) {
             console.log('✅ YouTube submission detected:', {
               submissionId: submission.submissionId,
               isYouTube: submission.isYouTube,
@@ -114,6 +124,14 @@ export async function GET(
               videoUrl: submission.videoUrl
             });
             signedVideoUrl = submission.youtubeUrl || submission.videoUrl;
+          } else if (isGoogleDriveSubmission) {
+            console.log('✅ Google Drive submission detected:', {
+              submissionId: submission.submissionId,
+              isGoogleDrive: submission.isGoogleDrive,
+              googleDriveUrl: submission.googleDriveUrl,
+              videoUrl: submission.videoUrl
+            });
+            signedVideoUrl = submission.googleDriveUrl || submission.videoUrl;
           } else {
             // Extract S3 key from URL for non-YouTube videos
             const s3Key = extractS3KeyFromUrl(submission.videoUrl);
@@ -136,7 +154,9 @@ export async function GET(
         ...submission,
         videoUrl: signedVideoUrl,
         youtubeUrl: submission.youtubeUrl || null,
+        googleDriveUrl: submission.googleDriveUrl || submission.googleDriveOriginalUrl || null,
         isYouTube: submission.isYouTube || false,
+        isGoogleDrive: submission.isGoogleDrive || false,
         studentName,
         studentEmail
       };

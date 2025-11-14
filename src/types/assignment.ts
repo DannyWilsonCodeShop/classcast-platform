@@ -78,7 +78,9 @@ export interface AssignmentSubmission {
   isLate: boolean;
   latePenalty?: number;
   youtubeUrl?: string; // YouTube video URL for submissions
-  submissionMethod?: 'upload' | 'youtube' | 'record'; // How the video was submitted
+  googleDriveUrl?: string; // Google Drive video link
+  googleDriveOriginalUrl?: string;
+  submissionMethod?: 'upload' | 'youtube' | 'google-drive' | 'record'; // How the video was submitted
 }
 
 export interface SubmissionAttachment {

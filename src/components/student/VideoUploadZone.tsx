@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef } from 'react';
+import { resolveMimeType, getFallbackMimeType } from '@/lib/fileTypeUtils';
 
 export interface VideoUploadZoneProps {
   onFileSelect: (file: File) => void;
@@ -97,14 +98,18 @@ export const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({
         return false;
       }
       
-      if (!allowedTypes.includes(file.type)) {
+      const { isAllowed, canonicalType, detectedType, resolutionLog } = resolveMimeType(file, allowedTypes);
+      if (!isAllowed) {
         console.warn('❌ Dropped file type not allowed:', {
-          fileType: file.type,
+          fileType: detectedType || getFallbackMimeType(),
+          canonicalType,
           allowedTypes,
-          fileName: file.name
+          fileName: file.name,
+          resolutionLog
         });
         return false;
       }
+      console.log('📁 Dropped file MIME resolution:', { canonicalType, detectedType, resolutionLog });
       
       return true;
     });
@@ -187,14 +192,18 @@ export const VideoUploadZone: React.FC<VideoUploadZoneProps> = ({
         return false;
       }
       
-      if (!allowedTypes.includes(file.type)) {
+      const { isAllowed, canonicalType, detectedType, resolutionLog } = resolveMimeType(file, allowedTypes);
+      if (!isAllowed) {
         console.warn('❌ File type not allowed:', {
-          fileType: file.type,
+          fileType: detectedType || getFallbackMimeType(),
+          canonicalType,
           allowedTypes,
-          fileName: file.name
+          fileName: file.name,
+          resolutionLog
         });
         return false;
       }
+      console.log('📁 Selected file MIME resolution:', { canonicalType, detectedType, resolutionLog });
       
       return true;
     });
