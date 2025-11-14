@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
-import { processVideoUrl, validateVideoUrl } from '@/lib/videoUrlProcessor';
+import { processVideoUrl, validateVideoUrl } from '../../../../lib/videoUrlProcessor';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -60,18 +60,48 @@ export async function GET(
     }
 
     const submission = getResult.Item;
-    const videoUrl = submission.videoUrl || submission.url || submission.externalUrl;
+    
+    // Check all possible URL fields (in order of preference)
+    const videoUrl = submission.videoUrl || 
+                     submission.youtubeUrl || 
+                     submission.googleDriveUrl || 
+                     submission.googleDriveOriginalUrl ||
+                     submission.url || 
+                     submission.externalUrl;
 
     if (!videoUrl) {
+      console.error('❌ No video URL found in submission:', { 
+        videoId, 
+        hasVideoUrl: !!submission.videoUrl,
+        hasYoutubeUrl: !!submission.youtubeUrl,
+        hasGoogleDriveUrl: !!submission.googleDriveUrl,
+        submissionKeys: Object.keys(submission)
+      });
       return NextResponse.json(
         { error: 'Video URL not found in submission' },
         { status: 404 }
       );
     }
 
+    console.log('📹 Processing video URL:', { videoId, videoUrl: videoUrl.substring(0, 50) + '...' });
+
     // Validate the URL
-    const validation = validateVideoUrl(videoUrl);
+    let validation;
+    try {
+      validation = validateVideoUrl(videoUrl);
+    } catch (error) {
+      console.error('❌ Error validating video URL:', error);
+      return NextResponse.json(
+        { 
+          error: 'Failed to validate video URL',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        },
+        { status: 500 }
+      );
+    }
+
     if (!validation.isValid) {
+      console.error('❌ Invalid video URL:', validation.error);
       return NextResponse.json(
         { 
           error: validation.error || 'Invalid video URL',
@@ -82,7 +112,19 @@ export async function GET(
     }
 
     // Process the URL (converts Google Drive to embed format)
-    const processed = processVideoUrl(videoUrl);
+    let processed;
+    try {
+      processed = processVideoUrl(videoUrl);
+    } catch (error) {
+      console.error('❌ Error processing video URL:', error);
+      return NextResponse.json(
+        { 
+          error: 'Failed to process video URL',
+          details: error instanceof Error ? error.message : 'Unknown error'
+        },
+        { status: 500 }
+      );
+    }
 
     // Return the processed URL information
     return NextResponse.json({
