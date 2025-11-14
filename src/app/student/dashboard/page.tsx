@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { FeedItem } from '@/app/api/student/feed/route';
 import Image from 'next/image';
 import { extractYouTubeVideoId as getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
+import { parseVideoUrl, getEmbedUrl } from '@/lib/urlUtils';
 import { useRouter } from 'next/navigation';
 import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
@@ -949,15 +950,21 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
   
   console.log('🚀 VideoFeedItem COMPONENT STARTED for:', item.title);
   
-  const videoId = item.videoUrl ? getYouTubeVideoId(item.videoUrl) : null;
-  const isYouTube = !!videoId;
+  // Use unified URL parsing to properly detect YouTube, Google Drive, or direct video
+  const videoUrlInfo = item.videoUrl ? parseVideoUrl(item.videoUrl) : null;
+  const isYouTube = videoUrlInfo?.type === 'youtube';
+  const isGoogleDrive = videoUrlInfo?.type === 'google-drive';
+  const videoId = isYouTube ? videoUrlInfo?.videoId || null : null;
+  const embedUrl = item.videoUrl ? getEmbedUrl(item.videoUrl) : null;
   
   // Debug logging for video URLs
   console.log('🎬 VideoFeedItem Debug:', {
     videoUrl: item.videoUrl,
+    videoType: videoUrlInfo?.type,
     videoId,
     isYouTube,
-    embedUrl: item.videoUrl ? getYouTubeEmbedUrl(item.videoUrl) : null
+    isGoogleDrive,
+    embedUrl
   });
   const [imageError, setImageError] = React.useState(false);
   const [isMuted, setIsMuted] = React.useState(true);
@@ -1342,7 +1349,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
 
       {/* Video Player - Auto-play when in view */}
       <div className="relative w-full bg-black mb-2" style={{ aspectRatio: '16/9' }}>
-        {isYouTube && videoId ? (
+        {isYouTube && videoId && embedUrl ? (
           <div className="relative w-full h-full group">
             <img
               src={imageError 
@@ -1353,7 +1360,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
               className="w-full h-full object-cover cursor-pointer"
               onClick={(e) => {
                 const iframe = document.createElement('iframe');
-                iframe.src = `${getYouTubeEmbedUrl(item.videoUrl || '')}?autoplay=1&mute=0&rel=0&modestbranding=1`;
+                iframe.src = `${embedUrl}?autoplay=1&mute=0&rel=0&modestbranding=1`;
                 iframe.className = 'w-full h-full';
                 iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
                 iframe.allowFullscreen = true;
@@ -1374,6 +1381,30 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
                   <path d="M8 5v14l11-7z" />
                 </svg>
               </div>
+            </div>
+          </div>
+        ) : isGoogleDrive && embedUrl ? (
+          <div className="relative w-full h-full group">
+            <div className="w-full h-full bg-gray-900 flex items-center justify-center cursor-pointer"
+              onClick={(e) => {
+                const iframe = document.createElement('iframe');
+                iframe.src = `${embedUrl}?autoplay=1`;
+                iframe.className = 'w-full h-full';
+                iframe.allow = 'autoplay';
+                iframe.allowFullscreen = true;
+                iframe.title = item.title || 'Video';
+                e.currentTarget.replaceWith(iframe);
+              }}
+            >
+              {/* Play button overlay */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl">
+                  <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              </div>
+              <p className="text-white text-sm">Google Drive Video - Click to play</p>
             </div>
           </div>
         ) : (
