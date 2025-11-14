@@ -120,10 +120,18 @@ export async function GET(request: NextRequest) {
         const course = studentCourses.find(c => c.courseId === sub.courseId) || 
                       allCourses.find(c => c.courseId === sub.courseId);
         
+        // Get video URL from all possible fields (videoUrl, googleDriveUrl, youtubeUrl, etc.)
+        const videoUrl = sub.videoUrl || 
+                        sub.googleDriveUrl || 
+                        sub.youtubeUrl || 
+                        sub.googleDriveOriginalUrl ||
+                        sub.url || 
+                        sub.externalUrl;
+        
         let videoId = null;
         try {
-          videoId = sub.videoUrl ? getYouTubeVideoId(sub.videoUrl) : null;
-          console.log(`  📹 Video URL: ${sub.videoUrl}, YouTube ID: ${videoId || 'none'}`);
+          videoId = videoUrl ? getYouTubeVideoId(videoUrl) : null;
+          console.log(`  📹 Video URL: ${videoUrl}, YouTube ID: ${videoId || 'none'}`);
         } catch (youtubeError) {
           console.warn(`  ⚠️  Error getting YouTube ID:`, youtubeError);
         }
@@ -242,7 +250,7 @@ export async function GET(request: NextRequest) {
             courseName: course?.name || course?.courseName,
             courseInitials: course?.courseInitials || course?.code?.substring(0, 3).toUpperCase(),
             assignmentId: sub.assignmentId,
-            videoUrl: sub.videoUrl,
+            videoUrl: videoUrl, // Use the videoUrl we extracted from all possible fields
             thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
             title: sub.videoTitle || sub.title,
             author: {
