@@ -1,11 +1,113 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { processVideoUrl, validateVideoUrl } from '@/lib/videoUrlProcessor';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
 const SUBMISSIONS_TABLE = 'classcast-submissions';
+
+/**
+ * GET /api/videos/[videoId]/view
+ * Get video URL for viewing/embedding
+ * Handles YouTube, Google Drive, and direct video URLs
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ videoId: string }> }
+) {
+  try {
+    const { videoId } = await params;
+
+    if (!videoId) {
+      return NextResponse.json(
+        { error: 'Video ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Get submission from database
+    let getResult;
+    let actualKey: { submissionId: string } | { id: string } = { submissionId: videoId };
+    
+    try {
+      getResult = await docClient.send(new GetCommand({
+        TableName: SUBMISSIONS_TABLE,
+        Key: { submissionId: videoId }
+      }));
+      actualKey = { submissionId: videoId };
+    } catch (error) {
+      try {
+        getResult = await docClient.send(new GetCommand({
+          TableName: SUBMISSIONS_TABLE,
+          Key: { id: videoId }
+        }));
+        actualKey = { id: videoId };
+      } catch (error2) {
+        return NextResponse.json(
+          { error: 'Video not found' },
+          { status: 404 }
+        );
+      }
+    }
+
+    if (!getResult.Item) {
+      return NextResponse.json(
+        { error: 'Video not found' },
+        { status: 404 }
+      );
+    }
+
+    const submission = getResult.Item;
+    const videoUrl = submission.videoUrl || submission.url || submission.externalUrl;
+
+    if (!videoUrl) {
+      return NextResponse.json(
+        { error: 'Video URL not found in submission' },
+        { status: 404 }
+      );
+    }
+
+    // Validate the URL
+    const validation = validateVideoUrl(videoUrl);
+    if (!validation.isValid) {
+      return NextResponse.json(
+        { 
+          error: validation.error || 'Invalid video URL',
+          videoId 
+        },
+        { status: 400 }
+      );
+    }
+
+    // Process the URL (converts Google Drive to embed format)
+    const processed = processVideoUrl(videoUrl);
+
+    // Return the processed URL information
+    return NextResponse.json({
+      success: true,
+      data: {
+        videoId,
+        originalUrl: processed.originalUrl,
+        displayUrl: processed.displayUrl,
+        embedUrl: processed.embedUrl,
+        videoType: processed.videoType,
+        extractedVideoId: processed.videoId,
+      },
+    });
+
+  } catch (error) {
+    console.error('Error processing video view request:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to process video URL',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(
   request: NextRequest,
