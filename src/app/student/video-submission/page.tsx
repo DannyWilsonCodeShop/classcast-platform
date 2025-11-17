@@ -26,7 +26,7 @@ const VideoSubmissionContent: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState<'record' | 'upload' | 'youtube'>('record');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [youtubeUrl, setYoutubeUrl] = useState<string>('');
+  const [externalVideoUrl, setExternalVideoUrl] = useState<string>('');
   const [assignmentTitle, setAssignmentTitle] = useState<string>('');
   const [existingSubmissions, setExistingSubmissions] = useState<any[]>([]);
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
@@ -38,7 +38,7 @@ const VideoSubmissionContent: React.FC = () => {
     return isValidYouTubeUrl(trimmed) || isValidGoogleDriveUrl(trimmed);
   };
 
-  const trimmedExternalUrl = youtubeUrl.trim();
+  const trimmedExternalUrl = externalVideoUrl.trim();
   const externalIsYouTube = isValidYouTubeUrl(trimmedExternalUrl);
   const externalIsGoogleDrive = isValidGoogleDriveUrl(trimmedExternalUrl);
   const googleDrivePreviewUrl = externalIsGoogleDrive ? getGoogleDrivePreviewUrl(trimmedExternalUrl) : null;
@@ -577,7 +577,7 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
       setRecordedVideo(null);
       setUploadedVideo(null);
       setSelectedFile(null);
-      setYoutubeUrl('');
+      setExternalVideoUrl('');
       
       // Store only metadata in localStorage for local reference
       const videoInfo = {
@@ -658,18 +658,19 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
     setRecordedVideo(null);
     setUploadedVideo(null);
     setSelectedFile(null);
-    setYoutubeUrl('');
+    setExternalVideoUrl('');
     setError(null);
     setSuccess(false);
     setUploadProgress(0);
   };
 
   const handleYouTubeSubmit = async () => {
-    const trimmedUrl = youtubeUrl.trim();
+    const trimmedUrl = externalVideoUrl.trim();
     console.log('🎬 handleYouTubeSubmit called with URL:', trimmedUrl);
     
     if (!trimmedUrl) {
       console.log('❌ No external video URL provided');
+      setError('Please enter a video URL first.');
       return;
     }
 
@@ -681,7 +682,16 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
     
     if (!isYouTubeLink && !isGoogleDriveLink) {
       console.log('❌ Invalid external video URL');
-      setError('Please enter a valid YouTube or Google Drive share link.');
+      setError(`Invalid video link. Please enter a valid YouTube or Google Drive share link.
+
+Examples:
+• YouTube: https://www.youtube.com/watch?v=VIDEO_ID
+• YouTube: https://youtu.be/VIDEO_ID
+• Google Drive: https://drive.google.com/file/d/FILE_ID/view
+
+Make sure your video is:
+• YouTube: Set to "Unlisted" or "Public" (not Private)
+• Google Drive: Shared with "Anyone with the link can view"`);
       return;
     }
 
@@ -816,7 +826,7 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
       }
       
       // Clear URL to allow new submission
-      setYoutubeUrl('');
+      setExternalVideoUrl('');
 
     } catch (err) {
       console.error('Error submitting external video link:', err);
@@ -1062,7 +1072,7 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
                 </div>
               )}
 
-              {activeTab === 'youtube' && !youtubeUrl && (
+              {activeTab === 'youtube' && !externalVideoUrl && (
                 <div className="text-center mb-8">
                   <h2 className="text-2xl font-bold text-gray-800 mb-2">Submit Video Link</h2>
                   <p className="text-gray-600">
@@ -1072,7 +1082,7 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
               )}
             </div>
 
-            {!recordedVideo && !uploadedVideo && !youtubeUrl ? (
+            {!recordedVideo && !uploadedVideo && !externalVideoUrl ? (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30">
 
                 {/* Video Preview */}
@@ -1141,28 +1151,42 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
                       <div className="flex space-x-2">
                         <input
                           type="url"
-                          value={youtubeUrl}
+                          value={externalVideoUrl}
                           onChange={(e) => {
                             const newValue = e.target.value;
-                            console.log('📝 YouTube URL changed to:', newValue.substring(0, 100));
+                            console.log('📝 Video URL changed to:', newValue.substring(0, 100));
                             console.log('📝 URL length:', newValue.length);
                             
                             // Prevent setting huge values but still update for validation
                             if (newValue.length > 500) {
                               console.log('⚠️ URL too long, clearing and showing error');
-                              setYoutubeUrl(''); // Clear the field
+                              setExternalVideoUrl(''); // Clear the field
                               setError('Video link is too long. Please paste only the shared link (should be less than 100 characters).');
                               return;
                             }
                             
                             // Clear any previous errors
                             setError(null);
-                            setYoutubeUrl(newValue);
-                            console.log('✅ YouTube URL state updated');
+                            setExternalVideoUrl(newValue);
+                            
+                            // Log what type of URL was detected
+                            if (newValue.trim()) {
+                              const isYT = isValidYouTubeUrl(newValue.trim());
+                              const isGD = isValidGoogleDriveUrl(newValue.trim());
+                              if (isYT) {
+                                console.log('✅ YouTube URL detected and state updated');
+                              } else if (isGD) {
+                                console.log('✅ Google Drive URL detected and state updated');
+                              } else {
+                                console.log('⚠️ URL updated but not recognized as YouTube or Google Drive');
+                              }
+                            } else {
+                              console.log('✅ URL cleared');
+                            }
                           }}
                           onPaste={(e) => {
                             const pastedText = e.clipboardData.getData('text');
-                            console.log('📋 YouTube URL pasted:', pastedText.substring(0, 100));
+                            console.log('📋 Video URL pasted:', pastedText.substring(0, 100));
                             console.log('📋 Pasted text length:', pastedText.length);
                             
                             // Prevent pasting huge content (likely clipboard issue)
@@ -1193,16 +1217,23 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
                           onMouseEnter={() => console.log('🖱️ Mouse ENTER on YouTube Submit button')}
                           onMouseLeave={() => console.log('🖱️ Mouse LEAVE YouTube Submit button')}
                           onClick={(e) => {
-                            console.log('===== 🖱️ YouTube Submit button CLICKED! =====');
-                            console.log('🔗 Current YouTube URL:', youtubeUrl);
-                            console.log('🔗 URL length:', youtubeUrl.length);
+                            console.log('===== 🖱️ Video Link Submit button CLICKED! =====');
+                            console.log('🔗 Current video URL:', externalVideoUrl);
+                            console.log('🔗 URL length:', externalVideoUrl.length);
                             console.log('⏳ Is uploading:', isUploading);
-                            console.log('🔍 Button should be disabled?:', !youtubeUrl || isUploading);
-                            console.log('🔍 youtubeUrl truthy?:', !!youtubeUrl);
+                            console.log('🔍 Button should be disabled?:', !externalVideoUrl || isUploading);
+                            
+                            // Log URL type detection
+                            if (externalVideoUrl.trim()) {
+                              const isYT = isValidYouTubeUrl(externalVideoUrl.trim());
+                              const isGD = isValidGoogleDriveUrl(externalVideoUrl.trim());
+                              console.log('🔍 URL type detection:', { isYouTube: isYT, isGoogleDrive: isGD });
+                            }
+                            console.log('🔍 externalVideoUrl truthy?:', !!externalVideoUrl);
                             e.preventDefault();
                             e.stopPropagation();
                             
-                            if (!youtubeUrl) {
+                            if (!externalVideoUrl) {
                               console.log('❌ Cannot submit: No external video URL');
                               setError('Please enter a shareable video link first');
                               return;
@@ -1217,7 +1248,7 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
                             handleYouTubeSubmit();
                           }}
                           className={`px-6 py-3 rounded-lg font-semibold transition-colors ${
-                            !youtubeUrl || isUploading
+                            !externalVideoUrl || isUploading
                               ? 'bg-gray-300 text-gray-500'
                               : 'bg-blue-500 text-white hover:bg-blue-600'
                           }`}
@@ -1230,10 +1261,10 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
                       </p>
                       {/* Debug info */}
                       <div className="mt-2 text-xs text-gray-500">
-                        Debug: URL length: {youtubeUrl.length}, Valid: {isValidExternalUrl(youtubeUrl) ? 'Yes' : 'No'}, Button enabled: {youtubeUrl && !isUploading ? 'Yes' : 'No'}
+                        Debug: URL length: {externalVideoUrl.length}, Valid: {isValidExternalUrl(externalVideoUrl) ? 'Yes' : 'No'}, Button enabled: {externalVideoUrl && !isUploading ? 'Yes' : 'No'}
                       </div>
                       
-                      {youtubeUrl && externalIsYouTube && (
+                      {externalVideoUrl && externalIsYouTube && (
                         <>
                           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                             <p className="text-sm text-blue-800">
@@ -1258,7 +1289,7 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
                           </div>
                         </>
                       )}
-                      {youtubeUrl && externalIsGoogleDrive && googleDrivePreviewUrl && (
+                      {externalVideoUrl && externalIsGoogleDrive && googleDrivePreviewUrl && (
                         <>
                           <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
                             <p className="text-sm text-emerald-800">
@@ -1337,8 +1368,8 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
                   <p className="text-gray-600">
                     {recordedVideo 
                       ? 'Review your recording before submitting' 
-                      : youtubeUrl 
-                        ? 'Review your YouTube video before submitting'
+                      : externalVideoUrl 
+                        ? (externalIsYouTube ? 'Review your YouTube video before submitting' : 'Review your Google Drive video before submitting')
                         : 'Review your uploaded video before submitting'}
                   </p>
             </div>
@@ -1346,15 +1377,34 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
                 {/* Video Preview */}
                 <div className="relative bg-black rounded-xl overflow-hidden mb-6">
                   <div className="aspect-video w-full max-w-2xl mx-auto">
-                    {youtubeUrl ? (
-                      <iframe
-                        src={`https://www.youtube.com/embed/${extractYouTubeVideoId(youtubeUrl)}`}
-                        title="YouTube video player"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        className="w-full h-full rounded-xl"
-                      />
+                    {externalVideoUrl ? (
+                      externalIsYouTube ? (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${extractYouTubeVideoId(externalVideoUrl)}`}
+                          title="YouTube video player"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="w-full h-full rounded-xl"
+                        />
+                      ) : externalIsGoogleDrive && googleDrivePreviewUrl ? (
+                        <iframe
+                          src={googleDrivePreviewUrl}
+                          title="Google Drive video player"
+                          frameBorder="0"
+                          allow="autoplay"
+                          allowFullScreen
+                          className="w-full h-full rounded-xl"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white">
+                          <div className="text-center">
+                            <div className="text-2xl mb-2">🎥</div>
+                            <div>External Video Link</div>
+                            <div className="text-sm text-gray-300 mt-1">Preview not available</div>
+                          </div>
+                        </div>
+                      )
                     ) : (
                       <video
                         src={recordedVideo || uploadedVideo || undefined}
@@ -1452,18 +1502,18 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
                     disabled={isUploading}
                     className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {recordedVideo ? 'Retake Video' : youtubeUrl ? 'Choose Different URL' : 'Choose Different File'}
+                    {recordedVideo ? 'Retake Video' : externalVideoUrl ? 'Choose Different URL' : 'Choose Different File'}
                   </button>
                   <button
                     onClick={(e) => {
                       console.log('🖱️ REVIEW SECTION Submit button clicked!');
                       console.log('📹 recordedVideo:', !!recordedVideo);
                       console.log('📁 uploadedVideo:', !!uploadedVideo);
-                      console.log('▶️ youtubeUrl:', youtubeUrl);
+                      console.log('▶️ externalVideoUrl:', externalVideoUrl);
                       e.preventDefault();
                       e.stopPropagation();
                       
-                      if (youtubeUrl) {
+                      if (externalVideoUrl) {
                         console.log('✅ Calling handleYouTubeSubmit from review section...');
                         handleYouTubeSubmit();
                       } else {
@@ -1478,12 +1528,12 @@ const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
                     {isUploading ? (
                       <>
                         <LoadingSpinner size="sm" />
-                        <span>{youtubeUrl ? 'Submitting...' : 'Uploading...'}</span>
+                        <span>{externalVideoUrl ? 'Submitting...' : 'Uploading...'}</span>
                       </>
                     ) : (
                       <>
-                        <span className="text-xl">{youtubeUrl ? '▶️' : '📤'}</span>
-                        <span>{youtubeUrl ? 'Submit Video Link' : 'Submit Video'}</span>
+                        <span className="text-xl">{externalVideoUrl ? '▶️' : '📤'}</span>
+                        <span>{externalVideoUrl ? 'Submit Video Link' : 'Submit Video'}</span>
                       </>
                     )}
                   </button>
