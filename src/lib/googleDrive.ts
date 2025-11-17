@@ -58,6 +58,19 @@ export function getGoogleDrivePreviewUrl(urlOrId: string): string | null {
 }
 
 /**
+ * Build an embeddable URL for Google Drive videos (alternative approach)
+ */
+export function getGoogleDriveEmbedUrl(urlOrId: string): string | null {
+  const fileId = urlOrId.includes('drive.google.com')
+    ? extractGoogleDriveFileId(urlOrId)
+    : urlOrId;
+
+  if (!fileId) return null;
+  // Try the embed endpoint which sometimes works better for videos
+  return `https://drive.google.com/uc?export=view&id=${fileId}`;
+}
+
+/**
  * Build a direct download URL (if needed)
  */
 export function getGoogleDriveDownloadUrl(urlOrId: string): string | null {
