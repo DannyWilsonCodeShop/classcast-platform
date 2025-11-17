@@ -1140,27 +1140,7 @@ const BulkGradingPage: React.FC = () => {
     }
   };
 
-  // Use submissions for filtering
-  const submissionsToFilter = submissions;
-  
-  const filteredSubmissions = submissionsToFilter.filter(submission => {
-    const courseMatch = selectedCourse === 'all' || 
-      submission.courseName.toLowerCase().includes(selectedCourse.toLowerCase()) ||
-      submission.courseCode.toLowerCase().includes(selectedCourse.toLowerCase()) ||
-      submission.courseCode.toLowerCase().replace('-', '').includes(selectedCourse.toLowerCase().replace('-', ''));
-    const assignmentMatch = selectedAssignment === 'all' || submission.assignmentId === selectedAssignment;
-    const studentMatch = selectedStudent === 'all' || submission.studentId === selectedStudent;
-    
-    return courseMatch && assignmentMatch && studentMatch;
-  });
-  
-  console.log('Filtered submissions count:', filteredSubmissions.length);
-  console.log('Selected course:', selectedCourse);
-  console.log('Selected assignment:', selectedAssignment);
-  console.log('Selected student:', selectedStudent, selectedStudentName);
-  console.log('Total submissions:', submissionsToFilter.length);
 
-  const currentSubmission = filteredSubmissions[currentSubmissionIndex];
 
   // Format time helper
   const formatTime = (time: number) => {
