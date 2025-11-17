@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { isValidYouTubeUrl, extractYouTubeVideoId, getYouTubeThumbnail } from '@/lib/youtube';
-import { isValidGoogleDriveUrl, extractGoogleDriveFileId, getGoogleDrivePreviewUrl, getGoogleDriveThumbnailUrl } from '@/lib/googleDrive';
+import { isValidGoogleDriveUrl, extractGoogleDriveFileId, getGoogleDrivePreviewUrl, getGoogleDriveEmbedUrl, getGoogleDriveThumbnailUrl } from '@/lib/googleDrive';
 import { uploadLargeFile } from '@/lib/uploadUtils';
 
 const VideoSubmissionContent: React.FC = () => {
@@ -42,6 +42,7 @@ const VideoSubmissionContent: React.FC = () => {
   const externalIsYouTube = isValidYouTubeUrl(trimmedExternalUrl);
   const externalIsGoogleDrive = isValidGoogleDriveUrl(trimmedExternalUrl);
   const googleDrivePreviewUrl = externalIsGoogleDrive ? getGoogleDrivePreviewUrl(trimmedExternalUrl) : null;
+  const googleDriveEmbedUrl = externalIsGoogleDrive ? getGoogleDriveEmbedUrl(trimmedExternalUrl) : null;
 const errorIsLinkIssue = error ? /video|external/i.test(error) : false;
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -1289,7 +1290,7 @@ Make sure your video is:
                           </div>
                         </>
                       )}
-                      {externalVideoUrl && externalIsGoogleDrive && googleDrivePreviewUrl && (
+                      {externalVideoUrl && externalIsGoogleDrive && (
                         <>
                           <div className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg">
                             <p className="text-sm text-emerald-800">
@@ -1297,19 +1298,97 @@ Make sure your video is:
                             </p>
                           </div>
                           <div className="mt-4">
-                            <h4 className="text-sm font-medium text-gray-700 mb-2">Link Preview:</h4>
-                            <div className="relative bg-black rounded-xl overflow-hidden">
-                              <div className="aspect-video w-full">
-                                <iframe
-                                  src={googleDrivePreviewUrl}
-                                  title="Google Drive video preview"
-                                  frameBorder="0"
-                                  allow="autoplay"
-                                  allowFullScreen
-                                  className="w-full h-full"
-                                />
-                              </div>
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Google Drive Link:</h4>
+                            {/* Debug info */}
+                            <div className="mb-2 text-xs text-gray-500">
+                              Debug: Original URL: {externalVideoUrl}<br/>
+                              Preview URL: {googleDrivePreviewUrl || 'null'}<br/>
+                              File ID: {extractGoogleDriveFileId(externalVideoUrl) || 'null'}
                             </div>
+                            
+                            {googleDrivePreviewUrl ? (
+                              <div className="space-y-4">
+                                {/* Multiple preview attempts */}
+                                <div className="grid grid-cols-1 gap-4">
+                                  {/* Method 1: Preview iframe */}
+                                  <div className="relative bg-black rounded-xl overflow-hidden">
+                                    <div className="aspect-video w-full">
+                                      <iframe
+                                        src={googleDrivePreviewUrl}
+                                        title="Google Drive video preview"
+                                        frameBorder="0"
+                                        allow="autoplay"
+                                        allowFullScreen
+                                        className="w-full h-full"
+                                        onError={(e) => {
+                                          console.log('Google Drive preview iframe failed to load:', e);
+                                        }}
+                                        onLoad={(e) => {
+                                          console.log('Google Drive preview iframe loaded successfully:', e);
+                                        }}
+                                      />
+                                    </div>
+                                    <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                                      Preview Mode
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Method 2: Embed URL (if different) */}
+                                  {googleDriveEmbedUrl && googleDriveEmbedUrl !== googleDrivePreviewUrl && (
+                                    <div className="relative bg-gray-800 rounded-xl overflow-hidden">
+                                      <div className="aspect-video w-full">
+                                        <video
+                                          src={googleDriveEmbedUrl}
+                                          controls
+                                          playsInline
+                                          className="w-full h-full object-cover"
+                                          onError={(e) => {
+                                            console.log('Google Drive embed video failed to load:', e);
+                                          }}
+                                          onLoadedData={(e) => {
+                                            console.log('Google Drive embed video loaded successfully:', e);
+                                          }}
+                                        />
+                                      </div>
+                                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                                        Direct Video
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Fallback: Direct link */}
+                                <div className="text-center">
+                                  <a
+                                    href={externalVideoUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                                  >
+                                    <span className="mr-2">🔗</span>
+                                    Open in Google Drive
+                                  </a>
+                                  <p className="text-xs text-gray-500 mt-2">
+                                    If preview doesn't load above, click to view in Google Drive
+                                  </p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-sm text-yellow-800">
+                                  Could not generate preview URL. Please check that your Google Drive link is valid.
+                                </p>
+                                <a
+                                  href={externalVideoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center mt-2 px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700 transition-colors"
+                                >
+                                  <span className="mr-1">🔗</span>
+                                  View Original Link
+                                </a>
+                              </div>
+                            )}
                           </div>
                         </>
                       )}
@@ -1387,15 +1466,38 @@ Make sure your video is:
                           allowFullScreen
                           className="w-full h-full rounded-xl"
                         />
-                      ) : externalIsGoogleDrive && googleDrivePreviewUrl ? (
-                        <iframe
-                          src={googleDrivePreviewUrl}
-                          title="Google Drive video player"
-                          frameBorder="0"
-                          allow="autoplay"
-                          allowFullScreen
-                          className="w-full h-full rounded-xl"
-                        />
+                      ) : externalIsGoogleDrive ? (
+                        <div className="w-full h-full">
+                          {googleDrivePreviewUrl ? (
+                            <iframe
+                              src={googleDrivePreviewUrl}
+                              title="Google Drive video player"
+                              frameBorder="0"
+                              allow="autoplay"
+                              allowFullScreen
+                              className="w-full h-full rounded-xl"
+                              onError={(e) => {
+                                console.log('Google Drive review iframe failed:', e);
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-emerald-800 flex items-center justify-center text-white">
+                              <div className="text-center">
+                                <div className="text-2xl mb-2">📁</div>
+                                <div>Google Drive Video</div>
+                                <div className="text-sm text-emerald-200 mt-1">Ready to submit</div>
+                                <a
+                                  href={externalVideoUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-block mt-2 px-3 py-1 bg-white/20 rounded text-sm hover:bg-white/30 transition-colors"
+                                >
+                                  Preview in Google Drive
+                                </a>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       ) : (
                         <div className="w-full h-full bg-gray-800 flex items-center justify-center text-white">
                           <div className="text-center">
