@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
@@ -78,6 +78,7 @@ interface Student {
   assignmentsSubmitted: number;
   assignmentsTotal: number;
   lastActivity: string;
+  sectionName?: string;
 }
 
 interface Section {
@@ -195,6 +196,35 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [collapsedVideos, setCollapsedVideos] = useState<Set<string>>(new Set());
 
   const courseId = params.courseId as string;
+
+  // Calculate submission counts per student and sort by section
+  const studentsWithSubmissionCounts = useMemo(() => {
+    console.log('🔢 Calculating student submission counts from submissions:', videoSubmissions.length);
+    const counts: Record<string, number> = {};
+    videoSubmissions.forEach(submission => {
+      const studentId = submission.studentId;
+      counts[studentId] = (counts[studentId] || 0) + 1;
+      console.log(`🔢 Student ${studentId}: ${counts[studentId]} submissions`);
+    });
+    console.log('🔢 Final student submission counts:', counts);
+    
+    // Update students with submission counts and sort by section
+    const updatedStudents = students.map(student => ({
+      ...student,
+      assignmentsSubmitted: counts[student.studentId] || 0
+    }));
+    
+    // Sort by section name, then by student name
+    return updatedStudents.sort((a, b) => {
+      const sectionA = a.sectionName || 'No Section';
+      const sectionB = b.sectionName || 'No Section';
+      
+      if (sectionA !== sectionB) {
+        return sectionA.localeCompare(sectionB);
+      }
+      return a.name.localeCompare(b.name);
+    });
+  }, [students, videoSubmissions]);
 
   useEffect(() => {
     if (courseId) {
@@ -342,6 +372,7 @@ const InstructorCourseDetailPage: React.FC = () => {
             enrolledStudents.map(async (student: any) => {
               let userName = student.email;
               let userAvatar = student.avatar || '/api/placeholder/40/40';
+              let sectionName = student.sectionName || 'No Section';
               
               // Fetch full user details
               try {
@@ -368,9 +399,10 @@ const InstructorCourseDetailPage: React.FC = () => {
                 enrollmentDate: student.enrolledAt,
                 status: student.status || 'active',
                 currentGrade: 0, // TODO: Calculate from submissions
-                assignmentsSubmitted: 0, // TODO: Count from submissions
+                assignmentsSubmitted: 0, // Will be calculated from videoSubmissions
                 assignmentsTotal: assignments.length,
                 lastActivity: student.enrolledAt, // TODO: Get actual last activity
+                sectionName: sectionName,
               };
             })
           );
@@ -1276,93 +1308,99 @@ const InstructorCourseDetailPage: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-800">Students</h2>
                   <div className="text-sm text-gray-600">
-                    {students.length} student{students.length !== 1 ? 's' : ''}
+                    {studentsWithSubmissionCounts.length} student{studentsWithSubmissionCounts.length !== 1 ? 's' : ''}
                   </div>
                 </div>
                 
-                {students.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {students.map((student) => (
-                      <div
-                        key={student.studentId}
-                        className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center space-x-3">
-                            <Avatar
-                              src={student.avatar}
-                              name={student.name}
-                              size="xl"
-                              className="w-12 h-12"
-                            />
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-800 text-lg">{student.name}</h3>
-                              <p className="text-sm text-gray-600">{student.email}</p>
-                            </div>
-                          </div>
+                {studentsWithSubmissionCounts.length > 0 ? (
+                  <div className="space-y-6">
+                    {/* Group students by section */}
+                    {Array.from(new Set(studentsWithSubmissionCounts.map(s => s.sectionName || 'No Section'))).map(sectionName => {
+                      const sectionStudents = studentsWithSubmissionCounts.filter(s => (s.sectionName || 'No Section') === sectionName);
+                      
+                      return (
+                        <div key={sectionName}>
+                          <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">
+                            {sectionName} ({sectionStudents.length} student{sectionStudents.length !== 1 ? 's' : ''})
+                          </h3>
                           
-                          {/* Remove Student Button */}
-                          <button
-                            onClick={() => setShowRemoveConfirm({studentId: student.studentId, studentName: student.name})}
-                            disabled={removingStudent === student.studentId}
-                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Remove student from course"
-                          >
-                            {removingStudent === student.studentId ? (
-                              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            )}
-                          </button>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                            {sectionStudents.map((student) => (
+                              <div
+                                key={student.studentId}
+                                className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:bg-white hover:shadow-sm transition-all"
+                              >
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                                    <Avatar
+                                      src={student.avatar}
+                                      name={student.name}
+                                      size="sm"
+                                      className="w-8 h-8 flex-shrink-0"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="font-medium text-gray-800 text-sm truncate">{student.name}</h4>
+                                      <p className="text-xs text-gray-500 truncate">{student.email}</p>
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Remove Student Button */}
+                                  <button
+                                    onClick={() => setShowRemoveConfirm({studentId: student.studentId, studentName: student.name})}
+                                    disabled={removingStudent === student.studentId}
+                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                                    title="Remove student from course"
+                                  >
+                                    {removingStudent === student.studentId ? (
+                                      <div className="w-3 h-3 border border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    )}
+                                  </button>
+                                </div>
+                                
+                                {/* Student Stats - Compact */}
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                      student.status === 'active' ? 'bg-green-100 text-green-700' :
+                                      student.status === 'dropped' ? 'bg-red-100 text-red-700' :
+                                      'bg-gray-100 text-gray-700'
+                                    }`}>
+                                      {student.status}
+                                    </span>
+                                    
+                                    {/* Video Submissions Count with Link - More Subtle */}
+                                    <button
+                                      onClick={() => {
+                                        console.log('🔗 Grade Videos clicked for student:', {
+                                          studentId: student.studentId,
+                                          studentName: student.name,
+                                          courseId: courseId,
+                                          submissionCount: student.assignmentsSubmitted
+                                        });
+                                        router.push(`/instructor/grading/bulk?course=${courseId}&student=${student.studentId}&studentName=${encodeURIComponent(student.name)}`);
+                                      }}
+                                      className="inline-flex items-center px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 rounded transition-colors"
+                                      title={`Grade ${student.name}'s ${student.assignmentsSubmitted} video submissions`}
+                                    >
+                                      <span className="mr-1">🎥</span>
+                                      <span className="font-semibold">{student.assignmentsSubmitted}</span>
+                                    </button>
+                                  </div>
+                                  
+                                  <div className="text-xs text-gray-500">
+                                    Enrolled {new Date(student.enrollmentDate).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        
-                        {/* Student Stats */}
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Status</span>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              student.status === 'active' ? 'bg-green-100 text-green-800' :
-                              student.status === 'dropped' ? 'bg-red-100 text-red-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
-                            </span>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Current Grade</span>
-                            <span className="text-sm font-medium">
-                              {student.currentGrade ? `${student.currentGrade.toFixed(1)}%` : 'No grade yet'}
-                            </span>
-                          </div>
-                          
-                          {/* Video Submissions Count with Link */}
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Video Submissions</span>
-                            <button
-                              onClick={() => router.push(`/instructor/grading/bulk?course=${courseId}&student=${student.studentId}&studentName=${encodeURIComponent(student.name)}`)}
-                              className="inline-flex items-center px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 rounded-lg transition-colors font-semibold border border-blue-200 hover:border-blue-300"
-                              title={`Click to grade ${student.name}'s ${student.assignmentsSubmitted} video submissions`}
-                            >
-                              <span className="text-sm mr-1">🎥</span>
-                              <span className="text-lg font-bold">{student.assignmentsSubmitted}</span>
-                              <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </button>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-600">Last Activity</span>
-                            <span className="text-sm text-gray-500">
-                              {new Date(student.lastActivity).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-12">

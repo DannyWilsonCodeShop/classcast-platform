@@ -1488,11 +1488,12 @@ const BulkGradingPage: React.FC = () => {
                               src={getVideoUrl(submission.fileUrl)}
                               className="w-full h-40 object-cover"
                               poster={videoThumbnails[submission.id] || submission.thumbnailUrl || '/api/placeholder/400/300'}
-                              preload="metadata"
+                              preload="none"
                               playsInline
                               webkit-playsinline="true"
                               crossOrigin="anonymous"
                               controls
+                              muted
                               onLoadedMetadata={(e) => {
                                 const video = e.currentTarget;
                                 video.playbackRate = playbackSpeed;
