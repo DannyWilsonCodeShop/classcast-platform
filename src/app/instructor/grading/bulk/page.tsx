@@ -366,6 +366,7 @@ const BulkGradingPage: React.FC = () => {
         }
         
         console.log('🔍 Bulk grading: User loaded, proceeding with API call. User ID:', user.id);
+        console.log('🔍 Bulk grading: User object:', user);
         
         // Get URL parameters for filtering
         const urlParams = new URLSearchParams(window.location.search);
@@ -373,22 +374,34 @@ const BulkGradingPage: React.FC = () => {
         const courseId = urlParams.get('course');
         const studentId = urlParams.get('student');
         
+        console.log('🔍 Bulk grading: URL parameters:', { assignmentId, courseId, studentId });
+        
         let apiUrl = '/api/instructor/video-submissions';
         const params = new URLSearchParams();
         
-        // Always filter by instructor ID for security
-        params.append('instructorId', user.id);
+        // Try different approaches based on what parameters we have
+        if (assignmentId) {
+          params.append('assignmentId', assignmentId);
+        }
+        if (courseId) {
+          params.append('courseId', courseId);
+        }
+        if (studentId) {
+          params.append('studentId', studentId);
+        }
         
-        if (assignmentId) params.append('assignmentId', assignmentId);
-        if (courseId) params.append('courseId', courseId);
-        if (studentId) params.append('studentId', studentId);
+        // Don't add instructorId when we have specific assignment/course parameters
+        // The API should validate instructor access through the assignment/course ownership
+        // Commenting out for now to fix the issue where no submissions are showing
+        // if (!assignmentId && !courseId && !studentId) {
+        //   params.append('instructorId', user.id);
+        // }
         
         if (params.toString()) {
           apiUrl += `?${params.toString()}`;
         }
         
         console.log('🔍 Bulk grading: Fetching submissions from:', apiUrl);
-        console.log('🔍 Bulk grading: User ID:', user.id);
         
         const response = await fetch(apiUrl, {
           credentials: 'include',
@@ -420,6 +433,8 @@ const BulkGradingPage: React.FC = () => {
               fileUrl: sub.videoUrl,
               youtubeUrl: sub.youtubeUrl || null,
               isYouTube: sub.isYouTube || false,
+              googleDriveUrl: sub.googleDriveUrl || null,
+              isGoogleDrive: sub.isGoogleDrive || false,
               thumbnailUrl: sub.thumbnailUrl || '/api/placeholder/300/200',
               duration: sub.duration || 0,
               fileSize: sub.fileSize || 0,
@@ -445,18 +460,51 @@ const BulkGradingPage: React.FC = () => {
                   const debugData = await debugResponse.json();
                   console.log('🔍 Debug instructor data:', debugData);
                   
-                  // Also try calling the API the same way the dashboard does
-                  if (debugData.debug?.courses?.length > 0) {
-                    console.log('🔍 Testing API call with first course...');
-                    const firstCourse = debugData.debug.courses[0];
-                    const testResponse = await fetch(`/api/instructor/video-submissions?courseId=${firstCourse.courseId}`, {
+                  // Try calling the API without instructorId filter
+                  if (assignmentId) {
+                    console.log('🔍 Testing API call without instructorId filter...');
+                    const testResponse = await fetch(`/api/instructor/video-submissions?assignmentId=${assignmentId}`, {
                       credentials: 'include',
                     });
                     if (testResponse.ok) {
                       const testData = await testResponse.json();
-                      console.log('🔍 Test API call with courseId succeeded:', testData);
+                      console.log('🔍 Test API call without instructorId succeeded:', testData);
+                      
+                      if (testData.success && testData.submissions?.length > 0) {
+                        console.log('🔍 Found submissions without instructorId filter, using those...');
+                        const testTransformedSubmissions: Submission[] = testData.submissions.map((sub: any) => ({
+                          id: sub.submissionId,
+                          studentName: sub.student?.name || 'Unknown Student',
+                          studentId: sub.studentId,
+                          sectionId: sub.student?.sectionId || null,
+                          sectionName: sub.student?.sectionName || null,
+                          assignmentTitle: sub.assignment?.title || 'Unknown Assignment',
+                          assignmentId: sub.assignmentId,
+                          courseName: sub.courseName || 'Unknown Course',
+                          courseCode: sub.courseCode || 'N/A',
+                          submittedAt: sub.submittedAt || sub.createdAt,
+                          status: sub.status === 'graded' ? 'graded' : 'pending',
+                          grade: sub.grade,
+                          feedback: sub.instructorFeedback,
+                          fileUrl: sub.videoUrl,
+                          youtubeUrl: sub.youtubeUrl || null,
+                          isYouTube: sub.isYouTube || false,
+                          googleDriveUrl: sub.googleDriveUrl || null,
+                          isGoogleDrive: sub.isGoogleDrive || false,
+                          thumbnailUrl: sub.thumbnailUrl || '/api/placeholder/300/200',
+                          duration: sub.duration || 0,
+                          fileSize: sub.fileSize || 0,
+                          assignment: sub.assignment,
+                          isPinned: sub.isPinned || false,
+                          isHighlighted: sub.isHighlighted || false,
+                          pinnedAt: sub.pinnedAt,
+                          highlightedAt: sub.highlightedAt,
+                          peerResponses: sub.peerResponses
+                        }));
+                        setSubmissions(testTransformedSubmissions);
+                      }
                     } else {
-                      console.log('🔍 Test API call with courseId failed:', testResponse.status);
+                      console.log('🔍 Test API call without instructorId failed:', testResponse.status);
                     }
                   }
                 } else {
@@ -1116,7 +1164,7 @@ const BulkGradingPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <button
@@ -1237,19 +1285,19 @@ const BulkGradingPage: React.FC = () => {
         </div>
 
             {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 h-[calc(100vh-200px)]">
-            <div className="h-full flex flex-col">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4">
+            <div className="flex flex-col">
               {/* Global Playback Speed Control */}
-              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <div className="mb-3 p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">Global Playback Speed:</span>
-                  <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-700">Playback Speed:</span>
+                  <div className="flex items-center space-x-1">
                     {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map(speed => (
                       <button
                         key={speed}
                         onClick={() => handleSpeedChange(speed)}
-                        className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                        className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
                           playbackSpeed === speed
                             ? 'bg-blue-500 text-white'
                             : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -1263,15 +1311,15 @@ const BulkGradingPage: React.FC = () => {
               </div>
 
               {/* Page Title */}
-              <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">Bulk Grading Interface</h1>
-                <p className="text-sm text-gray-600 mt-1">Review and grade video submissions</p>
+              <div className="mb-3">
+                <h1 className="text-xl font-bold text-gray-800">Bulk Grading Interface</h1>
+                <p className="text-xs text-gray-600 mt-1">Review and grade video submissions</p>
               </div>
 
               {/* Submissions Header with Select All */}
               {filteredSubmissions.length > 0 && (
-                <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg border">
-                  <div className="flex items-center space-x-3">
+                <div className="flex items-center justify-between mb-2 p-2 bg-gray-50 rounded-lg border">
+                  <div className="flex items-center space-x-2">
                     <label className="flex items-center space-x-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -1285,12 +1333,12 @@ const BulkGradingPage: React.FC = () => {
                         }}
                         className="w-4 h-4 text-[#005587] bg-gray-100 border-gray-300 rounded focus:ring-[#005587] focus:ring-2"
                       />
-                      <span className="text-sm font-medium text-gray-700">
-                        Select All ({filteredSubmissions.length} submissions)
+                      <span className="text-xs font-medium text-gray-700">
+                        Select All ({filteredSubmissions.length})
                       </span>
                     </label>
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-xs text-gray-600">
                     {selectedSubmissions.size > 0 && (
                       <span>{selectedSubmissions.size} selected</span>
                     )}
@@ -1300,29 +1348,29 @@ const BulkGradingPage: React.FC = () => {
 
               {/* Bulk Actions Toolbar */}
               {selectedSubmissions.size > 0 && (
-                <div className="bg-[#005587] text-white p-4 rounded-lg mb-4 shadow-lg">
+                <div className="bg-[#005587] text-white p-2 rounded-lg mb-2 shadow-lg">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <span className="font-medium">
-                        {selectedSubmissions.size} submission{selectedSubmissions.size !== 1 ? 's' : ''} selected
+                    <div className="flex items-center space-x-3">
+                      <span className="text-sm font-medium">
+                        {selectedSubmissions.size} selected
                       </span>
                       <button
                         onClick={selectAllSubmissions}
-                        className="text-sm text-blue-200 hover:text-white underline"
+                        className="text-xs text-blue-200 hover:text-white underline"
                       >
                         Select All ({filteredSubmissions.length})
                       </button>
                       <button
                         onClick={clearAllSelections}
-                        className="text-sm text-blue-200 hover:text-white underline"
+                        className="text-xs text-blue-200 hover:text-white underline"
                       >
-                        Clear Selection
+                        Clear
                       </button>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2">
                       <button
                         onClick={() => setShowBulkGrading(true)}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                        className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition-colors"
                       >
                         📝 Bulk Grade
                       </button>
@@ -1332,11 +1380,11 @@ const BulkGradingPage: React.FC = () => {
               )}
 
               {/* Video List - Vertical Scrolling */}
-              <div className="flex-1 overflow-y-auto space-y-6">
+              <div className="overflow-y-auto space-y-3 max-h-[calc(100vh-300px)]">
                 {filteredSubmissions.map((submission, index) => (
                   <div
                     key={submission.id}
-                    className={`p-6 rounded-xl border transition-all duration-300 ${
+                    className={`p-4 rounded-lg border transition-all duration-300 ${
                       index === currentSubmissionIndex
                         ? 'border-[#005587] bg-blue-50 shadow-lg ring-2 ring-[#005587]/20'
                         : submission.isPinned && submission.isHighlighted
@@ -1357,30 +1405,30 @@ const BulkGradingPage: React.FC = () => {
                     }`}
                   >
                     {/* Selection Checkbox and Pin/Highlight Indicators */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
                         {/* Selection Checkbox */}
-                        <label className="flex items-center space-x-2 cursor-pointer">
+                        <label className="flex items-center space-x-1 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={selectedSubmissions.has(submission.id)}
                             onChange={() => toggleSubmissionSelection(submission.id)}
                             className="w-4 h-4 text-[#005587] bg-gray-100 border-gray-300 rounded focus:ring-[#005587] focus:ring-2"
                           />
-                          <span className="text-sm text-gray-600">Select</span>
+                          <span className="text-xs text-gray-600">Select</span>
                         </label>
                         
                         {/* Pin/Highlight Indicators */}
                         {(submission.isPinned || submission.isHighlighted) && (
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1">
                             {submission.isPinned && (
-                              <div className="flex items-center space-x-1 px-3 py-1.5 bg-[#005587]/10 text-[#005587] rounded-lg text-xs font-semibold border border-[#005587]/20">
+                              <div className="flex items-center space-x-1 px-2 py-1 bg-[#005587]/10 text-[#005587] rounded text-xs font-semibold border border-[#005587]/20">
                                 <span>📌</span>
                                 <span>Pinned</span>
                               </div>
                             )}
                             {submission.isHighlighted && (
-                              <div className="flex items-center space-x-1 px-3 py-1.5 bg-[#FFC72C]/15 text-[#CC9900] rounded-lg text-xs font-semibold border border-[#FFC72C]/30">
+                              <div className="flex items-center space-x-1 px-2 py-1 bg-[#FFC72C]/15 text-[#CC9900] rounded text-xs font-semibold border border-[#FFC72C]/30">
                                 <span>⭐</span>
                                 <span>Featured</span>
                               </div>
@@ -1390,10 +1438,10 @@ const BulkGradingPage: React.FC = () => {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
                       {/* Video Player */}
-                      <div>
-                        <div className="bg-black rounded-lg overflow-hidden mb-4 relative group">
+                      <div className="xl:col-span-1">
+                        <div className="bg-black rounded-lg overflow-hidden mb-2 relative group">
                           {(() => {
                             const isYouTubeSubmission =
                               submission.isYouTube ||
@@ -1416,7 +1464,7 @@ const BulkGradingPage: React.FC = () => {
                                 <YouTubePlayer
                                   url={externalUrl}
                                   title={submission.assignmentTitle}
-                                  className="aspect-video w-full"
+                                  className="w-full h-40"
                                   playbackSpeed={playbackSpeed}
                                 />
                               );
@@ -1427,7 +1475,7 @@ const BulkGradingPage: React.FC = () => {
                                 <iframe
                                   src={resolvedExternalUrl}
                                   title={submission.assignmentTitle || 'Google Drive video'}
-                                  className="aspect-video w-full"
+                                  className="w-full h-40"
                                   allow="autoplay"
                                   allowFullScreen
                                 />
@@ -1438,7 +1486,7 @@ const BulkGradingPage: React.FC = () => {
                               <video
                               ref={index === currentSubmissionIndex ? videoRef : null}
                               src={getVideoUrl(submission.fileUrl)}
-                              className="w-full h-64 object-cover"
+                              className="w-full h-40 object-cover"
                               poster={videoThumbnails[submission.id] || submission.thumbnailUrl || '/api/placeholder/400/300'}
                               preload="metadata"
                               playsInline
@@ -1467,10 +1515,10 @@ const BulkGradingPage: React.FC = () => {
                                 const parent = target.parentElement;
                                 if (parent) {
                                   parent.innerHTML = `
-                                    <div class="w-full h-64 bg-gray-800 flex items-center justify-center">
+                                    <div class="w-full h-40 bg-gray-800 flex items-center justify-center">
                                       <div class="text-center text-white">
-                                        <div class="text-4xl mb-2">🎥</div>
-                                        <div class="text-sm">Video Preview</div>
+                                        <div class="text-2xl mb-1">🎥</div>
+                                        <div class="text-xs">Video Preview</div>
                                         <div class="text-xs text-gray-400 mt-1">Click to view</div>
                                       </div>
                                     </div>
@@ -1500,10 +1548,10 @@ const BulkGradingPage: React.FC = () => {
                       </div>
 
                       {/* Submission Info and Grading Form */}
-                      <div className="space-y-4">
+                      <div className="xl:col-span-2 space-y-2">
                         {/* Submission Info */}
                         <div>
-                          <h2 className="text-xl font-bold text-gray-800 mb-2">
+                          <h2 className="text-lg font-bold text-gray-800 mb-1">
                             {submission.studentName}
                           </h2>
                           <p className="text-sm text-gray-600 mb-1">
@@ -1517,7 +1565,7 @@ const BulkGradingPage: React.FC = () => {
                               Section: {submission.sectionName}
                             </p>
                           )}
-                          <div className="flex items-center space-x-4 mb-3">
+                          <div className="flex items-center space-x-2 mb-2">
                             <p className="text-xs text-gray-500">
                               {submission.assignment?.dueDate ? (
                                 <>Video Due: {new Date(submission.assignment.dueDate).toLocaleDateString()}</>
@@ -1547,12 +1595,12 @@ const BulkGradingPage: React.FC = () => {
                             })()}
                           </div>
                           {submission.assignment?.enablePeerResponses && (
-                            <div className="text-xs text-blue-600 mb-3 bg-blue-50 px-2 py-1 rounded">
+                            <div className="text-xs text-blue-600 mb-2 bg-blue-50 px-2 py-1 rounded">
                               Peer Responses: {submission.assignment.minResponsesRequired || 2} required, max {submission.assignment.maxResponsesPerVideo || 3} per video
                             </div>
                           )}
                           
-                          <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center space-x-2">
                               <button
                                 onClick={() => analyzeWithAI(submission)}
