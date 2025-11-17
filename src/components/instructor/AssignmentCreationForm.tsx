@@ -57,7 +57,7 @@ interface FormData {
   emoji: string;
   color: string;
   requireLiveRecording: boolean;
-  allowYouTubeUrl: boolean; // NEW: Allow YouTube URL submissions
+  allowYouTubeUrl: boolean; // NEW: Allow external video link submissions (YouTube & Google Drive)
   rubricType: 'none' | 'upload' | 'custom' | 'ai_generated';
   rubricFile: File | null;
   aiGeneratedRubric: any;
@@ -1291,10 +1291,10 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                 />
                 <div className="flex-1">
                   <label htmlFor="allowYouTubeUrl" className="text-sm font-medium text-gray-700">
-                    Allow YouTube URL Submissions
+                    Allow External Video Links (YouTube & Google Drive)
                   </label>
                   <p className="text-xs text-gray-500 mt-1">
-                    Students can submit a YouTube video URL instead of uploading a file. Useful for large videos that exceed file size limits.
+                    Students can submit video links from YouTube or Google Drive instead of uploading files. Useful for large videos that exceed file size limits.
                   </p>
                 </div>
               </div>
@@ -1306,11 +1306,11 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                       <span className="text-blue-400">ℹ️</span>
                     </div>
                     <div className="ml-3">
-                      <h4 className="text-sm font-medium text-blue-800">YouTube Submission Guidelines</h4>
+                      <h4 className="text-sm font-medium text-blue-800">External Video Link Guidelines</h4>
                       <div className="mt-1 text-sm text-blue-700">
                         <ul className="list-disc list-inside space-y-1">
-                          <li>Students can upload their video to YouTube and paste the link</li>
-                          <li>Videos should be unlisted or public (not private) so instructors can view them</li>
+                          <li><strong>YouTube:</strong> Videos should be unlisted or public (not private)</li>
+                          <li><strong>Google Drive:</strong> Files must be shared with "Anyone with the link can view"</li>
                           <li>Ideal for videos larger than {Math.round(formData.maxFileSize / (1024 * 1024))}MB</li>
                           <li>Students can still choose to record/upload directly if preferred</li>
                         </ul>

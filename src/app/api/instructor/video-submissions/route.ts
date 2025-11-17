@@ -54,6 +54,8 @@ export async function GET(request: NextRequest) {
       // Get submissions for a specific assignment
       console.log('Fetching submissions for assignment:', assignmentId);
       
+
+      
       // Try using QueryCommand with index first, fall back to Scan if index doesn't exist
       try {
         const queryCommand = new QueryCommand({
