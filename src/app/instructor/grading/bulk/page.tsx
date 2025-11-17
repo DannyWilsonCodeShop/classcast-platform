@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import YouTubePlayer from '@/components/common/YouTubePlayer';
@@ -116,6 +116,100 @@ const BulkGradingPage: React.FC = () => {
   const [bulkGrade, setBulkGrade] = useState<number | ''>('');
   const [bulkFeedback, setBulkFeedback] = useState('');
   const [isBulkGrading, setIsBulkGrading] = useState(false);
+
+  // Calculate filtered submissions based on URL parameters and dropdown selections
+  const filteredSubmissions = useMemo(() => {
+    console.log('🔍 Filtering submissions:', {
+      totalSubmissions: submissions.length,
+      selectedCourse,
+      selectedAssignment,
+      selectedStudent
+    });
+    
+    let filtered = submissions;
+    
+    // Get URL parameters for filtering (these take priority over dropdown selections)
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const urlCourseId = urlParams?.get('course');
+    const urlAssignmentId = urlParams?.get('assignment');
+    const urlStudentId = urlParams?.get('student');
+    
+    console.log('🔍 URL filters:', { urlCourseId, urlAssignmentId, urlStudentId });
+    
+    // Filter by course (URL param takes priority)
+    const courseFilter = urlCourseId || (selectedCourse !== 'all' ? selectedCourse : null);
+    if (courseFilter) {
+      console.log('🔍 Filtering by course:', courseFilter);
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(sub => {
+        // Check if the submission's course matches
+        const courseMatches = sub.courseName?.toLowerCase().includes(courseFilter.toLowerCase()) ||
+                             sub.courseCode?.toLowerCase().includes(courseFilter.toLowerCase()) ||
+                             courseFilter === 'all';
+        console.log(`🔍 Submission ${sub.id} course match:`, {
+          courseName: sub.courseName,
+          courseCode: sub.courseCode,
+          courseFilter,
+          matches: courseMatches
+        });
+        return courseMatches;
+      });
+      console.log(`🔍 After course filter: ${beforeCount} -> ${filtered.length}`);
+    }
+    
+    // Filter by assignment (URL param takes priority)
+    const assignmentFilter = urlAssignmentId || (selectedAssignment !== 'all' ? selectedAssignment : null);
+    if (assignmentFilter) {
+      console.log('🔍 Filtering by assignment:', assignmentFilter);
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(sub => {
+        const matches = sub.assignmentId === assignmentFilter;
+        console.log(`🔍 Submission ${sub.id} assignment match:`, {
+          submissionAssignmentId: sub.assignmentId,
+          assignmentFilter,
+          matches
+        });
+        return matches;
+      });
+      console.log(`🔍 After assignment filter: ${beforeCount} -> ${filtered.length}`);
+    }
+    
+    // Filter by student (URL param takes priority)
+    const studentFilter = urlStudentId || (selectedStudent !== 'all' ? selectedStudent : null);
+    if (studentFilter) {
+      console.log('🔍 Filtering by student:', studentFilter);
+      const beforeCount = filtered.length;
+      filtered = filtered.filter(sub => {
+        const matches = sub.studentId === studentFilter;
+        console.log(`🔍 Submission ${sub.id} student match:`, {
+          submissionStudentId: sub.studentId,
+          studentFilter,
+          matches
+        });
+        return matches;
+      });
+      console.log(`🔍 After student filter: ${beforeCount} -> ${filtered.length}`);
+    }
+    
+    console.log('🔍 Final filtered submissions:', filtered.length);
+    
+    // Sort submissions: pinned first, then highlighted, then by submission date
+    return filtered.sort((a, b) => {
+      // Pinned submissions first
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      
+      // Then highlighted submissions
+      if (a.isHighlighted && !b.isHighlighted) return -1;
+      if (!a.isHighlighted && b.isHighlighted) return 1;
+      
+      // Then by submission date (newest first)
+      return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+    });
+  }, [submissions, selectedCourse, selectedAssignment, selectedStudent]);
+
+  // Current submission
+  const currentSubmission = filteredSubmissions[currentSubmissionIndex];
 
   useEffect(() => {
     // Get filters from URL params - only run on client side
@@ -1494,18 +1588,28 @@ const BulkGradingPage: React.FC = () => {
                               crossOrigin="anonymous"
                               controls
                               muted
+                              autoPlay={false}
                               onLoadedMetadata={(e) => {
                                 const video = e.currentTarget;
                                 video.playbackRate = playbackSpeed;
                                 
-                                // Call the main metadata handler for current submission
+                                // Ensure video is paused and muted
+                                video.pause();
+                                video.muted = true;
+                                
+                                // Call the main metadata handler for current submission only
                                 if (index === currentSubmissionIndex) {
                                   handleLoadedMetadata();
                                 }
                                 
-                                // Generate thumbnail for ALL videos at 2-second mark
-                                if (!videoThumbnails[submission.id] && video.duration >= 2) {
-                                  video.currentTime = Math.min(2.0, video.duration * 0.1);
+                                // Only generate thumbnails for non-current videos and only if user hasn't interacted yet
+                                if (index !== currentSubmissionIndex && !videoThumbnails[submission.id] && video.duration >= 2) {
+                                  // Delay thumbnail generation to avoid auto-play issues
+                                  setTimeout(() => {
+                                    if (video.paused) {
+                                      video.currentTime = Math.min(2.0, video.duration * 0.1);
+                                    }
+                                  }, 100);
                                 }
                               }}
                               onError={(e) => {
@@ -1530,16 +1634,23 @@ const BulkGradingPage: React.FC = () => {
                               onSeeked={(e) => {
                                 const video = e.currentTarget;
                                 
-                                // Generate thumbnail when seek to 2 seconds completes
-                                if (!videoThumbnails[submission.id] && video.currentTime >= 1.5 && video.currentTime <= 3.0) {
+                                // Generate thumbnail when seek to 2 seconds completes (only for non-current videos)
+                                if (index !== currentSubmissionIndex && !videoThumbnails[submission.id] && video.currentTime >= 1.5 && video.currentTime <= 3.0) {
                                   generateThumbnail(video, submission.id);
-                                  // Reset to start after thumbnail generation
-                                  if (index !== currentSubmissionIndex) {
-                                    video.currentTime = 0;
-                                  }
+                                  // Reset to start and ensure paused after thumbnail generation
+                                  video.currentTime = 0;
+                                  video.pause();
                                 }
                               }}
-                              onPlay={() => index === currentSubmissionIndex && setIsPlaying(true)}
+                              onPlay={(e) => {
+                                const video = e.currentTarget;
+                                if (index === currentSubmissionIndex) {
+                                  setIsPlaying(true);
+                                } else {
+                                  // Prevent non-current videos from playing
+                                  video.pause();
+                                }
+                              }}
                               onPause={() => index === currentSubmissionIndex && setIsPlaying(false)}
                               onEnded={() => index === currentSubmissionIndex && setIsPlaying(false)}
                             />
