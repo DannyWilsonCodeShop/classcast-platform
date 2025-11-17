@@ -143,13 +143,47 @@ const InstructorDashboard: React.FC = () => {
   const fetchCourseStudents = async (courseId: string) => {
     try {
       setLoadingStudents(true);
-      const response = await fetch(`/api/instructor/courses/${courseId}/students?instructorId=${user?.id}`);
       
-      if (response.ok) {
-        const data = await response.json();
-        setCourseStudents(data.students || []);
+      // Fetch both students and video submissions
+      const [studentsResponse, submissionsResponse] = await Promise.all([
+        fetch(`/api/instructor/courses/${courseId}/students?instructorId=${user?.id}`),
+        fetch(`/api/instructor/video-submissions?courseId=${courseId}`)
+      ]);
+      
+      if (studentsResponse.ok) {
+        const studentsData = await studentsResponse.json();
+        let students = studentsData.students || [];
+        
+        // If we also got submissions, calculate submission counts
+        if (submissionsResponse.ok) {
+          const submissionsData = await submissionsResponse.json();
+          const submissions = submissionsData.submissions || [];
+          
+          console.log('📊 Dashboard: Calculating submission counts for students');
+          console.log('📊 Students:', students.length);
+          console.log('📊 Submissions:', submissions.length);
+          
+          // Calculate submission counts per student
+          const submissionCounts: Record<string, number> = {};
+          submissions.forEach((submission: any) => {
+            const studentId = submission.studentId;
+            submissionCounts[studentId] = (submissionCounts[studentId] || 0) + 1;
+          });
+          
+          console.log('📊 Submission counts by student:', submissionCounts);
+          
+          // Add submission counts to students
+          students = students.map((student: any) => ({
+            ...student,
+            submissionsCount: submissionCounts[student.id] || 0
+          }));
+          
+          console.log('📊 Students with submission counts:', students);
+        }
+        
+        setCourseStudents(students);
       } else {
-        console.error('Failed to fetch students:', response.statusText);
+        console.error('Failed to fetch students:', studentsResponse.statusText);
         setCourseStudents([]);
       }
     } catch (error) {
@@ -506,27 +540,17 @@ const InstructorDashboard: React.FC = () => {
                         }`}
                       >
                         <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2">
-                              <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">{course.title}</h3>
-                              {/* User Role Indicator */}
-                              {course.userRole && (
-                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
-                                  course.userRole === 'primary' 
-                                    ? 'bg-indigo-100 text-indigo-700' 
-                                    : 'bg-green-100 text-green-700'
-                                }`}>
-                                  {course.userRole === 'primary' ? '👑 Primary' : '👥 Co-Instructor'}
-                                </span>
-                              )}
+                              <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate flex-1">{course.title}</h3>
+                              {/* Ungraded Submissions Indicator - Simplified */}
                               {(course.ungradedSubmissions || 0) > 0 && (
-                                <span className="flex items-center gap-1 px-1.5 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full animate-pulse flex-shrink-0">
+                                <span className="flex items-center px-1.5 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full animate-pulse flex-shrink-0">
                                   <span>🔔</span>
-                                  <span>{course.ungradedSubmissions}</span>
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center space-x-2 sm:space-x-4 text-xs sm:text-sm text-gray-600 mb-2">
+                            <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600 mb-2">
                               <button 
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -537,10 +561,17 @@ const InstructorDashboard: React.FC = () => {
                               >
                                 👥 {course.studentCount} students
                               </button>
+                              {/* User Role Indicator - Moved to right side */}
+                              {course.userRole && (
+                                <span className={`px-2 py-0.5 text-xs font-medium rounded-full flex-shrink-0 ${
+                                  course.userRole === 'primary' 
+                                    ? 'bg-indigo-100 text-indigo-700' 
+                                    : 'bg-green-100 text-green-700'
+                                }`}>
+                                  {course.userRole === 'primary' ? '👑' : '👥'}
+                                </span>
+                              )}
                             </div>
-                          </div>
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0">
-                            📚
                           </div>
                         </div>
                         
