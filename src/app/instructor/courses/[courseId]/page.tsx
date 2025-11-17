@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import Avatar from '@/components/common/Avatar';
 import CourseSettingsModal from '@/components/instructor/CourseSettingsModal';
 import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
 import AssignmentDetailsModal from '@/components/instructor/AssignmentDetailsModal';
@@ -1284,15 +1285,19 @@ const InstructorCourseDetailPage: React.FC = () => {
                     {students.map((student) => (
                       <div
                         key={student.studentId}
-                        className="bg-gray-50 rounded-xl p-4 border border-gray-200"
+                        className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow"
                       >
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">
-                              {student.name.charAt(0).toUpperCase()}
-                            </div>
+                            <Avatar
+                              src={student.avatar}
+                              name={student.name}
+                              size="xl"
+                              className="w-12 h-12"
+                            />
                             <div className="flex-1">
-                              <h3 className="font-semibold text-gray-800">{student.name}</h3>
+                              <h3 className="font-semibold text-gray-800 text-lg">{student.name}</h3>
+                              <p className="text-sm text-gray-600">{student.email}</p>
                             </div>
                           </div>
                           
@@ -1311,6 +1316,50 @@ const InstructorCourseDetailPage: React.FC = () => {
                               </svg>
                             )}
                           </button>
+                        </div>
+                        
+                        {/* Student Stats */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Status</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              student.status === 'active' ? 'bg-green-100 text-green-800' :
+                              student.status === 'dropped' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Current Grade</span>
+                            <span className="text-sm font-medium">
+                              {student.currentGrade ? `${student.currentGrade.toFixed(1)}%` : 'No grade yet'}
+                            </span>
+                          </div>
+                          
+                          {/* Video Submissions Count with Link */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Video Submissions</span>
+                            <button
+                              onClick={() => router.push(`/instructor/grading/bulk?course=${courseId}&student=${student.studentId}&studentName=${encodeURIComponent(student.name)}`)}
+                              className="inline-flex items-center px-3 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 rounded-lg transition-colors font-semibold border border-blue-200 hover:border-blue-300"
+                              title={`Click to grade ${student.name}'s ${student.assignmentsSubmitted} video submissions`}
+                            >
+                              <span className="text-sm mr-1">🎥</span>
+                              <span className="text-lg font-bold">{student.assignmentsSubmitted}</span>
+                              <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </button>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">Last Activity</span>
+                            <span className="text-sm text-gray-500">
+                              {new Date(student.lastActivity).toLocaleDateString()}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     ))}

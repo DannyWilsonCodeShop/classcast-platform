@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Avatar from '@/components/common/Avatar';
 
 interface Student {
   studentId: string;
@@ -13,6 +15,7 @@ interface Student {
   assignmentsSubmitted: number;
   assignmentsTotal: number;
   lastActivity: string;
+  submissionsCount?: number;
 }
 
 interface Course {
@@ -34,6 +37,7 @@ export const InstructorCourseStudents: React.FC<InstructorCourseStudentsProps> =
   course, 
   onStudentUpdate 
 }) => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'enrollmentDate' | 'status' | 'currentGrade' | 'lastActivity'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -308,9 +312,12 @@ export const InstructorCourseStudents: React.FC<InstructorCourseStudentsProps> =
                     onChange={() => handleSelectStudent(student.studentId)}
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                    {student.name.charAt(0).toUpperCase()}
-                  </div>
+                  <Avatar
+                    src={student.avatar}
+                    name={student.name}
+                    size="xl"
+                    className="w-12 h-12"
+                  />
                   <div>
                     <h3 className="font-semibold text-gray-800">{student.name}</h3>
                     <p className="text-sm text-gray-600">{student.email}</p>
@@ -342,9 +349,17 @@ export const InstructorCourseStudents: React.FC<InstructorCourseStudentsProps> =
                           }}
                         ></div>
                       </div>
-                      <span className="text-xs text-gray-600">
-                        {student.assignmentsSubmitted}/{student.assignmentsTotal}
-                      </span>
+                      <button
+                        onClick={() => router.push(`/instructor/grading/bulk?course=${course.courseId}&student=${student.studentId}&studentName=${encodeURIComponent(student.name)}`)}
+                        className="inline-flex items-center px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 rounded-md transition-colors text-xs font-semibold border border-blue-200 hover:border-blue-300"
+                        title={`Click to grade ${student.name}'s ${student.submissionsCount || student.assignmentsSubmitted} video submissions`}
+                      >
+                        <span className="mr-1">🎥</span>
+                        <span className="font-bold">{student.submissionsCount || student.assignmentsSubmitted}</span>
+                        <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                   <div>
