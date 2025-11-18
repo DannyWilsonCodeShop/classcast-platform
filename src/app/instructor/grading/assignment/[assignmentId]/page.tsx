@@ -78,11 +78,17 @@ const NewAssignmentGradingPage: React.FC = () => {
           credentials: 'include',
         });
         
+        console.log('🎯 NEW GRADING PAGE: Assignment API response status:', assignmentResponse.status);
+        
         if (!assignmentResponse.ok) {
-          throw new Error('Failed to fetch assignment details');
+          const errorText = await assignmentResponse.text();
+          console.log('🎯 NEW GRADING PAGE: Assignment API error:', errorText);
+          throw new Error(`Failed to fetch assignment details: ${assignmentResponse.status}`);
         }
         
         const assignmentData = await assignmentResponse.json();
+        console.log('🎯 NEW GRADING PAGE: Assignment API response data:', assignmentData);
+        
         if (assignmentData.success && assignmentData.assignment) {
           setAssignment({
             assignmentId: assignmentData.assignment.assignmentId,
@@ -94,6 +100,8 @@ const NewAssignmentGradingPage: React.FC = () => {
             courseName: assignmentData.assignment.courseName || 'Unknown Course',
             courseCode: assignmentData.assignment.courseCode || 'N/A'
           });
+        } else {
+          console.log('🎯 NEW GRADING PAGE: Assignment API failed, will try to get data from submissions');
         }
         
         // Fetch submissions SPECIFICALLY for this assignment
@@ -130,6 +138,24 @@ const NewAssignmentGradingPage: React.FC = () => {
           console.log('🎯 NEW GRADING PAGE: Filtered submissions for assignment:', transformedSubmissions.length);
           setAllSubmissions(transformedSubmissions);
           
+          // If assignment data wasn't fetched successfully, try to extract it from submissions
+          if (!assignmentData.success && transformedSubmissions.length > 0) {
+            const firstSubmission = submissionsData.submissions.find((sub: any) => sub.assignmentId === assignmentId);
+            if (firstSubmission?.assignment) {
+              console.log('🎯 NEW GRADING PAGE: Using assignment data from submissions');
+              setAssignment({
+                assignmentId: assignmentId,
+                title: firstSubmission.assignment.title || 'Assignment',
+                description: firstSubmission.assignment.description || '',
+                dueDate: firstSubmission.assignment.dueDate || '',
+                maxScore: firstSubmission.assignment.maxScore || 100,
+                courseId: firstSubmission.assignment.courseId || '',
+                courseName: firstSubmission.assignment.courseName || 'Unknown Course',
+                courseCode: firstSubmission.assignment.courseCode || 'N/A'
+              });
+            }
+          }
+          
           // Load first submission's grade and feedback if available
           if (transformedSubmissions.length > 0) {
             const firstSubmission = transformedSubmissions[0];
@@ -140,6 +166,23 @@ const NewAssignmentGradingPage: React.FC = () => {
           console.log('🎯 NEW GRADING PAGE: No submissions found for assignment');
           setAllSubmissions([]);
         }
+        
+        // Final fallback: if we still don't have assignment data but we have submissions, create a minimal assignment
+        setTimeout(() => {
+          if (!assignment && allSubmissions.length > 0) {
+            console.log('🎯 NEW GRADING PAGE: Creating minimal assignment data as final fallback');
+            setAssignment({
+              assignmentId: assignmentId,
+              title: 'Assignment',
+              description: '',
+              dueDate: '',
+              maxScore: 100,
+              courseId: '',
+              courseName: 'Course',
+              courseCode: 'N/A'
+            });
+          }
+        }, 100);
         
       } catch (err) {
         console.error('NEW GRADING PAGE: Error fetching assignment grading data:', err);
