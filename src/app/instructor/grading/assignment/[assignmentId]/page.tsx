@@ -276,6 +276,13 @@ const NewAssignmentGradingPage: React.FC = () => {
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'name':
+          // Sort by last name, then first name
+          const getLastName = (fullName: string) => {
+            const parts = fullName.trim().split(' ');
+            return parts.length > 1 ? parts[parts.length - 1] : fullName;
+          };
+          const lastNameCompare = getLastName(a.studentName).localeCompare(getLastName(b.studentName));
+          if (lastNameCompare !== 0) return lastNameCompare;
           return a.studentName.localeCompare(b.studentName);
         case 'date':
           return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
@@ -285,11 +292,17 @@ const NewAssignmentGradingPage: React.FC = () => {
           if (b.grade === undefined) return -1;
           return b.grade - a.grade;
         case 'section':
-          // Sort by section first, then by name within section
+          // Sort by section first, then by last name within section
           const sectionA = a.sectionName || 'No Section';
           const sectionB = b.sectionName || 'No Section';
           const sectionCompare = sectionA.localeCompare(sectionB);
           if (sectionCompare !== 0) return sectionCompare;
+          const getLastNameForSection = (fullName: string) => {
+            const parts = fullName.trim().split(' ');
+            return parts.length > 1 ? parts[parts.length - 1] : fullName;
+          };
+          const lastNameCompareSection = getLastNameForSection(a.studentName).localeCompare(getLastNameForSection(b.studentName));
+          if (lastNameCompareSection !== 0) return lastNameCompareSection;
           return a.studentName.localeCompare(b.studentName);
         default:
           return 0;
@@ -481,11 +494,6 @@ const NewAssignmentGradingPage: React.FC = () => {
         ));
         
         setSaveStatus('saved');
-        
-        // Auto-advance to next submission if available
-        if (currentIndex < filteredSubmissions.length - 1) {
-          setTimeout(() => goToNext(), 1000);
-        }
       } else {
         throw new Error(data.error || 'Failed to save grade');
       }
