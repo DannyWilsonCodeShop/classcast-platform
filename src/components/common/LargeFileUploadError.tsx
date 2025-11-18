@@ -43,7 +43,7 @@ const LargeFileUploadError: React.FC<LargeFileUploadErrorProps> = ({
                 <li>• Use a different browser (Chrome or Firefox work best)</li>
                 <li>• Try uploading from a different device</li>
                 <li>• Check if your file is corrupted by opening it first</li>
-                <li>• For very large files (>1GB), try uploading during off-peak hours</li>
+                <li>• For very large files (&gt;1GB), try uploading during off-peak hours</li>
               </ul>
             </div>
           )}
