@@ -97,6 +97,7 @@ const BulkGradingContent: React.FC = () => {
   // Peer response state
   const [peerResponsesData, setPeerResponsesData] = useState<{[studentId: string]: PeerResponse[]}>({});
   const [collapsedPeerResponses, setCollapsedPeerResponses] = useState<Set<string>>(new Set());
+  const [peerResponsesLoading, setPeerResponsesLoading] = useState(false);
 
   // Get unique courses from submissions
   const courses = Array.from(new Set(allSubmissions.map(sub => `${sub.courseCode} - ${sub.courseName}`)));
@@ -330,6 +331,7 @@ const BulkGradingContent: React.FC = () => {
       if (filteredSubmissions.length === 0) return;
       
       try {
+        setPeerResponsesLoading(true);
         const responsesMap: {[studentId: string]: PeerResponse[]} = {};
         
         // Get unique assignment IDs from filtered submissions
@@ -375,6 +377,8 @@ const BulkGradingContent: React.FC = () => {
         setPeerResponsesData(responsesMap);
       } catch (error) {
         console.error('Error fetching peer responses:', error);
+      } finally {
+        setPeerResponsesLoading(false);
       }
     };
     
