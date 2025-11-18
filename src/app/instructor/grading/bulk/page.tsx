@@ -471,11 +471,6 @@ const BulkGradingContent: React.FC = () => {
         ));
         
         setSaveStatus('saved');
-        
-        // Auto-advance to next submission if available
-        if (currentIndex < filteredSubmissions.length - 1) {
-          setTimeout(() => goToNext(), 1000);
-        }
       } else {
         throw new Error(data.error || 'Failed to save grade');
       }
