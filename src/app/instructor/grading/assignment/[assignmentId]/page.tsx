@@ -88,17 +88,31 @@ const NewAssignmentGradingPage: React.FC = () => {
         
         const assignmentData = await assignmentResponse.json();
         console.log('🎯 NEW GRADING PAGE: Assignment API response data:', assignmentData);
+        console.log('🎯 NEW GRADING PAGE: Assignment API success:', assignmentData.success);
+        console.log('🎯 NEW GRADING PAGE: Assignment API assignment:', assignmentData.assignment);
+        console.log('🎯 NEW GRADING PAGE: Assignment API data keys:', Object.keys(assignmentData));
         
+        // Try different response structures
+        let assignmentInfo = null;
         if (assignmentData.success && assignmentData.assignment) {
+          assignmentInfo = assignmentData.assignment;
+        } else if (assignmentData.data) {
+          assignmentInfo = assignmentData.data;
+        } else if (assignmentData.assignmentId || assignmentData.title) {
+          assignmentInfo = assignmentData;
+        }
+        
+        if (assignmentInfo) {
+          console.log('🎯 NEW GRADING PAGE: Using assignment info:', assignmentInfo);
           setAssignment({
-            assignmentId: assignmentData.assignment.assignmentId,
-            title: assignmentData.assignment.title,
-            description: assignmentData.assignment.description,
-            dueDate: assignmentData.assignment.dueDate,
-            maxScore: assignmentData.assignment.maxScore || 100,
-            courseId: assignmentData.assignment.courseId,
-            courseName: assignmentData.assignment.courseName || 'Unknown Course',
-            courseCode: assignmentData.assignment.courseCode || 'N/A'
+            assignmentId: assignmentInfo.assignmentId || assignmentId,
+            title: assignmentInfo.title || 'Assignment',
+            description: assignmentInfo.description || '',
+            dueDate: assignmentInfo.dueDate || '',
+            maxScore: assignmentInfo.maxScore || 100,
+            courseId: assignmentInfo.courseId || '',
+            courseName: assignmentInfo.courseName || 'Unknown Course',
+            courseCode: assignmentInfo.courseCode || 'N/A'
           });
         } else {
           console.log('🎯 NEW GRADING PAGE: Assignment API failed, will try to get data from submissions');
@@ -139,7 +153,7 @@ const NewAssignmentGradingPage: React.FC = () => {
           setAllSubmissions(transformedSubmissions);
           
           // If assignment data wasn't fetched successfully, try to extract it from submissions
-          if (!assignmentData.success && transformedSubmissions.length > 0) {
+          if (!assignmentInfo && transformedSubmissions.length > 0) {
             const firstSubmission = submissionsData.submissions.find((sub: any) => sub.assignmentId === assignmentId);
             if (firstSubmission?.assignment) {
               console.log('🎯 NEW GRADING PAGE: Using assignment data from submissions');
