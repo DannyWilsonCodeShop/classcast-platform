@@ -36,6 +36,8 @@ interface VideoSubmission {
   grade?: number;
   feedback?: string;
   status: 'submitted' | 'graded';
+  sectionId?: string;
+  sectionName?: string;
 }
 
 interface PeerResponse {
@@ -55,7 +57,7 @@ interface PeerResponse {
 }
 
 type FilterType = 'all' | 'graded' | 'ungraded';
-type SortType = 'name' | 'date' | 'grade';
+type SortType = 'name' | 'date' | 'grade' | 'section';
 
 const NewAssignmentGradingPage: React.FC = () => {
   const params = useParams();
@@ -76,7 +78,8 @@ const NewAssignmentGradingPage: React.FC = () => {
   // Filter and search state
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<SortType>('name');
+  const [sortBy, setSortBy] = useState<SortType>('section');
+  const [selectedSection, setSelectedSection] = useState<string>('all');
   
   // Grading state
   const [currentGrade, setCurrentGrade] = useState<number | ''>('');
@@ -178,7 +181,9 @@ const NewAssignmentGradingPage: React.FC = () => {
               fileSize: sub.fileSize || 0,
               grade: sub.grade,
               feedback: sub.instructorFeedback || sub.feedback,
-              status: sub.grade !== null && sub.grade !== undefined ? 'graded' : 'submitted'
+              status: sub.grade !== null && sub.grade !== undefined ? 'graded' : 'submitted',
+              sectionId: sub.student?.sectionId || null,
+              sectionName: sub.student?.sectionName || null
             }));
           
           console.log('🎯 NEW GRADING PAGE: Filtered submissions for assignment:', transformedSubmissions.length);
@@ -252,11 +257,17 @@ const NewAssignmentGradingPage: React.FC = () => {
       filtered = filtered.filter(sub => sub.status === 'submitted');
     }
     
+    // Apply section filter
+    if (selectedSection !== 'all') {
+      filtered = filtered.filter(sub => sub.sectionId === selectedSection);
+    }
+    
     // Apply search
     if (searchTerm) {
       filtered = filtered.filter(sub => 
         sub.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sub.studentEmail.toLowerCase().includes(searchTerm.toLowerCase())
+        sub.studentEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (sub.sectionName && sub.sectionName.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
     
@@ -272,6 +283,13 @@ const NewAssignmentGradingPage: React.FC = () => {
           if (a.grade === undefined) return 1;
           if (b.grade === undefined) return -1;
           return b.grade - a.grade;
+        case 'section':
+          // Sort by section first, then by name within section
+          const sectionA = a.sectionName || 'No Section';
+          const sectionB = b.sectionName || 'No Section';
+          const sectionCompare = sectionA.localeCompare(sectionB);
+          if (sectionCompare !== 0) return sectionCompare;
+          return a.studentName.localeCompare(b.studentName);
         default:
           return 0;
       }
@@ -290,7 +308,7 @@ const NewAssignmentGradingPage: React.FC = () => {
       setCurrentGrade(currentSubmission.grade || '');
       setCurrentFeedback(currentSubmission.feedback || '');
     }
-  }, [allSubmissions, filter, searchTerm, sortBy, currentIndex]);
+  }, [allSubmissions, filter, searchTerm, sortBy, selectedSection, currentIndex]);
 
   // Fetch peer responses for all students
   useEffect(() => {
@@ -354,6 +372,14 @@ const NewAssignmentGradingPage: React.FC = () => {
 
   // Current submission
   const currentSubmission = filteredSubmissions[currentIndex];
+
+  // Get unique sections for filtering
+  const uniqueSections = Array.from(new Set(
+    allSubmissions
+      .filter(sub => sub.sectionId && sub.sectionName)
+      .map(sub => ({ id: sub.sectionId!, name: sub.sectionName! }))
+      .map(section => JSON.stringify(section))
+  )).map(str => JSON.parse(str)).sort((a, b) => a.name.localeCompare(b.name));
 
   // Helper functions for peer responses
   const getPeerResponsesForStudent = (studentId: string): PeerResponse[] => {
@@ -574,6 +600,22 @@ const NewAssignmentGradingPage: React.FC = () => {
                     <option value="graded">Graded ({allSubmissions.filter(s => s.status === 'graded').length})</option>
                   </select>
                 </div>
+
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700">Section:</label>
+                  <select
+                    value={selectedSection}
+                    onChange={(e) => setSelectedSection(e.target.value)}
+                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                  >
+                    <option value="all">All Sections</option>
+                    {uniqueSections.map(section => (
+                      <option key={section.id} value={section.id}>
+                        {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 
                 <div className="flex items-center space-x-2">
                   <label className="text-sm font-medium text-gray-700">Search:</label>
@@ -581,8 +623,8 @@ const NewAssignmentGradingPage: React.FC = () => {
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Student name or email..."
-                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm w-48"
+                    placeholder="Student name, email, or section..."
+                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm w-56"
                   />
                 </div>
                 
@@ -593,6 +635,7 @@ const NewAssignmentGradingPage: React.FC = () => {
                     onChange={(e) => setSortBy(e.target.value as SortType)}
                     className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
                   >
+                    <option value="section">Section + Name</option>
                     <option value="name">Name</option>
                     <option value="date">Submission Date</option>
                     <option value="grade">Grade</option>
@@ -704,6 +747,22 @@ const NewAssignmentGradingPage: React.FC = () => {
                   <option value="graded">Graded ({allSubmissions.filter(s => s.status === 'graded').length})</option>
                 </select>
               </div>
+
+              <div className="flex items-center space-x-2">
+                <label className="text-sm font-medium text-gray-700">Section:</label>
+                <select
+                  value={selectedSection}
+                  onChange={(e) => setSelectedSection(e.target.value)}
+                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option value="all">All Sections</option>
+                  {uniqueSections.map(section => (
+                    <option key={section.id} value={section.id}>
+                      {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
+                    </option>
+                  ))}
+                </select>
+              </div>
               
               <div className="flex items-center space-x-2">
                 <label className="text-sm font-medium text-gray-700">Search:</label>
@@ -711,8 +770,8 @@ const NewAssignmentGradingPage: React.FC = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Student name or email..."
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm w-48"
+                  placeholder="Student name, email, or section..."
+                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm w-56"
                 />
               </div>
               
@@ -723,6 +782,7 @@ const NewAssignmentGradingPage: React.FC = () => {
                   onChange={(e) => setSortBy(e.target.value as SortType)}
                   className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
                 >
+                  <option value="section">Section + Name</option>
                   <option value="name">Name</option>
                   <option value="date">Submission Date</option>
                   <option value="grade">Grade</option>
@@ -739,10 +799,25 @@ const NewAssignmentGradingPage: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
                 <div className="mb-4">
-                  <h2 className="text-lg font-semibold text-gray-800">{currentSubmission.studentName}</h2>
-                  <p className="text-sm text-gray-600">
-                    Submitted: {new Date(currentSubmission.submittedAt).toLocaleDateString()}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-800">{currentSubmission.studentName}</h2>
+                      <div className="flex items-center space-x-3 text-sm text-gray-600">
+                        <span>Submitted: {new Date(currentSubmission.submittedAt).toLocaleDateString()}</span>
+                        {currentSubmission.sectionName && (
+                          <>
+                            <span>•</span>
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                              {currentSubmission.sectionName}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-gray-500">
+                      Student {currentIndex + 1} of {filteredSubmissions.length}
+                    </div>
+                  </div>
                   {assignment?.enablePeerResponses && (
                     <div className="text-xs text-blue-600 mt-1 bg-blue-50 px-2 py-1 rounded">
                       Peer Responses: {assignment.minResponsesRequired || 2} required, max {assignment.maxResponsesPerVideo || 3} per video
