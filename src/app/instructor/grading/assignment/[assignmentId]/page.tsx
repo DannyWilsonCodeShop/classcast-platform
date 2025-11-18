@@ -15,6 +15,12 @@ interface Assignment {
   courseId: string;
   courseName: string;
   courseCode: string;
+  enablePeerResponses?: boolean;
+  responseDueDate?: string;
+  minResponsesRequired?: number;
+  maxResponsesPerVideo?: number;
+  responseWordLimit?: number;
+  responseCharacterLimit?: number;
 }
 
 interface VideoSubmission {
@@ -30,6 +36,22 @@ interface VideoSubmission {
   grade?: number;
   feedback?: string;
   status: 'submitted' | 'graded';
+}
+
+interface PeerResponse {
+  responseId: string;
+  reviewerId: string;
+  reviewerName: string;
+  videoId: string;
+  reviewedStudentId: string;
+  reviewedStudentName: string;
+  assignmentId: string;
+  assignmentTitle: string;
+  content: string;
+  submittedAt: string;
+  isSubmitted: boolean;
+  wordCount: number;
+  characterCount: number;
 }
 
 type FilterType = 'all' | 'graded' | 'ungraded';
@@ -61,6 +83,10 @@ const NewAssignmentGradingPage: React.FC = () => {
   const [currentFeedback, setCurrentFeedback] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  
+  // Peer response state
+  const [peerResponsesData, setPeerResponsesData] = useState<{[studentId: string]: PeerResponse[]}>({});
+  const [collapsedPeerResponses, setCollapsedPeerResponses] = useState<Set<string>>(new Set());
 
   // Fetch assignment and submissions
   useEffect(() => {
@@ -112,7 +138,13 @@ const NewAssignmentGradingPage: React.FC = () => {
             maxScore: assignmentInfo.maxScore || 100,
             courseId: assignmentInfo.courseId || '',
             courseName: assignmentInfo.courseName || 'Unknown Course',
-            courseCode: assignmentInfo.courseCode || 'N/A'
+            courseCode: assignmentInfo.courseCode || 'N/A',
+            enablePeerResponses: assignmentInfo.enablePeerResponses || false,
+            responseDueDate: assignmentInfo.responseDueDate,
+            minResponsesRequired: assignmentInfo.minResponsesRequired || 2,
+            maxResponsesPerVideo: assignmentInfo.maxResponsesPerVideo || 3,
+            responseWordLimit: assignmentInfo.responseWordLimit,
+            responseCharacterLimit: assignmentInfo.responseCharacterLimit
           });
         } else {
           console.log('🎯 NEW GRADING PAGE: Assignment API failed, will try to get data from submissions');
@@ -260,8 +292,66 @@ const NewAssignmentGradingPage: React.FC = () => {
     }
   }, [allSubmissions, filter, searchTerm, sortBy, currentIndex]);
 
+  // Fetch peer responses for all students
+  useEffect(() => {
+    const fetchPeerResponses = async () => {
+      if (allSubmissions.length === 0 || !assignment?.enablePeerResponses) return;
+      
+      try {
+        const responsesMap: {[studentId: string]: PeerResponse[]} = {};
+        
+        // Fetch peer responses for each student
+        await Promise.all(allSubmissions.map(async (submission) => {
+          try {
+            const response = await fetch(
+              `/api/peer-responses?assignmentId=${assignmentId}&studentId=${submission.studentId}`,
+              { credentials: 'include' }
+            );
+            
+            if (response.ok) {
+              const data = await response.json();
+              if (data.success && data.data) {
+                responsesMap[submission.studentId] = data.data;
+              } else {
+                responsesMap[submission.studentId] = [];
+              }
+            } else {
+              responsesMap[submission.studentId] = [];
+            }
+          } catch (error) {
+            console.error(`Error fetching peer responses for student ${submission.studentId}:`, error);
+            responsesMap[submission.studentId] = [];
+          }
+        }));
+        
+        setPeerResponsesData(responsesMap);
+      } catch (error) {
+        console.error('Error fetching peer responses:', error);
+      }
+    };
+    
+    fetchPeerResponses();
+  }, [allSubmissions.length, assignmentId, assignment?.enablePeerResponses]);
+
   // Current submission
   const currentSubmission = filteredSubmissions[currentIndex];
+
+  // Helper functions for peer responses
+  const getPeerResponsesForStudent = (studentId: string): PeerResponse[] => {
+    return peerResponsesData[studentId] || [];
+  };
+
+  const togglePeerResponsesCollapse = (submissionId: string) => {
+    setCollapsedPeerResponses(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(submissionId)) {
+        newSet.delete(submissionId);
+      } else {
+        newSet.add(submissionId);
+      }
+      return newSet;
+    });
+  };
 
   // Navigation functions
   const goToNext = () => {
@@ -634,6 +724,14 @@ const NewAssignmentGradingPage: React.FC = () => {
                   <p className="text-sm text-gray-600">
                     Submitted: {new Date(currentSubmission.submittedAt).toLocaleDateString()}
                   </p>
+                  {assignment?.enablePeerResponses && (
+                    <div className="text-xs text-blue-600 mt-1 bg-blue-50 px-2 py-1 rounded">
+                      Peer Responses: {assignment.minResponsesRequired || 2} required, max {assignment.maxResponsesPerVideo || 3} per video
+                      {assignment.responseDueDate && (
+                        <> • Due: {new Date(assignment.responseDueDate).toLocaleDateString()}</>
+                      )}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="bg-black rounded-lg overflow-hidden mb-4">
@@ -653,6 +751,141 @@ const NewAssignmentGradingPage: React.FC = () => {
                     Your browser does not support the video tag.
                   </video>
                 </div>
+
+                {/* Peer Responses Section */}
+                {assignment?.enablePeerResponses ? (
+                  getPeerResponsesForStudent(currentSubmission.studentId).length > 0 ? (
+                    <div className="border border-indigo-200 rounded-lg overflow-hidden mt-4">
+                      {/* Collapsible Header */}
+                      <button
+                        onClick={() => togglePeerResponsesCollapse(currentSubmission.submissionId)}
+                        className="w-full flex items-center justify-between p-4 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm font-semibold text-indigo-700">
+                            💬 Student's Peer Responses
+                          </span>
+                          <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
+                            {getPeerResponsesForStudent(currentSubmission.studentId).length}
+                          </span>
+                        </div>
+                        <svg
+                          className={`w-5 h-5 text-indigo-600 transition-transform ${
+                            collapsedPeerResponses.has(currentSubmission.submissionId) ? '' : 'rotate-180'
+                          }`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {/* Collapsible Content */}
+                      {!collapsedPeerResponses.has(currentSubmission.submissionId) && (
+                        <div className="divide-y divide-indigo-100">
+                          {getPeerResponsesForStudent(currentSubmission.studentId).map((response: PeerResponse, idx: number) => (
+                            <div key={response.responseId || idx} className="p-4 bg-white">
+                              {/* Response Header */}
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <span className="text-sm font-medium text-gray-900">
+                                      Response to: {response.reviewedStudentName}
+                                    </span>
+                                    <span className={`px-2 py-0.5 rounded-full text-xs ${
+                                      response.isSubmitted 
+                                        ? 'bg-green-100 text-green-700' 
+                                        : 'bg-yellow-100 text-yellow-700'
+                                    }`}>
+                                      {response.isSubmitted ? '✓ Submitted' : '○ Draft'}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(response.submittedAt).toLocaleDateString()} • {response.wordCount} words
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Response Content */}
+                              <div className="bg-gray-50 rounded-lg p-3">
+                                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                  {response.content}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Summary Stats */}
+                          <div className="bg-indigo-50 p-4">
+                            <div className="grid grid-cols-3 gap-4 text-center">
+                              <div>
+                                <div className="text-lg font-bold text-indigo-700">
+                                  {getPeerResponsesForStudent(currentSubmission.studentId).length}
+                                </div>
+                                <div className="text-xs text-gray-600">Total Responses</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-bold text-green-700">
+                                  {getPeerResponsesForStudent(currentSubmission.studentId).filter((r: PeerResponse) => r.isSubmitted).length}
+                                </div>
+                                <div className="text-xs text-gray-600">Submitted</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-bold text-blue-700">
+                                  {Math.round(
+                                    getPeerResponsesForStudent(currentSubmission.studentId)
+                                      .reduce((sum: number, r: PeerResponse) => sum + (r.wordCount || 0), 0) / 
+                                    Math.max(1, getPeerResponsesForStudent(currentSubmission.studentId).length)
+                                  )}
+                                </div>
+                                <div className="text-xs text-gray-600">Avg Words</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    // Student has NOT submitted any peer responses (but they were required)
+                    <div className="border border-red-200 rounded-lg overflow-hidden mt-4 bg-red-50">
+                      <div className="p-4">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-red-800 mb-1">
+                              ⚠️ No Peer Responses Submitted
+                            </h3>
+                            <p className="text-xs text-red-700">
+                              This student has not submitted any peer responses yet.
+                              {assignment?.minResponsesRequired && (
+                                <> Required: {assignment.minResponsesRequired} response{assignment.minResponsesRequired > 1 ? 's' : ''}</>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  // Peer responses NOT required for this assignment
+                  <div className="border border-gray-200 rounded-lg overflow-hidden mt-4 bg-gray-50">
+                    <div className="p-3">
+                      <div className="flex items-center space-x-2">
+                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-xs text-gray-600">
+                          Peer responses not required for this assignment
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
