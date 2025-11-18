@@ -343,8 +343,21 @@ const NewAssignmentGradingPage: React.FC = () => {
               console.log(`🔍 PEER RESPONSES: API data for ${submission.studentName}:`, data);
               
               if (data.success && data.data) {
-                responsesMap[submission.studentId] = data.data;
-                console.log(`✅ PEER RESPONSES: Found ${data.data.length} responses for ${submission.studentName}`);
+                // Enrich each response with the reviewed student's info
+                const enrichedResponses = data.data.map((resp: any) => {
+                  // Find the submission that this response is about
+                  const reviewedSubmission = allSubmissions.find(sub => sub.submissionId === resp.videoId);
+                  
+                  return {
+                    ...resp,
+                    reviewedStudentName: reviewedSubmission?.studentName || 'Unknown Student',
+                    reviewedStudentId: reviewedSubmission?.studentId || 'unknown',
+                    videoTitle: reviewedSubmission?.videoUrl || 'Peer Video'
+                  };
+                });
+                
+                responsesMap[submission.studentId] = enrichedResponses;
+                console.log(`✅ PEER RESPONSES: Found ${enrichedResponses.length} responses for ${submission.studentName}`);
               } else {
                 responsesMap[submission.studentId] = [];
                 console.log(`📝 PEER RESPONSES: No responses for ${submission.studentName}`);
