@@ -93,6 +93,10 @@ const NewAssignmentGradingPage: React.FC = () => {
   const [collapsedPeerResponses, setCollapsedPeerResponses] = useState<Set<string>>(new Set());
   const [peerResponsesLoading, setPeerResponsesLoading] = useState(false);
 
+  // Scroll navigation state
+  const [lastScrollTime, setLastScrollTime] = useState(0);
+  const scrollCooldown = 500; // 500ms cooldown between scroll navigations
+
   // Fetch assignment and submissions
   useEffect(() => {
     const fetchData = async () => {
@@ -562,6 +566,40 @@ const NewAssignmentGradingPage: React.FC = () => {
     }
   };
 
+  // Scroll navigation handler
+  const handleWheel = (e: React.WheelEvent) => {
+    const now = Date.now();
+    
+    // Check if we're in cooldown period
+    if (now - lastScrollTime < scrollCooldown) {
+      return;
+    }
+    
+    // Only handle scroll if we're not scrolling within a scrollable element
+    const target = e.target as HTMLElement;
+    const isScrollableElement = target.closest('.overflow-y-auto, .overflow-auto, textarea, input');
+    
+    if (isScrollableElement) {
+      return;
+    }
+    
+    e.preventDefault();
+    
+    if (e.deltaY < 0) {
+      // Scrolling up - go to next video
+      if (currentIndex < filteredSubmissions.length - 1) {
+        goToNext();
+        setLastScrollTime(now);
+      }
+    } else if (e.deltaY > 0) {
+      // Scrolling down - go to previous video
+      if (currentIndex > 0) {
+        goToPrevious();
+        setLastScrollTime(now);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <InstructorRoute>
@@ -681,7 +719,7 @@ const NewAssignmentGradingPage: React.FC = () => {
                     onChange={(e) => setSelectedSection(e.target.value)}
                     className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
                   >
-                    <option value="all">All Sections</option>
+                    <option value="all">All Sections ({allSubmissions.length})</option>
                     {uniqueSections.map(section => (
                       <option key={section.id} value={section.id}>
                         {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
@@ -763,24 +801,32 @@ const NewAssignmentGradingPage: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               {/* Navigation */}
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={goToPrevious}
-                  disabled={currentIndex === 0}
-                  className="px-3 py-1 bg-gray-500 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  ← Previous
-                </button>
-                <span className="text-sm text-gray-600">
-                  {currentIndex + 1} of {filteredSubmissions.length}
-                </span>
-                <button
-                  onClick={goToNext}
-                  disabled={currentIndex === filteredSubmissions.length - 1}
-                  className="px-3 py-1 bg-gray-500 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  Next →
-                </button>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={goToPrevious}
+                    disabled={currentIndex === 0}
+                    className="px-3 py-1 bg-gray-500 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    ← Previous
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    {currentIndex + 1} of {filteredSubmissions.length}
+                  </span>
+                  <button
+                    onClick={goToNext}
+                    disabled={currentIndex === filteredSubmissions.length - 1}
+                    className="px-3 py-1 bg-gray-500 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    Next →
+                  </button>
+                </div>
+                
+                {/* Scroll Navigation Hint */}
+                <div className="flex items-center space-x-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                  <span>💡</span>
+                  <span>Scroll ↑ next, ↓ previous</span>
+                </div>
               </div>
               
               {/* Playback Speed */}
@@ -828,7 +874,7 @@ const NewAssignmentGradingPage: React.FC = () => {
                   onChange={(e) => setSelectedSection(e.target.value)}
                   className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
                 >
-                  <option value="all">All Sections</option>
+                  <option value="all">All Sections ({allSubmissions.length})</option>
                   {uniqueSections.map(section => (
                     <option key={section.id} value={section.id}>
                       {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
@@ -866,7 +912,7 @@ const NewAssignmentGradingPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" onWheel={handleWheel}>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Video Player */}
             <div className="lg:col-span-2">
@@ -908,7 +954,6 @@ const NewAssignmentGradingPage: React.FC = () => {
                     className="w-full h-96 object-contain"
                     controls
                     preload="none"
-                    muted
                     onLoadedMetadata={() => {
                       if (videoRef.current) {
                         videoRef.current.playbackRate = playbackSpeed;
