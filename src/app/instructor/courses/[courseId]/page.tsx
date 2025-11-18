@@ -199,20 +199,37 @@ const InstructorCourseDetailPage: React.FC = () => {
 
   // Calculate submission counts per student and sort by section
   const studentsWithSubmissionCounts = useMemo(() => {
-    console.log('🔢 Calculating student submission counts from submissions:', videoSubmissions.length);
+    console.log('🔢 STUDENTS TAB: Calculating student submission counts');
+    console.log('🔢 STUDENTS TAB: Total video submissions:', videoSubmissions.length);
+    console.log('🔢 STUDENTS TAB: Total students:', students.length);
+    console.log('🔢 STUDENTS TAB: Course ID:', courseId);
+    
     const counts: Record<string, number> = {};
+    
+    // Count submissions per student for THIS course only
     videoSubmissions.forEach(submission => {
-      const studentId = submission.studentId;
-      counts[studentId] = (counts[studentId] || 0) + 1;
-      console.log(`🔢 Student ${studentId}: ${counts[studentId]} submissions`);
+      // Ensure we're only counting submissions for this course
+      if (submission.courseId === courseId) {
+        const studentId = submission.studentId;
+        counts[studentId] = (counts[studentId] || 0) + 1;
+        console.log(`🔢 STUDENTS TAB: Student ${studentId} (${submission.student?.name}): ${counts[studentId]} submissions`);
+      } else {
+        console.log(`🔢 STUDENTS TAB: Skipping submission from different course: ${submission.courseId}`);
+      }
     });
-    console.log('🔢 Final student submission counts:', counts);
+    
+    console.log('🔢 STUDENTS TAB: Final student submission counts:', counts);
     
     // Update students with submission counts and sort by section
-    const updatedStudents = students.map(student => ({
-      ...student,
-      assignmentsSubmitted: counts[student.studentId] || 0
-    }));
+    const updatedStudents = students.map(student => {
+      const submissionCount = counts[student.studentId] || 0;
+      console.log(`🔢 STUDENTS TAB: Student ${student.name} (${student.studentId}): ${submissionCount} submissions`);
+      
+      return {
+        ...student,
+        assignmentsSubmitted: submissionCount
+      };
+    });
     
     // Sort by section name, then by student name
     return updatedStudents.sort((a, b) => {
@@ -224,7 +241,7 @@ const InstructorCourseDetailPage: React.FC = () => {
       }
       return a.name.localeCompare(b.name);
     });
-  }, [students, videoSubmissions]);
+  }, [students, videoSubmissions, courseId]);
 
   useEffect(() => {
     if (courseId) {
@@ -233,9 +250,13 @@ const InstructorCourseDetailPage: React.FC = () => {
   }, [courseId]);
 
   useEffect(() => {
-    if (courseId && activeTab === 'submissions') {
+    if (courseId) {
+      // Always fetch video submissions for accurate counts in Students tab
       fetchVideoSubmissions();
-      fetchPeerResponses();
+      
+      if (activeTab === 'submissions') {
+        fetchPeerResponses();
+      }
     }
   }, [courseId, activeTab]);
 
@@ -1349,19 +1370,33 @@ const InstructorCourseDetailPage: React.FC = () => {
                                       {student.status}
                                     </span>
                                     
-                                    {/* Video Submissions Count with Link - More Subtle */}
+                                    {/* Video Submissions Count with Link */}
                                     <button
                                       onClick={() => {
-                                        console.log('🔗 Grade Videos clicked for student:', {
+                                        console.log('🔗 STUDENTS TAB: Grade Videos clicked for student:', {
                                           studentId: student.studentId,
                                           studentName: student.name,
                                           courseId: courseId,
                                           submissionCount: student.assignmentsSubmitted
                                         });
+                                        
+                                        if (student.assignmentsSubmitted === 0) {
+                                          alert(`${student.name} has not submitted any videos yet.`);
+                                          return;
+                                        }
+                                        
                                         router.push(`/instructor/grading/bulk?course=${courseId}&student=${student.studentId}&studentName=${encodeURIComponent(student.name)}`);
                                       }}
-                                      className="inline-flex items-center px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 rounded transition-colors"
-                                      title={`Grade ${student.name}'s ${student.assignmentsSubmitted} video submissions`}
+                                      className={`inline-flex items-center px-2 py-1 text-xs rounded transition-colors ${
+                                        student.assignmentsSubmitted > 0
+                                          ? 'bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 cursor-pointer'
+                                          : 'bg-gray-50 text-gray-400 cursor-default'
+                                      }`}
+                                      title={
+                                        student.assignmentsSubmitted > 0
+                                          ? `Grade ${student.name}'s ${student.assignmentsSubmitted} video submission${student.assignmentsSubmitted !== 1 ? 's' : ''}`
+                                          : `${student.name} has no video submissions yet`
+                                      }
                                     >
                                       <span className="mr-1">🎥</span>
                                       <span className="font-semibold">{student.assignmentsSubmitted}</span>
