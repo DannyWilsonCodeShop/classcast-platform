@@ -346,7 +346,20 @@ const BulkGradingContent: React.FC = () => {
             if (response.ok) {
               const data = await response.json();
               if (data.success && data.data) {
-                responsesMap[submission.studentId] = data.data;
+                // Enrich each response with the reviewed student's info
+                const enrichedResponses = data.data.map((resp: any) => {
+                  // Find the submission that this response is about
+                  const reviewedSubmission = filteredSubmissions.find(sub => sub.submissionId === resp.videoId);
+                  
+                  return {
+                    ...resp,
+                    reviewedStudentName: reviewedSubmission?.studentName || 'Unknown Student',
+                    reviewedStudentId: reviewedSubmission?.studentId || 'unknown',
+                    videoTitle: reviewedSubmission?.videoUrl || 'Peer Video'
+                  };
+                });
+                
+                responsesMap[submission.studentId] = enrichedResponses;
               } else {
                 responsesMap[submission.studentId] = [];
               }
