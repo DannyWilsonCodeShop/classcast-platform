@@ -229,7 +229,10 @@ const MessagesPage: React.FC = () => {
                       }`}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        <div 
+                          className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+                          onClick={() => conversation.userId && router.push(`/student/profile/${conversation.userId}`)}
+                        >
                           {conversation.userAvatar && !conversation.userAvatar.includes('placeholder') ? (
                             <img 
                               src={conversation.userAvatar} 
@@ -244,7 +247,10 @@ const MessagesPage: React.FC = () => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-1">
-                            <p className="font-semibold text-sm text-gray-900 truncate">
+                            <p 
+                              className="font-semibold text-sm text-gray-900 truncate cursor-pointer hover:text-blue-600 transition-colors"
+                              onClick={() => conversation.userId && router.push(`/student/profile/${conversation.userId}`)}
+                            >
                               {conversation.userName}
                             </p>
                             {conversation.unreadCount > 0 && (

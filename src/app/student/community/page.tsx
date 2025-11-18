@@ -205,7 +205,10 @@ const CommunityPage: React.FC = () => {
                 <div key={post.id} className="bg-white rounded-xl p-4 shadow-lg">
                   {/* Header */}
                   <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div 
+                      className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+                      onClick={() => post.authorId && router.push(`/student/profile/${post.authorId}`)}
+                    >
                       {post.authorAvatar && !post.authorAvatar.includes('placeholder') ? (
                         // Check if avatar is an emoji
                         /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(post.authorAvatar) ? (
@@ -220,7 +223,12 @@ const CommunityPage: React.FC = () => {
                       )}
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-sm text-gray-900">{post.author}</p>
+                      <p 
+                        className="font-semibold text-sm text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => post.authorId && router.push(`/student/profile/${post.authorId}`)}
+                      >
+                        {post.author}
+                      </p>
                       <p className="text-xs text-gray-500">{formatTimestamp(post.timestamp)}</p>
                     </div>
                   </div>
