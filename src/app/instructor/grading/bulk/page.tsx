@@ -93,6 +93,7 @@ const BulkGradingContent: React.FC = () => {
   const [currentFeedback, setCurrentFeedback] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Peer response state
   const [peerResponsesData, setPeerResponsesData] = useState<{[studentId: string]: PeerResponse[]}>({});
@@ -480,6 +481,53 @@ const BulkGradingContent: React.FC = () => {
       alert('Failed to save grade. Please try again.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Delete submission function
+  const deleteSubmission = async () => {
+    if (!currentSubmission) return;
+    
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${currentSubmission.studentName}'s video submission? This action cannot be undone.`
+    );
+    
+    if (!confirmDelete) return;
+    
+    setIsDeleting(true);
+    
+    try {
+      const response = await fetch(`/api/video-submissions/${currentSubmission.submissionId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete submission');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        // Remove from local state
+        setAllSubmissions(prev => prev.filter(sub => sub.submissionId !== currentSubmission.submissionId));
+        
+        // Navigate to next submission or previous if this was the last one
+        if (currentIndex >= filteredSubmissions.length - 1 && currentIndex > 0) {
+          setCurrentIndex(currentIndex - 1);
+        } else if (filteredSubmissions.length === 1) {
+          // If this was the only submission, we'll handle this in the UI
+          setCurrentIndex(0);
+        }
+        
+        alert('Submission deleted successfully');
+      } else {
+        throw new Error(data.error || 'Failed to delete submission');
+      }
+    } catch (error) {
+      console.error('Error deleting submission:', error);
+      alert('Failed to delete submission. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1141,13 +1189,23 @@ const BulkGradingContent: React.FC = () => {
                     />
                   </div>
                   
-                  <button
-                    onClick={saveGrade}
-                    disabled={isSaving || !currentGrade}
-                    className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    {isSaving ? 'Saving...' : 'Save Grade'}
-                  </button>
+                  <div className="space-y-2">
+                    <button
+                      onClick={saveGrade}
+                      disabled={isSaving || !currentGrade}
+                      className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
+                      {isSaving ? 'Saving...' : 'Save Grade'}
+                    </button>
+                    
+                    <button
+                      onClick={deleteSubmission}
+                      disabled={isDeleting}
+                      className="w-full px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
+                      {isDeleting ? 'Deleting...' : '🗑️ Delete Submission'}
+                    </button>
+                  </div>
                   
                   {/* Save Status */}
                   <div className="flex items-center justify-center text-sm">
