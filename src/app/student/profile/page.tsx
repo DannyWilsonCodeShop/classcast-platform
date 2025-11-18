@@ -841,7 +841,7 @@ const StudentProfilePage: React.FC = () => {
                         className="flex items-center justify-between bg-white rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors border border-gray-200"
                       >
                         <div
-                          onClick={() => router.push(`/student/peer-profile/${buddy.id}`)}
+                          onClick={() => router.push(`/student/profile/${buddy.id}`)}
                           className="flex items-center space-x-2 flex-1 cursor-pointer"
                         >
                           <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -922,7 +922,7 @@ const StudentProfilePage: React.FC = () => {
                         className="flex items-center justify-between bg-white rounded-lg px-3 py-2 hover:bg-gray-50 transition-colors border border-gray-200"
                       >
                         <div
-                          onClick={() => router.push(`/student/peer-profile/${follower.id}`)}
+                          onClick={() => router.push(`/student/profile/${follower.id}`)}
                           className="flex items-center space-x-2 flex-1 cursor-pointer"
                         >
                           <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">

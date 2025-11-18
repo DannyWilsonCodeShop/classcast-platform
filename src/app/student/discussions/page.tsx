@@ -352,12 +352,20 @@ const DiscussionContent: React.FC = () => {
       <div key={post.id} className={`${level > 0 ? 'ml-8 border-l-2 border-gray-200 pl-4' : ''}`}>
         <div className="bg-white rounded-lg p-4 mb-4 shadow-sm border border-gray-200">
           <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+            <div 
+              className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+              onClick={() => post.authorId && router.push(`/student/profile/${post.authorId}`)}
+            >
               {post.authorName.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-2">
-                <h4 className="font-semibold text-gray-800">{post.authorName}</h4>
+                <h4 
+                  className="font-semibold text-gray-800 cursor-pointer hover:text-blue-600 transition-colors"
+                  onClick={() => post.authorId && router.push(`/student/profile/${post.authorId}`)}
+                >
+                  {post.authorName}
+                </h4>
                 <span className="text-sm text-gray-500">
                   {new Date(post.submittedAt).toLocaleDateString()}
                 </span>
