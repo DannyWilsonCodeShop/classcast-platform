@@ -295,43 +295,62 @@ const NewAssignmentGradingPage: React.FC = () => {
   // Fetch peer responses for all students
   useEffect(() => {
     const fetchPeerResponses = async () => {
-      if (allSubmissions.length === 0 || !assignment?.enablePeerResponses) return;
+      if (allSubmissions.length === 0) return;
       
+      console.log('🔍 PEER RESPONSES: Checking if should fetch peer responses');
+      console.log('🔍 PEER RESPONSES: Assignment:', assignment);
+      console.log('🔍 PEER RESPONSES: enablePeerResponses:', assignment?.enablePeerResponses);
+      console.log('🔍 PEER RESPONSES: All submissions count:', allSubmissions.length);
+      
+      // Always try to fetch peer responses - let the API handle filtering
       try {
         const responsesMap: {[studentId: string]: PeerResponse[]} = {};
+        
+        console.log('🔍 PEER RESPONSES: Fetching for assignment:', assignmentId);
         
         // Fetch peer responses for each student
         await Promise.all(allSubmissions.map(async (submission) => {
           try {
+            console.log(`🔍 PEER RESPONSES: Fetching for student ${submission.studentId} (${submission.studentName})`);
+            
             const response = await fetch(
               `/api/peer-responses?assignmentId=${assignmentId}&studentId=${submission.studentId}`,
               { credentials: 'include' }
             );
             
+            console.log(`🔍 PEER RESPONSES: API response status for ${submission.studentName}:`, response.status);
+            
             if (response.ok) {
               const data = await response.json();
+              console.log(`🔍 PEER RESPONSES: API data for ${submission.studentName}:`, data);
+              
               if (data.success && data.data) {
                 responsesMap[submission.studentId] = data.data;
+                console.log(`✅ PEER RESPONSES: Found ${data.data.length} responses for ${submission.studentName}`);
               } else {
                 responsesMap[submission.studentId] = [];
+                console.log(`📝 PEER RESPONSES: No responses for ${submission.studentName}`);
               }
             } else {
+              const errorText = await response.text();
+              console.log(`❌ PEER RESPONSES: API error for ${submission.studentName}:`, errorText);
               responsesMap[submission.studentId] = [];
             }
           } catch (error) {
-            console.error(`Error fetching peer responses for student ${submission.studentId}:`, error);
+            console.error(`❌ PEER RESPONSES: Error fetching for student ${submission.studentId}:`, error);
             responsesMap[submission.studentId] = [];
           }
         }));
         
+        console.log('🔍 PEER RESPONSES: Final responses map:', responsesMap);
         setPeerResponsesData(responsesMap);
       } catch (error) {
-        console.error('Error fetching peer responses:', error);
+        console.error('❌ PEER RESPONSES: Error fetching peer responses:', error);
       }
     };
     
     fetchPeerResponses();
-  }, [allSubmissions.length, assignmentId, assignment?.enablePeerResponses]);
+  }, [allSubmissions.length, assignmentId]);
 
   // Current submission
   const currentSubmission = filteredSubmissions[currentIndex];
@@ -753,8 +772,12 @@ const NewAssignmentGradingPage: React.FC = () => {
                 </div>
 
                 {/* Peer Responses Section */}
-                {assignment?.enablePeerResponses ? (
-                  getPeerResponsesForStudent(currentSubmission.studentId).length > 0 ? (
+                {console.log('🔍 RENDERING: Current submission:', currentSubmission.studentId, currentSubmission.studentName)}
+                {console.log('🔍 RENDERING: Peer responses for student:', getPeerResponsesForStudent(currentSubmission.studentId))}
+                {console.log('🔍 RENDERING: Assignment enablePeerResponses:', assignment?.enablePeerResponses)}
+                
+                {/* Always show peer responses section if there are any responses, regardless of enablePeerResponses setting */}
+                {getPeerResponsesForStudent(currentSubmission.studentId).length > 0 ? (
                     <div className="border border-indigo-200 rounded-lg overflow-hidden mt-4">
                       {/* Collapsible Header */}
                       <button
@@ -847,45 +870,58 @@ const NewAssignmentGradingPage: React.FC = () => {
                       )}
                     </div>
                   ) : (
-                    // Student has NOT submitted any peer responses (but they were required)
-                    <div className="border border-red-200 rounded-lg overflow-hidden mt-4 bg-red-50">
-                      <div className="p-4">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                            <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-red-800 mb-1">
-                              ⚠️ No Peer Responses Submitted
-                            </h3>
-                            <p className="text-xs text-red-700">
-                              This student has not submitted any peer responses yet.
-                              {assignment?.minResponsesRequired && (
-                                <> Required: {assignment.minResponsesRequired} response{assignment.minResponsesRequired > 1 ? 's' : ''}</>
-                              )}
-                            </p>
+                    // Show different messages based on whether peer responses are enabled
+                    assignment?.enablePeerResponses ? (
+                      // Peer responses are enabled but student hasn't submitted any
+                      <div className="border border-red-200 rounded-lg overflow-hidden mt-4 bg-red-50">
+                        <div className="p-4">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-sm font-semibold text-red-800 mb-1">
+                                ⚠️ No Peer Responses Submitted
+                              </h3>
+                              <p className="text-xs text-red-700">
+                                This student has not submitted any peer responses yet.
+                                {assignment?.minResponsesRequired && (
+                                  <> Required: {assignment.minResponsesRequired} response{assignment.minResponsesRequired > 1 ? 's' : ''}</>
+                                )}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                ) : (
-                  // Peer responses NOT required for this assignment
-                  <div className="border border-gray-200 rounded-lg overflow-hidden mt-4 bg-gray-50">
-                    <div className="p-3">
-                      <div className="flex items-center space-x-2">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-xs text-gray-600">
-                          Peer responses not required for this assignment
-                        </span>
+                    ) : (
+                      // Peer responses not enabled - show loading or info message
+                      <div className="border border-blue-200 rounded-lg overflow-hidden mt-4 bg-blue-50">
+                        <div className="p-4">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="text-sm font-semibold text-blue-800 mb-1">
+                                💬 Checking for Peer Responses...
+                              </h3>
+                              <p className="text-xs text-blue-700">
+                                Loading peer response data for this student.
+                                {Object.keys(peerResponsesData).length === 0 && (
+                                  <> (Still loading...)</>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                )}
+                    )
+                  )
+                }
               </div>
             </div>
 
