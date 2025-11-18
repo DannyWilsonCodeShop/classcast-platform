@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -174,7 +174,11 @@ interface PeerResponse {
 const InstructorCourseDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
+  
+  // Get tab from URL parameters
+  const tabParam = searchParams.get('tab') as 'assignments' | 'submissions' | 'students' | null;
   const [course, setCourse] = useState<Course | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -185,7 +189,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
   const [viewingAssignment, setViewingAssignment] = useState<Assignment | null>(null);
-  const [activeTab, setActiveTab] = useState<'assignments' | 'submissions' | 'students'>('assignments');
+  const [activeTab, setActiveTab] = useState<'assignments' | 'submissions' | 'students'>(tabParam || 'assignments');
   const [globalPlaybackSpeed, setGlobalPlaybackSpeed] = useState(1.0);
   const [gradingSubmission, setGradingSubmission] = useState<string | null>(null);
   const [grades, setGrades] = useState<{[key: string]: { grade: number | '', feedback: string }}>({});
