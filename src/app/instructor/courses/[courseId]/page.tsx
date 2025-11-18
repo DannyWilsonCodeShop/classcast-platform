@@ -521,6 +521,29 @@ const InstructorCourseDetailPage: React.FC = () => {
     }
   };
 
+  const handleDeleteCourse = async () => {
+    try {
+      const response = await fetch(`/api/instructor/courses/${courseId}/delete`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        return { 
+          success: true, 
+          message: `Course deleted successfully! Deleted ${data.deletedAssignments} assignments and ${data.deletedSubmissions} submissions.` 
+        };
+      } else {
+        return { success: false, message: data.error || 'Failed to delete course' };
+      }
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      return { success: false, message: 'Failed to delete course' };
+    }
+  };
+
   const handleAssignmentUpdate = async (assignmentId: string, updateData: Partial<Assignment>) => {
     try {
       const response = await fetch(`/api/assignments/${assignmentId}`, {
@@ -779,16 +802,6 @@ const InstructorCourseDetailPage: React.FC = () => {
                   className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
                 >
                   ⚙️ Course Settings
-                </button>
-                <button 
-                  onClick={() => {
-                    if (window.confirm(`Are you sure you want to delete "${course.courseName}"? This action cannot be undone and will delete all assignments, submissions, and student data associated with this course.`)) {
-                      handleDeleteCourse();
-                    }
-                  }}
-                  className="px-4 py-2 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600 transition-colors"
-                >
-                  🗑️ Delete Course
                 </button>
               </div>
             </div>
@@ -1615,6 +1628,7 @@ const InstructorCourseDetailPage: React.FC = () => {
           onClose={() => setShowSettingsModal(false)}
           course={course}
           onUpdate={handleCourseUpdate}
+          onDelete={handleDeleteCourse}
           instructorId={user?.id}
         />
       </div>

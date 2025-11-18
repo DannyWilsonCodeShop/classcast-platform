@@ -73,6 +73,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
   const [success, setSuccess] = useState<string | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoadingSections, setIsLoadingSections] = useState(false);
   const [showAddSection, setShowAddSection] = useState(false);
@@ -112,6 +113,9 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
         }
       });
       loadSections();
+      // Reset delete confirmation state
+      setShowDeleteConfirm(false);
+      setDeleteConfirmText('');
     }
   }, [course, isOpen]);
 
@@ -274,6 +278,33 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
       }
     } catch (error) {
       setError('Failed to delete section');
+    }
+  };
+
+  const handleDeleteCourse = async () => {
+    if (!course || !onDelete) return;
+
+    setIsDeleting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const result = await onDelete(course.courseId);
+      if (result.success) {
+        setSuccess(result.message);
+        setTimeout(() => {
+          // Navigate back to courses list
+          window.location.href = '/instructor/dashboard';
+        }, 2000);
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError('Failed to delete course');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+      setDeleteConfirmText('');
     }
   };
 
@@ -617,6 +648,72 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
 
 
 
+
+            {/* Danger Zone - Delete Course */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-red-600 border-b border-red-200 pb-2">
+                🚨 Danger Zone
+              </h3>
+              
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-red-800 mb-2">Delete Course</h4>
+                    <p className="text-sm text-red-700 mb-4">
+                      Permanently delete this course and all associated data including assignments, submissions, grades, and student enrollments. This action cannot be undone.
+                    </p>
+                    
+                    {!showDeleteConfirm ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors"
+                      >
+                        🗑️ Delete Course
+                      </button>
+                    ) : (
+                      <div className="space-y-3">
+                        <p className="text-sm font-medium text-red-800">
+                          Type "DELETE" to confirm course deletion:
+                        </p>
+                        <input
+                          type="text"
+                          value={deleteConfirmText}
+                          onChange={(e) => setDeleteConfirmText(e.target.value)}
+                          placeholder="Type DELETE here"
+                          className="w-full px-3 py-2 border border-red-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        />
+                        <div className="flex space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowDeleteConfirm(false);
+                              setDeleteConfirmText('');
+                            }}
+                            className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleDeleteCourse}
+                            disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isDeleting ? 'Deleting...' : '🗑️ Delete Course Forever'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Error/Success Messages */}
             {error && (
