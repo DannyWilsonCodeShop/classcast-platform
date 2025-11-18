@@ -78,6 +78,10 @@ const InstructorStudentsPage: React.FC = () => {
   const [moveDestination, setMoveDestination] = useState<{type: 'section' | 'course', id: string, name: string} | null>(null);
   const [isMoving, setIsMoving] = useState(false);
 
+  // Export grades state
+  const [isExporting, setIsExporting] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+
   const courseId = params.courseId as string;
 
   useEffect(() => {
@@ -430,6 +434,51 @@ const InstructorStudentsPage: React.FC = () => {
     }
   };
 
+  const handleExportGrades = async (format: 'json' | 'csv' = 'csv') => {
+    setIsExporting(true);
+    try {
+      const response = await fetch(`/api/instructor/courses/${courseId}/export-grades?format=${format}`, {
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        if (format === 'csv') {
+          // Download CSV file
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${course?.courseName || 'course'}_grades_${new Date().toISOString().split('T')[0]}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          
+          alert('✅ Grade report exported successfully!');
+        } else {
+          // Handle JSON response
+          const data = await response.json();
+          console.log('Grade report data:', data);
+          // You could show this in a modal or process it further
+        }
+        
+        setShowExportModal(false);
+      } else {
+        const errorData = await response.json();
+        alert(`❌ Failed to export grades: ${errorData.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error exporting grades:', error);
+      alert('❌ Failed to export grades. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleQuickExport = () => {
+    handleExportGrades('csv');
+  };
+
   if (loading) {
     return (
       <InstructorRoute>
@@ -499,9 +548,24 @@ const InstructorStudentsPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <button className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors">
-                  📊 Export Grades
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={handleQuickExport}
+                    disabled={isExporting || students.length === 0}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={students.length === 0 ? 'No students to export' : 'Quick export grade report as CSV'}
+                  >
+                    {isExporting ? '⏳ Exporting...' : '📊 Export Grades'}
+                  </button>
+                  <button
+                    onClick={() => setShowExportModal(true)}
+                    disabled={isExporting || students.length === 0}
+                    className="px-3 py-2 bg-indigo-100 text-indigo-700 rounded-xl hover:bg-indigo-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="More export options"
+                  >
+                    ⚙️
+                  </button>
+                </div>
                 <button className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors">
                   📧 Send Message
                 </button>
@@ -873,6 +937,75 @@ const InstructorStudentsPage: React.FC = () => {
                   className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isMoving ? 'Moving...' : 'Move Student'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Export Grades Modal */}
+        {showExportModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900">Export Grade Report</h3>
+                  <p className="text-sm text-gray-600">Download grades for {course?.courseName}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Export Format:
+                  </label>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => handleExportGrades('csv')}
+                      disabled={isExporting}
+                      className="w-full flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-green-100 rounded flex items-center justify-center">
+                          <span className="text-green-600 text-xs font-bold">CSV</span>
+                        </div>
+                        <div className="text-left">
+                          <div className="font-medium text-gray-900">CSV Spreadsheet</div>
+                          <div className="text-xs text-gray-500">Compatible with Excel, Google Sheets</div>
+                        </div>
+                      </div>
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">
+                    <strong>Report includes:</strong>
+                  </p>
+                  <ul className="text-xs text-blue-700 mt-1 space-y-1">
+                    <li>• All students in alphabetical order</li>
+                    <li>• Individual assignment grades</li>
+                    <li>• Overall course percentage and letter grade</li>
+                    <li>• Section information</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={() => setShowExportModal(false)}
+                  disabled={isExporting}
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium transition-colors disabled:opacity-50"
+                >
+                  Cancel
                 </button>
               </div>
             </div>
