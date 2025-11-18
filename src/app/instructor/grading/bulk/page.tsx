@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
@@ -61,7 +61,7 @@ interface PeerResponse {
 type FilterType = 'all' | 'graded' | 'ungraded';
 type SortType = 'name' | 'date' | 'assignment' | 'course' | 'grade';
 
-const NewBulkGradingPage: React.FC = () => {
+const BulkGradingContent: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
@@ -81,6 +81,8 @@ const NewBulkGradingPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortType>('date');
   const [selectedCourse, setSelectedCourse] = useState<string>('all');
   const [selectedAssignment, setSelectedAssignment] = useState<string>('all');
+  const [selectedStudent, setSelectedStudent] = useState<string>('all');
+  const [selectedStudentName, setSelectedStudentName] = useState<string>('');
   
   // Grading state
   const [currentGrade, setCurrentGrade] = useState<number | ''>('');
@@ -94,6 +96,12 @@ const NewBulkGradingPage: React.FC = () => {
 
   // Get unique courses from submissions
   const courses = Array.from(new Set(allSubmissions.map(sub => `${sub.courseCode} - ${sub.courseName}`)));
+  
+  // Get unique students from submissions
+  const students = Array.from(new Map(allSubmissions.map(sub => [sub.studentId, {
+    studentId: sub.studentId,
+    studentName: sub.studentName
+  }])).values());
 
   // Fetch all submissions for instructor
   useEffect(() => {
@@ -106,10 +114,19 @@ const NewBulkGradingPage: React.FC = () => {
         
         console.log('🎯 BULK GRADING: Fetching all submissions for instructor');
         
-        // Get course filter from URL params
+        // Get filters from URL params
         const courseParam = searchParams.get('course');
         if (courseParam && courseParam !== 'all') {
           setSelectedCourse(courseParam);
+        }
+        
+        const studentParam = searchParams.get('student');
+        const studentNameParam = searchParams.get('studentName');
+        if (studentParam && studentParam !== 'all') {
+          setSelectedStudent(studentParam);
+          if (studentNameParam) {
+            setSelectedStudentName(decodeURIComponent(studentNameParam));
+          }
         }
         
         // Fetch all submissions for instructor
@@ -202,6 +219,11 @@ const NewBulkGradingPage: React.FC = () => {
       filtered = filtered.filter(sub => sub.assignmentId === selectedAssignment);
     }
     
+    // Apply student filter
+    if (selectedStudent !== 'all') {
+      filtered = filtered.filter(sub => sub.studentId === selectedStudent);
+    }
+    
     // Apply status filter
     if (filter === 'graded') {
       filtered = filtered.filter(sub => sub.status === 'graded');
@@ -252,7 +274,7 @@ const NewBulkGradingPage: React.FC = () => {
       setCurrentGrade(currentSubmission.grade || '');
       setCurrentFeedback(currentSubmission.feedback || '');
     }
-  }, [allSubmissions, selectedCourse, selectedAssignment, filter, searchTerm, sortBy, currentIndex]);
+  }, [allSubmissions, selectedCourse, selectedAssignment, selectedStudent, filter, searchTerm, sortBy, currentIndex]);
 
   // Fetch peer responses for current assignment
   useEffect(() => {
@@ -507,7 +529,7 @@ const NewBulkGradingPage: React.FC = () => {
           {/* Filters */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
                   <select
@@ -535,6 +557,26 @@ const NewBulkGradingPage: React.FC = () => {
                     {assignments.map(assignment => (
                       <option key={assignment.assignmentId} value={assignment.assignmentId}>
                         {assignment.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Student</label>
+                  <select
+                    value={selectedStudent}
+                    onChange={(e) => {
+                      setSelectedStudent(e.target.value);
+                      const student = students.find(s => s.studentId === e.target.value);
+                      setSelectedStudentName(student?.studentName || '');
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  >
+                    <option value="all">All Students</option>
+                    {students.map(student => (
+                      <option key={student.studentId} value={student.studentId}>
+                        {student.studentName}
                       </option>
                     ))}
                   </select>
@@ -590,6 +632,8 @@ const NewBulkGradingPage: React.FC = () => {
                 onClick={() => {
                   setSelectedCourse('all');
                   setSelectedAssignment('all');
+                  setSelectedStudent('all');
+                  setSelectedStudentName('');
                   setFilter('all');
                   setSearchTerm('');
                 }}
@@ -620,9 +664,12 @@ const NewBulkGradingPage: React.FC = () => {
                 </svg>
               </button>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">Bulk Grading</h1>
+                <h1 className="text-xl font-bold text-gray-800">
+                  {selectedStudent !== 'all' ? `${selectedStudentName}'s Videos` : 'Bulk Grading'}
+                </h1>
                 <p className="text-sm text-gray-600">
                   Showing {filteredSubmissions.length} of {allSubmissions.length} submissions
+                  {selectedStudent !== 'all' && ` for ${selectedStudentName}`}
                 </p>
               </div>
             </div>
@@ -673,7 +720,7 @@ const NewBulkGradingPage: React.FC = () => {
         {/* Filters */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
                 <select
@@ -701,6 +748,26 @@ const NewBulkGradingPage: React.FC = () => {
                   {assignments.map(assignment => (
                     <option key={assignment.assignmentId} value={assignment.assignmentId}>
                       {assignment.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Student</label>
+                <select
+                  value={selectedStudent}
+                  onChange={(e) => {
+                    setSelectedStudent(e.target.value);
+                    const student = students.find(s => s.studentId === e.target.value);
+                    setSelectedStudentName(student?.studentName || '');
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option value="all">All Students</option>
+                  {students.map(student => (
+                    <option key={student.studentId} value={student.studentId}>
+                      {student.studentName}
                     </option>
                   ))}
                 </select>
@@ -990,6 +1057,20 @@ const NewBulkGradingPage: React.FC = () => {
         </div>
       </div>
     </InstructorRoute>
+  );
+};
+
+const NewBulkGradingPage: React.FC = () => {
+  return (
+    <Suspense fallback={
+      <InstructorRoute>
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <LoadingSpinner />
+        </div>
+      </InstructorRoute>
+    }>
+      <BulkGradingContent />
+    </Suspense>
   );
 };
 
