@@ -949,15 +949,25 @@ const InstructorCourseDetailPage: React.FC = () => {
                           ✏️ Edit
                         </button>
                       </div>
-                      <button
-                        onClick={() => {
-                          console.log('🎯 Navigating to NEW assignment grading page:', assignment.assignmentId);
-                          router.push(`/instructor/grading/assignment/${assignment.assignmentId}`);
-                        }}
-                        className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
-                      >
-                        📊 Grade Submissions ({assignment.submissionsCount || 0})
-                      </button>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => {
+                            console.log('🎯 Navigating to NEW assignment grading page:', assignment.assignmentId);
+                            router.push(`/instructor/grading/assignment/${assignment.assignmentId}`);
+                          }}
+                          className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                        >
+                          📊 Grade Submissions ({assignment.submissionsCount || 0})
+                        </button>
+                        <button
+                          onClick={() => {
+                            router.push(`/instructor/courses/${courseId}/assignments/${assignment.assignmentId}/grades`);
+                          }}
+                          className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors text-sm"
+                        >
+                          📋 View Grades
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
