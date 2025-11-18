@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { PeerSubmissionData } from './StudentCommunityFeed';
 import Avatar from '../common/Avatar';
 
@@ -25,6 +26,7 @@ export const CommunityInteractions: React.FC<CommunityInteractionsProps> = ({
   onComment,
   isOwnSubmission,
 }) => {
+  const router = useRouter();
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -243,18 +245,24 @@ export const CommunityInteractions: React.FC<CommunityInteractionsProps> = ({
             <div className="space-y-3">
               {submission.comments.map((comment) => (
                 <div key={comment.id} className="flex space-x-3">
-                  <div className="flex-shrink-0">
+                  <div 
+                    className="flex-shrink-0 cursor-pointer"
+                    onClick={() => comment.authorId && router.push(`/student/profile/${comment.authorId}`)}
+                  >
                     <Avatar
                       src={comment.authorAvatar}
                       name={comment.authorName}
                       size="sm"
-                      className="w-8 h-8"
+                      className="w-8 h-8 hover:ring-2 hover:ring-blue-300 transition-all"
                     />
                   </div>
                   <div className="flex-1">
                     <div className="bg-gray-50 rounded-lg px-3 py-2">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-medium text-gray-900">
+                        <span 
+                          className="text-sm font-medium text-gray-900 cursor-pointer hover:text-blue-600 transition-colors"
+                          onClick={() => comment.authorId && router.push(`/student/profile/${comment.authorId}`)}
+                        >
                           {comment.authorName}
                         </span>
                         <span className="text-xs text-gray-500">

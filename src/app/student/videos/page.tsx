@@ -214,10 +214,14 @@ export default function StudentVideosPage() {
                     <img
                       src={video.author?.avatar || '/api/placeholder/32/32'}
                       alt={video.author?.name || 'Unknown Author'}
-                      className="w-8 h-8 rounded-full"
+                      className="w-8 h-8 rounded-full cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+                      onClick={() => video.author?.id && router.push(`/student/profile/${video.author.id}`)}
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p 
+                        className="text-sm font-medium text-gray-900 truncate cursor-pointer hover:text-blue-600 transition-colors"
+                        onClick={() => video.author?.id && router.push(`/student/profile/${video.author.id}`)}
+                      >
                         {video.author?.name || 'Unknown Author'}
                       </p>
                       <p className="text-xs text-gray-500 truncate">

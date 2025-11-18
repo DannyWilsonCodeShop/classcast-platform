@@ -1002,15 +1002,25 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             }}
             className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-1 -m-1 transition-colors"
           >
-            <Avatar 
-              src={item.author?.avatar}
-              name={item.author?.name}
-              size="lg"
-              className="w-10 h-10"
-            />
+            <div 
+              onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
+              className="cursor-pointer"
+            >
+              <Avatar 
+                src={item.author?.avatar}
+                name={item.author?.name}
+                size="lg"
+                className="w-10 h-10 hover:ring-2 hover:ring-blue-300 transition-all"
+              />
+            </div>
               <div>
               <div className="flex items-center space-x-2">
-                <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
+                <p 
+                  onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
+                  className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+                >
+                  {item.author?.name}
+                </p>
                 
                 {/* Study Buddy Button - only show if not current user */}
                 {item.author?.id && item.author.id !== currentUserId && onStudyBuddy && (
@@ -1363,15 +1373,25 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
         onClick={() => item.author?.id && handleUserClick(item.author.id)}
         className="flex items-center space-x-3 mb-3 cursor-pointer hover:bg-white/50 rounded-lg p-1 -m-1 transition-colors"
       >
-        <Avatar 
-          src={item.author?.avatar}
-          name={item.author?.name}
-          size="lg"
-          className="w-10 h-10"
-        />
+        <div 
+          onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
+          className="cursor-pointer"
+        >
+          <Avatar 
+            src={item.author?.avatar}
+            name={item.author?.name}
+            size="lg"
+            className="w-10 h-10 hover:ring-2 hover:ring-blue-300 transition-all"
+          />
+        </div>
         <div className="flex-1 flex items-center justify-between">
           <div>
-            <p className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors">{item.author?.name}</p>
+            <p 
+              onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
+              className="font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+            >
+              {item.author?.name}
+            </p>
             <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
           </div>
           {/* Study Buddy Button - only show if not current user */}
