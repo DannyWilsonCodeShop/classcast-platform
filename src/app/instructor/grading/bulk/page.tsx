@@ -40,6 +40,7 @@ interface VideoSubmission {
   status: 'submitted' | 'graded';
   courseName: string;
   courseCode: string;
+  courseId: string;
 }
 
 interface PeerResponse {
@@ -116,6 +117,7 @@ const BulkGradingContent: React.FC = () => {
         
         // Get filters from URL params
         const courseParam = searchParams.get('course');
+        console.log('🔍 BULK GRADING: URL courseParam:', courseParam);
         if (courseParam && courseParam !== 'all') {
           setSelectedCourse(courseParam);
         }
@@ -158,7 +160,8 @@ const BulkGradingContent: React.FC = () => {
             feedback: sub.instructorFeedback || sub.feedback,
             status: sub.grade !== null && sub.grade !== undefined ? 'graded' : 'submitted',
             courseName: sub.assignment?.courseName || 'Unknown Course',
-            courseCode: sub.assignment?.courseCode || 'N/A'
+            courseCode: sub.assignment?.courseCode || 'N/A',
+            courseId: sub.courseId || sub.assignment?.courseId || '' // Add courseId
           }));
           
           console.log('🎯 BULK GRADING: Transformed submissions:', transformedSubmissions.length);
@@ -208,10 +211,29 @@ const BulkGradingContent: React.FC = () => {
   useEffect(() => {
     let filtered = [...allSubmissions];
     
-    // Apply course filter
+    console.log('🔍 BULK GRADING: Filtering submissions');
+    console.log('🔍 BULK GRADING: selectedCourse:', selectedCourse);
+    console.log('🔍 BULK GRADING: allSubmissions count:', allSubmissions.length);
+    
+    // Apply course filter - handle both courseId and "courseCode - courseName" format
     if (selectedCourse !== 'all') {
       const courseFilter = selectedCourse;
-      filtered = filtered.filter(sub => `${sub.courseCode} - ${sub.courseName}` === courseFilter);
+      console.log('🔍 BULK GRADING: Applying course filter:', courseFilter);
+      
+      // Check if it's a courseId (starts with "course_") or formatted string
+      if (courseFilter.startsWith('course_')) {
+        // Filter by courseId
+        filtered = filtered.filter(sub => {
+          const matches = sub.courseId === courseFilter;
+          console.log(`🔍 BULK GRADING: Checking submission ${sub.submissionId} courseId ${sub.courseId} vs ${courseFilter}:`, matches);
+          return matches;
+        });
+      } else {
+        // Filter by "courseCode - courseName" format
+        filtered = filtered.filter(sub => `${sub.courseCode} - ${sub.courseName}` === courseFilter);
+      }
+      
+      console.log('🔍 BULK GRADING: After course filter:', filtered.length, 'submissions');
     }
     
     // Apply assignment filter
@@ -470,7 +492,19 @@ const BulkGradingContent: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <button
-                  onClick={() => router.back()}
+                  onClick={() => {
+                    // If we came from a specific course and student, go back to that course's Students tab
+                    const courseParam = searchParams.get('course');
+                    const studentParam = searchParams.get('student');
+                    
+                    if (courseParam && courseParam.startsWith('course_') && studentParam) {
+                      // Navigate back to the course page with Students tab active
+                      router.push(`/instructor/courses/${courseParam}?tab=students`);
+                    } else {
+                      // Default back behavior
+                      router.back();
+                    }
+                  }}
                   className="text-gray-500 hover:text-gray-700 transition-colors mb-2"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -511,7 +545,19 @@ const BulkGradingContent: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => router.back()}
+                  onClick={() => {
+                    // If we came from a specific course and student, go back to that course's Students tab
+                    const courseParam = searchParams.get('course');
+                    const studentParam = searchParams.get('student');
+                    
+                    if (courseParam && courseParam.startsWith('course_') && studentParam) {
+                      // Navigate back to the course page with Students tab active
+                      router.push(`/instructor/courses/${courseParam}?tab=students`);
+                    } else {
+                      // Default back behavior
+                      router.back();
+                    }
+                  }}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -656,7 +702,19 @@ const BulkGradingContent: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => router.back()}
+                onClick={() => {
+                  // If we came from a specific course and student, go back to that course's Students tab
+                  const courseParam = searchParams.get('course');
+                  const studentParam = searchParams.get('student');
+                  
+                  if (courseParam && courseParam.startsWith('course_') && studentParam) {
+                    // Navigate back to the course page with Students tab active
+                    router.push(`/instructor/courses/${courseParam}?tab=students`);
+                  } else {
+                    // Default back behavior
+                    router.back();
+                  }
+                }}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
