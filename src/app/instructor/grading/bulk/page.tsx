@@ -41,6 +41,8 @@ interface VideoSubmission {
   courseName: string;
   courseCode: string;
   courseId: string;
+  sectionId?: string;
+  sectionName?: string;
 }
 
 interface PeerResponse {
@@ -60,7 +62,7 @@ interface PeerResponse {
 }
 
 type FilterType = 'all' | 'graded' | 'ungraded';
-type SortType = 'name' | 'date' | 'assignment' | 'course' | 'grade';
+type SortType = 'name' | 'date' | 'assignment' | 'course' | 'grade' | 'section';
 
 const BulkGradingContent: React.FC = () => {
   const router = useRouter();
@@ -79,11 +81,12 @@ const BulkGradingContent: React.FC = () => {
   // Filter and search state
   const [filter, setFilter] = useState<FilterType>('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<SortType>('date');
+  const [sortBy, setSortBy] = useState<SortType>('section');
   const [selectedCourse, setSelectedCourse] = useState<string>('all');
   const [selectedAssignment, setSelectedAssignment] = useState<string>('all');
   const [selectedStudent, setSelectedStudent] = useState<string>('all');
   const [selectedStudentName, setSelectedStudentName] = useState<string>('');
+  const [selectedSection, setSelectedSection] = useState<string>('all');
   
   // Grading state
   const [currentGrade, setCurrentGrade] = useState<number | ''>('');
@@ -97,6 +100,14 @@ const BulkGradingContent: React.FC = () => {
 
   // Get unique courses from submissions
   const courses = Array.from(new Set(allSubmissions.map(sub => `${sub.courseCode} - ${sub.courseName}`)));
+  
+  // Get unique sections from submissions
+  const uniqueSections = Array.from(new Set(
+    allSubmissions
+      .filter(sub => sub.sectionId && sub.sectionName)
+      .map(sub => ({ id: sub.sectionId!, name: sub.sectionName! }))
+      .map(section => JSON.stringify(section))
+  )).map(str => JSON.parse(str)).sort((a, b) => a.name.localeCompare(b.name));
   
   // Get unique students from submissions
   const students = Array.from(new Map(allSubmissions.map(sub => [sub.studentId, {
@@ -161,7 +172,9 @@ const BulkGradingContent: React.FC = () => {
             status: sub.grade !== null && sub.grade !== undefined ? 'graded' : 'submitted',
             courseName: sub.assignment?.courseName || 'Unknown Course',
             courseCode: sub.assignment?.courseCode || 'N/A',
-            courseId: sub.courseId || sub.assignment?.courseId || '' // Add courseId
+            courseId: sub.courseId || sub.assignment?.courseId || '', // Add courseId
+            sectionId: sub.student?.sectionId || null,
+            sectionName: sub.student?.sectionName || null
           }));
           
           console.log('🎯 BULK GRADING: Transformed submissions:', transformedSubmissions.length);
@@ -246,6 +259,11 @@ const BulkGradingContent: React.FC = () => {
       filtered = filtered.filter(sub => sub.studentId === selectedStudent);
     }
     
+    // Apply section filter
+    if (selectedSection !== 'all') {
+      filtered = filtered.filter(sub => sub.sectionId === selectedSection);
+    }
+    
     // Apply status filter
     if (filter === 'graded') {
       filtered = filtered.filter(sub => sub.status === 'graded');
@@ -258,7 +276,8 @@ const BulkGradingContent: React.FC = () => {
       filtered = filtered.filter(sub => 
         sub.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         sub.studentEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sub.assignmentTitle.toLowerCase().includes(searchTerm.toLowerCase())
+        sub.assignmentTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (sub.sectionName && sub.sectionName.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
     
@@ -273,6 +292,13 @@ const BulkGradingContent: React.FC = () => {
           return a.assignmentTitle.localeCompare(b.assignmentTitle);
         case 'course':
           return a.courseName.localeCompare(b.courseName);
+        case 'section':
+          // Sort by section first, then by name within section
+          const sectionA = a.sectionName || 'No Section';
+          const sectionB = b.sectionName || 'No Section';
+          const sectionCompare = sectionA.localeCompare(sectionB);
+          if (sectionCompare !== 0) return sectionCompare;
+          return a.studentName.localeCompare(b.studentName);
         case 'grade':
           if (a.grade === undefined && b.grade === undefined) return 0;
           if (a.grade === undefined) return 1;
@@ -296,7 +322,7 @@ const BulkGradingContent: React.FC = () => {
       setCurrentGrade(currentSubmission.grade || '');
       setCurrentFeedback(currentSubmission.feedback || '');
     }
-  }, [allSubmissions, selectedCourse, selectedAssignment, selectedStudent, filter, searchTerm, sortBy, currentIndex]);
+  }, [allSubmissions, selectedCourse, selectedAssignment, selectedStudent, selectedSection, filter, searchTerm, sortBy, currentIndex]);
 
   // Fetch peer responses for current assignment
   useEffect(() => {
@@ -575,7 +601,7 @@ const BulkGradingContent: React.FC = () => {
           {/* Filters */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
                   <select
@@ -627,6 +653,22 @@ const BulkGradingContent: React.FC = () => {
                     ))}
                   </select>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
+                  <select
+                    value={selectedSection}
+                    onChange={(e) => setSelectedSection(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  >
+                    <option value="all">All Sections</option>
+                    {uniqueSections.map(section => (
+                      <option key={section.id} value={section.id}>
+                        {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -659,8 +701,9 @@ const BulkGradingContent: React.FC = () => {
                     onChange={(e) => setSortBy(e.target.value as SortType)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                   >
-                    <option value="date">Submission Date</option>
+                    <option value="section">Section + Name</option>
                     <option value="name">Student Name</option>
+                    <option value="date">Submission Date</option>
                     <option value="assignment">Assignment</option>
                     <option value="course">Course</option>
                     <option value="grade">Grade</option>
@@ -680,6 +723,7 @@ const BulkGradingContent: React.FC = () => {
                   setSelectedAssignment('all');
                   setSelectedStudent('all');
                   setSelectedStudentName('');
+                  setSelectedSection('all');
                   setFilter('all');
                   setSearchTerm('');
                 }}
@@ -778,7 +822,7 @@ const BulkGradingContent: React.FC = () => {
         {/* Filters */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
                 <select
@@ -830,6 +874,22 @@ const BulkGradingContent: React.FC = () => {
                   ))}
                 </select>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
+                <select
+                  value={selectedSection}
+                  onChange={(e) => setSelectedSection(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option value="all">All Sections</option>
+                  {uniqueSections.map(section => (
+                    <option key={section.id} value={section.id}>
+                      {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
+                    </option>
+                  ))}
+                </select>
+              </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -862,8 +922,9 @@ const BulkGradingContent: React.FC = () => {
                   onChange={(e) => setSortBy(e.target.value as SortType)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 >
-                  <option value="date">Submission Date</option>
+                  <option value="section">Section + Name</option>
                   <option value="name">Student Name</option>
+                  <option value="date">Submission Date</option>
                   <option value="assignment">Assignment</option>
                   <option value="course">Course</option>
                   <option value="grade">Grade</option>
@@ -880,13 +941,30 @@ const BulkGradingContent: React.FC = () => {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
                 <div className="mb-4">
-                  <h2 className="text-lg font-semibold text-gray-800">{currentSubmission.studentName}</h2>
-                  <p className="text-sm text-gray-600">
-                    {currentSubmission.assignmentTitle} • {currentSubmission.courseName}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Submitted: {new Date(currentSubmission.submittedAt).toLocaleDateString()}
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-800">{currentSubmission.studentName}</h2>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <span>{currentSubmission.assignmentTitle}</span>
+                        <span>•</span>
+                        <span>{currentSubmission.courseName}</span>
+                        {currentSubmission.sectionName && (
+                          <>
+                            <span>•</span>
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                              {currentSubmission.sectionName}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Submitted: {new Date(currentSubmission.submittedAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="text-right text-sm text-gray-500">
+                      Student {currentIndex + 1} of {filteredSubmissions.length}
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="bg-black rounded-lg overflow-hidden mb-4">
