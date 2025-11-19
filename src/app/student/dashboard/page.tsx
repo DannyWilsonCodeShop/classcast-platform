@@ -368,10 +368,10 @@ const StudentDashboard: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dashboard-container">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dashboard-container w-full overflow-x-hidden">
         {/* Top Bar */}
-        <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-100/80 via-blue-100/80 to-pink-100/80 backdrop-blur-sm border-b-2 border-purple-300/50 shadow-lg">
-          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+        <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-100/80 via-blue-100/80 to-pink-100/80 backdrop-blur-sm border-b-2 border-purple-300/50 shadow-lg w-full">
+          <div className="w-full px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-1 sm:gap-3">
             {/* ClassCast Logo */}
             <div className="flex items-center flex-shrink-0">
               <Image
@@ -379,7 +379,7 @@ const StudentDashboard: React.FC = () => {
                 alt="MyClassCast"
                 width={120}
                 height={30}
-                className="h-7 w-auto object-contain"
+                className="h-6 sm:h-7 w-auto object-contain"
                 priority
               />
             </div>
@@ -387,13 +387,14 @@ const StudentDashboard: React.FC = () => {
             {/* Community Post Bar */}
             <button
               onClick={() => setShowPostComposer(!showPostComposer)}
-              className="flex-1 px-4 py-2 bg-white/90 rounded-full text-left text-gray-600 text-sm hover:bg-white transition-all shadow-md"
+              className="flex-1 min-w-0 px-2 sm:px-4 py-2 bg-white/90 rounded-full text-left text-gray-600 text-xs sm:text-sm hover:bg-white transition-all shadow-md truncate"
             >
-              ✨ {dailyQuestion}
+              <span className="hidden sm:inline">✨ {dailyQuestion}</span>
+              <span className="sm:hidden">✨ Post...</span>
             </button>
 
-            {/* Explore Toggle */}
-            <div className="flex items-center space-x-2 flex-shrink-0">
+            {/* Explore Toggle - Hidden on mobile */}
+            <div className="hidden sm:flex items-center space-x-2 flex-shrink-0">
               <label className="flex items-center space-x-2 text-sm text-gray-600 cursor-pointer">
                 <input
                   type="checkbox"
@@ -410,7 +411,7 @@ const StudentDashboard: React.FC = () => {
 
 
             {/* School Logo */}
-            <div className="w-10 h-10 flex-shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
               <Image
                 src="/CRAJSmallLogo.png"
                 alt="Cristo Rey Atlanta"
@@ -456,7 +457,7 @@ const StudentDashboard: React.FC = () => {
         </div>
 
           {/* Feed */}
-        <div className="max-w-2xl mx-auto pb-20 dashboard-main">
+        <div className="w-full max-w-2xl mx-auto pb-20 sm:pb-24 dashboard-main px-0">
           {/* Explore Mode Indicator */}
           {includeAllPublicVideos && (
             <div className="sticky top-[57px] z-40 bg-gradient-to-r from-orange-500 to-red-500 border-b-2 border-white/20 px-4 py-2 flex items-center justify-between shadow-lg">
@@ -611,30 +612,33 @@ const StudentDashboard: React.FC = () => {
         onEnroll={handleClassEnrollment}
       />
 
-      {/* Bottom Navigation Bar - Fixed to viewport using Portal */}
+      {/* Bottom Navigation Bar - Fixed to viewport */}
       {isMounted && typeof window !== 'undefined' && createPortal(
         <div 
-          className="bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 backdrop-blur-md border-t-2 border-white/50 px-4 py-3 shadow-2xl"
+          className="bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 backdrop-blur-md border-t-2 border-white/50 shadow-2xl"
           style={{ 
             position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
-            width: '100%',
+            width: '100vw',
             zIndex: 9999,
             display: 'block',
-            visibility: 'visible'
+            visibility: 'visible',
+            transform: 'translateZ(0)',
+            WebkitTransform: 'translateZ(0)',
+            paddingBottom: 'env(safe-area-inset-bottom)'
           }}
         >
-          <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
+          <div className="w-full max-w-2xl mx-auto flex items-center justify-between gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3">
             {/* Course Buttons */}
-            <div className="flex items-center space-x-2 course-buttons">
+            <div className="flex items-center space-x-1 sm:space-x-2 course-buttons">
               {courses.length > 0 ? (
                 courses.slice(0, 3).map((course) => (
                   <button
                     key={course.courseId}
                     onClick={() => handleCourseClick(course.courseId)}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md relative overflow-hidden ${
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm transition-all shadow-md relative overflow-hidden ${
                       selectedCourse === course.courseId 
                         ? 'bg-blue-600 scale-110' 
                         : 'bg-gray-400 hover:bg-gray-500'
@@ -644,26 +648,26 @@ const StudentDashboard: React.FC = () => {
                     {course.initials || course.name.substring(0, 3).toUpperCase()}
                     {/* Notification indicator */}
                     {course.unreadCount > 0 && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                      <div className="absolute -top-1 -right-1 w-3 h-3 sm:w-4 sm:h-4 bg-red-500 text-white text-[8px] sm:text-xs rounded-full flex items-center justify-center">
                         {course.unreadCount > 9 ? '9+' : course.unreadCount}
                       </div>
                     )}
                   </button>
                 ))
               ) : (
-                <div className="text-xs text-gray-500 px-2">No courses</div>
+                <div className="text-[10px] sm:text-xs text-gray-500 px-1 sm:px-2">No courses</div>
               )}
             </div>
 
             {/* Center Buttons */}
-            <div className="flex items-center space-x-2 main-nav">
+            <div className="flex items-center space-x-1 sm:space-x-2 main-nav">
               {/* Community Button */}
               <button
                 onClick={() => router.push('/community')}
-                className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
                 title="Community"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </button>
@@ -671,10 +675,10 @@ const StudentDashboard: React.FC = () => {
               {/* Messages Button */}
               <button
                 onClick={() => router.push('/student/messages')}
-                className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
                 title="Messages"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </button>
@@ -682,16 +686,16 @@ const StudentDashboard: React.FC = () => {
               {/* Notifications Button */}
               <button
                 onClick={() => router.push('/student/notifications')}
-                className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm relative"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm relative"
                 title="Notifications"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
                 {/* Notification badge - only show if there are new notifications */}
                 {notificationCount > 0 && (
-                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                    <span className="text-[10px] font-bold text-white">{notificationCount > 9 ? '9+' : notificationCount}</span>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                    <span className="text-[8px] sm:text-[10px] font-bold text-white">{notificationCount > 9 ? '9+' : notificationCount}</span>
                   </div>
                 )}
               </button>
@@ -699,22 +703,22 @@ const StudentDashboard: React.FC = () => {
               {/* Join Class Button */}
               <button
                 onClick={() => setShowJoinClassPopup(true)}
-                className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
+                className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
                 title="Join Class"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
               </button>
 
-              {/* Bug Report Button */}
+              {/* Bug Report Button - Hidden on mobile to save space */}
               <button
                 onClick={() => setShowBugReport(true)}
-                className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
+                className="hidden sm:flex w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-white/30 items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
                 title="Report a bug or get help"
               >
                 {/* Bug Icon */}
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5s-.96.06-1.42.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/>
                 </svg>
               </button>
@@ -723,7 +727,7 @@ const StudentDashboard: React.FC = () => {
             {/* Profile Avatar */}
             <button
               onClick={() => router.push('/student/profile')}
-              className="w-12 h-12 rounded-full bg-white/30 hover:bg-white/40 flex items-center justify-center overflow-hidden shadow-lg backdrop-blur-sm hover:shadow-xl transition-all border-2 border-white/20 profile-menu user-avatar"
+              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/30 hover:bg-white/40 flex items-center justify-center overflow-hidden shadow-lg backdrop-blur-sm hover:shadow-xl transition-all border-2 border-white/20 profile-menu user-avatar"
             >
               <Avatar 
                 user={user}
@@ -744,8 +748,8 @@ const StudentDashboard: React.FC = () => {
 
       {/* Peer Response Announcement Modal */}
       {showPeerResponseAnnouncement && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[10000] px-4" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <div className="bg-white rounded-2xl p-4 sm:p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="text-center mb-6">
               <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-4xl">💬</span>
