@@ -171,6 +171,167 @@ interface PeerResponse {
   characterCount: number;
 }
 
+// Section Column Component for drag-and-drop
+const SectionColumn: React.FC<{
+  title: string;
+  sectionName: string | null;
+  students: Student[];
+  onDrop: (studentId: string, sectionName: string | null) => void;
+  draggedStudent: Student | null;
+  onRemoveStudent: (studentId: string, studentName: string) => void;
+  onGradeStudent: (student: Student) => void;
+  setDraggedStudent: (student: Student | null) => void;
+  removingStudent: string | null;
+}> = ({ 
+  title, 
+  sectionName, 
+  students, 
+  onDrop, 
+  draggedStudent, 
+  onRemoveStudent, 
+  onGradeStudent, 
+  setDraggedStudent,
+  removingStudent 
+}) => {
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (draggedStudent && draggedStudent.sectionName !== sectionName) {
+      setIsDragOver(true);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    if (draggedStudent && draggedStudent.sectionName !== sectionName) {
+      onDrop(draggedStudent.studentId, sectionName);
+    }
+  };
+
+  return (
+    <div 
+      className={`bg-white rounded-2xl shadow-lg border-2 transition-all duration-200 ${
+        isDragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200'
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-700">
+            📚 {title}
+          </h3>
+          <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">
+            {students.length} student{students.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+        {isDragOver && (
+          <div className="mt-2 text-sm text-blue-600 font-medium">
+            Drop here to move student to {title}
+          </div>
+        )}
+      </div>
+      
+      <div className="p-4">
+        {students.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {students.map((student) => (
+              <div
+                key={student.studentId}
+                draggable
+                onDragStart={() => setDraggedStudent(student)}
+                onDragEnd={() => setDraggedStudent(null)}
+                className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:bg-white hover:shadow-sm transition-all cursor-move"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                    <Avatar
+                      src={student.avatar}
+                      name={student.name}
+                      size="sm"
+                      className="w-8 h-8 flex-shrink-0"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-800 text-sm truncate">{student.name}</h4>
+                      <p className="text-xs text-gray-500 truncate">{student.email}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Remove Student Button */}
+                  <button
+                    onClick={() => onRemoveStudent(student.studentId, student.name)}
+                    disabled={removingStudent === student.studentId}
+                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                    title="Remove student from course"
+                  >
+                    {removingStudent === student.studentId ? (
+                      <div className="w-3 h-3 border border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                
+                {/* Student Stats - Compact */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      student.status === 'active' ? 'bg-green-100 text-green-700' :
+                      student.status === 'dropped' ? 'bg-red-100 text-red-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {student.status}
+                    </span>
+                    
+                    {/* Video Submissions Count with Link */}
+                    <button
+                      onClick={() => onGradeStudent(student)}
+                      className={`inline-flex items-center px-2 py-1 text-xs rounded transition-colors ${
+                        student.assignmentsSubmitted > 0
+                          ? 'bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 cursor-pointer'
+                          : 'bg-gray-50 text-gray-400 cursor-default'
+                      }`}
+                      title={
+                        student.assignmentsSubmitted > 0
+                          ? `Grade ${student.name}'s ${student.assignmentsSubmitted} video submission${student.assignmentsSubmitted !== 1 ? 's' : ''}`
+                          : `${student.name} has no video submissions yet`
+                      }
+                    >
+                      <span className="mr-1">🎥</span>
+                      <span className="font-semibold">{student.assignmentsSubmitted}</span>
+                    </button>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500">
+                    Enrolled {new Date(student.enrollmentDate).toLocaleDateString()}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500">
+            <div className="text-4xl mb-2">👤</div>
+            <p className="text-sm">No students in this section</p>
+            {isDragOver && (
+              <p className="text-xs text-blue-600 mt-1">Drop a student here</p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const InstructorCourseDetailPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
@@ -198,6 +359,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [showRemoveConfirm, setShowRemoveConfirm] = useState<{studentId: string, studentName: string} | null>(null);
   const [expandedPeerResponses, setExpandedPeerResponses] = useState<Set<string>>(new Set());
   const [collapsedVideos, setCollapsedVideos] = useState<Set<string>>(new Set());
+  const [draggedStudent, setDraggedStudent] = useState<Student | null>(null);
 
   const courseId = params.courseId as string;
 
@@ -697,6 +859,62 @@ const InstructorCourseDetailPage: React.FC = () => {
       }
       return newSet;
     });
+  };
+
+  const handleDropStudent = async (studentId: string, targetSectionName: string | null) => {
+    const student = studentsWithSubmissionCounts.find(s => s.studentId === studentId);
+    if (!student || student.sectionName === targetSectionName) return;
+
+    try {
+      // Find the target section ID
+      const targetSection = sections.find(s => s.sectionName === targetSectionName);
+      const targetSectionId = targetSection?.sectionId || null;
+
+      const response = await fetch('/api/instructor/students/move-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          studentId: studentId,
+          fromCourseId: courseId,
+          toCourseId: courseId,
+          toSectionId: targetSectionId,
+          studentName: student.name,
+          studentEmail: student.email
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Update student's section in local state
+        setStudents(prev => prev.map(s => 
+          s.studentId === studentId 
+            ? { 
+                ...s, 
+                sectionName: targetSectionName
+              }
+            : s
+        ));
+        
+        // Show success message
+        const successMsg = document.createElement('div');
+        successMsg.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        successMsg.textContent = `✅ ${student.name} moved to ${targetSectionName || 'No Section'}`;
+        document.body.appendChild(successMsg);
+        setTimeout(() => document.body.removeChild(successMsg), 3000);
+      } else {
+        throw new Error(data.error || 'Failed to move student');
+      }
+    } catch (error) {
+      console.error('Error moving student:', error);
+      // Show error message
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      errorMsg.textContent = `❌ Failed to move ${student.name}`;
+      document.body.appendChild(errorMsg);
+      setTimeout(() => document.body.removeChild(errorMsg), 3000);
+    }
   };
 
   if (loading) {
@@ -1309,112 +1527,62 @@ const InstructorCourseDetailPage: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-2xl font-bold text-gray-800">Students</h2>
-                  <div className="text-sm text-gray-600">
-                    {studentsWithSubmissionCounts.length} student{studentsWithSubmissionCounts.length !== 1 ? 's' : ''}
+                  <div className="flex items-center space-x-4">
+                    <div className="text-sm text-gray-600">
+                      {studentsWithSubmissionCounts.length} student{studentsWithSubmissionCounts.length !== 1 ? 's' : ''}
+                    </div>
+                    <button
+                      onClick={() => router.push(`/instructor/courses/${courseId}/students`)}
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                      title="Manage students with drag-and-drop section changes"
+                    >
+                      🔄 Manage Students
+                    </button>
                   </div>
                 </div>
                 
                 {studentsWithSubmissionCounts.length > 0 ? (
                   <div className="space-y-6">
-                    {/* Group students by section */}
+                    {/* Info Banner */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="text-blue-600">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-blue-800">
+                            <strong>Drag and Drop:</strong> You can now drag students between sections to move them. Click "Manage Students" for additional features like exporting grades.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Group students by section with drag-and-drop */}
                     {Array.from(new Set(studentsWithSubmissionCounts.map(s => s.sectionName || 'No Section'))).map(sectionName => {
                       const sectionStudents = studentsWithSubmissionCounts.filter(s => (s.sectionName || 'No Section') === sectionName);
                       
                       return (
-                        <div key={sectionName}>
-                          <h3 className="text-lg font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-200">
-                            {sectionName} ({sectionStudents.length} student{sectionStudents.length !== 1 ? 's' : ''})
-                          </h3>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                            {sectionStudents.map((student) => (
-                              <div
-                                key={student.studentId}
-                                className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:bg-white hover:shadow-sm transition-all"
-                              >
-                                <div className="flex items-center justify-between mb-3">
-                                  <div className="flex items-center space-x-2 flex-1 min-w-0">
-                                    <Avatar
-                                      src={student.avatar}
-                                      name={student.name}
-                                      size="sm"
-                                      className="w-8 h-8 flex-shrink-0"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="font-medium text-gray-800 text-sm truncate">{student.name}</h4>
-                                      <p className="text-xs text-gray-500 truncate">{student.email}</p>
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Remove Student Button */}
-                                  <button
-                                    onClick={() => setShowRemoveConfirm({studentId: student.studentId, studentName: student.name})}
-                                    disabled={removingStudent === student.studentId}
-                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-                                    title="Remove student from course"
-                                  >
-                                    {removingStudent === student.studentId ? (
-                                      <div className="w-3 h-3 border border-red-500 border-t-transparent rounded-full animate-spin"></div>
-                                    ) : (
-                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                      </svg>
-                                    )}
-                                  </button>
-                                </div>
-                                
-                                {/* Student Stats - Compact */}
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                      student.status === 'active' ? 'bg-green-100 text-green-700' :
-                                      student.status === 'dropped' ? 'bg-red-100 text-red-700' :
-                                      'bg-gray-100 text-gray-700'
-                                    }`}>
-                                      {student.status}
-                                    </span>
-                                    
-                                    {/* Video Submissions Count with Link */}
-                                    <button
-                                      onClick={() => {
-                                        console.log('🔗 STUDENTS TAB: Grade Videos clicked for student:', {
-                                          studentId: student.studentId,
-                                          studentName: student.name,
-                                          courseId: courseId,
-                                          submissionCount: student.assignmentsSubmitted
-                                        });
-                                        
-                                        if (student.assignmentsSubmitted === 0) {
-                                          alert(`${student.name} has not submitted any videos yet.`);
-                                          return;
-                                        }
-                                        
-                                        router.push(`/instructor/grading/bulk?course=${courseId}&student=${student.studentId}&studentName=${encodeURIComponent(student.name)}`);
-                                      }}
-                                      className={`inline-flex items-center px-2 py-1 text-xs rounded transition-colors ${
-                                        student.assignmentsSubmitted > 0
-                                          ? 'bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-700 cursor-pointer'
-                                          : 'bg-gray-50 text-gray-400 cursor-default'
-                                      }`}
-                                      title={
-                                        student.assignmentsSubmitted > 0
-                                          ? `Grade ${student.name}'s ${student.assignmentsSubmitted} video submission${student.assignmentsSubmitted !== 1 ? 's' : ''}`
-                                          : `${student.name} has no video submissions yet`
-                                      }
-                                    >
-                                      <span className="mr-1">🎥</span>
-                                      <span className="font-semibold">{student.assignmentsSubmitted}</span>
-                                    </button>
-                                  </div>
-                                  
-                                  <div className="text-xs text-gray-500">
-                                    Enrolled {new Date(student.enrollmentDate).toLocaleDateString()}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                        <SectionColumn
+                          key={sectionName}
+                          title={sectionName}
+                          sectionName={sectionName === 'No Section' ? null : sectionName}
+                          students={sectionStudents}
+                          onDrop={handleDropStudent}
+                          draggedStudent={draggedStudent}
+                          onRemoveStudent={(studentId: string, studentName: string) => 
+                            setShowRemoveConfirm({studentId, studentName})
+                          }
+                          onGradeStudent={(student: Student) => {
+                            if (student.assignmentsSubmitted === 0) {
+                              alert(`${student.name} has not submitted any videos yet.`);
+                              return;
+                            }
+                            router.push(`/instructor/grading/bulk?course=${courseId}&student=${student.studentId}&studentName=${encodeURIComponent(student.name)}`);
+                          }}
+                          setDraggedStudent={setDraggedStudent}
+                          removingStudent={removingStudent}
+                        />
                       );
                     })}
                   </div>
