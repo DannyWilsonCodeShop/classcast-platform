@@ -134,16 +134,19 @@ const AssignmentGradesPage: React.FC = () => {
       }
       
       const assignmentData = await assignmentResponse.json();
-      if (assignmentData.success && assignmentData.assignment) {
+      console.log('Assignment API response:', assignmentData); // Debug log
+      
+      if (assignmentData.success && assignmentData.data?.assignment) {
+        const assignment = assignmentData.data.assignment;
         setAssignment({
-          assignmentId: assignmentData.assignment.assignmentId,
-          title: assignmentData.assignment.title,
-          description: assignmentData.assignment.description,
-          dueDate: assignmentData.assignment.dueDate,
-          maxScore: assignmentData.assignment.maxScore || 100,
-          courseId: assignmentData.assignment.courseId,
-          courseName: assignmentData.assignment.courseName || 'Course',
-          courseCode: assignmentData.assignment.courseCode || 'N/A'
+          assignmentId: assignment.assignmentId,
+          title: assignment.title,
+          description: assignment.description,
+          dueDate: assignment.dueDate,
+          maxScore: assignment.points || assignment.maxScore || 100,
+          courseId: assignment.courseId,
+          courseName: assignment.courseName || assignment.course?.name || 'Course',
+          courseCode: assignment.courseCode || assignment.course?.code || 'N/A'
         });
       }
       
@@ -157,6 +160,7 @@ const AssignmentGradesPage: React.FC = () => {
       }
       
       const studentsData = await studentsResponse.json();
+      console.log('Students API response:', studentsData); // Debug log
       const enrolledStudents = studentsData.success ? studentsData.data?.students || [] : [];
       
       // Fetch submissions for this assignment
@@ -165,6 +169,7 @@ const AssignmentGradesPage: React.FC = () => {
       });
       
       const submissionsData = submissionsResponse.ok ? await submissionsResponse.json() : { success: false };
+      console.log('Submissions API response:', submissionsData); // Debug log
       const submissions = submissionsData.success ? submissionsData.submissions || [] : [];
       
       // Create a map of submissions by student ID
@@ -178,6 +183,16 @@ const AssignmentGradesPage: React.FC = () => {
           status: sub.grade !== null && sub.grade !== undefined ? 'graded' : 'submitted'
         });
       });
+      
+      console.log('Enrolled students:', enrolledStudents.length);
+      console.log('Submissions:', submissions.length);
+      
+      // If no students are enrolled, show a message
+      if (enrolledStudents.length === 0) {
+        console.warn('No students enrolled in this course');
+        setStudentGrades([]);
+        return;
+      }
       
       // Combine student data with submission data
       const gradesData: StudentGrade[] = await Promise.all(
@@ -218,6 +233,7 @@ const AssignmentGradesPage: React.FC = () => {
         })
       );
       
+      console.log('Final grades data:', gradesData.length);
       setStudentGrades(gradesData);
       
       // Extract unique sections
@@ -292,10 +308,16 @@ const AssignmentGradesPage: React.FC = () => {
     if (grade === undefined || grade === null) {
       return <span className="text-gray-400">—</span>;
     }
+    
+    const percentage = maxScore && maxScore > 0 ? Math.round((grade / maxScore) * 100) : null;
+    
     return (
-      <span className="font-medium">
-        {grade}{maxScore ? `/${maxScore}` : ''}
-      </span>
+      <div className="font-medium">
+        <div>{grade}{maxScore ? `/${maxScore}` : ''}</div>
+        {percentage !== null && (
+          <div className="text-xs text-gray-500">({percentage}%)</div>
+        )}
+      </div>
     );
   };
 
@@ -365,13 +387,22 @@ const AssignmentGradesPage: React.FC = () => {
                 <p className="text-gray-600">{assignment.courseName} ({assignment.courseCode})</p>
               </div>
             </div>
-            <button
-              onClick={handleExportGrades}
-              disabled={isExporting}
-              className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-            >
-              {isExporting ? 'Exporting...' : '📊 Export Grades'}
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Refreshing...' : '🔄 Refresh'}
+              </button>
+              <button
+                onClick={handleExportGrades}
+                disabled={isExporting || studentGrades.length === 0}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {isExporting ? 'Exporting...' : '📊 Export Grades'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -527,7 +558,23 @@ const AssignmentGradesPage: React.FC = () => {
             
             {filteredGrades.length === 0 && (
               <div className="text-center py-12">
-                <div className="text-gray-500">No students match the current filters.</div>
+                {studentGrades.length === 0 ? (
+                  <div>
+                    <div className="text-6xl mb-4">👥</div>
+                    <div className="text-gray-500 text-lg font-medium mb-2">No Students Enrolled</div>
+                    <div className="text-gray-400 text-sm">
+                      This course doesn't have any enrolled students yet.
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="text-6xl mb-4">🔍</div>
+                    <div className="text-gray-500 text-lg font-medium mb-2">No Results Found</div>
+                    <div className="text-gray-400 text-sm">
+                      No students match the current filters. Try adjusting your search criteria.
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
