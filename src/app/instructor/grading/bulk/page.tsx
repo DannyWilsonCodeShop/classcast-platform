@@ -6,6 +6,8 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { getVideoUrl } from '@/lib/videoUtils';
+import { parseVideoUrl, getEmbedUrl } from '@/lib/urlUtils';
+import { extractYouTubeVideoId, getYouTubeEmbedUrl, getYouTubeThumbnail } from '@/lib/youtube';
 
 interface Assignment {
   assignmentId: string;
@@ -212,12 +214,7 @@ const BulkGradingContent: React.FC = () => {
           );
           setAssignments(uniqueAssignments);
           
-          // Load first submission's grade and feedback if available
-          if (transformedSubmissions.length > 0) {
-            const firstSubmission = transformedSubmissions[0];
-            setCurrentGrade(firstSubmission.grade || '');
-            setCurrentFeedback(firstSubmission.feedback || '');
-          }
+          // Submissions loaded successfully
         } else {
           console.log('🎯 BULK GRADING: No submissions found');
           setAllSubmissions([]);
@@ -791,51 +788,8 @@ const BulkGradingContent: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              {/* Navigation */}
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={goToPrevious}
-                    disabled={currentIndex === 0}
-                    className="px-3 py-1 bg-gray-500 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    ← Previous
-                  </button>
-                  <span className="text-sm text-gray-600">
-                    {currentIndex + 1} of {filteredSubmissions.length}
-                  </span>
-                  <button
-                    onClick={goToNext}
-                    disabled={currentIndex === filteredSubmissions.length - 1}
-                    className="px-3 py-1 bg-gray-500 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    Next →
-                  </button>
-                </div>
-                
-                {/* Scroll Navigation Hint */}
-                <div className="flex items-center space-x-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                  <span>💡</span>
-                  <span>Scroll ↑ next, ↓ previous</span>
-                </div>
-              </div>
-              
-              {/* Playback Speed */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Speed:</span>
-                {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map(speed => (
-                  <button
-                    key={speed}
-                    onClick={() => handleSpeedChange(speed)}
-                    className={`px-2 py-1 rounded text-xs ${
-                      playbackSpeed === speed
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {speed}x
-                  </button>
-                ))}
+              <div className="text-sm text-gray-600">
+                Continuous feed • Auto-save enabled
               </div>
             </div>
           </div>
@@ -976,163 +930,434 @@ const BulkGradingContent: React.FC = () => {
                   Showing {filteredSubmissions.length} submission{filteredSubmissions.length !== 1 ? 's' : ''} across all assignments
                 </div>
                 <div className="text-xs text-gray-500">
-                  💡 Scroll through all submissions in one continuous feed • Auto-save enabled
+                  💡 Each video is displayed in its own card • Auto-save enabled • Scroll naturally through submissions
                 </div>
               </div>
 
-              {/* Continuous Feed of All Submissions */}
-              <div className="space-y-8">
+              {/* Card-based Feed like Student Dashboard */}
+              <div className="space-y-4">
                 {filteredSubmissions.map((submission, index) => (
-                  <div key={submission.submissionId} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                  <div key={submission.submissionId} className="bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/30 border-l-4 border-blue-500 border-b-2 border-blue-200/50 shadow-md rounded-lg overflow-hidden">
                     {/* Student Header */}
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
-                            {submission.studentName?.charAt(0) || 'S'}
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-gray-900">{submission.studentName}</h3>
-                            <p className="text-sm text-gray-600">{submission.studentEmail}</p>
-                          </div>
+                    <div className="px-4 py-3 flex items-center justify-between bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+                          {submission.studentName?.charAt(0) || 'S'}
                         </div>
-                        
-                        <div className="flex items-center space-x-3">
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            #{index + 1} of {filteredSubmissions.length}
-                          </span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            submission.status === 'graded' 
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-blue-100 text-blue-800'
-                          }`}>
-                            {submission.status === 'graded' ? 'Graded' : 'Submitted'}
-                          </span>
-                          
-                          {submission.submittedAt && (
-                            <span className="text-xs text-gray-500">
-                              {new Date(submission.submittedAt).toLocaleDateString()}
-                            </span>
-                          )}
-                          
-                          <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                            {submission.assignmentTitle}
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <p className="font-semibold text-sm text-gray-900">{submission.studentName}</p>
+                            {submission.sectionName && (
+                              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">
+                                {submission.sectionName}
+                              </span>
+                            )}
                           </div>
+                          <p className="text-xs text-gray-500">{submission.studentEmail}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          #{index + 1} of {filteredSubmissions.length}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          submission.status === 'graded' 
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}>
+                          {submission.status === 'graded' ? 'Graded' : 'Submitted'}
+                        </span>
+                        <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          {submission.assignmentTitle}
                         </div>
                       </div>
                     </div>
 
-                    {/* Video Player */}
-                    <div className="p-6">
-                      <div className="mb-6">
-                        <video
-                          src={getVideoUrl(submission.videoUrl)}
-                          poster={submission.thumbnailUrl || `/api/placeholder/400/300?text=${encodeURIComponent(submission.studentName)}`}
-                          className="w-full h-96 object-contain bg-gray-100"
-                          controls
-                          preload="metadata"
-                          onLoadedMetadata={(e) => {
-                            const video = e.currentTarget;
-                            // If no custom thumbnail, seek to 2 seconds for better preview frame
-                            if (!submission.thumbnailUrl && video.duration > 2) {
-                              video.currentTime = 2;
-                            }
-                          }}
-                          onSeeked={(e) => {
-                            const video = e.currentTarget;
-                            // Pause after seeking to show the 2-second frame as preview
-                            if (!submission.thumbnailUrl && video.currentTime >= 1.5 && video.currentTime <= 3) {
-                              video.pause();
-                            }
-                          }}
-                          onError={(e) => {
-                            console.error('Video playback error for:', submission.studentName, submission.videoUrl, e);
-                          }}
-                        />
-                      </div>
+                    {/* Video Player - Enhanced with YouTube and Google Drive Support */}
+                    <div className="relative w-full bg-black mb-2" style={{ aspectRatio: '16/9' }}>
+                      {(() => {
+                        // Parse video URL to determine type
+                        const videoUrlInfo = parseVideoUrl(submission.videoUrl);
+                        const isYouTube = videoUrlInfo?.type === 'youtube';
+                        const isGoogleDrive = videoUrlInfo?.type === 'google-drive';
+                        const videoId = isYouTube ? extractYouTubeVideoId(submission.videoUrl) : null;
+                        const embedUrl = getEmbedUrl(submission.videoUrl);
+                        
+                        console.log(`🎬 Video type detection for ${submission.studentName}:`, {
+                          originalUrl: submission.videoUrl,
+                          videoType: videoUrlInfo?.type,
+                          isYouTube,
+                          isGoogleDrive,
+                          videoId,
+                          embedUrl
+                        });
 
-                      {/* Grading Form */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Left Column - Grading */}
-                        <div className="space-y-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Grade (out of 100)
-                            </label>
-                            <input
-                              type="number"
-                              min="0"
-                              max="100"
-                              value={grades[submission.submissionId] || ''}
-                              onChange={(e) => handleGradeChange(submission.submissionId, e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder="Enter grade"
-                            />
-                            {savingGrades.has(submission.submissionId) && (
-                              <p className="text-xs text-blue-600 mt-1">Auto-saving...</p>
-                            )}
-                          </div>
+                        if (isYouTube && videoId && embedUrl) {
+                          // YouTube Video Player
+                          const [showYouTubePlayer, setShowYouTubePlayer] = React.useState(false);
+                          const thumbnailUrl = getYouTubeThumbnail(videoId, 'maxresdefault');
                           
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Feedback
-                            </label>
-                            <textarea
-                              rows={4}
-                              value={feedback[submission.submissionId] || ''}
-                              onChange={(e) => handleFeedbackChange(submission.submissionId, e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                              placeholder="Enter feedback for the student..."
-                            />
-                          </div>
+                          return (
+                            <div className="relative w-full h-full group">
+                              {!showYouTubePlayer ? (
+                                <>
+                                  <img
+                                    src={thumbnailUrl}
+                                    alt={`${submission.studentName}'s video`}
+                                    className="w-full h-full object-cover cursor-pointer"
+                                    onClick={() => setShowYouTubePlayer(true)}
+                                    onError={(e) => {
+                                      // Fallback to default thumbnail
+                                      e.currentTarget.src = getYouTubeThumbnail(videoId, 'hqdefault');
+                                    }}
+                                  />
+                                  {/* YouTube Play Button Overlay */}
+                                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                    <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center shadow-2xl">
+                                      <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+                                    📺 YouTube Video - Click to play
+                                  </div>
+                                </>
+                              ) : (
+                                <iframe
+                                  src={`${embedUrl}?autoplay=1&mute=0&rel=0&modestbranding=1`}
+                                  className="w-full h-full"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                  title={`${submission.studentName}'s video`}
+                                />
+                              )}
+                            </div>
+                          );
+                        } else if (isGoogleDrive && embedUrl) {
+                          // Google Drive Video Player
+                          const [showGoogleDrivePlayer, setShowGoogleDrivePlayer] = React.useState(false);
                           
-                          <div className="flex space-x-3">
-                            <button
-                              onClick={() => handleDeleteSubmission(submission.submissionId)}
-                              className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                          return (
+                            <div className="relative w-full h-full group">
+                              {!showGoogleDrivePlayer ? (
+                                <div 
+                                  className="w-full h-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center cursor-pointer hover:from-blue-700 hover:to-blue-900 transition-colors"
+                                  onClick={() => setShowGoogleDrivePlayer(true)}
+                                >
+                                  {/* Google Drive Play Button */}
+                                  <div className="text-center text-white">
+                                    <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                      <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z" />
+                                      </svg>
+                                    </div>
+                                    <div className="font-semibold">Google Drive Video</div>
+                                    <div className="text-sm opacity-75">Click to play</div>
+                                  </div>
+                                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+                                    💾 Google Drive Video
+                                  </div>
+                                </div>
+                              ) : (
+                                <iframe
+                                  src={`${embedUrl}?autoplay=1`}
+                                  className="w-full h-full"
+                                  allow="autoplay"
+                                  allowFullScreen
+                                  title={`${submission.studentName}'s video`}
+                                />
+                              )}
+                            </div>
+                          );
+                        } else {
+                          // Direct Video File Player
+                          return (
+                            <video
+                              key={submission.submissionId}
+                              src={getVideoUrl(submission.videoUrl)}
+                              poster={submission.thumbnailUrl}
+                              className="w-full h-full object-contain"
+                              controls
+                              preload="metadata"
+                              crossOrigin="anonymous"
+                              onLoadStart={(e) => {
+                                console.log(`🎬 Direct video load started for ${submission.studentName}:`, {
+                                  originalUrl: submission.videoUrl,
+                                  processedUrl: getVideoUrl(submission.videoUrl),
+                                  submissionId: submission.submissionId
+                                });
+                              }}
+                              onLoadedMetadata={(e) => {
+                                const video = e.currentTarget;
+                                console.log(`✅ Video metadata loaded for ${submission.studentName}:`, {
+                                  duration: video.duration,
+                                  videoWidth: video.videoWidth,
+                                  videoHeight: video.videoHeight,
+                                  readyState: video.readyState
+                                });
+                                
+                                // Generate thumbnail if none exists
+                                if (!submission.thumbnailUrl && video.duration > 0) {
+                                  const seekTime = Math.min(video.duration * 0.1, 3);
+                                  console.log(`🖼️ Seeking to ${seekTime}s for thumbnail generation`);
+                                  video.currentTime = seekTime;
+                                }
+                              }}
+                              onCanPlay={(e) => {
+                                console.log(`▶️ Video can play for ${submission.studentName}`);
+                              }}
+                              onCanPlayThrough={(e) => {
+                                console.log(`🎯 Video can play through for ${submission.studentName}`);
+                              }}
+                              onSeeked={(e) => {
+                                const video = e.currentTarget;
+                                if (!submission.thumbnailUrl && video.videoWidth > 0) {
+                                  try {
+                                    console.log(`🖼️ Generating thumbnail for ${submission.studentName}`);
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    if (ctx) {
+                                      canvas.width = video.videoWidth;
+                                      canvas.height = video.videoHeight;
+                                      ctx.drawImage(video, 0, 0);
+                                      
+                                      canvas.toBlob((blob) => {
+                                        if (blob) {
+                                          const thumbnailUrl = URL.createObjectURL(blob);
+                                          video.poster = thumbnailUrl;
+                                          console.log(`✅ Thumbnail generated for ${submission.studentName}`);
+                                        }
+                                      }, 'image/jpeg', 0.8);
+                                    }
+                                  } catch (error) {
+                                    console.warn(`❌ Could not generate thumbnail for ${submission.studentName}:`, error);
+                                  }
+                                  video.pause();
+                                  video.currentTime = 0;
+                                }
+                              }}
+                              onError={(e) => {
+                                const video = e.currentTarget;
+                                const error = video.error;
+                                console.error(`❌ Video playback error for ${submission.studentName}:`, {
+                                  originalUrl: submission.videoUrl,
+                                  processedUrl: getVideoUrl(submission.videoUrl),
+                                  errorCode: error?.code,
+                                  errorMessage: error?.message,
+                                  networkState: video.networkState,
+                                  readyState: video.readyState,
+                                  submissionId: submission.submissionId
+                                });
+                                
+                                // Show error overlay
+                                const errorOverlay = document.createElement('div');
+                                errorOverlay.className = 'absolute inset-0 bg-red-900 bg-opacity-75 flex items-center justify-center text-white text-center p-4 z-10';
+                                errorOverlay.innerHTML = `
+                                  <div>
+                                    <div class="text-4xl mb-2">⚠️</div>
+                                    <div class="font-semibold mb-2">Video Load Error</div>
+                                    <div class="text-sm mb-2">Student: ${submission.studentName}</div>
+                                    <div class="text-xs opacity-75 mb-3">Error Code: ${error?.code || 'Unknown'}</div>
+                                    <button 
+                                      onclick="this.parentElement.parentElement.remove(); this.parentElement.parentElement.parentElement.querySelector('video').load();"
+                                      class="px-3 py-1 bg-white text-red-900 rounded text-xs font-medium hover:bg-gray-100 mr-2"
+                                    >
+                                      Retry
+                                    </button>
+                                    <a 
+                                      href="${getVideoUrl(submission.videoUrl)}" 
+                                      target="_blank" 
+                                      class="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
+                                    >
+                                      Open Direct
+                                    </a>
+                                  </div>
+                                `;
+                                video.parentElement?.appendChild(errorOverlay);
+                              }}
+                              onStalled={(e) => {
+                                console.warn(`⏸️ Video stalled for ${submission.studentName}`);
+                              }}
+                              onSuspend={(e) => {
+                                console.warn(`⏯️ Video suspended for ${submission.studentName}`);
+                              }}
+                              onAbort={(e) => {
+                                console.warn(`🛑 Video aborted for ${submission.studentName}`);
+                              }}
+                              onEmptied={(e) => {
+                                console.warn(`🗑️ Video emptied for ${submission.studentName}`);
+                              }}
                             >
-                              Delete
+                              {/* Fallback sources for better compatibility */}
+                              <source src={getVideoUrl(submission.videoUrl)} type="video/mp4" />
+                              <source src={submission.videoUrl} type="video/mp4" />
+                              {submission.videoUrl.includes('.mp4') && (
+                                <source src={submission.videoUrl.replace('.mp4', '.webm')} type="video/webm" />
+                              )}
+                              
+                              {/* Fallback content */}
+                              <div className="absolute inset-0 bg-gray-800 flex items-center justify-center text-white text-center p-4">
+                                <div>
+                                  <div className="text-4xl mb-2">📹</div>
+                                  <div className="font-semibold mb-2">Video Not Supported</div>
+                                  <div className="text-sm mb-4">Your browser doesn't support this video format</div>
+                                  <a 
+                                    href={getVideoUrl(submission.videoUrl)} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                                  >
+                                    Open in New Tab
+                                  </a>
+                                </div>
+                              </div>
+                            </video>
+                          );
+                        }
+                      })()}
+                      
+                      {/* Video Info Overlays */}
+                      <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+                        {submission.duration ? `${Math.floor(submission.duration / 60)}:${(submission.duration % 60).toString().padStart(2, '0')}` : 'Loading...'}
+                      </div>
+                      
+                      <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+                        {submission.fileSize ? `${(submission.fileSize / (1024 * 1024)).toFixed(1)} MB` : 'Unknown size'}
+                      </div>
+                      
+                      {submission.submittedAt && (
+                        <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
+                          {new Date(submission.submittedAt).toLocaleDateString()}
+                        </div>
+                      )}
+                      
+                      {/* Debug Info Toggle - Only show for problematic videos */}
+                      {(submission.studentName === 'Stephanie Posadas' || 
+                        submission.studentName === 'Madison Smith' || 
+                        submission.studentName === 'Ayende Kemp' ||
+                        submission.studentName === 'Kimora-Dee Smith') && (
+                        <div className="absolute top-2 left-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const debugPanel = e.currentTarget.nextElementSibling as HTMLElement;
+                              if (debugPanel) {
+                                debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+                              }
+                            }}
+                            className="bg-yellow-600 bg-opacity-75 text-white px-2 py-1 rounded text-xs font-medium hover:bg-opacity-100"
+                          >
+                            🐛 Debug
+                          </button>
+                          <div 
+                            style={{ display: 'none' }}
+                            className="absolute top-8 left-0 bg-black bg-opacity-90 text-white p-3 rounded text-xs max-w-md z-10"
+                          >
+                            <div className="font-semibold mb-2">Debug Info for {submission.studentName}</div>
+                            <div className="space-y-1">
+                              <div><strong>Original URL:</strong> {submission.videoUrl}</div>
+                              <div><strong>Processed URL:</strong> {getVideoUrl(submission.videoUrl)}</div>
+                              <div><strong>Video Type:</strong> {(() => {
+                                const videoUrlInfo = parseVideoUrl(submission.videoUrl);
+                                return videoUrlInfo?.type || 'direct';
+                              })()}</div>
+                              <div><strong>Embed URL:</strong> {getEmbedUrl(submission.videoUrl) || 'N/A'}</div>
+                              <div><strong>YouTube ID:</strong> {extractYouTubeVideoId(submission.videoUrl) || 'N/A'}</div>
+                              <div><strong>Submission ID:</strong> {submission.submissionId}</div>
+                              <div><strong>File Size:</strong> {submission.fileSize} bytes</div>
+                              <div><strong>Duration:</strong> {submission.duration}s</div>
+                              <div><strong>Thumbnail:</strong> {submission.thumbnailUrl || 'None'}</div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Copy debug info to clipboard
+                                const debugInfo = {
+                                  studentName: submission.studentName,
+                                  originalUrl: submission.videoUrl,
+                                  processedUrl: getVideoUrl(submission.videoUrl),
+                                  submissionId: submission.submissionId,
+                                  fileSize: submission.fileSize,
+                                  duration: submission.duration,
+                                  thumbnailUrl: submission.thumbnailUrl
+                                };
+                                navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2));
+                                alert('Debug info copied to clipboard!');
+                              }}
+                              className="mt-2 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
+                            >
+                              Copy Debug Info
                             </button>
                           </div>
                         </div>
-                        
-                        {/* Right Column - Submission Details */}
-                        <div className="space-y-4">
-                          <div className="bg-gray-50 rounded-lg p-4">
-                            <h4 className="font-medium text-gray-900 mb-2">Submission Details</h4>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Submitted:</span>
-                                <span className="font-medium">
-                                  {submission.submittedAt 
-                                    ? new Date(submission.submittedAt).toLocaleString()
-                                    : 'Not submitted'}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-gray-600">Status:</span>
-                                <span className="font-medium capitalize">{submission.status}</span>
-                              </div>
-                              {submission.grade !== undefined && (
-                                <div className="flex justify-between">
-                                  <span className="text-gray-600">Current Grade:</span>
-                                  <span className="font-medium">{submission.grade}/100</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {submission.feedback && (
-                            <div className="bg-blue-50 rounded-lg p-4">
-                              <h4 className="font-medium text-blue-900 mb-2">Previous Feedback</h4>
-                              <p className="text-sm text-blue-800">{submission.feedback}</p>
-                            </div>
+                      )}
+                    </div>
+
+                    {/* Grading Section - Compact like Student Dashboard */}
+                    <div className="px-4 py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Grade Input */}
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Grade (0-100)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={grades[submission.submissionId] || ''}
+                            onChange={(e) => handleGradeChange(submission.submissionId, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            placeholder="Grade"
+                          />
+                          {savingGrades.has(submission.submissionId) && (
+                            <p className="text-xs text-blue-600 mt-1">Auto-saving...</p>
                           )}
                         </div>
+                        
+                        {/* Feedback Input */}
+                        <div className="md:col-span-2">
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Feedback
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={feedback[submission.submissionId] || ''}
+                            onChange={(e) => handleFeedbackChange(submission.submissionId, e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                            placeholder="Enter feedback for the student..."
+                          />
+                        </div>
                       </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                        <div className="flex items-center space-x-4 text-xs text-gray-500">
+                          <span>Status: <span className="font-medium capitalize">{submission.status}</span></span>
+                          {submission.grade !== undefined && (
+                            <span>Current: <span className="font-medium">{submission.grade}/100</span></span>
+                          )}
+                        </div>
+                        
+                        <button
+                          onClick={() => handleDeleteSubmission(submission.submissionId)}
+                          className="px-3 py-1 bg-red-500 text-white rounded text-xs font-medium hover:bg-red-600 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                      
+                      {/* Previous Feedback Display */}
+                      {submission.feedback && (
+                        <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                          <h4 className="text-xs font-medium text-blue-900 mb-1">Previous Feedback:</h4>
+                          <p className="text-xs text-blue-800">{submission.feedback}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
-
                 ))}
               </div>
             </div>
