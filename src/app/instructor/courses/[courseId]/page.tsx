@@ -571,30 +571,7 @@ const InstructorCourseDetailPage: React.FC = () => {
     }
   };
 
-  const handleDeleteCourse = async () => {
-    try {
-      setLoading(true);
-      
-      const response = await fetch(`/api/instructor/courses/${courseId}/delete`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        alert(`Course deleted successfully! Deleted ${data.deletedAssignments} assignments and ${data.deletedSubmissions} submissions.`);
-        router.push('/instructor/dashboard');
-      } else {
-        alert(`Failed to delete course: ${data.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Error deleting course:', error);
-      alert('Failed to delete course. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleRemoveStudent = async (studentId: string, studentName: string) => {
     try {
