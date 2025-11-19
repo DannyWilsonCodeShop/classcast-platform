@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface DiscussionPost {
   id: string;
@@ -385,7 +386,7 @@ const DiscussionContent: React.FC = () => {
                     controls
                     poster={post.videoResponse.thumbnailUrl}
                   >
-                    <source src={post.videoResponse.videoUrl} type="video/mp4" />
+                    <source src={getVideoUrl(post.videoResponse.videoUrl)} type="video/mp4" />
                     Your browser does not support the video tag.
                   </video>
                   <p className="text-xs text-gray-500 mt-1">
@@ -600,7 +601,7 @@ const DiscussionContent: React.FC = () => {
                   <video
                     className="w-full max-w-md rounded-lg"
                     controls
-                    src={recordedVideo}
+                    src={getVideoUrl(recordedVideo)}
                   />
                   <button
                     onClick={() => setRecordedVideo(null)}

@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface VideoSubmission {
   submissionId: string;
@@ -355,8 +356,8 @@ const AssignmentSubmissionsPage: React.FC = () => {
                             videoEl.currentTime = 2.0;
                           }}
                         >
-                          <source src={video.videoUrl} type="video/mp4" />
-                          <source src={video.videoUrl} type="video/webm" />
+                          <source src={getVideoUrl(video.videoUrl)} type="video/mp4" />
+                          <source src={getVideoUrl(video.videoUrl)} type="video/webm" />
                           Your browser does not support the video tag.
                         </video>
                       </div>

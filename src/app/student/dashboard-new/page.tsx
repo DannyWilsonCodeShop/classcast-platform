@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
 import Avatar from '@/components/common/Avatar';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface Course {
   courseId: string;
@@ -1178,7 +1179,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
           <div className="relative w-full h-full">
             <video
               ref={videoRef}
-              src={item.videoUrl}
+              src={getVideoUrl(item.videoUrl)}
               className="w-full h-full object-contain"
               playsInline
               muted={isMuted}

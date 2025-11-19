@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface VideoSubmission {
   id: string;
@@ -184,7 +185,7 @@ const StudentSubmissionsPage: React.FC = () => {
                     >
                       <div className="aspect-video w-full mb-4 bg-black rounded-lg overflow-hidden">
                         <video
-                          src={submission.blobUrl || submission.url}
+                          src={getVideoUrl(submission.blobUrl || submission.url)}
                           controls
                           className="w-full h-full object-cover"
                           onError={() => {

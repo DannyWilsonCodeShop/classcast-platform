@@ -12,6 +12,7 @@ import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
 import Avatar from '@/components/common/Avatar';
 import BugReportModal from '@/components/common/BugReportModal';
+import { getVideoUrl } from '@/lib/videoUtils';
 // import WelcomeTour from '@/components/student/WelcomeTour';
 // import InteractiveTour from '@/components/student/InteractiveTour';
 
@@ -1421,7 +1422,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
           <div className="relative w-full h-full">
             <video
               ref={videoRef}
-              src={item.videoUrl}
+              src={getVideoUrl(item.videoUrl)}
               className="w-full h-full object-contain"
               playsInline
               muted={isMuted}
