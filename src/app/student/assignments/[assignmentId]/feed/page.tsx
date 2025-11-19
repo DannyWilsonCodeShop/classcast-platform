@@ -9,6 +9,7 @@ import { extractYouTubeVideoId as getYouTubeVideoId, getYouTubeEmbedUrl } from '
 import { GroupAssignmentModal } from '@/components/student/GroupAssignmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
 import RichTextRenderer from '@/components/common/RichTextRenderer';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface VideoSubmission {
   submissionId: string;
@@ -523,7 +524,7 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
           </div>
         ) : (
           <video
-            src={video.videoUrl}
+            src={getVideoUrl(video.videoUrl)}
             controls
             className="w-full h-full object-contain"
             playsInline
