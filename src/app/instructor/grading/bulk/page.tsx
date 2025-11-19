@@ -68,15 +68,15 @@ const BulkGradingContent: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  // Remove videoRef - not needed in continuous feed
   
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [allSubmissions, setAllSubmissions] = useState<VideoSubmission[]>([]);
   const [filteredSubmissions, setFilteredSubmissions] = useState<VideoSubmission[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  // Remove currentIndex - using continuous feed instead
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  // Remove playbackSpeed - not needed in continuous feed
   
   // Filter and search state
   const [filter, setFilter] = useState<FilterType>('all');
@@ -88,21 +88,16 @@ const BulkGradingContent: React.FC = () => {
   const [selectedStudentName, setSelectedStudentName] = useState<string>('');
   const [selectedSection, setSelectedSection] = useState<string>('all');
   
-  // Grading state
-  const [currentGrade, setCurrentGrade] = useState<number | ''>('');
-  const [currentFeedback, setCurrentFeedback] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  // Grading state with auto-save
+  const [grades, setGrades] = useState<Record<string, number | ''>>({});
+  const [feedback, setFeedback] = useState<Record<string, string>>({});
+  const [savingGrades, setSavingGrades] = useState<Set<string>>(new Set());
+  const [saveTimeouts, setSaveTimeouts] = useState<Record<string, NodeJS.Timeout>>({});
   const [isDeleting, setIsDeleting] = useState(false);
   
-  // Peer response state
-  const [peerResponsesData, setPeerResponsesData] = useState<{[studentId: string]: PeerResponse[]}>({});
-  const [collapsedPeerResponses, setCollapsedPeerResponses] = useState<Set<string>>(new Set());
-  const [peerResponsesLoading, setPeerResponsesLoading] = useState(false);
+  // Remove peer response state - not needed in continuous feed
 
-  // Scroll navigation state
-  const [lastScrollTime, setLastScrollTime] = useState(0);
-  const scrollCooldown = 500; // 500ms cooldown between scroll navigations
+  // Remove scroll navigation state - using continuous feed instead
 
   // Get unique courses from submissions
   const courses = Array.from(new Set(allSubmissions.map(sub => `${sub.courseCode} - ${sub.courseName}`)));
@@ -185,6 +180,18 @@ const BulkGradingContent: React.FC = () => {
           
           console.log('🎯 BULK GRADING: Transformed submissions:', transformedSubmissions.length);
           setAllSubmissions(transformedSubmissions);
+          
+          // Initialize grades and feedback state
+          const initialGrades: Record<string, number | ''> = {};
+          const initialFeedback: Record<string, string> = {};
+          
+          transformedSubmissions.forEach(sub => {
+            initialGrades[sub.submissionId] = sub.grade || '';
+            initialFeedback[sub.submissionId] = sub.feedback || '';
+          });
+          
+          setGrades(initialGrades);
+          setFeedback(initialFeedback);
           
           // Extract unique assignments
           const uniqueAssignments = Array.from(
@@ -317,147 +324,74 @@ const BulkGradingContent: React.FC = () => {
     
     setFilteredSubmissions(filtered);
     
-    // Reset current index if it's out of bounds
-    if (currentIndex >= filtered.length) {
-      setCurrentIndex(0);
-    }
+    // Remove currentIndex logic - using continuous feed instead
     
     // Update current grade and feedback for the new current submission
-    if (filtered.length > 0) {
-      const currentSubmission = filtered[Math.min(currentIndex, filtered.length - 1)];
-      setCurrentGrade(currentSubmission.grade || '');
-      setCurrentFeedback(currentSubmission.feedback || '');
-    }
-  }, [allSubmissions, selectedCourse, selectedAssignment, selectedStudent, selectedSection, filter, searchTerm, sortBy, currentIndex]);
+  }, [allSubmissions, selectedCourse, selectedAssignment, selectedStudent, selectedSection, filter, searchTerm, sortBy]);
 
-  // Fetch peer responses for current assignment
-  useEffect(() => {
-    const fetchPeerResponses = async () => {
-      if (filteredSubmissions.length === 0) return;
-      
-      try {
-        setPeerResponsesLoading(true);
-        const responsesMap: {[studentId: string]: PeerResponse[]} = {};
-        
-        // Get unique assignment IDs from filtered submissions
-        const assignmentIds = Array.from(new Set(filteredSubmissions.map(sub => sub.assignmentId)));
-        
-        // Fetch peer responses for each student in each assignment
-        await Promise.all(filteredSubmissions.map(async (submission) => {
-          try {
-            const response = await fetch(
-              `/api/peer-responses?assignmentId=${submission.assignmentId}&studentId=${submission.studentId}`,
-              { credentials: 'include' }
-            );
-            
-            if (response.ok) {
-              const data = await response.json();
-              if (data.success && data.data) {
-                // Enrich each response with the reviewed student's info
-                const enrichedResponses = data.data.map((resp: any) => {
-                  // Find the submission that this response is about
-                  const reviewedSubmission = filteredSubmissions.find(sub => sub.submissionId === resp.videoId);
-                  
-                  return {
-                    ...resp,
-                    reviewedStudentName: reviewedSubmission?.studentName || 'Unknown Student',
-                    reviewedStudentId: reviewedSubmission?.studentId || 'unknown',
-                    videoTitle: reviewedSubmission?.videoUrl || 'Peer Video'
-                  };
-                });
-                
-                responsesMap[submission.studentId] = enrichedResponses;
-              } else {
-                responsesMap[submission.studentId] = [];
-              }
-            } else {
-              responsesMap[submission.studentId] = [];
-            }
-          } catch (error) {
-            console.error(`Error fetching peer responses for student ${submission.studentId}:`, error);
-            responsesMap[submission.studentId] = [];
-          }
-        }));
-        
-        setPeerResponsesData(responsesMap);
-      } catch (error) {
-        console.error('Error fetching peer responses:', error);
-      } finally {
-        setPeerResponsesLoading(false);
-      }
-    };
+  // Remove peer responses fetch - not needed in continuous feed
+
+  // Remove currentSubmission - using continuous feed instead
+
+  // Remove peer response functions - not needed in continuous feed
+
+  // Remove old navigation functions - using continuous feed instead
+
+  // Auto-save handlers
+  const handleGradeChange = (submissionId: string, value: string) => {
+    const numValue = value === '' ? '' : Number(value);
+    setGrades(prev => ({ ...prev, [submissionId]: numValue }));
     
-    fetchPeerResponses();
-  }, [filteredSubmissions.length]);
-
-  // Current submission
-  const currentSubmission = filteredSubmissions[currentIndex];
-
-  // Helper functions for peer responses
-  const getPeerResponsesForStudent = (studentId: string): PeerResponse[] => {
-    return peerResponsesData[studentId] || [];
-  };
-
-  const togglePeerResponsesCollapse = (submissionId: string) => {
-    setCollapsedPeerResponses(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(submissionId)) {
-        newSet.delete(submissionId);
-      } else {
-        newSet.add(submissionId);
-      }
-      return newSet;
-    });
-  };
-
-  // Navigation functions
-  const goToNext = () => {
-    if (currentIndex < filteredSubmissions.length - 1) {
-      const nextIndex = currentIndex + 1;
-      setCurrentIndex(nextIndex);
-      const nextSubmission = filteredSubmissions[nextIndex];
-      setCurrentGrade(nextSubmission.grade || '');
-      setCurrentFeedback(nextSubmission.feedback || '');
+    // Clear existing timeout
+    if (saveTimeouts[submissionId]) {
+      clearTimeout(saveTimeouts[submissionId]);
     }
+    
+    // Set new timeout for auto-save
+    const timeoutId = setTimeout(() => {
+      handleSaveGrade(submissionId);
+    }, 1000); // 1 second delay
+    
+    setSaveTimeouts(prev => ({ ...prev, [submissionId]: timeoutId }));
   };
 
-  const goToPrevious = () => {
-    if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1;
-      setCurrentIndex(prevIndex);
-      const prevSubmission = filteredSubmissions[prevIndex];
-      setCurrentGrade(prevSubmission.grade || '');
-      setCurrentFeedback(prevSubmission.feedback || '');
+  const handleFeedbackChange = (submissionId: string, value: string) => {
+    setFeedback(prev => ({ ...prev, [submissionId]: value }));
+    
+    // Clear existing timeout
+    if (saveTimeouts[submissionId]) {
+      clearTimeout(saveTimeouts[submissionId]);
     }
+    
+    // Set new timeout for auto-save
+    const timeoutId = setTimeout(() => {
+      handleSaveGrade(submissionId);
+    }, 1000); // 1 second delay
+    
+    setSaveTimeouts(prev => ({ ...prev, [submissionId]: timeoutId }));
   };
 
-  const goToSubmission = (index: number) => {
-    setCurrentIndex(index);
-    const submission = filteredSubmissions[index];
-    setCurrentGrade(submission.grade || '');
-    setCurrentFeedback(submission.feedback || '');
-  };
-
-  // Save grade function
-  const saveGrade = async () => {
-    if (!currentSubmission || !currentGrade) {
-      alert('Please enter a grade before saving.');
+  const handleSaveGrade = async (submissionId: string) => {
+    const grade = grades[submissionId];
+    const feedbackText = feedback[submissionId] || '';
+    
+    // Don't save if no grade is entered
+    if (grade === '' || grade === undefined) {
       return;
     }
-
-    setIsSaving(true);
-    setSaveStatus('saving');
+    
+    setSavingGrades(prev => new Set([...prev, submissionId]));
     
     try {
-      const response = await fetch(`/api/submissions/${currentSubmission.submissionId}/grade`, {
+      const response = await fetch(`/api/submissions/${submissionId}/grade`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({
-          grade: Number(currentGrade),
-          feedback: currentFeedback || '',
+          grade: Number(grade),
+          feedback: feedbackText,
           status: 'graded'
         }),
       });
@@ -470,30 +404,44 @@ const BulkGradingContent: React.FC = () => {
       if (data.success) {
         // Update local state
         setAllSubmissions(prev => prev.map(sub =>
-          sub.submissionId === currentSubmission.submissionId
-            ? { ...sub, grade: Number(currentGrade), feedback: currentFeedback, status: 'graded' as const }
+          sub.submissionId === submissionId
+            ? { ...sub, grade: Number(grade), feedback: feedbackText, status: 'graded' as const }
             : sub
         ));
-        
-        setSaveStatus('saved');
       } else {
         throw new Error(data.error || 'Failed to save grade');
       }
     } catch (error) {
       console.error('Error saving grade:', error);
-      setSaveStatus('error');
-      alert('Failed to save grade. Please try again.');
+      // Could add toast notification here
     } finally {
-      setIsSaving(false);
+      setSavingGrades(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(submissionId);
+        return newSet;
+      });
+      
+      // Clear timeout
+      if (saveTimeouts[submissionId]) {
+        clearTimeout(saveTimeouts[submissionId]);
+        setSaveTimeouts(prev => {
+          const newTimeouts = { ...prev };
+          delete newTimeouts[submissionId];
+          return newTimeouts;
+        });
+      }
     }
   };
 
+  // Remove old saveGrade function - using auto-save instead
+
   // Delete submission function
-  const deleteSubmission = async () => {
-    if (!currentSubmission) return;
+  const handleDeleteSubmission = async (submissionId: string) => {
+    const submission = allSubmissions.find(sub => sub.submissionId === submissionId);
+    if (!submission) return;
     
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${currentSubmission.studentName}'s video submission? This action cannot be undone.`
+      `Are you sure you want to delete ${submission.studentName}'s video submission? This action cannot be undone.`
     );
     
     if (!confirmDelete) return;
@@ -501,7 +449,7 @@ const BulkGradingContent: React.FC = () => {
     setIsDeleting(true);
     
     try {
-      const response = await fetch(`/api/video-submissions/${currentSubmission.submissionId}`, {
+      const response = await fetch(`/api/video-submissions/${submissionId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -513,15 +461,20 @@ const BulkGradingContent: React.FC = () => {
       const data = await response.json();
       if (data.success) {
         // Remove from local state
-        setAllSubmissions(prev => prev.filter(sub => sub.submissionId !== currentSubmission.submissionId));
+        setAllSubmissions(prev => prev.filter(sub => sub.submissionId !== submissionId));
         
-        // Navigate to next submission or previous if this was the last one
-        if (currentIndex >= filteredSubmissions.length - 1 && currentIndex > 0) {
-          setCurrentIndex(currentIndex - 1);
-        } else if (filteredSubmissions.length === 1) {
-          // If this was the only submission, we'll handle this in the UI
-          setCurrentIndex(0);
-        }
+        // Clean up grades and feedback state
+        setGrades(prev => {
+          const newGrades = { ...prev };
+          delete newGrades[submissionId];
+          return newGrades;
+        });
+        
+        setFeedback(prev => {
+          const newFeedback = { ...prev };
+          delete newFeedback[submissionId];
+          return newFeedback;
+        });
         
         alert('Submission deleted successfully');
       } else {
@@ -535,47 +488,9 @@ const BulkGradingContent: React.FC = () => {
     }
   };
 
-  // Video controls
-  const handleSpeedChange = (speed: number) => {
-    setPlaybackSpeed(speed);
-    if (videoRef.current) {
-      videoRef.current.playbackRate = speed;
-    }
-  };
+  // Remove video controls - not needed in continuous feed
 
-  // Scroll navigation handler
-  const handleWheel = (e: React.WheelEvent) => {
-    const now = Date.now();
-    
-    // Check if we're in cooldown period
-    if (now - lastScrollTime < scrollCooldown) {
-      return;
-    }
-    
-    // Only handle scroll if we're not scrolling within a scrollable element
-    const target = e.target as HTMLElement;
-    const isScrollableElement = target.closest('.overflow-y-auto, .overflow-auto, textarea, input');
-    
-    if (isScrollableElement) {
-      return;
-    }
-    
-    e.preventDefault();
-    
-    if (e.deltaY < 0) {
-      // Scrolling up - go to next video
-      if (currentIndex < filteredSubmissions.length - 1) {
-        goToNext();
-        setLastScrollTime(now);
-      }
-    } else if (e.deltaY > 0) {
-      // Scrolling down - go to previous video
-      if (currentIndex > 0) {
-        goToPrevious();
-        setLastScrollTime(now);
-      }
-    }
-  };
+  // Remove scroll navigation - using continuous feed instead
 
   if (loading) {
     return (
@@ -1040,271 +955,169 @@ const BulkGradingContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" onWheel={handleWheel}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Video Player */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-                <div className="mb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-800">{currentSubmission.studentName}</h2>
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <span>{currentSubmission.assignmentTitle}</span>
-                        <span>•</span>
-                        <span>{currentSubmission.courseName}</span>
-                        {currentSubmission.sectionName && (
-                          <>
-                            <span>•</span>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                              {currentSubmission.sectionName}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Submitted: {new Date(currentSubmission.submittedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div className="text-right text-sm text-gray-500">
-                      Student {currentIndex + 1} of {filteredSubmissions.length}
-                    </div>
-                  </div>
+        {/* Main Content - Continuous Feed */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {filteredSubmissions.length === 0 ? (
+            <div className="flex items-center justify-center h-96">
+              <div className="text-center">
+                <div className="text-6xl mb-4">📹</div>
+                <div className="text-xl font-semibold text-gray-700 mb-2">No Video Submissions</div>
+                <div className="text-gray-500">
+                  No submissions found across all assignments.
                 </div>
-                
-                <div className="bg-black rounded-lg overflow-hidden mb-4">
-                  <video
-                    ref={videoRef}
-                    src={currentSubmission.videoUrl}
-                    className="w-full h-96 object-contain"
-                    controls
-                    preload="none"
-                    onLoadedMetadata={() => {
-                      if (videoRef.current) {
-                        videoRef.current.playbackRate = playbackSpeed;
-                      }
-                    }}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                </div>
-
-                {/* Peer Responses Section */}
-                {getPeerResponsesForStudent(currentSubmission.studentId).length > 0 ? (
-                  <div className="border border-indigo-200 rounded-lg overflow-hidden mt-4">
-                    {/* Collapsible Header */}
-                    <button
-                      onClick={() => togglePeerResponsesCollapse(currentSubmission.submissionId)}
-                      className="w-full flex items-center justify-between p-4 bg-indigo-50 hover:bg-indigo-100 transition-colors"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <span className="text-sm font-semibold text-indigo-700">
-                          💬 Student's Peer Responses
-                        </span>
-                        <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
-                          {getPeerResponsesForStudent(currentSubmission.studentId).length}
-                        </span>
-                      </div>
-                      <svg
-                        className={`w-5 h-5 text-indigo-600 transition-transform ${
-                          collapsedPeerResponses.has(currentSubmission.submissionId) ? '' : 'rotate-180'
-                        }`}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-
-                    {/* Collapsible Content */}
-                    {!collapsedPeerResponses.has(currentSubmission.submissionId) && (
-                      <div className="divide-y divide-indigo-100">
-                        {getPeerResponsesForStudent(currentSubmission.studentId).map((response: PeerResponse, idx: number) => (
-                          <div key={response.responseId || idx} className="p-4 bg-white">
-                            {/* Response Header */}
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1">
-                                <div className="flex items-center space-x-2 mb-1">
-                                  <span className="text-sm font-medium text-gray-900">
-                                    Response to: {response.reviewedStudentName}
-                                  </span>
-                                  <span className={`px-2 py-0.5 rounded-full text-xs ${
-                                    response.isSubmitted 
-                                      ? 'bg-green-100 text-green-700' 
-                                      : 'bg-yellow-100 text-yellow-700'
-                                  }`}>
-                                    {response.isSubmitted ? '✓ Submitted' : '○ Draft'}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gray-500">
-                                  {new Date(response.submittedAt).toLocaleDateString()} • {response.wordCount} words
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Response Content */}
-                            <div className="bg-gray-50 rounded-lg p-3">
-                              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                {response.content}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-
-                        {/* Summary Stats */}
-                        <div className="bg-indigo-50 p-4">
-                          <div className="grid grid-cols-3 gap-4 text-center">
-                            <div>
-                              <div className="text-lg font-bold text-indigo-700">
-                                {getPeerResponsesForStudent(currentSubmission.studentId).length}
-                              </div>
-                              <div className="text-xs text-gray-600">Total Responses</div>
-                            </div>
-                            <div>
-                              <div className="text-lg font-bold text-green-700">
-                                {getPeerResponsesForStudent(currentSubmission.studentId).filter((r: PeerResponse) => r.isSubmitted).length}
-                              </div>
-                              <div className="text-xs text-gray-600">Submitted</div>
-                            </div>
-                            <div>
-                              <div className="text-lg font-bold text-blue-700">
-                                {Math.round(
-                                  getPeerResponsesForStudent(currentSubmission.studentId)
-                                    .reduce((sum: number, r: PeerResponse) => sum + (r.wordCount || 0), 0) / 
-                                  Math.max(1, getPeerResponsesForStudent(currentSubmission.studentId).length)
-                                )}
-                              </div>
-                              <div className="text-xs text-gray-600">Avg Words</div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden mt-4 bg-gray-50">
-                    <div className="p-3">
-                      <div className="flex items-center space-x-2">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-xs text-gray-600">
-                          No peer responses found for this student
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
-
-            {/* Grading Panel */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Grade Submission</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Grade (0-100)
-                    </label>
-                    <input
-                      type="number"
-                      value={currentGrade}
-                      onChange={(e) => setCurrentGrade(e.target.value ? Number(e.target.value) : '')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      min="0"
-                      max="100"
-                      placeholder="Enter grade"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Feedback
-                    </label>
-                    <textarea
-                      value={currentFeedback}
-                      onChange={(e) => setCurrentFeedback(e.target.value)}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter feedback for the student..."
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <button
-                      onClick={saveGrade}
-                      disabled={isSaving || !currentGrade}
-                      className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    >
-                      {isSaving ? 'Saving...' : 'Save Grade'}
-                    </button>
-                    
-                    <button
-                      onClick={deleteSubmission}
-                      disabled={isDeleting}
-                      className="w-full px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    >
-                      {isDeleting ? 'Deleting...' : '🗑️ Delete Submission'}
-                    </button>
-                  </div>
-                  
-                  {/* Save Status */}
-                  <div className="flex items-center justify-center text-sm">
-                    {saveStatus === 'saving' && (
-                      <span className="text-blue-600">Saving...</span>
-                    )}
-                    {saveStatus === 'saved' && (
-                      <span className="text-green-600">✓ Saved</span>
-                    )}
-                    {saveStatus === 'error' && (
-                      <span className="text-red-600">✗ Save failed</span>
-                    )}
-                  </div>
+          ) : (
+            <div>
+              {/* Header */}
+              <div className="mb-6">
+                <div className="text-sm text-gray-600 mb-2">
+                  Showing {filteredSubmissions.length} submission{filteredSubmissions.length !== 1 ? 's' : ''} across all assignments
+                </div>
+                <div className="text-xs text-gray-500">
+                  💡 Scroll through all submissions in one continuous feed • Auto-save enabled
                 </div>
               </div>
-              
-              {/* Submission List */}
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mt-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Filtered Submissions</h3>
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {filteredSubmissions.map((submission, index) => (
-                    <button
-                      key={submission.submissionId}
-                      onClick={() => goToSubmission(index)}
-                      className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                        index === currentIndex
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
+
+              {/* Continuous Feed of All Submissions */}
+              <div className="space-y-8">
+                {filteredSubmissions.map((submission, index) => (
+                  <div key={submission.submissionId} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    {/* Student Header */}
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-gray-800">{submission.studentName}</p>
-                          <p className="text-xs text-gray-500">
-                            {submission.assignmentTitle}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(submission.submittedAt).toLocaleDateString()}
-                          </p>
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                            {submission.studentName?.charAt(0) || 'S'}
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">{submission.studentName}</h3>
+                            <p className="text-sm text-gray-600">{submission.studentEmail}</p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          {submission.status === 'graded' ? (
-                            <span className="text-green-600 font-medium">{submission.grade}</span>
-                          ) : (
-                            <span className="text-gray-400 text-sm">Not graded</span>
+                        
+                        <div className="flex items-center space-x-3">
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            #{index + 1} of {filteredSubmissions.length}
+                          </span>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            submission.status === 'graded' 
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {submission.status === 'graded' ? 'Graded' : 'Submitted'}
+                          </span>
+                          
+                          {submission.submittedAt && (
+                            <span className="text-xs text-gray-500">
+                              {new Date(submission.submittedAt).toLocaleDateString()}
+                            </span>
+                          )}
+                          
+                          <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            {submission.assignmentTitle}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Video Player */}
+                    <div className="p-6">
+                      <div className="mb-6">
+                        <video
+                          src={submission.videoUrl}
+                          className="w-full h-96 object-contain"
+                          controls
+                          preload="metadata"
+                        />
+                      </div>
+
+                      {/* Grading Form */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Left Column - Grading */}
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Grade (out of 100)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={grades[submission.submissionId] || ''}
+                              onChange={(e) => handleGradeChange(submission.submissionId, e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Enter grade"
+                            />
+                            {savingGrades.has(submission.submissionId) && (
+                              <p className="text-xs text-blue-600 mt-1">Auto-saving...</p>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Feedback
+                            </label>
+                            <textarea
+                              rows={4}
+                              value={feedback[submission.submissionId] || ''}
+                              onChange={(e) => handleFeedbackChange(submission.submissionId, e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Enter feedback for the student..."
+                            />
+                          </div>
+                          
+                          <div className="flex space-x-3">
+                            <button
+                              onClick={() => handleDeleteSubmission(submission.submissionId)}
+                              className="px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                        
+                        {/* Right Column - Submission Details */}
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <h4 className="font-medium text-gray-900 mb-2">Submission Details</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Submitted:</span>
+                                <span className="font-medium">
+                                  {submission.submittedAt 
+                                    ? new Date(submission.submittedAt).toLocaleString()
+                                    : 'Not submitted'}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-600">Status:</span>
+                                <span className="font-medium capitalize">{submission.status}</span>
+                              </div>
+                              {submission.grade !== undefined && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Current Grade:</span>
+                                  <span className="font-medium">{submission.grade}/100</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {submission.feedback && (
+                            <div className="bg-blue-50 rounded-lg p-4">
+                              <h4 className="font-medium text-blue-900 mb-2">Previous Feedback</h4>
+                              <p className="text-sm text-blue-800">{submission.feedback}</p>
+                            </div>
                           )}
                         </div>
                       </div>
-                    </button>
-                  ))}
-                </div>
+                    </div>
+                  </div>
+
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </InstructorRoute>
