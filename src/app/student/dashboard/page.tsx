@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { FeedItem } from '@/app/api/student/feed/route';
@@ -97,7 +98,11 @@ const StudentDashboard: React.FC = () => {
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
   const [dailyQuestion] = useState(getDailyQuestion());
   const [showPeerResponseAnnouncement, setShowPeerResponseAnnouncement] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (user?.id) {
@@ -606,128 +611,130 @@ const StudentDashboard: React.FC = () => {
         onEnroll={handleClassEnrollment}
       />
 
-      {/* Bottom Navigation Bar */}
-      <div 
-        className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 backdrop-blur-md border-t-2 border-white/50 px-4 py-3 z-[9999] shadow-2xl"
-        style={{ 
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 9999,
-          display: 'block',
-          visibility: 'visible'
-        }}
-      >
-        <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
-          {/* Course Buttons */}
-          <div className="flex items-center space-x-2 course-buttons">
-            {courses.length > 0 ? (
-              courses.slice(0, 3).map((course) => (
-                <button
-                  key={course.courseId}
-                  onClick={() => handleCourseClick(course.courseId)}
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md relative overflow-hidden ${
-                    selectedCourse === course.courseId 
-                      ? 'bg-blue-600 scale-110' 
-                      : 'bg-gray-400 hover:bg-gray-500'
-                  }`}
-                  title={course.name}
-                >
-                  {course.initials || course.name.substring(0, 3).toUpperCase()}
-                  {/* Notification indicator */}
-                  {course.unreadCount > 0 && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {course.unreadCount > 9 ? '9+' : course.unreadCount}
-                    </div>
-                  )}
-                </button>
-              ))
-            ) : (
-              <div className="text-xs text-gray-500 px-2">No courses</div>
-            )}
-          </div>
-
-          {/* Center Buttons */}
-          <div className="flex items-center space-x-2 main-nav">
-            {/* Community Button */}
-            <button
-              onClick={() => router.push('/community')}
-              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
-              title="Community"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </button>
-
-            {/* Messages Button */}
-            <button
-              onClick={() => router.push('/student/messages')}
-              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
-              title="Messages"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </button>
-
-            {/* Notifications Button */}
-            <button
-              onClick={() => router.push('/student/notifications')}
-              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm relative"
-              title="Notifications"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {/* Notification badge - only show if there are new notifications */}
-              {notificationCount > 0 && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                  <span className="text-[10px] font-bold text-white">{notificationCount > 9 ? '9+' : notificationCount}</span>
-                </div>
+      {/* Bottom Navigation Bar - Fixed to viewport using Portal */}
+      {isMounted && typeof window !== 'undefined' && createPortal(
+        <div 
+          className="bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 backdrop-blur-md border-t-2 border-white/50 px-4 py-3 shadow-2xl"
+          style={{ 
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            zIndex: 9999,
+            display: 'block',
+            visibility: 'visible'
+          }}
+        >
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
+            {/* Course Buttons */}
+            <div className="flex items-center space-x-2 course-buttons">
+              {courses.length > 0 ? (
+                courses.slice(0, 3).map((course) => (
+                  <button
+                    key={course.courseId}
+                    onClick={() => handleCourseClick(course.courseId)}
+                    className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition-all shadow-md relative overflow-hidden ${
+                      selectedCourse === course.courseId 
+                        ? 'bg-blue-600 scale-110' 
+                        : 'bg-gray-400 hover:bg-gray-500'
+                    }`}
+                    title={course.name}
+                  >
+                    {course.initials || course.name.substring(0, 3).toUpperCase()}
+                    {/* Notification indicator */}
+                    {course.unreadCount > 0 && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                        {course.unreadCount > 9 ? '9+' : course.unreadCount}
+                      </div>
+                    )}
+                  </button>
+                ))
+              ) : (
+                <div className="text-xs text-gray-500 px-2">No courses</div>
               )}
-            </button>
+            </div>
 
-            {/* Join Class Button */}
+            {/* Center Buttons */}
+            <div className="flex items-center space-x-2 main-nav">
+              {/* Community Button */}
+              <button
+                onClick={() => router.push('/community')}
+                className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
+                title="Community"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </button>
+
+              {/* Messages Button */}
+              <button
+                onClick={() => router.push('/student/messages')}
+                className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
+                title="Messages"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </button>
+
+              {/* Notifications Button */}
+              <button
+                onClick={() => router.push('/student/notifications')}
+                className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm relative"
+                title="Notifications"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                {/* Notification badge - only show if there are new notifications */}
+                {notificationCount > 0 && (
+                  <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
+                    <span className="text-[10px] font-bold text-white">{notificationCount > 9 ? '9+' : notificationCount}</span>
+                  </div>
+                )}
+              </button>
+
+              {/* Join Class Button */}
+              <button
+                onClick={() => setShowJoinClassPopup(true)}
+                className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
+                title="Join Class"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
+
+              {/* Bug Report Button */}
+              <button
+                onClick={() => setShowBugReport(true)}
+                className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
+                title="Report a bug or get help"
+              >
+                {/* Bug Icon */}
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5s-.96.06-1.42.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/>
+                </svg>
+              </button>
+            </div>
+
+            {/* Profile Avatar */}
             <button
-              onClick={() => setShowJoinClassPopup(true)}
-              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
-              title="Join Class"
+              onClick={() => router.push('/student/profile')}
+              className="w-12 h-12 rounded-full bg-white/30 hover:bg-white/40 flex items-center justify-center overflow-hidden shadow-lg backdrop-blur-sm hover:shadow-xl transition-all border-2 border-white/20 profile-menu user-avatar"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </button>
-
-
-
-            {/* Bug Report Button */}
-            <button
-              onClick={() => setShowBugReport(true)}
-              className="w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
-              title="Report a bug or get help"
-            >
-              {/* Bug Icon */}
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5s-.96.06-1.42.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/>
-              </svg>
+              <Avatar 
+                user={user}
+                size="lg"
+                className="w-full h-full"
+              />
             </button>
           </div>
-
-          {/* Profile Avatar */}
-          <button
-            onClick={() => router.push('/student/profile')}
-            className="w-12 h-12 rounded-full bg-white/30 hover:bg-white/40 flex items-center justify-center overflow-hidden shadow-lg backdrop-blur-sm hover:shadow-xl transition-all border-2 border-white/20 profile-menu user-avatar"
-          >
-            <Avatar 
-              user={user}
-              size="lg"
-              className="w-full h-full"
-            />
-          </button>
-        </div>
-      </div>
+        </div>,
+        document.body
+      )}
 
       {/* Bug Report Modal */}
       <BugReportModal 
