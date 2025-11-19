@@ -607,7 +607,18 @@ const StudentDashboard: React.FC = () => {
       />
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400/90 via-blue-400/90 to-pink-400/90 backdrop-blur-md border-t-2 border-white/30 px-4 py-3 z-[100] shadow-2xl bottom-nav">
+      <div 
+        className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 backdrop-blur-md border-t-2 border-white/50 px-4 py-3 z-[9999] shadow-2xl"
+        style={{ 
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9999,
+          display: 'block',
+          visibility: 'visible'
+        }}
+      >
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
           {/* Course Buttons */}
           <div className="flex items-center space-x-2 course-buttons">
