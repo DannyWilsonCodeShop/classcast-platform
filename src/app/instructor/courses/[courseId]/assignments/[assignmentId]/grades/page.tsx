@@ -427,7 +427,10 @@ const AssignmentGradesPage: React.FC = () => {
             </div>
             <div className="bg-white rounded-lg shadow p-4">
               <div className="text-2xl font-bold text-purple-600">
-                {stats.averageGrade > 0 ? stats.averageGrade.toFixed(1) : '—'}
+                {stats.averageGrade > 0 && assignment?.maxScore ? 
+                  `${Math.round((stats.averageGrade / assignment.maxScore) * 100)}%` : 
+                  '—'
+                }
               </div>
               <div className="text-sm text-gray-600">Average Grade</div>
             </div>
@@ -543,7 +546,7 @@ const AssignmentGradesPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         {grade.submissionId && (
                           <button
-                            onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}?student=${grade.studentId}`)}
+                            onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}?submissionId=${grade.submissionId}&student=${grade.studentId}`)}
                             className="text-blue-600 hover:text-blue-900"
                           >
                             Grade
