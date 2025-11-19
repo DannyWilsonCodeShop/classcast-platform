@@ -26,17 +26,15 @@ interface Section {
 
 interface Course {
   courseId: string;
-  courseName: string;
-  courseCode: string;
+  title: string;
+  code: string;
   description: string;
-  iconInitials?: string; // NEW: short text used on student portal icon
-  avatar?: string;       // NEW: course avatar/thumbnail URL
   semester: string;
   year: number;
   status: 'draft' | 'published' | 'archived';
-  enrollmentCount: number;
-  maxEnrollment?: number;
-  instructorId?: string;
+  currentEnrollment: number;
+  maxStudents?: number;
+  instructorId: string;
   settings?: {
     privacy?: 'public' | 'private';
     allowLateSubmissions?: boolean;
@@ -95,16 +93,14 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
     if (course && isOpen) {
       console.log('🔧 Initializing course settings form with:', course);
       setFormData({
-        courseName: course.courseName || course.title,
-        courseCode: course.courseCode || course.code,
+        title: course.title,
+        code: course.code,
         description: course.description,
-        iconInitials: course.iconInitials,
-        avatar: course.avatar,
         semester: course.semester,
         year: course.year,
-        maxEnrollment: course.maxEnrollment || course.maxStudents,
+        maxStudents: course.maxStudents,
         settings: {
-          privacy: course.settings?.privacy || course.privacy || 'public',
+          privacy: course.settings?.privacy || 'public',
           allowLateSubmissions: course.settings?.allowLateSubmissions ?? true,
           latePenalty: course.settings?.latePenalty || 10,
           allowResubmissions: course.settings?.allowResubmissions ?? false,
@@ -168,13 +164,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
     }));
   };
 
-  const handleArrayChange = (field: string, value: string) => {
-    const items = value.split('\n').filter(item => item.trim());
-    setFormData(prev => ({
-      ...prev,
-      [field]: items
-    }));
-  };
+
 
 
   // Section management functions
@@ -182,7 +172,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
     if (!course?.courseId || !sectionForm.sectionName.trim()) return;
 
     try {
-      const finalInstructorId = instructorId || course.instructorId || course.instructor?.id;
+      const finalInstructorId = instructorId || course.instructorId;
       
       if (!finalInstructorId) {
         setError('Instructor ID is missing. Please refresh the page and try again.');
@@ -344,8 +334,8 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                   </label>
                   <input
                     type="text"
-                    value={formData.courseName || ''}
-                    onChange={(e) => handleInputChange('courseName', e.target.value)}
+                    value={formData.title || ''}
+                    onChange={(e) => handleInputChange('title', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
@@ -357,8 +347,8 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                   </label>
                   <input
                     type="text"
-                    value={formData.courseCode || ''}
-                    onChange={(e) => handleInputChange('courseCode', e.target.value)}
+                    value={formData.code || ''}
+                    onChange={(e) => handleInputChange('code', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
@@ -403,8 +393,8 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                   </label>
                   <input
                     type="number"
-                    value={formData.maxEnrollment || ''}
-                    onChange={(e) => handleInputChange('maxEnrollment', parseInt(e.target.value))}
+                    value={formData.maxStudents || ''}
+                    onChange={(e) => handleInputChange('maxStudents', parseInt(e.target.value))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     min="1"
                     max="500"
@@ -412,78 +402,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* Course Icon & Avatar */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Course Icon Text (1-4 chars)
-                  </label>
-                  <input
-                    type="text"
-                    value={(formData.iconInitials || '').slice(0, 4)}
-                    onChange={(e) => handleInputChange('iconInitials', e.target.value.slice(0, 4))}
-                    placeholder="e.g., MAT, ENG, SCI"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent uppercase tracking-wide"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">Shown on the student portal course icon.</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Course Avatar Thumbnail (URL)
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.avatar || ''}
-                    onChange={(e) => handleInputChange('avatar', e.target.value)}
-                    placeholder="https://..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  {formData.avatar && (
-                    <div className="mt-2 flex items-center space-x-3">
-                      <img src={formData.avatar} alt="Course avatar" className="w-10 h-10 rounded object-cover border" />
-                      <button
-                        type="button"
-                        onClick={() => handleInputChange('avatar', '')}
-                        className="text-xs text-red-600 hover:text-red-800"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  )}
-                  <div className="mt-2">
-                    <label className="inline-block px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded cursor-pointer text-sm">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          // Basic validation
-                          if (!file.type.startsWith('image/')) { alert('Please select an image'); return; }
-                          if (file.size > 5 * 1024 * 1024) { alert('Max 5MB'); return; }
-                          try {
-                            const fd = new FormData();
-                            fd.append('file', file);
-                            fd.append('folder', 'course-avatars');
-                            fd.append('metadata', JSON.stringify({ courseId: course?.courseId }));
-                            const res = await fetch('/api/upload', { method: 'POST', body: fd });
-                            const data = await res.json();
-                            if (res.ok && data.success && data.data?.fileUrl) {
-                              handleInputChange('avatar', data.data.fileUrl);
-                            } else {
-                              alert(data.error || 'Upload failed');
-                            }
-                          } catch (err) {
-                            alert('Upload failed');
-                          }
-                        }}
-                      />
-                      Upload Image
-                    </label>
-                  </div>
-                </div>
-              </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
