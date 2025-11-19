@@ -69,6 +69,8 @@ const InstructorStudentsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'dropped' | 'completed'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'grade' | 'enrollment' | 'activity' | 'section'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [viewMode, setViewMode] = useState<'table' | 'sections'>('table');
+  const [draggedStudent, setDraggedStudent] = useState<Student | null>(null);
   
   // Move student state
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -479,6 +481,218 @@ const InstructorStudentsPage: React.FC = () => {
     handleExportGrades('csv');
   };
 
+  const handleDropStudent = async (studentId: string, targetSectionId: string | null) => {
+    const student = students.find(s => s.studentId === studentId);
+    if (!student || student.sectionId === targetSectionId) return;
+
+    try {
+      const response = await fetch('/api/instructor/students/move-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          studentId: studentId,
+          fromCourseId: courseId,
+          toCourseId: courseId,
+          toSectionId: targetSectionId,
+          studentName: student.name,
+          studentEmail: student.email
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Update student's section in local state
+        setStudents(prev => prev.map(s => 
+          s.studentId === studentId 
+            ? { 
+                ...s, 
+                sectionId: targetSectionId, 
+                sectionName: targetSectionId ? 
+                  availableSections.find(sec => sec.sectionId === targetSectionId)?.sectionName || 'Unknown Section' :
+                  null
+              }
+            : s
+        ));
+        
+        const targetSectionName = targetSectionId ? 
+          availableSections.find(sec => sec.sectionId === targetSectionId)?.sectionName || 'Unknown Section' :
+          'No Section';
+        
+        // Show success message briefly
+        const successMsg = document.createElement('div');
+        successMsg.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        successMsg.textContent = `✅ ${student.name} moved to ${targetSectionName}`;
+        document.body.appendChild(successMsg);
+        setTimeout(() => document.body.removeChild(successMsg), 3000);
+      } else {
+        throw new Error(data.error || 'Failed to move student');
+      }
+    } catch (error) {
+      console.error('Error moving student:', error);
+      // Show error message
+      const errorMsg = document.createElement('div');
+      errorMsg.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      errorMsg.textContent = `❌ Failed to move ${student.name}`;
+      document.body.appendChild(errorMsg);
+      setTimeout(() => document.body.removeChild(errorMsg), 3000);
+    }
+  };
+
+  // Section Column Component
+  const SectionColumn: React.FC<{
+    title: string;
+    sectionId: string | null;
+    students: Student[];
+    onDrop: (studentId: string, sectionId: string | null) => void;
+    draggedStudent: Student | null;
+  }> = ({ title, sectionId, students, onDrop, draggedStudent }) => {
+    const [isDragOver, setIsDragOver] = useState(false);
+
+    const handleDragOver = (e: React.DragEvent) => {
+      e.preventDefault();
+      if (draggedStudent && draggedStudent.sectionId !== sectionId) {
+        setIsDragOver(true);
+      }
+    };
+
+    const handleDragLeave = () => {
+      setIsDragOver(false);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+      e.preventDefault();
+      setIsDragOver(false);
+      if (draggedStudent && draggedStudent.sectionId !== sectionId) {
+        onDrop(draggedStudent.studentId, sectionId);
+      }
+    };
+
+    return (
+      <div 
+        className={`bg-white rounded-2xl shadow-lg border-2 transition-all duration-200 ${
+          isDragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200'
+        }`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-800">
+              📚 {title}
+            </h3>
+            <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium">
+              {students.length} student{students.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          {isDragOver && (
+            <div className="mt-2 text-sm text-blue-600 font-medium">
+              Drop here to move student to {title}
+            </div>
+          )}
+        </div>
+        
+        <div className="p-6">
+          {students.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {students.map((student) => (
+                <StudentCard
+                  key={student.studentId}
+                  student={student}
+                  onDragStart={() => setDraggedStudent(student)}
+                  onDragEnd={() => setDraggedStudent(null)}
+                  onViewSubmissions={() => handleViewStudentSubmissions(student.studentId, student.name)}
+                  onMoveStudent={() => handleMoveStudent(student)}
+                  onRemoveStudent={() => handleRemoveStudent(student.studentId, student.name)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <div className="text-4xl mb-2">👤</div>
+              <p className="text-sm">No students in this section</p>
+              {isDragOver && (
+                <p className="text-xs text-blue-600 mt-1">Drop a student here</p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Student Card Component
+  const StudentCard: React.FC<{
+    student: Student;
+    onDragStart: () => void;
+    onDragEnd: () => void;
+    onViewSubmissions: () => void;
+    onMoveStudent: () => void;
+    onRemoveStudent: () => void;
+  }> = ({ student, onDragStart, onDragEnd, onViewSubmissions, onMoveStudent, onRemoveStudent }) => {
+    return (
+      <div
+        draggable
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all duration-200 cursor-move hover:bg-gray-100"
+      >
+        <div className="flex items-center space-x-3 mb-3">
+          <Avatar
+            src={student.avatar}
+            name={student.name}
+            size="md"
+          />
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-gray-900 truncate">{student.name}</h4>
+            <p className="text-sm text-gray-500 truncate">{student.email}</p>
+          </div>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(student.status)}`}>
+            {student.status}
+          </span>
+        </div>
+        
+        <div className="space-y-2 mb-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Grade:</span>
+            <span className={`font-medium ${student.currentGrade ? getGradeColor(student.currentGrade) : 'text-gray-400'}`}>
+              {student.currentGrade ? `${Math.round(student.currentGrade)}%` : 'N/A'}
+            </span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Submissions:</span>
+            <span className="font-medium text-gray-900">{student.submissionsCount}</span>
+          </div>
+        </div>
+        
+        <div className="flex space-x-2">
+          <button
+            onClick={onViewSubmissions}
+            className="flex-1 px-3 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium hover:bg-blue-200 transition-colors"
+          >
+            View Work
+          </button>
+          <button
+            onClick={onMoveStudent}
+            className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200 transition-colors"
+            title="Move student"
+          >
+            ↔️
+          </button>
+          <button
+            onClick={onRemoveStudent}
+            className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-colors"
+            title="Remove student"
+          >
+            🗑️
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <InstructorRoute>
@@ -665,46 +879,73 @@ const InstructorStudentsPage: React.FC = () => {
             </div>
           </div>
 
+          {/* View Toggle */}
+          <div className="mb-6 flex justify-center">
+            <div className="bg-white rounded-lg p-1 shadow-sm border border-gray-200">
+              <button
+                onClick={() => setViewMode('table')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'table' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                📋 Table View
+              </button>
+              <button
+                onClick={() => setViewMode('sections')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  viewMode === 'sections' 
+                    ? 'bg-indigo-600 text-white' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                📚 Sections View
+              </button>
+            </div>
+          </div>
+
           {/* Students List */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            {filteredAndSortedStudents.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Student
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Section
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Current Grade
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Submissions
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Last Activity
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredAndSortedStudents.map((student) => (
-                      <tr key={student.studentId} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10">
-                              <Avatar
-                                src={student.avatar}
-                                name={student.name}
-                                size="lg"
+          {viewMode === 'table' ? (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+              {filteredAndSortedStudents.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Student
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Section
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Current Grade
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Submissions
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Last Activity
+                        </th>
+                        <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredAndSortedStudents.map((student) => (
+                        <tr key={student.studentId} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                <Avatar
+                                  src={student.avatar}
+                                  name={student.name}
+                                  size="lg"
                                 className="h-10 w-10"
                               />
                             </div>
@@ -811,6 +1052,84 @@ const InstructorStudentsPage: React.FC = () => {
               </div>
             )}
           </div>
+          ) : (
+            /* Sections View with Drag and Drop */
+            <div className="space-y-6">
+              {(() => {
+                // Group students by section
+                const studentsBySection = new Map<string, Student[]>();
+                const noSectionStudents: Student[] = [];
+                
+                filteredAndSortedStudents.forEach(student => {
+                  if (student.sectionId && student.sectionName) {
+                    const key = `${student.sectionId}-${student.sectionName}`;
+                    if (!studentsBySection.has(key)) {
+                      studentsBySection.set(key, []);
+                    }
+                    studentsBySection.get(key)!.push(student);
+                  } else {
+                    noSectionStudents.push(student);
+                  }
+                });
+
+                const sectionEntries = Array.from(studentsBySection.entries());
+                
+                return (
+                  <>
+                    {/* Students without sections */}
+                    {noSectionStudents.length > 0 && (
+                      <SectionColumn
+                        title="No Section"
+                        sectionId={null}
+                        students={noSectionStudents}
+                        onDrop={handleDropStudent}
+                        draggedStudent={draggedStudent}
+                      />
+                    )}
+                    
+                    {/* Students grouped by sections */}
+                    {sectionEntries.map(([key, sectionStudents]) => {
+                      const sectionName = key.split('-').slice(1).join('-');
+                      const sectionId = key.split('-')[0];
+                      return (
+                        <SectionColumn
+                          key={key}
+                          title={sectionName}
+                          sectionId={sectionId}
+                          students={sectionStudents}
+                          onDrop={handleDropStudent}
+                          draggedStudent={draggedStudent}
+                        />
+                      );
+                    })}
+                    
+                    {filteredAndSortedStudents.length === 0 && (
+                      <div className="text-center py-12">
+                        <div className="text-6xl mb-4">👥</div>
+                        <h3 className="text-xl font-semibold text-gray-800 mb-2">No Students Found</h3>
+                        <p className="text-gray-600 mb-6">
+                          {searchTerm || statusFilter !== 'all' 
+                            ? 'No students match your current filters.' 
+                            : 'No students are enrolled in this course yet.'}
+                        </p>
+                        {searchTerm || statusFilter !== 'all' ? (
+                          <button
+                            onClick={() => {
+                              setSearchTerm('');
+                              setStatusFilter('all');
+                            }}
+                            className="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+                          >
+                            Clear Filters
+                          </button>
+                        ) : null}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
+          )}
         </div>
 
         {/* Move Student Modal */}
