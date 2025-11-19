@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface Assignment {
   assignmentId: string;
@@ -950,13 +951,29 @@ const NewAssignmentGradingPage: React.FC = () => {
                 <div className="bg-black rounded-lg overflow-hidden mb-4">
                   <video
                     ref={videoRef}
-                    src={currentSubmission.videoUrl}
-                    className="w-full h-96 object-contain"
+                    src={getVideoUrl(currentSubmission.videoUrl)}
+                    poster={currentSubmission.thumbnailUrl || `/api/placeholder/400/300?text=${encodeURIComponent(currentSubmission.studentName)}`}
+                    className="w-full h-96 object-contain bg-gray-100"
                     controls
-                    preload="none"
+                    preload="metadata"
                     onLoadedMetadata={() => {
                       if (videoRef.current) {
                         videoRef.current.playbackRate = playbackSpeed;
+                        
+                        // If no custom thumbnail, seek to 2 seconds for better preview frame
+                        if (!currentSubmission.thumbnailUrl && videoRef.current.duration > 2) {
+                          videoRef.current.currentTime = 2;
+                        }
+                      }
+                    }}
+                    onSeeked={() => {
+                      if (videoRef.current) {
+                        // Pause after seeking to show the 2-second frame as preview
+                        if (!currentSubmission.thumbnailUrl && 
+                            videoRef.current.currentTime >= 1.5 && 
+                            videoRef.current.currentTime <= 3) {
+                          videoRef.current.pause();
+                        }
                       }
                     }}
                   >

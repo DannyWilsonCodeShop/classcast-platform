@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { getVideoUrl } from '@/lib/videoUtils';
 
 interface Assignment {
   assignmentId: string;
@@ -1025,10 +1026,28 @@ const BulkGradingContent: React.FC = () => {
                     <div className="p-6">
                       <div className="mb-6">
                         <video
-                          src={submission.videoUrl}
-                          className="w-full h-96 object-contain"
+                          src={getVideoUrl(submission.videoUrl)}
+                          poster={submission.thumbnailUrl || `/api/placeholder/400/300?text=${encodeURIComponent(submission.studentName)}`}
+                          className="w-full h-96 object-contain bg-gray-100"
                           controls
                           preload="metadata"
+                          onLoadedMetadata={(e) => {
+                            const video = e.currentTarget;
+                            // If no custom thumbnail, seek to 2 seconds for better preview frame
+                            if (!submission.thumbnailUrl && video.duration > 2) {
+                              video.currentTime = 2;
+                            }
+                          }}
+                          onSeeked={(e) => {
+                            const video = e.currentTarget;
+                            // Pause after seeking to show the 2-second frame as preview
+                            if (!submission.thumbnailUrl && video.currentTime >= 1.5 && video.currentTime <= 3) {
+                              video.pause();
+                            }
+                          }}
+                          onError={(e) => {
+                            console.error('Video playback error for:', submission.studentName, submission.videoUrl, e);
+                          }}
                         />
                       </div>
 
