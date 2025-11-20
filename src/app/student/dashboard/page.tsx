@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { FeedItem } from '@/app/api/student/feed/route';
@@ -97,6 +98,11 @@ const StudentDashboard: React.FC = () => {
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
   const [dailyQuestion] = useState(getDailyQuestion());
   const [showPeerResponseAnnouncement, setShowPeerResponseAnnouncement] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (user?.id) {
@@ -606,24 +612,25 @@ const StudentDashboard: React.FC = () => {
         onEnroll={handleClassEnrollment}
       />
 
-      {/* Bottom Navigation Bar */}
-      <div 
-        className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400/90 via-blue-400/90 to-pink-400/90 backdrop-blur-md border-t-2 border-white/30 shadow-2xl bottom-nav"
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          width: '100%',
-          zIndex: 9999,
-          transform: 'scale(1.111)',
-          transformOrigin: 'bottom center',
-          paddingLeft: '0.5rem',
-          paddingRight: '0.5rem',
-          paddingTop: '0.5rem',
-          paddingBottom: '0.5rem'
-        }}
-      >
+      {/* Bottom Navigation Bar - Rendered via Portal to ensure viewport positioning */}
+      {isMounted && createPortal(
+        <div 
+          className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400/90 via-blue-400/90 to-pink-400/90 backdrop-blur-md border-t-2 border-white/30 shadow-2xl bottom-nav"
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            width: '100%',
+            zIndex: 9999,
+            transform: 'scale(1.111)',
+            transformOrigin: 'bottom center',
+            paddingLeft: '0.5rem',
+            paddingRight: '0.5rem',
+            paddingTop: '0.5rem',
+            paddingBottom: '0.5rem'
+          }}
+        >
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-1 sm:gap-2">
           {/* Course Buttons */}
           <div className="flex items-center space-x-1 sm:space-x-2 course-buttons">
@@ -730,7 +737,9 @@ const StudentDashboard: React.FC = () => {
             />
           </button>
         </div>
-      </div>
+      </div>,
+      document.body
+      )}
 
       {/* Bug Report Modal */}
       <BugReportModal 
