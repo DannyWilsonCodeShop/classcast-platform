@@ -95,7 +95,6 @@ const StudentDashboard: React.FC = () => {
   const [includeAllPublicVideos, setIncludeAllPublicVideos] = useState(false);
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
   const [dailyQuestion] = useState(getDailyQuestion());
-  const [showPeerResponseAnnouncement, setShowPeerResponseAnnouncement] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -107,12 +106,6 @@ const StudentDashboard: React.FC = () => {
       fetchFeed();
       loadConnections();
       loadNotificationCount();
-      
-      // Check if user has seen the peer response announcement
-      const hasSeenAnnouncement = localStorage.getItem('classcast-peer-response-announcement-seen');
-      if (!hasSeenAnnouncement) {
-        setTimeout(() => setShowPeerResponseAnnouncement(true), 1500);
-      }
       
       // Tour system temporarily disabled
       // const hasSeenWelcomeTour = localStorage.getItem('classcast-tour-completed');
@@ -719,104 +712,6 @@ const StudentDashboard: React.FC = () => {
         </div>
       </div>,
       document.body
-      )}
-
-      {/* Peer Response Announcement Modal */}
-      {showPeerResponseAnnouncement && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[10000] px-4" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-          <div className="bg-white rounded-2xl p-4 sm:p-8 max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="text-center mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-4xl">💬</span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                Important Update: Peer Responses
-              </h2>
-              <p className="text-gray-600">
-                We've improved how you submit peer responses for grades
-              </p>
-            </div>
-
-            <div className="space-y-4 mb-6">
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
-                <div className="flex items-start space-x-3">
-                  <span className="text-2xl flex-shrink-0">📝</span>
-                  <div>
-                    <h3 className="font-semibold text-blue-900 mb-1">For Graded Peer Responses:</h3>
-                    <p className="text-sm text-blue-800">
-                      Go to your <strong>Course → Assignment → Peer Responses button</strong>
-                    </p>
-                    <p className="text-xs text-blue-700 mt-1">
-                      • Minimum 50 words required<br/>
-                      • Counts toward your grade<br/>
-                      • Can edit and delete responses
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-purple-50 border-l-4 border-purple-500 p-4 rounded-r-lg">
-                <div className="flex items-start space-x-3">
-                  <span className="text-2xl flex-shrink-0">💭</span>
-                  <div>
-                    <h3 className="font-semibold text-purple-900 mb-1">For Casual Comments:</h3>
-                    <p className="text-sm text-purple-800">
-                      Use the <strong>comment button on the Dashboard</strong>
-                    </p>
-                    <p className="text-xs text-purple-700 mt-1">
-                      • No word minimum<br/>
-                      • Social interaction only<br/>
-                      • Not graded
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-r-lg">
-                <div className="flex items-start space-x-3">
-                  <span className="text-2xl flex-shrink-0">⚠️</span>
-                  <div>
-                    <h3 className="font-semibold text-yellow-900 mb-1">Important:</h3>
-                    <p className="text-sm text-yellow-800">
-                      Dashboard responses are <strong>NOT graded</strong>. Always use the assignment's Peer Responses button for graded work.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button
-              onClick={async () => {
-                localStorage.setItem('classcast-peer-response-announcement-seen', 'true');
-                
-                // Create a notification for future reference
-                try {
-                  await fetch('/api/notifications/create', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      recipientId: user?.id,
-                      senderId: 'system',
-                      senderName: 'ClassCast System',
-                      type: 'system_update',
-                      title: '📝 Peer Response Update - Reference Guide',
-                      message: 'GRADED Responses: Course → Assignment → Peer Responses button (50 words min). CASUAL Comments: Dashboard comment button (not graded). Remember: Dashboard responses are NOT graded!',
-                      priority: 'normal',
-                      actionUrl: '/student/courses'
-                    })
-                  });
-                } catch (error) {
-                  console.error('Failed to create notification:', error);
-                }
-                
-                setShowPeerResponseAnnouncement(false);
-              }}
-              className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all font-semibold shadow-lg hover:shadow-xl"
-            >
-              Got it! Take me to Dashboard
-            </button>
-          </div>
-        </div>
       )}
 
       {/* Welcome Tour - Temporarily disabled */}
