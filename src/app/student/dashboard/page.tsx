@@ -606,25 +606,9 @@ const StudentDashboard: React.FC = () => {
         onEnroll={handleClassEnrollment}
       />
 
-      {/* Bottom Navigation Bar - Fixed to viewport */}
-      <div 
-        className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 backdrop-blur-md border-t-2 border-white/50 shadow-2xl"
-        style={{ 
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          width: '100vw',
-          maxWidth: '100%',
-          zIndex: 999999,
-          display: 'block',
-          visibility: 'visible',
-          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-          margin: 0,
-          boxSizing: 'border-box'
-        }}
-      >
-        <div className="w-full max-w-2xl mx-auto flex items-center justify-between gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3">
+      {/* Bottom Navigation Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400/90 via-blue-400/90 to-pink-400/90 backdrop-blur-md border-t-2 border-white/30 px-2 sm:px-4 py-2 sm:py-3 z-50 shadow-2xl bottom-nav">
+        <div className="max-w-2xl mx-auto flex items-center justify-between gap-1 sm:gap-2">
           {/* Course Buttons */}
           <div className="flex items-center space-x-1 sm:space-x-2 course-buttons">
             {courses.length > 0 ? (
