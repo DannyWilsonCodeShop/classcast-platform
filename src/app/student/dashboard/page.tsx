@@ -12,7 +12,6 @@ import { useRouter } from 'next/navigation';
 import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
 import Avatar from '@/components/common/Avatar';
-import BugReportModal from '@/components/common/BugReportModal';
 import { getVideoUrl } from '@/lib/videoUtils';
 // import WelcomeTour from '@/components/student/WelcomeTour';
 // import InteractiveTour from '@/components/student/InteractiveTour';
@@ -93,7 +92,6 @@ const StudentDashboard: React.FC = () => {
   const [classAssignments, setClassAssignments] = useState<FeedItem[]>([]);
   const [connections, setConnections] = useState<Set<string>>(new Set());
   const [notificationCount, setNotificationCount] = useState(0);
-  const [showBugReport, setShowBugReport] = useState(false);
   const [includeAllPublicVideos, setIncludeAllPublicVideos] = useState(false);
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
   const [dailyQuestion] = useState(getDailyQuestion());
@@ -705,18 +703,6 @@ const StudentDashboard: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
             </button>
-
-            {/* Bug Report Button - Hidden on mobile to save space */}
-            <button
-              onClick={() => setShowBugReport(true)}
-              className="hidden sm:flex w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/20 hover:bg-white/30 items-center justify-center text-white transition-all shadow-lg backdrop-blur-sm"
-              title="Report a bug or get help"
-            >
-              {/* Bug Icon */}
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5s-.96.06-1.42.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20V8zm-6 8h-4v-2h4v2zm0-4h-4v-2h4v2z"/>
-              </svg>
-            </button>
           </div>
 
           {/* Profile Avatar */}
@@ -734,12 +720,6 @@ const StudentDashboard: React.FC = () => {
       </div>,
       document.body
       )}
-
-      {/* Bug Report Modal */}
-      <BugReportModal 
-        isOpen={showBugReport} 
-        onClose={() => setShowBugReport(false)} 
-      />
 
       {/* Peer Response Announcement Modal */}
       {showPeerResponseAnnouncement && (
