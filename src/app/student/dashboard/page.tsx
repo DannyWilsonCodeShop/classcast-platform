@@ -1382,7 +1382,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
             className="relative w-full h-full group cursor-pointer"
             onClick={(e) => {
               const iframe = document.createElement('iframe');
-              iframe.src = `${embedUrl}?autoplay=1&mute=0&rel=0&modestbranding=1`;
+              iframe.src = `${embedUrl}?autoplay=1&controls=1&rel=0&modestbranding=1`;
               iframe.className = 'w-full h-full';
               iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
               iframe.allowFullscreen = true;
@@ -1443,6 +1443,7 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
               ref={videoRef}
               src={getVideoUrl(item.videoUrl)}
               className="w-full h-full object-contain"
+              controls
               playsInline
               muted={isMuted}
               loop
