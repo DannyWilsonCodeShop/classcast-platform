@@ -608,12 +608,12 @@ const StudentDashboard: React.FC = () => {
 
       {/* Bottom Navigation Bar - Fixed to viewport */}
       <div 
-        className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 backdrop-blur-md border-t-2 border-white/50 shadow-2xl"
+        className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400 via-blue-400 to-pink-400 backdrop-blur-md border-t-2 border-white/50 shadow-2xl z-[9999]"
         style={{ 
-          position: 'fixed',
-          bottom: 0,
-          left: 0,
-          right: 0,
+          position: 'fixed !important' as any,
+          bottom: '0 !important' as any,
+          left: '0 !important' as any,
+          right: '0 !important' as any,
           width: '100%',
           zIndex: 99999,
           display: 'block',
