@@ -1378,23 +1378,25 @@ const VideoFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp: str
       {/* Video Player - Auto-play when in view */}
       <div className="relative w-full bg-black mb-2" style={{ aspectRatio: '16/9' }}>
         {isYouTube && videoId && embedUrl ? (
-          <div className="relative w-full h-full group">
+          <div 
+            className="relative w-full h-full group cursor-pointer"
+            onClick={(e) => {
+              const iframe = document.createElement('iframe');
+              iframe.src = `${embedUrl}?autoplay=1&mute=0&rel=0&modestbranding=1`;
+              iframe.className = 'w-full h-full';
+              iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+              iframe.allowFullscreen = true;
+              iframe.title = item.title || 'Video';
+              e.currentTarget.replaceWith(iframe);
+            }}
+          >
             <img
               src={imageError 
                 ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
                 : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
               }
               alt={item.title || 'Video'}
-              className="w-full h-full object-cover cursor-pointer"
-              onClick={(e) => {
-                const iframe = document.createElement('iframe');
-                iframe.src = `${embedUrl}?autoplay=1&mute=0&rel=0&modestbranding=1`;
-                iframe.className = 'w-full h-full';
-                iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-                iframe.allowFullscreen = true;
-                iframe.title = item.title || 'Video';
-                e.currentTarget.parentElement?.replaceChild(iframe, e.currentTarget);
-              }}
+              className="w-full h-full object-cover"
               onError={() => {
                 // Use state to prevent infinite loop
                 if (!imageError) {
