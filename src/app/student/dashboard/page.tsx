@@ -615,20 +615,14 @@ const StudentDashboard: React.FC = () => {
       {/* Bottom Navigation Bar - Rendered via Portal to ensure viewport positioning */}
       {isMounted && createPortal(
         <div 
-          className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400/90 via-blue-400/90 to-pink-400/90 backdrop-blur-md border-t-2 border-white/30 shadow-2xl bottom-nav"
+          className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-400/90 via-blue-400/90 to-pink-400/90 backdrop-blur-md border-t-2 border-white/30 shadow-2xl px-2 sm:px-4 py-2 sm:py-3"
           style={{
             position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
             width: '100%',
-            zIndex: 9999,
-            transform: 'scale(1.111)',
-            transformOrigin: 'bottom center',
-            paddingLeft: '0.5rem',
-            paddingRight: '0.5rem',
-            paddingTop: '0.5rem',
-            paddingBottom: '0.5rem'
+            zIndex: 9999
           }}
         >
         <div className="max-w-2xl mx-auto flex items-center justify-between gap-1 sm:gap-2">
