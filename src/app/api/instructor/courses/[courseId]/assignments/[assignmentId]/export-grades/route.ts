@@ -3,11 +3,11 @@ import { verifyInstructorAccess } from '@/lib/auth-utils';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { courseId: string; assignmentId: string } }
+  { params }: { params: Promise<{ courseId: string; assignmentId: string }> }
 ) {
   try {
     console.log('📊 Export grades API called');
-    const { courseId, assignmentId } = params;
+    const { courseId, assignmentId } = await params;
     console.log('📊 Params:', { courseId, assignmentId });
     
     // Temporarily disable auth check for debugging
