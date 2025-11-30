@@ -18,26 +18,16 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email } = body;
 
-    // Basic validation
     if (!email) {
       return NextResponse.json(
-        { message: 'Email is required' },
-        { status: 400 }
-      );
-    }
-
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { message: 'Please enter a valid email address' },
+        { error: { message: 'Email is required' } },
         { status: 400 }
       );
     }
 
     const sanitizedEmail = email.toLowerCase().trim();
 
-    // Find user by email in DynamoDB
+    // Find user by email (scan since email is not the primary key)
     const userResponse = await docClient.send(new ScanCommand({
       TableName: USERS_TABLE,
       FilterExpression: 'email = :email',
@@ -51,7 +41,8 @@ export async function POST(request: NextRequest) {
     if (!userResponse.Items || userResponse.Items.length === 0) {
       console.log('User not found:', sanitizedEmail);
       return NextResponse.json({
-        message: 'If an account with that email exists, a password reset link has been sent.'
+        success: true,
+        message: 'If an account exists with that email, a password reset link has been sent.'
       });
     }
 
@@ -154,24 +145,17 @@ If you didn't request this password reset, you can safely ignore this email.
     console.log('Password reset email sent to:', sanitizedEmail);
 
     return NextResponse.json({
-      message: 'If an account with that email exists, a password reset link has been sent.'
+      success: true,
+      message: 'If an account exists with that email, a password reset link has been sent.'
     });
 
   } catch (error) {
-    console.error('Forgot password request error:', error);
-    
-    if (error instanceof SyntaxError) {
-      return NextResponse.json(
-        { message: 'Invalid request format' },
-        { status: 400 }
-      );
-    }
+    console.error('Password reset request error:', error);
     
     // Don't expose internal errors
-    return NextResponse.json(
-      { message: 'If an account with that email exists, a password reset link has been sent.' },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      success: true,
+      message: 'If an account exists with that email, a password reset link has been sent.'
+    });
   }
 }
-
