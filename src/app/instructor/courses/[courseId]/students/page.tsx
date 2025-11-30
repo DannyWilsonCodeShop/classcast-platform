@@ -632,12 +632,19 @@ const InstructorStudentsPage: React.FC = () => {
     onMoveStudent: () => void;
     onRemoveStudent: () => void;
   }> = ({ student, onDragStart, onDragEnd, onViewSubmissions, onMoveStudent, onRemoveStudent }) => {
+    const [showQuickMove, setShowQuickMove] = useState(false);
+    
+    const handleQuickMove = async (targetSectionId: string | null) => {
+      setShowQuickMove(false);
+      await handleDropStudent(student.studentId, targetSectionId);
+    };
+    
     return (
       <div
         draggable
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
-        className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all duration-200 cursor-move hover:bg-gray-100"
+        className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all duration-200 cursor-move hover:bg-gray-100 relative"
       >
         <div className="flex items-center space-x-3 mb-3">
           <Avatar
@@ -674,13 +681,45 @@ const InstructorStudentsPage: React.FC = () => {
           >
             View Work
           </button>
-          <button
-            onClick={onMoveStudent}
-            className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200 transition-colors"
-            title="Move student"
-          >
-            ↔️
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowQuickMove(!showQuickMove)}
+              className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium hover:bg-gray-200 transition-colors"
+              title="Quick move to section"
+            >
+              ↔️
+            </button>
+            {showQuickMove && (
+              <div className="absolute bottom-full right-0 mb-2 bg-white border-2 border-gray-300 rounded-lg shadow-xl z-50 min-w-[200px]">
+                <div className="p-2 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                  <p className="text-xs font-semibold text-gray-700">Move to Section:</p>
+                </div>
+                <div className="max-h-60 overflow-y-auto">
+                  {availableSections
+                    .filter(sec => sec.sectionId !== student.sectionId)
+                    .map(section => (
+                      <button
+                        key={section.sectionId}
+                        onClick={() => handleQuickMove(section.sectionId)}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0"
+                      >
+                        <div className="font-medium text-gray-900">{section.sectionName}</div>
+                        <div className="text-xs text-gray-500">{section.studentCount || 0} students</div>
+                      </button>
+                    ))}
+                  {!student.sectionId && availableSections.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-gray-500">No other sections available</div>
+                  )}
+                </div>
+                <button
+                  onClick={() => setShowQuickMove(false)}
+                  className="w-full px-3 py-2 text-xs text-gray-600 hover:bg-gray-50 border-t border-gray-200 rounded-b-lg"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </div>
           <button
             onClick={onRemoveStudent}
             className="px-3 py-1 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200 transition-colors"
@@ -689,6 +728,14 @@ const InstructorStudentsPage: React.FC = () => {
             🗑️
           </button>
         </div>
+        
+        {/* Click outside to close dropdown */}
+        {showQuickMove && (
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setShowQuickMove(false)}
+          />
+        )}
       </div>
     );
   };
