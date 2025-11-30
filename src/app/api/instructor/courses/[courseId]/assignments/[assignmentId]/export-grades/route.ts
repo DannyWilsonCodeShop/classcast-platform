@@ -124,48 +124,26 @@ export async function POST(
       return a.studentName.localeCompare(b.studentName);
     });
 
-    // Generate CSV content
-    const csvHeaders = [
-      'Student Name',
-      'Email',
-      'Section',
-      'Grade',
-      'Max Score',
-      'Status',
-      'Submitted At',
-      'Feedback'
-    ];
-
-    const csvRows = gradesData.map(grade => [
-      grade.studentName,
-      grade.studentEmail,
-      grade.sectionName,
-      grade.grade || '',
-      assignment.maxScore || 100,
-      grade.status,
-      grade.submittedAt ? new Date(grade.submittedAt).toLocaleString() : '',
-      (grade.feedback || '').replace(/"/g, '""') // Escape quotes in feedback
-    ]);
-
-    // Create CSV content
-    const csvContent = [
-      csvHeaders.join(','),
-      ...csvRows.map(row => 
-        row.map(cell => 
-          typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))
-            ? `"${cell}"`
-            : cell
-        ).join(',')
-      )
-    ].join('\n');
-
-    // Return CSV file
-    return new NextResponse(csvContent, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/csv',
-        'Content-Disposition': `attachment; filename="${assignment.title.replace(/[^a-zA-Z0-9]/g, '_')}_grades.csv"`,
-      },
+    // Return JSON data - let the frontend handle CSV conversion
+    console.log('📊 Returning grades data:', gradesData.length, 'students');
+    return NextResponse.json({
+      success: true,
+      data: {
+        assignment: {
+          title: assignment.title,
+          maxScore: assignment.maxScore || 100
+        },
+        grades: gradesData.map(grade => ({
+          studentName: grade.studentName,
+          studentEmail: grade.studentEmail,
+          sectionName: grade.sectionName,
+          grade: grade.grade || '',
+          maxScore: assignment.maxScore || 100,
+          status: grade.status,
+          submittedAt: grade.submittedAt ? new Date(grade.submittedAt).toLocaleString() : '',
+          feedback: grade.feedback || ''
+        }))
+      }
     });
 
   } catch (error) {

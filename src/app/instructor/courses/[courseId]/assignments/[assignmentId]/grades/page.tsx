@@ -272,7 +272,38 @@ const AssignmentGradesPage: React.FC = () => {
         throw new Error('Failed to export grades');
       }
       
-      const blob = await response.blob();
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to export grades');
+      }
+      
+      // Convert JSON to CSV on the frontend
+      const csvHeaders = ['Student Name', 'Email', 'Section', 'Grade', 'Max Score', 'Status', 'Submitted At', 'Feedback'];
+      const csvRows = data.data.grades.map((grade: any) => [
+        grade.studentName,
+        grade.studentEmail,
+        grade.sectionName,
+        grade.grade,
+        grade.maxScore,
+        grade.status,
+        grade.submittedAt,
+        grade.feedback.replace(/"/g, '""') // Escape quotes
+      ]);
+      
+      const csvContent = [
+        csvHeaders.join(','),
+        ...csvRows.map((row: any[]) => 
+          row.map(cell => 
+            typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))
+              ? `"${cell}"`
+              : cell
+          ).join(',')
+        )
+      ].join('\n');
+      
+      // Download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
@@ -282,6 +313,8 @@ const AssignmentGradesPage: React.FC = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      alert('✅ Grades exported successfully!');
       
     } catch (error) {
       console.error('Error exporting grades:', error);
