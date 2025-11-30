@@ -45,9 +45,11 @@
     "infra:install": "cd cdk && npm install"
   },
   "dependencies": {
+    "@aws-sdk/client-acm": "^3.940.0",
+    "@aws-sdk/client-amplify": "^3.940.0",
     "@aws-sdk/client-api-gateway": "^3.895.0",
     "@aws-sdk/client-cloudfront": "^3.896.0",
-    "@aws-sdk/client-cloudwatch": "^3.890.0",
+    "@aws-sdk/client-cloudwatch": "^3.940.0",
     "@aws-sdk/client-cloudwatch-logs": "^3.890.0",
     "@aws-sdk/client-cognito-identity": "^3.890.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.891.0",
