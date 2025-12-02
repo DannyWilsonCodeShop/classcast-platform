@@ -9,6 +9,10 @@ export async function POST(
     console.log('📊 Export grades API called');
     const { courseId, assignmentId } = await params;
     console.log('📊 Params:', { courseId, assignmentId });
+    console.log('📊 Request headers:', {
+      cookie: request.headers.get('cookie') ? 'present' : 'missing',
+      authorization: request.headers.get('authorization') ? 'present' : 'missing'
+    });
     
     // Temporarily disable auth check for debugging
     // const authResult = await verifyInstructorAccess(request);
@@ -20,7 +24,8 @@ export async function POST(
 
     // Fetch assignment details
     console.log('📊 Fetching assignment details...');
-    const assignmentResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/assignments/${assignmentId}`, {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+    const assignmentResponse = await fetch(`${baseUrl}/api/assignments/${assignmentId}`, {
       headers: {
         'Cookie': request.headers.get('cookie') || '',
       },
@@ -28,11 +33,19 @@ export async function POST(
     console.log('📊 Assignment response status:', assignmentResponse.status);
 
     if (!assignmentResponse.ok) {
-      return NextResponse.json({ success: false, error: 'Assignment not found' }, { status: 404 });
+      const errorText = await assignmentResponse.text();
+      console.error('📊 Assignment fetch failed:', errorText);
+      return NextResponse.json({ success: false, error: 'Assignment not found', details: errorText }, { status: 404 });
     }
 
     const assignmentData = await assignmentResponse.json();
-    const assignment = assignmentData.assignment;
+    console.log('📊 Assignment data structure:', Object.keys(assignmentData));
+    const assignment = assignmentData.assignment || assignmentData.data?.assignment;
+    
+    if (!assignment) {
+      console.error('📊 No assignment in response:', assignmentData);
+      return NextResponse.json({ success: false, error: 'Assignment data missing' }, { status: 404 });
+    }
 
     // Verify instructor owns this course
     if (assignment.courseId !== courseId) {
@@ -41,7 +54,7 @@ export async function POST(
 
     // Fetch enrolled students
     console.log('📊 Fetching enrolled students...');
-    const studentsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/courses/enrollment?courseId=${courseId}`, {
+    const studentsResponse = await fetch(`${baseUrl}/api/courses/enrollment?courseId=${courseId}`, {
       headers: {
         'Cookie': request.headers.get('cookie') || '',
       },
@@ -49,15 +62,19 @@ export async function POST(
     console.log('📊 Students response status:', studentsResponse.status);
 
     if (!studentsResponse.ok) {
-      return NextResponse.json({ success: false, error: 'Failed to fetch students' }, { status: 500 });
+      const errorText = await studentsResponse.text();
+      console.error('📊 Students fetch failed:', errorText);
+      return NextResponse.json({ success: false, error: 'Failed to fetch students', details: errorText }, { status: 500 });
     }
 
     const studentsData = await studentsResponse.json();
+    console.log('📊 Students data structure:', Object.keys(studentsData));
     const enrolledStudents = studentsData.success ? studentsData.data?.students || [] : [];
+    console.log('📊 Found', enrolledStudents.length, 'enrolled students');
 
     // Fetch submissions for this assignment
     console.log('📊 Fetching submissions...');
-    const submissionsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/instructor/video-submissions?assignmentId=${assignmentId}`, {
+    const submissionsResponse = await fetch(`${baseUrl}/api/instructor/video-submissions?assignmentId=${assignmentId}`, {
       headers: {
         'Cookie': request.headers.get('cookie') || '',
       },
@@ -66,6 +83,7 @@ export async function POST(
 
     const submissionsData = submissionsResponse.ok ? await submissionsResponse.json() : { success: false };
     const submissions = submissionsData.success ? submissionsData.submissions || [] : [];
+    console.log('📊 Found', submissions.length, 'submissions');
 
     // Create a map of submissions by student ID
     const submissionMap = new Map();
@@ -86,7 +104,7 @@ export async function POST(
         
         // Fetch full user details
         try {
-          const userResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/users/${student.userId}`, {
+          const userResponse = await fetch(`${baseUrl}/api/users/${student.userId}`, {
             headers: {
               'Cookie': request.headers.get('cookie') || '',
             },
