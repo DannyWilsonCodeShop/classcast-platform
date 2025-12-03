@@ -52,20 +52,29 @@ class Logger {
   private bufferSize = 100;
   private flushInterval = 30000; // 30 seconds
   private initialized = false;
+  private initializing = false;
 
   constructor() {
-    this.initializeLogGroup();
-    this.startFlushInterval();
+    // Don't initialize during build time
+    if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+      // Only initialize in runtime, not during build
+      if (process.env.AWS_EXECUTION_ENV || process.env.VERCEL) {
+        this.startFlushInterval();
+      }
+    }
   }
 
   private async initializeLogGroup() {
+    if (this.initialized || this.initializing) return;
+    this.initializing = true;
+
     try {
       // Create log group if it doesn't exist
       await cloudWatchLogs.send(new CreateLogGroupCommand({
         logGroupName: LOG_GROUP_NAME
       }));
     } catch (error: any) {
-      if (error.name !== 'ResourceAlreadyExistsException') {
+      if (error.name !== 'ResourceAlreadyExistsException' && error.name !== 'AccessDeniedException') {
         console.error('Error creating log group:', error);
       }
     }
@@ -77,12 +86,13 @@ class Logger {
         logStreamName: LOG_STREAM_NAME
       }));
     } catch (error: any) {
-      if (error.name !== 'ResourceAlreadyExistsException') {
+      if (error.name !== 'ResourceAlreadyExistsException' && error.name !== 'AccessDeniedException') {
         console.error('Error creating log stream:', error);
       }
     }
 
     this.initialized = true;
+    this.initializing = false;
   }
 
   private startFlushInterval() {
@@ -92,7 +102,14 @@ class Logger {
   }
 
   private async flushLogs() {
-    if (this.logBuffer.length === 0 || !this.initialized) return;
+    if (this.logBuffer.length === 0) return;
+    
+    // Initialize if not already done
+    if (!this.initialized && !this.initializing) {
+      await this.initializeLogGroup();
+    }
+    
+    if (!this.initialized) return;
 
     const logsToFlush = [...this.logBuffer];
     this.logBuffer = [];
@@ -110,10 +127,12 @@ class Logger {
       }));
 
       console.log(`Flushed ${logsToFlush.length} log entries to CloudWatch`);
-    } catch (error) {
-      console.error('Error flushing logs to CloudWatch:', error);
-      // Re-add logs to buffer if flush failed
-      this.logBuffer.unshift(...logsToFlush);
+    } catch (error: any) {
+      // Silently fail if no permissions (like during build)
+      if (error.name !== 'AccessDeniedException') {
+        console.error('Error flushing logs to CloudWatch:', error);
+      }
+      // Don't re-add logs to prevent infinite growth
     }
   }
 
@@ -132,6 +151,9 @@ class Logger {
         }
       })
     };
+
+    // Always log to console for debugging
+    console.log(`[${level}] ${message}`, metadata);
 
     this.logBuffer.push(logEntry);
 

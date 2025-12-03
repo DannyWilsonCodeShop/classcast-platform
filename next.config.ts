@@ -12,7 +12,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '3gb', // Allow large file uploads
     },
     // Performance optimizations
-    optimizeCss: true,
     optimizePackageImports: ['@/components', '@/lib', 'lucide-react'],
   },
   
@@ -35,9 +34,6 @@ const nextConfig: NextConfig = {
   
   // React strict mode
   reactStrictMode: true,
-  
-  // Optimize fonts
-  optimizeFonts: true,
   
   // Configure headers for better caching and security
   async headers() {
