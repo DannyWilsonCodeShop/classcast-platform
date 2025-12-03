@@ -22,23 +22,16 @@ export async function GET(request: NextRequest) {
 
     console.log('📚 Fetching courses for instructor:', instructorId);
     console.log('📚 Using table:', COURSES_TABLE);
-
-    // First, get all courses to see what's in the table
+    
+    // Log all unique instructorIds in the database for debugging
     const allCoursesResult = await docClient.send(new ScanCommand({
       TableName: COURSES_TABLE
     }));
     
+    const uniqueInstructorIds = [...new Set((allCoursesResult.Items || []).map(c => c.instructorId))];
     console.log(`📚 Total courses in table: ${(allCoursesResult.Items || []).length}`);
-    
-    // Log a few courses to see the structure
-    (allCoursesResult.Items || []).slice(0, 2).forEach((course, index) => {
-      console.log(`📚 Sample course ${index + 1}:`, {
-        courseId: course.courseId,
-        title: course.title,
-        instructorId: course.instructorId,
-        createdAt: course.createdAt
-      });
-    });
+    console.log(`📚 Unique instructorIds in database:`, uniqueInstructorIds);
+    console.log(`📚 Looking for instructorId: "${instructorId}"`);
 
     // Get all courses for this instructor
     const coursesResult = await docClient.send(new ScanCommand({
