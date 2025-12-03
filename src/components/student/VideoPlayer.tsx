@@ -36,6 +36,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [buffering, setBuffering] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [thumbnail, setThumbnail] = useState<string | null>(null);
 
   // Auto-hide controls after 3 seconds of inactivity
   useEffect(() => {
@@ -104,12 +105,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (!video) return;
 
     const updateTime = () => {
-      setCurrentTime(video.currentTime);
-      setDuration(video.duration);
+      if (!isNaN(video.currentTime) && !isNaN(video.duration)) {
+        setCurrentTime(video.currentTime);
+        if (video.duration > 0) {
+          setDuration(video.duration);
+        }
+      }
     };
 
     const handleLoadedMetadata = () => {
-      setDuration(video.duration);
+      if (!isNaN(video.duration) && video.duration > 0) {
+        setDuration(video.duration);
+      }
       if (autoPlay) {
         video.play().catch(() => {
           // Auto-play failed, user interaction required
@@ -117,11 +124,50 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
     };
 
-    const handleTimeUpdate = updateTime;
-    const handleLoadedData = updateTime;
-    const handleCanPlay = () => setBuffering(false);
+    const handleTimeUpdate = () => {
+      updateTime();
+    };
+    
+    const handleLoadedData = () => {
+      updateTime();
+      setBuffering(false);
+      // Generate thumbnail after video loads
+      if (!thumbnail && video.readyState >= 2) {
+        setTimeout(() => {
+          video.currentTime = Math.min(2, video.duration * 0.1); // Seek to 2s or 10% of video
+        }, 100);
+      }
+    };
+
+    const handleSeeked = () => {
+      // Generate thumbnail after seeking
+      if (!thumbnail && video.currentTime > 0 && video.readyState >= 2) {
+        generateThumbnail();
+      }
+    };
+    
+    const handleCanPlay = () => {
+      setBuffering(false);
+      updateTime();
+    };
+    
     const handleWaiting = () => setBuffering(true);
-    const handleError = () => setError('Failed to load video');
+    
+    const handleError = (e: Event) => {
+      console.error('Video error:', e);
+      setError('Failed to load video. Please check the video URL or try again.');
+    };
+
+    const handleProgress = () => {
+      // Update buffering state based on buffered ranges
+      if (video.buffered.length > 0) {
+        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+        const duration = video.duration;
+        if (bufferedEnd >= duration - 0.5) {
+          setBuffering(false);
+        }
+      }
+    };
 
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('timeupdate', handleTimeUpdate);
@@ -129,6 +175,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     video.addEventListener('canplay', handleCanPlay);
     video.addEventListener('waiting', handleWaiting);
     video.addEventListener('error', handleError);
+    video.addEventListener('progress', handleProgress);
+    video.addEventListener('seeked', handleSeeked);
 
     return () => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
@@ -137,8 +185,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       video.removeEventListener('canplay', handleCanPlay);
       video.removeEventListener('waiting', handleWaiting);
       video.removeEventListener('error', handleError);
+      video.removeEventListener('progress', handleProgress);
+      video.removeEventListener('seeked', handleSeeked);
     };
-  }, [autoPlay]);
+  }, [autoPlay, thumbnail, generateThumbnail]);
 
   const togglePlayPause = useCallback(() => {
     if (!videoRef.current) return;
@@ -201,9 +251,31 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }, []);
 
   const formatTime = useCallback((seconds: number) => {
+    if (isNaN(seconds) || seconds < 0) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }, []);
+
+  // Generate thumbnail from video
+  const generateThumbnail = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || video.readyState < 2) return;
+
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const thumbnailUrl = canvas.toDataURL('image/jpeg', 0.7);
+        setThumbnail(thumbnailUrl);
+      }
+    } catch (error) {
+      console.error('Failed to generate thumbnail:', error);
+    }
   }, []);
 
   const handleMouseMove = useCallback(() => {
@@ -287,12 +359,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <video
             ref={videoRef}
             src={resolvedVideoUrl}
+            poster={thumbnail || undefined}
             className="w-full h-auto cursor-pointer"
             style={{ maxHeight: '80vh', objectFit: 'contain' }}
             onClick={handleVideoClick}
             playsInline
             webkit-playsinline="true"
-            preload="metadata"
+            preload="auto"
+            crossOrigin="anonymous"
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onEnded={() => setIsPlaying(false)}
           />
 
           {/* Buffering Indicator */}
@@ -311,18 +388,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   <input
                     type="range"
                     min="0"
-                    max={duration || 0}
-                    value={currentTime}
+                    max={duration && !isNaN(duration) && duration > 0 ? duration : 100}
+                    value={currentTime && !isNaN(currentTime) ? currentTime : 0}
                     onChange={(e) => seekTo(parseFloat(e.target.value))}
                     className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
                     style={{
-                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentTime / duration) * 100}%, #4b5563 ${(currentTime / duration) * 100}%, #4b5563 100%)`
+                      background: duration && !isNaN(duration) && duration > 0
+                        ? `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(currentTime / duration) * 100}%, #4b5563 ${(currentTime / duration) * 100}%, #4b5563 100%)`
+                        : '#4b5563'
                     }}
+                    disabled={!duration || isNaN(duration) || duration === 0}
                   />
                 </div>
                 <div className="flex justify-between text-sm text-white mt-1">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
+                  <span>{currentTime && !isNaN(currentTime) ? formatTime(currentTime) : '0:00'}</span>
+                  <span>{duration && !isNaN(duration) && duration > 0 ? formatTime(duration) : '0:00'}</span>
                 </div>
               </div>
 
