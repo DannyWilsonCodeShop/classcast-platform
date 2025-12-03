@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OIDCAuthProvider } from "@/components/auth/OIDCAuthProvider";
 import { RealtimeNotifications } from "@/components/common/RealtimeNotifications";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,12 +52,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <OIDCAuthProvider>
-          <AuthProvider>
-            {children}
-            <RealtimeNotifications />
-          </AuthProvider>
-        </OIDCAuthProvider>
+        <QueryProvider>
+          <OIDCAuthProvider>
+            <AuthProvider>
+              {children}
+              <RealtimeNotifications />
+            </AuthProvider>
+          </OIDCAuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );
