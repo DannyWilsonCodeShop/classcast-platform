@@ -11,26 +11,86 @@ const nextConfig: NextConfig = {
       allowedOrigins: ['localhost:3000', 'localhost:3001'],
       bodySizeLimit: '3gb', // Allow large file uploads
     },
-    // Note: typedRoutes is not supported in Turbopack yet
-    // typedRoutes: true, // This will cause Turbopack to fail
+    // Performance optimizations
+    optimizeCss: true,
+    optimizePackageImports: ['@/components', '@/lib', 'lucide-react'],
   },
-  
-  // Note: API route configuration moved to individual route files in Next.js 15
   
   // Optimize images
   images: {
-    formats: ['image/webp', 'image/avif'],
-    minimumCacheTTL: 60,
+    formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 365, // 1 year for better caching
   },
   
   // Enable compression
   compress: true,
+  
+  // Optimize production builds
+  productionBrowserSourceMaps: false,
   
   // Power by header
   poweredByHeader: false,
   
   // React strict mode
   reactStrictMode: true,
+  
+  // Optimize fonts
+  optimizeFonts: true,
+  
+  // Configure headers for better caching and security
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+        ],
+      },
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
   
   // Disable ESLint during build for deployment
   eslint: {
@@ -41,9 +101,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  
-  // Note: swcMinify is enabled by default in Next.js 13+ and doesn't need to be specified
-  // swcMinify: true, // This is the default behavior and doesn't need to be specified
 };
 
 export default nextConfig;
