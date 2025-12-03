@@ -83,6 +83,7 @@ const InstructorStudentsPage: React.FC = () => {
   // Export grades state
   const [isExporting, setIsExporting] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 
   const courseId = params.courseId as string;
 
@@ -1045,30 +1046,65 @@ const InstructorStudentsPage: React.FC = () => {
                           {new Date(student.lastActivity).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
-                            <button 
-                              onClick={() => router.push(`/instructor/students/${student.studentId}/profile`)}
-                              className="text-indigo-600 hover:text-indigo-900 transition-colors"
+                          <div className="relative">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenDropdownId(openDropdownId === student.studentId ? null : student.studentId);
+                              }}
+                              className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors inline-flex items-center"
                             >
-                              View Profile
+                              <span>Actions</span>
+                              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
                             </button>
-                            <button className="text-emerald-600 hover:text-emerald-900 transition-colors">
-                              Message
-                            </button>
-                            <button 
-                              onClick={() => handleMoveStudent(student)}
-                              className="text-blue-600 hover:text-blue-900 transition-colors"
-                              title={`Move ${student.name} to another section or course`}
-                            >
-                              Move
-                            </button>
-                            <button 
-                              onClick={() => handleRemoveStudent(student.studentId, student.name)}
-                              className="text-red-600 hover:text-red-900 transition-colors"
-                              title={`Remove ${student.name} from course`}
-                            >
-                              Remove
-                            </button>
+                            {openDropdownId === student.studentId && (
+                              <>
+                                <div 
+                                  className="fixed inset-0 z-40" 
+                                  onClick={() => setOpenDropdownId(null)}
+                                />
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                                  <button
+                                    onClick={() => {
+                                      setOpenDropdownId(null);
+                                      router.push(`/instructor/students/${student.studentId}/profile`);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-t-lg"
+                                  >
+                                    👤 View Profile
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setOpenDropdownId(null);
+                                      alert('Message feature coming soon!');
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                  >
+                                    💬 Message
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setOpenDropdownId(null);
+                                      handleMoveStudent(student);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-blue-700 hover:bg-blue-50"
+                                  >
+                                    ↔️ Move
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setOpenDropdownId(null);
+                                      handleRemoveStudent(student.studentId, student.name);
+                                    }}
+                                    className="w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50 rounded-b-lg"
+                                  >
+                                    🗑️ Remove
+                                  </button>
+                                </div>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
