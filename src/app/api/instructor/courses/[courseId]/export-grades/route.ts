@@ -127,7 +127,8 @@ export async function GET(
       // Add grades for each assignment
       assignments.forEach(assignment => {
         const submission = studentSubmissions.get(assignment.assignmentId);
-        const assignmentPoints = assignment.points || 100;
+        // Use maxScore if available, otherwise fall back to points, then 100
+        const assignmentPoints = assignment.maxScore || assignment.points || 100;
         totalPossiblePoints += assignmentPoints;
 
         if (submission && submission.grade !== null && submission.grade !== undefined) {
@@ -194,7 +195,7 @@ export async function GET(
         assignments: assignments.map(a => ({
           id: a.assignmentId,
           title: a.title,
-          points: a.points || 100,
+          points: a.maxScore || a.points || 100,
           dueDate: a.dueDate,
           createdAt: a.createdAt
         })),
@@ -244,7 +245,7 @@ function generateCSV(gradeReport: any[], assignments: any[], course: any): strin
     'Student Name',
     'Email',
     'Section',
-    ...assignments.map(a => `${a.title} (${a.points || 100} pts)`),
+    ...assignments.map(a => `${a.title} (${a.maxScore || a.points || 100} pts)`),
     'Total Points',
     'Earned Points',
     'Percentage',

@@ -76,7 +76,6 @@ const BulkGradingContent: React.FC = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [allSubmissions, setAllSubmissions] = useState<VideoSubmission[]>([]);
   const [filteredSubmissions, setFilteredSubmissions] = useState<VideoSubmission[]>([]);
-  // Remove currentIndex - using continuous feed instead
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // Remove playbackSpeed - not needed in continuous feed
@@ -321,8 +320,6 @@ const BulkGradingContent: React.FC = () => {
     });
     
     setFilteredSubmissions(filtered);
-    
-    // Remove currentIndex logic - using continuous feed instead
     
     // Update current grade and feedback for the new current submission
   }, [allSubmissions, selectedCourse, selectedAssignment, selectedStudent, selectedSection, filter, searchTerm, sortBy]);
@@ -994,82 +991,28 @@ const BulkGradingContent: React.FC = () => {
                         });
 
                         if (isYouTube && videoId && embedUrl) {
-                          // YouTube Video Player
-                          const [showYouTubePlayer, setShowYouTubePlayer] = React.useState(false);
+                          // YouTube Video Player - Always show iframe to avoid useState in map
                           const thumbnailUrl = getYouTubeThumbnail(videoId, 'maxresdefault');
                           
                           return (
-                            <div className="relative w-full h-full group">
-                              {!showYouTubePlayer ? (
-                                <>
-                                  <img
-                                    src={thumbnailUrl}
-                                    alt={`${submission.studentName}'s video`}
-                                    className="w-full h-full object-cover cursor-pointer"
-                                    onClick={() => setShowYouTubePlayer(true)}
-                                    onError={(e) => {
-                                      // Fallback to default thumbnail
-                                      e.currentTarget.src = getYouTubeThumbnail(videoId, 'hqdefault');
-                                    }}
-                                  />
-                                  {/* YouTube Play Button Overlay */}
-                                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <div className="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center shadow-2xl">
-                                      <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M8 5v14l11-7z" />
-                                      </svg>
-                                    </div>
-                                  </div>
-                                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
-                                    📺 YouTube Video - Click to play
-                                  </div>
-                                </>
-                              ) : (
-                                <iframe
-                                  src={`${embedUrl}?autoplay=1&mute=0&rel=0&modestbranding=1`}
-                                  className="w-full h-full"
-                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                  allowFullScreen
-                                  title={`${submission.studentName}'s video`}
-                                />
-                              )}
-                            </div>
+                            <iframe
+                              src={`${embedUrl}?rel=0&modestbranding=1`}
+                              className="w-full h-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                              title={`${submission.studentName}'s video`}
+                            />
                           );
                         } else if (isGoogleDrive && embedUrl) {
-                          // Google Drive Video Player
-                          const [showGoogleDrivePlayer, setShowGoogleDrivePlayer] = React.useState(false);
-                          
+                          // Google Drive Video Player - Always show iframe to avoid useState in map
                           return (
-                            <div className="relative w-full h-full group">
-                              {!showGoogleDrivePlayer ? (
-                                <div 
-                                  className="w-full h-full bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center cursor-pointer hover:from-blue-700 hover:to-blue-900 transition-colors"
-                                  onClick={() => setShowGoogleDrivePlayer(true)}
-                                >
-                                  {/* Google Drive Play Button */}
-                                  <div className="text-center text-white">
-                                    <div className="w-20 h-20 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                      <svg className="w-8 h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M8 5v14l11-7z" />
-                                      </svg>
-                                    </div>
-                                    <div className="font-semibold">Google Drive Video</div>
-                                    <div className="text-sm opacity-75">Click to play</div>
-                                  </div>
-                                  <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-xs">
-                                    💾 Google Drive Video
-                                  </div>
-                                </div>
-                              ) : (
-                                <iframe
-                                  src={`${embedUrl}?autoplay=1`}
-                                  className="w-full h-full"
-                                  allow="autoplay"
-                                  allowFullScreen
-                                  title={`${submission.studentName}'s video`}
-                                />
-                              )}
-                            </div>
+                            <iframe
+                              src={embedUrl}
+                              className="w-full h-full"
+                              allow="autoplay"
+                              allowFullScreen
+                              title={`${submission.studentName}'s video`}
+                            />
                           );
                         } else {
                           // Direct Video File Player

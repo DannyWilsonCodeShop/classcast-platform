@@ -279,16 +279,13 @@ const AssignmentGradesPage: React.FC = () => {
       }
       
       // Convert JSON to CSV on the frontend
-      const csvHeaders = ['Student Name', 'Email', 'Section', 'Grade', 'Max Score', 'Status', 'Submitted At', 'Feedback'];
+      const csvHeaders = ['Student Name', 'Grade', 'Submitted At', 'Feedback', 'Section'];
       const csvRows = data.data.grades.map((grade: any) => [
         grade.studentName,
-        grade.studentEmail,
-        grade.sectionName,
-        grade.grade,
-        grade.maxScore,
-        grade.status,
-        grade.submittedAt,
-        grade.feedback.replace(/"/g, '""') // Escape quotes
+        grade.grade || '',
+        grade.submittedAt || '',
+        (grade.feedback || '').replace(/"/g, '""'), // Escape quotes
+        grade.sectionName
       ]);
       
       const csvContent = [
