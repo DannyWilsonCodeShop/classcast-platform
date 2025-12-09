@@ -786,7 +786,7 @@ const BulkGradingContent: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-600">
-                Continuous feed • Auto-save enabled
+                Scrollable Feed • Auto-save • v2.0
               </div>
             </div>
           </div>
@@ -927,12 +927,12 @@ const BulkGradingContent: React.FC = () => {
                   Showing {filteredSubmissions.length} submission{filteredSubmissions.length !== 1 ? 's' : ''} across all assignments
                 </div>
                 <div className="text-xs text-gray-500">
-                  💡 Each video is displayed in its own card • Auto-save enabled • Scroll naturally through submissions
+                  💡 All videos shown in scrollable feed • Scroll up/down naturally • Auto-save enabled
                 </div>
               </div>
 
-              {/* Card-based Feed like Student Dashboard */}
-              <div className="space-y-4">
+              {/* Card-based Scrollable Feed - All videos visible, scroll naturally */}
+              <div className="space-y-6 pb-12">
                 {filteredSubmissions.map((submission, index) => (
                   <div key={submission.submissionId} className="bg-gradient-to-r from-white via-blue-50/30 to-indigo-50/30 border-l-4 border-blue-500 border-b-2 border-blue-200/50 shadow-md rounded-lg overflow-hidden">
                     {/* Student Header */}
