@@ -64,7 +64,6 @@ const NewAssignmentGradingPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const videoRef = useRef<HTMLVideoElement>(null);
   
   const assignmentId = params.assignmentId as string;
   
@@ -79,13 +78,6 @@ const NewAssignmentGradingPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortType>('section');
   const [selectedSection, setSelectedSection] = useState<string>('all');
-  
-  // Grading state
-  const [currentGrade, setCurrentGrade] = useState<number | ''>('');
-  const [currentFeedback, setCurrentFeedback] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
-  const [isDeleting, setIsDeleting] = useState(false);
   
   // Peer response state
   const [peerResponsesData, setPeerResponsesData] = useState<{[studentId: string]: PeerResponse[]}>({});
@@ -214,12 +206,15 @@ const NewAssignmentGradingPage: React.FC = () => {
             }
           }
           
-          // Load first submission's grade and feedback if available
-          if (transformedSubmissions.length > 0) {
-            const firstSubmission = transformedSubmissions[0];
-            setCurrentGrade(firstSubmission.grade || '');
-            setCurrentFeedback(firstSubmission.feedback || '');
-          }
+          // Initialize grades and feedback state for all submissions
+          const initialGrades: Record<string, number | ''> = {};
+          const initialFeedback: Record<string, string> = {};
+          transformedSubmissions.forEach(sub => {
+            initialGrades[sub.submissionId] = sub.grade || '';
+            initialFeedback[sub.submissionId] = sub.feedback || '';
+          });
+          setGrades(initialGrades);
+          setFeedbackState(initialFeedback);
         } else {
           console.log('🎯 NEW GRADING PAGE: No submissions found for assignment');
           setAllSubmissions([]);
@@ -316,19 +311,7 @@ const NewAssignmentGradingPage: React.FC = () => {
     });
     
     setFilteredSubmissions(filtered);
-    
-    // Reset current index if it's out of bounds
-    if (currentIndex >= filtered.length) {
-      setCurrentIndex(0);
-    }
-    
-    // Update current grade and feedback for the new current submission
-    if (filtered.length > 0) {
-      const currentSubmission = filtered[Math.min(currentIndex, filtered.length - 1)];
-      setCurrentGrade(currentSubmission.grade || '');
-      setCurrentFeedback(currentSubmission.feedback || '');
-    }
-  }, [allSubmissions, filter, searchTerm, sortBy, selectedSection, currentIndex]);
+  }, [allSubmissions, filter, searchTerm, sortBy, selectedSection]);
 
   // Fetch peer responses for all students
   useEffect(() => {
@@ -406,9 +389,6 @@ const NewAssignmentGradingPage: React.FC = () => {
     fetchPeerResponses();
   }, [allSubmissions.length, assignmentId]);
 
-  // Current submission
-  const currentSubmission = filteredSubmissions[currentIndex];
-
   // Get unique sections for filtering
   const uniqueSections = Array.from(new Set(
     allSubmissions
@@ -432,34 +412,6 @@ const NewAssignmentGradingPage: React.FC = () => {
       }
       return newSet;
     });
-  };
-
-  // Navigation functions
-  const goToNext = () => {
-    if (currentIndex < filteredSubmissions.length - 1) {
-      const nextIndex = currentIndex + 1;
-      setCurrentIndex(nextIndex);
-      const nextSubmission = filteredSubmissions[nextIndex];
-      setCurrentGrade(nextSubmission.grade || '');
-      setCurrentFeedback(nextSubmission.feedback || '');
-    }
-  };
-
-  const goToPrevious = () => {
-    if (currentIndex > 0) {
-      const prevIndex = currentIndex - 1;
-      setCurrentIndex(prevIndex);
-      const prevSubmission = filteredSubmissions[prevIndex];
-      setCurrentGrade(prevSubmission.grade || '');
-      setCurrentFeedback(prevSubmission.feedback || '');
-    }
-  };
-
-  const goToSubmission = (index: number) => {
-    setCurrentIndex(index);
-    const submission = filteredSubmissions[index];
-    setCurrentGrade(submission.grade || '');
-    setCurrentFeedback(submission.feedback || '');
   };
 
   // Auto-save grade function
@@ -507,60 +459,7 @@ const NewAssignmentGradingPage: React.FC = () => {
     }
   };
 
-  // Delete submission function
-  const deleteSubmission = async () => {
-    if (!currentSubmission) return;
-    
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${currentSubmission.studentName}'s video submission? This action cannot be undone.`
-    );
-    
-    if (!confirmDelete) return;
-    
-    setIsDeleting(true);
-    
-    try {
-      const response = await fetch(`/api/video-submissions/${currentSubmission.submissionId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
 
-      if (!response.ok) {
-        throw new Error('Failed to delete submission');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        // Remove from local state
-        setAllSubmissions(prev => prev.filter(sub => sub.submissionId !== currentSubmission.submissionId));
-        
-        // Navigate to next submission or previous if this was the last one
-        if (currentIndex >= filteredSubmissions.length - 1 && currentIndex > 0) {
-          setCurrentIndex(currentIndex - 1);
-        } else if (filteredSubmissions.length === 1) {
-          // If this was the only submission, we'll handle this in the UI
-          setCurrentIndex(0);
-        }
-        
-        alert('Submission deleted successfully');
-      } else {
-        throw new Error(data.error || 'Failed to delete submission');
-      }
-    } catch (error) {
-      console.error('Error deleting submission:', error);
-      alert('Failed to delete submission. Please try again.');
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  // Video controls
-  const handleSpeedChange = (speed: number) => {
-    setPlaybackSpeed(speed);
-    if (videoRef.current) {
-      videoRef.current.playbackRate = speed;
-    }
-  };
 
 
 
