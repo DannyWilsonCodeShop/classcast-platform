@@ -52,6 +52,10 @@ export async function GET(
       success: true,
       interactions: result.Items || [],
       count: result.Count || 0
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+      }
     });
 
   } catch (error) {
