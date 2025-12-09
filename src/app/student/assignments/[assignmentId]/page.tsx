@@ -9,30 +9,17 @@ import { EmptyState } from '@/components/common/EmptyState';
 import AssignmentResourcesDisplay from '@/components/common/AssignmentResourcesDisplay';
 import RichTextRenderer from '@/components/common/RichTextRenderer';
 import { getVideoUrl } from '@/lib/videoUtils';
-
-// Helper function to extract YouTube video ID
-function extractYouTubeVideoId(url: string): string | null {
-  try {
-    const urlObj = new URL(url);
-    // Handle youtube.com/watch?v=... format
-    if (urlObj.hostname.includes('youtube.com')) {
-      return urlObj.searchParams.get('v');
-    }
-    // Handle youtu.be/... format
-    if (urlObj.hostname === 'youtu.be') {
-      // Extract video ID from pathname and strip any trailing query params
-      const videoId = urlObj.pathname.substring(1).split('?')[0];
-      return videoId || null;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
+import { extractYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
+import { isValidGoogleDriveUrl, getGoogleDrivePreviewUrl } from '@/lib/googleDrive';
 
 // Helper function to check if URL is a YouTube URL
 function isYouTubeUrl(url: string): boolean {
   return url?.includes('youtube.com') || url?.includes('youtu.be');
+}
+
+// Helper function to check if URL is a Google Drive URL
+function isGoogleDriveUrl(url: string): boolean {
+  return url?.includes('drive.google.com');
 }
 
 // VideoThumbnail component for better thumbnail handling
@@ -139,6 +126,8 @@ interface Submission {
   videoUrl: string;
   youtubeUrl?: string;
   isYouTube?: boolean;
+  googleDriveUrl?: string;
+  isGoogleDrive?: boolean;
   videoTitle: string;
   videoDescription: string;
   duration: number;
@@ -758,9 +747,16 @@ const StudentAssignmentDetailPage: React.FC = () => {
                         <div className="aspect-video bg-black">
                           {displayAssignment.instructionalVideoUrl.includes('youtube.com') || displayAssignment.instructionalVideoUrl.includes('youtu.be') ? (
                             <iframe
-                              src={displayAssignment.instructionalVideoUrl.replace('watch?v=', 'embed/')}
+                              src={getYouTubeEmbedUrl(displayAssignment.instructionalVideoUrl) || displayAssignment.instructionalVideoUrl}
                               className="w-full h-full"
                               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : isGoogleDriveUrl(displayAssignment.instructionalVideoUrl) ? (
+                            <iframe
+                              src={getGoogleDrivePreviewUrl(displayAssignment.instructionalVideoUrl) || displayAssignment.instructionalVideoUrl}
+                              className="w-full h-full"
+                              allow="autoplay"
                               allowFullScreen
                             />
                           ) : (
@@ -822,7 +818,271 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     </div>
                   )}
 
-              {/* Submission Status - Temporarily removed for deployment */}
+              {/* Submission Status */}
+              {submission && (
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <span className="mr-2">✅</span>
+                      Your Submission
+                    </h3>
+                    {!submission.grade && (
+                      <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium flex items-center space-x-2"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>Delete Submission</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Video Preview */}
+                      <div>
+                        <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
+                          {submission.isYouTube && submission.youtubeUrl ? (
+                            <iframe
+                              src={getYouTubeEmbedUrl(submission.youtubeUrl) || submission.youtubeUrl}
+                              className="w-full h-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : submission.isYouTube && submission.videoUrl ? (
+                            <iframe
+                              src={getYouTubeEmbedUrl(submission.videoUrl) || submission.videoUrl}
+                              className="w-full h-full"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : submission.isGoogleDrive && submission.googleDriveUrl ? (
+                            <iframe
+                              src={getGoogleDrivePreviewUrl(submission.googleDriveUrl) || submission.googleDriveUrl}
+                              className="w-full h-full"
+                              allow="autoplay"
+                              allowFullScreen
+                            />
+                          ) : submission.isGoogleDrive && submission.videoUrl ? (
+                            <iframe
+                              src={getGoogleDrivePreviewUrl(submission.videoUrl) || submission.videoUrl}
+                              className="w-full h-full"
+                              allow="autoplay"
+                              allowFullScreen
+                            />
+                          ) : isGoogleDriveUrl(submission.videoUrl) ? (
+                            <iframe
+                              src={getGoogleDrivePreviewUrl(submission.videoUrl) || submission.videoUrl}
+                              className="w-full h-full"
+                              allow="autoplay"
+                              allowFullScreen
+                            />
+                          ) : (
+                            <video
+                              controls
+                              className="w-full h-full"
+                              preload="metadata"
+                              playsInline
+                              webkit-playsinline="true"
+                              crossOrigin="anonymous"
+                            >
+                              <source src={getVideoUrl(submission.videoUrl)} type="video/mp4" />
+                              Your browser does not support the video tag.
+                            </video>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Submission Details */}
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-700 mb-1">Video Title</h4>
+                          <p className="text-gray-900">{submission.videoTitle}</p>
+                        </div>
+
+                        {submission.videoDescription && (
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-700 mb-1">Description</h4>
+                            <p className="text-gray-900 text-sm">{submission.videoDescription}</p>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-700 mb-1">Submitted</h4>
+                            <p className="text-gray-900 text-sm">
+                              {new Date(submission.submittedAt).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-700 mb-1">Duration</h4>
+                            <p className="text-gray-900 text-sm">
+                              {Math.floor(submission.duration / 60)}:{(submission.duration % 60).toString().padStart(2, '0')}
+                            </p>
+                          </div>
+                        </div>
+
+                        {submission.grade !== undefined && submission.grade !== null ? (
+                          <div className="bg-white rounded-lg p-4 border-2 border-green-300">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-sm font-semibold text-gray-700">Grade</h4>
+                              <span className="text-2xl font-bold text-green-600">
+                                {submission.grade} / {displayAssignment.points}
+                              </span>
+                            </div>
+                            {submission.instructorFeedback && (
+                              <div className="mt-3 pt-3 border-t border-gray-200">
+                                <h4 className="text-sm font-semibold text-gray-700 mb-1">Instructor Feedback</h4>
+                                <p className="text-gray-900 text-sm">{submission.instructorFeedback}</p>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                            <p className="text-sm text-yellow-800 flex items-center">
+                              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                              </svg>
+                              Pending instructor review
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {!submission.grade && (
+                      <div className="mt-4 pt-4 border-t border-green-200">
+                        <p className="text-sm text-gray-600 flex items-center">
+                          <svg className="w-4 h-4 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                          </svg>
+                          You can delete this submission and resubmit before it's graded
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Responses to My Submission */}
+              {submission && responsesToMySubmission.length > 0 && (
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <span className="mr-2">💬</span>
+                      Peer Feedback on Your Video
+                      <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-bold">
+                        {responsesToMySubmission.length}
+                      </span>
+                    </h3>
+                    <button
+                      onClick={() => setShowResponsesDropdown(!showResponsesDropdown)}
+                      className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                    >
+                      {showResponsesDropdown ? 'Hide' : 'Show'} Responses
+                    </button>
+                  </div>
+
+                  {showResponsesDropdown && (
+                    <div className="space-y-4">
+                      {responsesToMySubmission.map((response) => (
+                        <div key={response.responseId} className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                          <div className="flex items-start space-x-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
+                              {response.reviewerName?.charAt(0) || '?'}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-2">
+                                <h4 className="font-semibold text-gray-900">{response.reviewerName || 'Anonymous'}</h4>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(response.createdAt).toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 text-sm mb-3">{response.content}</p>
+
+                              {/* Show replies */}
+                              {response.replies && response.replies.length > 0 && (
+                                <div className="ml-4 mt-3 space-y-3 border-l-2 border-gray-200 pl-4">
+                                  {response.replies.map((reply: any) => (
+                                    <div key={reply.responseId} className="bg-gray-50 rounded-lg p-3">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <span className="font-medium text-sm text-gray-900">{reply.reviewerName}</span>
+                                        <span className="text-xs text-gray-500">
+                                          {new Date(reply.createdAt).toLocaleDateString('en-US', {
+                                            month: 'short',
+                                            day: 'numeric'
+                                          })}
+                                        </span>
+                                      </div>
+                                      <p className="text-gray-700 text-sm">{reply.content}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Reply button and form */}
+                              {replyingTo === response.responseId ? (
+                                <div className="mt-3">
+                                  <textarea
+                                    value={replyText[response.responseId] || ''}
+                                    onChange={(e) => setReplyText(prev => ({ ...prev, [response.responseId]: e.target.value }))}
+                                    placeholder="Write your reply (min 20 characters)..."
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                                    rows={3}
+                                  />
+                                  <div className="flex items-center justify-between mt-2">
+                                    <span className="text-xs text-gray-500">
+                                      {(replyText[response.responseId] || '').length} / 20 characters minimum
+                                    </span>
+                                    <div className="flex space-x-2">
+                                      <button
+                                        onClick={() => {
+                                          setReplyingTo(null);
+                                          setReplyText(prev => ({ ...prev, [response.responseId]: '' }));
+                                        }}
+                                        className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        onClick={() => handleReplySubmit(response.responseId)}
+                                        disabled={(replyText[response.responseId] || '').trim().length < 20}
+                                        className="px-4 py-1 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                                      >
+                                        Post Reply
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => setReplyingTo(response.responseId)}
+                                  className="mt-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                                >
+                                  💬 Reply
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
         </div>
       </div>
 
