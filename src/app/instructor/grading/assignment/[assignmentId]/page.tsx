@@ -94,9 +94,11 @@ const NewAssignmentGradingPage: React.FC = () => {
   const [collapsedPeerResponses, setCollapsedPeerResponses] = useState<Set<string>>(new Set());
   const [peerResponsesLoading, setPeerResponsesLoading] = useState(false);
 
-  // Scroll navigation state
-  const [lastScrollTime, setLastScrollTime] = useState(0);
-  const scrollCooldown = 500; // 500ms cooldown between scroll navigations
+  // Grading state with auto-save
+  const [grades, setGrades] = useState<Record<string, number | ''>>({});
+  const [feedbackState, setFeedbackState] = useState<Record<string, string>>({});
+  const [savingGrades, setSavingGrades] = useState<Set<string>>(new Set());
+  const [saveTimeouts, setSaveTimeouts] = useState<Record<string, NodeJS.Timeout>>({});
 
   // Fetch assignment and submissions
   useEffect(() => {
@@ -462,26 +464,20 @@ const NewAssignmentGradingPage: React.FC = () => {
     setCurrentFeedback(submission.feedback || '');
   };
 
-  // Save grade function
-  const saveGrade = async () => {
-    if (!currentSubmission || !currentGrade) {
-      alert('Please enter a grade before saving.');
-      return;
-    }
-
-    setIsSaving(true);
-    setSaveStatus('saving');
+  // Auto-save grade function
+  const handleAutoSave = async (submissionId: string, grade: number, feedback: string) => {
+    setSavingGrades(prev => new Set(prev).add(submissionId));
     
     try {
-      const response = await fetch(`/api/submissions/${currentSubmission.submissionId}/grade`, {
+      const response = await fetch(`/api/submissions/${submissionId}/grade`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({
-          grade: Number(currentGrade),
-          feedback: currentFeedback || '',
+          grade: Number(grade),
+          feedback: feedback || '',
           status: 'graded'
         }),
       });
@@ -494,21 +490,22 @@ const NewAssignmentGradingPage: React.FC = () => {
       if (data.success) {
         // Update local state
         setAllSubmissions(prev => prev.map(sub =>
-          sub.submissionId === currentSubmission.submissionId
-            ? { ...sub, grade: Number(currentGrade), feedback: currentFeedback, status: 'graded' as const }
+          sub.submissionId === submissionId
+            ? { ...sub, grade: Number(grade), feedback, status: 'graded' as const }
             : sub
         ));
-        
-        setSaveStatus('saved');
       } else {
         throw new Error(data.error || 'Failed to save grade');
       }
     } catch (error) {
       console.error('Error saving grade:', error);
-      setSaveStatus('error');
       alert('Failed to save grade. Please try again.');
     } finally {
-      setIsSaving(false);
+      setSavingGrades(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(submissionId);
+        return newSet;
+      });
     }
   };
 
@@ -567,39 +564,7 @@ const NewAssignmentGradingPage: React.FC = () => {
     }
   };
 
-  // Scroll navigation handler
-  const handleWheel = (e: React.WheelEvent) => {
-    const now = Date.now();
-    
-    // Check if we're in cooldown period
-    if (now - lastScrollTime < scrollCooldown) {
-      return;
-    }
-    
-    // Only handle scroll if we're not scrolling within a scrollable element
-    const target = e.target as HTMLElement;
-    const isScrollableElement = target.closest('.overflow-y-auto, .overflow-auto, textarea, input');
-    
-    if (isScrollableElement) {
-      return;
-    }
-    
-    e.preventDefault();
-    
-    if (e.deltaY < 0) {
-      // Scrolling up - go to next video
-      if (currentIndex < filteredSubmissions.length - 1) {
-        goToNext();
-        setLastScrollTime(now);
-      }
-    } else if (e.deltaY > 0) {
-      // Scrolling down - go to previous video
-      if (currentIndex > 0) {
-        goToPrevious();
-        setLastScrollTime(now);
-      }
-    }
-  };
+
 
   if (loading) {
     return (
@@ -801,51 +766,8 @@ const NewAssignmentGradingPage: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              {/* Navigation */}
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={goToPrevious}
-                    disabled={currentIndex === 0}
-                    className="px-3 py-1 bg-gray-500 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    ← Previous
-                  </button>
-                  <span className="text-sm text-gray-600">
-                    {currentIndex + 1} of {filteredSubmissions.length}
-                  </span>
-                  <button
-                    onClick={goToNext}
-                    disabled={currentIndex === filteredSubmissions.length - 1}
-                    className="px-3 py-1 bg-gray-500 text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    Next →
-                  </button>
-                </div>
-                
-                {/* Scroll Navigation Hint */}
-                <div className="flex items-center space-x-1 text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                  <span>💡</span>
-                  <span>Scroll ↑ next, ↓ previous</span>
-                </div>
-              </div>
-              
-              {/* Playback Speed */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">Speed:</span>
-                {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map(speed => (
-                  <button
-                    key={speed}
-                    onClick={() => handleSpeedChange(speed)}
-                    className={`px-2 py-1 rounded text-xs ${
-                      playbackSpeed === speed
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {speed}x
-                  </button>
-                ))}
+              <div className="text-sm text-gray-600">
+                Scrollable Feed • Auto-save • v2.0
               </div>
             </div>
           </div>
@@ -912,327 +834,145 @@ const NewAssignmentGradingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" onWheel={handleWheel}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Video Player */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-                <div className="mb-4">
+        {/* Main Content - Scrollable Feed */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="mb-4 text-sm text-gray-600">
+            💡 All videos shown in scrollable feed • Scroll naturally • Auto-save enabled • v2.0
+          </div>
+          
+          {/* Scrollable Feed of All Submissions */}
+          <div className="space-y-6">
+            {filteredSubmissions.map((submission, index) => (
+              <div key={submission.submissionId} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                {/* Student Header */}
+                <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-800">{currentSubmission.studentName}</h2>
+                      <h2 className="text-lg font-semibold text-gray-800">{submission.studentName}</h2>
                       <div className="flex items-center space-x-3 text-sm text-gray-600">
-                        <span>Submitted: {new Date(currentSubmission.submittedAt).toLocaleDateString()}</span>
-                        {currentSubmission.sectionName && (
+                        <span>Submitted: {new Date(submission.submittedAt).toLocaleDateString()}</span>
+                        {submission.sectionName && (
                           <>
                             <span>•</span>
                             <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                              {currentSubmission.sectionName}
+                              {submission.sectionName}
                             </span>
                           </>
                         )}
                       </div>
                     </div>
-                    <div className="text-right text-sm text-gray-500">
-                      Student {currentIndex + 1} of {filteredSubmissions.length}
+                    <div className="text-right">
+                      <div className="text-sm text-gray-500">#{index + 1} of {filteredSubmissions.length}</div>
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                        submission.status === 'graded' 
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {submission.status === 'graded' ? '✓ Graded' : 'Pending'}
+                      </span>
                     </div>
                   </div>
-                  {assignment?.enablePeerResponses && (
-                    <div className="text-xs text-blue-600 mt-1 bg-blue-50 px-2 py-1 rounded">
-                      Peer Responses: {assignment.minResponsesRequired || 2} required, max {assignment.maxResponsesPerVideo || 3} per video
-                      {assignment.responseDueDate && (
-                        <> • Due: {new Date(assignment.responseDueDate).toLocaleDateString()}</>
-                      )}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="bg-black rounded-lg overflow-hidden mb-4">
-                  <video
-                    ref={videoRef}
-                    src={getVideoUrl(currentSubmission.videoUrl)}
-                    poster={currentSubmission.thumbnailUrl || `/api/placeholder/400/300?text=${encodeURIComponent(currentSubmission.studentName)}`}
-                    className="w-full h-96 object-contain bg-gray-100"
-                    controls
-                    preload="metadata"
-                    onLoadedMetadata={() => {
-                      if (videoRef.current) {
-                        videoRef.current.playbackRate = playbackSpeed;
-                        
-                        // If no custom thumbnail, seek to 2 seconds for better preview frame
-                        if (!currentSubmission.thumbnailUrl && videoRef.current.duration > 2) {
-                          videoRef.current.currentTime = 2;
-                        }
-                      }
-                    }}
-                    onSeeked={() => {
-                      if (videoRef.current) {
-                        // Pause after seeking to show the 2-second frame as preview
-                        if (!currentSubmission.thumbnailUrl && 
-                            videoRef.current.currentTime >= 1.5 && 
-                            videoRef.current.currentTime <= 3) {
-                          videoRef.current.pause();
-                        }
-                      }
-                    }}
-                  >
-                    Your browser does not support the video tag.
-                  </video>
                 </div>
 
-                {/* Peer Responses Section */}
-                {console.log('🔍 RENDERING: Current submission:', currentSubmission.studentId, currentSubmission.studentName)}
-                {console.log('🔍 RENDERING: Peer responses for student:', getPeerResponsesForStudent(currentSubmission.studentId))}
-                {console.log('🔍 RENDERING: Assignment enablePeerResponses:', assignment?.enablePeerResponses)}
-                
-                {/* Always show peer responses section if there are any responses, regardless of enablePeerResponses setting */}
-                {getPeerResponsesForStudent(currentSubmission.studentId).length > 0 ? (
-                    <div className="border border-indigo-200 rounded-lg overflow-hidden mt-4">
-                      {/* Collapsible Header */}
-                      <button
-                        onClick={() => togglePeerResponsesCollapse(currentSubmission.submissionId)}
-                        className="w-full flex items-center justify-between p-4 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+                  {/* Video Player */}
+                  <div className="lg:col-span-2">
+                    <div className="bg-black rounded-lg overflow-hidden mb-4">
+                      <video
+                        src={getVideoUrl(submission.videoUrl)}
+                        poster={submission.thumbnailUrl || `/api/placeholder/400/300?text=${encodeURIComponent(submission.studentName)}`}
+                        className="w-full h-96 object-contain bg-gray-100"
+                        controls
+                        preload="metadata"
                       >
-                        <div className="flex items-center space-x-3">
-                          <span className="text-sm font-semibold text-indigo-700">
-                            💬 Student's Peer Responses
-                          </span>
-                          <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
-                            {getPeerResponsesForStudent(currentSubmission.studentId).length}
-                          </span>
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  </div>
+
+                  {/* Grading Panel */}
+                  <div className="lg:col-span-1">
+                    <div className="space-y-4">
+                      {/* Grade Input */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Grade (out of {assignment.maxScore})
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max={assignment.maxScore}
+                          value={grades[submission.submissionId] ?? submission.grade ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value === '' ? '' : Number(e.target.value);
+                            setGrades(prev => ({ ...prev, [submission.submissionId]: value }));
+                            // Auto-save after 1 second of no typing
+                            if (saveTimeouts[submission.submissionId]) {
+                              clearTimeout(saveTimeouts[submission.submissionId]);
+                            }
+                            const timeout = setTimeout(() => {
+                              if (value !== '') {
+                                handleAutoSave(submission.submissionId, value, feedbackState[submission.submissionId] || submission.feedback || '');
+                              }
+                            }, 1000);
+                            setSaveTimeouts(prev => ({ ...prev, [submission.submissionId]: timeout }));
+                          }}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter grade"
+                        />
+                      </div>
+
+                      {/* Feedback Input */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Feedback
+                        </label>
+                        <textarea
+                          value={feedbackState[submission.submissionId] ?? submission.feedback ?? ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFeedbackState(prev => ({ ...prev, [submission.submissionId]: value }));
+                            // Auto-save after 2 seconds of no typing
+                            if (saveTimeouts[submission.submissionId]) {
+                              clearTimeout(saveTimeouts[submission.submissionId]);
+                            }
+                            const timeout = setTimeout(() => {
+                              const grade = grades[submission.submissionId] ?? submission.grade;
+                              if (grade !== undefined && grade !== '') {
+                                handleAutoSave(submission.submissionId, Number(grade), value);
+                              }
+                            }, 2000);
+                            setSaveTimeouts(prev => ({ ...prev, [submission.submissionId]: timeout }));
+                          }}
+                          rows={4}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          placeholder="Enter feedback for the student..."
+                        />
+                      </div>
+
+                      {/* Save Status */}
+                      {savingGrades.has(submission.submissionId) && (
+                        <div className="text-sm text-blue-600 flex items-center space-x-2">
+                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                          </svg>
+                          <span>Saving...</span>
                         </div>
-                        <svg
-                          className={`w-5 h-5 text-indigo-600 transition-transform ${
-                            collapsedPeerResponses.has(currentSubmission.submissionId) ? '' : 'rotate-180'
-                          }`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-
-                      {/* Collapsible Content */}
-                      {!collapsedPeerResponses.has(currentSubmission.submissionId) && (
-                        <div className="divide-y divide-indigo-100">
-                          {getPeerResponsesForStudent(currentSubmission.studentId).map((response: PeerResponse, idx: number) => (
-                            <div key={response.responseId || idx} className="p-4 bg-white">
-                              {/* Response Header */}
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex-1">
-                                  <div className="flex items-center space-x-2 mb-1">
-                                    <span className="text-sm font-medium text-gray-900">
-                                      Response to: {response.reviewedStudentName}
-                                    </span>
-                                    <span className={`px-2 py-0.5 rounded-full text-xs ${
-                                      response.isSubmitted 
-                                        ? 'bg-green-100 text-green-700' 
-                                        : 'bg-yellow-100 text-yellow-700'
-                                    }`}>
-                                      {response.isSubmitted ? '✓ Submitted' : '○ Draft'}
-                                    </span>
-                                  </div>
-                                  <p className="text-xs text-gray-500">
-                                    {new Date(response.submittedAt).toLocaleDateString()} • {response.wordCount} words
-                                  </p>
-                                </div>
-                              </div>
-
-                              {/* Response Content */}
-                              <div className="bg-gray-50 rounded-lg p-3">
-                                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                                  {response.content}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-
-                          {/* Summary Stats */}
-                          <div className="bg-indigo-50 p-4">
-                            <div className="grid grid-cols-3 gap-4 text-center">
-                              <div>
-                                <div className="text-lg font-bold text-indigo-700">
-                                  {getPeerResponsesForStudent(currentSubmission.studentId).length}
-                                </div>
-                                <div className="text-xs text-gray-600">Total Responses</div>
-                              </div>
-                              <div>
-                                <div className="text-lg font-bold text-green-700">
-                                  {getPeerResponsesForStudent(currentSubmission.studentId).filter((r: PeerResponse) => r.isSubmitted).length}
-                                </div>
-                                <div className="text-xs text-gray-600">Submitted</div>
-                              </div>
-                              <div>
-                                <div className="text-lg font-bold text-blue-700">
-                                  {Math.round(
-                                    getPeerResponsesForStudent(currentSubmission.studentId)
-                                      .reduce((sum: number, r: PeerResponse) => sum + (r.wordCount || 0), 0) / 
-                                    Math.max(1, getPeerResponsesForStudent(currentSubmission.studentId).length)
-                                  )}
-                                </div>
-                                <div className="text-xs text-gray-600">Avg Words</div>
-                              </div>
-                            </div>
-                          </div>
+                      )}
+                      {!savingGrades.has(submission.submissionId) && submission.status === 'graded' && (
+                        <div className="text-sm text-green-600 flex items-center space-x-2">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <span>Saved</span>
                         </div>
                       )}
                     </div>
-                  ) : (
-                    // Show different messages based on loading state and whether responses exist
-                    peerResponsesLoading ? (
-                      // Still loading peer responses
-                      <div className="border border-blue-200 rounded-lg overflow-hidden mt-4 bg-blue-50">
-                        <div className="p-4">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <svg className="w-4 h-4 text-blue-600 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                              </svg>
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="text-sm font-semibold text-blue-800 mb-1">
-                                💬 Loading Peer Responses...
-                              </h3>
-                              <p className="text-xs text-blue-700">
-                                Checking for peer response data for this student.
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      // No peer responses found
-                      <div className="border border-gray-200 rounded-lg overflow-hidden mt-4 bg-gray-50">
-                        <div className="p-4">
-                          <div className="flex items-start space-x-3">
-                            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                              </svg>
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="text-sm font-semibold text-gray-800 mb-1">
-                                📝 No Peer Responses
-                              </h3>
-                              <p className="text-xs text-gray-700">
-                                This student has not submitted any peer responses for this assignment.
-                                {assignment?.enablePeerResponses && assignment?.minResponsesRequired && (
-                                  <> Required: {assignment.minResponsesRequired} response{assignment.minResponsesRequired > 1 ? 's' : ''}</>
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  )
-                }
-              </div>
-            </div>
-
-            {/* Grading Panel */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Grade Submission</h3>
-                
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Grade (0-{assignment.maxScore})
-                    </label>
-                    <input
-                      type="number"
-                      value={currentGrade}
-                      onChange={(e) => setCurrentGrade(e.target.value ? Number(e.target.value) : '')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      min="0"
-                      max={assignment.maxScore}
-                      placeholder={`Enter grade (max: ${assignment.maxScore})`}
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Feedback
-                    </label>
-                    <textarea
-                      value={currentFeedback}
-                      onChange={(e) => setCurrentFeedback(e.target.value)}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter feedback for the student..."
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <button
-                      onClick={saveGrade}
-                      disabled={isSaving || !currentGrade}
-                      className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    >
-                      {isSaving ? 'Saving...' : 'Save Grade'}
-                    </button>
-                    
-                    <button
-                      onClick={deleteSubmission}
-                      disabled={isDeleting}
-                      className="w-full px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    >
-                      {isDeleting ? 'Deleting...' : '🗑️ Delete Submission'}
-                    </button>
-                  </div>
-                  
-                  {/* Save Status */}
-                  <div className="flex items-center justify-center text-sm">
-                    {saveStatus === 'saving' && (
-                      <span className="text-blue-600">Saving...</span>
-                    )}
-                    {saveStatus === 'saved' && (
-                      <span className="text-green-600">✓ Saved</span>
-                    )}
-                    {saveStatus === 'error' && (
-                      <span className="text-red-600">✗ Save failed</span>
-                    )}
                   </div>
                 </div>
               </div>
-              
-              {/* Submission List */}
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mt-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Filtered Submissions</h3>
-                <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {filteredSubmissions.map((submission, index) => (
-                    <button
-                      key={submission.submissionId}
-                      onClick={() => goToSubmission(index)}
-                      className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                        index === currentIndex
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-gray-800">{submission.studentName}</p>
-                          <p className="text-xs text-gray-500">
-                            {new Date(submission.submittedAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          {submission.status === 'graded' ? (
-                            <span className="text-green-600 font-medium">{submission.grade}</span>
-                          ) : (
-                            <span className="text-gray-400 text-sm">Not graded</span>
-                          )}
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </div>
