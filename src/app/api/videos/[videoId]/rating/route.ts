@@ -49,6 +49,10 @@ export async function GET(
         return NextResponse.json({
           success: true,
           rating: rating
+        }, {
+          headers: {
+            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+          }
         });
       }
     } catch (error) {
@@ -58,6 +62,10 @@ export async function GET(
     return NextResponse.json({
       success: true,
       rating: 0 // Not rated
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
+      }
     });
 
   } catch (error) {
