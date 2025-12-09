@@ -27,11 +27,13 @@ export async function GET(
       );
     }
 
-    // Try to find the user's rating for this video
+    // Try to find the user's rating for this video using GSI
     try {
-      const result = await docClient.send(new ScanCommand({
+      const result = await docClient.send(new QueryCommand({
         TableName: INTERACTIONS_TABLE,
-        FilterExpression: 'videoId = :videoId AND userId = :userId AND #type = :type',
+        IndexName: 'videoId-index',
+        KeyConditionExpression: 'videoId = :videoId',
+        FilterExpression: 'userId = :userId AND #type = :type',
         ExpressionAttributeValues: {
           ':videoId': videoId,
           ':userId': userId,

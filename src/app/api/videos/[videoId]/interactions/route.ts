@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, GetCommand, UpdateCommand, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { CreateCommentRequest, CreateResponseRequest, CreateRatingRequest, LikeVideoRequest } from '@/types/video-interactions';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
@@ -23,22 +23,25 @@ export async function GET(
 
     console.log('🔍 Fetching interactions for video:', { videoId, type });
 
-    let filterExpression = 'videoId = :videoId';
+    // Use QueryCommand with GSI for much better performance
+    let keyConditionExpression = 'videoId = :videoId';
+    let filterExpression = 'attribute_not_exists(deleted)';
     let expressionValues: any = { ':videoId': videoId };
+    let expressionAttributeNames: any = {};
 
     if (type) {
       filterExpression += ' AND #type = :type';
       expressionValues[':type'] = type;
+      expressionAttributeNames['#type'] = 'type';
     }
 
-    // Add filter to exclude deleted interactions
-    filterExpression += ' AND attribute_not_exists(deleted)';
-
-    const command = new ScanCommand({
+    const command = new QueryCommand({
       TableName: INTERACTIONS_TABLE,
+      IndexName: 'videoId-index', // Use the new GSI
+      KeyConditionExpression: keyConditionExpression,
       FilterExpression: filterExpression,
       ExpressionAttributeValues: expressionValues,
-      ExpressionAttributeNames: type ? { '#type': 'type' } : undefined,
+      ExpressionAttributeNames: Object.keys(expressionAttributeNames).length > 0 ? expressionAttributeNames : undefined,
     });
 
     const result = await docClient.send(command);
@@ -98,10 +101,12 @@ export async function POST(
     // Add type-specific data
     switch (type) {
       case 'like':
-        // Check if user already liked this video
-        const existingLike = await docClient.send(new ScanCommand({
+        // Check if user already liked this video using GSI
+        const existingLike = await docClient.send(new QueryCommand({
           TableName: INTERACTIONS_TABLE,
-          FilterExpression: 'videoId = :videoId AND userId = :userId AND #type = :type',
+          IndexName: 'videoId-index',
+          KeyConditionExpression: 'videoId = :videoId',
+          FilterExpression: 'userId = :userId AND #type = :type',
           ExpressionAttributeValues: {
             ':videoId': videoId,
             ':userId': userId,
@@ -261,13 +266,15 @@ export async function POST(
     console.log('📊 Updating video stats...');
     const stats = await updateVideoStats(videoId, type, 'increment');
 
-    // For ratings, also calculate and return the average
+    // For ratings, also calculate and return the average using GSI
     let averageRating = null;
     if (type === 'rating') {
       try {
-        const ratingsResult = await docClient.send(new ScanCommand({
+        const ratingsResult = await docClient.send(new QueryCommand({
           TableName: INTERACTIONS_TABLE,
-          FilterExpression: 'videoId = :videoId AND #type = :type AND attribute_not_exists(deleted)',
+          IndexName: 'videoId-index',
+          KeyConditionExpression: 'videoId = :videoId',
+          FilterExpression: '#type = :type AND attribute_not_exists(deleted)',
           ExpressionAttributeValues: {
             ':videoId': videoId,
             ':type': 'rating'
@@ -322,10 +329,12 @@ export async function DELETE(
       }, { status: 400 });
     }
 
-    // Find and delete the interaction
-    const scanResult = await docClient.send(new ScanCommand({
+    // Find and delete the interaction using GSI
+    const scanResult = await docClient.send(new QueryCommand({
       TableName: INTERACTIONS_TABLE,
-      FilterExpression: 'videoId = :videoId AND userId = :userId AND #type = :type',
+      IndexName: 'videoId-index',
+      KeyConditionExpression: 'videoId = :videoId',
+      FilterExpression: 'userId = :userId AND #type = :type',
       ExpressionAttributeValues: {
         ':videoId': videoId,
         ':userId': userId,
@@ -459,10 +468,12 @@ async function updateVideoStats(videoId: string, type: string, action: 'incremen
 
 async function recalculateAverageRating(videoId: string, stats: any) {
   try {
-    // Get all ratings for this video
-    const ratingsResult = await docClient.send(new ScanCommand({
+    // Get all ratings for this video using GSI
+    const ratingsResult = await docClient.send(new QueryCommand({
       TableName: INTERACTIONS_TABLE,
-      FilterExpression: 'videoId = :videoId AND #type = :type AND attribute_not_exists(deleted)',
+      IndexName: 'videoId-index',
+      KeyConditionExpression: 'videoId = :videoId',
+      FilterExpression: '#type = :type AND attribute_not_exists(deleted)',
       ExpressionAttributeValues: {
         ':videoId': videoId,
         ':type': 'rating'
