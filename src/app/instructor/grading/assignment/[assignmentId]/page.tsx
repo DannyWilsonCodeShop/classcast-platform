@@ -71,10 +71,8 @@ const NewAssignmentGradingPage: React.FC = () => {
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [allSubmissions, setAllSubmissions] = useState<VideoSubmission[]>([]);
   const [filteredSubmissions, setFilteredSubmissions] = useState<VideoSubmission[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   
   // Filter and search state
   const [filter, setFilter] = useState<FilterType>('all');
