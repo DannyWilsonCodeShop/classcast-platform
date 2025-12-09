@@ -403,15 +403,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
         setShowDeleteConfirm(false);
         setResponsesToMySubmission([]);
         
-        // Refresh the page data
+        // Refresh peer data only (don't fetch submission since we just deleted it)
         await Promise.all([
-          fetchSubmission(),
           fetchPeerVideos(),
           fetchPeerResponses()
         ]);
         
         // Show success message
-        alert('Submission deleted successfully!');
+        alert('Submission deleted successfully! You can now submit a new video.');
       } else {
         console.error('Failed to delete submission:', response.status, data);
         const errorMessage = data.error || data.message || 'Failed to delete submission. Please try again.';
