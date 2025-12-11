@@ -13,8 +13,6 @@ const nextConfig: NextConfig = {
     },
     // Performance optimizations
     optimizePackageImports: ['@/components', '@/lib', 'lucide-react'],
-    // Optimize CSS
-    optimizeCss: true,
   },
   
   // Optimize images
