@@ -82,83 +82,38 @@ export const VirtualizedFeed: React.FC<VirtualizedFeedProps> = ({
   });
 
   return (
-    <div className="space-y-4">
-      {/* Performance indicator */}
-      <div className="flex items-center justify-between text-sm text-gray-600 bg-blue-50 px-4 py-2 rounded-lg">
-        <div className="flex items-center space-x-4">
-          <span>🚀 Virtualized feed</span>
-          <span>📊 Showing {renderedCount} of {totalCount} videos</span>
-          <span>⚡ {(renderRatio * 100).toFixed(1)}% DOM usage</span>
-        </div>
-        {isScrolling && (
-          <div className="flex items-center space-x-2 text-blue-600">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <span>Scrolling...</span>
-          </div>
-        )}
-      </div>
-
-      {/* Virtualized container */}
-      <div
-        ref={containerRef}
-        className="relative overflow-auto"
-        style={{ height: containerHeight }}
-        onScroll={handleScroll}
-      >
-        {/* Total height spacer for scrollbar */}
-        <div style={{ height: totalHeight, position: 'relative' }}>
-          {/* Visible items container */}
-          <div
-            style={{
-              transform: `translateY(${offsetY}px)`,
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-            }}
-          >
-            <div className="space-y-0 video-feed">
-              {visibleFeedItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  style={{ minHeight: itemHeight }}
-                  className="mb-0"
-                >
-                  {renderItem(item, item.virtualIndex || index)}
-                </div>
-              ))}
-            </div>
+    <div
+      ref={containerRef}
+      className="relative overflow-auto"
+      style={{ height: containerHeight }}
+      onScroll={handleScroll}
+    >
+      {/* Total height spacer for scrollbar */}
+      <div style={{ height: totalHeight, position: 'relative' }}>
+        {/* Visible items container */}
+        <div
+          style={{
+            transform: `translateY(${offsetY}px)`,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+          }}
+        >
+          <div className="space-y-0 video-feed">
+            {visibleFeedItems.map((item, index) => (
+              <div
+                key={item.id}
+                style={{ minHeight: itemHeight }}
+                className="mb-0"
+              >
+                {renderItem(item, item.virtualIndex || index)}
+              </div>
+            ))}
           </div>
         </div>
-      </div>
-
-      {/* Performance stats */}
-      <div className="text-xs text-gray-500 bg-gray-50 px-3 py-2 rounded">
-        💡 Performance: Only rendering {renderedCount} videos instead of {totalCount} 
-        ({totalCount > 0 ? Math.round((1 - renderRatio) * 100) : 0}% reduction in DOM nodes)
-        {totalCount > 20 && (
-          <span className="ml-2 text-green-600 font-medium">
-            🎯 Major performance boost for large feeds!
-          </span>
-        )}
       </div>
     </div>
   );
 };
 
-// Hook for easy integration with existing feed logic
-export const useVirtualizedFeed = (feedItems: FeedItem[]) => {
-  const [isVirtualized, setIsVirtualized] = useState(feedItems.length > 10);
-  
-  useEffect(() => {
-    // Auto-enable virtualization for feeds with more than 10 items
-    setIsVirtualized(feedItems.length > 10);
-  }, [feedItems.length]);
-  
-  return {
-    isVirtualized,
-    shouldVirtualize: feedItems.length > 10,
-    toggleVirtualization: () => setIsVirtualized(!isVirtualized),
-    feedCount: feedItems.length
-  };
-};
