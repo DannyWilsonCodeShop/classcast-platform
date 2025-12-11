@@ -10,6 +10,7 @@ import { getYouTubeEmbedUrl, isValidYouTubeUrl, getYouTubeThumbnail } from '@/li
 import { getGoogleDrivePreviewUrl, isValidGoogleDriveUrl, getGoogleDriveThumbnailUrl } from '@/lib/googleDrive';
 import { useSmartVideoLoading } from '@/hooks/useSmartVideoLoading';
 import { LazyVideoPlayer } from '@/components/instructor/LazyVideoPlayer';
+import { VirtualizedGradingFeed } from '@/components/instructor/VirtualizedGradingFeed';
 
 interface Assignment {
   assignmentId: string;
@@ -740,144 +741,49 @@ const NewAssignmentGradingPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="mb-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              💡 Smart video loading • First video optimized • Auto-save enabled • v3.0
+              🚀 Virtualized grading • Only renders visible videos • Ultra-fast scrolling • v4.0
             </div>
             <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-              ⚡ Performance Mode: {filteredSubmissions.length > 0 ? getLoadingStrategy(0) : 'Ready'}
+              ⚡ Performance Mode: Virtualized
             </div>
           </div>
           
-          {/* Scrollable Feed of All Submissions */}
-          <div className="space-y-6">
-            {filteredSubmissions.map((submission, index) => (
-              <div key={submission.submissionId} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                {/* Student Header */}
-                <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-800">{submission.studentName}</h2>
-                      <div className="flex items-center space-x-3 text-sm text-gray-600">
-                        <span>Submitted: {new Date(submission.submittedAt).toLocaleDateString()}</span>
-                        {submission.sectionName && (
-                          <>
-                            <span>•</span>
-                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                              {submission.sectionName}
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-gray-500">#{index + 1} of {filteredSubmissions.length}</div>
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                        submission.status === 'graded' 
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
-                        {submission.status === 'graded' ? '✓ Graded' : 'Pending'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
-                  {/* Video Player with Smart Loading */}
-                  <div className="lg:col-span-2">
-                    <LazyVideoPlayer
-                      videoUrl={submission.videoUrl}
-                      studentName={submission.studentName}
-                      submissionId={submission.submissionId}
-                      loadingStrategy={getLoadingStrategy(index)}
-                      thumbnailUrl={submission.thumbnailUrl}
-                      onLoad={() => markVideoLoaded(submission.submissionId)}
-                    />
-                  </div>
-
-                  {/* Grading Panel */}
-                  <div className="lg:col-span-1">
-                    <div className="space-y-4">
-                      {/* Grade Input */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Grade (out of {assignment.maxScore})
-                        </label>
-                        <input
-                          type="number"
-                          min="0"
-                          max={assignment.maxScore}
-                          value={grades[submission.submissionId] ?? submission.grade ?? ''}
-                          onChange={(e) => {
-                            const value = e.target.value === '' ? '' : Number(e.target.value);
-                            setGrades(prev => ({ ...prev, [submission.submissionId]: value }));
-                            // Auto-save after 1 second of no typing
-                            if (saveTimeouts[submission.submissionId]) {
-                              clearTimeout(saveTimeouts[submission.submissionId]);
-                            }
-                            const timeout = setTimeout(() => {
-                              if (value !== '') {
-                                handleAutoSave(submission.submissionId, value, feedbackState[submission.submissionId] || submission.feedback || '');
-                              }
-                            }, 1000);
-                            setSaveTimeouts(prev => ({ ...prev, [submission.submissionId]: timeout }));
-                          }}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Enter grade"
-                        />
-                      </div>
-
-                      {/* Feedback Input */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Feedback
-                        </label>
-                        <textarea
-                          value={feedbackState[submission.submissionId] ?? submission.feedback ?? ''}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            setFeedbackState(prev => ({ ...prev, [submission.submissionId]: value }));
-                            // Auto-save after 2 seconds of no typing
-                            if (saveTimeouts[submission.submissionId]) {
-                              clearTimeout(saveTimeouts[submission.submissionId]);
-                            }
-                            const timeout = setTimeout(() => {
-                              const grade = grades[submission.submissionId] ?? submission.grade;
-                              if (grade !== undefined && grade !== '') {
-                                handleAutoSave(submission.submissionId, Number(grade), value);
-                              }
-                            }, 2000);
-                            setSaveTimeouts(prev => ({ ...prev, [submission.submissionId]: timeout }));
-                          }}
-                          rows={4}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Enter feedback for the student..."
-                        />
-                      </div>
-
-                      {/* Save Status */}
-                      {savingGrades.has(submission.submissionId) && (
-                        <div className="text-sm text-blue-600 flex items-center space-x-2">
-                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                          </svg>
-                          <span>Saving...</span>
-                        </div>
-                      )}
-                      {!savingGrades.has(submission.submissionId) && submission.status === 'graded' && (
-                        <div className="text-sm text-green-600 flex items-center space-x-2">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                          <span>Saved</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          {/* Virtualized Grading Feed */}
+          <VirtualizedGradingFeed
+            submissions={filteredSubmissions}
+            assignment={assignment}
+            grades={grades}
+            feedbackState={feedbackState}
+            savingGrades={savingGrades}
+            onGradeChange={(submissionId, value) => {
+              const numValue = value === '' ? '' : Number(value);
+              setGrades(prev => ({ ...prev, [submissionId]: numValue }));
+              // Auto-save after 1 second of no typing
+              if (saveTimeouts[submissionId]) {
+                clearTimeout(saveTimeouts[submissionId]);
+              }
+              const timeout = setTimeout(() => {
+                if (numValue !== '') {
+                  handleAutoSave(submissionId, numValue, feedbackState[submissionId] || '');
+                }
+              }, 1000);
+              setSaveTimeouts(prev => ({ ...prev, [submissionId]: timeout }));
+            }}
+            onFeedbackChange={(submissionId, value) => {
+              setFeedbackState(prev => ({ ...prev, [submissionId]: value }));
+              // Auto-save after 2 seconds of no typing
+              if (saveTimeouts[submissionId]) {
+                clearTimeout(saveTimeouts[submissionId]);
+              }
+              const timeout = setTimeout(() => {
+                const grade = grades[submissionId] ?? filteredSubmissions.find(s => s.submissionId === submissionId)?.grade;
+                if (grade !== undefined && grade !== '') {
+                  handleAutoSave(submissionId, Number(grade), value);
+                }
+              }, 2000);
+              setSaveTimeouts(prev => ({ ...prev, [submissionId]: timeout }));
+            }}
+          />
         </div>
       </div>
     </InstructorRoute>
