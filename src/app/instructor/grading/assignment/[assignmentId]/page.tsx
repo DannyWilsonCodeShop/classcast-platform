@@ -8,6 +8,8 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { getVideoUrl } from '@/lib/videoUtils';
 import { getYouTubeEmbedUrl, isValidYouTubeUrl, getYouTubeThumbnail } from '@/lib/youtube';
 import { getGoogleDrivePreviewUrl, isValidGoogleDriveUrl, getGoogleDriveThumbnailUrl } from '@/lib/googleDrive';
+import { useSmartVideoLoading } from '@/hooks/useSmartVideoLoading';
+import { LazyVideoPlayer } from '@/components/instructor/LazyVideoPlayer';
 
 interface Assignment {
   assignmentId: string;
@@ -250,9 +252,21 @@ const NewAssignmentGradingPage: React.FC = () => {
     fetchData();
   }, [assignmentId, user?.id]);
 
-  // Filter and sort submissions
+  // Smart video loading with optimized ordering
+  const {
+    orderedSubmissions,
+    getLoadingStrategy,
+    markVideoLoaded,
+    isVideoLoaded
+  } = useSmartVideoLoading(allSubmissions, {
+    prioritizeUngraded: true,
+    varietyFactor: 0.3, // 30% randomness for variety
+    cacheAwareness: true
+  });
+
+  // Filter and sort submissions (now using smart-ordered submissions)
   useEffect(() => {
-    let filtered = [...allSubmissions];
+    let filtered = [...orderedSubmissions];
     
     // Apply filter
     if (filter === 'graded') {
@@ -275,45 +289,34 @@ const NewAssignmentGradingPage: React.FC = () => {
       );
     }
     
-    // Apply sort
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          // Sort by last name, then first name
-          const getLastName = (fullName: string) => {
-            const parts = fullName.trim().split(' ');
-            return parts.length > 1 ? parts[parts.length - 1] : fullName;
-          };
-          const lastNameCompare = getLastName(a.studentName).localeCompare(getLastName(b.studentName));
-          if (lastNameCompare !== 0) return lastNameCompare;
-          return a.studentName.localeCompare(b.studentName);
-        case 'date':
-          return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
-        case 'grade':
-          if (a.grade === undefined && b.grade === undefined) return 0;
-          if (a.grade === undefined) return 1;
-          if (b.grade === undefined) return -1;
-          return b.grade - a.grade;
-        case 'section':
-          // Sort by section first, then by last name within section
-          const sectionA = a.sectionName || 'No Section';
-          const sectionB = b.sectionName || 'No Section';
-          const sectionCompare = sectionA.localeCompare(sectionB);
-          if (sectionCompare !== 0) return sectionCompare;
-          const getLastNameForSection = (fullName: string) => {
-            const parts = fullName.trim().split(' ');
-            return parts.length > 1 ? parts[parts.length - 1] : fullName;
-          };
-          const lastNameCompareSection = getLastNameForSection(a.studentName).localeCompare(getLastNameForSection(b.studentName));
-          if (lastNameCompareSection !== 0) return lastNameCompareSection;
-          return a.studentName.localeCompare(b.studentName);
-        default:
-          return 0;
-      }
-    });
+    // Apply additional sort if needed (smart ordering is primary)
+    if (sortBy !== 'section') {
+      filtered.sort((a, b) => {
+        switch (sortBy) {
+          case 'name':
+            // Sort by last name, then first name
+            const getLastName = (fullName: string) => {
+              const parts = fullName.trim().split(' ');
+              return parts.length > 1 ? parts[parts.length - 1] : fullName;
+            };
+            const lastNameCompare = getLastName(a.studentName).localeCompare(getLastName(b.studentName));
+            if (lastNameCompare !== 0) return lastNameCompare;
+            return a.studentName.localeCompare(b.studentName);
+          case 'date':
+            return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+          case 'grade':
+            if (a.grade === undefined && b.grade === undefined) return 0;
+            if (a.grade === undefined) return 1;
+            if (b.grade === undefined) return -1;
+            return b.grade - a.grade;
+          default:
+            return 0;
+        }
+      });
+    }
     
     setFilteredSubmissions(filtered);
-  }, [allSubmissions, filter, searchTerm, sortBy, selectedSection]);
+  }, [orderedSubmissions, filter, searchTerm, sortBy, selectedSection]);
 
   // Fetch peer responses for all students
   useEffect(() => {
@@ -735,8 +738,13 @@ const NewAssignmentGradingPage: React.FC = () => {
 
         {/* Main Content - Scrollable Feed */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="mb-4 text-sm text-gray-600">
-            💡 All videos shown in scrollable feed • Scroll naturally • Auto-save enabled • v2.0
+          <div className="mb-4 text-sm text-gray-600 flex items-center justify-between">
+            <div>
+              💡 Smart video loading • First video optimized • Auto-save enabled • v3.0
+            </div>
+            <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+              ⚡ Performance Mode: {filteredSubmissions.length > 0 ? getLoadingStrategy(0) : 'Ready'}
+            </div>
           </div>
           
           {/* Scrollable Feed of All Submissions */}
@@ -774,83 +782,16 @@ const NewAssignmentGradingPage: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
-                  {/* Video Player */}
+                  {/* Video Player with Smart Loading */}
                   <div className="lg:col-span-2">
-                    <div className="bg-black rounded-lg overflow-hidden mb-4 relative">
-                      {/* Check if it's a YouTube video */}
-                      {isValidYouTubeUrl(submission.videoUrl || '') ? (
-                        <div className="relative">
-                          <iframe
-                            src={getYouTubeEmbedUrl(submission.videoUrl) || submission.videoUrl}
-                            className="w-full h-96"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          />
-                          {/* YouTube thumbnail overlay before loading */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
-                            <div className="text-white text-center">
-                              <div className="text-4xl mb-2">▶️</div>
-                              <div className="text-lg font-semibold">{submission.studentName}</div>
-                              <div className="text-sm opacity-75">YouTube Video</div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : isValidGoogleDriveUrl(submission.videoUrl || '') ? (
-                        <div className="relative">
-                          <iframe
-                            src={getGoogleDrivePreviewUrl(submission.videoUrl) || submission.videoUrl}
-                            className="w-full h-96"
-                            allow="autoplay"
-                            allowFullScreen
-                          />
-                          {/* Google Drive thumbnail overlay before loading */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
-                            <div className="text-white text-center">
-                              <div className="text-4xl mb-2">📁</div>
-                              <div className="text-lg font-semibold">{submission.studentName}</div>
-                              <div className="text-sm opacity-75">Google Drive Video</div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="relative">
-                          <video
-                            src={getVideoUrl(submission.videoUrl)}
-                            className="w-full h-96 object-contain bg-gray-900"
-                            controls
-                            preload="metadata"
-                            poster={submission.thumbnailUrl && 
-                                   submission.thumbnailUrl !== '/api/placeholder/300/200' && 
-                                   !submission.thumbnailUrl.includes('placeholder') 
-                              ? submission.thumbnailUrl 
-                              : undefined
-                            }
-                            onLoadedMetadata={(e) => {
-                              // Set video to 2 seconds for thumbnail if no poster
-                              const video = e.target as HTMLVideoElement;
-                              if (video.duration > 2) {
-                                video.currentTime = 2;
-                              }
-                            }}
-                          >
-                            Your browser does not support the video tag.
-                          </video>
-                          
-                          {/* Custom thumbnail overlay for videos without valid thumbnails */}
-                          {(!submission.thumbnailUrl || 
-                            submission.thumbnailUrl === '/api/placeholder/300/200' || 
-                            submission.thumbnailUrl.includes('placeholder')) && (
-                            <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center pointer-events-none">
-                              <div className="text-white text-center">
-                                <div className="text-4xl mb-2">🎥</div>
-                                <div className="text-lg font-semibold">{submission.studentName}</div>
-                                <div className="text-sm opacity-75">Video Submission</div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                    <LazyVideoPlayer
+                      videoUrl={submission.videoUrl}
+                      studentName={submission.studentName}
+                      submissionId={submission.submissionId}
+                      loadingStrategy={getLoadingStrategy(index)}
+                      thumbnailUrl={submission.thumbnailUrl}
+                      onLoad={() => markVideoLoaded(submission.submissionId)}
+                    />
                   </div>
 
                   {/* Grading Panel */}
