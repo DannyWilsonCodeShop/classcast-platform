@@ -1487,11 +1487,11 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
   };
 
   return (
-    <div className="bg-gradient-to-r from-white via-blue-50/30 to-pink-50/30 border-b-2 border-blue-200/50 px-4 py-4 shadow-md mb-2">
+    <div className="bg-gradient-to-r from-white via-blue-50/30 to-pink-50/30 border-b-2 border-blue-200/50 px-4 py-3 shadow-sm mb-1">
       {/* Header */}
       <div 
         onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
-        className="flex items-center space-x-3 mb-3 cursor-pointer hover:bg-white/50 rounded-lg p-1 -m-1 transition-colors"
+        className="flex items-center space-x-3 mb-2 cursor-pointer hover:bg-white/50 rounded-lg p-1 -m-1 transition-colors"
       >
         <div 
           onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
@@ -1538,11 +1538,11 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
       </div>
 
       {/* Content */}
-      {item.title && item.title !== item.content && <h3 className="font-semibold text-gray-900 mb-2">{item.title}</h3>}
-      <p className="text-gray-700 whitespace-pre-wrap">{item.content}</p>
+      {item.title && item.title !== item.content && <h3 className="font-semibold text-gray-900 mb-1">{item.title}</h3>}
+      <p className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">{item.content}</p>
 
       {/* Actions */}
-      <div className="flex items-center space-x-4 mt-3 text-gray-600">
+      <div className="flex items-center space-x-4 mt-2 text-gray-600">
         <button 
           onClick={handleLike}
           className={`flex items-center space-x-1 transition-colors ${
@@ -1568,7 +1568,7 @@ const CommunityFeedItem: React.FC<{ item: FeedItem; formatTimestamp: (timestamp:
 
       {/* Collapsible Comments Section */}
       {showComments && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="mt-3 pt-3 border-t border-gray-100">
           <div className="space-y-3">
             {/* Comment Input */}
             <div className="flex space-x-2">
