@@ -4,7 +4,6 @@
  */
 
 import React, { useRef, useEffect, useState } from 'react';
-import { useVirtualizedGrading } from '@/hooks/useVirtualizedGrading';
 import { FeedItem } from '@/app/api/student/feed/route';
 
 interface VirtualizedFeedProps {
@@ -14,17 +13,37 @@ interface VirtualizedFeedProps {
   overscan?: number;
 }
 
-const DEFAULT_ITEM_HEIGHT = 600; // Approximate height of each feed item
+const DEFAULT_VIDEO_HEIGHT = 600; // Approximate height of video items
+const DEFAULT_COMMUNITY_HEIGHT = 200; // Approximate height of community posts
 const DEFAULT_OVERSCAN = 3; // Render 3 extra items above and below
+
+// Function to calculate item height based on type
+const getItemHeight = (item: FeedItem): number => {
+  switch (item.type) {
+    case 'video':
+      return DEFAULT_VIDEO_HEIGHT;
+    case 'community':
+      // Dynamic height based on content length
+      const contentLength = (item.content || '').length;
+      const baseHeight = 150; // Base height for header and actions
+      const contentHeight = Math.max(50, Math.min(300, contentLength * 0.8)); // Estimate based on content
+      return baseHeight + contentHeight;
+    case 'assignment':
+      return 250; // Medium height for assignments
+    default:
+      return DEFAULT_VIDEO_HEIGHT;
+  }
+};
 
 export const VirtualizedFeed: React.FC<VirtualizedFeedProps> = ({
   feedItems,
   renderItem,
-  itemHeight = DEFAULT_ITEM_HEIGHT,
+  itemHeight, // This will be ignored in favor of dynamic heights
   overscan = DEFAULT_OVERSCAN
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerHeight, setContainerHeight] = useState(800);
+  const [scrollTop, setScrollTop] = useState(0);
   
   // Update container height on window resize
   useEffect(() => {
@@ -39,47 +58,50 @@ export const VirtualizedFeed: React.FC<VirtualizedFeedProps> = ({
     return () => window.removeEventListener('resize', updateHeight);
   }, []);
 
-  // Transform FeedItems to match VideoSubmission interface for the hook
-  const transformedSubmissions = feedItems.map((item, index) => ({
-    submissionId: item.id || `item-${index}`,
-    studentId: item.author?.id || 'unknown',
-    studentName: item.author?.name || 'Unknown User',
-    studentEmail: item.author?.id || 'unknown@example.com',
-    videoUrl: item.videoUrl || '',
-    thumbnailUrl: item.thumbnailUrl,
-    submittedAt: item.timestamp,
-    duration: 0,
-    fileSize: 0,
-    grade: undefined,
-    feedback: undefined,
-    status: 'submitted' as const,
-    sectionId: item.courseId,
-    sectionName: item.courseName
-  }));
+  // Calculate cumulative heights for each item
+  const itemHeights = feedItems.map(getItemHeight);
+  const cumulativeHeights = itemHeights.reduce((acc, height, index) => {
+    acc[index] = (acc[index - 1] || 0) + height;
+    return acc;
+  }, [] as number[]);
+  
+  const totalHeight = cumulativeHeights[cumulativeHeights.length - 1] || 0;
 
-  const {
-    visibleItems,
-    totalHeight,
-    offsetY,
-    handleScroll,
-    isScrolling,
-    renderedCount,
-    totalCount,
-    renderRatio
-  } = useVirtualizedGrading(transformedSubmissions, {
-    itemHeight,
-    overscan,
-    containerHeight
-  });
+  // Calculate visible items based on scroll position
+  const getVisibleItems = () => {
+    const startY = scrollTop;
+    const endY = scrollTop + containerHeight;
+    
+    // Find first visible item
+    let startIndex = 0;
+    for (let i = 0; i < cumulativeHeights.length; i++) {
+      if (cumulativeHeights[i] > startY) {
+        startIndex = Math.max(0, i - overscan);
+        break;
+      }
+    }
+    
+    // Find last visible item
+    let endIndex = feedItems.length - 1;
+    for (let i = startIndex; i < cumulativeHeights.length; i++) {
+      if ((cumulativeHeights[i - 1] || 0) > endY) {
+        endIndex = Math.min(feedItems.length - 1, i + overscan);
+        break;
+      }
+    }
+    
+    return { startIndex, endIndex };
+  };
 
-  // Map back to original feed items
-  const visibleFeedItems = visibleItems.map(item => {
-    const originalIndex = transformedSubmissions.findIndex(t => t.submissionId === item.submissionId);
-    return {
-      ...feedItems[originalIndex],
-      virtualIndex: item.absoluteIndex
-    };
-  });
+  const { startIndex, endIndex } = getVisibleItems();
+  const visibleItems = feedItems.slice(startIndex, endIndex + 1);
+  
+  // Calculate offset for visible items
+  const offsetY = startIndex > 0 ? cumulativeHeights[startIndex - 1] : 0;
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  };
 
   return (
     <div
@@ -101,15 +123,19 @@ export const VirtualizedFeed: React.FC<VirtualizedFeedProps> = ({
           }}
         >
           <div className="space-y-0 video-feed">
-            {visibleFeedItems.map((item, index) => (
-              <div
-                key={item.id}
-                style={{ minHeight: itemHeight }}
-                className="mb-0"
-              >
-                {renderItem(item, item.virtualIndex || index)}
-              </div>
-            ))}
+            {visibleItems.map((item, index) => {
+              const actualIndex = startIndex + index;
+              const itemHeight = itemHeights[actualIndex];
+              return (
+                <div
+                  key={item.id}
+                  style={{ height: itemHeight }}
+                  className="mb-0"
+                >
+                  {renderItem(item, actualIndex)}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
