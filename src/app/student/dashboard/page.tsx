@@ -17,6 +17,7 @@ import { getVideoUrl } from '@/lib/videoUtils';
 // import InteractiveTour from '@/components/student/InteractiveTour';
 
 import RichTextRenderer from '@/components/common/RichTextRenderer';
+import { VirtualizedFeed, useVirtualizedFeed } from '@/components/student/VirtualizedFeed';
 
 interface Course {
   courseId: string;
@@ -96,6 +97,10 @@ const StudentDashboard: React.FC = () => {
   const [showWelcomeTour, setShowWelcomeTour] = useState(false);
   const [dailyQuestion] = useState(getDailyQuestion());
   const [isMounted, setIsMounted] = useState(false);
+  
+  // Virtualization for performance
+  const filteredFeedItems = feed.filter(item => item.type === 'video' || item.type === 'community');
+  const { isVirtualized, shouldVirtualize, toggleVirtualization, feedCount } = useVirtualizedFeed(filteredFeedItems);
 
   useEffect(() => {
     setIsMounted(true);
@@ -510,22 +515,63 @@ const StudentDashboard: React.FC = () => {
               <p className="text-gray-600 font-medium">No posts in this course yet.</p>
             </div>
           ) : (
-            <div className="space-y-0 video-feed">
-              {/* Only show videos and community posts (NO assignments) */}
-              {filteredFeed
-                .filter(item => item.type === 'video' || item.type === 'community')
-                .map((item) => (
-                  <FeedItemComponent 
-                    key={item.id} 
-                    item={item} 
-                    formatTimestamp={formatTimestamp} 
-                    currentUserId={user?.id} 
-                    onDelete={fetchFeed} 
-                    assignmentId={item.assignmentId}
-                    onStudyBuddy={handleStudyBuddy}
-                    isConnected={connections.has(item.author?.id || '')}
-                  />
-                ))}
+            <div>
+              {/* Performance toggle for large feeds */}
+              {shouldVirtualize && (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-yellow-700 font-medium">
+                        🚀 Large feed detected ({feedCount} videos)
+                      </span>
+                      <span className="text-sm text-yellow-600">
+                        {isVirtualized ? 'Virtualized rendering active' : 'Standard rendering'}
+                      </span>
+                    </div>
+                    <button
+                      onClick={toggleVirtualization}
+                      className="px-3 py-1 bg-yellow-200 text-yellow-800 rounded-lg text-sm font-medium hover:bg-yellow-300 transition-colors"
+                    >
+                      {isVirtualized ? 'Disable' : 'Enable'} Virtualization
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Render feed based on virtualization setting */}
+              {isVirtualized ? (
+                <VirtualizedFeed
+                  feedItems={filteredFeedItems}
+                  renderItem={(item, index) => (
+                    <FeedItemComponent 
+                      key={item.id} 
+                      item={item} 
+                      formatTimestamp={formatTimestamp} 
+                      currentUserId={user?.id} 
+                      onDelete={fetchFeed} 
+                      assignmentId={item.assignmentId}
+                      onStudyBuddy={handleStudyBuddy}
+                      isConnected={connections.has(item.author?.id || '')}
+                    />
+                  )}
+                />
+              ) : (
+                <div className="space-y-0 video-feed">
+                  {/* Only show videos and community posts (NO assignments) */}
+                  {filteredFeedItems.map((item) => (
+                    <FeedItemComponent 
+                      key={item.id} 
+                      item={item} 
+                      formatTimestamp={formatTimestamp} 
+                      currentUserId={user?.id} 
+                      onDelete={fetchFeed} 
+                      assignmentId={item.assignmentId}
+                      onStudyBuddy={handleStudyBuddy}
+                      isConnected={connections.has(item.author?.id || '')}
+                    />
+                  ))}
+                </div>
+              )}
               
               {/* Empty state if no videos/posts */}
               {filteredFeed.filter(item => item.type === 'video' || item.type === 'community').length === 0 && (
