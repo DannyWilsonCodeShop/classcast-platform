@@ -6,6 +6,8 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { getVideoUrl } from '@/lib/videoUtils';
+import { getYouTubeEmbedUrl, isValidYouTubeUrl, getYouTubeThumbnail } from '@/lib/youtube';
+import { getGoogleDrivePreviewUrl, isValidGoogleDriveUrl, getGoogleDriveThumbnailUrl } from '@/lib/googleDrive';
 
 interface Assignment {
   assignmentId: string;
@@ -774,16 +776,80 @@ const NewAssignmentGradingPage: React.FC = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
                   {/* Video Player */}
                   <div className="lg:col-span-2">
-                    <div className="bg-black rounded-lg overflow-hidden mb-4">
-                      <video
-                        src={getVideoUrl(submission.videoUrl)}
-                        poster={submission.thumbnailUrl || `/api/placeholder/400/300?text=${encodeURIComponent(submission.studentName)}`}
-                        className="w-full h-96 object-contain bg-gray-100"
-                        controls
-                        preload="metadata"
-                      >
-                        Your browser does not support the video tag.
-                      </video>
+                    <div className="bg-black rounded-lg overflow-hidden mb-4 relative">
+                      {/* Check if it's a YouTube video */}
+                      {isValidYouTubeUrl(submission.videoUrl || '') ? (
+                        <div className="relative">
+                          <iframe
+                            src={getYouTubeEmbedUrl(submission.videoUrl) || submission.videoUrl}
+                            className="w-full h-96"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                          {/* YouTube thumbnail overlay before loading */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
+                            <div className="text-white text-center">
+                              <div className="text-4xl mb-2">▶️</div>
+                              <div className="text-lg font-semibold">{submission.studentName}</div>
+                              <div className="text-sm opacity-75">YouTube Video</div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : isValidGoogleDriveUrl(submission.videoUrl || '') ? (
+                        <div className="relative">
+                          <iframe
+                            src={getGoogleDrivePreviewUrl(submission.videoUrl) || submission.videoUrl}
+                            className="w-full h-96"
+                            allow="autoplay"
+                            allowFullScreen
+                          />
+                          {/* Google Drive thumbnail overlay before loading */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
+                            <div className="text-white text-center">
+                              <div className="text-4xl mb-2">📁</div>
+                              <div className="text-lg font-semibold">{submission.studentName}</div>
+                              <div className="text-sm opacity-75">Google Drive Video</div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <video
+                            src={getVideoUrl(submission.videoUrl)}
+                            className="w-full h-96 object-contain bg-gray-900"
+                            controls
+                            preload="metadata"
+                            poster={submission.thumbnailUrl && 
+                                   submission.thumbnailUrl !== '/api/placeholder/300/200' && 
+                                   !submission.thumbnailUrl.includes('placeholder') 
+                              ? submission.thumbnailUrl 
+                              : undefined
+                            }
+                            onLoadedMetadata={(e) => {
+                              // Set video to 2 seconds for thumbnail if no poster
+                              const video = e.target as HTMLVideoElement;
+                              if (video.duration > 2) {
+                                video.currentTime = 2;
+                              }
+                            }}
+                          >
+                            Your browser does not support the video tag.
+                          </video>
+                          
+                          {/* Custom thumbnail overlay for videos without valid thumbnails */}
+                          {(!submission.thumbnailUrl || 
+                            submission.thumbnailUrl === '/api/placeholder/300/200' || 
+                            submission.thumbnailUrl.includes('placeholder')) && (
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center pointer-events-none">
+                              <div className="text-white text-center">
+                                <div className="text-4xl mb-2">🎥</div>
+                                <div className="text-lg font-semibold">{submission.studentName}</div>
+                                <div className="text-sm opacity-75">Video Submission</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 

@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   // Enable standalone output for Docker
   output: 'standalone',
   
-  // Enable experimental features (Turbopack compatible)
+  // Enable experimental features (stable version compatible)
   experimental: {
     // Enable server actions (object value for Next.js 15+)
     serverActions: {
@@ -13,12 +13,8 @@ const nextConfig: NextConfig = {
     },
     // Performance optimizations
     optimizePackageImports: ['@/components', '@/lib', 'lucide-react'],
-    // Enable partial prerendering for better performance
-    ppr: true,
     // Optimize CSS
     optimizeCss: true,
-    // Enable concurrent features
-    serverComponentsExternalPackages: ['@aws-sdk'],
   },
   
   // Optimize images
