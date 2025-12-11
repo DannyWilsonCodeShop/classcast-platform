@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
     },
     // Performance optimizations
     optimizePackageImports: ['@/components', '@/lib', 'lucide-react'],
+    // Enable partial prerendering for better performance
+    ppr: true,
+    // Optimize CSS
+    optimizeCss: true,
+    // Enable concurrent features
+    serverComponentsExternalPackages: ['@aws-sdk'],
   },
   
   // Optimize images
@@ -34,6 +40,31 @@ const nextConfig: NextConfig = {
   
   // React strict mode
   reactStrictMode: true,
+  
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    // Optimize bundle size
+    if (!dev && !isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            enforce: true,
+          },
+        },
+      };
+    }
+    
+    return config;
+  },
   
   // Configure headers for better caching and security
   async headers() {
