@@ -67,10 +67,13 @@ const InstructorStudentsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'dropped' | 'completed'>('all');
+<<<<<<< Updated upstream
   const [sortBy, setSortBy] = useState<'name' | 'grade' | 'enrollment' | 'activity' | 'section'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [viewMode, setViewMode] = useState<'table' | 'sections'>('table');
   const [draggedStudent, setDraggedStudent] = useState<Student | null>(null);
+=======
+>>>>>>> Stashed changes
   
   // Move student state
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -237,39 +240,38 @@ const InstructorStudentsPage: React.FC = () => {
     }
   };
 
-  const filteredAndSortedStudents = students
-    .filter(student => {
-      const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           student.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    })
-    .sort((a, b) => {
-      let comparison = 0;
-      
-      switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'grade':
-          comparison = (a.currentGrade || 0) - (b.currentGrade || 0);
-          break;
-        case 'enrollment':
-          comparison = new Date(a.enrollmentDate).getTime() - new Date(b.enrollmentDate).getTime();
-          break;
-        case 'activity':
-          comparison = new Date(a.lastActivity).getTime() - new Date(b.lastActivity).getTime();
-          break;
-        case 'section':
-          // Sort by section name, with students without sections at the end
-          const aSectionName = a.sectionName || 'zzz_no_section';
-          const bSectionName = b.sectionName || 'zzz_no_section';
-          comparison = aSectionName.localeCompare(bSectionName);
-          break;
+  const filteredStudents = students.filter(student => {
+    const matchesSearch =
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || student.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const sectionGroups = React.useMemo(() => {
+    const groups = new Map<string, Student[]>();
+    filteredStudents.forEach(student => {
+      const key = student.sectionName || 'No Section Assigned';
+      if (!groups.has(key)) {
+        groups.set(key, []);
       }
-      
-      return sortOrder === 'asc' ? comparison : -comparison;
+      groups.get(key)!.push(student);
     });
+
+    const sortedSections = Array.from(groups.keys()).sort((a, b) => {
+      if (a === 'No Section Assigned') return 1;
+      if (b === 'No Section Assigned') return -1;
+      return a.localeCompare(b);
+    });
+
+    return sortedSections.map(sectionName => ({
+      sectionName,
+      students: groups
+        .get(sectionName)!
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    }));
+  }, [filteredStudents]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -878,7 +880,7 @@ const InstructorStudentsPage: React.FC = () => {
 
           {/* Filters and Search */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
-            <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
               <div className="flex-1">
                 <div className="relative">
                   <input
@@ -906,23 +908,6 @@ const InstructorStudentsPage: React.FC = () => {
                   <option value="dropped">Dropped</option>
                   <option value="completed">Completed</option>
                 </select>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as any)}
-                  className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
-                >
-                  <option value="name">Sort by Name</option>
-                  <option value="grade">Sort by Grade</option>
-                  <option value="enrollment">Sort by Enrollment</option>
-                  <option value="activity">Sort by Activity</option>
-                  <option value="section">Sort by Section</option>
-                </select>
-                <button
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                  className="px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  {sortOrder === 'asc' ? '↑' : '↓'}
-                </button>
               </div>
             </div>
           </div>
@@ -954,6 +939,7 @@ const InstructorStudentsPage: React.FC = () => {
           </div>
 
           {/* Students List */}
+<<<<<<< Updated upstream
           {viewMode === 'table' ? (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
               {filteredAndSortedStudents.length > 0 ? (
@@ -1022,14 +1008,101 @@ const InstructorStudentsPage: React.FC = () => {
                             {student.currentGrade ? (
                               <span className={getGradeColor(student.currentGrade)}>
                                 {student.currentGrade.toFixed(1)}%
+=======
+          <div className="space-y-10">
+            {sectionGroups.length > 0 ? (
+              sectionGroups.map((group) => (
+                <div key={group.sectionName}>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800 flex items-center space-x-2">
+                      <span>📚</span>
+                      <span>{group.sectionName}</span>
+                      <span className="text-sm font-normal text-gray-500">
+                        ({group.students.length} {group.students.length === 1 ? 'student' : 'students'})
+                      </span>
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {group.students.map((student) => (
+                      <div
+                        key={student.studentId}
+                        className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 flex flex-col justify-between hover:shadow-xl transition-all duration-200"
+                      >
+                        <div className="flex items-start space-x-4">
+                          <Avatar
+                            src={student.avatar}
+                            name={student.name}
+                            size="xl"
+                            className="h-14 w-14 flex-shrink-0"
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h3 className="text-lg font-bold text-gray-900">{student.name}</h3>
+                                <p className="text-sm text-gray-500">{student.email}</p>
+                              </div>
+                              <span
+                                className={`inline-flex px-2.5 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                                  student.status
+                                )}`}
+                              >
+                                {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+>>>>>>> Stashed changes
                               </span>
-                            ) : (
-                              <span className="text-gray-400">No grade yet</span>
-                            )}
+                            </div>
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                              <span className="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200">
+                                <span className="mr-1">🏷️</span>
+                                {student.sectionName || 'No Section Assigned'}
+                              </span>
+                              <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 rounded-full border border-gray-200">
+                                <span className="mr-1">🗓️</span>
+                                Enrolled {new Date(student.enrollmentDate).toLocaleDateString()}
+                              </span>
+                            </div>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        </div>
+
+                        <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
+                          <div className="bg-gray-50 rounded-xl px-3 py-2">
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">Videos Uploaded</p>
+                            <button
+                              onClick={() => handleViewStudentSubmissions(student.studentId, student.name)}
+                              className="mt-1 text-lg font-semibold text-indigo-600 hover:text-indigo-800 hover:underline"
+                              title={`View ${student.name}'s submissions`}
+                            >
+                              {student.submissionsCount}
+                            </button>
+                          </div>
+                          <div className="bg-gray-50 rounded-xl px-3 py-2">
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">Current Grade</p>
+                            <p className="mt-1 text-lg font-semibold">
+                              {student.currentGrade ? (
+                                <span className={getGradeColor(student.currentGrade)}>
+                                  {student.currentGrade.toFixed(1)}%
+                                </span>
+                              ) : (
+                                <span className="text-gray-400">Not graded</span>
+                              )}
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 rounded-xl px-3 py-2">
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">Last Activity</p>
+                            <p className="mt-1 font-medium text-gray-700">
+                              {new Date(student.lastActivity || student.enrollmentDate).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="bg-gray-50 rounded-xl px-3 py-2">
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">Average Grade</p>
+                            <p className="mt-1 font-medium text-gray-700">
+                              {student.averageGrade > 0 ? `${student.averageGrade.toFixed(1)}%` : 'Not available'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap gap-3 text-sm font-medium">
                           <button
+<<<<<<< Updated upstream
                             onClick={() => handleViewStudentSubmissions(student.studentId, student.name)}
                             className="inline-flex items-center px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:text-blue-800 rounded-lg transition-colors font-semibold border border-blue-200 hover:border-blue-300"
                             title={`Click to grade ${student.name}'s ${student.submissionsCount} video submissions`}
@@ -1108,17 +1181,43 @@ const InstructorStudentsPage: React.FC = () => {
                           </div>
                         </td>
                       </tr>
+=======
+                            onClick={() => router.push(`/instructor/students/${student.studentId}/profile`)}
+                            className="px-3 py-2 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors"
+                          >
+                            View Profile
+                          </button>
+                          <button className="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-100 transition-colors">
+                            Message
+                          </button>
+                          <button
+                            onClick={() => handleMoveStudent(student)}
+                            className="px-3 py-2 bg-blue-50 text-blue-600 rounded-xl hover:bg-blue-100 transition-colors"
+                            title={`Move ${student.name} to another section or course`}
+                          >
+                            Move
+                          </button>
+                          <button
+                            onClick={() => handleRemoveStudent(student.studentId, student.name)}
+                            className="px-3 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
+                            title={`Remove ${student.name} from course`}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+>>>>>>> Stashed changes
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+                </div>
+              ))
             ) : (
-              <div className="text-center py-12">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-10 text-center">
                 <div className="text-6xl mb-4">👥</div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">No Students Found</h3>
                 <p className="text-gray-600 mb-6">
-                  {searchTerm || statusFilter !== 'all' 
-                    ? 'No students match your current filters.' 
+                  {searchTerm || statusFilter !== 'all'
+                    ? 'No students match your current filters.'
                     : 'No students are enrolled in this course yet.'}
                 </p>
                 {searchTerm || statusFilter !== 'all' ? (

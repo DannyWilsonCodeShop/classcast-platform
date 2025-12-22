@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { api, User } from '@/lib/api';
 import { PasswordReset } from '@/components/PasswordReset';
 import { NotificationPreferences } from '@/components/NotificationPreferences';
+import DemoModeBanner from '@/components/common/DemoModeBanner';
 
 interface ProfileData {
   id?: string;
@@ -380,6 +381,9 @@ const StudentProfilePage: React.FC = () => {
   return (
     <StudentRoute>
       <div className="min-h-screen bg-[#F5F5F5]">
+        {/* Demo Mode Banner */}
+        <DemoModeBanner />
+        
         {/* Header with Back Button */}
         <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-[#4A90E2]/20 px-4 py-3">
           <div className="max-w-4xl mx-auto flex items-center justify-between">

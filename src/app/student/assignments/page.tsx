@@ -3,11 +3,15 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { AssignmentList } from '@/components/student/AssignmentList';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import DemoModeBanner from '@/components/common/DemoModeBanner';
 
 const StudentAssignmentsPage: React.FC = () => {
   return (
     <StudentRoute>
       <div className="h-screen overflow-hidden flex flex-col bg-gray-50">
+        {/* Demo Mode Banner */}
+        <DemoModeBanner />
+        
         {/* Header with Back Button */}
         <div className="bg-gradient-to-r from-purple-100/80 via-blue-100/80 to-pink-100/80 backdrop-blur-sm border-b-2 border-purple-300/50 shadow-lg px-4 py-3 flex-shrink-0">
           <div className="flex items-center justify-between">

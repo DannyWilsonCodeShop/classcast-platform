@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useCallback } from 'react';
+import { isDemoUser, isActionBlockedInDemo } from '@/lib/demo-mode-utils';
 
 interface UseAuthGuardOptions {
   requiredRole?: 'student' | 'instructor' | 'admin';
@@ -17,6 +18,8 @@ interface UseAuthGuardReturn {
   checkPermission: (action: string) => boolean;
   requireAuth: () => boolean;
   requireRole: (role: 'student' | 'instructor' | 'admin') => boolean;
+  isDemoMode: boolean;
+  isReadOnly: boolean;
 }
 
 export const useAuthGuard = (options: UseAuthGuardOptions = {}): UseAuthGuardReturn => {
@@ -29,6 +32,9 @@ export const useAuthGuard = (options: UseAuthGuardOptions = {}): UseAuthGuardRet
     redirectTo = '/auth/login',
     onUnauthorized,
   } = options;
+
+  const isDemoMode = isDemoUser(user);
+  const isReadOnly = isDemoMode;
 
   // Check if user has required role
   const hasRequiredRole = useCallback(() => {
@@ -49,8 +55,13 @@ export const useAuthGuard = (options: UseAuthGuardOptions = {}): UseAuthGuardRet
   const checkPermission = useCallback((action: string): boolean => {
     if (!user) return false;
 
-    // Admin has all permissions
-    if (user.role === 'admin') return true;
+    // Check if action is blocked in demo mode
+    if (isActionBlockedInDemo(action, user)) {
+      return false;
+    }
+
+    // Admin has all permissions (unless in demo mode)
+    if (user.role === 'admin' && !isDemoUser(user)) return true;
 
     // Role-based permissions
     switch (action) {
@@ -59,25 +70,88 @@ export const useAuthGuard = (options: UseAuthGuardOptions = {}): UseAuthGuardRet
       case 'delete_assignment':
       case 'grade_submission':
       case 'view_all_submissions':
-        return user.role === 'instructor';
+        return user.role === 'instructor' && !isDemoUser(user);
       
       case 'submit_assignment':
       case 'view_own_submissions':
       case 'view_own_grades':
-        return user.role === 'student';
+        return user.role === 'student' && !isDemoUser(user);
       
       case 'view_instructor_feed':
       case 'bulk_grade':
-        return user.role === 'instructor';
+        return user.role === 'instructor' && !isDemoUser(user);
       
       case 'manage_users':
       case 'system_settings':
-        return user.role === 'admin';
+        return user.role === 'admin' && !isDemoUser(user);
+      
+      // Read-only permissions (allowed for demo users)
+      case 'view_dashboard':
+      case 'view_assignments':
+      case 'view_submissions':
+      case 'view_profile':
+      case 'view_feed':
+        return true;
       
       default:
         return false;
     }
   }, [user]);
+
+  // Require authentication
+  const requireAuth = useCallback((): boolean => {
+    if (!isAuthenticated && !isLoading) {
+      if (onUnauthorized) {
+        onUnauthorized();
+      } else {
+        router.push(redirectTo);
+      }
+      return false;
+    }
+    return isAuthenticated;
+  }, [isAuthenticated, isLoading, onUnauthorized, router, redirectTo]);
+
+  // Require specific role
+  const requireRole = useCallback((role: 'student' | 'instructor' | 'admin'): boolean => {
+    if (!requireAuth()) return false;
+    
+    if (user?.role !== role) {
+      if (onUnauthorized) {
+        onUnauthorized();
+      } else {
+        router.push('/unauthorized');
+      }
+      return false;
+    }
+    return true;
+  }, [user, requireAuth, onUnauthorized, router]);
+
+  // Auto-redirect based on role requirements
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      const hasRole = hasRequiredRole();
+      if (!hasRole && (requiredRole || allowedRoles)) {
+        if (onUnauthorized) {
+          onUnauthorized();
+        } else {
+          router.push('/unauthorized');
+        }
+      }
+    }
+  }, [isLoading, isAuthenticated, user, hasRequiredRole, requiredRole, allowedRoles, onUnauthorized, router]);
+
+  return {
+    user,
+    isAuthenticated,
+    isLoading,
+    hasRequiredRole: hasRequiredRole(),
+    checkPermission,
+    requireAuth,
+    requireRole,
+    isDemoMode,
+    isReadOnly,
+  };
+};
 
   // Require authentication
   const requireAuth = useCallback((): boolean => {

@@ -146,6 +146,28 @@ export async function POST(request: NextRequest) {
           hobbies: 'Teaching, Research',
           schoolName: 'Test University',
         }
+      },
+      {
+        email: 'demo@email.com',
+        password: 'Demo1234!',
+        user: {
+          id: 'demo-user-123',
+          email: 'demo@email.com',
+          firstName: 'Demo',
+          lastName: 'User',
+          role: 'student' as const,
+          avatar: '/api/placeholder/40/40',
+          emailVerified: true,
+          bio: 'Demo account - Read-only access',
+          careerGoals: 'Viewing demo content',
+          classOf: '2024',
+          funFact: 'I am a demo user!',
+          favoriteSubject: 'All subjects',
+          hobbies: 'Exploring the platform',
+          schoolName: 'Demo University',
+          isDemoUser: true,
+          demoViewingUserId: 'dwilson1919@gmail.com'
+        }
       }
     ];
 

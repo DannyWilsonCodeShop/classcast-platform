@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { isRequestFromDemoUser, getDemoTargetFromRequest } from '@/lib/demo-mode-middleware';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -14,7 +15,16 @@ export async function GET(request: NextRequest) {
   try {
     // Get user ID from query params
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    let userId = searchParams.get('userId');
+    
+    // Handle demo mode - redirect to target user
+    if (isRequestFromDemoUser(request)) {
+      const demoTargetUser = getDemoTargetFromRequest(request);
+      if (demoTargetUser) {
+        userId = demoTargetUser;
+        console.log(`🎭 Demo mode: Fetching courses for target user ${userId}`);
+      }
+    }
     
     if (!userId) {
       return NextResponse.json(

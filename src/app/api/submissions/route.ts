@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { isRequestFromDemoUser, getDemoTargetFromRequest } from '@/lib/demo-mode-middleware';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -13,21 +14,44 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const status = searchParams.get('status');
+    let studentId = searchParams.get('studentId');
+    
+    // Handle demo mode - redirect to target user
+    if (isRequestFromDemoUser(request)) {
+      const demoTargetUser = getDemoTargetFromRequest(request);
+      if (demoTargetUser) {
+        studentId = demoTargetUser;
+        console.log(`🎭 Demo mode: Fetching submissions for target user ${studentId}`);
+      }
+    }
     
     // Get submissions from database
     let submissions = [];
     
     try {
+      const filterExpressions = [];
+      const expressionAttributeNames: any = {};
+      const expressionAttributeValues: any = {};
+      
+      if (status) {
+        filterExpressions.push('#status = :status');
+        expressionAttributeNames['#status'] = 'status';
+        expressionAttributeValues[':status'] = status;
+      }
+      
+      if (studentId) {
+        filterExpressions.push('studentId = :studentId');
+        expressionAttributeValues[':studentId'] = studentId;
+      }
+      
       const submissionsResult = await docClient.send(new ScanCommand({
         TableName: SUBMISSIONS_TABLE,
-        ...(status && {
-          FilterExpression: '#status = :status',
-          ExpressionAttributeNames: {
-            '#status': 'status'
-          },
-          ExpressionAttributeValues: {
-            ':status': status
-          }
+        ...(filterExpressions.length > 0 && {
+          FilterExpression: filterExpressions.join(' AND '),
+          ...(Object.keys(expressionAttributeNames).length > 0 && {
+            ExpressionAttributeNames: expressionAttributeNames
+          }),
+          ExpressionAttributeValues: expressionAttributeValues
         })
       }));
       
