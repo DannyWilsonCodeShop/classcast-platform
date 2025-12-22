@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, PutCommand } from '@aws-sdk/lib-dynamodb';
 import { awsConfig } from '@/lib/aws-config';
+import { isRequestFromDemoUser, getDemoTargetFromRequest } from '@/lib/demo-mode-middleware';
 
 const client = new DynamoDBClient({ region: awsConfig.region });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -10,6 +11,18 @@ const COURSES_TABLE = awsConfig.dynamodb.tables.courses;
 
 export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    let userId = searchParams.get('userId');
+    
+    // Handle demo mode - redirect to target user
+    if (isRequestFromDemoUser(request)) {
+      const demoTargetUser = getDemoTargetFromRequest(request);
+      if (demoTargetUser) {
+        userId = demoTargetUser;
+        console.log(`🎭 Demo mode: Fetching courses for target user ${userId}`);
+      }
+    }
+    
     // Get courses from database
     let courses = [];
     
@@ -18,10 +31,20 @@ export async function GET(request: NextRequest) {
         TableName: COURSES_TABLE
       }));
       
-      // Filter out private courses from public search
-      courses = (coursesResult.Items || []).filter(course => 
-        course.settings?.privacy !== 'private'
-      );
+      let allCourses = coursesResult.Items || [];
+      
+      // If userId is provided, filter to show only courses the user is enrolled in
+      if (userId) {
+        courses = allCourses.filter(course => 
+          course.enrollment?.students?.some((student: any) => student.userId === userId)
+        );
+        console.log(`📚 Found ${courses.length} courses for user ${userId}`);
+      } else {
+        // Filter out private courses from public search
+        courses = allCourses.filter(course => 
+          course.settings?.privacy !== 'private'
+        );
+      }
     } catch (dbError: any) {
       if (dbError.name === 'ResourceNotFoundException') {
         // Table doesn't exist yet, return empty array

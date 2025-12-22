@@ -13,6 +13,8 @@ import ClassEnrollmentModal from '@/components/student/ClassEnrollmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
 import Avatar from '@/components/common/Avatar';
 import { getVideoUrl } from '@/lib/videoUtils';
+import BugReportModal from '@/components/common/BugReportModal';
+import DemoModeBanner from '@/components/common/DemoModeBanner';
 // import WelcomeTour from '@/components/student/WelcomeTour';
 // import InteractiveTour from '@/components/student/InteractiveTour';
 
@@ -364,6 +366,9 @@ const StudentDashboard: React.FC = () => {
   return (
     <StudentRoute>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 w-full max-w-full overflow-x-hidden" style={{ margin: 0, padding: 0 }}>
+        {/* Demo Mode Banner */}
+        <DemoModeBanner />
+        
         {/* Top Bar */}
         <div className="sticky top-0 z-50 bg-gradient-to-r from-purple-100/80 via-blue-100/80 to-pink-100/80 backdrop-blur-sm border-b-2 border-purple-300/50 shadow-lg w-full">
           <div className="w-full px-2 sm:px-4 py-2 sm:py-3 flex items-center justify-between gap-1 sm:gap-3">

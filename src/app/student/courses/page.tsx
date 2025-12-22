@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
+import DemoModeBanner from '@/components/common/DemoModeBanner';
 
 interface Course {
   id: string;
@@ -114,6 +115,9 @@ const StudentCoursesPage: React.FC = () => {
   return (
     <StudentRoute>
       <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+        {/* Demo Mode Banner */}
+        <DemoModeBanner />
+        
         {/* Header */}
         <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 flex-shrink-0">
           <div className="flex items-center justify-between mb-4">

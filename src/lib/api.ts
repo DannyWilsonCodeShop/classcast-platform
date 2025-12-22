@@ -30,6 +30,8 @@ export interface User {
   favoriteSubject?: string;
   hobbies?: string;
   schoolName?: string;
+  isDemoUser?: boolean;
+  demoViewingUserId?: string;
 }
 
 export interface LoginRequest {
@@ -197,6 +199,13 @@ class ApiClient {
       (headers as any).Authorization = `Bearer ${this.accessToken}`;
     }
 
+    // Add demo mode headers if user is a demo user
+    const user = this.getCurrentUser();
+    if (user?.isDemoUser) {
+      (headers as any)['X-Demo-Mode'] = 'true';
+      (headers as any)['X-Demo-Target-User'] = user.demoViewingUserId || '';
+    }
+
     try {
       const response = await fetch(url, {
         ...options,
@@ -243,6 +252,18 @@ class ApiClient {
     } catch (error) {
       console.error('API request failed:', error);
       throw error;
+    }
+  }
+
+  // Helper to get current user (you may need to adjust this based on your implementation)
+  private getCurrentUser(): User | null {
+    if (typeof window === 'undefined') return null;
+    
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch {
+      return null;
     }
   }
 
