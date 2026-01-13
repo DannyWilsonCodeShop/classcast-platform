@@ -8,6 +8,18 @@ const docClient = DynamoDBDocumentClient.from(client);
 const ASSIGNMENTS_TABLE = 'classcast-assignments';
 const COURSES_TABLE = 'classcast-courses';
 
+// Handle CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ assignmentId: string }> }
@@ -118,7 +130,40 @@ export async function PUT(
     const { assignmentId } = await params;
     const body = await request.json();
     
-    console.log('Updating assignment:', assignmentId, body);
+    console.log('🔄 Assignment update request received:', {
+      assignmentId,
+      bodyKeys: Object.keys(body),
+      instructionalVideoUrl: body.instructionalVideoUrl
+    });
+    
+    // Add CORS headers for the response
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    };
+    
+    // Verify the assignment exists first
+    const existingAssignment = await docClient.send(new ScanCommand({
+      TableName: ASSIGNMENTS_TABLE,
+      FilterExpression: 'assignmentId = :assignmentId',
+      ExpressionAttributeValues: {
+        ':assignmentId': assignmentId
+      }
+    }));
+    
+    if (!existingAssignment.Items || existingAssignment.Items.length === 0) {
+      console.log('❌ Assignment not found:', assignmentId);
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Assignment not found' 
+        },
+        { status: 404, headers }
+      );
+    }
+    
+    console.log('✅ Assignment found, proceeding with update');
     
     // Build update expression
     const updateExpressions = [];
@@ -160,8 +205,8 @@ export async function PUT(
       requireLiveRecording: 'requireLiveRecording',
       allowYouTubeUrl: 'allowYouTubeUrl',
       resources: 'resources',
-      instructionalVideoUrl: 'instructionalVideoUrl', // MISSING: Instructional video URL
-      rubric: 'rubric' // MISSING: Rubric data
+      instructionalVideoUrl: 'instructionalVideoUrl',
+      rubric: 'rubric'
     };
     
     // Process each field in the body
@@ -173,16 +218,23 @@ export async function PUT(
         updateExpressions.push(`${attrName} = ${attrValue}`);
         expressionAttributeNames[attrName] = dbKey;
         expressionAttributeValues[attrValue] = body[bodyKey];
+        
+        if (bodyKey === 'instructionalVideoUrl') {
+          console.log('🎬 Updating instructionalVideoUrl:', body[bodyKey]);
+        }
       }
     }
     
     if (updateExpressions.length === 1) {
       // Only updatedAt, nothing to update
+      console.log('ℹ️ No changes to save');
       return NextResponse.json({
         success: true,
         message: 'No changes to save'
-      });
+      }, { headers });
     }
+    
+    console.log('🔧 Update expressions:', updateExpressions);
     
     // Update the assignment in DynamoDB
     const updateCommand = {
@@ -194,23 +246,32 @@ export async function PUT(
       ReturnValues: 'ALL_NEW' as const
     };
     
+    console.log('📤 Sending update command to DynamoDB');
     const result = await docClient.send(new UpdateCommand(updateCommand));
+    console.log('✅ Assignment updated successfully');
     
     return NextResponse.json({
       success: true,
       message: 'Assignment updated successfully',
       assignment: result.Attributes
-    });
+    }, { headers });
     
   } catch (error) {
-    console.error('Error updating assignment:', error);
+    console.error('❌ Error updating assignment:', error);
     return NextResponse.json(
       { 
         success: false,
         error: 'Failed to update assignment',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        }
+      }
     );
   }
 }
