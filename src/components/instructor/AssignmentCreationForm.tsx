@@ -125,7 +125,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     peerReviewScope: initialData?.peerReviewScope || 'section',
     resources: initialData?.resources || [],
     instructionalVideoUrl: initialData?.instructionalVideoUrl || '',
-    instructionalVideoType: 'none',
+    instructionalVideoType: initialData?.instructionalVideoUrl ? 'youtube' : 'none',
     instructionalVideoFile: null
   });
 
@@ -367,7 +367,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         console.log(`✅ ${urlType} URL format validated`);
       }
 
-      const finalInstructionalVideoUrl = formData.instructionalVideoType !== 'none' ? instructionalVideoUrl : undefined;
+      const finalInstructionalVideoUrl = formData.instructionalVideoType !== 'none' && instructionalVideoUrl ? instructionalVideoUrl : '';
       console.log('🎯 Final instructional video URL for assignment:', finalInstructionalVideoUrl);
 
       const assignmentData: Partial<Assignment> = {
