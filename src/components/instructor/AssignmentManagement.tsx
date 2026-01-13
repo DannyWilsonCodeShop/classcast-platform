@@ -379,16 +379,30 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
                   <div className="space-y-2">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
+                        onClick={() => router.push(`/instructor/courses/${courseId}?tab=assignments`)}
                         className="flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors text-sm"
                       >
-                        👁️ View (Student View)
+                        👁️ View Details
                       </button>
                       <button
                         onClick={() => router.push(`/instructor/courses/${courseId}?tab=assignments`)}
                         className="flex-1 px-3 py-2 bg-indigo-500 text-white rounded-lg font-medium hover:bg-indigo-600 transition-colors text-sm"
                       >
                         ✏️ Edit
+                      </button>
+                    </div>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => router.push(`/instructor/grading/assignment/${assignment.assignmentId}`)}
+                        className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                      >
+                        📊 Grade Submissions ({assignment.submissionsCount || 0})
+                      </button>
+                      <button
+                        onClick={() => router.push(`/instructor/courses/${courseId}/assignments/${assignment.assignmentId}/grades`)}
+                        className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors text-sm"
+                      >
+                        📋 View Grades
                       </button>
                     </div>
                   </div>
