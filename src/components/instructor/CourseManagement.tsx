@@ -259,111 +259,78 @@ export const CourseManagement: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <img 
-                src="/MyClassCast (800 x 200 px).png" 
-                alt="ClassCast Logo" 
-                className="h-8 w-auto"
-              />
-              <div>
-                <h1 className="text-4xl font-bold text-gray-800 mb-2">My Classes</h1>
-                <p className="text-gray-600">
-                  {courses.length} class{courses.length !== 1 ? 'es' : ''} total
-                </p>
-              </div>
-            </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Filters */}
+      <div className="mb-8">
+        <CourseFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+        />
+      </div>
+
+      {/* Course Grid */}
+      {courses.length === 0 ? (
+        <div className="text-center py-16">
+          <div className="text-6xl mb-4">📚</div>
+          <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Classes Yet</h3>
+          <p className="text-gray-600 mb-8">Create your first class to get started teaching.</p>
+          <div className="flex space-x-4 justify-center">
             <button
               onClick={() => setShowForm(true)}
-              className="px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors mr-2"
+              className="px-6 py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
             >
-              + Create
+              + Create Class
             </button>
             <button
               onClick={() => setShowWizard(true)}
-              className="px-4 py-3 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors"
+              className="px-6 py-4 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors"
             >
-              🧙 Wizard
+              🧙 Start Wizard
             </button>
           </div>
         </div>
-
-        {/* Filters */}
-        <div className="mb-8">
-          <CourseFilters
-            filters={filters}
-            onFilterChange={handleFilterChange}
-          />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+          {courses.map((course) => (
+            <CourseCard
+              key={course.courseId}
+              course={course}
+              onEdit={(course) => setEditingCourse(course)}
+              onDelete={handleDeleteCourse}
+              onArchive={handleArchiveCourse}
+              onPublish={handlePublishCourse}
+              onBulkEnroll={handleBulkEnroll}
+            />
+          ))}
         </div>
+      )}
 
-        {/* Course Grid */}
-        {courses.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">📚</div>
-            <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Classes Yet</h3>
-            <p className="text-gray-600 mb-8">Create your first class to get started teaching.</p>
-            <div className="flex space-x-4 justify-center">
-              <button
-                onClick={() => setShowForm(true)}
-                className="px-6 py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
-              >
-                + Create Class
-              </button>
-              <button
-                onClick={() => setShowWizard(true)}
-                className="px-6 py-4 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors"
-              >
-                🧙 Start Wizard
-              </button>
-            </div>
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="mt-12 flex justify-center">
+          <div className="flex items-center space-x-2 bg-white rounded-xl shadow-lg border border-gray-200/30 p-2">
+            <button
+              onClick={() => handlePageChange(pagination.page - 1)}
+              disabled={pagination.page === 1}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              ← Previous
+            </button>
+            
+            <span className="px-4 py-2 text-sm text-gray-700 font-medium">
+              Page {pagination.page} of {pagination.totalPages}
+            </span>
+            
+            <button
+              onClick={() => handlePageChange(pagination.page + 1)}
+              disabled={pagination.page === pagination.totalPages}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              Next →
+            </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            {courses.map((course) => (
-              <CourseCard
-                key={course.courseId}
-                course={course}
-                onEdit={(course) => setEditingCourse(course)}
-                onDelete={handleDeleteCourse}
-                onArchive={handleArchiveCourse}
-                onPublish={handlePublishCourse}
-                onBulkEnroll={handleBulkEnroll}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="mt-12 flex justify-center">
-            <div className="flex items-center space-x-2 bg-white rounded-xl shadow-lg border border-gray-200/30 p-2">
-              <button
-                onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page === 1}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                ← Previous
-              </button>
-              
-              <span className="px-4 py-2 text-sm text-gray-700 font-medium">
-                Page {pagination.page} of {pagination.totalPages}
-              </span>
-              
-              <button
-                onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page === pagination.totalPages}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Next →
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Course Form Modal */}
       {showForm && (
