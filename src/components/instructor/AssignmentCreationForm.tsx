@@ -162,7 +162,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     }
   };
 
-  const validateForm = useCallback((): boolean => {
+  const validateForm = useCallback((): { isValid: boolean; errors: Partial<Record<keyof FormData, string>> } => {
     const newErrors: Partial<Record<keyof FormData, string>> = {};
 
     if (!formData.title.trim()) {
@@ -235,8 +235,11 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData]);
+    return {
+      isValid: Object.keys(newErrors).length === 0,
+      errors: newErrors
+    };
+  }, [formData, isEditing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,14 +253,16 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     });
     console.log('✅ Validating form...');
     
-    const isValid = validateForm();
+    const validationResult = validateForm();
+    const { isValid, errors: validationErrors } = validationResult;
+    
     console.log('🔍 Validation result:', isValid);
-    console.log('❌ Errors:', errors);
+    console.log('❌ Validation errors:', validationErrors);
     
     if (!isValid) {
-      console.log('❌ Form validation failed with errors:', errors);
+      console.log('❌ Form validation failed with errors:', validationErrors);
       // Scroll to first error field
-      const firstErrorField = Object.keys(errors)[0];
+      const firstErrorField = Object.keys(validationErrors)[0];
       if (firstErrorField) {
         const element = document.getElementById(firstErrorField) || document.querySelector(`[name="${firstErrorField}"]`);
         if (element) {
@@ -310,6 +315,12 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         
         const isValidYouTube = youtubeUrlPattern.test(trimmedUrl);
         const isValidGoogleDrive = googleDrivePattern.test(trimmedUrl);
+        
+        console.log('🔍 URL Validation in submit handler:');
+        console.log(`   URL: ${trimmedUrl}`);
+        console.log(`   YouTube valid: ${isValidYouTube}`);
+        console.log(`   Google Drive valid: ${isValidGoogleDrive}`);
+        console.log(`   Overall valid: ${isValidYouTube || isValidGoogleDrive}`);
         
         if (!isValidYouTube && !isValidGoogleDrive) {
           console.error('❌ Invalid video URL format:', instructionalVideoUrl);
