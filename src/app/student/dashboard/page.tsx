@@ -333,15 +333,10 @@ const StudentDashboard: React.FC = () => {
       <StudentRoute>
         <DemoModeBanner />
         <DashboardLayout title="Loading..." subtitle="Getting your learning dashboard ready...">
-          <div className="animate-pulse space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="bg-gray-200 h-32 rounded-xl"></div>
-              ))}
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 bg-gray-200 h-96 rounded-xl"></div>
-              <div className="bg-gray-200 h-96 rounded-xl"></div>
+          <div className="animate-pulse space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+              <div className="lg:col-span-3 bg-gray-200 h-64 rounded-xl"></div>
+              <div className="bg-gray-200 h-64 rounded-xl"></div>
             </div>
           </div>
         </DashboardLayout>
@@ -356,84 +351,66 @@ const StudentDashboard: React.FC = () => {
         title={getGreeting()} 
         subtitle="Ready to continue your learning journey?"
       >
-        <div className="space-y-8">
-          {/* Activity Stats - More Relevant for Students */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {quickStats.map((stat) => (
-              <div key={stat.name} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                    <p className="text-2xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                    <p className="text-xs text-gray-500 mt-1">{stat.change}</p>
-                  </div>
-                  <div className={`p-3 rounded-lg ${stat.color}`}>
-                    <stat.icon className="w-6 h-6 text-white" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Left Column - Social Feed (2/3 width) */}
-            <div className="lg:col-span-3 space-y-6">
-              {/* Community Post Bar - From Original Dashboard */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                <div className="flex items-center space-x-4">
+        <div className="h-[calc(100vh-200px)] overflow-hidden">
+          {/* Main Content Grid - Fixed Height */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
+            {/* Left Column - Social Feed (3/4 width) */}
+            <div className="lg:col-span-3 flex flex-col h-full">
+              {/* Community Post Bar - Compact */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 mb-4 flex-shrink-0">
+                <div className="flex items-center space-x-3">
                   <Avatar 
                     user={user}
-                    size="lg"
-                    className="w-10 h-10"
+                    size="md"
+                    className="w-8 h-8"
                   />
                   <button
                     onClick={() => setShowPostComposer(!showPostComposer)}
-                    className="flex-1 px-4 py-3 bg-gray-50 rounded-full text-left text-gray-600 text-sm hover:bg-gray-100 transition-all border border-gray-200"
+                    className="flex-1 px-3 py-2 bg-gray-50 rounded-full text-left text-gray-600 text-sm hover:bg-gray-100 transition-all border border-gray-200"
                   >
                     ✨ {dailyQuestion}
                   </button>
                   <div className="flex items-center space-x-2">
-                    <label className="flex items-center space-x-2 text-sm text-gray-600 cursor-pointer">
+                    <label className="flex items-center space-x-1 text-xs text-gray-600 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={includeAllPublicVideos}
                         onChange={(e) => setIncludeAllPublicVideos(e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        className="w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1"
                       />
                       <span className="whitespace-nowrap flex items-center">
-                        <FireIcon className="w-4 h-4 mr-1 text-orange-500" />
-                        Explore All
+                        <FireIcon className="w-3 h-3 mr-1 text-orange-500" />
+                        Explore
                       </span>
                     </label>
                   </div>
                 </div>
 
-                {/* Expanded Post Composer */}
+                {/* Expanded Post Composer - Compact */}
                 {showPostComposer && (
-                  <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="mt-3 pt-3 border-t border-gray-200">
                     <textarea
                       value={postContent}
                       onChange={(e) => setPostContent(e.target.value)}
                       placeholder={dailyQuestion}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      rows={3}
                       autoFocus
                     />
-                    <div className="flex items-center justify-end space-x-2 mt-3">
+                    <div className="flex items-center justify-end space-x-2 mt-2">
                       <button
                         onClick={() => {
                           setShowPostComposer(false);
                           setPostContent('');
                         }}
-                        className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handlePostSubmit}
                         disabled={!postContent.trim()}
-                        className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Post
                       </button>
@@ -442,200 +419,149 @@ const StudentDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Explore Mode Indicator */}
+              {/* Explore Mode Indicator - Compact */}
               {includeAllPublicVideos && (
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-xl p-4 flex items-center justify-between shadow-lg">
-                  <div className="flex items-center space-x-3 text-white">
-                    <FireIcon className="w-6 h-6" />
+                <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-lg p-2 flex items-center justify-between shadow-md mb-4 flex-shrink-0">
+                  <div className="flex items-center space-x-2 text-white">
+                    <FireIcon className="w-4 h-4" />
                     <div>
-                      <p className="font-semibold text-sm">Explore Mode Active</p>
+                      <p className="font-semibold text-xs">Explore Mode Active</p>
                       <p className="text-xs opacity-90">Showing public videos from all courses</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setIncludeAllPublicVideos(false)}
-                    className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
+                    className="text-white hover:bg-white/20 rounded-full p-1 transition-colors"
                     title="Return to my courses only"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
               )}
 
-              {/* Student Videos & Community Feed */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div className="p-4 border-b border-gray-200">
-                  <h3 className="text-lg font-bold text-gray-900">Student Videos & Community</h3>
-                  <p className="text-sm text-gray-600">See what your classmates are sharing and discussing</p>
+              {/* Student Videos & Community Feed - Scrollable */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col min-h-0">
+                <div className="p-3 border-b border-gray-200 flex-shrink-0">
+                  <h3 className="text-base font-bold text-gray-900">Student Videos & Community</h3>
+                  <p className="text-xs text-gray-600">See what your classmates are sharing</p>
                 </div>
                 
-                {filteredFeedItems.length === 0 ? (
-                  <div className="p-12 text-center">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <VideoCameraIcon className="w-10 h-10 text-gray-400" />
+                <div className="flex-1 overflow-y-auto">
+                  {filteredFeedItems.length === 0 ? (
+                    <div className="p-8 text-center">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <VideoCameraIcon className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-base font-semibold text-gray-900 mb-2">No Posts Yet</h3>
+                      <p className="text-sm text-gray-600">
+                        Student videos and community posts will appear here.
+                      </p>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Posts Yet</h3>
-                    <p className="text-sm text-gray-600">
-                      Student videos and community posts will appear here.
-                    </p>
-                  </div>
-                ) : (
-                  <VirtualizedFeed
-                    feedItems={filteredFeedItems}
-                    renderItem={(item, index) => (
-                      <FeedItemComponent 
-                        key={item.id} 
-                        item={item} 
-                        formatTimestamp={formatTimestamp} 
-                        currentUserId={user?.id} 
-                        onDelete={fetchFeed} 
-                        assignmentId={item.assignmentId}
-                        onStudyBuddy={handleStudyBuddy}
-                        isConnected={connections.has(item.author?.id || '')}
-                      />
-                    )}
-                  />
-                )}
+                  ) : (
+                    <VirtualizedFeed
+                      feedItems={filteredFeedItems}
+                      renderItem={(item, index) => (
+                        <CompactFeedItemComponent 
+                          key={item.id} 
+                          item={item} 
+                          formatTimestamp={formatTimestamp} 
+                          currentUserId={user?.id} 
+                          onDelete={fetchFeed} 
+                          assignmentId={item.assignmentId}
+                          onStudyBuddy={handleStudyBuddy}
+                          isConnected={connections.has(item.author?.id || '')}
+                        />
+                      )}
+                    />
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Right Column - Udemy-style Widgets (1/3 width) */}
-            <div className="space-y-6">
-              {/* Study Streak */}
-              <StudyStreak
-                currentStreak={7}
-                longestStreak={15}
-                todayCompleted={true}
-                weeklyGoal={5}
-                weeklyProgress={4}
-                streakHistory={[true, true, false, true, true, true, true]}
-              />
+            {/* Right Column - Simplified Widgets (1/4 width) */}
+            <div className="space-y-4 h-full overflow-y-auto">
+              {/* Upcoming Assignments */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <h3 className="text-base font-bold text-gray-900 mb-3">Upcoming Assignments</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 p-2 bg-red-50 rounded-lg">
+                    <ClockIcon className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-red-900 truncate">Math Assignment</p>
+                      <p className="text-xs text-red-600">Due tomorrow</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 p-2 bg-yellow-50 rounded-lg">
+                    <ClockIcon className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-yellow-900 truncate">Literature Essay</p>
+                      <p className="text-xs text-yellow-600">Due in 3 days</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2 p-2 bg-blue-50 rounded-lg">
+                    <ClockIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-blue-900 truncate">Science Project</p>
+                      <p className="text-xs text-blue-600">Due next week</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* Study Modules */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-gray-900">Study Modules</h3>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-base font-bold text-gray-900">Study Modules</h3>
                   <button
                     onClick={() => router.push('/student/study-modules')}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-xs text-blue-600 hover:text-blue-700 font-medium"
                   >
                     View All
                   </button>
                 </div>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3 p-3 bg-purple-50 rounded-lg">
-                    <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <AcademicCapIcon className="w-5 h-5 text-purple-600" />
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2 p-2 bg-purple-50 rounded-lg">
+                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <AcademicCapIcon className="w-4 h-4 text-purple-600" />
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-purple-900">Introduction to Calculus</p>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <div className="w-16 bg-purple-200 rounded-full h-1">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-purple-900 truncate">Intro to Calculus</p>
+                      <div className="flex items-center space-x-1 mt-1">
+                        <div className="w-12 bg-purple-200 rounded-full h-1">
                           <div className="bg-purple-600 h-1 rounded-full" style={{ width: '25%' }}></div>
                         </div>
                         <span className="text-xs text-purple-600">25%</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <BookOpenIcon className="w-5 h-5 text-blue-600" />
+                  <div className="flex items-center space-x-2 p-2 bg-blue-50 rounded-lg">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <BookOpenIcon className="w-4 h-4 text-blue-600" />
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-blue-900">Shakespeare's Hamlet</p>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <div className="w-16 bg-blue-200 rounded-full h-1">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-blue-900 truncate">Shakespeare's Hamlet</p>
+                      <div className="flex items-center space-x-1 mt-1">
+                        <div className="w-12 bg-blue-200 rounded-full h-1">
                           <div className="bg-blue-600 h-1 rounded-full" style={{ width: '0%' }}></div>
                         </div>
                         <span className="text-xs text-blue-600">Not started</span>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Course Progress */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Course Progress</h3>
-                <div className="space-y-4">
-                  {courses.length > 0 ? (
-                    courses.map((course) => (
-                      <CourseProgressCard 
-                        key={course.courseId} 
-                        course={{
-                          id: course.courseId,
-                          title: course.name,
-                          instructor: 'Instructor',
-                          thumbnail: '/api/placeholder/200/120',
-                          difficulty: 'Intermediate' as const,
-                          rating: 4.5,
-                          lastAccessed: new Date().toLocaleDateString(),
-                          endDate: '2025-05-01' // Course ends May 1st, 2025
-                        }} 
-                        size="small" 
-                      />
-                    ))
-                  ) : (
-                    <div className="text-center py-8">
-                      <BookOpenIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600">No courses enrolled yet</p>
+                  <div className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg">
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <BookOpenIcon className="w-4 h-4 text-green-600" />
                     </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Upcoming Deadlines */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Upcoming Deadlines</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3 p-3 bg-red-50 rounded-lg">
-                    <ClockIcon className="w-5 h-5 text-red-500" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-red-900">Math Assignment</p>
-                      <p className="text-xs text-red-600">Due tomorrow</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg">
-                    <ClockIcon className="w-5 h-5 text-yellow-500" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-yellow-900">Literature Essay</p>
-                      <p className="text-xs text-yellow-600">Due in 3 days</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Activity */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Activity</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <TrophyIcon className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">Completed CS Fundamentals</p>
-                      <p className="text-xs text-gray-500">2 hours ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <StarIcon className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">Received 95% on Math Quiz</p>
-                      <p className="text-xs text-gray-500">1 day ago</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                      <UserGroupIcon className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">Joined study group</p>
-                      <p className="text-xs text-gray-500">2 days ago</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-green-900 truncate">Biology Basics</p>
+                      <div className="flex items-center space-x-1 mt-1">
+                        <div className="w-12 bg-green-200 rounded-full h-1">
+                          <div className="bg-green-600 h-1 rounded-full" style={{ width: '75%' }}></div>
+                        </div>
+                        <span className="text-xs text-green-600">75%</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -645,6 +571,247 @@ const StudentDashboard: React.FC = () => {
         </div>
       </DashboardLayout>
     </StudentRoute>
+  );
+};
+
+// Compact Feed Item Component for space-efficient display
+const CompactFeedItemComponent: React.FC<{ 
+  item: FeedItem; 
+  formatTimestamp: (timestamp: string) => string; 
+  currentUserId?: string; 
+  onDelete?: () => void; 
+  assignmentId?: string; 
+  onStudyBuddy?: (userId: string) => void; 
+  isConnected?: boolean 
+}> = ({ item, formatTimestamp, currentUserId, onDelete, onStudyBuddy, isConnected }) => {
+  if (item.type === 'video') {
+    return <CompactVideoFeedItem item={item} formatTimestamp={formatTimestamp} currentUserId={currentUserId} onDelete={onDelete} onStudyBuddy={onStudyBuddy} isConnected={isConnected} />;
+  }
+  
+  if (item.type === 'community') {
+    return <CompactCommunityFeedItem item={item} formatTimestamp={formatTimestamp} onStudyBuddy={onStudyBuddy} isConnected={isConnected} />;
+  }
+  
+  return null;
+};
+
+// Compact Video Feed Item - Smaller and more space-efficient
+const CompactVideoFeedItem: React.FC<{ 
+  item: FeedItem; 
+  formatTimestamp: (timestamp: string) => string; 
+  currentUserId?: string; 
+  onDelete?: () => void; 
+  onStudyBuddy?: (userId: string) => void; 
+  isConnected?: boolean 
+}> = ({ item, formatTimestamp, currentUserId, onDelete, onStudyBuddy, isConnected }) => {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [localIsConnected, setLocalIsConnected] = React.useState(isConnected || false);
+  const [isConnecting, setIsConnecting] = React.useState(false);
+  const [likes, setLikes] = React.useState(item.likes || 0);
+  const [isLiked, setIsLiked] = React.useState(item.isLiked || false);
+  const [comments, setComments] = React.useState(item.comments || 0);
+  const [userRating, setUserRating] = React.useState<number>(0);
+  
+  React.useEffect(() => {
+    setLocalIsConnected(isConnected || false);
+  }, [isConnected]);
+
+  const videoUrlInfo = item.videoUrl ? parseVideoUrl(item.videoUrl) : null;
+  const isYouTube = videoUrlInfo?.type === 'youtube';
+  const videoId = isYouTube ? videoUrlInfo?.videoId || null : null;
+  const embedUrl = item.videoUrl ? getEmbedUrl(item.videoUrl) : null;
+  const [imageError, setImageError] = React.useState(false);
+
+  return (
+    <div className="border-b border-gray-100 p-3 hover:bg-gray-50/50 transition-colors">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center space-x-2">
+          <div 
+            onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
+            className="cursor-pointer"
+          >
+            <Avatar 
+              src={item.author?.avatar}
+              name={item.author?.name}
+              size="sm"
+              className="w-6 h-6 hover:ring-2 hover:ring-blue-300 transition-all"
+            />
+          </div>
+          <div>
+            <div className="flex items-center space-x-1">
+              <p 
+                onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
+                className="font-medium text-xs text-gray-900 hover:text-blue-600 transition-colors cursor-pointer"
+              >
+                {item.author?.name}
+              </p>
+              
+              {/* Compact Study Buddy Button */}
+              {item.author?.id && item.author.id !== currentUserId && onStudyBuddy && (
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (item.author?.id && onStudyBuddy && !isConnecting) {
+                      setIsConnecting(true);
+                      await onStudyBuddy(item.author.id);
+                      setLocalIsConnected(true);
+                      setIsConnecting(false);
+                    }
+                  }}
+                  disabled={isConnecting}
+                  className={`inline-flex items-center px-1.5 py-0.5 rounded border transition-all text-xs ${
+                    localIsConnected 
+                      ? 'bg-green-50 border-green-300 text-green-700' 
+                      : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
+                  } disabled:opacity-50`}
+                >
+                  {localIsConnected ? '✓' : '+'}
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
+          </div>
+        </div>
+        
+        {item.courseInitials && (
+          <span className="px-2 py-0.5 text-white text-xs font-medium rounded-full bg-gradient-to-r from-purple-500 to-blue-500">
+            {item.courseInitials}
+          </span>
+        )}
+      </div>
+
+      {/* Compact Video Player */}
+      <div className="relative w-full bg-black mb-2 rounded-md overflow-hidden" style={{ aspectRatio: '16/9', maxHeight: '120px' }}>
+        {isYouTube && videoId && embedUrl ? (
+          <div 
+            className="relative w-full h-full group cursor-pointer"
+            onClick={(e) => {
+              const iframe = document.createElement('iframe');
+              iframe.src = `${embedUrl}?autoplay=1&controls=1&rel=0&modestbranding=1`;
+              iframe.className = 'w-full h-full';
+              iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+              iframe.allowFullscreen = true;
+              iframe.title = item.title || 'Video';
+              e.currentTarget.replaceWith(iframe);
+            }}
+          >
+            <img
+              src={imageError 
+                ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+                : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+              }
+              alt={item.title || 'Video'}
+              className="w-full h-full object-cover"
+              onError={() => {
+                if (!imageError) {
+                  setImageError(true);
+                }
+              }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                <PlayIcon className="w-4 h-4 text-white ml-0.5" fill="currentColor" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <video
+            src={getVideoUrl(item.videoUrl)}
+            className="w-full h-full object-contain"
+            controls
+            playsInline
+          />
+        )}
+      </div>
+
+      {/* Compact Title & Actions */}
+      <div>
+        <button 
+          onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed`)}
+          className="font-medium text-xs text-gray-900 hover:text-blue-600 transition-colors text-left w-full mb-2 line-clamp-2"
+        >
+          {item.title}
+        </button>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3 text-gray-600">
+            <button className={`flex items-center space-x-1 transition-colors text-xs ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}>
+              <HeartIcon className="w-3 h-3" fill={isLiked ? 'currentColor' : 'none'} />
+              <span>{likes}</span>
+            </button>
+            <button className="flex items-center space-x-1 hover:text-blue-500 transition-colors text-xs">
+              <ChatBubbleLeftIcon className="w-3 h-3" />
+              <span>{comments}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Compact Community Feed Item - Smaller and more space-efficient
+const CompactCommunityFeedItem: React.FC<{ 
+  item: FeedItem; 
+  formatTimestamp: (timestamp: string) => string; 
+  onStudyBuddy?: (userId: string) => void; 
+  isConnected?: boolean 
+}> = ({ item, formatTimestamp, onStudyBuddy, isConnected }) => {
+  const { user } = useAuth();
+  const [likes, setLikes] = React.useState(item.likes || 0);
+  const [isLiked, setIsLiked] = React.useState(item.isLiked || false);
+  const [comments, setComments] = React.useState(item.comments || 0);
+
+  return (
+    <div className="border-b border-gray-100 p-3 hover:bg-gray-50/50 transition-colors">
+      {/* Compact Header */}
+      <div className="flex items-center space-x-2 mb-2">
+        <Avatar 
+          src={item.author?.avatar}
+          name={item.author?.name}
+          size="sm"
+          className="w-6 h-6"
+        />
+        <div className="flex-1">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-xs text-gray-900">{item.author?.name}</p>
+              <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
+            </div>
+            {/* Compact Study Buddy Button */}
+            {item.author?.id && item.author.id !== user?.id && onStudyBuddy && (
+              <button
+                onClick={() => onStudyBuddy(item.author!.id!)}
+                className={`flex items-center px-2 py-1 rounded text-xs transition-all ${
+                  isConnected 
+                    ? 'bg-green-500 hover:bg-green-600 text-white' 
+                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                }`}
+              >
+                {isConnected ? '✓' : '+'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Compact Content */}
+      {item.title && item.title !== item.content && <h3 className="font-medium text-xs text-gray-900 mb-1">{item.title}</h3>}
+      <p className="text-gray-700 text-xs leading-relaxed mb-2 line-clamp-3">{item.content}</p>
+
+      {/* Compact Actions */}
+      <div className="flex items-center space-x-3 text-gray-600">
+        <button className={`flex items-center space-x-1 transition-colors text-xs ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}>
+          <HeartIcon className="w-3 h-3" fill={isLiked ? 'currentColor' : 'none'} />
+          <span>{likes}</span>
+        </button>
+        <button className="flex items-center space-x-1 hover:text-blue-500 transition-colors text-xs">
+          <ChatBubbleLeftIcon className="w-3 h-3" />
+          <span>{comments}</span>
+        </button>
+      </div>
+    </div>
   );
 };
 
