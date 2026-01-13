@@ -112,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   <img 
                     src="/logos/cristo-rey-atlanta.png" 
                     alt="Cristo Rey Atlanta" 
-                    className="w-6 h-6 object-contain"
+                    className="w-12 h-12 object-contain"
                   />
                 </div>
               </div>
