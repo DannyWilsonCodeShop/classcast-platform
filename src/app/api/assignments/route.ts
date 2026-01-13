@@ -176,7 +176,24 @@ export async function POST(request: NextRequest) {
       instructorReview,
       peerReviewInstructions,
       targetSections,
-      resources
+      resources,
+      // Instructional Video
+      instructionalVideoUrl,
+      // Additional peer response settings
+      enablePeerResponses,
+      responseDueDate,
+      minResponsesRequired,
+      maxResponsesPerVideo,
+      responseWordLimit,
+      responseCharacterLimit,
+      hidePeerVideosUntilInstructorPosts,
+      // Video submission settings
+      requireLiveRecording,
+      allowYouTubeUrl,
+      // Visual identity
+      coverPhoto,
+      emoji,
+      color
     } = body;
 
     // Input validation
@@ -272,6 +289,8 @@ export async function POST(request: NextRequest) {
       maxFileSize: maxFileSize || 2048 * 1024 * 1024, // 2GB
       status: status || 'draft',
       rubric: rubric || null,
+      // Instructional Video
+      instructionalVideoUrl: instructionalVideoUrl || null,
       // Peer Review Settings
       peerReview: peerReview || false,
       peerReviewScope: peerReviewScope || 'section',
@@ -281,6 +300,21 @@ export async function POST(request: NextRequest) {
       allowSelfReview: allowSelfReview || false,
       instructorReview: instructorReview !== undefined ? instructorReview : true,
       peerReviewInstructions: peerReviewInstructions?.trim() || '',
+      // Enhanced peer response settings
+      enablePeerResponses: enablePeerResponses || false,
+      responseDueDate: responseDueDate || null,
+      minResponsesRequired: minResponsesRequired || 2,
+      maxResponsesPerVideo: maxResponsesPerVideo || 3,
+      responseWordLimit: responseWordLimit || 50,
+      responseCharacterLimit: responseCharacterLimit || 500,
+      hidePeerVideosUntilInstructorPosts: hidePeerVideosUntilInstructorPosts || false,
+      // Video submission settings
+      requireLiveRecording: requireLiveRecording || false,
+      allowYouTubeUrl: allowYouTubeUrl || false,
+      // Visual identity
+      coverPhoto: coverPhoto || null,
+      emoji: emoji || '🎥',
+      color: color || '#3B82F6',
       targetSections: Array.isArray(targetSections) ? targetSections : [],
       resources: Array.isArray(resources) ? resources : [],
       createdAt: now,

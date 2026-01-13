@@ -1690,6 +1690,12 @@ const InstructorCourseDetailPage: React.FC = () => {
                     }
                   }}
                   onCancel={() => setEditingAssignment(null)}
+                  onDelete={async () => {
+                    console.log('🔄 Assignment deleted, refreshing course details...');
+                    setEditingAssignment(null);
+                    await fetchCourseDetails();
+                    console.log('✅ Course details refreshed after assignment deletion');
+                  }}
                   courseId={courseId}
                   isEditing={true}
                   assignmentId={editingAssignment.assignmentId}

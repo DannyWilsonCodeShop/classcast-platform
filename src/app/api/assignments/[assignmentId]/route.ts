@@ -159,7 +159,9 @@ export async function PUT(
       color: 'color',
       requireLiveRecording: 'requireLiveRecording',
       allowYouTubeUrl: 'allowYouTubeUrl',
-      resources: 'resources'
+      resources: 'resources',
+      instructionalVideoUrl: 'instructionalVideoUrl', // MISSING: Instructional video URL
+      rubric: 'rubric' // MISSING: Rubric data
     };
     
     // Process each field in the body

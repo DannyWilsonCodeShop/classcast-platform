@@ -24,6 +24,7 @@ const TipTapEditor = dynamic(() => import('./TipTapEditor'), {
 interface AssignmentCreationFormProps {
   onSubmit: (assignment: Partial<Assignment>) => Promise<void>;
   onCancel: () => void;
+  onDelete?: () => Promise<void>; // NEW: Optional delete callback
   isLoading?: boolean;
   initialData?: Partial<Assignment>;
   className?: string;
@@ -75,6 +76,7 @@ interface FormData {
 const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
   onSubmit,
   onCancel,
+  onDelete,
   isLoading = false,
   initialData,
   className = '',
@@ -192,6 +194,29 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
       }
     }
 
+    // Validate instructional video settings
+    if (formData.instructionalVideoType === 'youtube') {
+      if (!formData.instructionalVideoUrl.trim()) {
+        newErrors.instructionalVideoUrl = 'Video URL is required when video URL type is selected';
+      } else {
+        // Validate both YouTube and Google Drive URLs
+        const trimmedUrl = formData.instructionalVideoUrl.trim();
+        const youtubeUrlPattern = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
+        const googleDrivePattern = /^https?:\/\/drive\.google\.com\/(file\/d\/[^/]+|open\?id=[^&]+|uc\?.*id=[^&]+)/;
+        
+        const isValidYouTube = youtubeUrlPattern.test(trimmedUrl);
+        const isValidGoogleDrive = googleDrivePattern.test(trimmedUrl);
+        
+        if (!isValidYouTube && !isValidGoogleDrive) {
+          newErrors.instructionalVideoUrl = 'Please enter a valid YouTube or Google Drive URL';
+        }
+      }
+    } else if (formData.instructionalVideoType === 'upload') {
+      if (!formData.instructionalVideoFile) {
+        newErrors.instructionalVideoFile = 'Video file is required when upload video type is selected';
+      }
+    }
+
     if (formData.maxScore <= 0) {
       newErrors.maxScore = 'Maximum score must be greater than 0';
     }
@@ -217,6 +242,11 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     
     console.log('🔄 Form submit triggered');
     console.log('📝 Form data:', formData);
+    console.log('🎬 Instructional video details:', {
+      type: formData.instructionalVideoType,
+      url: formData.instructionalVideoUrl,
+      file: formData.instructionalVideoFile?.name || null
+    });
     console.log('✅ Validating form...');
     
     const isValid = validateForm();
@@ -232,6 +262,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
 
     try {
       let instructionalVideoUrl = formData.instructionalVideoUrl;
+      console.log('📹 Initial instructional video URL:', instructionalVideoUrl);
 
       // Handle video file upload if needed
       if (formData.instructionalVideoType === 'upload' && formData.instructionalVideoFile) {
@@ -258,7 +289,29 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
           alert('Failed to upload instructional video. Please try again.');
           return;
         }
+      } else if (formData.instructionalVideoType === 'youtube') {
+        console.log('🔗 Using video URL directly:', instructionalVideoUrl);
+        
+        // Validate video URL format (YouTube or Google Drive)
+        const trimmedUrl = instructionalVideoUrl.trim();
+        const youtubeUrlPattern = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
+        const googleDrivePattern = /^https?:\/\/drive\.google\.com\/(file\/d\/[^/]+|open\?id=[^&]+|uc\?.*id=[^&]+)/;
+        
+        const isValidYouTube = youtubeUrlPattern.test(trimmedUrl);
+        const isValidGoogleDrive = googleDrivePattern.test(trimmedUrl);
+        
+        if (!isValidYouTube && !isValidGoogleDrive) {
+          console.error('❌ Invalid video URL format:', instructionalVideoUrl);
+          alert('Please enter a valid YouTube or Google Drive URL');
+          return;
+        }
+        
+        const urlType = isValidYouTube ? 'YouTube' : 'Google Drive';
+        console.log(`✅ ${urlType} URL format validated`);
       }
+
+      const finalInstructionalVideoUrl = formData.instructionalVideoType !== 'none' ? instructionalVideoUrl : undefined;
+      console.log('🎯 Final instructional video URL for assignment:', finalInstructionalVideoUrl);
 
       const assignmentData: Partial<Assignment> = {
         title: formData.title.trim(),
@@ -288,7 +341,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         requireLiveRecording: formData.requireLiveRecording,
         allowYouTubeUrl: formData.allowYouTubeUrl,
         resources: formData.resources,
-        instructionalVideoUrl: formData.instructionalVideoType !== 'none' ? instructionalVideoUrl : undefined,
+        instructionalVideoUrl: finalInstructionalVideoUrl,
         rubric: formData.rubricType === 'ai_generated' ? formData.aiGeneratedRubric : 
                 formData.rubricType === 'upload' ? { type: 'uploaded', file: formData.rubricFile } : 
                 formData.rubricType === 'custom' ? { type: 'custom', categories: formData.customRubricCategories } :
@@ -297,11 +350,27 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
       };
 
       console.log('📤 Calling onSubmit with assignment data:', assignmentData);
+      console.log('🎬 Assignment instructionalVideoUrl field:', assignmentData.instructionalVideoUrl);
       await onSubmit(assignmentData);
       console.log('✅ onSubmit completed successfully');
     } catch (error) {
       console.error('❌ Error in handleSubmit:', error);
-      alert('Failed to save assignment. Please check the console for details.');
+      
+      // More detailed error logging
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      
+      // Check if it's a network error
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        alert('Network error: Please check your internet connection and try again.');
+      } else if (error instanceof Error && error.message.includes('Failed to create assignment')) {
+        alert(`Assignment creation failed: ${error.message}`);
+      } else {
+        alert('Failed to save assignment. Please check the console for details and try again.');
+      }
     }
   };
 
@@ -456,21 +525,34 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     }
 
     try {
+      console.log('🗑️ Deleting assignment:', assignmentId);
+      
       const response = await fetch(`/api/assignments/${assignmentId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete assignment');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete assignment');
       }
 
+      console.log('✅ Assignment deleted successfully');
+      
+      // Use the onDelete callback if provided, otherwise fall back to page reload
+      if (onDelete) {
+        console.log('🔄 Calling onDelete callback to refresh assignments list');
+        await onDelete();
+      } else {
+        console.log('🔄 No onDelete callback provided, reloading page');
+        window.location.reload();
+      }
+      
       alert('Assignment deleted successfully!');
-      onCancel(); // Close modal and refresh
-      window.location.reload(); // Refresh the page to update the list
+      onCancel(); // Close modal
     } catch (error) {
-      console.error('Error deleting assignment:', error);
-      alert('Failed to delete assignment. Please try again.');
+      console.error('❌ Error deleting assignment:', error);
+      alert(`Failed to delete assignment: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -744,7 +826,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                       : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                   }`}
                 >
-                  📺 YouTube
+                  🔗 Video URL
                 </button>
                 <button
                   type="button"
@@ -760,22 +842,27 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
               </div>
             </div>
 
-            {/* YouTube URL Input */}
+            {/* Video URL Input (YouTube & Google Drive) */}
             {formData.instructionalVideoType === 'youtube' && (
               <div>
                 <label htmlFor="instructionalVideoUrl" className="block text-sm font-medium text-gray-700 mb-2">
-                  YouTube URL
+                  Video URL (YouTube or Google Drive) *
                 </label>
                 <input
                   type="url"
                   id="instructionalVideoUrl"
                   value={formData.instructionalVideoUrl}
                   onChange={(e) => setFormData(prev => ({ ...prev, instructionalVideoUrl: e.target.value }))}
-                  placeholder="https://www.youtube.com/watch?v=..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="https://www.youtube.com/watch?v=... or https://drive.google.com/file/d/..."
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${
+                    errors.instructionalVideoUrl ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {errors.instructionalVideoUrl && (
+                  <p className="mt-1 text-sm text-red-600">{errors.instructionalVideoUrl}</p>
+                )}
                 <p className="mt-1 text-xs text-gray-500">
-                  Paste the full YouTube URL of your instructional video
+                  Paste a YouTube URL or Google Drive share link for your instructional video
                 </p>
               </div>
             )}
@@ -784,7 +871,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
             {formData.instructionalVideoType === 'upload' && (
               <div>
                 <label htmlFor="instructionalVideoFile" className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Video
+                  Upload Video *
                 </label>
                 <input
                   type="file"
@@ -796,8 +883,13 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                       setFormData(prev => ({ ...prev, instructionalVideoFile: file }));
                     }
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 ${
+                    errors.instructionalVideoFile ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 />
+                {errors.instructionalVideoFile && (
+                  <p className="mt-1 text-sm text-red-600">{errors.instructionalVideoFile}</p>
+                )}
                 {formData.instructionalVideoFile && (
                   <p className="mt-2 text-sm text-green-600 flex items-center">
                     <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
