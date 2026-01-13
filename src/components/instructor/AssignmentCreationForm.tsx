@@ -202,13 +202,14 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         // Validate both YouTube and Google Drive URLs
         const trimmedUrl = formData.instructionalVideoUrl.trim();
         const youtubeUrlPattern = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
-        const googleDrivePattern = /^https?:\/\/drive\.google\.com\/(file\/d\/[^/]+|open\?id=[^&]+|uc\?.*id=[^&]+)/;
+        // Updated Google Drive pattern to handle /view?usp=sharing and other parameters
+        const googleDrivePattern = /^https?:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+/;
         
         const isValidYouTube = youtubeUrlPattern.test(trimmedUrl);
         const isValidGoogleDrive = googleDrivePattern.test(trimmedUrl);
         
         if (!isValidYouTube && !isValidGoogleDrive) {
-          newErrors.instructionalVideoUrl = 'Please enter a valid YouTube or Google Drive URL';
+          newErrors.instructionalVideoUrl = 'Please enter a valid YouTube or Google Drive URL. Google Drive URLs should be in the format: https://drive.google.com/file/d/FILE_ID/...';
         }
       }
     } else if (formData.instructionalVideoType === 'upload') {
@@ -255,6 +256,15 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     
     if (!isValid) {
       console.log('❌ Form validation failed with errors:', errors);
+      // Scroll to first error field
+      const firstErrorField = Object.keys(errors)[0];
+      if (firstErrorField) {
+        const element = document.getElementById(firstErrorField) || document.querySelector(`[name="${firstErrorField}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.focus();
+        }
+      }
       return;
     }
     
@@ -295,14 +305,21 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         // Validate video URL format (YouTube or Google Drive)
         const trimmedUrl = instructionalVideoUrl.trim();
         const youtubeUrlPattern = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
-        const googleDrivePattern = /^https?:\/\/drive\.google\.com\/(file\/d\/[^/]+|open\?id=[^&]+|uc\?.*id=[^&]+)/;
+        // Updated Google Drive pattern to handle /view?usp=sharing and other parameters
+        const googleDrivePattern = /^https?:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+/;
         
         const isValidYouTube = youtubeUrlPattern.test(trimmedUrl);
         const isValidGoogleDrive = googleDrivePattern.test(trimmedUrl);
         
         if (!isValidYouTube && !isValidGoogleDrive) {
           console.error('❌ Invalid video URL format:', instructionalVideoUrl);
-          alert('Please enter a valid YouTube or Google Drive URL');
+          console.error('❌ YouTube pattern test:', isValidYouTube);
+          console.error('❌ Google Drive pattern test:', isValidGoogleDrive);
+          setErrors(prev => ({
+            ...prev,
+            instructionalVideoUrl: 'Please enter a valid YouTube or Google Drive URL. Google Drive URLs should be in the format: https://drive.google.com/file/d/FILE_ID/...'
+          }));
+          alert('Please enter a valid YouTube or Google Drive URL. Google Drive URLs should be in the format: https://drive.google.com/file/d/FILE_ID/...');
           return;
         }
         
