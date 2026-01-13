@@ -379,16 +379,6 @@ export const InstructorCourseAssignments: React.FC<InstructorCourseAssignmentsPr
                           Complete
                         </button>
                       )}
-                      
-                      {/* Grade Submissions Button - Show for assignments with submissions */}
-                      {assignment.submissionsCount > 0 && (
-                        <button
-                          onClick={() => handleGradeSubmissions(assignment.assignmentId)}
-                          className="px-3 py-1 bg-orange-100 text-orange-700 rounded-md text-sm hover:bg-orange-200 transition-colors"
-                        >
-                          Grade Submissions ({assignment.submissionsCount - assignment.gradedCount} pending)
-                        </button>
-                      )}
                     </div>
                   </div>
                 )}

@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation';
 import Avatar from '@/components/common/Avatar';
 import {
   Bars3Icon,
-  MagnifyingGlassIcon,
   BellIcon,
   ChatBubbleLeftRightIcon,
   Cog6ToothIcon
@@ -21,15 +20,7 @@ interface TopBarProps {
 const TopBar: React.FC<TopBarProps> = ({ onMenuClick, title, subtitle }) => {
   const { user } = useAuth();
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/student/search?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -52,21 +43,8 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, title, subtitle }) => {
             </div>
           </div>
 
-          {/* Center - Search */}
-          <div className="flex-1 max-w-lg mx-4">
-            <form onSubmit={handleSearch} className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search courses, assignments, or discussions..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </form>
-          </div>
+          {/* Center - Empty space */}
+          <div className="flex-1"></div>
 
           {/* Right side */}
           <div className="flex items-center space-x-4">

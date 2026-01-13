@@ -17,8 +17,8 @@ export const CourseAssignments: React.FC<CourseAssignmentsProps> = ({
 }) => {
   const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'submitted' | 'graded'>('upcoming');
-  const [sortBy, setSortBy] = useState<'dueDate' | 'title' | 'points'>('dueDate');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState<'dueDate' | 'title' | 'points' | 'createdAt'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const filteredAssignments = assignments.filter(assignment => {
     switch (filter) {
@@ -45,6 +45,9 @@ export const CourseAssignments: React.FC<CourseAssignmentsProps> = ({
         break;
       case 'points':
         comparison = a.points - b.points;
+        break;
+      case 'createdAt':
+        comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         break;
     }
     
