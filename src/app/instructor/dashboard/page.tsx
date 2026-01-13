@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import Avatar from '@/components/common/Avatar';
 import NotificationBell from '@/components/common/NotificationBell';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { CourseManagement } from '@/components/instructor/CourseManagement';
+import { AssignmentManagement } from '@/components/instructor/AssignmentManagement';
 
 interface Course {
   courseId: string;
@@ -19,9 +19,8 @@ interface Course {
 /**
  * Enhanced Instructor Dashboard
  * 
- * Combines the useful top banner (Moderate/Create/Wizard buttons) with 
- * the courses page functionality and adds a course selection dropdown
- * for easy switching between courses.
+ * Shows assignments and students for the selected course instead of course cards.
+ * Includes course selection dropdown and search for assignments/students.
  */
 const InstructorDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -69,14 +68,13 @@ const InstructorDashboard: React.FC = () => {
     if (user?.id) {
       fetchCourses();
     }
-  }, [user?.id, selectedCourseId]);
+  }, [user?.id]);
 
   const handleCourseChange = (courseId: string) => {
     setSelectedCourseId(courseId);
-    if (courseId) {
-      router.push(`/instructor/courses/${courseId}`);
-    }
   };
+
+  const selectedCourse = courses.find(course => course.courseId === selectedCourseId);
 
   return (
     <InstructorRoute>
@@ -156,7 +154,7 @@ const InstructorDashboard: React.FC = () => {
               {/* Course Selection Dropdown */}
               {courses.length > 0 && (
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Quick Switch:</span>
+                  <span className="text-sm text-gray-600">Current Course:</span>
                   <select
                     value={selectedCourseId}
                     onChange={(e) => handleCourseChange(e.target.value)}
@@ -184,14 +182,48 @@ const InstructorDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Main Content - Course Management */}
+        {/* Main Content - Assignment Management */}
         <div className="flex-1">
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <LoadingSpinner size="lg" />
             </div>
+          ) : selectedCourse ? (
+            <AssignmentManagement 
+              courseId={selectedCourse.courseId}
+              courseName={selectedCourse.title}
+            />
           ) : (
-            <CourseManagement />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+              <div className="text-center">
+                <div className="text-6xl mb-4">📚</div>
+                <h3 className="text-2xl font-semibold text-gray-800 mb-2">
+                  {courses.length === 0 ? 'No Courses Yet' : 'Select a Course'}
+                </h3>
+                <p className="text-gray-600 mb-8">
+                  {courses.length === 0 
+                    ? 'Create your first course to get started teaching.'
+                    : 'Choose a course from the dropdown above to view its assignments and students.'
+                  }
+                </p>
+                {courses.length === 0 && (
+                  <div className="flex space-x-4 justify-center">
+                    <button
+                      onClick={() => router.push('/instructor/classes/create')}
+                      className="px-6 py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+                    >
+                      + Create Course
+                    </button>
+                    <button
+                      onClick={() => router.push('/instructor/classes/create')}
+                      className="px-6 py-4 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors"
+                    >
+                      🧙 Start Wizard
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>
