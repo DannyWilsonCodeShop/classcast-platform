@@ -79,9 +79,13 @@ const CreateAssignmentContent: React.FC = () => {
         body: JSON.stringify(apiData),
       });
 
+      console.log('API Response status:', response.status);
+      console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create assignment');
+        console.error('API Error response:', errorData);
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to create assignment`);
       }
 
       const result = await response.json();
