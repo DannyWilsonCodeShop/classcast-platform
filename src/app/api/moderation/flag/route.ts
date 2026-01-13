@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const dynamoDB = DynamoDBDocumentClient.from(client);
@@ -99,12 +99,12 @@ export async function GET(request: NextRequest) {
     const courseId = searchParams.get('courseId');
     const severity = searchParams.get('severity');
 
-    // For now, scan all flags (in production, use GSI for better queries)
+    // Scan all flags (use ScanCommand for getting all items)
     const params: any = {
       TableName: MODERATION_FLAGS_TABLE
     };
 
-    const result = await dynamoDB.send(new QueryCommand(params));
+    const result = await dynamoDB.send(new ScanCommand(params));
     let flags = result.Items || [];
 
     // Client-side filtering (move to DynamoDB query in production)

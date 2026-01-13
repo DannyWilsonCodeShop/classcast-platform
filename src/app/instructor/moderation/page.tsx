@@ -185,8 +185,48 @@ const ModerationDashboard: React.FC = () => {
   const highSeverityCount = flags.filter(f => f.severity === 'high' && f.status === 'pending').length;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with branding and back button */}
+      <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-indigo-600/20 px-2 sm:px-4 py-3">
+        <div className="flex items-center justify-between">
+          {/* Left Side - Back button and MyClassCast Logo */}
+          <div className="flex items-center space-x-4 min-w-0 flex-1">
+            <button
+              onClick={() => router.push('/instructor/dashboard')}
+              className="text-gray-500 hover:text-gray-700 transition-colors p-2 hover:bg-gray-100 rounded-lg"
+              title="Back to Dashboard"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <img
+              src="/MyClassCast (800 x 200 px).png"
+              alt="MyClassCast"
+              className="h-6 sm:h-8 w-auto object-contain max-w-[200px] sm:max-w-none"
+            />
+          </div>
+          
+          {/* Right Side - User info */}
+          <div className="flex items-center space-x-3 flex-shrink-0">
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-medium text-gray-700">
+                {user.firstName} {user.lastName}
+              </p>
+              <p className="text-xs text-gray-500">Content Moderator</p>
+            </div>
+            {user?.schoolLogo && (
+              <img
+                src={user.schoolLogo}
+                alt="School Logo"
+                className="h-6 w-auto object-contain"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Content Moderation</h1>

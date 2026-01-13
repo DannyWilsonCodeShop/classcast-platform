@@ -1692,9 +1692,9 @@ const InstructorCourseDetailPage: React.FC = () => {
                   onCancel={() => setEditingAssignment(null)}
                   onDelete={async () => {
                     console.log('🔄 Assignment deleted, refreshing course details...');
-                    setEditingAssignment(null);
                     await fetchCourseDetails();
                     console.log('✅ Course details refreshed after assignment deletion');
+                    // Don't close modal here - let the form handle it
                   }}
                   courseId={courseId}
                   isEditing={true}

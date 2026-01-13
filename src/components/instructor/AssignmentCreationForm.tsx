@@ -539,7 +539,13 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
 
       console.log('✅ Assignment deleted successfully');
       
-      // Use the onDelete callback if provided, otherwise fall back to page reload
+      // Close modal first
+      onCancel();
+      
+      // Show success message
+      alert('Assignment deleted successfully!');
+      
+      // Then refresh the data
       if (onDelete) {
         console.log('🔄 Calling onDelete callback to refresh assignments list');
         await onDelete();
@@ -548,8 +554,6 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         window.location.reload();
       }
       
-      alert('Assignment deleted successfully!');
-      onCancel(); // Close modal
     } catch (error) {
       console.error('❌ Error deleting assignment:', error);
       alert(`Failed to delete assignment: ${error instanceof Error ? error.message : 'Unknown error'}`);
