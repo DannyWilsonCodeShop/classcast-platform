@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
 
     // Get all assignments for the course (or all courses if no courseId)
     let assignments = [];
+    let userCourses = [];
     
     if (courseId) {
       // Get assignments for specific course
@@ -38,18 +39,44 @@ export async function GET(request: NextRequest) {
         }
       }));
       assignments = assignmentsResult.Items || [];
-    } else {
-      // Get assignments for all user's courses
+      
+      // Get the specific course info
       const coursesResult = await docClient.send(new ScanCommand({
         TableName: COURSES_TABLE,
-        FilterExpression: 'contains(enrollment.students, :userId)',
+        FilterExpression: 'courseId = :courseId',
         ExpressionAttributeValues: {
-          ':userId': userId
+          ':courseId': courseId
         }
       }));
+      userCourses = coursesResult.Items || [];
+    } else {
+      // Get assignments for all user's courses
+      // First, get all courses and filter by enrollment in code since DynamoDB doesn't support complex nested queries
+      const allCoursesResult = await docClient.send(new ScanCommand({
+        TableName: COURSES_TABLE
+      }));
       
-      const courses = coursesResult.Items || [];
-      const courseIds = courses.map(course => course.courseId);
+      const allCourses = allCoursesResult.Items || [];
+      
+      // Filter courses where user is enrolled
+      userCourses = allCourses.filter(course => {
+        if (!course.enrollment || !course.enrollment.students) return false;
+        
+        // Check if user is in the enrollment.students array
+        return course.enrollment.students.some((student: any) => {
+          // Handle both string userId and object with userId field
+          if (typeof student === 'string') {
+            return student === userId;
+          } else if (student && student.userId) {
+            return student.userId === userId;
+          }
+          return false;
+        });
+      });
+      
+      console.log(`Found ${userCourses.length} courses for user ${userId}`);
+      
+      const courseIds = userCourses.map(course => course.courseId);
       
       if (courseIds.length > 0) {
         // Get assignments for all user's courses
@@ -83,20 +110,9 @@ export async function GET(request: NextRequest) {
       submissionMap.set(sub.assignmentId, sub);
     });
 
-    // Get course information
-    const coursesResult = await docClient.send(new ScanCommand({
-      TableName: COURSES_TABLE,
-      FilterExpression: courseId ? 'courseId = :courseId' : 'contains(enrollment.students, :userId)',
-      ExpressionAttributeValues: courseId ? {
-        ':courseId': courseId
-      } : {
-        ':userId': userId
-      }
-    }));
-    
-    const courses = coursesResult.Items || [];
+    // Create course map from userCourses
     const courseMap = new Map();
-    courses.forEach(course => {
+    userCourses.forEach(course => {
       courseMap.set(course.courseId, course);
     });
 

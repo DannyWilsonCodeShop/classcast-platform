@@ -234,7 +234,8 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
       newErrors.maxFileSize = 'Maximum file size must be greater than 0';
     }
 
-    setErrors(newErrors);
+    // Don't call setErrors here to avoid race conditions
+    // The caller will handle setting errors if needed
     return {
       isValid: Object.keys(newErrors).length === 0,
       errors: newErrors
@@ -261,6 +262,21 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     
     if (!isValid) {
       console.log('❌ Form validation failed with errors:', validationErrors);
+      
+      // Show error alert with specific validation messages
+      const errorMessages = Object.entries(validationErrors)
+        .map(([field, message]) => `• ${message}`)
+        .join('\n');
+      
+      if (errorMessages) {
+        alert(`Please fix the following errors:\n\n${errorMessages}`);
+      } else {
+        alert('Form validation failed. Please check all required fields.');
+      }
+      
+      // Update the errors state for UI display
+      setErrors(validationErrors);
+      
       // Scroll to first error field
       const firstErrorField = Object.keys(validationErrors)[0];
       if (firstErrorField) {
@@ -326,11 +342,24 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
           console.error('❌ Invalid video URL format:', instructionalVideoUrl);
           console.error('❌ YouTube pattern test:', isValidYouTube);
           console.error('❌ Google Drive pattern test:', isValidGoogleDrive);
+          
+          const errorMessage = 'Please enter a valid YouTube or Google Drive URL.\n\n' +
+            'YouTube format: https://www.youtube.com/watch?v=VIDEO_ID\n' +
+            'Google Drive format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing\n\n' +
+            `Your URL: ${trimmedUrl}`;
+          
           setErrors(prev => ({
             ...prev,
-            instructionalVideoUrl: 'Please enter a valid YouTube or Google Drive URL. Google Drive URLs should be in the format: https://drive.google.com/file/d/FILE_ID/...'
+            instructionalVideoUrl: errorMessage
           }));
-          alert('Please enter a valid YouTube or Google Drive URL. Google Drive URLs should be in the format: https://drive.google.com/file/d/FILE_ID/...');
+          alert(errorMessage);
+          
+          // Scroll to the error field
+          const element = document.getElementById('instructionalVideoUrl');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            element.focus();
+          }
           return;
         }
         
@@ -396,8 +425,12 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         alert('Network error: Please check your internet connection and try again.');
       } else if (error instanceof Error && error.message.includes('Failed to create assignment')) {
         alert(`Assignment creation failed: ${error.message}`);
+      } else if (error instanceof Error && error.message.includes('validation')) {
+        alert(`Validation error: ${error.message}`);
       } else {
-        alert('Failed to save assignment. Please check the console for details and try again.');
+        // Show a more helpful error message
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        alert(`Failed to save assignment: ${errorMessage}\n\nPlease check the console for more details and try again.`);
       }
     }
   };

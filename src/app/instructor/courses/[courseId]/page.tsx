@@ -65,6 +65,7 @@ interface Assignment {
   allowedFileTypes?: string[];
   maxFileSize?: number;
   resources?: any[];
+  instructionalVideoUrl?: string; // NEW: Instructor's explanation video
 }
 
 interface Student {
@@ -340,6 +341,8 @@ const InstructorCourseDetailPage: React.FC = () => {
   
   // Get tab from URL parameters
   const tabParam = searchParams.get('tab') as 'assignments' | 'submissions' | 'students' | null;
+  const editAssignmentParam = searchParams.get('editAssignment');
+  const viewAssignmentParam = searchParams.get('viewAssignment');
   const [course, setCourse] = useState<Course | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -426,6 +429,25 @@ const InstructorCourseDetailPage: React.FC = () => {
     }
   }, [courseId, activeTab]);
 
+  // Handle URL parameters for editing/viewing assignments
+  useEffect(() => {
+    if (assignments.length > 0) {
+      if (editAssignmentParam) {
+        const assignmentToEdit = assignments.find(a => a.assignmentId === editAssignmentParam);
+        if (assignmentToEdit) {
+          setEditingAssignment(assignmentToEdit);
+          setActiveTab('assignments');
+        }
+      } else if (viewAssignmentParam) {
+        const assignmentToView = assignments.find(a => a.assignmentId === viewAssignmentParam);
+        if (assignmentToView) {
+          setViewingAssignment(assignmentToView);
+          setActiveTab('assignments');
+        }
+      }
+    }
+  }, [assignments, editAssignmentParam, viewAssignmentParam]);
+
   const fetchCourseDetails = async () => {
     try {
       setLoading(true);
@@ -504,7 +526,8 @@ const InstructorCourseDetailPage: React.FC = () => {
             maxGroupSize: assignment.maxGroupSize || 4,
             allowedFileTypes: assignment.allowedFileTypes || [],
             maxFileSize: assignment.maxFileSize || 10 * 1024 * 1024,
-            resources: assignment.resources || []
+            resources: assignment.resources || [],
+            instructionalVideoUrl: assignment.instructionalVideoUrl || ''
           }));
           setAssignments(transformedAssignments);
         }
@@ -1656,6 +1679,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                     requireLiveRecording: editingAssignment.requireLiveRecording ?? false,
                     allowYouTubeUrl: editingAssignment.allowYouTubeUrl ?? false,
                     resources: editingAssignment.resources ?? [],
+                    instructionalVideoUrl: editingAssignment.instructionalVideoUrl ?? '',
                     status: editingAssignment.status === 'grading' ? AssignmentStatus.PUBLISHED : editingAssignment.status === 'completed' ? AssignmentStatus.CLOSED : editingAssignment.status === 'draft' ? AssignmentStatus.DRAFT : editingAssignment.status === 'published' ? AssignmentStatus.PUBLISHED : AssignmentStatus.DRAFT
                   }}
                   onSubmit={async (assignmentData) => {

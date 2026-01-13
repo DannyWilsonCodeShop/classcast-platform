@@ -356,96 +356,103 @@ const StudentDashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
             {/* Left Column - Social Feed (3/4 width) */}
             <div className="lg:col-span-3 flex flex-col h-full">
-              {/* Community Post Bar - Compact */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 mb-4 flex-shrink-0">
+              {/* Community Post Bar - Enhanced with gradient */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg border border-blue-200 p-4 mb-4 flex-shrink-0">
                 <div className="flex items-center space-x-3">
                   <Avatar 
                     user={user}
                     size="md"
-                    className="w-8 h-8"
+                    className="w-10 h-10 ring-2 ring-blue-300"
                   />
                   <button
                     onClick={() => setShowPostComposer(!showPostComposer)}
-                    className="flex-1 px-3 py-2 bg-gray-50 rounded-full text-left text-gray-600 text-sm hover:bg-gray-100 transition-all border border-gray-200"
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-white to-blue-50 rounded-full text-left text-gray-700 text-sm hover:from-blue-50 hover:to-purple-50 transition-all border-2 border-blue-200 shadow-sm"
                   >
                     ✨ {dailyQuestion}
                   </button>
                   <div className="flex items-center space-x-2">
-                    <label className="flex items-center space-x-1 text-xs text-gray-600 cursor-pointer">
+                    <label className="flex items-center space-x-2 text-sm text-blue-700 cursor-pointer bg-white px-3 py-2 rounded-full border border-blue-200 hover:bg-blue-50 transition-colors">
                       <input
                         type="checkbox"
                         checked={includeAllPublicVideos}
                         onChange={(e) => setIncludeAllPublicVideos(e.target.checked)}
-                        className="w-3 h-3 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1"
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
                       />
-                      <span className="whitespace-nowrap flex items-center">
-                        <FireIcon className="w-3 h-3 mr-1 text-orange-500" />
+                      <span className="whitespace-nowrap flex items-center font-medium">
+                        <FireIcon className="w-4 h-4 mr-1 text-orange-500" />
                         Explore
                       </span>
                     </label>
                   </div>
                 </div>
 
-                {/* Expanded Post Composer - Compact */}
+                {/* Expanded Post Composer - Enhanced */}
                 {showPostComposer && (
-                  <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="mt-4 pt-4 border-t border-blue-200">
                     <textarea
                       value={postContent}
                       onChange={(e) => setPostContent(e.target.value)}
                       placeholder={dailyQuestion}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-300 text-sm bg-white shadow-sm"
                       rows={3}
                       autoFocus
                     />
-                    <div className="flex items-center justify-end space-x-2 mt-2">
+                    <div className="flex items-center justify-end space-x-3 mt-3">
                       <button
                         onClick={() => {
                           setShowPostComposer(false);
                           setPostContent('');
                         }}
-                        className="px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handlePostSubmit}
                         disabled={!postContent.trim()}
-                        className="px-3 py-1 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-6 py-2 text-sm bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md font-medium"
                       >
-                        Post
+                        Post ✨
                       </button>
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Explore Mode Indicator - Compact */}
+              {/* Explore Mode Indicator - Enhanced */}
               {includeAllPublicVideos && (
-                <div className="bg-gradient-to-r from-orange-500 to-red-500 rounded-lg p-2 flex items-center justify-between shadow-md mb-4 flex-shrink-0">
-                  <div className="flex items-center space-x-2 text-white">
-                    <FireIcon className="w-4 h-4" />
+                <div className="bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 rounded-xl p-4 flex items-center justify-between shadow-lg mb-4 flex-shrink-0">
+                  <div className="flex items-center space-x-3 text-white">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                      <FireIcon className="w-6 h-6" />
+                    </div>
                     <div>
-                      <p className="font-semibold text-xs">Explore Mode Active</p>
-                      <p className="text-xs opacity-90">Showing public videos from all courses</p>
+                      <p className="font-bold text-lg">🔥 Explore Mode Active</p>
+                      <p className="text-sm opacity-90">Discovering amazing content from all courses</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setIncludeAllPublicVideos(false)}
-                    className="text-white hover:bg-white/20 rounded-full p-1 transition-colors"
+                    className="text-white hover:bg-white/20 rounded-full p-2 transition-colors"
                     title="Return to my courses only"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
               )}
 
-              {/* Student Videos & Community Feed - Scrollable */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col min-h-0">
-                <div className="p-3 border-b border-gray-200 flex-shrink-0">
-                  <h3 className="text-base font-bold text-gray-900">Student Videos & Community</h3>
-                  <p className="text-xs text-gray-600">See what your classmates are sharing</p>
+              {/* Student Videos & Community Feed - Enhanced */}
+              <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-xl shadow-lg border border-blue-200 flex-1 flex flex-col min-h-0">
+                <div className="p-4 border-b border-blue-200 flex-shrink-0 bg-gradient-to-r from-blue-50 to-purple-50">
+                  <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                    <span className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white mr-3">
+                      🎥
+                    </span>
+                    Student Videos & Community
+                  </h3>
+                  <p className="text-sm text-gray-600 ml-11">See what your classmates are sharing</p>
                 </div>
                 
                 <div className="flex-1 overflow-y-auto">
@@ -486,13 +493,7 @@ const StudentDashboard: React.FC = () => {
               <RecentGradesWidget userId={user?.id} />
 
               {/* Upcoming Assignments */}
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                <h3 className="text-base font-bold text-gray-900 mb-3">Upcoming Assignments</h3>
-                <div className="text-center py-4">
-                  <ClockIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">No upcoming assignments</p>
-                </div>
-              </div>
+              <UpcomingAssignmentsWidget userId={user?.id} />
 
               {/* Study Modules */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -1141,6 +1142,154 @@ const RecentGradesWidget: React.FC<{ userId?: string }> = ({ userId }) => {
           <ChartBarIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
           <p className="text-sm text-gray-500">No grades yet</p>
           <p className="text-xs text-gray-400 mt-1">Your assignment grades will appear here</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Upcoming Assignments Widget Component
+const UpcomingAssignmentsWidget: React.FC<{ userId?: string }> = ({ userId }) => {
+  const router = useRouter();
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (userId) {
+      fetchUpcomingAssignments();
+    }
+  }, [userId]);
+
+  const fetchUpcomingAssignments = async () => {
+    try {
+      const response = await fetch(`/api/student/assignments?userId=${userId}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.assignments) {
+          // Filter assignments due in the next 2 weeks
+          const now = new Date();
+          const twoWeeksFromNow = new Date();
+          twoWeeksFromNow.setDate(now.getDate() + 14);
+          
+          const upcomingAssignments = data.assignments.filter((assignment: any) => {
+            const dueDate = new Date(assignment.dueDate);
+            return dueDate >= now && dueDate <= twoWeeksFromNow && !assignment.isSubmitted;
+          });
+          
+          // Sort by due date (earliest first) and take first 5
+          upcomingAssignments.sort((a: any, b: any) => 
+            new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+          );
+          
+          setAssignments(upcomingAssignments.slice(0, 5));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching upcoming assignments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDueDate = (dueDate: string) => {
+    const date = new Date(dueDate);
+    const now = new Date();
+    const diffTime = date.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Due today';
+    if (diffDays === 1) return 'Due tomorrow';
+    if (diffDays <= 7) return `Due in ${diffDays} days`;
+    
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric',
+      weekday: 'short'
+    });
+  };
+
+  const getDueDateColor = (dueDate: string) => {
+    const date = new Date(dueDate);
+    const now = new Date();
+    const diffTime = date.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 1) return 'text-red-700 bg-gradient-to-r from-red-100 to-red-200 border border-red-300';
+    if (diffDays <= 3) return 'text-orange-700 bg-gradient-to-r from-orange-100 to-orange-200 border border-orange-300';
+    if (diffDays <= 7) return 'text-yellow-700 bg-gradient-to-r from-yellow-100 to-yellow-200 border border-yellow-300';
+    return 'text-blue-700 bg-gradient-to-r from-blue-100 to-blue-200 border border-blue-300';
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-gradient-to-br from-white to-indigo-50 rounded-xl shadow-lg border border-indigo-200 p-4">
+        <div className="flex items-center mb-3">
+          <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white mr-3">
+            ⏰
+          </div>
+          <h3 className="text-base font-bold text-gray-900">Upcoming Assignments</h3>
+        </div>
+        <div className="space-y-3">
+          <div className="animate-pulse bg-gradient-to-r from-gray-200 to-gray-300 h-12 rounded-lg"></div>
+          <div className="animate-pulse bg-gradient-to-r from-gray-200 to-gray-300 h-12 rounded-lg"></div>
+          <div className="animate-pulse bg-gradient-to-r from-gray-200 to-gray-300 h-12 rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gradient-to-br from-white to-indigo-50 rounded-xl shadow-lg border border-indigo-200 p-4">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white mr-3">
+            ⏰
+          </div>
+          <h3 className="text-base font-bold text-gray-900">Upcoming Assignments</h3>
+        </div>
+        <button
+          onClick={() => router.push('/student/assignments')}
+          className="text-sm text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-full transition-colors"
+        >
+          View All →
+        </button>
+      </div>
+
+      {assignments.length > 0 ? (
+        <div className="space-y-3">
+          {assignments.map((assignment) => (
+            <div 
+              key={assignment.assignmentId} 
+              className="flex items-center justify-between p-4 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-xl transition-all cursor-pointer border border-gray-200 hover:border-indigo-300 hover:shadow-md"
+              onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {assignment.title}
+                </p>
+                <p className="text-xs text-gray-600 truncate flex items-center mt-1">
+                  <span className="w-2 h-2 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full mr-2"></span>
+                  {assignment.courseCode} • {assignment.points} pts
+                </p>
+              </div>
+              <div className="text-right ml-3">
+                <span className={`text-xs font-semibold px-3 py-2 rounded-full ${getDueDateColor(assignment.dueDate)}`}>
+                  {formatDueDate(assignment.dueDate)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ClockIcon className="w-8 h-8 text-white" />
+          </div>
+          <p className="text-sm font-medium text-gray-700">All caught up! 🎉</p>
+          <p className="text-xs text-gray-500 mt-1">No assignments due in the next two weeks</p>
         </div>
       )}
     </div>

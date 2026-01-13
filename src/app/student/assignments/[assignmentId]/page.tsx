@@ -98,6 +98,7 @@ interface Assignment {
   description: string;
   dueDate: string;
   points: number;
+  maxScore?: number; // Add maxScore field for better compatibility
   status: 'upcoming' | 'past_due' | 'completed';
   submissionType: 'text' | 'file' | 'video';
   assignmentType: string;
@@ -234,13 +235,15 @@ const StudentAssignmentDetailPage: React.FC = () => {
         if (foundAssignment) {
           console.log('Found assignment via direct API:', foundAssignment);
           console.log('Assignment maxScore:', foundAssignment.maxScore);
+          console.log('Assignment points will be set to:', foundAssignment.maxScore || foundAssignment.points || 100);
           // Transform the assignment to match our interface
           const transformedAssignment: Assignment = {
             assignmentId: foundAssignment.assignmentId,
             title: foundAssignment.title,
             description: foundAssignment.description,
             dueDate: foundAssignment.dueDate,
-            points: foundAssignment.maxScore ?? 100,
+            points: foundAssignment.maxScore || foundAssignment.points || 100,
+            maxScore: foundAssignment.maxScore || foundAssignment.points || 100, // Add maxScore field
             status: 'upcoming',
             submissionType: foundAssignment.assignmentType === 'video' ? 'video' : 'file',
             assignmentType: foundAssignment.assignmentType,
@@ -604,6 +607,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
+              
+              {/* ClassCast Logo */}
+              <img 
+                src="/MyClassCast (800 x 200 px).png" 
+                alt="ClassCast Logo" 
+                className="h-8 w-auto"
+              />
+              
               <div className="w-10 h-10 bg-[#005587] rounded-full flex items-center justify-center text-white font-bold text-lg">
                 📝
               </div>
@@ -647,7 +658,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                       {submission?.grade !== undefined && submission?.grade !== null 
                         ? `${submission.grade}` 
                         : '—'
-                      } / {displayAssignment.points}
+                      } / {displayAssignment.points || displayAssignment.maxScore || 100}
                     </div>
                     <div className="text-sm text-gray-600">Score</div>
                   </div>
@@ -667,9 +678,25 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   </div>
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
-                  {displayAssignment.isSubmitted ? '✓' : '○'}
+                      {displayAssignment.isSubmitted ? (
+                        <span className="flex items-center justify-center space-x-2">
+                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-sm font-medium">Submitted</span>
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-center space-x-2 text-gray-400">
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-sm font-medium">Not Submitted</span>
+                        </span>
+                      )}
                     </div>
-                    <div className="text-sm text-gray-600">Submission</div>
+                    <div className="text-sm text-gray-600">
+                      Submission Status
+                    </div>
                   </div>
                   {/* Show Peer Reviews card if enabled OR if there are peer videos/responses */}
                   {((displayAssignment.enablePeerResponses && (displayAssignment.minResponsesRequired || 0) > 0) || 
