@@ -45,86 +45,43 @@ const StudentGrades: React.FC = () => {
 
   const fetchGrades = async () => {
     try {
-      // Mock data for now - in real app, this would fetch from API
-      const mockGrades: Grade[] = [
-        {
-          id: '1',
-          assignmentTitle: 'Math Problem Set #3',
-          courseName: 'Algebra II',
-          courseCode: 'MATH-201',
-          grade: 85,
-          maxPoints: 100,
-          submittedAt: '2024-01-10T10:00:00Z',
-          gradedAt: '2024-01-12T14:30:00Z',
-          feedback: 'Good work on most problems. Review quadratic equations for next time.',
-          status: 'graded'
-        },
-        {
-          id: '2',
-          assignmentTitle: 'Literature Essay: Character Analysis',
-          courseName: 'English Literature',
-          courseCode: 'ENG-301',
-          grade: 92,
-          maxPoints: 100,
-          submittedAt: '2024-01-08T16:45:00Z',
-          gradedAt: '2024-01-11T09:15:00Z',
-          feedback: 'Excellent analysis of the main character. Strong thesis and supporting evidence.',
-          status: 'graded'
-        },
-        {
-          id: '3',
-          assignmentTitle: 'Science Lab Report',
-          courseName: 'Biology',
-          courseCode: 'BIO-101',
-          grade: 78,
-          maxPoints: 100,
-          submittedAt: '2024-01-09T11:30:00Z',
-          gradedAt: '2024-01-13T08:00:00Z',
-          feedback: 'Lab procedure was followed correctly, but conclusions need more detail.',
-          status: 'graded'
-        },
-        {
-          id: '4',
-          assignmentTitle: 'History Timeline Project',
-          courseName: 'World History',
-          courseCode: 'HIST-201',
-          grade: 0,
-          maxPoints: 100,
-          submittedAt: '2024-01-11T14:20:00Z',
-          gradedAt: '',
-          status: 'pending'
-        },
-        {
-          id: '5',
-          assignmentTitle: 'Spanish Conversation Video',
-          courseName: 'Spanish II',
-          courseCode: 'SPAN-201',
-          grade: 88,
-          maxPoints: 100,
-          submittedAt: '2024-01-07T13:15:00Z',
-          gradedAt: '2024-01-10T16:45:00Z',
-          feedback: 'Great pronunciation and vocabulary usage. Work on verb conjugations.',
-          status: 'graded'
-        }
-      ];
-
-      setGrades(mockGrades);
-
-      // Calculate stats
-      const gradedAssignments = mockGrades.filter(g => g.status === 'graded');
-      const totalPoints = gradedAssignments.reduce((sum, g) => sum + g.grade, 0);
-      const maxTotalPoints = gradedAssignments.reduce((sum, g) => sum + g.maxPoints, 0);
-      const averageGrade = maxTotalPoints > 0 ? Math.round((totalPoints / maxTotalPoints) * 100) : 0;
-
-      setStats({
-        averageGrade,
-        totalAssignments: mockGrades.length,
-        completedAssignments: gradedAssignments.length,
-        pendingGrades: mockGrades.filter(g => g.status === 'pending').length
+      console.log('🎯 Fetching real grades for user:', user?.id);
+      
+      const response = await fetch(`/api/student/grades?userId=${user?.id}`, {
+        credentials: 'include'
       });
-
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('✅ Fetched grades successfully:', data.grades.length, 'grades');
+        setGrades(data.grades);
+        setStats(data.stats);
+      } else {
+        console.error('❌ API returned error:', data.error);
+        // Fall back to empty state instead of mock data
+        setGrades([]);
+        setStats({
+          averageGrade: 0,
+          totalAssignments: 0,
+          completedAssignments: 0,
+          pendingGrades: 0
+        });
+      }
     } catch (error) {
-      console.error('Error fetching grades:', error);
+      console.error('❌ Error fetching grades:', error);
+      // Fall back to empty state instead of mock data
+      setGrades([]);
+      setStats({
+        averageGrade: 0,
+        totalAssignments: 0,
+        completedAssignments: 0,
+        pendingGrades: 0
+      });
     } finally {
       setLoading(false);
     }

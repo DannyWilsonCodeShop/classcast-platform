@@ -482,6 +482,9 @@ const StudentDashboard: React.FC = () => {
 
             {/* Right Column - Simplified Widgets (1/4 width) */}
             <div className="space-y-4 h-full overflow-y-auto">
+              {/* Recent Grades */}
+              <RecentGradesWidget userId={user?.id} />
+
               {/* Upcoming Assignments */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
                 <h3 className="text-base font-bold text-gray-900 mb-3">Upcoming Assignments</h3>
@@ -1013,6 +1016,133 @@ const CommunityFeedItem: React.FC<{
           <span className="text-sm">{comments} {comments === 1 ? 'comment' : 'comments'}</span>
         </button>
       </div>
+    </div>
+  );
+};
+
+// Recent Grades Widget Component
+const RecentGradesWidget: React.FC<{ userId?: string }> = ({ userId }) => {
+  const router = useRouter();
+  const [grades, setGrades] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    averageGrade: 0,
+    totalAssignments: 0,
+    completedAssignments: 0,
+    pendingGrades: 0
+  });
+
+  useEffect(() => {
+    if (userId) {
+      fetchRecentGrades();
+    }
+  }, [userId]);
+
+  const fetchRecentGrades = async () => {
+    try {
+      const response = await fetch(`/api/student/grades?userId=${userId}`, {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Show only the 3 most recent grades
+          setGrades(data.grades.slice(0, 3));
+          setStats(data.stats);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching recent grades:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getGradeColor = (grade: number, maxPoints: number) => {
+    if (grade === 0) return 'text-gray-500'; // Pending
+    const percentage = (grade / maxPoints) * 100;
+    if (percentage >= 90) return 'text-green-600';
+    if (percentage >= 80) return 'text-blue-600';
+    if (percentage >= 70) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <h3 className="text-base font-bold text-gray-900 mb-3">Recent Grades</h3>
+        <div className="space-y-2">
+          <div className="animate-pulse bg-gray-200 h-12 rounded-lg"></div>
+          <div className="animate-pulse bg-gray-200 h-12 rounded-lg"></div>
+          <div className="animate-pulse bg-gray-200 h-12 rounded-lg"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-base font-bold text-gray-900">Recent Grades</h3>
+        <button
+          onClick={() => router.push('/student/grades')}
+          className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+        >
+          View All
+        </button>
+      </div>
+
+      {/* Quick Stats */}
+      {stats.totalAssignments > 0 && (
+        <div className="bg-gray-50 rounded-lg p-3 mb-3">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-600">Average</span>
+            <span className={`font-bold ${stats.averageGrade >= 80 ? 'text-green-600' : stats.averageGrade >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>
+              {stats.averageGrade}%
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+            <span>{stats.completedAssignments} graded</span>
+            {stats.pendingGrades > 0 && (
+              <span className="text-orange-600">{stats.pendingGrades} pending</span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Recent Grades List */}
+      {grades.length > 0 ? (
+        <div className="space-y-2">
+          {grades.map((grade) => (
+            <div key={grade.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {grade.assignmentTitle}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {grade.courseCode}
+                </p>
+              </div>
+              <div className="text-right ml-2">
+                {grade.status === 'pending' ? (
+                  <span className="text-xs text-orange-600 font-medium">Pending</span>
+                ) : (
+                  <span className={`text-sm font-bold ${getGradeColor(grade.grade, grade.maxPoints)}`}>
+                    {Math.round((grade.grade / grade.maxPoints) * 100)}%
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-4">
+          <ChartBarIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-500">No grades yet</p>
+          <p className="text-xs text-gray-400 mt-1">Your assignment grades will appear here</p>
+        </div>
+      )}
     </div>
   );
 };
