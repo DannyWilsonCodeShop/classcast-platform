@@ -20,6 +20,7 @@ import DemoModeBanner from '@/components/common/DemoModeBanner';
 
 import RichTextRenderer from '@/components/common/RichTextRenderer';
 import { VirtualizedFeed } from '@/components/student/VirtualizedFeed';
+import DashboardSwitcher from '@/components/dashboard/DashboardSwitcher';
 
 interface Course {
   courseId: string;
@@ -738,6 +739,9 @@ const StudentDashboard: React.FC = () => {
         onComplete={() => setShowInteractiveTour(false)}
         userFirstName={user?.firstName}
       /> */}
+      
+      {/* Dashboard Switcher for Development */}
+      <DashboardSwitcher />
     </StudentRoute>
   );
 };
