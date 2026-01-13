@@ -136,6 +136,15 @@ export async function PUT(
       instructionalVideoUrl: body.instructionalVideoUrl
     });
     
+    // Debug authentication
+    console.log('🔐 Authentication Debug:', {
+      cookies: request.headers.get('cookie') ? 'present' : 'missing',
+      authorization: request.headers.get('authorization') ? 'present' : 'missing',
+      userAgent: request.headers.get('user-agent'),
+      origin: request.headers.get('origin'),
+      referer: request.headers.get('referer')
+    });
+    
     // Add CORS headers for the response
     const headers = {
       'Access-Control-Allow-Origin': '*',
