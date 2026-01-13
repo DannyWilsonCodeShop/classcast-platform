@@ -379,13 +379,13 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
                   <div className="space-y-2">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => router.push(`/instructor/courses/${courseId}?tab=assignments`)}
+                        onClick={() => router.push(`/instructor/courses/${courseId}?tab=assignments&viewAssignment=${assignment.assignmentId}`)}
                         className="flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors text-sm"
                       >
                         👁️ View Details
                       </button>
                       <button
-                        onClick={() => router.push(`/instructor/courses/${courseId}?tab=assignments`)}
+                        onClick={() => router.push(`/instructor/courses/${courseId}?tab=assignments&editAssignment=${assignment.assignmentId}`)}
                         className="flex-1 px-3 py-2 bg-indigo-500 text-white rounded-lg font-medium hover:bg-indigo-600 transition-colors text-sm"
                       >
                         ✏️ Edit
