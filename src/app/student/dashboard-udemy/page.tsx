@@ -18,88 +18,35 @@ import {
   StarIcon
 } from '@heroicons/react/24/outline';
 
-// Mock data - in real app, this would come from APIs
-const mockCourses = [
-  {
-    id: '1',
-    title: 'Advanced Mathematics',
-    instructor: 'Dr. Sarah Johnson',
-    progress: 75,
-    nextLesson: 'Calculus Integration',
-    timeRemaining: '2h 30m',
-    thumbnail: '/api/placeholder/200/120',
-    difficulty: 'Advanced' as const,
-    rating: 4.8,
-    totalLessons: 24,
-    completedLessons: 18,
-    lastAccessed: '2 hours ago'
-  },
-  {
-    id: '2',
-    title: 'English Literature',
-    instructor: 'Prof. Michael Chen',
-    progress: 45,
-    nextLesson: 'Shakespeare Analysis',
-    timeRemaining: '4h 15m',
-    thumbnail: '/api/placeholder/200/120',
-    difficulty: 'Intermediate' as const,
-    rating: 4.6,
-    totalLessons: 20,
-    completedLessons: 9,
-    lastAccessed: '1 day ago'
-  },
-  {
-    id: '3',
-    title: 'Computer Science Fundamentals',
-    instructor: 'Dr. Emily Rodriguez',
-    progress: 100,
-    thumbnail: '/api/placeholder/200/120',
-    difficulty: 'Beginner' as const,
-    rating: 4.9,
-    totalLessons: 16,
-    completedLessons: 16,
-    lastAccessed: '3 days ago'
-  }
-];
+interface Course {
+  courseId: string;
+  courseName: string;
+  courseCode: string;
+  instructor: {
+    name: string;
+    email: string;
+  };
+  semester: string;
+  year: number;
+  enrolledAt: string;
+}
 
-const mockLearningItems = [
-  {
-    id: '1',
-    type: 'assignment' as const,
-    title: 'Calculus Problem Set #5',
-    subtitle: 'Integration and Differentiation',
-    progress: 60,
-    dueDate: 'Tomorrow',
-    thumbnail: '/api/placeholder/100/60',
-    courseTitle: 'Advanced Mathematics',
-    lastAccessed: '30 minutes ago'
-  },
-  {
-    id: '2',
-    type: 'video' as const,
-    title: 'Shakespeare\'s Hamlet - Act 3 Analysis',
-    subtitle: 'Character development and themes',
-    progress: 25,
-    timeLeft: '45 minutes',
-    thumbnail: '/api/placeholder/100/60',
-    courseTitle: 'English Literature',
-    lastAccessed: '2 hours ago'
-  },
-  {
-    id: '3',
-    type: 'course' as const,
-    title: 'Data Structures and Algorithms',
-    subtitle: 'Binary Trees and Graph Theory',
-    progress: 80,
-    timeLeft: '1h 20m',
-    thumbnail: '/api/placeholder/100/60',
-    lastAccessed: '1 day ago'
-  }
-];
+interface Assignment {
+  assignmentId: string;
+  title: string;
+  description: string;
+  dueDate: string;
+  courseId: string;
+  courseName: string;
+  maxScore: number;
+  status: string;
+}
 
 const UdemyDashboard: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [stats, setStats] = useState({
     totalCourses: 0,
     completedCourses: 0,
@@ -108,17 +55,58 @@ const UdemyDashboard: React.FC = () => {
   });
 
   useEffect(() => {
-    // Simulate loading data
-    setTimeout(() => {
-      setStats({
-        totalCourses: 8,
-        completedCourses: 3,
-        totalHours: 47,
-        averageGrade: 87.5
+    if (user?.id) {
+      fetchDashboardData();
+    }
+  }, [user]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch enrolled courses
+      const coursesResponse = await fetch('/api/student/courses', {
+        credentials: 'include'
       });
+      
+      if (coursesResponse.ok) {
+        const coursesData = await coursesResponse.json();
+        if (coursesData.success) {
+          setCourses(coursesData.courses || []);
+        }
+      }
+
+      // Fetch assignments
+      const assignmentsResponse = await fetch('/api/student/assignments', {
+        credentials: 'include'
+      });
+      
+      if (assignmentsResponse.ok) {
+        const assignmentsData = await assignmentsResponse.json();
+        if (assignmentsData.success) {
+          setAssignments(assignmentsData.assignments || []);
+        }
+      }
+
+      // Calculate stats based on real data
+      const totalCourses = courses.length;
+      const completedCourses = 0; // Will be calculated based on May 1st end date
+      const totalHours = Math.floor(Math.random() * 50) + 20; // Placeholder for now
+      const averageGrade = 85 + Math.floor(Math.random() * 10); // Placeholder for now
+
+      setStats({
+        totalCourses,
+        completedCourses,
+        totalHours,
+        averageGrade
+      });
+      
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -209,7 +197,17 @@ const UdemyDashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Continue Learning */}
             <div className="lg:col-span-2 space-y-8">
-              <ContinueLearning items={mockLearningItems} />
+              <ContinueLearning items={assignments.slice(0, 3).map(assignment => ({
+                id: assignment.assignmentId,
+                type: 'assignment' as const,
+                title: assignment.title,
+                subtitle: assignment.description.substring(0, 50) + '...',
+                progress: 0, // Will be calculated based on submission status
+                dueDate: new Date(assignment.dueDate).toLocaleDateString(),
+                thumbnail: '/api/placeholder/100/60',
+                courseTitle: assignment.courseName,
+                lastAccessed: 'Recently'
+              }))} />
               
               {/* My Courses */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200">
@@ -219,15 +217,44 @@ const UdemyDashboard: React.FC = () => {
                       <h2 className="text-xl font-bold text-gray-900">My Courses</h2>
                       <p className="text-sm text-gray-600 mt-1">Track your progress across all courses</p>
                     </div>
-                    <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                    <button 
+                      onClick={() => window.location.href = '/student/courses'}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
                       View All Courses
                     </button>
                   </div>
                 </div>
                 <div className="p-6 space-y-6">
-                  {mockCourses.map((course) => (
-                    <CourseProgressCard key={course.id} course={course} size="small" />
-                  ))}
+                  {courses.length > 0 ? (
+                    courses.map((course) => (
+                      <CourseProgressCard 
+                        key={course.courseId} 
+                        course={{
+                          id: course.courseId,
+                          title: course.courseName,
+                          instructor: course.instructor.name,
+                          thumbnail: '/api/placeholder/200/120',
+                          difficulty: 'Intermediate' as const,
+                          rating: 4.5,
+                          lastAccessed: new Date(course.enrolledAt).toLocaleDateString(),
+                          endDate: '2025-05-01' // Course ends May 1st, 2025
+                        }} 
+                        size="small" 
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <BookOpenIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">No courses enrolled yet</p>
+                      <button 
+                        onClick={() => window.location.href = '/student/courses'}
+                        className="mt-2 text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Browse Available Courses
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

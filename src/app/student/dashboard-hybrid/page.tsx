@@ -38,37 +38,18 @@ interface Course {
   unreadCount: number;
 }
 
-// Mock data for Udemy-style features
-const mockCourses = [
-  {
-    id: '1',
-    title: 'Advanced Mathematics',
-    instructor: 'Dr. Sarah Johnson',
-    progress: 75,
-    nextLesson: 'Calculus Integration',
-    timeRemaining: '2h 30m',
-    thumbnail: '/api/placeholder/200/120',
-    difficulty: 'Advanced' as const,
-    rating: 4.8,
-    totalLessons: 24,
-    completedLessons: 18,
-    lastAccessed: '2 hours ago'
-  },
-  {
-    id: '2',
-    title: 'English Literature',
-    instructor: 'Prof. Michael Chen',
-    progress: 45,
-    nextLesson: 'Shakespeare Analysis',
-    timeRemaining: '4h 15m',
-    thumbnail: '/api/placeholder/200/120',
-    difficulty: 'Intermediate' as const,
-    rating: 4.6,
-    totalLessons: 20,
-    completedLessons: 9,
-    lastAccessed: '1 day ago'
-  }
-];
+interface Course {
+  courseId: string;
+  courseName: string;
+  courseCode: string;
+  instructor: {
+    name: string;
+    email: string;
+  };
+  semester: string;
+  year: number;
+  enrolledAt: string;
+}
 
 // Daily rotating community questions
 const DAILY_QUESTIONS = [
@@ -217,15 +198,25 @@ const HybridDashboard: React.FC = () => {
       // Mock current study streak (in real app, track consecutive days)
       const currentStreak = Math.floor(Math.random() * 10) + 1; // 1-10 days
       
-      // Calculate average progress across courses (mock data)
-      const totalCourses = courses.length || 1;
-      const mockProgress = Math.floor(Math.random() * 40) + 60; // 60-100%
+      // Calculate course progress based on time to May 1st, 2025
+      const now = new Date();
+      const courseEndDate = new Date('2025-05-01');
+      const courseStartDate = new Date('2024-08-15'); // Assume fall semester start
+      
+      let averageProgress = 0;
+      if (now >= courseEndDate) {
+        averageProgress = 100;
+      } else if (now >= courseStartDate) {
+        const totalDuration = courseEndDate.getTime() - courseStartDate.getTime();
+        const elapsed = now.getTime() - courseStartDate.getTime();
+        averageProgress = Math.round((elapsed / totalDuration) * 100);
+      }
 
       setActivityStats({
         daysActive: daysActiveThisMonth,
         assignmentsCompleted: completedAssignments,
         currentStreak: currentStreak,
-        averageProgress: mockProgress
+        averageProgress: Math.min(Math.max(averageProgress, 0), 100)
       });
     } catch (error) {
       console.error('Error loading activity stats:', error);
@@ -566,9 +557,29 @@ const HybridDashboard: React.FC = () => {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Course Progress</h3>
                 <div className="space-y-4">
-                  {mockCourses.map((course) => (
-                    <CourseProgressCard key={course.id} course={course} size="small" />
-                  ))}
+                  {courses.length > 0 ? (
+                    courses.map((course) => (
+                      <CourseProgressCard 
+                        key={course.courseId} 
+                        course={{
+                          id: course.courseId,
+                          title: course.courseName,
+                          instructor: course.instructor.name,
+                          thumbnail: '/api/placeholder/200/120',
+                          difficulty: 'Intermediate' as const,
+                          rating: 4.5,
+                          lastAccessed: new Date(course.enrolledAt).toLocaleDateString(),
+                          endDate: '2025-05-01' // Course ends May 1st, 2025
+                        }} 
+                        size="small" 
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <BookOpenIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-600">No courses enrolled yet</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
