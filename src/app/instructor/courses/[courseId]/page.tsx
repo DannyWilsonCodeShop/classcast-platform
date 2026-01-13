@@ -1684,35 +1684,64 @@ const InstructorCourseDetailPage: React.FC = () => {
                   }}
                   onSubmit={async (assignmentData) => {
                     try {
-                      console.log('Updating assignment:', editingAssignment.assignmentId, assignmentData);
+                      console.log('🔄 Assignment update starting...');
+                      console.log('📋 Assignment ID:', editingAssignment.assignmentId);
+                      console.log('📦 Assignment Data:', assignmentData);
+                      console.log('🌐 Request URL:', `/api/assignments/${editingAssignment.assignmentId}`);
+                      
+                      const requestBody = {
+                        ...assignmentData,
+                        assignmentId: editingAssignment.assignmentId
+                      };
+                      
+                      console.log('📤 Request Body:', JSON.stringify(requestBody, null, 2));
                       
                       // Call the assignment update API
                       const response = await fetch(`/api/assignments/${editingAssignment.assignmentId}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { 
+                          'Content-Type': 'application/json',
+                        },
                         credentials: 'include',
-                        body: JSON.stringify({
-                          ...assignmentData,
-                          assignmentId: editingAssignment.assignmentId
-                        })
+                        body: JSON.stringify(requestBody)
                       });
                       
+                      console.log('📡 Response Status:', response.status);
+                      console.log('📡 Response Headers:', Object.fromEntries(response.headers.entries()));
+                      
                       if (!response.ok) {
-                        throw new Error('Failed to update assignment');
+                        const errorText = await response.text();
+                        console.error('❌ Response Error Text:', errorText);
+                        
+                        let errorData;
+                        try {
+                          errorData = JSON.parse(errorText);
+                          console.error('❌ Parsed Error Data:', errorData);
+                        } catch (parseError) {
+                          console.error('❌ Could not parse error as JSON');
+                        }
+                        
+                        throw new Error(`HTTP ${response.status}: ${errorText}`);
                       }
                       
                       const result = await response.json();
-                      console.log('Assignment updated successfully:', result);
+                      console.log('✅ Assignment updated successfully:', result);
                       
                       setEditingAssignment(null);
                       // Refresh assignments to show changes
                       await fetchCourseDetails();
                       alert('Assignment updated successfully!');
                     } catch (error) {
-                      console.error('Error updating assignment:', error);
-                      alert('Failed to update assignment. Please try again.');
+                      console.error('❌ Error updating assignment:', error);
+                      console.error('❌ Error name:', error.name);
+                      console.error('❌ Error message:', error.message);
+                      console.error('❌ Error stack:', error.stack);
+                      
+                      // Show detailed error to user
+                      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+                      alert(`Failed to update assignment: ${errorMessage}\n\nCheck the browser console for more details.`);
                     }
-                  }}
+                  }}}
                   onCancel={() => setEditingAssignment(null)}
                   onDelete={async () => {
                     console.log('🔄 Assignment deleted, refreshing course details...');
