@@ -78,14 +78,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
-        {/* Header with School Logo */}
+        {/* Header with ClassCast Logo */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <img 
-              src="/logos/cristo-rey-atlanta.png" 
-              alt="Cristo Rey Atlanta" 
-              className="w-8 h-8 object-contain"
-            />
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">CC</span>
+            </div>
             <span className="text-xl font-bold text-gray-900">ClassCast</span>
           </div>
           <button
@@ -98,7 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Scrollable Content */}
         <div className="flex flex-col h-full overflow-y-auto">
-          {/* User Profile - Without Email */}
+          {/* User Profile - With School Logo */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center space-x-3">
               <Avatar 
@@ -110,11 +108,31 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {user?.firstName} {user?.lastName}
                 </p>
-                <div className="flex items-center mt-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                  <span className="text-xs text-gray-500">Student</span>
+                <div className="flex items-center mt-2">
+                  <img 
+                    src="/logos/cristo-rey-atlanta.png" 
+                    alt="Cristo Rey Atlanta" 
+                    className="w-6 h-6 object-contain"
+                  />
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* Search for New Courses */}
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+              Discover Courses
+            </h3>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search for new courses..."
+                className="w-full px-3 py-2 pl-8 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <svg className="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
           </div>
 
@@ -148,10 +166,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     `}>
                       {course.initials || course.code?.substring(0, 2) || course.name?.substring(0, 2) || 'C'}
                     </div>
-                    <div className="text-left flex-1">
-                      <div className="font-medium truncate">{course.name}</div>
+                    <div className="text-left flex-1 min-w-0">
+                      <div className="font-medium text-sm leading-tight break-words">{course.name}</div>
                       {course.code && (
-                        <div className="text-xs text-gray-500">{course.code}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{course.code}</div>
                       )}
                     </div>
                     {course.unreadCount > 0 && (

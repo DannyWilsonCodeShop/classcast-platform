@@ -485,28 +485,9 @@ const StudentDashboard: React.FC = () => {
               {/* Upcoming Assignments */}
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
                 <h3 className="text-base font-bold text-gray-900 mb-3">Upcoming Assignments</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2 p-2 bg-red-50 rounded-lg">
-                    <ClockIcon className="w-4 h-4 text-red-500 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-red-900 truncate">Math Assignment</p>
-                      <p className="text-xs text-red-600">Due tomorrow</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2 p-2 bg-yellow-50 rounded-lg">
-                    <ClockIcon className="w-4 h-4 text-yellow-500 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-yellow-900 truncate">Literature Essay</p>
-                      <p className="text-xs text-yellow-600">Due in 3 days</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2 p-2 bg-blue-50 rounded-lg">
-                    <ClockIcon className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-blue-900 truncate">Science Project</p>
-                      <p className="text-xs text-blue-600">Due next week</p>
-                    </div>
-                  </div>
+                <div className="text-center py-4">
+                  <ClockIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">No upcoming assignments</p>
                 </div>
               </div>
 
@@ -521,49 +502,10 @@ const StudentDashboard: React.FC = () => {
                     View All
                   </button>
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2 p-2 bg-purple-50 rounded-lg">
-                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <AcademicCapIcon className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-purple-900 truncate">Intro to Calculus</p>
-                      <div className="flex items-center space-x-1 mt-1">
-                        <div className="w-12 bg-purple-200 rounded-full h-1">
-                          <div className="bg-purple-600 h-1 rounded-full" style={{ width: '25%' }}></div>
-                        </div>
-                        <span className="text-xs text-purple-600">25%</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2 p-2 bg-blue-50 rounded-lg">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <BookOpenIcon className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-blue-900 truncate">Shakespeare's Hamlet</p>
-                      <div className="flex items-center space-x-1 mt-1">
-                        <div className="w-12 bg-blue-200 rounded-full h-1">
-                          <div className="bg-blue-600 h-1 rounded-full" style={{ width: '0%' }}></div>
-                        </div>
-                        <span className="text-xs text-blue-600">Not started</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2 p-2 bg-green-50 rounded-lg">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <BookOpenIcon className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-green-900 truncate">Biology Basics</p>
-                      <div className="flex items-center space-x-1 mt-1">
-                        <div className="w-12 bg-green-200 rounded-full h-1">
-                          <div className="bg-green-600 h-1 rounded-full" style={{ width: '75%' }}></div>
-                        </div>
-                        <span className="text-xs text-green-600">75%</span>
-                      </div>
-                    </div>
-                  </div>
+                <div className="text-center py-4">
+                  <AcademicCapIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500 font-medium">Coming Soon</p>
+                  <p className="text-xs text-gray-400 mt-1">Interactive study modules will be available soon</p>
                 </div>
               </div>
             </div>
@@ -624,9 +566,9 @@ const CompactVideoFeedItem: React.FC<{
   const [imageError, setImageError] = React.useState(false);
 
   return (
-    <div className="border-b border-gray-100 p-3 hover:bg-gray-50/50 transition-colors">
+    <div className="border-b border-gray-100 p-4 hover:bg-gray-50/50 transition-colors">
       {/* Compact Header */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
           <div 
             onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
@@ -682,8 +624,8 @@ const CompactVideoFeedItem: React.FC<{
         )}
       </div>
 
-      {/* Compact Video Player */}
-      <div className="relative w-full bg-black mb-2 rounded-md overflow-hidden" style={{ aspectRatio: '16/9', maxHeight: '120px' }}>
+      {/* Better Sized Video Player */}
+      <div className="relative w-full bg-black mb-3 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
         {isYouTube && videoId && embedUrl ? (
           <div 
             className="relative w-full h-full group cursor-pointer"
@@ -711,8 +653,8 @@ const CompactVideoFeedItem: React.FC<{
               }}
             />
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
-                <PlayIcon className="w-4 h-4 text-white ml-0.5" fill="currentColor" />
+              <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
+                <PlayIcon className="w-5 h-5 text-white ml-0.5" fill="currentColor" />
               </div>
             </div>
           </div>
@@ -726,11 +668,11 @@ const CompactVideoFeedItem: React.FC<{
         )}
       </div>
 
-      {/* Compact Title & Actions */}
+      {/* Title & Actions */}
       <div>
         <button 
           onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed`)}
-          className="font-medium text-xs text-gray-900 hover:text-blue-600 transition-colors text-left w-full mb-2 line-clamp-2"
+          className="font-medium text-sm text-gray-900 hover:text-blue-600 transition-colors text-left w-full mb-3 line-clamp-2"
         >
           {item.title}
         </button>
@@ -764,9 +706,9 @@ const CompactCommunityFeedItem: React.FC<{
   const [comments, setComments] = React.useState(item.comments || 0);
 
   return (
-    <div className="border-b border-gray-100 p-3 hover:bg-gray-50/50 transition-colors">
+    <div className="border-b border-gray-100 p-4 hover:bg-gray-50/50 transition-colors">
       {/* Compact Header */}
-      <div className="flex items-center space-x-2 mb-2">
+      <div className="flex items-center space-x-2 mb-3">
         <Avatar 
           src={item.author?.avatar}
           name={item.author?.name}
