@@ -10,15 +10,17 @@ interface CourseProgressCardProps {
     id: string;
     title: string;
     instructor: string;
-    progress: number; // 0-100
+    progress?: number; // 0-100, calculated based on time
     nextLesson?: string;
     timeRemaining?: string;
     thumbnail: string;
     difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
     rating: number;
-    totalLessons: number;
-    completedLessons: number;
+    totalLessons?: number;
+    completedLessons?: number;
     lastAccessed?: string;
+    startDate?: string; // Course start date
+    endDate?: string; // Course end date (defaults to May 1st, 2025)
   };
   size?: 'small' | 'medium' | 'large';
 }
@@ -28,6 +30,58 @@ const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
   size = 'medium' 
 }) => {
   const router = useRouter();
+
+  // Calculate progress based on time elapsed from start to May 1st, 2025
+  const calculateTimeBasedProgress = () => {
+    const now = new Date();
+    const courseEndDate = course.endDate ? new Date(course.endDate) : new Date('2025-05-01');
+    const courseStartDate = course.startDate ? new Date(course.startDate) : new Date('2024-08-15'); // Assume fall semester start
+    
+    // If we're past the end date, course is complete
+    if (now >= courseEndDate) {
+      return 100;
+    }
+    
+    // If we're before the start date, course hasn't started
+    if (now < courseStartDate) {
+      return 0;
+    }
+    
+    // Calculate progress based on time elapsed
+    const totalDuration = courseEndDate.getTime() - courseStartDate.getTime();
+    const elapsed = now.getTime() - courseStartDate.getTime();
+    const progress = Math.round((elapsed / totalDuration) * 100);
+    
+    return Math.min(Math.max(progress, 0), 100);
+  };
+
+  // Calculate time remaining until May 1st, 2025
+  const calculateTimeRemaining = () => {
+    const now = new Date();
+    const courseEndDate = course.endDate ? new Date(course.endDate) : new Date('2025-05-01');
+    
+    if (now >= courseEndDate) {
+      return 'Course completed';
+    }
+    
+    const timeDiff = courseEndDate.getTime() - now.getTime();
+    const daysRemaining = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    
+    if (daysRemaining > 30) {
+      const monthsRemaining = Math.floor(daysRemaining / 30);
+      return `${monthsRemaining} month${monthsRemaining !== 1 ? 's' : ''} remaining`;
+    } else if (daysRemaining > 7) {
+      const weeksRemaining = Math.floor(daysRemaining / 7);
+      return `${weeksRemaining} week${weeksRemaining !== 1 ? 's' : ''} remaining`;
+    } else if (daysRemaining > 0) {
+      return `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining`;
+    } else {
+      return 'Due today';
+    }
+  };
+
+  const progress = course.progress ?? calculateTimeBasedProgress();
+  const timeRemaining = course.timeRemaining ?? calculateTimeRemaining();
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -68,7 +122,7 @@ const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
             alt={course.title}
             className="w-16 h-16 rounded-lg object-cover"
           />
-          {course.progress === 100 && (
+          {progress === 100 && (
             <div className="absolute -top-1 -right-1">
               <CheckCircleIcon className="w-6 h-6 text-green-500 bg-white rounded-full" />
             </div>
@@ -97,46 +151,42 @@ const CourseProgressCard: React.FC<CourseProgressCardProps> = ({
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-gray-700">
-            Progress: {course.completedLessons}/{course.totalLessons} lessons
+            Course Progress (Time-based)
           </span>
           <span className="text-sm font-bold text-gray-900">
-            {course.progress}%
+            {progress}%
           </span>
         </div>
         
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div 
-            className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(course.progress)}`}
-            style={{ width: `${course.progress}%` }}
+            className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(progress)}`}
+            style={{ width: `${progress}%` }}
           />
         </div>
       </div>
 
       {/* Next Lesson or Completion */}
-      {course.progress === 100 ? (
+      {progress === 100 ? (
         <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
           <div className="flex items-center space-x-2">
             <CheckCircleIcon className="w-5 h-5 text-green-500" />
             <span className="text-sm font-medium text-green-800">Course Completed!</span>
           </div>
           <button className="text-sm text-green-600 hover:text-green-700 font-medium">
-            View Certificate
+            View Final Grade
           </button>
         </div>
       ) : (
         <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
           <div className="flex-1">
-            {course.nextLesson && (
-              <p className="text-sm font-medium text-blue-900 mb-1">
-                Next: {course.nextLesson}
-              </p>
-            )}
-            {course.timeRemaining && (
-              <div className="flex items-center space-x-1">
-                <ClockIcon className="w-4 h-4 text-blue-600" />
-                <span className="text-xs text-blue-600">{course.timeRemaining} remaining</span>
-              </div>
-            )}
+            <p className="text-sm font-medium text-blue-900 mb-1">
+              Course ends May 1st, 2025
+            </p>
+            <div className="flex items-center space-x-1">
+              <ClockIcon className="w-4 h-4 text-blue-600" />
+              <span className="text-xs text-blue-600">{timeRemaining}</span>
+            </div>
           </div>
           <button className="flex items-center space-x-1 px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
             <PlayIcon className="w-4 h-4" />
