@@ -258,7 +258,9 @@ const StudentAssignmentDetailPage: React.FC = () => {
             hidePeerVideosUntilInstructorPosts: foundAssignment.hidePeerVideosUntilInstructorPosts || false,
             minResponsesRequired: foundAssignment.minResponsesRequired || 0,
             maxResponsesPerVideo: foundAssignment.maxResponsesPerVideo || 0,
+            instructionalVideoUrl: foundAssignment.instructionalVideoUrl || '', // Add instructional video URL
           };
+          console.log('📹 Instructional video URL:', transformedAssignment.instructionalVideoUrl);
           setAssignment(transformedAssignment);
           return;
         } else {
