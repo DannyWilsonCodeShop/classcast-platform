@@ -1696,13 +1696,16 @@ const InstructorCourseDetailPage: React.FC = () => {
                       
                       console.log('📤 Request Body:', JSON.stringify(requestBody, null, 2));
                       
-                      // Call the assignment update API
-                      const response = await fetch(`/api/assignments/${editingAssignment.assignmentId}`, {
+                      // Call the assignment update API with cache busting
+                      const response = await fetch(`/api/assignments/${editingAssignment.assignmentId}?t=${Date.now()}`, {
                         method: 'PUT',
                         headers: { 
                           'Content-Type': 'application/json',
+                          'Cache-Control': 'no-cache, no-store, must-revalidate',
+                          'Pragma': 'no-cache',
                         },
                         credentials: 'include',
+                        cache: 'no-store',
                         body: JSON.stringify(requestBody)
                       });
                       
@@ -1721,6 +1724,13 @@ const InstructorCourseDetailPage: React.FC = () => {
                           console.error('❌ Could not parse error as JSON');
                         }
                         
+                        // Special handling for 403 errors
+                        if (response.status === 403) {
+                          console.error('🔒 403 Forbidden Error - This might be a browser cache or session issue');
+                          console.error('🔧 Try: Clear browser cache, logout and login again, or use incognito mode');
+                          throw new Error('Access denied. Please try logging out and back in, or clear your browser cache.');
+                        }
+                        
                         throw new Error(`HTTP ${response.status}: ${errorText}`);
                       }
                       
@@ -1733,15 +1743,15 @@ const InstructorCourseDetailPage: React.FC = () => {
                       alert('Assignment updated successfully!');
                     } catch (error) {
                       console.error('❌ Error updating assignment:', error);
-                      console.error('❌ Error name:', error.name);
-                      console.error('❌ Error message:', error.message);
-                      console.error('❌ Error stack:', error.stack);
+                      console.error('❌ Error name:', error?.name);
+                      console.error('❌ Error message:', error?.message);
+                      console.error('❌ Error stack:', error?.stack);
                       
                       // Show detailed error to user
                       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
                       alert(`Failed to update assignment: ${errorMessage}\n\nCheck the browser console for more details.`);
                     }
-                  }}}
+                  }}
                   onCancel={() => setEditingAssignment(null)}
                   onDelete={async () => {
                     console.log('🔄 Assignment deleted, refreshing course details...');
