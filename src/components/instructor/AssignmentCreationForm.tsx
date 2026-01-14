@@ -7,6 +7,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { Assignment, AssignmentType, AssignmentStatus, AssignmentResource } from '@/types/dynamodb';
 import { CLASS_COLORS, getClassColorById, getDefaultClassColor } from '@/lib/class-colors';
 import AssignmentResourcesManager from './AssignmentResourcesManager';
+import InstructionalVideoUploader from './InstructionalVideoUploader';
 // import { Section } from '@/types/sections';
 
 interface Section {
@@ -68,9 +69,7 @@ interface FormData {
   allSections: boolean;
   peerReviewScope: 'section' | 'course';
   resources: AssignmentResource[];
-  instructionalVideoUrl: string; // NEW: Instructor's explanation video
-  instructionalVideoType: 'youtube' | 'upload' | 'none'; // NEW: Video type
-  instructionalVideoFile: File | null; // NEW: Uploaded video file
+  instructionalVideoUrl: string; // Instructor's explanation video
 }
 
 const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
@@ -125,8 +124,6 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     peerReviewScope: initialData?.peerReviewScope || 'section',
     resources: initialData?.resources || [],
     instructionalVideoUrl: initialData?.instructionalVideoUrl || '',
-    instructionalVideoType: initialData?.instructionalVideoUrl ? 'youtube' : 'none',
-    instructionalVideoFile: null
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -194,42 +191,6 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
       }
     }
 
-    // Validate instructional video settings
-    if (formData.instructionalVideoType === 'youtube') {
-      if (!formData.instructionalVideoUrl.trim()) {
-        newErrors.instructionalVideoUrl = 'Video URL is required when video URL type is selected';
-      } else {
-        // Validate both YouTube and Google Drive URLs
-        const trimmedUrl = formData.instructionalVideoUrl.trim();
-        const youtubeUrlPattern = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
-        // Updated Google Drive pattern to handle /view?usp=sharing and other parameters
-        const googleDrivePattern = /^https?:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+/;
-        
-        const isValidYouTube = youtubeUrlPattern.test(trimmedUrl);
-        const isValidGoogleDrive = googleDrivePattern.test(trimmedUrl);
-        
-        if (!isValidYouTube && !isValidGoogleDrive) {
-          newErrors.instructionalVideoUrl = 'Please enter a valid YouTube or Google Drive URL. Google Drive URLs should be in the format: https://drive.google.com/file/d/FILE_ID/...';
-        }
-      }
-    } else if (formData.instructionalVideoType === 'upload') {
-      if (!formData.instructionalVideoFile) {
-        newErrors.instructionalVideoFile = 'Video file is required when upload video type is selected';
-      }
-    }
-
-    if (formData.maxScore <= 0) {
-      newErrors.maxScore = 'Maximum score must be greater than 0';
-    }
-
-    if (formData.maxSubmissions < 1) {
-      newErrors.maxSubmissions = 'Maximum submissions must be at least 1';
-    }
-
-    if (formData.groupAssignment && formData.maxGroupSize < 2) {
-      newErrors.maxGroupSize = 'Group size must be at least 2';
-    }
-
     if (formData.maxFileSize <= 0) {
       newErrors.maxFileSize = 'Maximum file size must be greater than 0';
     }
@@ -292,97 +253,6 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     console.log('✅ Form validation passed, submitting...');
 
     try {
-      let instructionalVideoUrl = formData.instructionalVideoUrl;
-      console.log('📹 Initial instructional video URL:', instructionalVideoUrl);
-
-      // Handle video file upload if needed
-      if (formData.instructionalVideoType === 'upload' && formData.instructionalVideoFile) {
-        console.log('📤 Uploading instructional video...');
-        const uploadFormData = new FormData();
-        uploadFormData.append('video', formData.instructionalVideoFile);
-        uploadFormData.append('type', 'instructional');
-        
-        try {
-          const uploadResponse = await fetch('/api/upload/instructional-video', {
-            method: 'POST',
-            body: uploadFormData
-          });
-          
-          if (uploadResponse.ok) {
-            const uploadResult = await uploadResponse.json();
-            instructionalVideoUrl = uploadResult.videoUrl;
-            console.log('✅ Instructional video uploaded:', instructionalVideoUrl);
-          } else {
-            throw new Error('Failed to upload instructional video');
-          }
-        } catch (uploadError) {
-          console.error('Error uploading instructional video:', uploadError);
-          
-          // Show helpful error message
-          const errorMsg = uploadError instanceof Error ? uploadError.message : 'Unknown error';
-          alert(
-            '❌ Failed to upload instructional video.\n\n' +
-            'Video uploads are currently experiencing issues.\n\n' +
-            '✅ RECOMMENDED SOLUTION:\n' +
-            '1. Upload your video to YouTube or Google Drive\n' +
-            '2. Get the share link\n' +
-            '3. Use "Video URL" option instead of "Upload"\n' +
-            '4. Paste the link\n\n' +
-            'This is faster and more reliable!\n\n' +
-            `Technical error: ${errorMsg}`
-          );
-          return;
-        }
-      } else if (formData.instructionalVideoType === 'youtube') {
-        console.log('🔗 Using video URL directly:', instructionalVideoUrl);
-        
-        // Validate video URL format (YouTube or Google Drive)
-        const trimmedUrl = instructionalVideoUrl.trim();
-        const youtubeUrlPattern = /^https?:\/\/(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
-        // Updated Google Drive pattern to handle /view?usp=sharing and other parameters
-        const googleDrivePattern = /^https?:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+/;
-        
-        const isValidYouTube = youtubeUrlPattern.test(trimmedUrl);
-        const isValidGoogleDrive = googleDrivePattern.test(trimmedUrl);
-        
-        console.log('🔍 URL Validation in submit handler:');
-        console.log(`   URL: ${trimmedUrl}`);
-        console.log(`   YouTube valid: ${isValidYouTube}`);
-        console.log(`   Google Drive valid: ${isValidGoogleDrive}`);
-        console.log(`   Overall valid: ${isValidYouTube || isValidGoogleDrive}`);
-        
-        if (!isValidYouTube && !isValidGoogleDrive) {
-          console.error('❌ Invalid video URL format:', instructionalVideoUrl);
-          console.error('❌ YouTube pattern test:', isValidYouTube);
-          console.error('❌ Google Drive pattern test:', isValidGoogleDrive);
-          
-          const errorMessage = 'Please enter a valid YouTube or Google Drive URL.\n\n' +
-            'YouTube format: https://www.youtube.com/watch?v=VIDEO_ID\n' +
-            'Google Drive format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing\n\n' +
-            `Your URL: ${trimmedUrl}`;
-          
-          setErrors(prev => ({
-            ...prev,
-            instructionalVideoUrl: errorMessage
-          }));
-          alert(errorMessage);
-          
-          // Scroll to the error field
-          const element = document.getElementById('instructionalVideoUrl');
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            element.focus();
-          }
-          return;
-        }
-        
-        const urlType = isValidYouTube ? 'YouTube' : 'Google Drive';
-        console.log(`✅ ${urlType} URL format validated`);
-      }
-
-      const finalInstructionalVideoUrl = formData.instructionalVideoType !== 'none' && instructionalVideoUrl ? instructionalVideoUrl : '';
-      console.log('🎯 Final instructional video URL for assignment:', finalInstructionalVideoUrl);
-
       const assignmentData: Partial<Assignment> = {
         title: formData.title.trim(),
         description: formData.description.trim(),
@@ -411,7 +281,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         requireLiveRecording: formData.requireLiveRecording,
         allowYouTubeUrl: formData.allowYouTubeUrl,
         resources: formData.resources,
-        instructionalVideoUrl: finalInstructionalVideoUrl,
+        instructionalVideoUrl: formData.instructionalVideoUrl || '',
         rubric: formData.rubricType === 'ai_generated' ? formData.aiGeneratedRubric : 
                 formData.rubricType === 'upload' ? { type: 'uploaded', file: formData.rubricFile } : 
                 formData.rubricType === 'custom' ? { type: 'custom', categories: formData.customRubricCategories } :
@@ -877,152 +747,29 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
             Add a video explaining the assignment requirements to help students understand expectations
           </p>
 
-          <div className="space-y-4">
-            {/* Video Type Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Video Type
-              </label>
-              <div className="grid grid-cols-3 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, instructionalVideoType: 'none', instructionalVideoUrl: '', instructionalVideoFile: null }))}
-                  className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                    formData.instructionalVideoType === 'none'
-                      ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                  }`}
-                >
-                  No Video
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, instructionalVideoType: 'youtube', instructionalVideoFile: null }))}
-                  className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                    formData.instructionalVideoType === 'youtube'
-                      ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                  }`}
-                >
-                  🔗 Video URL
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFormData(prev => ({ ...prev, instructionalVideoType: 'upload', instructionalVideoUrl: '' }))}
-                  className={`px-4 py-3 rounded-lg border-2 transition-all ${
-                    formData.instructionalVideoType === 'upload'
-                      ? 'border-purple-500 bg-purple-50 text-purple-700 font-medium'
-                      : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                  }`}
-                >
-                  📤 Upload
-                </button>
-              </div>
+          <InstructionalVideoUploader
+            value={formData.instructionalVideoUrl}
+            onChange={(url) => setFormData(prev => ({ ...prev, instructionalVideoUrl: url }))}
+            onError={(error) => setErrors(prev => ({ ...prev, instructionalVideoUrl: error }))}
+          />
+
+          {/* Preview Message */}
+          {formData.instructionalVideoUrl && (
+            <div className="mt-4 bg-white border border-purple-200 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
+                <svg className="w-4 h-4 mr-1 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Students Will See
+              </h4>
+              <p className="text-xs text-purple-700">
+                ✓ Instructional video will appear at the top of the assignment page
+              </p>
+              <p className="text-xs text-gray-600 mt-1">
+                Students can watch your explanation before starting their work
+              </p>
             </div>
-
-            {/* Video URL Input (YouTube & Google Drive) */}
-            {formData.instructionalVideoType === 'youtube' && (
-              <div>
-                <label htmlFor="instructionalVideoUrl" className="block text-sm font-medium text-gray-700 mb-2">
-                  Video URL (YouTube or Google Drive) *
-                </label>
-                <input
-                  type="url"
-                  id="instructionalVideoUrl"
-                  value={formData.instructionalVideoUrl}
-                  onChange={(e) => setFormData(prev => ({ ...prev, instructionalVideoUrl: e.target.value }))}
-                  placeholder="https://www.youtube.com/watch?v=... or https://drive.google.com/file/d/..."
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 ${
-                    errors.instructionalVideoUrl ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-                {errors.instructionalVideoUrl && (
-                  <p className="mt-1 text-sm text-red-600">{errors.instructionalVideoUrl}</p>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  Paste a YouTube URL or Google Drive share link for your instructional video
-                </p>
-              </div>
-            )}
-
-            {/* Video Upload */}
-            {formData.instructionalVideoType === 'upload' && (
-              <div>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-start">
-                    <svg className="w-5 h-5 text-yellow-600 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    <div>
-                      <h4 className="text-sm font-medium text-yellow-800 mb-1">
-                        ⚠️ Video Upload Temporarily Unavailable
-                      </h4>
-                      <p className="text-sm text-yellow-700 mb-2">
-                        Direct video uploads are experiencing issues. We recommend using YouTube or Google Drive instead.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, instructionalVideoType: 'youtube' }))}
-                        className="text-sm font-medium text-yellow-800 hover:text-yellow-900 underline"
-                      >
-                        Switch to Video URL (Recommended)
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                
-                <label htmlFor="instructionalVideoFile" className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Video (Not Recommended - Use URL Instead)
-                </label>
-                <input
-                  type="file"
-                  id="instructionalVideoFile"
-                  accept="video/mp4,video/webm,video/mov"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setFormData(prev => ({ ...prev, instructionalVideoFile: file }));
-                    }
-                  }}
-                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 ${
-                    errors.instructionalVideoFile ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                />
-                {errors.instructionalVideoFile && (
-                  <p className="mt-1 text-sm text-red-600">{errors.instructionalVideoFile}</p>
-                )}
-                {formData.instructionalVideoFile && (
-                  <p className="mt-2 text-sm text-green-600 flex items-center">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    {formData.instructionalVideoFile.name} ({(formData.instructionalVideoFile.size / (1024 * 1024)).toFixed(2)} MB)
-                  </p>
-                )}
-                <p className="mt-1 text-xs text-gray-500">
-                  Supported formats: MP4, WebM, MOV (max 2GB)
-                </p>
-              </div>
-            )}
-
-            {/* Preview */}
-            {formData.instructionalVideoType !== 'none' && (formData.instructionalVideoUrl || formData.instructionalVideoFile) && (
-              <div className="bg-white border border-purple-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
-                  <svg className="w-4 h-4 mr-1 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  Students Will See
-                </h4>
-                <p className="text-xs text-purple-700">
-                  ✓ Instructional video will appear at the top of the assignment page
-                </p>
-                <p className="text-xs text-gray-600 mt-1">
-                  Students can watch your explanation before starting their work
-                </p>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Visual Identity */}
