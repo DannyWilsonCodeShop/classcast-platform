@@ -78,14 +78,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
-        {/* Header with ClassCast Logo */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">CC</span>
-            </div>
-            <span className="text-xl font-bold text-gray-900">ClassCast</span>
-          </div>
+        {/* Header with MyClassCast Logo - Far Left */}
+        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+          <img 
+            src="/MyClassCast (800 x 200 px).png" 
+            alt="MyClassCast" 
+            className="h-8 w-auto object-contain"
+          />
           <button
             onClick={onClose}
             className="lg:hidden p-1 rounded-md hover:bg-gray-100"
@@ -96,9 +95,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Scrollable Content */}
         <div className="flex flex-col h-full overflow-y-auto">
-          {/* User Profile - With School Logo */}
+          {/* User Profile - With Bigger School Logo */}
           <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 mb-3">
               <Avatar 
                 user={user}
                 size="lg"
@@ -108,14 +107,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 <p className="text-sm font-medium text-gray-900 truncate">
                   {user?.firstName} {user?.lastName}
                 </p>
-                <div className="flex items-center mt-2">
-                  <img 
-                    src="/logos/cristo-rey-atlanta.png" 
-                    alt="Cristo Rey Atlanta" 
-                    className="w-12 h-12 object-contain"
-                  />
-                </div>
               </div>
+            </div>
+            {/* Bigger School Logo */}
+            <div className="flex justify-center mt-3">
+              <img 
+                src="/logos/cristo-rey-atlanta.png" 
+                alt="Cristo Rey Atlanta" 
+                className="h-16 w-auto object-contain"
+              />
             </div>
           </div>
 
