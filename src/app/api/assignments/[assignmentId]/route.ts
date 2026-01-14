@@ -102,7 +102,8 @@ export async function GET(
       updatedAt: assignment.updatedAt,
       enablePeerResponses: assignment.enablePeerResponses || false,
       minResponsesRequired: assignment.minResponsesRequired || 0,
-      maxResponsesPerVideo: assignment.maxResponsesPerVideo || 0
+      maxResponsesPerVideo: assignment.maxResponsesPerVideo || 0,
+      instructionalVideoUrl: assignment.instructionalVideoUrl || '' // ADD INSTRUCTIONAL VIDEO URL
     };
     
     return NextResponse.json({
