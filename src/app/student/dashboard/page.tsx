@@ -16,6 +16,7 @@ import { parseVideoUrl, getEmbedUrl } from '@/lib/urlUtils';
 import { extractYouTubeVideoId as getYouTubeVideoId } from '@/lib/youtube';
 import RichTextRenderer from '@/components/common/RichTextRenderer';
 import DemoModeBanner from '@/components/common/DemoModeBanner';
+import SmartAutoPlayVideo from '@/components/student/SmartAutoPlayVideo';
 import { 
   AcademicCapIcon, 
   ClockIcon, 
@@ -628,48 +629,14 @@ const CompactVideoFeedItem: React.FC<{
         )}
       </div>
 
-      {/* Better Sized Video Player */}
+      {/* Better Sized Video Player with Smart Auto-Play */}
       <div className="relative w-full bg-black mb-3 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
-        {isYouTube && videoId && embedUrl ? (
-          <div 
-            className="relative w-full h-full group cursor-pointer"
-            onClick={(e) => {
-              const iframe = document.createElement('iframe');
-              iframe.src = `${embedUrl}?autoplay=1&controls=1&rel=0&modestbranding=1`;
-              iframe.className = 'w-full h-full';
-              iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-              iframe.allowFullscreen = true;
-              iframe.title = item.title || 'Video';
-              e.currentTarget.replaceWith(iframe);
-            }}
-          >
-            <img
-              src={imageError 
-                ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
-                : `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-              }
-              alt={item.title || 'Video'}
-              className="w-full h-full object-cover"
-              onError={() => {
-                if (!imageError) {
-                  setImageError(true);
-                }
-              }}
-            />
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center shadow-lg">
-                <PlayIcon className="w-5 h-5 text-white ml-0.5" fill="currentColor" />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <video
-            src={getVideoUrl(item.videoUrl)}
-            className="w-full h-full object-contain"
-            controls
-            playsInline
-          />
-        )}
+        <SmartAutoPlayVideo
+          videoUrl={item.videoUrl || ''}
+          title={item.title}
+          onPlay={() => console.log('Video playing:', item.title)}
+          className="w-full h-full"
+        />
       </div>
 
       {/* Title & Actions */}
