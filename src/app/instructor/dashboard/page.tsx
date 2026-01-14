@@ -76,6 +76,15 @@ const InstructorDashboard: React.FC = () => {
 
   const selectedCourse = courses.find(course => course.courseId === selectedCourseId);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    const firstName = user?.firstName || 'Instructor';
+    
+    if (hour < 12) return `Good morning, ${firstName}!`;
+    if (hour < 17) return `Good afternoon, ${firstName}!`;
+    return `Good evening, ${firstName}!`;
+  };
+
   return (
     <InstructorRoute>
       <div className="min-h-screen bg-gray-50">
@@ -122,14 +131,14 @@ const InstructorDashboard: React.FC = () => {
                 <span className="font-medium text-xs sm:text-sm hidden sm:inline">Create</span>
               </button>
               
-              {/* Wizard Button */}
+              {/* Lesson Modules Button */}
               <button
-                onClick={() => router.push('/instructor/classes/create')} // Could also open a wizard modal
+                onClick={() => router.push('/instructor/lesson-modules')}
                 className="flex items-center space-x-1 sm:space-x-2 bg-purple-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors shadow-lg hover:shadow-xl"
-                title="Create a new class using the wizard"
+                title="Create and manage lesson modules"
               >
-                <span className="text-base sm:text-lg">🧙</span>
-                <span className="font-medium text-xs sm:text-sm hidden sm:inline">Wizard</span>
+                <span className="text-base sm:text-lg">📚</span>
+                <span className="font-medium text-xs sm:text-sm hidden sm:inline">Modules</span>
               </button>
               
               {/* Profile Avatar */}
@@ -143,8 +152,16 @@ const InstructorDashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Greeting Bar */}
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-6">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-1">{getGreeting()}</h1>
+            <p className="text-indigo-100">Ready to inspire your students today?</p>
+          </div>
+        </div>
+
         {/* Status Bar with Course Selection */}
-        <div className="bg-gray-50 border-b border-indigo-600/20 px-4 py-3">
+        <div className="bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="text-gray-800 font-medium">
