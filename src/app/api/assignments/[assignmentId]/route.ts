@@ -300,42 +300,29 @@ export async function DELETE(
   try {
     const { assignmentId } = await params;
     
-    console.log('Deleting assignment:', assignmentId);
+    console.log('🗑️ Deleting assignment:', assignmentId);
     
-    // Verify assignment exists first
-    const existingAssignment = await docClient.send(new ScanCommand({
-      TableName: ASSIGNMENTS_TABLE,
-      FilterExpression: 'assignmentId = :assignmentId',
-      ExpressionAttributeValues: {
-        ':assignmentId': assignmentId
-      }
-    }));
-    
-    if (!existingAssignment.Items || existingAssignment.Items.length === 0) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Assignment not found' 
-        },
-        { status: 404 }
-      );
-    }
-    
-    // Delete the assignment
+    // Delete the assignment directly (DynamoDB won't error if it doesn't exist)
     await docClient.send(new DeleteCommand({
       TableName: ASSIGNMENTS_TABLE,
       Key: { assignmentId }
     }));
     
-    console.log('Assignment deleted successfully:', assignmentId);
+    console.log('✅ Assignment deleted successfully:', assignmentId);
     
     return NextResponse.json({
       success: true,
       message: 'Assignment deleted successfully'
+    }, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
     });
     
   } catch (error) {
-    console.error('Error deleting assignment:', error);
+    console.error('❌ Error deleting assignment:', error);
     return NextResponse.json(
       { 
         success: false,
