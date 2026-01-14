@@ -529,7 +529,15 @@ const InstructorCourseDetailPage: React.FC = () => {
             resources: assignment.resources || [],
             instructionalVideoUrl: assignment.instructionalVideoUrl || ''
           }));
-          setAssignments(transformedAssignments);
+          
+          // Sort assignments by creation date (most recent first)
+          const sortedAssignments = transformedAssignments.sort((a, b) => {
+            const dateA = new Date(a.createdAt).getTime();
+            const dateB = new Date(b.createdAt).getTime();
+            return dateB - dateA; // Descending order (newest first)
+          });
+          
+          setAssignments(sortedAssignments);
         }
       }
 
