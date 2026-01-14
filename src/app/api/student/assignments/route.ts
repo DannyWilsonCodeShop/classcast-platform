@@ -175,7 +175,12 @@ export async function GET(request: NextRequest) {
           feedback: submission?.feedback || null,
           instructor: instructorName,
           createdAt: assignment.createdAt || new Date().toISOString(),
-          attachments: assignment.resources || []
+          attachments: assignment.resources || [],
+          instructionalVideoUrl: assignment.instructionalVideoUrl || '', // ADD INSTRUCTIONAL VIDEO URL
+          enablePeerResponses: assignment.enablePeerResponses || false,
+          minResponsesRequired: assignment.minResponsesRequired || 0,
+          maxResponsesPerVideo: assignment.maxResponsesPerVideo || 0,
+          hidePeerVideosUntilInstructorPosts: assignment.hidePeerVideosUntilInstructorPosts || false
         };
       })
     );
