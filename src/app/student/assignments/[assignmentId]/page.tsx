@@ -753,18 +753,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
             {/* Assignment Details */}
             <div className="space-y-6">
-                  {/* Resources Section */}
-                  {displayAssignment.resources && displayAssignment.resources.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                        <span className="mr-2">📎</span>
-                        Assignment Resources
-                      </h3>
-                      <AssignmentResourcesDisplay resources={displayAssignment.resources} />
-                    </div>
-                  )}
-
-                  {/* Instructional Video */}
+                  {/* Instructional Video - MOVED TO TOP */}
                   {displayAssignment.instructionalVideoUrl && (
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
@@ -810,6 +799,17 @@ const StudentAssignmentDetailPage: React.FC = () => {
                           </p>
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Resources Section */}
+                  {displayAssignment.resources && displayAssignment.resources.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                        <span className="mr-2">📎</span>
+                        Assignment Resources
+                      </h3>
+                      <AssignmentResourcesDisplay resources={displayAssignment.resources} />
                     </div>
                   )}
 

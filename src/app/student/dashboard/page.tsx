@@ -351,11 +351,11 @@ const StudentDashboard: React.FC = () => {
         title={getGreeting()} 
         subtitle="Ready to continue your learning journey?"
       >
-        <div className="h-[calc(100vh-200px)] overflow-hidden">
-          {/* Main Content Grid - Fixed Height */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-full">
+        <div className="pb-8">
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Left Column - Social Feed (3/4 width) */}
-            <div className="lg:col-span-3 flex flex-col h-full">
+            <div className="lg:col-span-3 flex flex-col">
               {/* Community Post Bar - Enhanced with gradient */}
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg border border-blue-200 p-4 mb-4 flex-shrink-0">
                 <div className="flex items-center space-x-3">
@@ -444,8 +444,8 @@ const StudentDashboard: React.FC = () => {
               )}
 
               {/* Student Videos & Community Feed - Enhanced */}
-              <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-xl shadow-lg border border-blue-200 flex-1 flex flex-col min-h-0">
-                <div className="p-4 border-b border-blue-200 flex-shrink-0 bg-gradient-to-r from-blue-50 to-purple-50">
+              <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-xl shadow-lg border border-blue-200">
+                <div className="p-4 border-b border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
                   <h3 className="text-lg font-bold text-gray-900 flex items-center">
                     <span className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white mr-3">
                       🎥
@@ -455,7 +455,7 @@ const StudentDashboard: React.FC = () => {
                   <p className="text-sm text-gray-600 ml-11">See what your classmates are sharing</p>
                 </div>
                 
-                <div className="flex-1 overflow-y-auto">
+                <div className="max-h-[600px] overflow-y-auto">
                   {filteredFeedItems.length === 0 ? (
                     <div className="p-8 text-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -488,7 +488,7 @@ const StudentDashboard: React.FC = () => {
             </div>
 
             {/* Right Column - Simplified Widgets (1/4 width) */}
-            <div className="space-y-4 h-full overflow-y-auto">
+            <div className="space-y-4">
               {/* Recent Grades */}
               <RecentGradesWidget userId={user?.id} />
 
