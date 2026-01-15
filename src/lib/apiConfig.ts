@@ -1,203 +1,94 @@
-import { ApiClient } from './apiClient';
-import { TokenManager } from './tokenManager';
+/**
+ * API Configuration
+ * Centralized configuration for API endpoints
+ */
 
-// API Gateway configuration
-const API_GATEWAY_URL = 'https://785t4qadp8.execute-api.us-east-1.amazonaws.com/prod';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://ete1conlc8.execute-api.us-east-1.amazonaws.com/prod';
 
-// Create API client instance
-export const apiClient = new ApiClient({
-  baseUrl: API_GATEWAY_URL,
-  timeoutMs: 30000,
-  maxRetries: 3,
-  retryDelayMs: 1000
-});
-
-// Initialize token manager with default implementations
-export const tokenManager = new TokenManager(
-  {
-    get: () => {
-      const tokens = localStorage.getItem('authTokens');
-      return tokens ? JSON.parse(tokens) : null;
-    },
-    set: (tokens) => {
-      localStorage.setItem('authTokens', JSON.stringify(tokens));
-    },
-    remove: () => {
-      localStorage.removeItem('authTokens');
-    }
-  },
-  async () => {
-    // Default token refresher - would need to be implemented based on your auth system
-    throw new Error('Token refresh not implemented');
-  }
-);
-
-// API endpoints configuration
-export const API_ENDPOINTS = {
-  // Authentication
-  AUTH: {
-    SIGNIN: '/auth',
-    SIGNUP: '/auth',
-    SIGNOUT: '/auth',
-    FORGOT_PASSWORD: '/auth/forgot-password',
-    CONFIRM_PASSWORD_RESET: '/auth/confirm-password-reset',
-    REFRESH_TOKEN: '/auth/refresh-token',
-    RESEND_CONFIRMATION: '/auth/resend-confirmation',
-    CONFIRM_SIGNUP: '/auth/confirm-signup'
-  },
-  
-  // Assignments
-  ASSIGNMENTS: {
-    LIST: '/assignments',
-    CREATE: '/assignments',
-    GET: (id: string) => `/assignments/${id}`,
-    UPDATE: (id: string) => `/assignments/${id}`,
-    DELETE: (id: string) => `/assignments/${id}`
-  },
-  
-  // Submissions
-  SUBMISSIONS: {
-    LIST: '/submissions',
-    GRADE: '/submissions',
-    GET: (id: string) => `/submissions/${id}`,
-    UPDATE: (id: string) => `/submissions/${id}`
-  },
-  
-  // Grades
-  GRADES: {
-    LIST: '/grades',
-    GET: (id: string) => `/grades/${id}`
-  },
-  
-  // Video
-  VIDEO: {
-    UPLOAD_URL: '/video',
-    PROCESS: '/video'
-  },
-  
-  // Users
-  USERS: {
-    ROLES: '/users',
-    ROLE_SIGNUP: '/users'
-  },
-  
-  // Community
-  COMMUNITY: {
-    FEED: '/community',
-    POST: '/community'
-  },
-  
-  // Utils
-  UTILS: {
-    VERIFY_TOKEN: '/utils',
-    SESSION: '/utils'
+export const apiConfig = {
+  baseUrl: API_BASE_URL,
+  endpoints: {
+    assignments: `${API_BASE_URL}/assignments`,
+    courses: `${API_BASE_URL}/courses`,
+    users: `${API_BASE_URL}/users`,
+    videos: `${API_BASE_URL}/videos`,
+    submissions: `${API_BASE_URL}/video-submissions`,
+    auth: `${API_BASE_URL}/auth`,
+    upload: `${API_BASE_URL}/upload`,
   }
 };
 
-// Helper functions for common API calls
-export const apiHelpers = {
-  // Authentication helpers
-  async signIn(email: string, password: string) {
-    return apiClient.post(API_ENDPOINTS.AUTH.SIGNIN, { email, password });
-  },
-  
-  async signUp(userData: any) {
-    return apiClient.put(API_ENDPOINTS.AUTH.SIGNUP, userData);
-  },
-  
-  async signOut() {
-    return apiClient.delete(API_ENDPOINTS.AUTH.SIGNOUT);
-  },
-  
-  async forgotPassword(email: string) {
-    return apiClient.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, { email });
-  },
-  
-  async confirmPasswordReset(email: string, code: string, newPassword: string) {
-    return apiClient.post(API_ENDPOINTS.AUTH.CONFIRM_PASSWORD_RESET, { email, code, newPassword });
-  },
-  
-  // Assignment helpers
-  async getAssignments(filters?: any) {
-    const queryParams = filters ? `?${new URLSearchParams(filters).toString()}` : '';
-    return apiClient.get(`${API_ENDPOINTS.ASSIGNMENTS.LIST}${queryParams}`);
-  },
-  
-  async createAssignment(assignmentData: any) {
-    return apiClient.post(API_ENDPOINTS.ASSIGNMENTS.CREATE, assignmentData);
-  },
-  
-  async getAssignment(id: string) {
-    return apiClient.get(API_ENDPOINTS.ASSIGNMENTS.GET(id));
-  },
-  
-  async updateAssignment(id: string, assignmentData: any) {
-    return apiClient.put(API_ENDPOINTS.ASSIGNMENTS.UPDATE(id), assignmentData);
-  },
-  
-  async deleteAssignment(id: string) {
-    return apiClient.delete(API_ENDPOINTS.ASSIGNMENTS.DELETE(id));
-  },
-  
-  // Submission helpers
-  async getSubmissions(filters?: any) {
-    const queryParams = filters ? `?${new URLSearchParams(filters).toString()}` : '';
-    return apiClient.get(`${API_ENDPOINTS.SUBMISSIONS.LIST}${queryParams}`);
-  },
-  
-  async gradeSubmission(submissionId: string, gradeData: any) {
-    return apiClient.post(API_ENDPOINTS.SUBMISSIONS.GRADE, { submissionId, ...gradeData });
-  },
-  
-  // Grade helpers
-  async getGrades(filters?: any) {
-    const queryParams = filters ? `?${new URLSearchParams(filters).toString()}` : '';
-    return apiClient.get(`${API_ENDPOINTS.GRADES.LIST}${queryParams}`);
-  },
-  
-  // Video helpers
-  async generateVideoUploadUrl(videoData: any) {
-    return apiClient.post(API_ENDPOINTS.VIDEO.UPLOAD_URL, videoData);
-  },
-  
-  async processVideoSubmission(videoData: any) {
-    return apiClient.put(API_ENDPOINTS.VIDEO.PROCESS, videoData);
-  },
-  
-  // User management helpers
-  async getUserRoles() {
-    return apiClient.get(API_ENDPOINTS.USERS.ROLES);
-  },
-  
-  async roleBasedSignup(userData: any) {
-    return apiClient.post(API_ENDPOINTS.USERS.ROLE_SIGNUP, userData);
-  },
-  
-  // Community helpers
-  async getCommunityFeed() {
-    return apiClient.get(API_ENDPOINTS.COMMUNITY.FEED);
-  },
-  
-  async postToCommunity(postData: any) {
-    return apiClient.post(API_ENDPOINTS.COMMUNITY.POST, postData);
-  },
-  
-  // Utility helpers
-  async verifyToken(token: string) {
-    return apiClient.post(API_ENDPOINTS.UTILS.VERIFY_TOKEN, { token });
-  },
-  
-  async getSessionInfo() {
-    return apiClient.get(API_ENDPOINTS.UTILS.SESSION);
-  },
-  
-  async updateSession(sessionData: any) {
-    return apiClient.put(API_ENDPOINTS.UTILS.SESSION, sessionData);
-  },
-  
-  async endSession() {
-    return apiClient.delete(API_ENDPOINTS.UTILS.SESSION);
-  }
-};
+/**
+ * Get full API URL for a given path
+ * @param path - API path (with or without leading slash)
+ * @returns Full API URL
+ */
+export function getApiUrl(path: string): string {
+  // Remove leading slash if present
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  return `${API_BASE_URL}/${cleanPath}`;
+}
 
-export default apiClient;
+/**
+ * Get API URL for assignments
+ * @param assignmentId - Optional assignment ID
+ * @returns Assignment API URL
+ */
+export function getAssignmentApiUrl(assignmentId?: string): string {
+  return assignmentId 
+    ? `${apiConfig.endpoints.assignments}/${assignmentId}`
+    : apiConfig.endpoints.assignments;
+}
+
+/**
+ * Make API request with proper error handling
+ * @param path - API path
+ * @param options - Fetch options
+ * @returns Promise with response
+ */
+export async function apiRequest(path: string, options: RequestInit = {}): Promise<Response> {
+  const url = getApiUrl(path);
+  
+  const defaultOptions: RequestInit = {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  };
+
+  try {
+    const response = await fetch(url, defaultOptions);
+    
+    // Log for debugging
+    console.log(`🌐 API Request: ${options.method || 'GET'} ${url}`);
+    console.log(`📡 Response Status: ${response.status}`);
+    
+    return response;
+  } catch (error) {
+    console.error(`❌ API Request Failed: ${url}`, error);
+    throw error;
+  }
+}
+
+/**
+ * Check if we should use local API routes (development) or external API Gateway (production)
+ */
+export function shouldUseLocalApi(): boolean {
+  return process.env.NODE_ENV === 'development' && 
+         typeof window !== 'undefined' && 
+         window.location.hostname === 'localhost';
+}
+
+/**
+ * Get the appropriate API URL based on environment
+ */
+export function getEnvironmentApiUrl(path: string): string {
+  if (shouldUseLocalApi()) {
+    // Use local Next.js API routes in development
+    return `/api/${path.startsWith('/') ? path.slice(1) : path}`;
+  } else {
+    // Use API Gateway in production
+    return getApiUrl(path);
+  }
+}
