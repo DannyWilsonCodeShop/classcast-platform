@@ -97,7 +97,7 @@ const createAssignmentSchema = z.object({
   
   maxFileSize: z.number()
     .min(1024, 'Max file size must be at least 1KB')
-    .max(104857600, 'Max file size must not exceed 100MB'), // 100MB
+    .max(2147483648, 'Max file size must not exceed 2GB'), // 2GB to match upload system
   
   individualSubmission: z.boolean(),
   
@@ -638,10 +638,10 @@ function validateBusinessRules(data: CreateAssignmentRequest, user: Authenticate
 
   // Validate file size limits based on user role
   if (user.isInstructor && !user.isAdmin) {
-    if (data.maxFileSize > 52428800) { // 50MB for instructors
+    if (data.maxFileSize > 1073741824) { // 1GB for instructors
       return {
         valid: false,
-        message: 'Instructors can only set maximum file size up to 50MB'
+        message: 'Instructors can only set maximum file size up to 1GB'
       };
     }
   }

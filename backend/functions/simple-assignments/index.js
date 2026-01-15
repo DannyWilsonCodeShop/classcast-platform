@@ -103,7 +103,7 @@ exports.handler = async (event) => {
         groupAssignment: body.groupAssignment || false,
         maxGroupSize: body.maxGroupSize || 2,
         allowedFileTypes: body.allowedFileTypes || ['mp4', 'webm', 'mov'],
-        maxFileSize: body.maxFileSize || 100 * 1024 * 1024,
+        maxFileSize: body.maxFileSize || 2 * 1024 * 1024 * 1024, // Default to 2GB
         enablePeerResponses: body.enablePeerResponses || false,
         responseDueDate: body.responseDueDate,
         minResponsesRequired: body.minResponsesRequired || 2,

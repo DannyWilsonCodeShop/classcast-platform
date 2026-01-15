@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getApiUrl, getEnvironmentApiUrl } from '@/lib/apiConfig';
 
 // Query keys for consistent caching
 export const queryKeys = {
@@ -21,7 +22,7 @@ export function useUser(userId: string) {
   return useQuery({
     queryKey: queryKeys.user(userId),
     queryFn: async () => {
-      const response = await fetch(`/api/users/${userId}`, {
+      const response = await fetch(getEnvironmentApiUrl(`users/${userId}`), {
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch user');
@@ -36,7 +37,7 @@ export function useCourses() {
   return useQuery({
     queryKey: queryKeys.courses(),
     queryFn: async () => {
-      const response = await fetch('/api/courses', {
+      const response = await fetch(getEnvironmentApiUrl('courses'), {
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch courses');
@@ -50,7 +51,7 @@ export function useCourse(courseId: string) {
   return useQuery({
     queryKey: queryKeys.course(courseId),
     queryFn: async () => {
-      const response = await fetch(`/api/courses/${courseId}`, {
+      const response = await fetch(getEnvironmentApiUrl(`courses/${courseId}`), {
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch course');
@@ -65,7 +66,7 @@ export function useAssignments(courseId: string) {
   return useQuery({
     queryKey: queryKeys.assignments(courseId),
     queryFn: async () => {
-      const response = await fetch(`/api/courses/${courseId}/assignments`, {
+      const response = await fetch(getEnvironmentApiUrl(`courses/${courseId}/assignments`), {
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch assignments');
@@ -80,7 +81,7 @@ export function useAssignment(assignmentId: string) {
   return useQuery({
     queryKey: queryKeys.assignment(assignmentId),
     queryFn: async () => {
-      const response = await fetch(`/api/assignments/${assignmentId}`, {
+      const response = await fetch(getApiUrl(`assignments/${assignmentId}`), {
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch assignment');
@@ -95,7 +96,7 @@ export function useSubmissions(assignmentId: string) {
   return useQuery({
     queryKey: queryKeys.submissions(assignmentId),
     queryFn: async () => {
-      const response = await fetch(`/api/instructor/video-submissions?assignmentId=${assignmentId}`, {
+      const response = await fetch(getEnvironmentApiUrl(`instructor/video-submissions?assignmentId=${assignmentId}`), {
         credentials: 'include',
       });
       if (!response.ok) throw new Error('Failed to fetch submissions');
@@ -111,7 +112,7 @@ export function useCreateAssignment() {
 
   return useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/assignments', {
+      const response = await fetch(getEnvironmentApiUrl('assignments'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -133,7 +134,7 @@ export function useUpdateAssignment() {
 
   return useMutation({
     mutationFn: async ({ assignmentId, data }: { assignmentId: string; data: any }) => {
-      const response = await fetch(`/api/assignments/${assignmentId}`, {
+      const response = await fetch(getApiUrl(`assignments/${assignmentId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -159,7 +160,7 @@ export function usePrefetchCourse(courseId: string) {
     queryClient.prefetchQuery({
       queryKey: queryKeys.course(courseId),
       queryFn: async () => {
-        const response = await fetch(`/api/courses/${courseId}`, {
+        const response = await fetch(getEnvironmentApiUrl(`courses/${courseId}`), {
           credentials: 'include',
         });
         if (!response.ok) throw new Error('Failed to fetch course');
