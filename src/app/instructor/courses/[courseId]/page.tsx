@@ -694,7 +694,7 @@ const InstructorCourseDetailPage: React.FC = () => {
 
   const handleCourseUpdate = async (updateData: Partial<Course>) => {
     try {
-      const response = await fetch(`/api/courses/${courseId}`, {
+      const response = await fetch(getApiUrl(`courses/${courseId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
@@ -1026,9 +1026,15 @@ const InstructorCourseDetailPage: React.FC = () => {
                 </span>
                 <button 
                   onClick={() => setShowSettingsModal(true)}
+                  className="px-4 py-2 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition-colors"
+                >
+                  ✏️ Edit Course
+                </button>
+                <button 
+                  onClick={() => setShowSettingsModal(true)}
                   className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
                 >
-                  ⚙️ Course Settings
+                  ⚙️ Settings
                 </button>
               </div>
             </div>
@@ -1036,6 +1042,48 @@ const InstructorCourseDetailPage: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Course Info Card */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">Course Information</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">Course Name:</span>
+                    <span className="ml-2 font-medium">{course.courseName}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Course Code:</span>
+                    <span className="ml-2 font-medium">{course.courseCode}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Semester:</span>
+                    <span className="ml-2 font-medium">{course.semester} {course.year}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Enrollment:</span>
+                    <span className="ml-2 font-medium">
+                      {course.enrollmentCount} / {course.maxEnrollment || 'Unlimited'} students
+                    </span>
+                  </div>
+                </div>
+                {course.description && (
+                  <div className="mt-3">
+                    <span className="text-gray-600">Description:</span>
+                    <p className="mt-1 text-gray-800">{course.description}</p>
+                  </div>
+                )}
+              </div>
+              <button 
+                onClick={() => setShowSettingsModal(true)}
+                className="px-4 py-2 bg-indigo-500 text-white rounded-lg font-medium hover:bg-indigo-600 transition-colors"
+                title="Edit course details, settings, and manage sections"
+              >
+                ✏️ Edit Course Details
+              </button>
+            </div>
+          </div>
+
           {/* Course Stats */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
