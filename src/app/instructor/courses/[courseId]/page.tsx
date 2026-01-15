@@ -12,6 +12,7 @@ import AssignmentDetailsModal from '@/components/instructor/AssignmentDetailsMod
 import SectionList from '@/components/instructor/SectionList';
 import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
 import RichTextRenderer from '@/components/common/RichTextRenderer';
+import { getApiUrl } from '@/lib/apiConfig';
 
 interface Course {
   courseId: string;
@@ -739,7 +740,7 @@ const InstructorCourseDetailPage: React.FC = () => {
 
   const handleAssignmentUpdate = async (assignmentId: string, updateData: Partial<Assignment>) => {
     try {
-      const response = await fetch(`/api/assignments/${assignmentId}`, {
+      const response = await fetch(getApiUrl(`assignments/${assignmentId}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
