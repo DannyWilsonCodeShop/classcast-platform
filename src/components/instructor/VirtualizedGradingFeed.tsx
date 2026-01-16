@@ -37,7 +37,7 @@ interface VirtualizedGradingFeedProps {
 }
 
 const ITEM_HEIGHT = 600; // Height of each submission card
-const CONTAINER_HEIGHT = typeof window !== 'undefined' ? window.innerHeight - 200 : 800;
+const CONTAINER_HEIGHT = typeof window !== 'undefined' ? Math.max(window.innerHeight - 150, 1000) : 1000;
 
 export const VirtualizedGradingFeed: React.FC<VirtualizedGradingFeedProps> = ({
   submissions,
