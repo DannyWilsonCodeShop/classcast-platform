@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import YouTubePlayer from '@/components/common/YouTubePlayer';
 import { getVideoUrl } from '@/lib/videoUtils';
+import { isValidYouTubeUrl } from '@/lib/youtube';
 
 interface PeerVideo {
   id: string;
@@ -571,7 +572,7 @@ const PeerReviewsContent: React.FC = () => {
 
           {/* Video Player */}
             <div className="bg-black relative aspect-video w-full">
-              {video.videoUrl?.includes('youtube.com') || video.videoUrl?.includes('youtu.be') ? (
+              {isValidYouTubeUrl(video.videoUrl) ? (
               <YouTubePlayer
                   url={video.videoUrl}
                   title={video.title}
