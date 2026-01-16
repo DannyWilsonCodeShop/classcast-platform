@@ -1129,13 +1129,17 @@ Make sure your video is:
                         Choose File
                       </button>
                       <p className="text-xs text-gray-500 mt-2">
-                        Maximum file size: 500MB
+                        Maximum file size: 2GB
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1">
+                        📱 Mobile tip: For videos longer than 5 minutes, consider using YouTube or Google Drive link instead
                       </p>
                     </div>
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="video/*"
+                      accept="video/mp4,video/quicktime,video/x-m4v,video/*"
+                      capture="environment"
                       onChange={handleFileSelect}
                       className="hidden"
                     />
