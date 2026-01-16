@@ -194,66 +194,58 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         body: JSON.stringify(userData),
       });
 
-      if (!response.ok) {
-        let errorMessage = 'Signup failed';
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorData.message || 'Signup failed';
-        } catch (jsonError) {
-          errorMessage = `Signup failed with status ${response.status}`;
-        }
+      const result = await response.json();
+
+      // Check if signup failed
+      if (!response.ok || !result.success) {
+        const errorMessage = result.error || result.message || `Signup failed with status ${response.status}`;
+        setError(errorMessage);
         throw new Error(errorMessage);
       }
-
-      const result = await response.json();
       
-      if (result.success) {
-        // Handle JWT-based signup response
-        if (result.tokens) {
-          // Store tokens in API client
-          apiClient.setAccessToken(result.tokens.accessToken);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('refreshToken', result.tokens.refreshToken);
-            localStorage.setItem('idToken', result.tokens.idToken);
-          }
+      // Handle JWT-based signup response
+      if (result.tokens) {
+        // Store tokens in API client
+        apiClient.setAccessToken(result.tokens.accessToken);
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('refreshToken', result.tokens.refreshToken);
+          localStorage.setItem('idToken', result.tokens.idToken);
         }
-
-        // Create user object from signup data
-        const newUser: User = {
-          id: result.user?.id || userData.email,
-          email: userData.email,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          role: userData.role,
-          emailVerified: true,
-        };
-
-        setUser(newUser);
-        api.setCurrentUser(newUser);
-        
-        console.log('AuthContext: User created successfully, redirecting...', { role: userData.role });
-        
-        // Small delay to ensure state is set before redirect
-        setTimeout(() => {
-          // Redirect based on role
-          if (newUser.role === 'student') {
-            console.log('AuthContext: Redirecting student to dashboard');
-            router.push('/student/dashboard');
-          } else {
-            console.log('AuthContext: Redirecting instructor to dashboard');
-            router.push('/instructor/dashboard');
-          }
-        }, 100);
-        
-        return { success: true };
-      } else {
-        setError(result.error || 'Signup failed');
-        return { success: false, error: result.error || 'Signup failed' };
       }
+
+      // Create user object from signup data
+      const newUser: User = {
+        id: result.user?.id || userData.email,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role,
+        emailVerified: true,
+      };
+
+      setUser(newUser);
+      api.setCurrentUser(newUser);
+      
+      console.log('AuthContext: User created successfully, redirecting...', { role: userData.role });
+      
+      // Small delay to ensure state is set before redirect
+      setTimeout(() => {
+        // Redirect based on role
+        if (newUser.role === 'student') {
+          console.log('AuthContext: Redirecting student to dashboard');
+          router.push('/student/dashboard');
+        } else {
+          console.log('AuthContext: Redirecting instructor to dashboard');
+          router.push('/instructor/dashboard');
+        }
+      }, 100);
+      
+      return { success: true };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Signup failed';
       setError(errorMessage);
-      return { success: false, error: errorMessage };
+      // Re-throw the error so SignupForm can catch it and display it
+      throw error;
     } finally {
       setIsLoading(false);
     }

@@ -144,3 +144,5 @@ aws-credentials.json
 **/build/
 **/.next/
 **/out/
+public/StudentFiles/*.mov
+public/StudentFiles/*.MOV
