@@ -188,13 +188,26 @@ export async function GET(request: NextRequest) {
     // Sort assignments by due date
     enrichedAssignments.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
-    return NextResponse.json({ assignments: enrichedAssignments });
+    return NextResponse.json({ assignments: enrichedAssignments }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
 
   } catch (error) {
     console.error('Error fetching student assignments:', error);
     return NextResponse.json(
       { error: 'Failed to fetch assignments' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      }
     );
   }
 }

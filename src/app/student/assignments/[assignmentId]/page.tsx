@@ -176,8 +176,23 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const [nextAssignment, setNextAssignment] = useState<Assignment | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const assignmentId = params.assignmentId as string;
+
+  // Force refresh function
+  const handleForceRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      // Clear any cached data
+      await fetchAssignmentDetails();
+      await fetchSubmission();
+      await fetchPeerVideos();
+      await fetchPeerResponses();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const fetchAssignmentDetails = React.useCallback(async () => {
     try {
@@ -187,8 +202,15 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
       // First try to get assignment from student assignments API
       console.log('Trying student assignments API...');
-      const response = await fetch(`/api/student/assignments?userId=${user?.id}`, {
+      const cacheBuster = `t=${Date.now()}`;
+      const response = await fetch(`/api/student/assignments?userId=${user?.id}&${cacheBuster}`, {
         credentials: 'include',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
 
       if (response.ok) {
@@ -223,8 +245,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
       // If not found in student assignments, try the direct assignment API
       console.log('Trying direct assignment API...');
-      const directResponse = await fetch(`/api/assignments/${assignmentId}`, {
+      const directResponse = await fetch(`/api/assignments/${assignmentId}?${cacheBuster}`, {
         credentials: 'include',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
 
       if (directResponse.ok) {
@@ -283,8 +311,15 @@ const StudentAssignmentDetailPage: React.FC = () => {
   const fetchSubmission = React.useCallback(async () => {
     try {
       console.log('Fetching submission for assignment:', assignmentId, 'student:', user?.id);
-      const response = await fetch(`/api/assignments/${assignmentId}/submissions?studentId=${user?.id}`, {
+      const cacheBuster = `t=${Date.now()}`;
+      const response = await fetch(`/api/assignments/${assignmentId}/submissions?studentId=${user?.id}&${cacheBuster}`, {
         credentials: 'include',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
       });
 
       console.log('Submission API response status:', response.status);
@@ -632,6 +667,14 @@ const StudentAssignmentDetailPage: React.FC = () => {
                 {getStatusIcon(displayAssignment.status)} {displayAssignment.status.replace('_', ' ')}
               </span>
               <button
+                onClick={handleForceRefresh}
+                disabled={isRefreshing}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
+                title="Refresh assignment data"
+              >
+                <span className={`text-xl ${isRefreshing ? 'animate-spin' : ''}`}>🔄</span>
+              </button>
+              <button
                 onClick={() => router.push('/student/dashboard')}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 title="Home Dashboard"
@@ -644,6 +687,16 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
         {/* Main Content */}
         <div className="max-w-4xl mx-auto px-4 py-8">
+          {/* Cache refresh notice */}
+          <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
+            <div className="flex items-center space-x-2 text-sm text-blue-800">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <span>Not seeing recent updates? Click the refresh button above (🔄) to reload the latest assignment details.</span>
+            </div>
+          </div>
+          
           <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
             {/* Assignment Title */}
             <div className="mb-6">
