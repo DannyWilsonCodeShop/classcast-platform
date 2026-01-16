@@ -370,11 +370,6 @@ const InstructorCourseDetailPage: React.FC = () => {
 
   // Calculate submission counts per student and sort by section
   const studentsWithSubmissionCounts = useMemo(() => {
-    console.log('🔢 STUDENTS TAB: Calculating student submission counts');
-    console.log('🔢 STUDENTS TAB: Total video submissions:', videoSubmissions.length);
-    console.log('🔢 STUDENTS TAB: Total students:', students.length);
-    console.log('🔢 STUDENTS TAB: Course ID:', courseId);
-    
     const counts: Record<string, number> = {};
     
     // Count submissions per student for THIS course only
@@ -383,18 +378,12 @@ const InstructorCourseDetailPage: React.FC = () => {
       if (submission.courseId === courseId) {
         const studentId = submission.studentId;
         counts[studentId] = (counts[studentId] || 0) + 1;
-        console.log(`🔢 STUDENTS TAB: Student ${studentId} (${submission.student?.name}): ${counts[studentId]} submissions`);
-      } else {
-        console.log(`🔢 STUDENTS TAB: Skipping submission from different course: ${submission.courseId}`);
       }
     });
-    
-    console.log('🔢 STUDENTS TAB: Final student submission counts:', counts);
     
     // Update students with submission counts and sort by section
     const updatedStudents = students.map(student => {
       const submissionCount = counts[student.studentId] || 0;
-      console.log(`🔢 STUDENTS TAB: Student ${student.name} (${student.studentId}): ${submissionCount} submissions`);
       
       return {
         ...student,
