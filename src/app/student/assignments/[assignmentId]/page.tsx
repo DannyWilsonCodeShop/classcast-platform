@@ -789,6 +789,17 @@ const StudentAssignmentDetailPage: React.FC = () => {
               </div>
             )}
 
+            {/* Assignment Resources - Moved to Top */}
+            {displayAssignment.resources && displayAssignment.resources.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <span className="mr-2">📎</span>
+                  Assignment Resources
+                </h3>
+                <AssignmentResourcesDisplay resources={displayAssignment.resources} />
+              </div>
+            )}
+
             {/* Assignment Details */}
             <div className="space-y-6">
                   {/* Debug logging for resources */}
@@ -840,17 +851,6 @@ const StudentAssignmentDetailPage: React.FC = () => {
                           </p>
                         </div>
                       </div>
-                    </div>
-                  )}
-
-                  {/* Resources Section */}
-                  {displayAssignment.resources && displayAssignment.resources.length > 0 && (
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
-                        <span className="mr-2">📎</span>
-                        Assignment Resources
-                      </h3>
-                      <AssignmentResourcesDisplay resources={displayAssignment.resources} />
                     </div>
                   )}
 
