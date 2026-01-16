@@ -492,62 +492,71 @@ const StudentCourseDetailPage: React.FC = () => {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {assignments.map((assignment) => (
                       <div
                         key={assignment.assignmentId}
-                        className="bg-white/90 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:border-blue-300 hover:shadow-xl transition-all duration-200"
+                        className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300 flex flex-col"
                       >
-                        <div className="flex items-start justify-between gap-4">
-                          {/* Left: Assignment Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h3 className="text-lg font-bold text-gray-900">{assignment.title}</h3>
-                              {assignment.grade !== undefined && (
-                                <span className="px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-full text-sm font-bold">
-                                  {assignment.grade}%
-                                </span>
-                              )}
-                            </div>
-                            
-                            {assignment.description && (
-                              <RichTextRenderer 
-                                content={assignment.description}
-                                className="text-sm text-gray-600 mb-3"
-                                maxLines={2}
-                              />
-                            )}
-                            
-                            <div className="flex items-center gap-4 text-xs text-gray-600">
-                              <span className="flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-full">
-                                📅 {new Date(assignment.dueDate).toLocaleDateString()}
+                        {/* Header with Icon */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">{assignment.title}</h3>
+                            <div className="flex items-center space-x-3 text-sm text-gray-600 mb-3">
+                              <span className="flex items-center gap-1">
+                                📅 {new Date(assignment.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                               </span>
-                              <span className="flex items-center gap-1 bg-purple-50 px-3 py-1 rounded-full">
+                              <span className="flex items-center gap-1">
                                 ⭐ {assignment.points} pts
                               </span>
-                              <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(assignment.status)}`}>
-                                {assignment.status === 'completed' ? '✓' : assignment.status === 'past_due' ? '!' : '○'} 
-                                {assignment.status.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase())}
-                              </span>
                             </div>
                           </div>
-
-                          {/* Right: Action Buttons */}
-                          <div className="flex-shrink-0 flex flex-col gap-2">
-                            <button 
-                              onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
-                              className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 text-sm font-bold whitespace-nowrap shadow-md hover:shadow-lg"
-                            >
-                              {assignment.status === 'completed' ? '👁️ View' : '📂 Open'}
-                            </button>
-                            <button 
-                              onClick={() => router.push(`/student/peer-reviews?assignmentId=${assignment.assignmentId}`)}
-                              className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 text-sm font-bold whitespace-nowrap flex items-center justify-center gap-1 shadow-md hover:shadow-lg"
-                            >
-                              <span>💬</span>
-                              <span>Peer Responses</span>
-                            </button>
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white text-lg flex-shrink-0">
+                            📝
                           </div>
+                        </div>
+                        
+                        {/* Description */}
+                        {assignment.description && (
+                          <RichTextRenderer 
+                            content={assignment.description}
+                            className="text-sm text-gray-600 mb-4 flex-grow"
+                            maxLines={3}
+                          />
+                        )}
+                        
+                        {/* Status and Grade */}
+                        <div className="mb-4">
+                          <div className="flex items-center justify-between">
+                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(assignment.status)}`}>
+                              {assignment.status === 'completed' ? '✓' : assignment.status === 'past_due' ? '!' : '○'} 
+                              {assignment.status.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase())}
+                            </span>
+                            {assignment.grade !== undefined && (
+                              <span className="px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-full text-sm font-bold">
+                                {assignment.grade}%
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="space-y-2 mt-auto">
+                          <button 
+                            onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
+                            className="w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 text-sm font-bold shadow-md hover:shadow-lg"
+                          >
+                            {assignment.status === 'completed' ? '👁️ View Details' : '📂 Open Assignment'}
+                          </button>
+                          <button 
+                            onClick={() => router.push(`/student/peer-reviews?assignmentId=${assignment.assignmentId}`)}
+                            className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 text-sm font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                          >
+                            <span>💬</span>
+                            <span>Peer Responses</span>
+                          </button>
+                        </div>
+                      </div>
                         </div>
                       </div>
                     ))}
