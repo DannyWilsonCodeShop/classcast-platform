@@ -26,20 +26,51 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, userRole, c
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [lastFetch, setLastFetch] = useState<number>(0);
+  const [dismissedNotifications, setDismissedNotifications] = useState<Set<string>>(new Set());
   const popupRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Load dismissed notifications from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`dismissed_notifications_${userId}`);
+      if (stored) {
+        setDismissedNotifications(new Set(JSON.parse(stored)));
+      }
+    } catch (error) {
+      console.error('Error loading dismissed notifications:', error);
+    }
+  }, [userId]);
+
+  // Save dismissed notifications to localStorage
+  const saveDismissedNotifications = (dismissed: Set<string>) => {
+    try {
+      localStorage.setItem(`dismissed_notifications_${userId}`, JSON.stringify(Array.from(dismissed)));
+    } catch (error) {
+      console.error('Error saving dismissed notifications:', error);
+    }
+  };
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
     try {
-      const response = await fetch(`/api/notifications/${notificationId}/read`, {
-        method: 'PUT',
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        // Remove the notification from the list
-        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      // Add to dismissed set
+      const newDismissed = new Set(dismissedNotifications);
+      newDismissed.add(notificationId);
+      setDismissedNotifications(newDismissed);
+      saveDismissedNotifications(newDismissed);
+
+      // Remove from current notifications
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+
+      // Try to mark as read on server (if endpoint exists)
+      try {
+        await fetch(`/api/notifications/${notificationId}/read`, {
+          method: 'PUT',
+          credentials: 'include'
+        });
+      } catch (error) {
+        // Silently fail if endpoint doesn't exist
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
@@ -59,7 +90,11 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, userRole, c
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setNotifications(data.notifications || []);
+          // Filter out dismissed notifications
+          const filteredNotifications = (data.notifications || []).filter(
+            (n: Notification) => !dismissedNotifications.has(n.id)
+          );
+          setNotifications(filteredNotifications);
           setLastFetch(Date.now());
         }
       }
@@ -80,7 +115,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, userRole, c
     }, 30000);
     
     return () => clearInterval(interval);
-  }, [userId, userRole]);
+  }, [userId, userRole, dismissedNotifications]);
 
   // Close popup when clicking outside
   useEffect(() => {
@@ -186,6 +221,21 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ userId, userRole, c
               Notifications {hasNotifications && `(${notifications.length})`}
             </h3>
             <div className="flex items-center space-x-2">
+              {hasNotifications && (
+                <button
+                  onClick={() => {
+                    // Mark all as read
+                    const newDismissed = new Set(dismissedNotifications);
+                    notifications.forEach(n => newDismissed.add(n.id));
+                    setDismissedNotifications(newDismissed);
+                    saveDismissedNotifications(newDismissed);
+                    setNotifications([]);
+                  }}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Clear All
+                </button>
+              )}
               {isLoading && (
                 <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
               )}

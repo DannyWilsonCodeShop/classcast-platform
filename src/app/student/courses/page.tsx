@@ -24,10 +24,10 @@ interface Course {
   backgroundColor: string;
   enrollmentCount: number;
   credits: number;
-  schedule: {
-    days: string[];
-    time: string;
-    location: string;
+  schedule?: {
+    days?: string[];
+    time?: string;
+    location?: string;
   };
   nextAssignment?: {
     title: string;
@@ -239,11 +239,13 @@ const StudentCoursesPage: React.FC = () => {
                     </div>
                     <div className="flex items-center justify-between">
                       <span>👥 {course.enrollmentCount} students</span>
-                      <span>📍 {course.schedule.location}</span>
+                      {course.schedule?.location && <span>📍 {course.schedule.location}</span>}
                     </div>
-                    <div className="flex items-center">
-                      <span>🕒 {course.schedule.days.join(', ')} {course.schedule.time}</span>
-                    </div>
+                    {course.schedule?.days && course.schedule?.time && (
+                      <div className="flex items-center">
+                        <span>🕒 {course.schedule.days.join(', ')} {course.schedule.time}</span>
+                      </div>
+                    )}
                   </div>
 
                 </div>

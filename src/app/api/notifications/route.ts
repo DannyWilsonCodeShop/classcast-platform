@@ -56,13 +56,14 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      // Fetch recent likes on user's videos
+      // Fetch recent likes on user's videos (only from last 7 days)
       const submissionsResponse = await docClient.send(new ScanCommand({
         TableName: SUBMISSIONS_TABLE,
-        FilterExpression: 'studentId = :userId AND likes > :zero',
+        FilterExpression: 'studentId = :userId AND likes > :zero AND updatedAt > :recentTime',
         ExpressionAttributeValues: {
           ':userId': userId,
-          ':zero': 0
+          ':zero': 0,
+          ':recentTime': new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() // Last 7 days
         },
         Limit: 10
       }));

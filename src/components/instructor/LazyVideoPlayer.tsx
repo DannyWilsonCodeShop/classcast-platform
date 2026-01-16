@@ -185,19 +185,6 @@ export const LazyVideoPlayer: React.FC<LazyVideoPlayerProps> = ({
             Your browser does not support the video tag.
           </video>
           
-          {/* Custom thumbnail overlay for videos without valid thumbnails */}
-          {(!thumbnailUrl || 
-            thumbnailUrl === '/api/placeholder/300/200' || 
-            thumbnailUrl.includes('placeholder')) && (
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center pointer-events-none">
-              <div className="text-white text-center">
-                <div className="text-4xl mb-2">🎥</div>
-                <div className="text-lg font-semibold">{studentName}</div>
-                <div className="text-sm opacity-75">Video Submission</div>
-              </div>
-            </div>
-          )}
-          
           {/* S3 branding overlay */}
           <div className="absolute top-2 left-2 bg-purple-600 text-white px-2 py-1 rounded text-xs font-medium opacity-75">
             ☁️ Upload
