@@ -1794,10 +1794,16 @@ const InstructorCourseDetailPage: React.FC = () => {
                       const result = await response.json();
                       console.log('✅ Assignment updated successfully:', result);
                       
+                      // Close modal BEFORE showing alert to prevent UI issues
                       setEditingAssignment(null);
+                      
                       // Refresh assignments to show changes
                       await fetchCourseDetails();
-                      alert('Assignment updated successfully!');
+                      
+                      // Show success message after modal is closed
+                      setTimeout(() => {
+                        alert('Assignment updated successfully!');
+                      }, 100);
                     } catch (error) {
                       console.error('❌ Error updating assignment:', error);
                       console.error('❌ Error name:', error?.name);

@@ -219,6 +219,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
         
         if (foundAssignment) {
           console.log('Found assignment in student assignments:', foundAssignment);
+          console.log('📎 Resources from API:', foundAssignment.resources);
           setAssignment(foundAssignment);
           return;
         } else {
@@ -274,6 +275,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
             instructionalVideoUrl: foundAssignment.instructionalVideoUrl || '', // Add instructional video URL
           };
           console.log('📹 Instructional video URL:', transformedAssignment.instructionalVideoUrl);
+          console.log('📎 Resources:', transformedAssignment.resources);
           setAssignment(transformedAssignment);
           return;
         } else {
@@ -789,6 +791,9 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
             {/* Assignment Details */}
             <div className="space-y-6">
+                  {/* Debug logging for resources */}
+                  {console.log('🔍 Rendering assignment details. Resources:', displayAssignment?.resources)}
+                  
                   {/* Instructional Video - MOVED TO TOP */}
                   {displayAssignment.instructionalVideoUrl && (
                     <div>
