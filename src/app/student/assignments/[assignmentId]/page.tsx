@@ -681,18 +681,18 @@ const StudentAssignmentDetailPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-4">
             {/* Assignment Title */}
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">{displayAssignment.title}</h2>
-              <p className="text-gray-600">
+            <div className="mb-3">
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">{displayAssignment.title}</h2>
+              <p className="text-gray-600 text-sm">
                 {displayAssignment.courseCode} • {displayAssignment.courseName}
               </p>
             </div>
 
             {/* Assignment Info Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">
                       {submission?.grade !== undefined && submission?.grade !== null 
@@ -753,17 +753,17 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
             {/* Submit Assignment Section - Moved to Top */}
             {!submission && (
-              <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-lg">
+              <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-xl font-bold text-blue-900 mb-2 flex items-center">
+                    <h3 className="text-lg font-bold text-blue-900 mb-1 flex items-center">
                       <span className="mr-2">🎥</span>
                       Ready to Submit?
                     </h3>
-                    <p className="text-blue-700 mb-4">
+                    <p className="text-blue-700 mb-2 text-sm">
                       You haven't submitted this assignment yet. Click below to record and submit your video.
                     </p>
-                    <div className="flex items-center space-x-4 text-sm text-blue-600">
+                    <div className="flex items-center space-x-4 text-xs text-blue-600">
                       <span className="flex items-center">
                         📅 Due: {new Date(displayAssignment.dueDate).toLocaleDateString('en-US', { 
                           weekday: 'short',
@@ -780,7 +780,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   </div>
                   <button
                     onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&courseId=${displayAssignment.courseId}`)}
-                    className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transition-all duration-200 font-bold text-lg flex items-center space-x-2"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transition-all duration-200 font-bold flex items-center space-x-2"
                   >
                     <span>🎥</span>
                     <span>Submit Assignment</span>
@@ -791,8 +791,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
             {/* Assignment Resources - Moved to Top */}
             {displayAssignment.resources && displayAssignment.resources.length > 0 && (
-              <div className="mb-8 bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <div className="mb-4 bg-blue-50 border-2 border-blue-200 rounded-lg p-3">
+                <h3 className="text-base font-semibold text-gray-900 mb-2 flex items-center">
                   <span className="mr-2">📎</span>
                   Assignment Resources
                 </h3>
@@ -801,7 +801,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
             )}
 
             {/* Assignment Details */}
-            <div className="space-y-6">
+            <div className="space-y-4">
                   {/* Instructional Video - MOVED TO TOP */}
                   {displayAssignment.instructionalVideoUrl && (
                     <div>
