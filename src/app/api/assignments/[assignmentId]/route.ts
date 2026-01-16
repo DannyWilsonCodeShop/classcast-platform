@@ -111,13 +111,26 @@ export async function GET(
       data: {
         assignment: transformedAssignment
       }
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
     });
     
   } catch (error) {
     console.error('Error fetching assignment:', error);
     return NextResponse.json(
       { error: 'Failed to fetch assignment' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        }
+      }
     );
   }
 }
