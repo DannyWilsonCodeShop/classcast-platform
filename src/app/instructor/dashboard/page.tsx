@@ -12,6 +12,7 @@ import { AssignmentManagement } from '@/components/instructor/AssignmentManageme
 interface Course {
   courseId: string;
   title: string;
+  code?: string;
   studentCount?: number;
   status?: string;
 }
@@ -47,6 +48,7 @@ const InstructorDashboard: React.FC = () => {
             const mappedCourses = coursesArray.map((course: any) => ({
               courseId: course.id || course.courseId,
               title: course.title || course.courseName,
+              code: course.code || course.courseCode,
               studentCount: course.studentCount || course.currentEnrollment || 0,
               status: course.status || 'published'
             }));
@@ -180,7 +182,7 @@ const InstructorDashboard: React.FC = () => {
                     <option value="">Select a course...</option>
                     {courses.map((course) => (
                       <option key={course.courseId} value={course.courseId}>
-                        {course.title} ({course.studentCount} students)
+                        {course.code ? `${course.code} - ` : ''}{course.title} ({course.studentCount} students)
                       </option>
                     ))}
                   </select>

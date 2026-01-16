@@ -125,12 +125,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               Discover Courses
             </h3>
             <div className="relative">
-              <input
-                type="text"
-                placeholder="Search for new courses..."
-                className="w-full px-3 py-2 pl-8 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <svg className="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <button
+                onClick={() => handleNavigation('/student/courses')}
+                className="w-full px-3 py-2 pl-8 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-left text-gray-500 hover:bg-gray-50 hover:border-blue-400 transition-colors cursor-pointer"
+              >
+                Search for new courses...
+              </button>
+              <svg className="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
