@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { OIDCAuthProvider } from "@/components/auth/OIDCAuthProvider";
 import { RealtimeNotifications } from "@/components/common/RealtimeNotifications";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { PreventNumberInputScroll } from "@/components/common/PreventNumberInputScroll";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,6 +56,7 @@ export default function RootLayout({
         <QueryProvider>
           <OIDCAuthProvider>
             <AuthProvider>
+              <PreventNumberInputScroll />
               {children}
               <RealtimeNotifications />
             </AuthProvider>
