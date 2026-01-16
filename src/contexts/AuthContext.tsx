@@ -195,12 +195,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (!response.ok) {
+        let errorMessage = 'Signup failed';
         try {
           const errorData = await response.json();
-          throw new Error(errorData.error?.message || 'Signup failed');
+          errorMessage = errorData.error || errorData.message || 'Signup failed';
         } catch (jsonError) {
-          throw new Error('Signup failed - invalid server response');
+          errorMessage = `Signup failed with status ${response.status}`;
         }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
