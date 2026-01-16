@@ -790,11 +790,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
             )}
 
             {/* Assignment Resources - Moved to Top */}
-            {console.log('🔍 CHECK: displayAssignment exists?', !!displayAssignment)}
-            {console.log('🔍 CHECK: displayAssignment.resources?', displayAssignment?.resources)}
-            {console.log('🔍 CHECK: resources length?', displayAssignment?.resources?.length)}
             {displayAssignment.resources && displayAssignment.resources.length > 0 && (
-              <div className="mb-8 bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4">
+              <div className="mb-8 bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                   <span className="mr-2">📎</span>
                   Assignment Resources
@@ -805,11 +802,6 @@ const StudentAssignmentDetailPage: React.FC = () => {
 
             {/* Assignment Details */}
             <div className="space-y-6">
-                  {/* Debug logging for resources */}
-                  {console.log('🔍 Rendering assignment details. Resources:', displayAssignment?.resources)}
-                  {/* Debug logging for resources */}
-                  {console.log('🔍 Rendering assignment details. Resources:', displayAssignment?.resources)}
-                  
                   {/* Instructional Video - MOVED TO TOP */}
                   {displayAssignment.instructionalVideoUrl && (
                     <div>

@@ -344,6 +344,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   const tabParam = searchParams.get('tab') as 'assignments' | 'submissions' | 'students' | null;
   const editAssignmentParam = searchParams.get('editAssignment');
   const viewAssignmentParam = searchParams.get('viewAssignment');
+  const openSettingsParam = searchParams.get('openSettings');
   const [course, setCourse] = useState<Course | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
@@ -448,6 +449,17 @@ const InstructorCourseDetailPage: React.FC = () => {
       }
     }
   }, [assignments, editAssignmentParam, viewAssignmentParam]);
+
+  // Handle URL parameter for opening settings modal
+  useEffect(() => {
+    if (openSettingsParam === 'true' && course) {
+      setShowSettingsModal(true);
+      // Remove the parameter from URL to avoid reopening on refresh
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('openSettings');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [openSettingsParam, course]);
 
   const fetchCourseDetails = async () => {
     try {
@@ -1028,12 +1040,6 @@ const InstructorCourseDetailPage: React.FC = () => {
                   onClick={() => setShowSettingsModal(true)}
                   className="px-4 py-2 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition-colors"
                 >
-                  ✏️ Edit Course
-                </button>
-                <button 
-                  onClick={() => setShowSettingsModal(true)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
-                >
                   ⚙️ Settings
                 </button>
               </div>
@@ -1074,13 +1080,6 @@ const InstructorCourseDetailPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              <button 
-                onClick={() => setShowSettingsModal(true)}
-                className="px-4 py-2 bg-indigo-500 text-white rounded-lg font-medium hover:bg-indigo-600 transition-colors"
-                title="Edit course details, settings, and manage sections"
-              >
-                ✏️ Edit Course Details
-              </button>
             </div>
           </div>
 

@@ -6,7 +6,7 @@ const docClient = DynamoDBDocumentClient.from(client);
 
 async function checkAssignment() {
   try {
-    const assignmentId = 'assignment_1762810231627_vqgj30vea';
+    const assignmentId = 'assignment_1768361755173_ti155u2nf';
     
     console.log('🔍 Checking assignment:', assignmentId, '\n');
     

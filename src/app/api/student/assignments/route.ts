@@ -175,7 +175,7 @@ export async function GET(request: NextRequest) {
           feedback: submission?.feedback || null,
           instructor: instructorName,
           createdAt: assignment.createdAt || new Date().toISOString(),
-          attachments: assignment.resources || [],
+          resources: assignment.resources || [], // Changed from attachments to resources for consistency
           instructionalVideoUrl: assignment.instructionalVideoUrl || '', // ADD INSTRUCTIONAL VIDEO URL
           enablePeerResponses: assignment.enablePeerResponses || false,
           minResponsesRequired: assignment.minResponsesRequired || 0,
