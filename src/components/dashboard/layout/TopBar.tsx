@@ -36,15 +36,6 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, title, subtitle }) => {
               <Bars3Icon className="w-6 h-6" />
             </button>
 
-            {/* ClassCast Logo */}
-            <div className="flex items-center space-x-3">
-              <img 
-                src="/MyClassCast (800 x 200 px).png" 
-                alt="ClassCast Logo" 
-                className="h-8 w-auto"
-              />
-            </div>
-
             {/* Page title */}
             <div className="hidden sm:block">
               <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
