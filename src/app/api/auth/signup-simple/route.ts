@@ -21,21 +21,21 @@ export async function POST(request: NextRequest) {
     // Basic validation
     if (!email || !password || !firstName || !lastName || !role) {
       return NextResponse.json(
-        { error: { message: 'Missing required fields' } },
+        { success: false, error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
     if (role !== 'student' && role !== 'instructor' && role !== 'admin') {
       return NextResponse.json(
-        { error: { message: 'Invalid role specified' } },
+        { success: false, error: 'Invalid role specified' },
         { status: 400 }
       );
     }
 
     if (role === 'instructor' && !department) {
       return NextResponse.json(
-        { error: { message: 'Department is required for instructor role' } },
+        { success: false, error: 'Department is required for instructor role' },
         { status: 400 }
       );
     }
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     if (role === 'instructor') {
       if (!instructorCode || instructorCode !== '5555') {
         return NextResponse.json(
-          { error: { message: 'Invalid instructor code' } },
+          { success: false, error: 'Invalid instructor code' },
           { status: 400 }
         );
       }
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     if (password.length < 8) {
       return NextResponse.json(
-        { error: { message: 'Password must be at least 8 characters long' } },
+        { success: false, error: 'Password must be at least 8 characters long' },
         { status: 400 }
       );
     }
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUserResult.Items && existingUserResult.Items.length > 0) {
       return NextResponse.json(
-        { error: { message: 'User with this email already exists' } },
+        { success: false, error: 'User with this email already exists' },
         { status: 400 }
       );
     }
@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
     console.error('Simple signup error:', error);
     
     return NextResponse.json(
-      { error: { message: 'Failed to create account. Please try again later' } },
+      { success: false, error: 'Failed to create account. Please try again later.' },
       { status: 500 }
     );
   }
