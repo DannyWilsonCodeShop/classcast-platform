@@ -153,10 +153,10 @@ const InstructorDashboard: React.FC = () => {
         </div>
 
         {/* Greeting Bar */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-6">
+        <div className="bg-gradient-to-r from-indigo-100 to-purple-100 border-b border-indigo-200 px-4 py-4">
           <div className="max-w-7xl mx-auto">
-            <h1 className="text-2xl sm:text-3xl font-bold mb-1">{getGreeting()}</h1>
-            <p className="text-indigo-100">Ready to inspire your students today?</p>
+            <h1 className="text-xl sm:text-2xl font-bold mb-1 text-gray-800">{getGreeting()}</h1>
+            <p className="text-gray-600">Ready to inspire your students today?</p>
           </div>
         </div>
 
