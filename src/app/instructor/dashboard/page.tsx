@@ -188,7 +188,7 @@ const InstructorDashboard: React.FC = () => {
                   {/* Edit Course Button */}
                   {selectedCourseId && (
                     <button
-                      onClick={() => router.push(`/instructor/courses/${selectedCourseId}`)}
+                      onClick={() => router.push(`/instructor/courses/${selectedCourseId}?openSettings=true`)}
                       className="px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium hover:bg-indigo-100 transition-colors flex items-center space-x-1"
                       title="Edit course details, assignments, and students"
                     >
