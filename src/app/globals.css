@@ -220,6 +220,26 @@ select {
   background-color: #ffffff !important;
 }
 
+/* Prevent scroll-to-change on number inputs */
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Prevent mouse wheel from changing number input values */
+input[type="number"]:focus {
+  pointer-events: auto;
+}
+
+input[type="number"] {
+  scroll-behavior: auto;
+}
+
 /* Dark mode text inputs */
 @media (prefers-color-scheme: dark) {
   input[type="text"],
