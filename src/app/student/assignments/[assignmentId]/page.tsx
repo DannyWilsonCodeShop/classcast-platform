@@ -804,6 +804,8 @@ const StudentAssignmentDetailPage: React.FC = () => {
             <div className="space-y-6">
                   {/* Debug logging for resources */}
                   {console.log('🔍 Rendering assignment details. Resources:', displayAssignment?.resources)}
+                  {/* Debug logging for resources */}
+                  {console.log('🔍 Rendering assignment details. Resources:', displayAssignment?.resources)}
                   
                   {/* Instructional Video - MOVED TO TOP */}
                   {displayAssignment.instructionalVideoUrl && (
