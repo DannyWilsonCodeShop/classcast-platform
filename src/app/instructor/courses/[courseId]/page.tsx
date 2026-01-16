@@ -1891,7 +1891,20 @@ const InstructorCourseDetailPage: React.FC = () => {
         <CourseSettingsModal
           isOpen={showSettingsModal}
           onClose={() => setShowSettingsModal(false)}
-          course={course}
+          course={course ? {
+            courseId: course.courseId,
+            title: course.courseName,
+            code: course.courseCode,
+            description: course.description,
+            semester: course.semester,
+            year: course.year,
+            status: course.status,
+            currentEnrollment: course.enrollmentCount,
+            maxStudents: course.maxEnrollment,
+            instructorId: user?.id || '',
+            createdAt: course.createdAt,
+            updatedAt: course.updatedAt
+          } : null}
           onUpdate={handleCourseUpdate}
           onDelete={handleDeleteCourse}
           instructorId={user?.id}
