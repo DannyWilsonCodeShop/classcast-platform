@@ -142,7 +142,7 @@ const NewAssignmentGradingPage: React.FC = () => {
             title: assignmentInfo.title || 'Assignment',
             description: assignmentInfo.description || '',
             dueDate: assignmentInfo.dueDate || '',
-            maxScore: assignmentInfo.maxScore || 100,
+            maxScore: assignmentInfo.maxScore || assignmentInfo.points || 100,
             courseId: assignmentInfo.courseId || '',
             courseName: assignmentInfo.courseName || 'Unknown Course',
             courseCode: assignmentInfo.courseCode || 'N/A',
