@@ -577,6 +577,9 @@ const PeerReviewsContent: React.FC = () => {
                   url={video.videoUrl}
                   title={video.title}
                 className="w-full h-full"
+                onError={(errorCode) => {
+                  console.error('YouTube player error for video:', video.id, 'Error code:', errorCode);
+                }}
               />
             ) : (
               <video

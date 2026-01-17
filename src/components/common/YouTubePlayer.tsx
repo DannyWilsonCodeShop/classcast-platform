@@ -13,6 +13,7 @@ interface YouTubePlayerProps {
   height?: string | number;
   playbackSpeed?: number; // NEW: Support for playback speed
   onPlayerReady?: (player: any) => void; // NEW: Callback when player is ready
+  onError?: (errorCode: number) => void; // NEW: Callback for errors
 }
 
 // Declare YouTube IFrame API types
@@ -32,11 +33,13 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   width = '100%',
   height = '100%',
   playbackSpeed = 1.0,
-  onPlayerReady
+  onPlayerReady,
+  onError
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<any>(null);
   const currentSpeedRef = useRef<number>(playbackSpeed); // Store current speed
+  const [embedError, setEmbedError] = React.useState<number | null>(null);
   const videoId = extractYouTubeVideoId(url);
 
   console.log('🎬 YouTubePlayer rendering:', { url, videoId, playbackSpeed });
@@ -120,6 +123,10 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
           onError: (event: any) => {
             console.error('YouTube player error code:', event.data);
             // Error codes: 2 = Invalid video ID, 5 = HTML5 player error, 100 = Video not found, 101/150 = Embedding disabled
+            setEmbedError(event.data);
+            if (onError) {
+              onError(event.data);
+            }
           },
           onStateChange: (event: any) => {
             // -1 (unstarted), 0 (ended), 1 (playing), 2 (paused), 3 (buffering), 5 (video cued)
@@ -173,6 +180,56 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
         <div className="text-center">
           <p className="text-gray-600 mb-2">⚠️ Invalid YouTube URL</p>
           <p className="text-sm text-gray-500">Could not load video</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error message for embedding issues
+  if (embedError) {
+    const errorMessages: Record<number, { title: string; message: string; action?: string }> = {
+      2: { title: 'Invalid Video ID', message: 'The video ID is not valid.' },
+      5: { title: 'HTML5 Player Error', message: 'There was an error with the video player.' },
+      100: { title: 'Video Not Found', message: 'This video has been removed or is unavailable.' },
+      101: { 
+        title: 'Embedding Disabled', 
+        message: 'The video owner has disabled embedding for this video.',
+        action: 'Watch on YouTube'
+      },
+      150: { 
+        title: 'Embedding Restricted', 
+        message: 'The video owner has restricted this video from being embedded.',
+        action: 'Watch on YouTube'
+      }
+    };
+
+    const error = errorMessages[embedError] || { 
+      title: 'Video Error', 
+      message: `Unable to load video (Error code: ${embedError})` 
+    };
+
+    return (
+      <div className={`bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-8 rounded-lg ${className}`}>
+        <div className="text-center max-w-md">
+          <div className="text-4xl mb-3">🎥</div>
+          <p className="text-gray-800 font-semibold mb-2">{error.title}</p>
+          <p className="text-sm text-gray-600 mb-4">{error.message}</p>
+          {error.action && (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+            >
+              <span>{error.action}</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          )}
+          <div className="mt-3 text-xs text-gray-500">
+            Video ID: {videoId}
+          </div>
         </div>
       </div>
     );
