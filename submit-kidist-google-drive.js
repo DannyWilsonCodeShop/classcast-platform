@@ -1,158 +1,160 @@
+#!/usr/bin/env node
+
+/**
+ * Submit Google Drive video for Kidist - Graphing Piecewise Functions
+ */
+
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
-const { DynamoDBDocumentClient, QueryCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
+const { DynamoDBDocumentClient, ScanCommand, PutCommand } = require('@aws-sdk/lib-dynamodb');
 
-const client = new DynamoDBClient({ region: 'us-east-1' });
-const docClient = DynamoDBDocumentClient.from(client);
+const dynamoClient = new DynamoDBClient({ region: 'us-east-1' });
+const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
-async function findStudent() {
-  console.log('🔍 Searching for Kidist Shiwendo...');
-  
-  const { ScanCommand } = require('@aws-sdk/lib-dynamodb');
-  
-  const params = {
-    TableName: 'classcast-users',
-    FilterExpression: 'contains(#name, :firstName) OR contains(#name, :lastName)',
-    ExpressionAttributeNames: {
-      '#name': 'name'
-    },
-    ExpressionAttributeValues: {
-      ':firstName': 'Kidist',
-      ':lastName': 'Shiwendo'
-    }
-  };
+const USERS_TABLE = 'classcast-users';
+const ASSIGNMENTS_TABLE = 'classcast-assignments';
+const SUBMISSIONS_TABLE = 'classcast-submissions';
 
+const GOOGLE_DRIVE_URL = 'https://drive.google.com/file/d/1bbJqSy1N4j7cKkhqR3TRrl3S786xJFKh/view?usp=drivesdk';
+
+async function submitGoogleDrive() {
   try {
-    const command = new ScanCommand(params);
-    const result = await docClient.send(command);
+    console.log('\n📁 Submitting Google Drive Video for Kidist\n');
     
-    if (result.Items && result.Items.length > 0) {
-      console.log('✅ Found student:', result.Items[0]);
-      return result.Items[0];
+    // Find Kidist
+    console.log('👤 Finding Kidist...');
+    const usersResult = await docClient.send(new ScanCommand({
+      TableName: USERS_TABLE,
+      FilterExpression: 'contains(#email, :email)',
+      ExpressionAttributeNames: {
+        '#email': 'email'
+      },
+      ExpressionAttributeValues: {
+        ':email': 'kshiwendo28'
+      }
+    }));
+    
+    if (!usersResult.Items || usersResult.Items.length === 0) {
+      console.error('❌ Kidist not found');
+      return;
     }
     
-    return null;
-  } catch (error) {
-    console.error('Error finding student:', error);
-    return null;
-  }
-}
-
-async function submitGoogleDriveVideo() {
-  // Student and assignment info
-  const studentName = 'Kidist Shiwendo';
-  const assignmentId = 'assignment_1768361755173_ti155u2nf'; // Graphing Piecewise Functions
-  const courseId = 'course_1760635875079_bcjiq11ho';
-  const googleDriveUrl = 'https://drive.google.com/file/d/1bbJqSy1N4j7cKkhqR3TRrl3S786xJFKh/view?usp=drivesdk';
-  
-  // Extract file ID from Google Drive URL
-  const fileIdMatch = googleDriveUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  const fileId = fileIdMatch ? fileIdMatch[1] : null;
-  
-  if (!fileId) {
-    console.error('❌ Could not extract file ID from Google Drive URL');
-    return;
-  }
-  
-  console.log('📋 File ID:', fileId);
-  
-  // Find student
-  const student = await findStudent();
-  
-  if (!student) {
-    console.error('❌ Could not find student. Please provide the student ID manually.');
-    console.log('💡 You can find it by searching the users table for "Kidist" or "Shiwendo"');
-    return;
-  }
-  
-  const studentId = student.userId || student.id;
-  console.log('👤 Student ID:', studentId);
-  console.log('👤 Student Name:', student.name);
-  
-  // Get section ID from assignment
-  let sectionId = null;
-  try {
-    const assignmentParams = {
-      TableName: 'classcast-assignments',
-      Key: { assignmentId }
+    const kidist = usersResult.Items[0];
+    console.log(`✓ Found: ${kidist.firstName} ${kidist.lastName}`);
+    console.log(`   Email: ${kidist.email}`);
+    console.log(`   User ID: ${kidist.userId}`);
+    
+    // Find "Graphing Piecewise Functions" assignment
+    console.log('\n📝 Finding "Graphing Piecewise Functions" assignment...');
+    const assignmentsResult = await docClient.send(new ScanCommand({
+      TableName: ASSIGNMENTS_TABLE,
+      FilterExpression: 'contains(#title, :title)',
+      ExpressionAttributeNames: {
+        '#title': 'title'
+      },
+      ExpressionAttributeValues: {
+        ':title': 'Piecewise'
+      }
+    }));
+    
+    if (!assignmentsResult.Items || assignmentsResult.Items.length === 0) {
+      console.error('❌ Assignment not found');
+      console.log('\n🔍 Searching for all assignments with "Graph" in title...');
+      
+      const graphResult = await docClient.send(new ScanCommand({
+        TableName: ASSIGNMENTS_TABLE,
+        FilterExpression: 'contains(#title, :title)',
+        ExpressionAttributeNames: {
+          '#title': 'title'
+        },
+        ExpressionAttributeValues: {
+          ':title': 'Graph'
+        }
+      }));
+      
+      if (graphResult.Items && graphResult.Items.length > 0) {
+        console.log('\nFound assignments with "Graph":');
+        graphResult.Items.forEach(a => {
+          console.log(`   - ${a.title} (${a.assignmentId})`);
+        });
+      }
+      return;
+    }
+    
+    const assignment = assignmentsResult.Items[0];
+    console.log(`✓ Found assignment: ${assignment.title}`);
+    console.log(`   Assignment ID: ${assignment.assignmentId}`);
+    console.log(`   Course ID: ${assignment.courseId}`);
+    console.log(`   Due Date: ${assignment.dueDate}`);
+    
+    // Check if submission already exists
+    console.log('\n🔍 Checking for existing submission...');
+    const existingResult = await docClient.send(new ScanCommand({
+      TableName: SUBMISSIONS_TABLE,
+      FilterExpression: 'studentId = :studentId AND assignmentId = :assignmentId',
+      ExpressionAttributeValues: {
+        ':studentId': kidist.userId,
+        ':assignmentId': assignment.assignmentId
+      }
+    }));
+    
+    if (existingResult.Items && existingResult.Items.length > 0) {
+      console.log('⚠️  Existing submission found:');
+      existingResult.Items.forEach(sub => {
+        console.log(`   - ${sub.submissionId} (Status: ${sub.status})`);
+        console.log(`     Video URL: ${sub.videoUrl}`);
+      });
+      console.log('\n❓ Do you want to create a new submission anyway? (This will be a duplicate)');
+    }
+    
+    // Create submission
+    const submissionId = `submission_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    const now = new Date().toISOString();
+    
+    const submission = {
+      submissionId: submissionId,
+      assignmentId: assignment.assignmentId,
+      studentId: kidist.userId,
+      courseId: assignment.courseId,
+      videoUrl: GOOGLE_DRIVE_URL,
+      googleDriveUrl: GOOGLE_DRIVE_URL,
+      isGoogleDrive: true,
+      isYouTube: false,
+      isUploaded: false,
+      videoTitle: assignment.title,
+      videoDescription: 'Google Drive submission',
+      status: 'submitted',
+      submittedAt: now,
+      createdAt: now,
+      updatedAt: now,
+      submissionMethod: 'google_drive',
+      thumbnailUrl: '/api/placeholder/400/300?text=Google+Drive+Video',
+      duration: 0,
+      fileSize: 0,
+      likes: 0,
+      likedBy: []
     };
     
-    const { GetCommand } = require('@aws-sdk/lib-dynamodb');
-    const assignmentResult = await docClient.send(new GetCommand(assignmentParams));
-    
-    if (assignmentResult.Item) {
-      sectionId = assignmentResult.Item.sectionId;
-      console.log('📚 Section ID:', sectionId);
-    }
-  } catch (error) {
-    console.warn('⚠️ Could not fetch assignment details:', error.message);
-  }
-  
-  // Create submission
-  const submissionId = `submission_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const now = new Date().toISOString();
-  
-  const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-  const thumbnailUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
-  
-  const submission = {
-    submissionId,
-    assignmentId,
-    studentId,
-    courseId,
-    sectionId,
-    googleDriveUrl: previewUrl,
-    googleDriveOriginalUrl: googleDriveUrl,
-    googleDriveFileId: fileId,
-    videoUrl: previewUrl,
-    thumbnailUrl,
-    videoTitle: 'Graphing Piecewise Functions - Kidist Shiwendo',
-    videoDescription: 'Student Google Drive video submission',
-    submissionMethod: 'google-drive',
-    isRecorded: false,
-    isUploaded: false,
-    isYouTube: false,
-    isGoogleDrive: true,
-    status: 'submitted',
-    submittedAt: now,
-    createdAt: now,
-    updatedAt: now,
-    student: {
-      name: student.name,
-      email: student.email
-    }
-  };
-  
-  console.log('\n📤 Creating submission...');
-  console.log(JSON.stringify(submission, null, 2));
-  
-  try {
-    const command = new PutCommand({
-      TableName: 'classcast-video-submissions',
+    console.log('\n💾 Creating submission...');
+    await docClient.send(new PutCommand({
+      TableName: SUBMISSIONS_TABLE,
       Item: submission
-    });
+    }));
     
-    await docClient.send(command);
+    console.log('✅ Submission created successfully!');
+    console.log('\n📋 Submission Details:');
+    console.log(`   Submission ID: ${submissionId}`);
+    console.log(`   Student: ${kidist.firstName} ${kidist.lastName}`);
+    console.log(`   Assignment: ${assignment.title}`);
+    console.log(`   Video URL: ${GOOGLE_DRIVE_URL}`);
+    console.log(`   Status: submitted`);
+    console.log(`   Submitted At: ${now}`);
     
-    console.log('\n✅ SUCCESS! Google Drive submission created');
-    console.log('📋 Submission ID:', submissionId);
-    console.log('👤 Student:', student.name);
-    console.log('📝 Assignment: Graphing Piecewise Functions');
-    console.log('🔗 Google Drive URL:', googleDriveUrl);
-    console.log('🔗 Preview URL:', previewUrl);
+    console.log('\n✅ Done!\n');
     
   } catch (error) {
-    console.error('❌ Error creating submission:', error);
-    throw error;
+    console.error('\n❌ Error:', error);
+    console.error('Details:', error.message);
   }
 }
 
-// Run the script
-submitGoogleDriveVideo()
-  .then(() => {
-    console.log('\n✅ Script completed successfully');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('\n❌ Script failed:', error);
-    process.exit(1);
-  });
+submitGoogleDrive();
