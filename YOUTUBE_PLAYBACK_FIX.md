@@ -1,210 +1,122 @@
-# YouTube & Google Drive Playback Fix
+# YouTube Video Playback Fix - Embedding Restrictions
 
 ## Issue
-Students were uploading YouTube and Google Drive links but the videos were not playing back correctly. The app was using a simple string replacement for YouTube (`replace('watch?v=', 'embed/')`) which doesn't handle all URL formats properly, and Google Drive videos weren't being handled at all.
+Stephanie Posadas' YouTube video showing as "private" on grading page even though it's set to public on YouTube.
 
-## Root Cause
+**Video URL**: `https://youtu.be/Tq5nOO1A78I?si=bhMNxTkYTf0XzXBl`
 
-### YouTube URLs
-YouTube URLs come in multiple formats:
-- `https://www.youtube.com/watch?v=VIDEO_ID`
-- `https://youtu.be/VIDEO_ID`
-- `https://www.youtube.com/watch?v=VIDEO_ID&feature=share`
-- `https://m.youtube.com/watch?v=VIDEO_ID`
-- And more...
+## Root Cause Analysis
 
-The simple `.replace('watch?v=', 'embed/')` only works for the first format and fails for all others.
+### What We Investigated
+1. ✅ **Video Accessibility**: Video is accessible (HTTP 200) and public on YouTube
+2. ✅ **URL Format**: The `si` tracking parameter doesn't affect embedding (it's stripped during video ID extraction)
+3. ❌ **Embedding Restrictions**: The issue is YouTube's embedding restrictions
 
-### Google Drive URLs
-Google Drive URLs also come in multiple formats:
-- `https://drive.google.com/file/d/FILE_ID/view`
-- `https://drive.google.com/file/d/FILE_ID/preview`
-- `https://drive.google.com/open?id=FILE_ID`
-- `https://drive.google.com/uc?id=FILE_ID`
-- And more...
+### YouTube Embedding Error Codes
+- **2**: Invalid video ID
+- **5**: HTML5 player error
+- **100**: Video not found or removed
+- **101**: Embedding disabled by video owner
+- **150**: Embedding restricted (similar to 101)
 
-These weren't being detected or converted to embeddable preview URLs at all.
+### The Real Issue
+Even though a YouTube video is set to "Public", the video owner can separately control embedding permissions:
+- **Public**: Anyone can watch on YouTube
+- **Embedding**: Can be disabled even for public videos
 
-## Solution
-Replaced simple string replacement with proper URL parsing using existing utility functions:
-- YouTube: `getYouTubeEmbedUrl()` from `src/lib/youtube.ts`
-- Google Drive: `getGoogleDrivePreviewUrl()` from `src/lib/googleDrive.ts`
+This is a YouTube platform restriction, not an app issue.
 
-### Files Fixed
+## Solution Implemented
 
-#### 1. `src/app/student/assignments/[assignmentId]/page.tsx`
+### 1. Enhanced Error Handling in YouTubePlayer Component
+Added proper error state management and user-friendly error messages:
 
-**Changes:**
-- Added imports:
-  - `import { extractYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';`
-  - `import { isValidGoogleDriveUrl, getGoogleDrivePreviewUrl } from '@/lib/googleDrive';`
-- Removed duplicate `extractYouTubeVideoId` function (was defined locally)
-- Added `isGoogleDriveUrl()` helper function
-- Updated `Submission` interface to include `googleDriveUrl` and `isGoogleDrive` properties
-- Fixed submission video display to handle YouTube, Google Drive, and direct video files
-- Fixed instructional video display to handle YouTube, Google Drive, and direct video files
-- Added multiple fallback checks for different URL storage locations
+```typescript
+// Added error state
+const [embedError, setEmbedError] = React.useState<number | null>(null);
 
-**Before (YouTube only, broken):**
-```tsx
-<iframe
-  src={submission.youtubeUrl.replace('watch?v=', 'embed/')}
-  ...
-/>
+// Added onError callback prop
+interface YouTubePlayerProps {
+  // ... other props
+  onError?: (errorCode: number) => void;
+}
+
+// Enhanced error handling in player events
+onError: (event: any) => {
+  console.error('YouTube player error code:', event.data);
+  setEmbedError(event.data);
+  if (onError) {
+    onError(event.data);
+  }
+}
 ```
 
-**After (YouTube + Google Drive, robust):**
-```tsx
-{submission.isYouTube && submission.youtubeUrl ? (
-  <iframe
-    src={getYouTubeEmbedUrl(submission.youtubeUrl) || submission.youtubeUrl}
-    ...
-  />
-) : submission.isGoogleDrive && submission.googleDriveUrl ? (
-  <iframe
-    src={getGoogleDrivePreviewUrl(submission.googleDriveUrl) || submission.googleDriveUrl}
-    ...
-  />
-) : isGoogleDriveUrl(submission.videoUrl) ? (
-  <iframe
-    src={getGoogleDrivePreviewUrl(submission.videoUrl) || submission.videoUrl}
-    ...
-  />
-) : (
-  <video controls>
-    <source src={getVideoUrl(submission.videoUrl)} />
-  </video>
-)}
+### 2. User-Friendly Error Display
+When embedding fails (error codes 101 or 150), show a helpful message with a link to watch on YouTube:
+
+```
+🎥
+Embedding Disabled
+The video owner has disabled embedding for this video.
+
+[Watch on YouTube →]
+
+Video ID: Tq5nOO1A78I
 ```
 
-## How It Works
+### 3. Error Messages for All YouTube Error Codes
+- **Error 2**: "Invalid Video ID - The video ID is not valid."
+- **Error 5**: "HTML5 Player Error - There was an error with the video player."
+- **Error 100**: "Video Not Found - This video has been removed or is unavailable."
+- **Error 101**: "Embedding Disabled - The video owner has disabled embedding for this video."
+- **Error 150**: "Embedding Restricted - The video owner has restricted this video from being embedded."
 
-### YouTube Processing
-The `getYouTubeEmbedUrl()` function:
-1. Extracts the video ID from any YouTube URL format using regex patterns
-2. Constructs a proper embed URL: `https://www.youtube-nocookie.com/embed/VIDEO_ID`
-3. Uses `youtube-nocookie.com` for better compatibility with school firewalls
-4. Returns `null` if the URL is invalid
+## Files Modified
+- `src/components/common/YouTubePlayer.tsx` - Added error state and user-friendly error messages
 
-### Google Drive Processing
-The `getGoogleDrivePreviewUrl()` function:
-1. Extracts the file ID from any Google Drive URL format using regex patterns
-2. Constructs a preview URL: `https://drive.google.com/file/d/FILE_ID/preview`
-3. This format allows embedding in iframes for video playback
-4. Returns `null` if the URL is invalid
+## What This Means for Users
 
-### Supported YouTube URL Formats
+### For Instructors
+When a YouTube video can't be embedded:
+1. You'll see a clear error message explaining why
+2. You can click "Watch on YouTube" to view the video directly
+3. The video ID is displayed for reference
 
-✅ `https://www.youtube.com/watch?v=dQw4w9WgXcQ`
-✅ `https://youtu.be/dQw4w9WgXcQ`
-✅ `https://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share`
-✅ `https://m.youtube.com/watch?v=dQw4w9WgXcQ`
-✅ `https://www.youtube.com/embed/dQw4w9WgXcQ`
-✅ `https://www.youtube.com/v/dQw4w9WgXcQ`
+### For Students
+Students should be advised to:
+1. Ensure their YouTube videos have embedding enabled
+2. Check video privacy settings: Settings → Advanced → Allow embedding (checkbox)
+3. If they want to keep embedding disabled, they should use direct S3 uploads or Google Drive instead
 
-All convert to: `https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ`
+## Testing
+To test if a YouTube video allows embedding:
+1. Go to the video on YouTube
+2. Click "Share" → "Embed"
+3. If you see an embed code, embedding is allowed
+4. If you see "Video unavailable" or no embed option, embedding is disabled
 
-### Supported Google Drive URL Formats
+## Recommendations
 
-✅ `https://drive.google.com/file/d/1ABC123xyz/view`
-✅ `https://drive.google.com/file/d/1ABC123xyz/preview`
-✅ `https://drive.google.com/file/d/1ABC123xyz`
-✅ `https://drive.google.com/open?id=1ABC123xyz`
-✅ `https://drive.google.com/uc?id=1ABC123xyz`
-✅ `https://drive.google.com/uc?export=download&id=1ABC123xyz`
-✅ `https://drive.google.com/file/d/1ABC123xyz/view?usp=sharing`
+### Short Term
+- ✅ Show clear error messages when embedding fails
+- ✅ Provide "Watch on YouTube" link as fallback
+- Document this in student submission guidelines
 
-All convert to: `https://drive.google.com/file/d/1ABC123xyz/preview`
+### Long Term (Optional)
+1. Add a validation check when students submit YouTube URLs to warn if embedding is disabled
+2. Add a help tooltip on the submission form explaining embedding requirements
+3. Consider using YouTube Data API to check embedding status before accepting submissions
 
-## Other Components Already Fixed
+## Student Guidance Template
 
-These components were already using proper YouTube URL handling:
+When advising students about YouTube submissions:
 
-1. **YouTubePlayer Component** (`src/components/common/YouTubePlayer.tsx`)
-   - Uses `extractYouTubeVideoId()` and YouTube IFrame API
-   - Supports playback speed control
-   - Used in peer reviews page
+> **YouTube Video Requirements:**
+> 1. Video must be set to "Public" or "Unlisted"
+> 2. Embedding must be enabled (Settings → Advanced → Allow embedding ✓)
+> 3. If you prefer to keep embedding disabled, please use direct video upload or Google Drive instead
 
-2. **Bulk Grading Page** (`src/app/instructor/grading/bulk/page.tsx`)
-   - Uses `getEmbedUrl()` from `src/lib/urlUtils.ts`
-   - Properly handles YouTube, Google Drive, and direct video files
+## Status
+✅ **COMPLETE** - Error handling improved, user-friendly messages added
 
-3. **Video Reels Component** (`src/components/student/VideoReels.tsx`)
-   - Uses `extractYouTubeVideoId()` for YouTube detection
-   - Constructs proper embed URLs with autoplay parameters
-
-## Testing Checklist
-
-### YouTube
-- [x] Student can submit YouTube link in various formats
-- [x] YouTube video plays in student assignment page (submission view)
-- [x] YouTube video plays in instructor grading pages
-- [x] YouTube instructional videos play correctly
-- [x] YouTube videos play in peer reviews
-- [x] YouTube videos play in video reels/feed
-- [x] Error handling for invalid YouTube URLs
-
-### Google Drive
-- [x] Student can submit Google Drive link in various formats
-- [x] Google Drive video plays in student assignment page (submission view)
-- [x] Google Drive video plays in instructor grading pages
-- [x] Google Drive instructional videos play correctly
-- [x] Google Drive videos play in peer reviews
-- [x] Google Drive videos play in video reels/feed
-- [x] Error handling for invalid Google Drive URLs
-
-### General
-- [x] Fallback to regular video player for direct video file URLs
-- [x] Proper detection of URL type (YouTube vs Google Drive vs direct file)
-
-## Benefits
-
-1. **Reliability:** Handles all YouTube and Google Drive URL formats correctly
-2. **Firewall Compatibility:** Uses `youtube-nocookie.com` domain for YouTube
-3. **Flexibility:** Students can use YouTube, Google Drive, or upload directly
-4. **Consistency:** Uses the same URL parsing logic across the entire app
-5. **Maintainability:** Centralized URL handling in `src/lib/youtube.ts` and `src/lib/googleDrive.ts`
-6. **Error Handling:** Gracefully handles invalid URLs with fallbacks
-7. **Privacy:** Google Drive videos can be shared with link-only access
-
-## Related Files
-
-- `src/lib/youtube.ts` - YouTube URL utilities (extraction, embed URL generation, thumbnails)
-- `src/lib/googleDrive.ts` - Google Drive URL utilities (extraction, preview URL generation, thumbnails)
-- `src/lib/urlUtils.ts` - General video URL utilities (YouTube, Google Drive, direct files)
-- `src/components/common/YouTubePlayer.tsx` - YouTube IFrame API player component
-- `src/app/student/assignments/[assignmentId]/page.tsx` - Student assignment view (FIXED)
-- `src/app/instructor/grading/bulk/page.tsx` - Bulk grading (already correct)
-- `src/components/student/VideoReels.tsx` - Video feed (already correct)
-- `test-youtube-urls.js` - Test script for YouTube URL parsing
-- `test-google-drive-urls.js` - Test script for Google Drive URL parsing
-
-## Future Enhancements
-
-### YouTube
-1. **Thumbnail Generation:** Automatically fetch YouTube thumbnails for better UX
-2. **Video Validation:** Check if YouTube video is embeddable before submission
-3. **Privacy Mode:** Option to use regular youtube.com vs youtube-nocookie.com
-4. **Playlist Support:** Handle YouTube playlist URLs
-5. **Timestamp Support:** Preserve timestamp parameters (e.g., `?t=30s`)
-
-### Google Drive
-1. **Permission Check:** Validate that video is shared with "Anyone with the link"
-2. **Thumbnail Extraction:** Better thumbnail generation for Google Drive videos
-3. **File Type Validation:** Ensure the file is actually a video before submission
-4. **Size Warning:** Warn students about large file sizes on Google Drive
-5. **Direct Stream:** Option to use direct streaming URL instead of preview iframe
-
-### General
-1. **Auto-Detection:** Automatically detect video type from URL
-2. **Preview Before Submit:** Show video preview before final submission
-3. **Multiple Sources:** Allow students to provide backup URLs
-4. **Accessibility:** Add captions/subtitle support for all video types
-
-## Deployment Notes
-
-- No database changes required
-- No environment variables needed
-- Uses existing YouTube utility functions
-- Backward compatible with existing submissions
-- No breaking changes
+The app now gracefully handles YouTube embedding restrictions and provides clear guidance to users.

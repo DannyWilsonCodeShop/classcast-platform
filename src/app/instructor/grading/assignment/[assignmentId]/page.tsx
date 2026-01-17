@@ -503,21 +503,52 @@ const NewAssignmentGradingPage: React.FC = () => {
     return (
       <InstructorRoute>
         <div className="min-h-screen bg-gray-50">
-          {/* Header */}
-          <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-6">
+          {/* Header with Logo and Home Button */}
+          <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-6 sticky top-0 z-50 shadow-sm">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex items-center space-x-4">
+                {/* Logo */}
+                <button
+                  onClick={() => router.push('/instructor/dashboard')}
+                  className="flex-shrink-0 hover:opacity-80 transition-opacity"
+                  title="Go to Dashboard"
+                >
+                  <img 
+                    src="/UpdatedCCLogo.png" 
+                    alt="ClassCast Logo" 
+                    className="h-10 w-10 object-contain"
+                  />
+                </button>
+                
+                {/* Back Button */}
                 <button
                   onClick={() => router.back()}
-                  className="text-gray-500 hover:text-gray-700 transition-colors mb-2"
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  title="Go Back"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <h1 className="text-2xl font-bold text-gray-800">{assignment.title}</h1>
-                <p className="text-gray-600">{assignment.courseName} ({assignment.courseCode})</p>
+                
+                {/* Assignment Info */}
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-800">{assignment.title}</h1>
+                  <p className="text-gray-600">{assignment.courseName} ({assignment.courseCode})</p>
+                </div>
               </div>
+              
+              {/* Home Button */}
+              <button
+                onClick={() => router.push('/instructor/dashboard')}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                title="Go to Dashboard"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span className="font-medium">Home</span>
+              </button>
             </div>
           </div>
 
@@ -544,23 +575,52 @@ const NewAssignmentGradingPage: React.FC = () => {
     return (
       <InstructorRoute>
         <div className="min-h-screen bg-gray-50">
-          {/* Header */}
-          <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
+          {/* Header with Logo and Home Button */}
+          <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-50 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
+                {/* Logo */}
+                <button
+                  onClick={() => router.push('/instructor/dashboard')}
+                  className="flex-shrink-0 hover:opacity-80 transition-opacity"
+                  title="Go to Dashboard"
+                >
+                  <img 
+                    src="/UpdatedCCLogo.png" 
+                    alt="ClassCast Logo" 
+                    className="h-10 w-10 object-contain"
+                  />
+                </button>
+                
+                {/* Back Button */}
                 <button
                   onClick={() => router.back()}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
+                  title="Go Back"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
+                
+                {/* Assignment Info */}
                 <div>
                   <h1 className="text-xl font-bold text-gray-800">{assignment.title}</h1>
                   <p className="text-sm text-gray-600">{assignment.courseName} • {allSubmissions.length} total submissions</p>
                 </div>
               </div>
+              
+              {/* Home Button */}
+              <button
+                onClick={() => router.push('/instructor/dashboard')}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                title="Go to Dashboard"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span className="font-medium">Home</span>
+              </button>
             </div>
           </div>
 
@@ -648,18 +708,35 @@ const NewAssignmentGradingPage: React.FC = () => {
   return (
     <InstructorRoute>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
+        {/* Header with Logo and Home Button */}
+        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-50 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
+              {/* Logo */}
+              <button
+                onClick={() => router.push('/instructor/dashboard')}
+                className="flex-shrink-0 hover:opacity-80 transition-opacity"
+                title="Go to Dashboard"
+              >
+                <img 
+                  src="/UpdatedCCLogo.png" 
+                  alt="ClassCast Logo" 
+                  className="h-10 w-10 object-contain"
+                />
+              </button>
+              
+              {/* Back Button */}
               <button
                 onClick={() => router.back()}
                 className="text-gray-500 hover:text-gray-700 transition-colors"
+                title="Go Back"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
+              
+              {/* Assignment Info */}
               <div>
                 <h1 className="text-xl font-bold text-gray-800">{assignment.title}</h1>
                 <p className="text-sm text-gray-600">
@@ -669,7 +746,19 @@ const NewAssignmentGradingPage: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-600">
+              {/* Home Button */}
+              <button
+                onClick={() => router.push('/instructor/dashboard')}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                title="Go to Dashboard"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span className="font-medium">Home</span>
+              </button>
+              
+              <div className="text-sm text-gray-600 hidden lg:block">
                 Scrollable Feed • Auto-save • v2.0
               </div>
             </div>
