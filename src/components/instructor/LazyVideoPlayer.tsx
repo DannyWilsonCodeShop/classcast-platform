@@ -93,12 +93,7 @@ export const LazyVideoPlayer: React.FC<LazyVideoPlayerProps> = ({
           )}
         </div>
 
-        {/* Performance hint */}
-        <div className="absolute bottom-2 right-2 text-xs text-gray-400">
-          {loadingStrategy === 'immediate' ? '⚡ Priority' : 
-           loadingStrategy === 'priority' ? '🚀 Fast' :
-           loadingStrategy === 'normal' ? '📱 Normal' : '💤 Lazy'}
-        </div>
+        {/* Removed performance hint for cleaner UI */}
       </div>
     );
   }
@@ -192,12 +187,7 @@ export const LazyVideoPlayer: React.FC<LazyVideoPlayerProps> = ({
         </div>
       )}
 
-      {/* Loading strategy indicator */}
-      <div className="absolute bottom-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
-        {loadingStrategy === 'immediate' ? '⚡ Priority Load' : 
-         loadingStrategy === 'priority' ? '🚀 Fast Load' :
-         loadingStrategy === 'normal' ? '📱 Normal Load' : '💤 Lazy Load'}
-      </div>
+      {/* Removed loading strategy indicator for cleaner UI */}
     </div>
   );
 };
