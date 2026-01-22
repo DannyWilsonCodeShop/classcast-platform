@@ -1,117 +1,111 @@
-# Password Reset Troubleshooting Guide
+# Password Reset Email Troubleshooting Guide
 
-## 🔧 **Password Reset System Fixed!**
+## Common Issues and Solutions
 
-The password reset functionality has been completely overhauled to use AWS Cognito for better reliability and security.
+### 1. Students Not Receiving Reset Emails
 
-### 📋 **How Password Reset Works Now:**
+**Possible Causes:**
+- SES is in sandbox mode
+- Email addresses not verified in SES
+- Emails going to spam folder
+- SES configuration issues
+- Missing environment variables
 
-#### **Step 1: Request Password Reset**
-1. Go to `/auth/forgot-password`
-2. Enter your email address
-3. Click "Send Reset Link"
-4. Check your email for a **6-digit confirmation code**
+**Solutions:**
+1. **Check SES Sandbox Mode:**
+   - Go to AWS SES Console
+   - Check if you're in sandbox mode
+   - Request production access if needed
 
-#### **Step 2: Reset Your Password**
-1. Go to `/auth/reset-password`
-2. Enter your **email address**
-3. Enter the **6-digit confirmation code** from your email
-4. Enter your **new password** (must meet requirements)
-5. Confirm your new password
-6. Click "Update Password"
+2. **Verify Email Addresses:**
+   - In SES Console, verify sender email address
+   - In sandbox mode, verify recipient emails too
 
-### 🚨 **Common Issues & Solutions:**
+3. **Check Environment Variables:**
+   ```
+   AWS_REGION=us-east-1
+   SES_FROM_EMAIL=noreply@yourdomain.com
+   FRONTEND_URL=https://your-app.com
+   ```
 
-#### **"I didn't receive the email"**
-- ✅ **Check spam/junk folder** - AWS emails sometimes go there
-- ✅ **Wait 2-3 minutes** - Email delivery can be delayed
-- ✅ **Try resending** - Click "Resend Email" on the confirmation page
-- ✅ **Check email spelling** - Make sure you entered the correct email
+4. **Test Email Sending:**
+   ```bash
+   node test-password-reset.js
+   ```
 
-#### **"Invalid confirmation code"**
-- ✅ **Check the code carefully** - It's a 6-digit number from your email
-- ✅ **Code expired** - Codes expire after 24 hours, request a new one
-- ✅ **Copy/paste the code** - Avoid typing errors
-- ✅ **No spaces** - Don't include spaces before/after the code
+### 2. SES Authentication Errors
 
-#### **"Password doesn't meet requirements"**
-Your password must have:
-- ✅ **At least 8 characters**
-- ✅ **One uppercase letter** (A-Z)
-- ✅ **One lowercase letter** (a-z)
-- ✅ **One number** (0-9)
-- ✅ **One special character** (@$!%*?&)
+**Error:** "The security token included in the request is invalid"
 
-#### **"Too many requests"**
-- ✅ **Wait 15 minutes** before trying again
-- ✅ **AWS rate limiting** protects against abuse
-- ✅ **Contact support** if you're still blocked
+**Solutions:**
+1. Check AWS credentials in environment
+2. Verify IAM permissions for SES
+3. Ensure correct AWS region
 
-### 🔒 **Security Features:**
+### 3. Emails Going to Spam
 
-#### **Email Security**
-- ✅ **No email enumeration** - System doesn't reveal if email exists
-- ✅ **Rate limiting** - Prevents spam and abuse
-- ✅ **Secure codes** - 6-digit codes are cryptographically secure
+**Solutions:**
+1. Set up SPF record: `v=spf1 include:amazonses.com ~all`
+2. Set up DKIM in SES Console
+3. Use verified domain instead of email address
+4. Add proper reply-to address
 
-#### **Password Security**
-- ✅ **Strong requirements** - Enforced password complexity
-- ✅ **Secure storage** - Passwords hashed with AWS Cognito
-- ✅ **Expiring codes** - Codes expire after 24 hours
+### 4. Reset Links Not Working
 
-### 📱 **Mobile Users:**
+**Possible Issues:**
+- Token expired (1 hour limit)
+- Token already used
+- Database connection issues
+- Frontend URL mismatch
 
-#### **Email App Issues**
-- ✅ **Use web browser** - Open email in browser if app has issues
-- ✅ **Copy code manually** - Type the 6-digit code manually
-- ✅ **Check email sync** - Make sure email is syncing properly
+**Solutions:**
+1. Check token expiry in database
+2. Verify FRONTEND_URL matches actual domain
+3. Check database connectivity
 
-### 🆘 **Still Having Issues?**
+## Manual Password Reset Process
 
-#### **Contact Information**
-- 📧 **Email Support**: wilson.danny@me.com
-- 🐛 **Report Bug**: Use the bug report button in the app
-- 📞 **Urgent Issues**: Contact your instructor
+If emails are not working, you can manually reset passwords:
 
-#### **What to Include in Support Request**
-1. **Your email address** (the one you're trying to reset)
-2. **Error message** (exact text if possible)
-3. **Steps you tried** (what you already attempted)
-4. **Device/browser** (iPhone Safari, Chrome on Windows, etc.)
-5. **Screenshot** (if helpful)
+1. **Generate Password Hash:**
+   ```bash
+   node reset-mahassine-password-simple.js
+   ```
 
-### 🔄 **System Status:**
+2. **Update Database Directly:**
+   - Access DynamoDB Console
+   - Find user in classcast-users table
+   - Update password field with generated hash
 
-#### **Current Status: ✅ WORKING**
-- ✅ **Forgot Password API**: Fully functional with Cognito
-- ✅ **Reset Password API**: Updated to use Cognito confirmation codes
-- ✅ **Email Delivery**: AWS SES configured and working
-- ✅ **Form Validation**: Enhanced with better error messages
-- ✅ **Mobile Support**: Optimized for mobile browsers
+3. **Use Admin API:**
+   ```bash
+   curl -X POST /api/auth/admin-reset-password \
+     -H "Content-Type: application/json" \
+     -d '{"email":"user@example.com","newPassword":"NewPass123!"}'
+   ```
 
-#### **Recent Fixes (Latest Update):**
-- 🔧 **Unified System**: Now uses AWS Cognito throughout
-- 🔧 **Better Validation**: Improved error messages and validation
-- 🔧 **Mobile Optimization**: Better support for mobile devices
-- 🔧 **Security Enhancement**: Stronger password requirements
-- 🔧 **User Experience**: Clearer instructions and feedback
+## Testing Checklist
 
-### 📚 **For Instructors:**
+- [ ] SES is configured and verified
+- [ ] Environment variables are set
+- [ ] Password reset table exists
+- [ ] API endpoints are deployed
+- [ ] Test email sending works
+- [ ] Reset links are generated correctly
+- [ ] Password reset completes successfully
 
-#### **Helping Students**
-1. **Verify email address** - Make sure they're using the correct email
-2. **Check spam folders** - AWS emails often go to spam initially
-3. **Try different browser** - Sometimes browser issues cause problems
-4. **Manual password reset** - Contact admin if student is completely blocked
+## Monitoring
 
-#### **Common Student Mistakes**
-- ❌ **Wrong email** - Using personal instead of school email
-- ❌ **Typos in code** - Misreading 6 vs G, 0 vs O, etc.
-- ❌ **Expired codes** - Waiting too long to use the code
-- ❌ **Weak passwords** - Not meeting complexity requirements
+Check these logs for issues:
+- CloudWatch logs for Lambda functions
+- SES sending statistics
+- DynamoDB metrics
+- Application error logs
 
----
+## Support
 
-**Last Updated**: November 5, 2025  
-**System Version**: Cognito-based password reset  
-**Status**: ✅ Fully Operational
+For additional help:
+1. Check AWS SES documentation
+2. Verify IAM permissions
+3. Test with different email providers
+4. Contact AWS support if needed

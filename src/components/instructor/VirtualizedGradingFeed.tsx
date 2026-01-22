@@ -6,6 +6,7 @@
 import React, { useRef, useEffect } from 'react';
 import { useVirtualizedGrading } from '@/hooks/useVirtualizedGrading';
 import { LazyVideoPlayer } from './LazyVideoPlayer';
+import { SectionIndicator } from './SectionIndicator';
 
 interface VideoSubmission {
   submissionId: string;
@@ -75,20 +76,7 @@ export const VirtualizedGradingFeed: React.FC<VirtualizedGradingFeedProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Performance indicator */}
-      <div className="flex items-center justify-between text-sm text-gray-600 bg-blue-50 px-4 py-2 rounded-lg">
-        <div className="flex items-center space-x-4">
-          <span>🚀 Virtualized rendering</span>
-          <span>📊 Showing {renderedCount} of {totalCount} submissions</span>
-          <span>⚡ {(renderRatio * 100).toFixed(1)}% DOM usage</span>
-        </div>
-        {isScrolling && (
-          <div className="flex items-center space-x-2 text-blue-600">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <span>Scrolling...</span>
-          </div>
-        )}
-      </div>
+      {/* Removed performance and scroll notifications for cleaner UI */}
 
       {/* Virtualized container */}
       <div
@@ -133,11 +121,7 @@ export const VirtualizedGradingFeed: React.FC<VirtualizedGradingFeedProps> = ({
         </div>
       </div>
 
-      {/* Performance stats */}
-      <div className="text-xs text-gray-500 bg-gray-50 px-3 py-2 rounded">
-        💡 Performance: Only rendering {renderedCount} components instead of {totalCount} 
-        ({totalCount > 0 ? Math.round((1 - renderRatio) * 100) : 0}% reduction in DOM nodes)
-      </div>
+      {/* Removed performance stats for cleaner UI */}
     </div>
   );
 };
@@ -173,28 +157,31 @@ const SubmissionCard: React.FC<SubmissionCardProps> = ({
       {/* Student Header */}
       <div className="px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-800">{submission.studentName}</h2>
+          <div className="flex-1">
+            <div className="flex items-center space-x-3 mb-2">
+              <h2 className="text-lg font-semibold text-gray-800">{submission.studentName}</h2>
+              <SectionIndicator 
+                sectionName={submission.sectionName}
+                sectionId={submission.sectionId}
+                size="md"
+              />
+            </div>
             <div className="flex items-center space-x-3 text-sm text-gray-600">
-              <span>Submitted: {new Date(submission.submittedAt).toLocaleDateString()}</span>
-              {submission.sectionName && (
-                <>
-                  <span>•</span>
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                    {submission.sectionName}
-                  </span>
-                </>
-              )}
+              <span>📧 {submission.studentEmail}</span>
+              <span>•</span>
+              <span>📅 Submitted: {new Date(submission.submittedAt).toLocaleDateString()}</span>
+              <span>•</span>
+              <span>⏱️ {Math.round(submission.duration / 60)}min</span>
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm text-gray-500">#{index + 1} of {totalSubmissions}</div>
+            <div className="text-sm text-gray-500 mb-1">#{index + 1} of {totalSubmissions}</div>
             <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
               submission.status === 'graded' 
                 ? 'bg-green-100 text-green-800'
                 : 'bg-yellow-100 text-yellow-800'
             }`}>
-              {submission.status === 'graded' ? '✓ Graded' : 'Pending'}
+              {submission.status === 'graded' ? '✅ Graded' : '⏳ Pending'}
             </span>
           </div>
         </div>

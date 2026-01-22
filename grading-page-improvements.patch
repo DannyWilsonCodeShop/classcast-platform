@@ -1,0 +1,80 @@
+// Enhanced Grading Page with Improved Section Filtering
+// Apply these changes to src/app/instructor/grading/assignment/[assignmentId]/page.tsx
+
+// 1. Add imports at the top
+import { GradingFilters } from '@/components/instructor/GradingFilters';
+import { extractSections, filterBySection, sortSubmissions, searchSubmissions, getSectionStats } from '@/lib/sectionUtils';
+
+// 2. Replace the filter section in the JSX with:
+{/* Enhanced Filters */}
+<GradingFilters
+  filter={filter}
+  onFilterChange={setFilter}
+  selectedSection={selectedSection}
+  onSectionChange={setSelectedSection}
+  searchTerm={searchTerm}
+  onSearchChange={setSearchTerm}
+  sortBy={sortBy}
+  onSortChange={setSortBy}
+  sections={extractSections(allSubmissions)}
+  totalSubmissions={filteredSubmissions.length}
+  gradedCount={filteredSubmissions.filter(s => s.status === 'graded').length}
+  ungradedCount={filteredSubmissions.filter(s => s.status === 'submitted').length}
+  showQuickSectionFilter={extractSections(allSubmissions).length > 3}
+  className="mb-6"
+/>
+
+// 3. Update the filtering logic in useEffect:
+useEffect(() => {
+  let filtered = [...orderedSubmissions];
+  
+  // Apply status filter
+  if (filter === 'graded') {
+    filtered = filtered.filter(sub => sub.status === 'graded');
+  } else if (filter === 'ungraded') {
+    filtered = filtered.filter(sub => sub.status === 'submitted');
+  }
+  
+  // Apply section filter using utility
+  filtered = filterBySection(filtered, selectedSection);
+  
+  // Apply search using utility
+  filtered = searchSubmissions(filtered, searchTerm);
+  
+  // Apply sort using utility
+  filtered = sortSubmissions(filtered, sortBy);
+  
+  setFilteredSubmissions(filtered);
+}, [orderedSubmissions, filter, searchTerm, sortBy, selectedSection]);
+
+// 4. Add section statistics display (optional):
+const sectionStats = getSectionStats(allSubmissions, selectedSection);
+
+// Add this JSX after the filters:
+{selectedSection !== 'all' && (
+  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="font-medium text-blue-900">
+          Section: {extractSections(allSubmissions).find(s => s.id === selectedSection)?.name}
+        </h3>
+        <p className="text-sm text-blue-700">
+          {sectionStats.total} students • {sectionStats.graded} graded • {sectionStats.ungraded} pending
+        </p>
+      </div>
+      <div className="text-right">
+        <div className="text-2xl font-bold text-blue-900">
+          {sectionStats.completionRate}%
+        </div>
+        <div className="text-sm text-blue-700">Complete</div>
+      </div>
+    </div>
+    {sectionStats.averageGrade !== null && (
+      <div className="mt-2 pt-2 border-t border-blue-200">
+        <span className="text-sm text-blue-700">
+          Average Grade: {sectionStats.averageGrade}
+        </span>
+      </div>
+    )}
+  </div>
+)}

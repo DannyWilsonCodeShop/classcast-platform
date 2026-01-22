@@ -11,6 +11,8 @@ import { getGoogleDrivePreviewUrl, isValidGoogleDriveUrl, getGoogleDriveThumbnai
 import { useSmartVideoLoading } from '@/hooks/useSmartVideoLoading';
 import { LazyVideoPlayer } from '@/components/instructor/LazyVideoPlayer';
 import { VirtualizedGradingFeed } from '@/components/instructor/VirtualizedGradingFeed';
+import { GradingFilters } from '@/components/instructor/GradingFilters';
+import { extractSections, filterBySection, sortSubmissions, searchSubmissions, getSectionStats } from '@/lib/sectionUtils';
 
 interface Assignment {
   assignmentId: string;
@@ -265,55 +267,29 @@ const NewAssignmentGradingPage: React.FC = () => {
     cacheAwareness: true
   });
 
-  // Filter and sort submissions (now using smart-ordered submissions)
+  // Filter and sort submissions (now using smart-ordered submissions with enhanced utilities)
   useEffect(() => {
     let filtered = [...orderedSubmissions];
     
-    // Apply filter
+    // Apply status filter
     if (filter === 'graded') {
       filtered = filtered.filter(sub => sub.status === 'graded');
     } else if (filter === 'ungraded') {
       filtered = filtered.filter(sub => sub.status === 'submitted');
     }
     
-    // Apply section filter
-    if (selectedSection !== 'all') {
-      filtered = filtered.filter(sub => sub.sectionId === selectedSection);
-    }
+    // Apply section filter using utility
+    filtered = filterBySection(filtered, selectedSection);
     
-    // Apply search
-    if (searchTerm) {
-      filtered = filtered.filter(sub => 
-        sub.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        sub.studentEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (sub.sectionName && sub.sectionName.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
+    // Apply search using utility
+    filtered = searchSubmissions(filtered, searchTerm);
     
-    // Apply additional sort if needed (smart ordering is primary)
+    // Apply sort using utility (maintains smart ordering as primary)
     if (sortBy !== 'section') {
-      filtered.sort((a, b) => {
-        switch (sortBy) {
-          case 'name':
-            // Sort by last name, then first name
-            const getLastName = (fullName: string) => {
-              const parts = fullName.trim().split(' ');
-              return parts.length > 1 ? parts[parts.length - 1] : fullName;
-            };
-            const lastNameCompare = getLastName(a.studentName).localeCompare(getLastName(b.studentName));
-            if (lastNameCompare !== 0) return lastNameCompare;
-            return a.studentName.localeCompare(b.studentName);
-          case 'date':
-            return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
-          case 'grade':
-            if (a.grade === undefined && b.grade === undefined) return 0;
-            if (a.grade === undefined) return 1;
-            if (b.grade === undefined) return -1;
-            return b.grade - a.grade;
-          default:
-            return 0;
-        }
-      });
+      filtered = sortSubmissions(filtered, sortBy);
+    } else {
+      // For section sort, use the utility which handles section grouping
+      filtered = sortSubmissions(filtered, 'section');
     }
     
     setFilteredSubmissions(filtered);
@@ -395,13 +371,9 @@ const NewAssignmentGradingPage: React.FC = () => {
     fetchPeerResponses();
   }, [allSubmissions.length, assignmentId]);
 
-  // Get unique sections for filtering
-  const uniqueSections = Array.from(new Set(
-    allSubmissions
-      .filter(sub => sub.sectionId && sub.sectionName)
-      .map(sub => ({ id: sub.sectionId!, name: sub.sectionName! }))
-      .map(section => JSON.stringify(section))
-  )).map(str => JSON.parse(str)).sort((a, b) => a.name.localeCompare(b.name));
+  // Get unique sections for filtering using utility
+  const sections = extractSections(allSubmissions);
+  const sectionStats = getSectionStats(allSubmissions, selectedSection);
 
   // Helper functions for peer responses
   const getPeerResponsesForStudent = (studentId: string): PeerResponse[] => {
@@ -420,8 +392,10 @@ const NewAssignmentGradingPage: React.FC = () => {
     });
   };
 
-  // Auto-save grade function
+  // Enhanced auto-save grade function with better error handling
   const handleAutoSave = async (submissionId: string, grade: number, feedback: string) => {
+    console.log('💾 Starting auto-save:', { submissionId, grade, feedbackLength: feedback.length });
+    
     setSavingGrades(prev => new Set(prev).add(submissionId));
     
     try {
@@ -438,24 +412,37 @@ const NewAssignmentGradingPage: React.FC = () => {
         }),
       });
 
+      console.log('📡 Auto-save response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Failed to save grade');
+        const errorText = await response.text();
+        console.error('❌ Auto-save API error:', errorText);
+        throw new Error(`Failed to save grade: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('✅ Auto-save response:', data);
+      
       if (data.success) {
-        // Update local state
+        // Update local state with saved data
         setAllSubmissions(prev => prev.map(sub =>
           sub.submissionId === submissionId
             ? { ...sub, grade: Number(grade), feedback, status: 'graded' as const }
             : sub
         ));
+        
+        console.log('✅ Local state updated after successful save');
       } else {
         throw new Error(data.error || 'Failed to save grade');
       }
     } catch (error) {
-      console.error('Error saving grade:', error);
-      alert('Failed to save grade. Please try again.');
+      console.error('❌ Auto-save error:', error);
+      
+      // Show specific error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Grade save failed:', { submissionId, grade, error: errorMessage });
+      
+      throw error;
     } finally {
       setSavingGrades(prev => {
         const newSet = new Set(prev);
@@ -646,14 +633,18 @@ const NewAssignmentGradingPage: React.FC = () => {
                   <select
                     value={selectedSection}
                     onChange={(e) => setSelectedSection(e.target.value)}
-                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm min-w-[200px]"
                   >
                     <option value="all">All Sections ({allSubmissions.length})</option>
-                    {uniqueSections.map(section => (
-                      <option key={section.id} value={section.id}>
-                        {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
-                      </option>
-                    ))}
+                    {uniqueSections.length > 0 ? (
+                      uniqueSections.map(section => (
+                        <option key={section.id} value={section.id}>
+                          {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
+                        </option>
+                      ))
+                    ) : (
+                      <option disabled>No sections found</option>
+                    )}
                   </select>
                 </div>
                 
@@ -765,65 +756,52 @@ const NewAssignmentGradingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Enhanced Filters */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4">
-            <div className="flex flex-wrap items-center gap-4">
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Filter:</label>
-                <select
-                  value={filter}
-                  onChange={(e) => setFilter(e.target.value as FilterType)}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="all">All ({allSubmissions.length})</option>
-                  <option value="ungraded">Ungraded ({allSubmissions.filter(s => s.status === 'submitted').length})</option>
-                  <option value="graded">Graded ({allSubmissions.filter(s => s.status === 'graded').length})</option>
-                </select>
+          <GradingFilters
+            filter={filter}
+            onFilterChange={setFilter}
+            selectedSection={selectedSection}
+            onSectionChange={setSelectedSection}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            sections={sections}
+            totalSubmissions={filteredSubmissions.length}
+            gradedCount={filteredSubmissions.filter(s => s.status === 'graded').length}
+            ungradedCount={filteredSubmissions.filter(s => s.status === 'submitted').length}
+            showQuickSectionFilter={sections.length > 3}
+          />
+          
+          {/* Section Statistics (when filtering by specific section) */}
+          {selectedSection !== 'all' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-medium text-blue-900">
+                    Section: {sections.find(s => s.id === selectedSection)?.name}
+                  </h3>
+                  <p className="text-sm text-blue-700">
+                    {sectionStats.total} students • {sectionStats.graded} graded • {sectionStats.ungraded} pending
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-blue-900">
+                    {sectionStats.completionRate}%
+                  </div>
+                  <div className="text-sm text-blue-700">Complete</div>
+                </div>
               </div>
-
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Section:</label>
-                <select
-                  value={selectedSection}
-                  onChange={(e) => setSelectedSection(e.target.value)}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="all">All Sections ({allSubmissions.length})</option>
-                  {uniqueSections.map(section => (
-                    <option key={section.id} value={section.id}>
-                      {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Search:</label>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Student name, email, or section..."
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm w-56"
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <label className="text-sm font-medium text-gray-700">Sort by:</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortType)}
-                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="section">Section + Name</option>
-                  <option value="name">Name</option>
-                  <option value="date">Submission Date</option>
-                  <option value="grade">Grade</option>
-                </select>
-              </div>
+              {sectionStats.averageGrade !== null && (
+                <div className="mt-2 pt-2 border-t border-blue-200">
+                  <span className="text-sm text-blue-700">
+                    Average Grade: {sectionStats.averageGrade}
+                  </span>
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
 
         {/* Main Content - Scrollable Feed */}
@@ -845,32 +823,72 @@ const NewAssignmentGradingPage: React.FC = () => {
             feedbackState={feedbackState}
             savingGrades={savingGrades}
             onGradeChange={(submissionId, value) => {
+              console.log('📝 Grade changed:', { submissionId, value });
+              
               const numValue = value === '' ? '' : Number(value);
-              setGrades(prev => ({ ...prev, [submissionId]: numValue }));
-              // Auto-save after 1 second of no typing
+              
+              // Update local state immediately
+              setGrades(prev => {
+                const newGrades = { ...prev, [submissionId]: numValue };
+                console.log('📊 Updated grades state:', { submissionId, newValue: numValue });
+                return newGrades;
+              });
+              
+              // Clear existing timeout
               if (saveTimeouts[submissionId]) {
                 clearTimeout(saveTimeouts[submissionId]);
               }
-              const timeout = setTimeout(() => {
-                if (numValue !== '') {
-                  handleAutoSave(submissionId, numValue, feedbackState[submissionId] || '');
-                }
-              }, 1000);
-              setSaveTimeouts(prev => ({ ...prev, [submissionId]: timeout }));
+              
+              // Auto-save after 1 second if grade is valid
+              if (numValue !== '' && !isNaN(Number(numValue))) {
+                const timeout = setTimeout(async () => {
+                  console.log('💾 Auto-saving grade:', { submissionId, grade: numValue });
+                  
+                  try {
+                    await handleAutoSave(submissionId, Number(numValue), feedbackState[submissionId] || '');
+                    console.log('✅ Grade auto-saved successfully');
+                  } catch (error) {
+                    console.error('❌ Auto-save failed:', error);
+                    alert(`Failed to save grade for ${submissionId.slice(-8)}. Please try again.`);
+                  }
+                }, 1000);
+                
+                setSaveTimeouts(prev => ({ ...prev, [submissionId]: timeout }));
+              }
             }}
             onFeedbackChange={(submissionId, value) => {
-              setFeedbackState(prev => ({ ...prev, [submissionId]: value }));
-              // Auto-save after 2 seconds of no typing
+              console.log('💬 Feedback changed:', { submissionId, length: value.length });
+              
+              // Update local state immediately
+              setFeedbackState(prev => {
+                const newFeedback = { ...prev, [submissionId]: value };
+                console.log('📝 Updated feedback state for:', submissionId);
+                return newFeedback;
+              });
+              
+              // Clear existing timeout
               if (saveTimeouts[submissionId]) {
                 clearTimeout(saveTimeouts[submissionId]);
               }
-              const timeout = setTimeout(() => {
-                const grade = grades[submissionId] ?? filteredSubmissions.find(s => s.submissionId === submissionId)?.grade;
-                if (grade !== undefined && grade !== '') {
-                  handleAutoSave(submissionId, Number(grade), value);
-                }
-              }, 2000);
-              setSaveTimeouts(prev => ({ ...prev, [submissionId]: timeout }));
+              
+              // Auto-save after 2 seconds if we have a grade
+              const currentGrade = grades[submissionId] ?? filteredSubmissions.find(s => s.submissionId === submissionId)?.grade;
+              
+              if (currentGrade !== undefined && currentGrade !== '' && !isNaN(Number(currentGrade))) {
+                const timeout = setTimeout(async () => {
+                  console.log('💾 Auto-saving feedback:', { submissionId, grade: currentGrade });
+                  
+                  try {
+                    await handleAutoSave(submissionId, Number(currentGrade), value);
+                    console.log('✅ Feedback auto-saved successfully');
+                  } catch (error) {
+                    console.error('❌ Feedback auto-save failed:', error);
+                    alert(`Failed to save feedback for ${submissionId.slice(-8)}. Please try again.`);
+                  }
+                }, 2000);
+                
+                setSaveTimeouts(prev => ({ ...prev, [submissionId]: timeout }));
+              }
             }}
           />
         </div>

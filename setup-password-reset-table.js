@@ -1,77 +1,59 @@
-const { DynamoDBClient, CreateTableCommand, DescribeTableCommand, UpdateTimeToLiveCommand } = require('@aws-sdk/client-dynamodb');
+#!/usr/bin/env node
 
-const dynamoClient = new DynamoDBClient({ region: 'us-east-1' });
+const AWS = require('aws-sdk');
 
-async function setupTable() {
+AWS.config.update({
+  region: process.env.AWS_REGION || 'us-east-1'
+});
+
+const dynamodb = new AWS.DynamoDB();
+
+async function createPasswordResetTable() {
+  console.log('📋 Creating password-reset-tokens table...');
+
+  const params = {
+    TableName: 'password-reset-tokens',
+    KeySchema: [
+      {
+        AttributeName: 'token',
+        KeyType: 'HASH'
+      }
+    ],
+    AttributeDefinitions: [
+      {
+        AttributeName: 'token',
+        AttributeType: 'S'
+      }
+    ],
+    BillingMode: 'PAY_PER_REQUEST',
+    TimeToLiveSpecification: {
+      AttributeName: 'expiresAt',
+      Enabled: true
+    }
+  };
+
   try {
-    console.log('🔧 Setting up Password Reset Tokens Table...\n');
-    
-    const tableName = 'classcast-password-reset-tokens';
-    
-    // Check if table exists
-    try {
-      const describeResponse = await dynamoClient.send(new DescribeTableCommand({
-        TableName: tableName
-      }));
-      console.log('✅ Table already exists:', tableName);
-      console.log('   Status:', describeResponse.Table.TableStatus);
-      return;
-    } catch (error) {
-      if (error.name !== 'ResourceNotFoundException') {
-        throw error;
-      }
-    }
-    
-    // Create table
-    console.log('📦 Creating table:', tableName);
-    await dynamoClient.send(new CreateTableCommand({
-      TableName: tableName,
-      KeySchema: [
-        { AttributeName: 'email', KeyType: 'HASH' }
-      ],
-      AttributeDefinitions: [
-        { AttributeName: 'email', AttributeType: 'S' }
-      ],
-      BillingMode: 'PAY_PER_REQUEST'
-    }));
-    
-    console.log('✅ Table created successfully!');
-    console.log('⏳ Waiting for table to become active...');
-    
-    // Wait for table to be active
-    let tableActive = false;
-    while (!tableActive) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      const describeResponse = await dynamoClient.send(new DescribeTableCommand({
-        TableName: tableName
-      }));
-      tableActive = describeResponse.Table.TableStatus === 'ACTIVE';
-      console.log('   Status:', describeResponse.Table.TableStatus);
-    }
-    
-    // Enable TTL
-    console.log('\n⏰ Enabling Time-To-Live (TTL) for automatic token expiration...');
-    await dynamoClient.send(new UpdateTimeToLiveCommand({
-      TableName: tableName,
-      TimeToLiveSpecification: {
-        Enabled: true,
-        AttributeName: 'ttl'
-      }
-    }));
-    
-    console.log('✅ TTL enabled!');
-    console.log('\n🎉 Password reset table is ready!');
-    console.log('\nTable structure:');
-    console.log('   - email (Primary Key): User email address');
-    console.log('   - tokenHash: Hashed reset token');
-    console.log('   - expiresAt: Token expiration timestamp');
-    console.log('   - ttl: Auto-delete timestamp (1 day after expiration)');
-    console.log('   - used: Whether token has been used');
-    console.log('   - createdAt: When token was created');
-    
+    const result = await dynamodb.createTable(params).promise();
+    console.log('✅ Table created successfully');
+    console.log('   Table ARN:', result.TableDescription.TableArn);
   } catch (error) {
-    console.error('❌ Error setting up table:', error);
+    if (error.code === 'ResourceInUseException') {
+      console.log('✅ Table already exists');
+    } else {
+      console.error('❌ Error creating table:', error);
+      throw error;
+    }
   }
 }
 
-setupTable();
+async function main() {
+  try {
+    await createPasswordResetTable();
+    console.log('\n🎯 Password reset table setup complete!');
+  } catch (error) {
+    console.error('❌ Setup failed:', error.message);
+    process.exit(1);
+  }
+}
+
+main();
