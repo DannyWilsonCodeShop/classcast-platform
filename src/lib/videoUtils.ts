@@ -12,6 +12,13 @@ export function getVideoUrl(videoUrl: string | undefined | null): string {
     return '';
   }
 
+  // Convert s3:// URLs to https:// format
+  if (videoUrl.startsWith('s3://')) {
+    const httpsUrl = convertS3UrlToHttps(videoUrl);
+    console.log('🎬 Converted s3:// URL to https://', { original: videoUrl, converted: httpsUrl });
+    return httpsUrl;
+  }
+
   // If it's a YouTube URL, return as-is
   if (isYouTubeUrl(videoUrl)) {
     return videoUrl;
@@ -53,4 +60,28 @@ export function isYouTubeUrl(url: string): boolean {
  */
 export function isGoogleDriveUrl(url: string): boolean {
   return isValidGoogleDriveUrl(url);
+}
+
+/**
+ * Convert s3:// URL to https:// format
+ */
+export function convertS3UrlToHttps(s3Url: string): string {
+  if (!s3Url.startsWith('s3://')) {
+    return s3Url;
+  }
+
+  // Parse s3://bucket-name/key/path
+  const match = s3Url.match(/^s3:\/\/([^\/]+)\/(.+)$/);
+  if (!match) {
+    console.warn('Invalid s3:// URL format:', s3Url);
+    return s3Url;
+  }
+
+  const [, bucket, key] = match;
+  
+  // Convert to https:// format
+  // Use the standard S3 URL format: https://bucket.s3.region.amazonaws.com/key
+  const httpsUrl = `https://${bucket}.s3.us-east-1.amazonaws.com/${key}`;
+  
+  return httpsUrl;
 }
