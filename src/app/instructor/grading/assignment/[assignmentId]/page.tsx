@@ -636,8 +636,8 @@ const NewAssignmentGradingPage: React.FC = () => {
                     className="px-3 py-1 border border-gray-300 rounded-lg text-sm min-w-[200px]"
                   >
                     <option value="all">All Sections ({allSubmissions.length})</option>
-                    {uniqueSections.length > 0 ? (
-                      uniqueSections.map(section => (
+                    {sections.length > 0 ? (
+                      sections.map(section => (
                         <option key={section.id} value={section.id}>
                           {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
                         </option>
