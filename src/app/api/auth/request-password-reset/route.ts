@@ -33,8 +33,7 @@ export async function POST(request: NextRequest) {
       FilterExpression: 'email = :email',
       ExpressionAttributeValues: {
         ':email': sanitizedEmail
-      },
-      Limit: 1
+      }
     }));
 
     // Always return success to prevent email enumeration

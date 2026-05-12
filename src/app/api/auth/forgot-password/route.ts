@@ -43,8 +43,7 @@ export async function POST(request: NextRequest) {
       FilterExpression: 'email = :email',
       ExpressionAttributeValues: {
         ':email': sanitizedEmail
-      },
-      Limit: 1
+      }
     }));
 
     // Always return success to prevent email enumeration
@@ -167,7 +166,13 @@ If you didn't request this password reset, you can safely ignore this email.
       );
     }
     
-    // Don't expose internal errors
+    // Don't expose internal errors but log them
+    console.error('Forgot password internal error details:', {
+      name: error instanceof Error ? error.name : 'unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
+    
     return NextResponse.json(
       { message: 'If an account with that email exists, a password reset link has been sent.' },
       { status: 200 }
