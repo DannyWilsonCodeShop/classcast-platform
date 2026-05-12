@@ -754,7 +754,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
             {/* Submit Assignment Section - Moved to Top */}
             {!submission && (
               <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200 shadow-lg">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
                     <h3 className="text-lg font-bold text-blue-900 mb-1 flex items-center">
                       <span className="mr-2">🎥</span>
@@ -763,7 +763,7 @@ const StudentAssignmentDetailPage: React.FC = () => {
                     <p className="text-blue-700 mb-2 text-sm">
                       You haven't submitted this assignment yet. Click below to record and submit your video.
                     </p>
-                    <div className="flex items-center space-x-4 text-xs text-blue-600">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-blue-600">
                       <span className="flex items-center">
                         📅 Due: {new Date(displayAssignment.dueDate).toLocaleDateString('en-US', { 
                           weekday: 'short',
@@ -780,10 +780,10 @@ const StudentAssignmentDetailPage: React.FC = () => {
                   </div>
                   <button
                     onClick={() => router.push(`/student/video-submission?assignmentId=${assignmentId}&courseId=${displayAssignment.courseId}`)}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transition-all duration-200 font-bold flex items-center space-x-2"
+                    className="w-full sm:w-auto px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 hover:shadow-xl transition-all duration-200 font-bold flex items-center justify-center space-x-2 text-sm sm:text-base whitespace-nowrap"
                   >
                     <span>🎥</span>
-                    <span>Submit Assignment</span>
+                    <span>Submit</span>
                   </button>
                 </div>
               </div>

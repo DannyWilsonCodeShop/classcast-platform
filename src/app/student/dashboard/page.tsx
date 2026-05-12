@@ -371,7 +371,7 @@ const StudentDashboard: React.FC = () => {
                   >
                     ✨ {dailyQuestion}
                   </button>
-                  <div className="flex items-center space-x-2">
+                  <div className="hidden sm:flex items-center space-x-2">
                     <label className="flex items-center space-x-2 text-sm text-blue-700 cursor-pointer bg-white px-3 py-2 rounded-full border border-blue-200 hover:bg-blue-50 transition-colors">
                       <input
                         type="checkbox"
@@ -444,7 +444,7 @@ const StudentDashboard: React.FC = () => {
                 </div>
               )}
 
-              {/* Student Videos & Community Feed - Enhanced */}
+              {/* Student Videos & Community Feed - Scrollable on mobile */}
               <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-xl shadow-lg border border-blue-200">
                 <div className="p-4 border-b border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
                   <h3 className="text-lg font-bold text-gray-900 flex items-center">
@@ -456,7 +456,8 @@ const StudentDashboard: React.FC = () => {
                   <p className="text-sm text-gray-600 ml-11">See what your classmates are sharing</p>
                 </div>
                 
-                <div className="max-h-[600px] overflow-y-auto">
+                {/* Mobile: constrained height so assignments are visible below. Desktop: taller */}
+                <div className="max-h-[50vh] lg:max-h-[600px] overflow-y-auto">
                   {filteredFeedItems.length === 0 ? (
                     <div className="p-8 text-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -486,10 +487,15 @@ const StudentDashboard: React.FC = () => {
                   )}
                 </div>
               </div>
+
+              {/* Upcoming Assignments - Visible on mobile below the feed */}
+              <div className="lg:hidden mt-4">
+                <UpcomingAssignmentsWidget userId={user?.id} />
+              </div>
             </div>
 
-            {/* Right Column - Simplified Widgets (1/4 width) */}
-            <div className="space-y-4">
+            {/* Right Column - Simplified Widgets (1/4 width, desktop only) */}
+            <div className="hidden lg:block space-y-4">
               {/* Recent Grades */}
               <RecentGradesWidget userId={user?.id} />
 

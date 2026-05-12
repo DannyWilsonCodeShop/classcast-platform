@@ -27,7 +27,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, title, subtitle }) => {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {/* Mobile menu button */}
             <button
               onClick={onMenuClick}
@@ -36,7 +36,15 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, title, subtitle }) => {
               <Bars3Icon className="w-6 h-6" />
             </button>
 
-            {/* Page title */}
+            {/* Logo - visible on mobile */}
+            <img 
+              src="/UpdatedCCLogo.png" 
+              alt="ClassCast" 
+              className="h-9 w-9 object-contain lg:hidden cursor-pointer"
+              onClick={() => router.push('/student/dashboard')}
+            />
+
+            {/* Page title - hidden on mobile */}
             <div className="hidden sm:block">
               <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
               <p className="text-sm text-gray-500">{subtitle}</p>
