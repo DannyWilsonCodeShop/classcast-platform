@@ -38,9 +38,9 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, title, subtitle }) => {
 
             {/* Logo - visible on mobile */}
             <img 
-              src="/UpdatedCCLogo.png" 
-              alt="ClassCast" 
-              className="h-9 w-9 object-contain lg:hidden cursor-pointer"
+              src="/MyClassCast (800 x 200 px).png" 
+              alt="MyClassCast" 
+              className="h-8 w-auto object-contain lg:hidden cursor-pointer"
               onClick={() => router.push('/student/dashboard')}
             />
 
