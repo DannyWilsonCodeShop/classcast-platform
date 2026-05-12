@@ -1,16 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-interface ResetPasswordFormData {
-  confirmationCode: string;
-  password: string;
-  confirmPassword: string;
-}
-
 interface ResetPasswordFormErrors {
-  confirmationCode?: string;
   password?: string;
   confirmPassword?: string;
   general?: string;
@@ -21,60 +14,44 @@ interface ResetPasswordFormProps {
   onSwitchToLogin?: () => void;
 }
 
-export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetPasswordFormProps) {
+function ResetPasswordFormInner({ onSuccess, onSwitchToLogin }: ResetPasswordFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [formData, setFormData] = useState<ResetPasswordFormData>({
-    confirmationCode: '',
-    password: '',
-    confirmPassword: '',
-  });
+  
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<ResetPasswordFormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Get email from URL parameters (optional)
+  // Get token and email from URL parameters
+  const token = searchParams.get('token') || '';
   const email = searchParams.get('email') || '';
-  const [userEmail, setUserEmail] = useState(email);
 
   const validateForm = (): boolean => {
     const newErrors: ResetPasswordFormErrors = {};
 
-    // Email validation
-    if (!userEmail.trim()) {
-      newErrors.general = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
-      newErrors.general = 'Please enter a valid email address';
-    }
-
-    // Confirmation code validation
-    if (!formData.confirmationCode.trim()) {
-      newErrors.confirmationCode = 'Confirmation code is required';
-    } else if (formData.confirmationCode.trim().length < 6) {
-      newErrors.confirmationCode = 'Confirmation code must be at least 6 characters';
-    }
-
     // Password validation
-    if (!formData.password) {
+    if (!password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
+    } else if (password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters long';
-    } else if (!/(?=.*[a-z])/.test(formData.password)) {
+    } else if (!/(?=.*[a-z])/.test(password)) {
       newErrors.password = 'Password must contain at least one lowercase letter';
-    } else if (!/(?=.*[A-Z])/.test(formData.password)) {
+    } else if (!/(?=.*[A-Z])/.test(password)) {
       newErrors.password = 'Password must contain at least one uppercase letter';
-    } else if (!/(?=.*\d)/.test(formData.password)) {
+    } else if (!/(?=.*\d)/.test(password)) {
       newErrors.password = 'Password must contain at least one number';
-    } else if (!/(?=.*[@$!%*?&])/.test(formData.password)) {
+    } else if (!/(?=.*[@$!%*?&])/.test(password)) {
       newErrors.password = 'Password must contain at least one special character (@$!%*?&)';
     }
 
     // Confirm password validation
-    if (!formData.confirmPassword) {
+    if (!confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
+    } else if (password !== confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
@@ -82,56 +59,39 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear field-specific error when user starts typing
-    if (errors[name as keyof ResetPasswordFormErrors]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validateForm()) return;
+
+    // Check if we have token and email
+    if (!token || !email) {
+      setErrors({ general: 'Invalid reset link. Please request a new password reset.' });
       return;
     }
-
-
 
     setIsLoading(true);
     setErrors({});
 
     try {
-      // Call the reset password API endpoint
-      const response = await fetch('/api/auth/reset-password', {
+      const response = await fetch('/api/auth/confirm-password-reset', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email: userEmail,
-          confirmationCode: formData.confirmationCode,
-          password: formData.password,
+          email,
+          token,
+          newPassword: password,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to reset password');
+        throw new Error(data.error?.message || data.message || 'Failed to reset password');
       }
 
-      // Clear any previous errors
-      setErrors({});
       setIsSuccess(true);
-      
-      // Call success callback if provided
-      if (onSuccess) {
-        onSuccess();
-      }
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Reset password error:', error);
       setErrors({
@@ -142,12 +102,58 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isLoading) {
-      handleSubmit(e);
-    }
-  };
+  // No token/email — show invalid link message
+  if (!token || !email) {
+    return (
+      <div className="w-full max-w-md mx-auto">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
+          <div className="mb-6 text-center">
+            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+              <svg className="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Invalid Reset Link
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              This password reset link is invalid or has expired. Please request a new one.
+            </p>
+          </div>
 
+          <div className="space-y-4">
+            <button
+              type="button"
+              onClick={() => router.push('/auth/forgot-password')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+            >
+              Request New Reset Link
+            </button>
+            
+            {onSwitchToLogin ? (
+              <button
+                type="button"
+                onClick={onSwitchToLogin}
+                className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+              >
+                Back to Login
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => router.push('/auth/login')}
+                className="w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+              >
+                Back to Login
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Success state
   if (isSuccess) {
     return (
       <div className="w-full max-w-md mx-auto">
@@ -176,39 +182,36 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-green-800 dark:text-green-200">
-                    Your password has been successfully reset. Please keep it secure and don't share it with anyone.
+                    Your password has been successfully reset. Please keep it secure.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="flex space-x-3">
-              {onSwitchToLogin ? (
-                <button
-                  type="button"
-                  onClick={onSwitchToLogin}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
-                >
-                  Sign In Now
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => router.push('/auth/login')}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
-                >
-                  Sign In Now
-                </button>
-              )}
-            </div>
+            {onSwitchToLogin ? (
+              <button
+                type="button"
+                onClick={onSwitchToLogin}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+              >
+                Sign In Now
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => router.push('/auth/login')}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-200"
+              >
+                Sign In Now
+              </button>
+            )}
           </div>
         </div>
       </div>
     );
   }
 
-
-
+  // Reset form
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4">
@@ -222,7 +225,7 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
             Reset Password
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Enter the confirmation code from your email and your new password
+            Enter your new password for <span className="font-medium">{decodeURIComponent(email)}</span>
           </p>
         </div>
 
@@ -245,58 +248,6 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
             </div>
           )}
 
-          {/* Email Field */}
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Email Address
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={userEmail}
-              onChange={(e) => setUserEmail(e.target.value)}
-              onKeyPress={handleKeyPress}
-              className="w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-              placeholder="Enter your email address"
-              disabled={isLoading}
-            />
-          </div>
-
-          {/* Confirmation Code Field */}
-          <div>
-            <label htmlFor="confirmationCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Confirmation Code
-            </label>
-            <input
-              id="confirmationCode"
-              name="confirmationCode"
-              type="text"
-              autoComplete="off"
-              required
-              value={formData.confirmationCode}
-              onChange={handleInputChange}
-              onKeyPress={handleKeyPress}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.confirmationCode 
-                  ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
-                  : 'border-gray-300 dark:border-gray-600'
-              } bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
-              placeholder="Enter the code from your email"
-              disabled={isLoading}
-            />
-            {errors.confirmationCode && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                {errors.confirmationCode}
-              </p>
-            )}
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Check your email for the 6-digit confirmation code
-            </p>
-          </div>
-
           {/* Password Field */}
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -309,9 +260,11 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 required
-                value={formData.password}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errors.password) setErrors(prev => ({ ...prev, password: undefined }));
+                }}
                 className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   errors.password 
                     ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
@@ -360,9 +313,11 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
                 type={showConfirmPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 required
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value);
+                  if (errors.confirmPassword) setErrors(prev => ({ ...prev, confirmPassword: undefined }));
+                }}
                 className={`w-full px-3 py-2 pr-10 border rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                   errors.confirmPassword 
                     ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
@@ -417,10 +372,10 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
         </form>
 
         {/* Back to Login Link */}
-        {onSwitchToLogin && (
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Remember your password?{' '}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Remember your password?{' '}
+            {onSwitchToLogin ? (
               <button
                 type="button"
                 onClick={onSwitchToLogin}
@@ -429,11 +384,32 @@ export default function ResetPasswordForm({ onSuccess, onSwitchToLogin }: ResetP
               >
                 Back to login
               </button>
-            </p>
-          </div>
-        )}
+            ) : (
+              <a
+                href="/auth/login"
+                className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                Back to login
+              </a>
+            )}
+          </p>
+        </div>
       </div>
     </div>
   );
 }
 
+export default function ResetPasswordForm(props: ResetPasswordFormProps) {
+  return (
+    <Suspense fallback={
+      <div className="w-full max-w-md mx-auto">
+        <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg px-8 pt-6 pb-8 mb-4 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ResetPasswordFormInner {...props} />
+    </Suspense>
+  );
+}

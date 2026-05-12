@@ -10,8 +10,8 @@ const sesClient = new SESClient({ region: 'us-east-1' });
 
 const USERS_TABLE = 'classcast-users';
 const RESET_TOKENS_TABLE = 'classcast-password-reset-tokens';
-const FROM_EMAIL = process.env.SMTP_FROM || 'ClassCast <noreply@myclasscast.com>';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://class-cast.com';
+const FROM_EMAIL = process.env.SMTP_FROM || process.env.SES_SENDER_EMAIL || process.env.FROM_EMAIL || 'ClassCast <noreply@myclasscast.com>';
+const APP_URL = process.env.PASSWORD_RESET_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://class-cast.com';
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     }));
 
     // Send reset email
-    const resetUrl = `${APP_URL}/reset-password?token=${resetToken}&email=${encodeURIComponent(sanitizedEmail)}`;
+    const resetUrl = `${APP_URL}/auth/reset-password?token=${resetToken}&email=${encodeURIComponent(sanitizedEmail)}`;
     
     const emailParams = {
       Source: FROM_EMAIL,
