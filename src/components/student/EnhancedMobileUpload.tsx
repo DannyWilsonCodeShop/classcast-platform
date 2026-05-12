@@ -345,7 +345,6 @@ export const EnhancedMobileUpload: React.FC<EnhancedMobileUploadProps> = ({
         accept={getAcceptString()}
         onChange={handleFileInputChange}
         className="hidden"
-        capture="environment"
         multiple={false}
       />
 

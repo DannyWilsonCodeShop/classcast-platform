@@ -555,7 +555,6 @@ export const MobileUploadFix: React.FC<MobileUploadFixProps> = ({
         accept={getAcceptString()}
         onChange={handleFileInputChange}
         className="hidden"
-        capture="environment"
         multiple={false}
       />
 
