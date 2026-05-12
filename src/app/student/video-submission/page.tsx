@@ -1139,7 +1139,6 @@ Make sure your video is:
                       ref={fileInputRef}
                       type="file"
                       accept="video/mp4,video/quicktime,video/x-m4v,video/*"
-                      capture="environment"
                       onChange={handleFileSelect}
                       className="hidden"
                     />

@@ -234,8 +234,6 @@ export const MobileVideoUpload: React.FC<MobileVideoUploadProps> = ({
         accept={getAcceptString()}
         onChange={handleFileInputChange}
         className="hidden"
-        // Mobile-specific attributes
-        capture="environment" // Prefer rear camera for video recording
         multiple={false}
       />
 
