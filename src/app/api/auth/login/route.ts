@@ -84,17 +84,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Password strength validation
-    if (password.length < 8) {
+    // Check for demo users BEFORE password validation (demo passwords don't need complexity)
+    const sanitizedEmailEarly = email.toLowerCase().trim();
+    const demoEmails = ['studentdemo@myclasscast.com', 'instructordemo@myclasscast.com'];
+    const isDemoLogin = demoEmails.includes(sanitizedEmailEarly);
+
+    // Password strength validation (skip for demo users)
+    if (!isDemoLogin && password.length < 8) {
       return NextResponse.json(
         { error: { message: 'Password must be at least 8 characters long' } },
         { status: 400 }
       );
     }
 
-    // Password complexity validation
+    // Password complexity validation (skip for demo users)
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
-    if (!passwordRegex.test(password)) {
+    if (!isDemoLogin && !passwordRegex.test(password)) {
       return NextResponse.json(
         { error: { message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character' } },
         { status: 400 }
@@ -104,6 +109,69 @@ export async function POST(request: NextRequest) {
     // Input sanitization
     const sanitizedEmail = email.toLowerCase().trim();
     const sanitizedPassword = password.trim();
+
+    // Demo user check - bypass password validation for demo accounts
+    const demoUsers = [
+      {
+        email: 'studentdemo@myclasscast.com',
+        password: 'DannysCodeShop',
+        user: {
+          id: 'demo-student-viewer',
+          email: 'studentdemo@myclasscast.com',
+          firstName: 'Student',
+          lastName: 'Demo',
+          role: 'student' as const,
+          avatar: '/api/placeholder/40/40',
+          emailVerified: true,
+          bio: 'Demo viewer account - Read-only access',
+          careerGoals: 'Viewing student portal',
+          classOf: '2025',
+          funFact: 'I am a demo viewer!',
+          favoriteSubject: 'All subjects',
+          hobbies: 'Exploring the platform',
+          schoolName: 'Cristo Rey Atlanta',
+          isDemoUser: true,
+          demoViewingUserId: 'user_1760812158887_ikixnd8zx'
+        }
+      },
+      {
+        email: 'instructordemo@myclasscast.com',
+        password: 'DannysCodeShop',
+        user: {
+          id: 'demo-instructor-viewer',
+          email: 'instructordemo@myclasscast.com',
+          firstName: 'Instructor',
+          lastName: 'Demo',
+          role: 'instructor' as const,
+          avatar: '/api/placeholder/40/40',
+          emailVerified: true,
+          bio: 'Demo viewer account - Read-only access',
+          careerGoals: 'Viewing instructor portal',
+          classOf: '2020',
+          funFact: 'I am a demo viewer!',
+          favoriteSubject: 'Mathematics',
+          hobbies: 'Exploring the platform',
+          schoolName: 'Cristo Rey Atlanta',
+          isDemoUser: true,
+          demoViewingUserId: 'user_1759516010110_tatqobue9'
+        }
+      }
+    ];
+
+    const demoUser = demoUsers.find(u => u.email === sanitizedEmail && u.password === sanitizedPassword);
+    if (demoUser) {
+      console.log('Demo user login:', sanitizedEmail);
+      const tokens = generateTokens({
+        id: demoUser.user.id,
+        email: demoUser.user.email,
+        role: demoUser.user.role,
+      });
+      return NextResponse.json({
+        success: true,
+        user: demoUser.user,
+        tokens,
+      });
+    }
 
     // Check for test credentials first
     const testUsers = [
