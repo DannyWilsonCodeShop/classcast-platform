@@ -90,8 +90,7 @@ export async function POST(request: NextRequest) {
       FilterExpression: 'email = :email',
       ExpressionAttributeValues: {
         ':email': sanitizedEmail
-      },
-      Limit: 1
+      }
     }));
 
     if (!userResponse.Items || userResponse.Items.length === 0) {
