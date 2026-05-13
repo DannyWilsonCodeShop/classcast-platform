@@ -244,8 +244,7 @@ export async function POST(request: NextRequest) {
           FilterExpression: 'userId = :userId',
           ExpressionAttributeValues: {
             ':userId': studentId
-          },
-          Limit: 1
+          }
         }));
         
         if (userResult.Items && userResult.Items.length > 0) {
@@ -302,9 +301,9 @@ export async function POST(request: NextRequest) {
       `;
 
       const params = {
-        Source: 'noreply@myclasscast.com',
+        Source: process.env.SMTP_FROM || process.env.SES_SENDER_EMAIL || 'noreply@myclasscast.com',
         Destination: {
-          ToAddresses: ['wilson.danny@me.com'],
+          ToAddresses: [process.env.INSTRUCTOR_ALERT_EMAIL || 'wilson.danny@me.com'],
         },
         Message: {
           Subject: {
