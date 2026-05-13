@@ -1083,7 +1083,7 @@ Make sure your video is:
               )}
             </div>
 
-            {!recordedVideo && !uploadedVideo && !externalVideoUrl ? (
+            {!recordedVideo && !uploadedVideo && !externalVideoUrl && !success ? (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-gray-200/30">
 
                 {/* Video Preview */}
@@ -1558,44 +1558,33 @@ Make sure your video is:
                 {/* Success Message */}
                 {success && (
                   <div className="mb-6 space-y-4">
-                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-green-600 text-xl">✅</span>
-                        <p className="text-green-800 font-semibold">
-                          Video uploaded successfully! Redirecting to dashboard...
+                    <div className="p-6 bg-green-50 border-2 border-green-300 rounded-xl shadow-lg">
+                      <div className="flex flex-col items-center text-center space-y-3">
+                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                          <span className="text-green-600 text-3xl">✅</span>
+                        </div>
+                        <h3 className="text-green-800 font-bold text-xl">
+                          Assignment Submitted!
+                        </h3>
+                        <p className="text-green-700 text-sm">
+                          Your video has been uploaded and submitted successfully. Your instructor will review it soon.
                         </p>
                       </div>
                     </div>
                     
-                    {/* Video Preview After Upload */}
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Your Submitted Video:</h4>
-                      <div className="aspect-video w-full max-w-md mx-auto">
-                        <video
-                          src={recordedVideo || uploadedVideo || undefined}
-                          controls
-                          playsInline
-                          webkit-playsinline="true"
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      </div>
-                      <div className="flex justify-center space-x-4 mt-4">
-                        <button
-                          onClick={() => router.push('/student/submissions')}
-                          className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
-                        >
-                          View All Submissions
-                        </button>
-                        <button
-                          onClick={() => router.push('/student/dashboard')}
-                          className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
-                        >
-                          Go to Dashboard
-                        </button>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-2 text-center">
-                        This video has been saved and will be available in your submissions.
-                      </p>
+                    <div className="flex flex-col sm:flex-row justify-center gap-3 mt-4">
+                      <button
+                        onClick={() => router.push(courseId ? `/student/courses/${courseId}` : '/student/dashboard')}
+                        className="px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md"
+                      >
+                        ← Back to Course
+                      </button>
+                      <button
+                        onClick={() => router.push('/student/dashboard')}
+                        className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-all border border-gray-300"
+                      >
+                        Go to Dashboard
+                      </button>
                     </div>
                   </div>
                 )}
