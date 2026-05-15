@@ -655,7 +655,26 @@ const CompactVideoFeedItem: React.FC<{
         </button>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3 text-gray-600">
-            <button className={`flex items-center space-x-1 transition-colors text-xs ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}>
+            <button 
+              onClick={async (e) => {
+                e.stopPropagation();
+                if (!user?.id) return;
+                try {
+                  const response = await fetch(`/api/videos/${item.id}/like`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ userId: user.id, isLiked: !isLiked })
+                  });
+                  if (response.ok) {
+                    const data = await response.json();
+                    setIsLiked(data.isLiked ?? !isLiked);
+                    setLikes(data.likes ?? (isLiked ? likes - 1 : likes + 1));
+                  }
+                } catch (err) { console.error('Like error:', err); }
+              }}
+              className={`flex items-center space-x-1 transition-colors text-xs ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+            >
               <HeartIcon className="w-3 h-3" fill={isLiked ? 'currentColor' : 'none'} />
               <span>{likes}</span>
             </button>
@@ -721,7 +740,28 @@ const CompactCommunityFeedItem: React.FC<{
 
       {/* Compact Actions */}
       <div className="flex items-center space-x-3 text-gray-600">
-        <button className={`flex items-center space-x-1 transition-colors text-xs ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}>
+        <button 
+          onClick={async (e) => {
+            e.stopPropagation();
+            if (!user?.id) return;
+            try {
+              const response = await fetch('/api/community/posts/like', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ postId: item.id, userId: user.id })
+              });
+              if (response.ok) {
+                const data = await response.json();
+                if (!data.alreadyLiked) {
+                  setIsLiked(true);
+                  setLikes(prev => prev + 1);
+                }
+              }
+            } catch (err) { console.error('Like error:', err); }
+          }}
+          className={`flex items-center space-x-1 transition-colors text-xs ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}
+        >
           <HeartIcon className="w-3 h-3" fill={isLiked ? 'currentColor' : 'none'} />
           <span>{likes}</span>
         </button>
