@@ -196,8 +196,8 @@ const StudyModulesPage: React.FC = () => {
           {filteredModules.length === 0 ? (
             <div className="text-center py-12">
               <AcademicCapIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No modules found</h3>
-              <p className="text-gray-600">Try adjusting your search or filters</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Coming Soon!</h3>
+              <p className="text-gray-600">Create your first module now.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

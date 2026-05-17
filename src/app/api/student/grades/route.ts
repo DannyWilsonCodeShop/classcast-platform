@@ -5,7 +5,7 @@ import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dy
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
-const VIDEO_SUBMISSIONS_TABLE = 'classcast-video-submissions';
+const VIDEO_SUBMISSIONS_TABLE = 'classcast-submissions';
 const ASSIGNMENTS_TABLE = 'classcast-assignments';
 const COURSES_TABLE = 'classcast-courses';
 
