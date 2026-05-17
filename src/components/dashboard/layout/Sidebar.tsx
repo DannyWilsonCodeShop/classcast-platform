@@ -74,12 +74,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       
       {/* Sidebar */}
       <div className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out
+        fixed inset-y-0 left-0 z-50 w-64 bg-white transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
-        {/* Header with MyClassCast Logo - Far Left */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
+        {/* Header with MyClassCast Logo */}
+        <div className="flex items-center justify-between h-16 px-4">
           <img 
             src="/MyClassCast (800 x 200 px).png" 
             alt="MyClassCast" 
@@ -95,8 +95,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* Scrollable Content */}
         <div className="flex flex-col h-full overflow-y-auto">
-          {/* User Profile - With Bigger School Logo */}
-          <div className="p-6 border-b border-gray-200">
+          {/* User Profile */}
+          <div className="p-6">
             <div className="flex items-center space-x-3 mb-3">
               <Avatar 
                 user={user}
@@ -109,7 +109,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 </p>
               </div>
             </div>
-            {/* Bigger School Logo */}
+            {/* School Logo */}
             <div className="flex justify-center mt-3">
               <img 
                 src="/logos/cristo-rey-atlanta.png" 
@@ -120,13 +120,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Search for New Courses */}
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
               Discover Courses
             </h3>
             <button
               onClick={() => handleNavigation('/student/courses')}
-              className="w-full px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 font-medium text-sm flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
+              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm flex items-center justify-center space-x-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -136,14 +136,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Enrolled Courses */}
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-6 py-4">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
               My Courses
             </h3>
             {loading ? (
               <div className="space-y-2">
-                <div className="animate-pulse bg-gray-200 h-10 rounded-lg"></div>
-                <div className="animate-pulse bg-gray-200 h-10 rounded-lg"></div>
+                <div className="animate-pulse bg-gray-100 h-10 rounded-lg"></div>
+                <div className="animate-pulse bg-gray-100 h-10 rounded-lg"></div>
               </div>
             ) : courses.length > 0 ? (
               <div className="space-y-1">
@@ -154,14 +154,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     className={`
                       w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
                       ${isActive(`/student/courses/${course.courseId}`)
-                        ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-500'
+                        ? 'bg-blue-50 text-blue-700'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                       }
                     `}
                   >
                     <div className={`
                       w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-xs font-bold text-white
-                      ${isActive(`/student/courses/${course.courseId}`) ? 'bg-blue-500' : 'bg-gradient-to-r from-purple-500 to-blue-500'}
+                      ${isActive(`/student/courses/${course.courseId}`) ? 'bg-blue-500' : 'bg-blue-500'}
                     `}>
                       {course.initials || course.code?.substring(0, 2) || course.name?.substring(0, 2) || 'C'}
                     </div>
@@ -187,19 +187,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             )}
           </div>
 
-          {/* Navigation - Simplified */}
+          {/* Navigation */}
           <nav className="flex-1 px-6 py-4 space-y-1">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
               Quick Access
             </h3>
             
-            {/* Recent Grades */}
             <button
               onClick={() => handleNavigation('/student/grades')}
               className={`
                 w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
                 ${isActive('/student/grades')
-                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-500'
+                  ? 'bg-blue-50 text-blue-700'
                   : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                 }
               `}
@@ -214,13 +213,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               </div>
             </button>
 
-            {/* Study Modules */}
             <button
               onClick={() => handleNavigation('/student/study-modules')}
               className={`
                 w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
                 ${isActive('/student/study-modules')
-                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-500'
+                  ? 'bg-blue-50 text-blue-700'
                   : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                 }
               `}
@@ -237,7 +235,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           </nav>
 
           {/* Footer */}
-          <div className="p-6 border-t border-gray-200 mt-auto">
+          <div className="p-6 mt-auto">
             <button
               onClick={() => handleNavigation('/student/settings')}
               className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 mb-2"

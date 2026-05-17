@@ -23,7 +23,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, title, subtitle }) => {
   const [showNotifications, setShowNotifications] = useState(false);
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-white">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side */}
