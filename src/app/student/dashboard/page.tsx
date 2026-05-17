@@ -357,22 +357,22 @@ const StudentDashboard: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Left Column - Social Feed (3/4 width) */}
             <div className="lg:col-span-3 flex flex-col">
-              {/* Community Post Bar - Enhanced with gradient */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg border border-blue-200 p-4 mb-4 flex-shrink-0">
+              {/* Community Post Bar */}
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 flex-shrink-0">
                 <div className="flex items-center space-x-3">
                   <Avatar 
                     user={user}
                     size="md"
-                    className="w-10 h-10 ring-2 ring-blue-300"
+                    className="w-10 h-10"
                   />
                   <button
                     onClick={() => setShowPostComposer(!showPostComposer)}
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-white to-blue-50 rounded-full text-left text-gray-700 text-sm hover:from-blue-50 hover:to-purple-50 transition-all border-2 border-blue-200 shadow-sm"
+                    className="flex-1 px-4 py-3 bg-gray-50 rounded-full text-left text-gray-700 text-sm hover:bg-gray-100 transition-all border border-gray-200"
                   >
                     ✨ {dailyQuestion}
                   </button>
                   <div className="hidden sm:flex items-center space-x-2">
-                    <label className="flex items-center space-x-2 text-sm text-blue-700 cursor-pointer bg-white px-3 py-2 rounded-full border border-blue-200 hover:bg-blue-50 transition-colors">
+                    <label className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer bg-white px-3 py-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-colors">
                       <input
                         type="checkbox"
                         checked={includeAllPublicVideos}
@@ -394,7 +394,7 @@ const StudentDashboard: React.FC = () => {
                       value={postContent}
                       onChange={(e) => setPostContent(e.target.value)}
                       placeholder={dailyQuestion}
-                      className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-300 text-sm bg-white shadow-sm"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-300 text-sm bg-white"
                       rows={3}
                       autoFocus
                     />
@@ -411,7 +411,7 @@ const StudentDashboard: React.FC = () => {
                       <button
                         onClick={handlePostSubmit}
                         disabled={!postContent.trim()}
-                        className="px-6 py-2 text-sm bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md font-medium"
+                        className="px-6 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                       >
                         Post ✨
                       </button>
@@ -420,9 +420,9 @@ const StudentDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Explore Mode Indicator - Enhanced */}
+              {/* Explore Mode Indicator */}
               {includeAllPublicVideos && (
-                <div className="bg-gradient-to-r from-orange-400 via-red-500 to-pink-500 rounded-xl p-4 flex items-center justify-between shadow-lg mb-4 flex-shrink-0">
+                <div className="bg-orange-500 rounded-xl p-4 flex items-center justify-between mb-4 flex-shrink-0">
                   <div className="flex items-center space-x-3 text-white">
                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                       <FireIcon className="w-6 h-6" />
@@ -445,10 +445,10 @@ const StudentDashboard: React.FC = () => {
               )}
 
               {/* Student Videos & Community Feed - Scrollable on mobile */}
-              <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-xl shadow-lg border border-blue-200">
-                <div className="p-4 border-b border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div className="p-4 border-b border-gray-100">
                   <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                    <span className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white mr-3">
+                    <span className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white mr-3">
                       🎥
                     </span>
                     Student Videos & Community
