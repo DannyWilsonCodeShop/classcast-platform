@@ -97,20 +97,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         <div className="flex flex-col h-full overflow-y-auto">
           {/* User Profile */}
           <div className="p-6">
-            <div className="flex items-center space-x-3 mb-3">
-              <Avatar 
-                user={user}
-                size="lg"
-                className="w-12 h-12"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.firstName} {user?.lastName}
-                </p>
-              </div>
-            </div>
             {/* School Logo */}
-            <div className="flex justify-center mt-3">
+            <div className="flex justify-center">
               <img 
                 src="/logos/cristo-rey-atlanta.png" 
                 alt="Cristo Rey Atlanta" 
@@ -160,7 +148,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     `}
                   >
                     <div className={`
-                      w-8 h-8 rounded-lg flex items-center justify-center mr-3 text-xs font-bold text-white
+                      w-8 h-8 rounded-full flex items-center justify-center mr-3 text-xs font-bold text-white
                       ${isActive(`/student/courses/${course.courseId}`) ? 'bg-blue-500' : 'bg-blue-500'}
                     `}>
                       {course.initials || course.code?.substring(0, 2) || course.name?.substring(0, 2) || 'C'}

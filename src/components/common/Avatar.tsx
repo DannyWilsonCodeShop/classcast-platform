@@ -71,7 +71,7 @@ const Avatar: React.FC<AvatarProps> = ({
   const renderAvatar = () => {
     if (!avatarUrl && !user) {
       return (
-        <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white font-bold">
+        <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-bold">
           {getInitials()}
         </div>
       );
@@ -88,7 +88,7 @@ const Avatar: React.FC<AvatarProps> = ({
       // Check if it's an emoji
       if (isEmoji(avatarUrl)) {
         return (
-          <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+          <div className="w-full h-full bg-blue-50 flex items-center justify-center">
             <span className={emojiSizeClasses[size]}>{avatarUrl}</span>
           </div>
         );
@@ -112,7 +112,7 @@ const Avatar: React.FC<AvatarProps> = ({
               target.style.display = 'none';
               const parent = target.parentElement;
               if (parent) {
-                parent.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">${getInitials()}</div>`;
+                parent.innerHTML = `<div class="w-full h-full bg-blue-500 flex items-center justify-center text-white font-bold">${getInitials()}</div>`;
               }
             }}
           />
@@ -122,7 +122,7 @@ const Avatar: React.FC<AvatarProps> = ({
 
     // Show initials as primary option when no profile picture is set
     return (
-      <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
+      <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-bold">
         {getInitials()}
       </div>
     );

@@ -1061,8 +1061,8 @@ const RecentGradesWidget: React.FC<{ userId?: string }> = ({ userId }) => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          // Show only the 3 most recent grades
-          setGrades(data.grades.slice(0, 3));
+          // Show the 5 most recent grades
+          setGrades(data.grades.slice(0, 5));
           setStats(data.stats);
         }
       }
@@ -1240,9 +1240,6 @@ const UpcomingAssignmentsWidget: React.FC<{ userId?: string }> = ({ userId }) =>
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
         <div className="flex items-center mb-3">
-          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white mr-3">
-            ⏰
-          </div>
           <h3 className="text-base font-bold text-gray-900">Upcoming Assignments</h3>
         </div>
         <div className="space-y-3">
@@ -1258,9 +1255,6 @@ const UpcomingAssignmentsWidget: React.FC<{ userId?: string }> = ({ userId }) =>
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
-          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white mr-3">
-            ⏰
-          </div>
           <h3 className="text-base font-bold text-gray-900">Upcoming Assignments</h3>
         </div>
         <button
