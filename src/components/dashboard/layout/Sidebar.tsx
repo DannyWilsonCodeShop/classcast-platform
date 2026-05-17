@@ -126,9 +126,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             </h3>
             <button
               onClick={() => handleNavigation('/student/courses')}
-              className="w-full px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium text-sm flex items-center justify-center space-x-2"
+              className="text-blue-600 hover:text-blue-800 hover:underline transition-colors text-sm font-medium flex items-center space-x-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <span>Search for Courses</span>
@@ -238,14 +238,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="p-6 mt-auto">
             <button
               onClick={() => handleNavigation('/student/settings')}
-              className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-50 mb-2"
+              className="w-full flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:underline"
             >
               <Cog6ToothIcon className="w-5 h-5 mr-3 text-gray-400" />
               Settings
             </button>
             <button
               onClick={logout}
-              className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50"
+              className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-red-800 hover:underline"
             >
               <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
