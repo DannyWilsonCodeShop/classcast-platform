@@ -411,7 +411,7 @@ const StudentDashboard: React.FC = () => {
                       <button
                         onClick={handlePostSubmit}
                         disabled={!postContent.trim()}
-                        className="px-6 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                        className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                       >
                         Post ✨
                       </button>
@@ -629,7 +629,7 @@ const CompactVideoFeedItem: React.FC<{
         </div>
         
         {item.courseInitials && (
-          <span className="px-2 py-0.5 text-white text-xs font-medium rounded-full bg-gradient-to-r from-purple-500 to-blue-500">
+          <span className="px-2 py-0.5 text-white text-xs font-medium rounded-full bg-blue-500">
             {item.courseInitials}
           </span>
         )}
@@ -886,7 +886,7 @@ const VideoFeedItem: React.FC<{
         
         <div className="flex items-center space-x-2">
           {item.courseInitials && (
-            <span className="px-3 py-1 text-white text-xs font-semibold rounded-full shadow-lg bg-gradient-to-r from-purple-500 to-blue-500">
+            <span className="px-3 py-1 text-white text-xs font-semibold rounded-full shadow-lg bg-blue-500">
               {item.courseInitials}
             </span>
           )}
@@ -1230,42 +1230,42 @@ const UpcomingAssignmentsWidget: React.FC<{ userId?: string }> = ({ userId }) =>
     const diffTime = date.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     
-    if (diffDays <= 1) return 'text-red-700 bg-gradient-to-r from-red-100 to-red-200 border border-red-300';
-    if (diffDays <= 3) return 'text-orange-700 bg-gradient-to-r from-orange-100 to-orange-200 border border-orange-300';
-    if (diffDays <= 7) return 'text-yellow-700 bg-gradient-to-r from-yellow-100 to-yellow-200 border border-yellow-300';
-    return 'text-blue-700 bg-gradient-to-r from-blue-100 to-blue-200 border border-blue-300';
+    if (diffDays <= 1) return 'text-red-700 bg-red-100';
+    if (diffDays <= 3) return 'text-orange-700 bg-orange-100';
+    if (diffDays <= 7) return 'text-yellow-700 bg-yellow-100';
+    return 'text-blue-700 bg-blue-100';
   };
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-br from-white to-indigo-50 rounded-xl shadow-lg border border-indigo-200 p-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
         <div className="flex items-center mb-3">
-          <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white mr-3">
+          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white mr-3">
             ⏰
           </div>
           <h3 className="text-base font-bold text-gray-900">Upcoming Assignments</h3>
         </div>
         <div className="space-y-3">
-          <div className="animate-pulse bg-gradient-to-r from-gray-200 to-gray-300 h-12 rounded-lg"></div>
-          <div className="animate-pulse bg-gradient-to-r from-gray-200 to-gray-300 h-12 rounded-lg"></div>
-          <div className="animate-pulse bg-gradient-to-r from-gray-200 to-gray-300 h-12 rounded-lg"></div>
+          <div className="animate-pulse bg-gray-100 h-12 rounded-lg"></div>
+          <div className="animate-pulse bg-gray-100 h-12 rounded-lg"></div>
+          <div className="animate-pulse bg-gray-100 h-12 rounded-lg"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-white to-indigo-50 rounded-xl shadow-lg border border-indigo-200 p-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
-          <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white mr-3">
+          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white mr-3">
             ⏰
           </div>
           <h3 className="text-base font-bold text-gray-900">Upcoming Assignments</h3>
         </div>
         <button
           onClick={() => router.push('/student/assignments')}
-          className="text-sm text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-full transition-colors"
+          className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium transition-colors"
         >
           View All →
         </button>
@@ -1276,7 +1276,7 @@ const UpcomingAssignmentsWidget: React.FC<{ userId?: string }> = ({ userId }) =>
           {assignments.map((assignment) => (
             <div 
               key={assignment.assignmentId} 
-              className="flex items-center justify-between p-4 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 rounded-xl transition-all cursor-pointer border border-gray-200 hover:border-indigo-300 hover:shadow-md"
+              className="flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition-all cursor-pointer"
               onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
             >
               <div className="flex-1 min-w-0">
@@ -1284,7 +1284,7 @@ const UpcomingAssignmentsWidget: React.FC<{ userId?: string }> = ({ userId }) =>
                   {assignment.title}
                 </p>
                 <p className="text-xs text-gray-600 truncate flex items-center mt-1">
-                  <span className="w-2 h-2 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
                   {assignment.courseCode} • {assignment.points} pts
                 </p>
               </div>
@@ -1298,7 +1298,7 @@ const UpcomingAssignmentsWidget: React.FC<{ userId?: string }> = ({ userId }) =>
         </div>
       ) : (
         <div className="text-center py-8">
-          <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <ClockIcon className="w-8 h-8 text-white" />
           </div>
           <p className="text-sm font-medium text-gray-700">All caught up! 🎉</p>
