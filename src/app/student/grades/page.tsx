@@ -236,8 +236,8 @@ const StudentGrades: React.FC = () => {
                 const grade = cumulativeData.categories?.[cat];
                 const weight = cumulativeData.weights?.[cat] || 0;
                 if (!grade) return null;
-                // Hide the "Test" category (0% weight, redundant with Summative)
-                if (cat === 'Test') return null;
+                // Hide unweighted categories
+                if (weight === 0) return null;
 
                 // Friendly display names
                 const displayName: Record<string, string> = {
