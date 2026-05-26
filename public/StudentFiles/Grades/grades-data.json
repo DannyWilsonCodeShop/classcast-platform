@@ -1,0 +1,1420 @@
+{
+  "course": "Integrated Math 2",
+  "weights": {
+    "Classwork/Homework": 35,
+    "End of Semester Exam": 15,
+    "Formative": 0,
+    "Quiz": 15,
+    "Summative": 35,
+    "Test": 0
+  },
+  "categories": [
+    "Classwork/Homework",
+    "End of Semester Exam",
+    "Formative",
+    "Quiz",
+    "Summative",
+    "Test"
+  ],
+  "lastUpdated": "2026-05-26",
+  "students": [
+    {
+      "firstName": "Mahassine",
+      "lastName": "Adam",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 76.24,
+      "categories": {
+        "Classwork/Homework": 87.12,
+        "End of Semester Exam": 63.3,
+        "Formative": 65.71,
+        "Quiz": 70.55,
+        "Summative": 73.33,
+        "Test": 66.5
+      }
+    },
+    {
+      "firstName": "Zaweya",
+      "lastName": "Adem",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 79.13,
+      "categories": {
+        "Classwork/Homework": 88.31,
+        "End of Semester Exam": 61.7,
+        "Formative": 51.43,
+        "Quiz": 80.91,
+        "Summative": 76.67,
+        "Test": 75.5
+      }
+    },
+    {
+      "firstName": "Ayman",
+      "lastName": "Ando",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 56.45,
+      "categories": {
+        "Classwork/Homework": 57.58,
+        "Formative": 40.0,
+        "Quiz": 70.87,
+        "Summative": 73.33
+      }
+    },
+    {
+      "firstName": "Abel",
+      "lastName": "Belayneh",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 73.86,
+      "categories": {
+        "Classwork/Homework": 83.79,
+        "End of Semester Exam": 40.0,
+        "Formative": 65.71,
+        "Quiz": 77.99,
+        "Summative": 76.67,
+        "Test": 62.5
+      }
+    },
+    {
+      "firstName": "Brunash",
+      "lastName": "Bruno",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 69.05,
+      "categories": {
+        "Classwork/Homework": 60.35,
+        "End of Semester Exam": 65.0,
+        "Formative": 80.0,
+        "Quiz": 72.49,
+        "Summative": 78.0,
+        "Test": 65.5
+      }
+    },
+    {
+      "firstName": "William",
+      "lastName": "Chesson III",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 71.11,
+      "categories": {
+        "Classwork/Homework": 54.67,
+        "End of Semester Exam": 68.3,
+        "Formative": 68.57,
+        "Quiz": 89.97,
+        "Summative": 80.67,
+        "Test": 66.5
+      }
+    },
+    {
+      "firstName": "Ariana",
+      "lastName": "Cortes Analco",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 67.18,
+      "categories": {
+        "Classwork/Homework": 59.85,
+        "End of Semester Exam": 60.0,
+        "Formative": 75.71,
+        "Quiz": 78.64,
+        "Summative": 72.67,
+        "Test": 65.5
+      }
+    },
+    {
+      "firstName": "Rhegan",
+      "lastName": "Cuby",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 80.2,
+      "categories": {
+        "Classwork/Homework": 69.44,
+        "End of Semester Exam": 83.3,
+        "Formative": 62.86,
+        "Quiz": 80.91,
+        "Summative": 89.33,
+        "Test": 75.0
+      }
+    },
+    {
+      "firstName": "Alan",
+      "lastName": "Herrera-Vazquez",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 70.54,
+      "categories": {
+        "Classwork/Homework": 54.92,
+        "End of Semester Exam": 83.0,
+        "Formative": 82.86,
+        "Quiz": 78.64,
+        "Summative": 77.33,
+        "Test": 83.5
+      }
+    },
+    {
+      "firstName": "Remmie",
+      "lastName": "Makesa",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 69.73,
+      "categories": {
+        "Classwork/Homework": 51.29,
+        "End of Semester Exam": 80.0,
+        "Formative": 45.71,
+        "Quiz": 83.17,
+        "Summative": 78.0,
+        "Test": 73.5
+      }
+    },
+    {
+      "firstName": "Jasmin",
+      "lastName": "Martinez Duarte",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 79.61,
+      "categories": {
+        "Classwork/Homework": 78.24,
+        "End of Semester Exam": 68.3,
+        "Formative": 94.29,
+        "Quiz": 77.67,
+        "Summative": 86.67,
+        "Test": 76.5
+      }
+    },
+    {
+      "firstName": "Erick",
+      "lastName": "Martinez Morales",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 77.96,
+      "categories": {
+        "Classwork/Homework": 73.96,
+        "End of Semester Exam": 80.0,
+        "Formative": 77.14,
+        "Quiz": 54.05,
+        "Summative": 91.33,
+        "Test": 75.5
+      }
+    },
+    {
+      "firstName": "Johnnie",
+      "lastName": "Mckensie",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 66.77,
+      "categories": {
+        "Classwork/Homework": 67.81,
+        "End of Semester Exam": 65.0,
+        "Formative": 77.14,
+        "Quiz": 74.11,
+        "Summative": 63.33,
+        "Test": 64.5
+      }
+    },
+    {
+      "firstName": "Valeria",
+      "lastName": "Morales Joaquin",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 66.15,
+      "categories": {
+        "Classwork/Homework": 64.82,
+        "End of Semester Exam": 63.3,
+        "Formative": 45.71,
+        "Quiz": 80.26,
+        "Summative": 62.67,
+        "Test": 70.5
+      }
+    },
+    {
+      "firstName": "Rianna",
+      "lastName": "Morales",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 88.12,
+      "categories": {
+        "Classwork/Homework": 82.8,
+        "End of Semester Exam": 85.0,
+        "Formative": 97.14,
+        "Quiz": 96.12,
+        "Summative": 91.33,
+        "Test": 81.0
+      }
+    },
+    {
+      "firstName": "Destiny",
+      "lastName": "Quechol-Elias",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 81.47,
+      "categories": {
+        "Classwork/Homework": 92.8,
+        "End of Semester Exam": 68.3,
+        "Formative": 60.0,
+        "Quiz": 74.76,
+        "Summative": 78.67,
+        "Test": 73.5
+      }
+    },
+    {
+      "firstName": "Kristopher",
+      "lastName": "Rios-Perez",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 73.64,
+      "categories": {
+        "Classwork/Homework": 81.41,
+        "End of Semester Exam": 40.0,
+        "Formative": 88.57,
+        "Quiz": 78.96,
+        "Summative": 78.0,
+        "Test": 83.0
+      }
+    },
+    {
+      "firstName": "Brisa",
+      "lastName": "Rodriguez-Molina",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 78.61,
+      "categories": {
+        "Classwork/Homework": 86.4,
+        "End of Semester Exam": 60.0,
+        "Formative": 85.71,
+        "Quiz": 77.35,
+        "Summative": 79.33,
+        "Test": 79.0
+      }
+    },
+    {
+      "firstName": "Isabella",
+      "lastName": "Rosas",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 78.23,
+      "categories": {
+        "Classwork/Homework": 79.12,
+        "End of Semester Exam": 68.3,
+        "Formative": 90.0,
+        "Quiz": 92.88,
+        "Summative": 75.33,
+        "Test": 72.0
+      }
+    },
+    {
+      "firstName": "Annelice",
+      "lastName": "Sanchez Cruz",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 63.84,
+      "categories": {
+        "Classwork/Homework": 60.75,
+        "End of Semester Exam": 60.0,
+        "Formative": 75.71,
+        "Quiz": 76.05,
+        "Summative": 63.33,
+        "Test": 74.5
+      }
+    },
+    {
+      "firstName": "Alexa",
+      "lastName": "Segura-Ramirez",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 84.33,
+      "categories": {
+        "Classwork/Homework": 94.17,
+        "End of Semester Exam": 73.3,
+        "Formative": 85.71,
+        "Quiz": 82.52,
+        "Summative": 80.0,
+        "Test": 78.5
+      }
+    },
+    {
+      "firstName": "Kidist",
+      "lastName": "Shiwendo",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 84.8,
+      "categories": {
+        "Classwork/Homework": 97.12,
+        "End of Semester Exam": 65.0,
+        "Formative": 92.86,
+        "Quiz": 87.06,
+        "Summative": 80.0,
+        "Test": 78.5
+      }
+    },
+    {
+      "firstName": "Greyson",
+      "lastName": "Smith",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 84.02,
+      "categories": {
+        "Classwork/Homework": 81.06,
+        "End of Semester Exam": 70.0,
+        "Formative": 92.86,
+        "Quiz": 92.56,
+        "Summative": 89.33,
+        "Test": 67.0
+      }
+    },
+    {
+      "firstName": "Madison",
+      "lastName": "Smith",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 90.05,
+      "categories": {
+        "Classwork/Homework": 95.41,
+        "End of Semester Exam": 73.3,
+        "Formative": 94.29,
+        "Quiz": 91.26,
+        "Summative": 91.33,
+        "Test": 93.0
+      }
+    },
+    {
+      "firstName": "Jeremiah",
+      "lastName": "Thomas",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 79.51,
+      "categories": {
+        "Classwork/Homework": 68.56,
+        "End of Semester Exam": 83.3,
+        "Formative": 81.43,
+        "Quiz": 83.01,
+        "Summative": 87.33,
+        "Test": 95.5
+      }
+    },
+    {
+      "firstName": "Jasmine",
+      "lastName": "Weatherspoon",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 76.5,
+      "categories": {
+        "Classwork/Homework": 73.58,
+        "End of Semester Exam": 63.3,
+        "Formative": 77.14,
+        "Quiz": 88.35,
+        "Summative": 80.0,
+        "Test": 80.5
+      }
+    },
+    {
+      "firstName": "Yodahe",
+      "lastName": "Woubshet",
+      "section": "Integrated Math 2 (3)",
+      "cumulativeGrade": 72.74,
+      "categories": {
+        "Classwork/Homework": 55.61,
+        "End of Semester Exam": 68.3,
+        "Formative": 88.57,
+        "Quiz": 81.55,
+        "Summative": 88.0,
+        "Test": 77.5
+      }
+    },
+    {
+      "firstName": "Nasir",
+      "lastName": "Barnes",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 76.98,
+      "categories": {
+        "Classwork/Homework": 65.03,
+        "End of Semester Exam": 80.0,
+        "Formative": 65.56,
+        "Quiz": 87.06,
+        "Summative": 83.33,
+        "Test": 90.0
+      }
+    },
+    {
+      "firstName": "Kimberly",
+      "lastName": "Bibiano-Cruz",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 80.3,
+      "categories": {
+        "Classwork/Homework": 78.59,
+        "End of Semester Exam": 60.0,
+        "Formative": 80.0,
+        "Quiz": 91.26,
+        "Summative": 86.0,
+        "Test": 67.0
+      }
+    },
+    {
+      "firstName": "Serron",
+      "lastName": "Chillous",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 86.64,
+      "categories": {
+        "Classwork/Homework": 91.04,
+        "End of Semester Exam": 90.3,
+        "Formative": 78.89,
+        "Quiz": 85.11,
+        "Summative": 81.33,
+        "Test": 73.0
+      }
+    },
+    {
+      "firstName": "Victor",
+      "lastName": "De La Cruz",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 75.03,
+      "categories": {
+        "Classwork/Homework": 73.32,
+        "End of Semester Exam": 66.7,
+        "Formative": 71.11,
+        "Quiz": 85.11,
+        "Summative": 76.0,
+        "Test": 74.0
+      }
+    },
+    {
+      "firstName": "Emmanuel",
+      "lastName": "Diaz-Sanchez",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 85.08,
+      "categories": {
+        "Classwork/Homework": 85.67,
+        "End of Semester Exam": 70.0,
+        "Formative": 87.78,
+        "Quiz": 85.76,
+        "Summative": 90.67,
+        "Test": 85.0
+      }
+    },
+    {
+      "firstName": "Giovanna",
+      "lastName": "Hernandez Serrano",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 77.65,
+      "categories": {
+        "Classwork/Homework": 86.75,
+        "End of Semester Exam": 63.3,
+        "Formative": 85.56,
+        "Quiz": 74.6,
+        "Summative": 76.0,
+        "Test": 62.0
+      }
+    },
+    {
+      "firstName": "Karla",
+      "lastName": "Higareda-Ayala",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 67.45,
+      "categories": {
+        "Classwork/Homework": 80.19,
+        "End of Semester Exam": 61.7,
+        "Formative": 77.78,
+        "Quiz": 70.23,
+        "Summative": 56.0,
+        "Test": 65.0
+      }
+    },
+    {
+      "firstName": "Ayende",
+      "lastName": "Kemp",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 74.26,
+      "categories": {
+        "Classwork/Homework": 73.81,
+        "End of Semester Exam": 63.3,
+        "Formative": 87.78,
+        "Quiz": 74.43,
+        "Summative": 79.33,
+        "Test": 68.0
+      }
+    },
+    {
+      "firstName": "Fany",
+      "lastName": "Medrano",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 76.66,
+      "categories": {
+        "Classwork/Homework": 68.35,
+        "End of Semester Exam": 70.0,
+        "Formative": 68.89,
+        "Quiz": 80.91,
+        "Summative": 86.0,
+        "Test": 69.0
+      }
+    },
+    {
+      "firstName": "Daniel",
+      "lastName": "Michael",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 88.26,
+      "categories": {
+        "Classwork/Homework": 94.43,
+        "End of Semester Exam": 85.0,
+        "Formative": 96.67,
+        "Quiz": 102.59,
+        "Summative": 77.33,
+        "Test": 94.5
+      }
+    },
+    {
+      "firstName": "Amira",
+      "lastName": "Obaid",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 81.2,
+      "categories": {
+        "Classwork/Homework": 85.24,
+        "End of Semester Exam": 65.0,
+        "Formative": 82.86,
+        "Quiz": 95.47,
+        "Summative": 78.0,
+        "Test": 68.5
+      }
+    },
+    {
+      "firstName": "Jonathan",
+      "lastName": "Padilla",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 96.54,
+      "categories": {
+        "Classwork/Homework": 98.83,
+        "End of Semester Exam": 87.7,
+        "Formative": 94.44,
+        "Quiz": 101.29,
+        "Summative": 96.0,
+        "Test": 85.5
+      }
+    },
+    {
+      "firstName": "Saron",
+      "lastName": "Tadale",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 72.63,
+      "categories": {
+        "Classwork/Homework": 81.57,
+        "End of Semester Exam": 63.3,
+        "Formative": 90.0,
+        "Quiz": 73.46,
+        "Summative": 67.33,
+        "Test": 61.5
+      }
+    },
+    {
+      "firstName": "Aaliyah",
+      "lastName": "Taylor",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 71.07,
+      "categories": {
+        "Classwork/Homework": 69.27,
+        "End of Semester Exam": 60.0,
+        "Formative": 92.22,
+        "Quiz": 76.38,
+        "Summative": 75.33,
+        "Test": 64.0
+      }
+    },
+    {
+      "firstName": "Dagmawi",
+      "lastName": "Wolde",
+      "section": "Integrated Math 2 (4)",
+      "cumulativeGrade": 92.74,
+      "categories": {
+        "Classwork/Homework": 102.59,
+        "End of Semester Exam": 76.7,
+        "Formative": 94.44,
+        "Quiz": 98.38,
+        "Summative": 87.33,
+        "Test": 78.5
+      }
+    },
+    {
+      "firstName": "Aisha",
+      "lastName": "Atiku",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 84.26,
+      "categories": {
+        "Classwork/Homework": 87.71,
+        "End of Semester Exam": 68.3,
+        "Formative": 71.11,
+        "Quiz": 85.74,
+        "Summative": 87.0,
+        "Test": 67.5
+      }
+    },
+    {
+      "firstName": "Elijah",
+      "lastName": "Casby",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 60.47,
+      "categories": {
+        "Classwork/Homework": 64.95,
+        "End of Semester Exam": 63.3,
+        "Formative": 50.0,
+        "Quiz": 74.75,
+        "Summative": 48.67,
+        "Test": 74.0
+      }
+    },
+    {
+      "firstName": "Rakeb",
+      "lastName": "Chernet",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 73.8,
+      "categories": {
+        "Classwork/Homework": 86.06,
+        "End of Semester Exam": 65.0,
+        "Formative": 81.11,
+        "Quiz": 76.07,
+        "Summative": 64.33,
+        "Test": 66.0
+      }
+    },
+    {
+      "firstName": "Trinity",
+      "lastName": "DeLeon",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 60.08,
+      "categories": {
+        "Classwork/Homework": 59.63,
+        "End of Semester Exam": 68.8,
+        "Formative": 75.56,
+        "Quiz": 70.49,
+        "Summative": 52.33,
+        "Test": 60.0
+      }
+    },
+    {
+      "firstName": "Robel",
+      "lastName": "Edea",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 88.37,
+      "categories": {
+        "Classwork/Homework": 89.35,
+        "End of Semester Exam": 76.7,
+        "Formative": 70.0,
+        "Quiz": 88.52,
+        "Summative": 92.33,
+        "Test": 94.0
+      }
+    },
+    {
+      "firstName": "Joshua",
+      "lastName": "Guzman Chora",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 70.97,
+      "categories": {
+        "Classwork/Homework": 60.64,
+        "End of Semester Exam": 65.0,
+        "Formative": 81.11,
+        "Quiz": 67.54,
+        "Summative": 85.33,
+        "Test": 64.0
+      }
+    },
+    {
+      "firstName": "Josiah",
+      "lastName": "Hafeez",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 80.02,
+      "categories": {
+        "Classwork/Homework": 70.85,
+        "End of Semester Exam": 73.3,
+        "Formative": 88.89,
+        "Quiz": 92.62,
+        "Summative": 86.67,
+        "Test": 76.5
+      }
+    },
+    {
+      "firstName": "Radriannah",
+      "lastName": "Holloway",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 69.28,
+      "categories": {
+        "Classwork/Homework": 63.3,
+        "End of Semester Exam": 81.7,
+        "Formative": 88.89,
+        "Quiz": 77.7,
+        "Summative": 66.33,
+        "Test": 67.0
+      }
+    },
+    {
+      "firstName": "Diana",
+      "lastName": "Isidor Hernandez",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 74.41,
+      "categories": {
+        "Classwork/Homework": 75.85,
+        "End of Semester Exam": 65.0,
+        "Formative": 84.44,
+        "Quiz": 64.26,
+        "Summative": 81.33,
+        "Test": 67.0
+      }
+    },
+    {
+      "firstName": "Miles",
+      "lastName": "Johnson",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 76.43,
+      "categories": {
+        "Classwork/Homework": 74.07,
+        "End of Semester Exam": 80.0,
+        "Formative": 75.71,
+        "Quiz": 70.82,
+        "Summative": 79.67,
+        "Test": 82.5
+      }
+    },
+    {
+      "firstName": "Sharon",
+      "lastName": "Medina Cardenas",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 79.18,
+      "categories": {
+        "Classwork/Homework": 87.77,
+        "End of Semester Exam": 80.0,
+        "Formative": 85.71,
+        "Quiz": 75.08,
+        "Summative": 72.0,
+        "Test": 64.5
+      }
+    },
+    {
+      "firstName": "Jaring",
+      "lastName": "Nhkum",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 79.53,
+      "categories": {
+        "Classwork/Homework": 92.23,
+        "End of Semester Exam": 70.0,
+        "Formative": 88.89,
+        "Quiz": 66.89,
+        "Summative": 76.33,
+        "Test": 68.5
+      }
+    },
+    {
+      "firstName": "Itzel",
+      "lastName": "Peralta Ciriaco",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 70.81,
+      "categories": {
+        "Classwork/Homework": 60.9,
+        "End of Semester Exam": 68.3,
+        "Formative": 81.11,
+        "Quiz": 79.67,
+        "Summative": 78.0,
+        "Test": 75.0
+      }
+    },
+    {
+      "firstName": "Victoria",
+      "lastName": "Rodriguez",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 64.38,
+      "categories": {
+        "Classwork/Homework": 78.63,
+        "End of Semester Exam": 40.0,
+        "Formative": 78.89,
+        "Quiz": 71.97,
+        "Summative": 57.33,
+        "Test": 65.0
+      }
+    },
+    {
+      "firstName": "Kimora-Dee",
+      "lastName": "Smith",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 82.9,
+      "categories": {
+        "Classwork/Homework": 87.05,
+        "End of Semester Exam": 68.3,
+        "Formative": 85.56,
+        "Quiz": 82.13,
+        "Summative": 85.33,
+        "Test": 75.0
+      }
+    },
+    {
+      "firstName": "Aklesia",
+      "lastName": "Abdi",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 75.21,
+      "categories": {
+        "Classwork/Homework": 87.12,
+        "End of Semester Exam": 65.0,
+        "Formative": 82.86,
+        "Quiz": 72.13,
+        "Summative": 69.0,
+        "Test": 79.0
+      }
+    },
+    {
+      "firstName": "Valeria",
+      "lastName": "Antonio-Antonio",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 60.04,
+      "categories": {
+        "Classwork/Homework": 46.5,
+        "End of Semester Exam": 61.7,
+        "Formative": 40.0,
+        "Quiz": 63.61,
+        "Summative": 71.33,
+        "Test": 61.5
+      }
+    },
+    {
+      "firstName": "Alexander",
+      "lastName": "Arellano",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 68.48,
+      "categories": {
+        "Classwork/Homework": 40.36,
+        "End of Semester Exam": 68.3,
+        "Formative": 92.86,
+        "Quiz": 88.69,
+        "Summative": 88.0,
+        "Test": 89.0
+      }
+    },
+    {
+      "firstName": "Kennaa",
+      "lastName": "Badi",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 63.26,
+      "categories": {
+        "Classwork/Homework": 42.13,
+        "End of Semester Exam": 60.0,
+        "Formative": 28.57,
+        "Quiz": 76.72,
+        "Summative": 80.0,
+        "Test": 65.0
+      }
+    },
+    {
+      "firstName": "Troy",
+      "lastName": "Beaugard",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 74.61,
+      "categories": {
+        "Classwork/Homework": 64.22,
+        "End of Semester Exam": 68.3,
+        "Formative": 90.0,
+        "Quiz": 85.57,
+        "Summative": 83.0,
+        "Test": 74.5
+      }
+    },
+    {
+      "firstName": "Gabrielle",
+      "lastName": "Clemons",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 79.93,
+      "categories": {
+        "Classwork/Homework": 79.22,
+        "End of Semester Exam": 68.3,
+        "Formative": 88.0,
+        "Quiz": 82.95,
+        "Summative": 84.33,
+        "Test": 79.5
+      }
+    },
+    {
+      "firstName": "Andrea",
+      "lastName": "DeLaCruz-Monroy",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 70.76,
+      "categories": {
+        "Classwork/Homework": 53.79,
+        "End of Semester Exam": 70.0,
+        "Formative": 65.71,
+        "Quiz": 74.75,
+        "Summative": 86.33,
+        "Test": 65.5
+      }
+    },
+    {
+      "firstName": "Oscar",
+      "lastName": "Garcia Ramirez",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 77.29,
+      "categories": {
+        "Classwork/Homework": 66.32,
+        "End of Semester Exam": 65.0,
+        "Formative": 77.14,
+        "Quiz": 87.05,
+        "Summative": 89.33,
+        "Test": 65.5
+      }
+    },
+    {
+      "firstName": "Emmanuel",
+      "lastName": "Garcia",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 72.64,
+      "categories": {
+        "Classwork/Homework": 89.52,
+        "End of Semester Exam": 60.0,
+        "Formative": 71.43,
+        "Quiz": 62.95,
+        "Summative": 65.33,
+        "Test": 63.5
+      }
+    },
+    {
+      "firstName": "Jocelyn",
+      "lastName": "Hernandez Soto",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 80.52,
+      "categories": {
+        "Classwork/Homework": 79.27,
+        "End of Semester Exam": 70.0,
+        "Formative": 88.0,
+        "Quiz": 84.26,
+        "Summative": 84.67,
+        "Test": 68.5
+      }
+    },
+    {
+      "firstName": "Lunet",
+      "lastName": "Legesse",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 80.95,
+      "categories": {
+        "Classwork/Homework": 94.07,
+        "End of Semester Exam": 76.7,
+        "Formative": 80.0,
+        "Quiz": 64.59,
+        "Summative": 76.67,
+        "Test": 69.5
+      }
+    },
+    {
+      "firstName": "Abraham",
+      "lastName": "Martinez Morales",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 85.69,
+      "categories": {
+        "Classwork/Homework": 82.88,
+        "End of Semester Exam": 73.3,
+        "Formative": 90.0,
+        "Quiz": 91.48,
+        "Summative": 91.33,
+        "Test": 90.0
+      }
+    },
+    {
+      "firstName": "Ritchie",
+      "lastName": "Mpanzu",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 71.65,
+      "categories": {
+        "Classwork/Homework": 62.18,
+        "End of Semester Exam": 80.0,
+        "Formative": 70.0,
+        "Quiz": 69.84,
+        "Summative": 78.33,
+        "Test": 67.0
+      }
+    },
+    {
+      "firstName": "Antonio",
+      "lastName": "Phillips",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 72.91,
+      "categories": {
+        "Classwork/Homework": 82.07,
+        "End of Semester Exam": 63.3,
+        "Formative": 51.43,
+        "Quiz": 63.28,
+        "Summative": 72.0,
+        "Test": 65.0
+      }
+    },
+    {
+      "firstName": "Stephanie",
+      "lastName": "Posadas Castro",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 79.63,
+      "categories": {
+        "Classwork/Homework": 91.16,
+        "End of Semester Exam": 63.3,
+        "Formative": 77.14,
+        "Quiz": 74.43,
+        "Summative": 77.33,
+        "Test": 73.5
+      }
+    },
+    {
+      "firstName": "Obed",
+      "lastName": "Ramos-Juarez",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 86.25,
+      "categories": {
+        "Classwork/Homework": 75.38,
+        "End of Semester Exam": 97.0,
+        "Formative": 85.71,
+        "Quiz": 92.13,
+        "Summative": 90.0,
+        "Test": 82.0
+      }
+    },
+    {
+      "firstName": "Renee",
+      "lastName": "Richey",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 63.63,
+      "categories": {
+        "Classwork/Homework": 59.18,
+        "End of Semester Exam": 61.7,
+        "Formative": 77.14,
+        "Quiz": 68.85,
+        "Summative": 66.67,
+        "Test": 64.5
+      }
+    },
+    {
+      "firstName": "Victor",
+      "lastName": "Rojas",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 77.36,
+      "categories": {
+        "Classwork/Homework": 83.76,
+        "End of Semester Exam": 68.3,
+        "Formative": 84.0,
+        "Quiz": 73.11,
+        "Summative": 76.67,
+        "Test": 77.5
+      }
+    },
+    {
+      "firstName": "Katie",
+      "lastName": "Romero Aguirre",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 70.4,
+      "categories": {
+        "Classwork/Homework": 54.15,
+        "End of Semester Exam": 61.7,
+        "Formative": 88.57,
+        "Quiz": 82.95,
+        "Summative": 85.0,
+        "Test": 80.0
+      }
+    },
+    {
+      "firstName": "David",
+      "lastName": "Soto-Lozano",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 76.91,
+      "categories": {
+        "Classwork/Homework": 81.31,
+        "End of Semester Exam": 68.3,
+        "Formative": 84.29,
+        "Quiz": 83.61,
+        "Summative": 73.33,
+        "Test": 68.5
+      }
+    },
+    {
+      "firstName": "Nathaly",
+      "lastName": "Tello Garcia",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 60.7,
+      "categories": {
+        "Classwork/Homework": 72.64,
+        "End of Semester Exam": 20.0,
+        "Formative": 71.43,
+        "Quiz": 70.49,
+        "Summative": 62.0,
+        "Test": 62.5
+      }
+    },
+    {
+      "firstName": "Zola Rae",
+      "lastName": "Tyler",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 70.17,
+      "categories": {
+        "Classwork/Homework": 71.45,
+        "End of Semester Exam": 63.3,
+        "Formative": 80.0,
+        "Quiz": 72.13,
+        "Summative": 71.0,
+        "Test": 66.0
+      }
+    },
+    {
+      "firstName": "Stephanie",
+      "lastName": "Tzintzun Zirangua",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 68.46,
+      "categories": {
+        "Classwork/Homework": 58.33,
+        "End of Semester Exam": 63.3,
+        "Formative": 80.0,
+        "Quiz": 73.44,
+        "Summative": 78.67,
+        "Test": 70.0
+      }
+    },
+    {
+      "firstName": "Daniel",
+      "lastName": "Yacob",
+      "section": "Integrated Math 2 (2)",
+      "cumulativeGrade": 84.26,
+      "categories": {
+        "Classwork/Homework": 95.76,
+        "End of Semester Exam": 61.7,
+        "Formative": 74.29,
+        "Quiz": 85.25,
+        "Summative": 82.0,
+        "Test": 66.5
+      }
+    },
+    {
+      "firstName": "Nahom",
+      "lastName": "Adal",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 82.62,
+      "categories": {
+        "Classwork/Homework": 76.64,
+        "End of Semester Exam": 81.7,
+        "Formative": 74.29,
+        "Quiz": 88.85,
+        "Summative": 86.33,
+        "Test": 84.0
+      }
+    },
+    {
+      "firstName": "Zaire",
+      "lastName": "Barnette",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 74.91,
+      "categories": {
+        "Classwork/Homework": 76.04,
+        "End of Semester Exam": 65.0,
+        "Formative": 68.0,
+        "Quiz": 82.79,
+        "Summative": 74.67,
+        "Test": 74.5
+      }
+    },
+    {
+      "firstName": "Willie",
+      "lastName": "Crumbley Jr",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 80.16,
+      "categories": {
+        "Classwork/Homework": 66.04,
+        "End of Semester Exam": 70.0,
+        "Formative": 77.14,
+        "Quiz": 87.87,
+        "Summative": 95.33,
+        "Test": 89.5
+      }
+    },
+    {
+      "firstName": "Edwin",
+      "lastName": "De La Cruz",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 80.94,
+      "categories": {
+        "Classwork/Homework": 67.05,
+        "End of Semester Exam": 83.3,
+        "Formative": 68.57,
+        "Quiz": 81.31,
+        "Summative": 93.67,
+        "Test": 84.0
+      }
+    },
+    {
+      "firstName": "Ashton",
+      "lastName": "Diaz-Rebollar",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 75.18,
+      "categories": {
+        "Classwork/Homework": 68.36,
+        "End of Semester Exam": 66.7,
+        "Formative": 77.14,
+        "Quiz": 84.43,
+        "Summative": 81.67,
+        "Test": 66.0
+      }
+    },
+    {
+      "firstName": "Ariel",
+      "lastName": "Gutierrez-Becerra",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 88.22,
+      "categories": {
+        "Classwork/Homework": 78.96,
+        "End of Semester Exam": 87.7,
+        "Formative": 87.14,
+        "Quiz": 93.77,
+        "Summative": 95.33,
+        "Test": 94.5
+      }
+    },
+    {
+      "firstName": "Amy",
+      "lastName": "Ibarra Vasquez",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 78.12,
+      "categories": {
+        "Classwork/Homework": 70.38,
+        "End of Semester Exam": 68.3,
+        "Formative": 70.0,
+        "Quiz": 82.95,
+        "Summative": 88.0,
+        "Test": 73.0
+      }
+    },
+    {
+      "firstName": "Taylor",
+      "lastName": "King",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 76.63,
+      "categories": {
+        "Classwork/Homework": 78.55,
+        "End of Semester Exam": 60.0,
+        "Formative": 77.14,
+        "Quiz": 73.11,
+        "Summative": 83.33,
+        "Test": 77.5
+      }
+    },
+    {
+      "firstName": "Darielle",
+      "lastName": "Lyons",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 78.39,
+      "categories": {
+        "Classwork/Homework": 65.57,
+        "End of Semester Exam": 66.7,
+        "Formative": 65.71,
+        "Quiz": 88.2,
+        "Summative": 92.0,
+        "Test": 92.5
+      }
+    },
+    {
+      "firstName": "Saboura",
+      "lastName": "Mahamat",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 79.67,
+      "categories": {
+        "Classwork/Homework": 90.3,
+        "End of Semester Exam": 65.0,
+        "Formative": 88.57,
+        "Quiz": 75.74,
+        "Summative": 77.0,
+        "Test": 69.5
+      }
+    },
+    {
+      "firstName": "Bamlak",
+      "lastName": "Mishamo",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 88.58,
+      "categories": {
+        "Classwork/Homework": 101.79,
+        "End of Semester Exam": 80.0,
+        "Formative": 90.0,
+        "Quiz": 70.82,
+        "Summative": 86.67,
+        "Test": 68.5
+      }
+    },
+    {
+      "firstName": "Erick",
+      "lastName": "Rodriguez Sorza",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 79.09,
+      "categories": {
+        "Classwork/Homework": 60.64,
+        "End of Semester Exam": 80.0,
+        "Formative": 20.0,
+        "Quiz": 87.21,
+        "Summative": 93.67,
+        "Test": 69.5
+      }
+    },
+    {
+      "firstName": "Camila",
+      "lastName": "Romero-Macias",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 80.0,
+      "categories": {
+        "Classwork/Homework": 71.84,
+        "End of Semester Exam": 76.7,
+        "Formative": 50.0,
+        "Quiz": 87.54,
+        "Summative": 86.33,
+        "Test": 74.0
+      }
+    },
+    {
+      "firstName": "Enya",
+      "lastName": "Rosene",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 84.29,
+      "categories": {
+        "Classwork/Homework": 85.23,
+        "End of Semester Exam": 70.0,
+        "Formative": 80.0,
+        "Quiz": 85.41,
+        "Summative": 89.0,
+        "Test": 66.5
+      }
+    },
+    {
+      "firstName": "Mauricio",
+      "lastName": "Scott",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 79.03,
+      "categories": {
+        "Classwork/Homework": 81.61,
+        "End of Semester Exam": 80.0,
+        "Formative": 71.43,
+        "Quiz": 86.89,
+        "Summative": 72.67,
+        "Test": 85.0
+      }
+    },
+    {
+      "firstName": "Ram",
+      "lastName": "Thang",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 72.35,
+      "categories": {
+        "Classwork/Homework": 60.26,
+        "End of Semester Exam": 66.7,
+        "Formative": 28.0,
+        "Quiz": 75.9,
+        "Summative": 85.33,
+        "Test": 74.5
+      }
+    },
+    {
+      "firstName": "Lisandra",
+      "lastName": "Tomas-Santizo",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 72.71,
+      "categories": {
+        "Classwork/Homework": 73.51,
+        "End of Semester Exam": 60.0,
+        "Formative": 82.86,
+        "Quiz": 60.33,
+        "Summative": 82.67,
+        "Test": 64.5
+      }
+    },
+    {
+      "firstName": "Graciela",
+      "lastName": "Vargas Hernandez",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 60.21,
+      "categories": {
+        "Classwork/Homework": 49.73,
+        "End of Semester Exam": 61.7,
+        "Formative": 82.86,
+        "Quiz": 68.85,
+        "Summative": 66.33,
+        "Test": 67.0
+      }
+    },
+    {
+      "firstName": "Jordyn",
+      "lastName": "Wooten",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 95.4,
+      "categories": {
+        "Classwork/Homework": 97.85,
+        "End of Semester Exam": 81.7,
+        "Formative": 90.0,
+        "Quiz": 96.56,
+        "Summative": 98.33,
+        "Test": 87.5
+      }
+    }
+  ]
+}

@@ -36,12 +36,39 @@ const StudentGrades: React.FC = () => {
     completedAssignments: 0,
     pendingGrades: 0
   });
+  const [cumulativeData, setCumulativeData] = useState<{
+    found: boolean;
+    course?: string;
+    section?: string;
+    cumulativeGrade?: number;
+    categories?: Record<string, number>;
+    weights?: Record<string, number>;
+    categoryNames?: string[];
+    lastUpdated?: string;
+  } | null>(null);
 
   useEffect(() => {
     if (user?.id) {
       fetchGrades();
+      fetchCumulativeGrades();
     }
   }, [user?.id]);
+
+  const fetchCumulativeGrades = async () => {
+    try {
+      const response = await fetch(`/api/student/cumulative-grades?userId=${user?.id}`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setCumulativeData(data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching cumulative grades:', error);
+    }
+  };
 
   const fetchGrades = async () => {
     try {
@@ -180,6 +207,71 @@ const StudentGrades: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Cumulative Grade Section */}
+        {cumulativeData?.found && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">{cumulativeData.course}</h3>
+                <p className="text-sm text-gray-500">{cumulativeData.section} • Updated {cumulativeData.lastUpdated}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Cumulative Grade</p>
+                <p className={`text-4xl font-bold ${
+                  (cumulativeData.cumulativeGrade || 0) >= 90 ? 'text-green-600' :
+                  (cumulativeData.cumulativeGrade || 0) >= 80 ? 'text-blue-600' :
+                  (cumulativeData.cumulativeGrade || 0) >= 70 ? 'text-yellow-600' :
+                  'text-red-600'
+                }`}>
+                  {cumulativeData.cumulativeGrade}%
+                </p>
+              </div>
+            </div>
+
+            {/* Category Breakdown */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-gray-700">Category Averages</h4>
+              {cumulativeData.categoryNames?.map((cat) => {
+                const grade = cumulativeData.categories?.[cat];
+                const weight = cumulativeData.weights?.[cat] || 0;
+                if (!grade) return null;
+                
+                return (
+                  <div key={cat} className="flex items-center gap-4">
+                    <div className="w-40 flex-shrink-0">
+                      <p className="text-sm text-gray-700">{cat}</p>
+                      {weight > 0 && <p className="text-xs text-gray-400">{weight}% weight</p>}
+                    </div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${
+                            grade >= 90 ? 'bg-green-500' :
+                            grade >= 80 ? 'bg-blue-500' :
+                            grade >= 70 ? 'bg-yellow-500' :
+                            'bg-red-500'
+                          }`}
+                          style={{ width: `${Math.min(grade, 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="w-16 text-right">
+                      <span className={`text-sm font-semibold ${
+                        grade >= 90 ? 'text-green-600' :
+                        grade >= 80 ? 'text-blue-600' :
+                        grade >= 70 ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`}>
+                        {grade}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Grades List */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
