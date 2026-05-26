@@ -496,8 +496,8 @@ const StudentDashboard: React.FC = () => {
 
             {/* Right Column - Simplified Widgets (1/4 width, desktop only) */}
             <div className="hidden lg:block space-y-4">
-              {/* Recent Grades */}
-              <RecentGradesWidget userId={user?.id} />
+              {/* Cumulative Grade */}
+              <CumulativeGradeWidget userId={user?.id} />
 
               {/* Upcoming Assignments */}
               <UpcomingAssignmentsWidget userId={user?.id} />
@@ -1030,6 +1030,109 @@ const CommunityFeedItem: React.FC<{
           <span className="text-sm">{comments} {comments === 1 ? 'comment' : 'comments'}</span>
         </button>
       </div>
+    </div>
+  );
+};
+
+// Cumulative Grade Widget Component
+const CumulativeGradeWidget: React.FC<{ userId?: string }> = ({ userId }) => {
+  const router = useRouter();
+  const [data, setData] = React.useState<{
+    found: boolean;
+    course?: string;
+    section?: string;
+    cumulativeGrade?: number;
+    categories?: Record<string, number>;
+    weights?: Record<string, number>;
+    categoryNames?: string[];
+    lastUpdated?: string;
+  } | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (userId) {
+      fetch(`/api/student/cumulative-grades?userId=${userId}`, { credentials: 'include' })
+        .then(res => res.json())
+        .then(res => { if (res.success) setData(res); })
+        .catch(err => console.error('Error fetching cumulative grades:', err))
+        .finally(() => setLoading(false));
+    }
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <h3 className="text-base font-bold text-gray-900 mb-3">My Grade</h3>
+        <div className="animate-pulse space-y-2">
+          <div className="bg-gray-200 h-10 rounded-lg"></div>
+          <div className="bg-gray-200 h-4 rounded"></div>
+          <div className="bg-gray-200 h-4 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data?.found) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <h3 className="text-base font-bold text-gray-900 mb-3">My Grade</h3>
+        <p className="text-sm text-gray-500">No grade data available yet.</p>
+      </div>
+    );
+  }
+
+  const gradeColor = (data.cumulativeGrade || 0) >= 90 ? 'text-green-600' :
+    (data.cumulativeGrade || 0) >= 80 ? 'text-blue-600' :
+    (data.cumulativeGrade || 0) >= 70 ? 'text-yellow-600' : 'text-red-600';
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-base font-bold text-gray-900">My Grade</h3>
+        <button
+          onClick={() => router.push('/student/grades')}
+          className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium"
+        >
+          Details →
+        </button>
+      </div>
+
+      {/* Cumulative Grade */}
+      <div className="text-center mb-4">
+        <p className={`text-3xl font-bold ${gradeColor}`}>{data.cumulativeGrade}%</p>
+        <p className="text-xs text-gray-500 mt-1">{data.course}</p>
+        <p className="text-xs text-gray-400">{data.section}</p>
+      </div>
+
+      {/* Category Bars */}
+      <div className="space-y-2">
+        {data.categoryNames?.map((cat) => {
+          const grade = data.categories?.[cat];
+          const weight = data.weights?.[cat] || 0;
+          if (!grade || weight === 0) return null;
+
+          return (
+            <div key={cat}>
+              <div className="flex items-center justify-between text-xs mb-0.5">
+                <span className="text-gray-600 truncate">{cat}</span>
+                <span className="font-medium text-gray-800 ml-2">{grade}%</span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${
+                    grade >= 90 ? 'bg-green-500' :
+                    grade >= 80 ? 'bg-blue-500' :
+                    grade >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                  }`}
+                  style={{ width: `${Math.min(grade, 100)}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-xs text-gray-400 mt-3 text-center">Updated {data.lastUpdated}</p>
     </div>
   );
 };
