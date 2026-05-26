@@ -1416,5 +1416,21 @@
         "Test": 87.5
       }
     }
-  ]
+  ],
+  "userOverrides": {
+    "user_1760812158887_ikixnd8zx": {
+      "firstName": "Aisha",
+      "lastName": "Atiku",
+      "section": "Integrated Math 2 (5)",
+      "cumulativeGrade": 84.26,
+      "categories": {
+        "Classwork/Homework": 87.71,
+        "End of Semester Exam": 68.3,
+        "Formative": 71.11,
+        "Quiz": 85.74,
+        "Summative": 87.0,
+        "Test": 67.5
+      }
+    }
+  }
 }

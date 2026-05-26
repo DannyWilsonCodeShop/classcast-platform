@@ -21,6 +21,7 @@ interface GradesData {
   categories: string[];
   lastUpdated: string;
   students: GradeStudent[];
+  userOverrides?: Record<string, GradeStudent>;
 }
 
 // Cache the grades data in memory
@@ -113,11 +114,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Match user to their grade record
-    const studentGrade = matchStudent(
-      { firstName, lastName },
-      gradesData.students
-    );
+    // Check for userId override first (for demo/testing purposes)
+    let studentGrade: GradeStudent | null = null;
+    if (gradesData.userOverrides && gradesData.userOverrides[userId]) {
+      studentGrade = gradesData.userOverrides[userId];
+    } else {
+      // Match user to their grade record by name
+      studentGrade = matchStudent(
+        { firstName, lastName },
+        gradesData.students
+      );
+    }
 
     if (!studentGrade) {
       return NextResponse.json({
