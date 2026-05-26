@@ -160,7 +160,7 @@ const StudentGrades: React.FC = () => {
     <StudentRoute>
       <DemoModeBanner />
       <DashboardLayout 
-        title="Recent Grades" 
+        title="Gradebook" 
         subtitle="Track your academic performance and progress"
       >
         {/* Mobile back button */}
@@ -175,6 +175,26 @@ const StudentGrades: React.FC = () => {
             <span>Back to Dashboard</span>
           </button>
         </div>
+
+        {/* Report Card Grade - prominent callout */}
+        {cumulativeData?.found && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-800">📋 Report Card Grade</p>
+                <p className="text-xs text-blue-600 mt-1">This is the final grade that will be posted to your report card.</p>
+              </div>
+              <div className="text-right">
+                <p className={`text-3xl font-bold ${
+                  (cumulativeData.cumulativeGrade || 0) >= 80 ? 'text-green-600' :
+                  (cumulativeData.cumulativeGrade || 0) >= 70 ? 'text-blue-600' :
+                  (cumulativeData.cumulativeGrade || 0) >= 60 ? 'text-amber-600' : 'text-red-600'
+                }`}>{cumulativeData.cumulativeGrade}%</p>
+                <p className="text-xs text-gray-500">{cumulativeData.course} • {cumulativeData.section}</p>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
