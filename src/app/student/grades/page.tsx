@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/dashboard/layout/DashboardLayout';
@@ -28,6 +29,7 @@ interface Grade {
 
 const StudentGrades: React.FC = () => {
   const { user } = useAuth();
+  const router = useRouter();
   const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -157,6 +159,18 @@ const StudentGrades: React.FC = () => {
         title="Recent Grades" 
         subtitle="Track your academic performance and progress"
       >
+        {/* Mobile back button */}
+        <div className="mb-4 lg:hidden">
+          <button
+            onClick={() => router.push('/student/dashboard')}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center space-x-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            <span>Back to Dashboard</span>
+          </button>
+        </div>
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
