@@ -31,7 +31,7 @@ function loadGradesData(): GradesData | null {
   if (gradesCache) return gradesCache;
   
   try {
-    const filePath = path.join(process.cwd(), 'public', 'StudentFiles', 'grades', 'grades-data.json');
+    const filePath = path.join(process.cwd(), 'public', 'StudentFiles', 'Grades', 'grades-data.json');
     const data = fs.readFileSync(filePath, 'utf-8');
     gradesCache = JSON.parse(data);
     return gradesCache;
