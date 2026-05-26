@@ -145,10 +145,35 @@ const StudentDashboard: React.FC = () => {
       if (data.success) {
         const pinnedItems = data.feed.filter((item: FeedItem) => item.isPinned || item.isHighlighted);
         const regularItems = data.feed.filter((item: FeedItem) => !item.isPinned && !item.isHighlighted);
-        const randomizedRegular = [...regularItems].sort(() => Math.random() - 0.5);
-        const sortedFeed = [...pinnedItems, ...randomizedRegular];
         
-        setFeed(sortedFeed);
+        // Prioritize S3 videos first (always playable), then YouTube, then Google Drive (often unavailable)
+        const s3Videos = regularItems.filter((item: FeedItem) => 
+          item.type === 'video' && item.videoUrl && 
+          !item.videoUrl.includes('youtube') && !item.videoUrl.includes('youtu.be') &&
+          !item.videoUrl.includes('drive.google')
+        );
+        const youtubeVideos = regularItems.filter((item: FeedItem) => 
+          item.type === 'video' && item.videoUrl && 
+          (item.videoUrl.includes('youtube') || item.videoUrl.includes('youtu.be'))
+        );
+        const driveVideos = regularItems.filter((item: FeedItem) => 
+          item.type === 'video' && item.videoUrl && item.videoUrl.includes('drive.google')
+        );
+        const nonVideoItems = regularItems.filter((item: FeedItem) => item.type !== 'video');
+        
+        // Shuffle within each group for variety
+        const shuffled = (arr: FeedItem[]) => [...arr].sort(() => Math.random() - 0.5);
+        
+        // S3 first, then community posts mixed with YouTube, Drive videos last
+        const orderedFeed = [
+          ...pinnedItems,
+          ...shuffled(s3Videos),
+          ...shuffled(nonVideoItems),
+          ...shuffled(youtubeVideos),
+          ...shuffled(driveVideos)
+        ].slice(0, 30); // Limit to 30 items for performance
+        
+        setFeed(orderedFeed);
         setCourses(data.courses);
       }
     } catch (error) {
