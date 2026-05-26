@@ -1115,8 +1115,9 @@ const CumulativeGradeWidget: React.FC<{ userId?: string }> = ({ userId }) => {
           const displayName: Record<string, string> = {
             'Summative': 'Tests',
             'Classwork/Homework': 'Classwork/Homework',
-            'End of Semester Exam': 'Semester Exam',
+            'End of Semester Exam': 'End Of Semester Exam',
             'Quiz': 'Quizzes',
+            'Formative': 'Practice Tests',
           };
           const label = displayName[cat] || cat;
 

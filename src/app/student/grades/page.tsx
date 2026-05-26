@@ -166,7 +166,7 @@ const StudentGrades: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Average Grade</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.averageGrade}%</p>
+                <p className="text-2xl font-bold text-gray-900">{cumulativeData?.found ? cumulativeData.cumulativeGrade : stats.averageGrade}%</p>
               </div>
             </div>
           </div>
@@ -241,8 +241,9 @@ const StudentGrades: React.FC = () => {
                 const displayName: Record<string, string> = {
                   'Summative': 'Tests',
                   'Classwork/Homework': 'Classwork/Homework',
-                  'End of Semester Exam': 'Semester Exam',
+                  'End of Semester Exam': 'End Of Semester Exam',
                   'Quiz': 'Quizzes',
+                  'Formative': 'Practice Tests',
                 };
                 const label = displayName[cat] || cat;
                 
