@@ -1106,14 +1106,15 @@ const CumulativeGradeWidget: React.FC<{ userId?: string }> = ({ userId }) => {
     );
   }
 
-  const gradeColor = (data.cumulativeGrade || 0) >= 90 ? 'text-green-600' :
-    (data.cumulativeGrade || 0) >= 80 ? 'text-blue-600' :
-    (data.cumulativeGrade || 0) >= 70 ? 'text-yellow-600' : 'text-red-600';
+  const examGrade = data.categories?.['End of Semester Exam'];
+  const examColor = (examGrade || 0) >= 90 ? 'text-green-600' :
+    (examGrade || 0) >= 80 ? 'text-blue-600' :
+    (examGrade || 0) >= 70 ? 'text-yellow-600' : 'text-red-600';
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base font-bold text-gray-900">My Grade</h3>
+        <h3 className="text-base font-bold text-gray-900">Most Recent Grade</h3>
         <button
           onClick={() => router.push('/student/grades')}
           className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium"
@@ -1122,52 +1123,23 @@ const CumulativeGradeWidget: React.FC<{ userId?: string }> = ({ userId }) => {
         </button>
       </div>
 
-      {/* Cumulative Grade */}
+      {/* End of Year Exam Score as main display */}
       <div className="text-center mb-4">
-        <p className={`text-3xl font-bold ${gradeColor}`}>{data.cumulativeGrade}%</p>
-        <p className="text-xs text-gray-500 mt-1">{data.course}</p>
-        <p className="text-xs text-gray-400">{data.section}</p>
+        {examGrade ? (
+          <>
+            <p className={`text-3xl font-bold ${examColor}`}>{examGrade}%</p>
+            <p className="text-sm text-gray-600 mt-1 font-medium">End of Year Exam</p>
+          </>
+        ) : (
+          <>
+            <p className={`text-3xl font-bold ${(data.cumulativeGrade || 0) >= 90 ? 'text-green-600' : (data.cumulativeGrade || 0) >= 80 ? 'text-blue-600' : (data.cumulativeGrade || 0) >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>{data.cumulativeGrade}%</p>
+            <p className="text-sm text-gray-600 mt-1 font-medium">Cumulative Average</p>
+          </>
+        )}
+        <p className="text-xs text-gray-400 mt-1">{data.course}</p>
       </div>
 
-      {/* Category Bars */}
-      <div className="space-y-2">
-        {data.categoryNames?.map((cat) => {
-          const grade = data.categories?.[cat];
-          const weight = data.weights?.[cat] || 0;
-          if (!grade || weight === 0) return null;
-
-          // Friendly display names
-          const displayName: Record<string, string> = {
-            'Summative': 'Tests',
-            'Classwork/Homework': 'Classwork/Homework',
-            'End of Semester Exam': 'End Of Semester Exam',
-            'Quiz': 'Quizzes',
-            'Formative': 'Practice Tests',
-          };
-          const label = displayName[cat] || cat;
-
-          return (
-            <div key={cat}>
-              <div className="flex items-center justify-between text-xs mb-0.5">
-                <span className="text-gray-600 truncate">{label}</span>
-                <span className="font-medium text-gray-800 ml-2">{grade}%</span>
-              </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${
-                    grade >= 90 ? 'bg-green-500' :
-                    grade >= 80 ? 'bg-blue-500' :
-                    grade >= 70 ? 'bg-yellow-500' : 'bg-red-500'
-                  }`}
-                  style={{ width: `${Math.min(grade, 100)}%` }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      <p className="text-xs text-gray-400 mt-3 text-center">Updated {data.lastUpdated}</p>
+      <p className="text-xs text-gray-400 text-center">Updated {data.lastUpdated}</p>
     </div>
   );
 };

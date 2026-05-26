@@ -257,7 +257,7 @@ const StudentGrades: React.FC = () => {
                 const displayName: Record<string, string> = {
                   'Summative': 'Tests',
                   'Classwork/Homework': 'Classwork/Homework',
-                  'End of Semester Exam': 'End Of Semester Exam',
+                  'End of Semester Exam': 'End of Year Exam',
                   'Quiz': 'Quizzes',
                   'Formative': 'Practice Tests',
                 };
