@@ -236,11 +236,20 @@ const StudentGrades: React.FC = () => {
                 const grade = cumulativeData.categories?.[cat];
                 const weight = cumulativeData.weights?.[cat] || 0;
                 if (!grade) return null;
+
+                // Friendly display names
+                const displayName: Record<string, string> = {
+                  'Summative': 'Tests',
+                  'Classwork/Homework': 'Classwork/Homework',
+                  'End of Semester Exam': 'Semester Exam',
+                  'Quiz': 'Quizzes',
+                };
+                const label = displayName[cat] || cat;
                 
                 return (
                   <div key={cat} className="flex items-center gap-4">
                     <div className="w-40 flex-shrink-0">
-                      <p className="text-sm text-gray-700">{cat}</p>
+                      <p className="text-sm text-gray-700">{label}</p>
                       {weight > 0 && <p className="text-xs text-gray-400">{weight}% weight</p>}
                     </div>
                     <div className="flex-1">

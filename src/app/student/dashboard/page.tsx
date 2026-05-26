@@ -1111,10 +1111,19 @@ const CumulativeGradeWidget: React.FC<{ userId?: string }> = ({ userId }) => {
           const weight = data.weights?.[cat] || 0;
           if (!grade || weight === 0) return null;
 
+          // Friendly display names
+          const displayName: Record<string, string> = {
+            'Summative': 'Tests',
+            'Classwork/Homework': 'Classwork/Homework',
+            'End of Semester Exam': 'Semester Exam',
+            'Quiz': 'Quizzes',
+          };
+          const label = displayName[cat] || cat;
+
           return (
             <div key={cat}>
               <div className="flex items-center justify-between text-xs mb-0.5">
-                <span className="text-gray-600 truncate">{cat}</span>
+                <span className="text-gray-600 truncate">{label}</span>
                 <span className="font-medium text-gray-800 ml-2">{grade}%</span>
               </div>
               <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
