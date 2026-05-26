@@ -47,6 +47,10 @@ const StudentGrades: React.FC = () => {
     weights?: Record<string, number>;
     categoryNames?: string[];
     lastUpdated?: string;
+    classStats?: {
+      section: { cumulative: { high: number; low: number; avg: number; count: number }; exam: { high: number; low: number; avg: number; count: number } };
+      course: { cumulative: { high: number; low: number; avg: number; count: number }; exam: { high: number; low: number; avg: number; count: number } };
+    };
   } | null>(null);
 
   useEffect(() => {
@@ -295,6 +299,69 @@ const StudentGrades: React.FC = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Class Statistics */}
+        {cumulativeData?.found && cumulativeData.classStats && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Class Comparison</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* End of Year Exam Stats */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-600 mb-3">End of Year Exam</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Your Section</span>
+                    <div className="text-right text-sm">
+                      <span className="text-green-600 font-medium">High: {cumulativeData.classStats.section.exam.high}%</span>
+                      <span className="mx-2 text-gray-300">|</span>
+                      <span className="text-red-600 font-medium">Low: {cumulativeData.classStats.section.exam.low}%</span>
+                      <span className="mx-2 text-gray-300">|</span>
+                      <span className="text-gray-700 font-medium">Avg: {cumulativeData.classStats.section.exam.avg}%</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">All Sections</span>
+                    <div className="text-right text-sm">
+                      <span className="text-green-600 font-medium">High: {cumulativeData.classStats.course.exam.high}%</span>
+                      <span className="mx-2 text-gray-300">|</span>
+                      <span className="text-red-600 font-medium">Low: {cumulativeData.classStats.course.exam.low}%</span>
+                      <span className="mx-2 text-gray-300">|</span>
+                      <span className="text-gray-700 font-medium">Avg: {cumulativeData.classStats.course.exam.avg}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cumulative Average Stats */}
+              <div>
+                <h4 className="text-sm font-medium text-gray-600 mb-3">Cumulative Average</h4>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Your Section</span>
+                    <div className="text-right text-sm">
+                      <span className="text-green-600 font-medium">High: {cumulativeData.classStats.section.cumulative.high}%</span>
+                      <span className="mx-2 text-gray-300">|</span>
+                      <span className="text-red-600 font-medium">Low: {cumulativeData.classStats.section.cumulative.low}%</span>
+                      <span className="mx-2 text-gray-300">|</span>
+                      <span className="text-gray-700 font-medium">Avg: {cumulativeData.classStats.section.cumulative.avg}%</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">All Sections</span>
+                    <div className="text-right text-sm">
+                      <span className="text-green-600 font-medium">High: {cumulativeData.classStats.course.cumulative.high}%</span>
+                      <span className="mx-2 text-gray-300">|</span>
+                      <span className="text-red-600 font-medium">Low: {cumulativeData.classStats.course.cumulative.low}%</span>
+                      <span className="mx-2 text-gray-300">|</span>
+                      <span className="text-gray-700 font-medium">Avg: {cumulativeData.classStats.course.cumulative.avg}%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
