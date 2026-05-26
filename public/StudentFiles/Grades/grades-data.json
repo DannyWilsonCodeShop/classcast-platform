@@ -16,7 +16,7 @@
     "Summative",
     "Test"
   ],
-  "lastUpdated": "2026-05-26",
+  "lastUpdated": "2026-05-27",
   "students": [
     {
       "firstName": "Mahassine",
@@ -1414,6 +1414,20 @@
         "Quiz": 96.56,
         "Summative": 98.33,
         "Test": 87.5
+      }
+    },
+    {
+      "firstName": "Danny",
+      "lastName": "Wilson",
+      "section": "Integrated Math 2 (1)",
+      "cumulativeGrade": 82.62,
+      "categories": {
+        "Classwork/Homework": 76.64,
+        "End of Semester Exam": 81.7,
+        "Formative": 74.29,
+        "Quiz": 88.85,
+        "Summative": 86.33,
+        "Test": 84.0
       }
     }
   ],
