@@ -136,6 +136,33 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Compute class statistics
+    const sectionStudents = gradesData.students.filter(s => s.section === studentGrade!.section);
+    const allStudents = gradesData.students;
+
+    const computeStats = (students: GradeStudent[]) => {
+      const cumGrades = students.map(s => s.cumulativeGrade).filter(g => g > 0);
+      const examGrades = students.map(s => s.categories['End of Semester Exam']).filter(g => g && g > 0) as number[];
+      
+      return {
+        cumulative: {
+          high: cumGrades.length > 0 ? Math.max(...cumGrades) : 0,
+          low: cumGrades.length > 0 ? Math.min(...cumGrades) : 0,
+          avg: cumGrades.length > 0 ? Math.round((cumGrades.reduce((a, b) => a + b, 0) / cumGrades.length) * 100) / 100 : 0,
+          count: cumGrades.length
+        },
+        exam: {
+          high: examGrades.length > 0 ? Math.max(...examGrades) : 0,
+          low: examGrades.length > 0 ? Math.min(...examGrades) : 0,
+          avg: examGrades.length > 0 ? Math.round((examGrades.reduce((a, b) => a + b, 0) / examGrades.length) * 100) / 100 : 0,
+          count: examGrades.length
+        }
+      };
+    };
+
+    const sectionStats = computeStats(sectionStudents);
+    const courseStats = computeStats(allStudents);
+
     return NextResponse.json({
       success: true,
       found: true,
@@ -145,7 +172,11 @@ export async function GET(request: NextRequest) {
       categories: studentGrade.categories,
       weights: gradesData.weights,
       categoryNames: gradesData.categories,
-      lastUpdated: gradesData.lastUpdated
+      lastUpdated: gradesData.lastUpdated,
+      classStats: {
+        section: sectionStats,
+        course: courseStats
+      }
     });
 
   } catch (error) {
