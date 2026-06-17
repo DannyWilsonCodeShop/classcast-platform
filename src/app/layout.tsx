@@ -6,6 +6,7 @@ import { OIDCAuthProvider } from "@/components/auth/OIDCAuthProvider";
 import { RealtimeNotifications } from "@/components/common/RealtimeNotifications";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { PreventNumberInputScroll } from "@/components/common/PreventNumberInputScroll";
+import { NativeAppInit } from "@/components/native/NativeAppInit";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,6 +21,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ClassCast - Learning Management System",
   description: "A modern learning management system for students and instructors",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "ClassCast",
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
   icons: {
     icon: [
       {
@@ -57,6 +71,7 @@ export default function RootLayout({
           <OIDCAuthProvider>
             <AuthProvider>
               <PreventNumberInputScroll />
+              <NativeAppInit />
               {children}
               <RealtimeNotifications />
             </AuthProvider>
