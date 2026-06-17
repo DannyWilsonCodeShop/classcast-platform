@@ -100,189 +100,81 @@ export async function GET(request: NextRequest) {
         TableName: 'classcast-submissions'
       }));
 
-      const submissions = submissionsResult.Items || [];
+      let submissions = submissionsResult.Items || [];
       
       console.log(`📹 Found ${submissions.length} total submissions`);
-      console.log(`🎓 Student courseIds:`, courseIds);
       
-      // For each submission, get student info to populate author details
+      // Filter to allowed courses and non-deleted/hidden, then sort by date and limit
+      submissions = submissions
+        .filter(sub => 
+          allowedCourseIds.includes(sub.courseId) && 
+          sub.status !== 'deleted' && 
+          !sub.hidden
+        )
+        .sort((a, b) => {
+          const dateA = new Date(a.submittedAt || a.createdAt || 0).getTime();
+          const dateB = new Date(b.submittedAt || b.createdAt || 0).getTime();
+          return dateB - dateA; // Newest first
+        })
+        .slice(0, 30); // Only process the 30 most recent
+      
+      console.log(`📹 Processing ${submissions.length} recent submissions (limited to 30)`);
+      
+      // Batch load all users at once instead of per-submission
+      const allUsersResult = await docClient.send(new ScanCommand({
+        TableName: 'classcast-users',
+        ProjectionExpression: 'userId, email, firstName, lastName, avatar, profilePicture'
+      }));
+      const allUsers = allUsersResult.Items || [];
+      const userMap = new Map<string, any>();
+      for (const u of allUsers) {
+        userMap.set(u.userId, u);
+        if (u.email) userMap.set(u.email, u);
+      }
+      
+      // For each submission, build feed item
       for (const sub of submissions) {
-        console.log(`🔍 Checking submission ${sub.submissionId}: courseId=${sub.courseId}, status=${sub.status}, hidden=${sub.hidden}`);
-        
-        if (!allowedCourseIds.includes(sub.courseId)) {
-          console.log(`  ❌ Skipped: courseId ${sub.courseId} not in allowed courses`);
-          continue;
-        }
-        
-        // Mark if this video is from a course the student is not enrolled in
         const isFromEnrolledCourse = courseIds.includes(sub.courseId);
-        if (sub.status === 'deleted') {
-          console.log(`  ❌ Skipped: status is deleted`);
-          continue;
-        }
-        if (sub.hidden) {
-          console.log(`  ❌ Skipped: hidden is true`);
-          continue;
-        }
-        
-        console.log(`  ✅ Including video submission: ${sub.videoTitle || 'Untitled'}`);
-        
         const course = studentCourses.find(c => c.courseId === sub.courseId) || 
                       allCourses.find(c => c.courseId === sub.courseId);
         
-        // Get video URL from all possible fields (videoUrl, googleDriveUrl, youtubeUrl, etc.)
-        const videoUrl = sub.videoUrl || 
-                        sub.googleDriveUrl || 
-                        sub.youtubeUrl || 
-                        sub.googleDriveOriginalUrl ||
-                        sub.url || 
-                        sub.externalUrl;
-        
+        const videoUrl = sub.videoUrl || sub.googleDriveUrl || sub.youtubeUrl || sub.googleDriveOriginalUrl || sub.url || sub.externalUrl;
         let videoId = null;
-        try {
-          videoId = videoUrl ? getYouTubeVideoId(videoUrl) : null;
-          console.log(`  📹 Video URL: ${videoUrl}, YouTube ID: ${videoId || 'none'}`);
-        } catch (youtubeError) {
-          console.warn(`  ⚠️  Error getting YouTube ID:`, youtubeError);
-        }
+        try { videoId = videoUrl ? getYouTubeVideoId(videoUrl) : null; } catch {}
         
-        // Get student details
-        let studentName = '';
-        let studentAvatar = null;
+        // Look up user from batch-loaded map
+        const user = userMap.get(sub.studentId);
+        const studentName = user 
+          ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Student'
+          : (sub.studentId.includes('@') ? sub.studentId : 'Student');
+        const studentAvatar = user?.avatar || user?.profilePicture || null;
         
-        try {
-          console.log(`  👤 Fetching user details for studentId: ${sub.studentId}`);
-          
-          // Try multiple lookup strategies since studentId might not match userId
-          let user = null;
-          
-          // Strategy 1: Direct lookup with studentId as userId
-          try {
-            const directResult = await docClient.send(new GetCommand({
-              TableName: 'classcast-users',
-              Key: { userId: sub.studentId }
-            }));
-            user = directResult.Item;
-            if (user) {
-              console.log(`  ✓ Found user with direct lookup`);
-            }
-          } catch (directError) {
-            console.log(`  🔄 Direct lookup failed, trying scan...`);
-          }
-          
-          // Strategy 2: Scan by userId field
-          if (!user) {
-            try {
-              const scanResult = await docClient.send(new ScanCommand({
-                TableName: 'classcast-users',
-                FilterExpression: 'userId = :userId',
-                ExpressionAttributeValues: {
-                  ':userId': sub.studentId
-                },
-                Limit: 1
-              }));
-              user = scanResult.Items?.[0];
-              if (user) {
-                console.log(`  ✓ Found user with userId scan`);
-              }
-            } catch (scanError) {
-              console.log(`  🔄 userId scan failed, trying email scan...`);
-            }
-          }
-          
-          // Strategy 3: Scan by email field (in case studentId is actually an email)
-          if (!user) {
-            try {
-              const emailScanResult = await docClient.send(new ScanCommand({
-                TableName: 'classcast-users',
-                FilterExpression: 'email = :email',
-                ExpressionAttributeValues: {
-                  ':email': sub.studentId
-                },
-                Limit: 1
-              }));
-              user = emailScanResult.Items?.[0];
-              if (user) {
-                console.log(`  ✓ Found user with email scan`);
-              }
-            } catch (emailError) {
-              console.log(`  🔄 email scan failed, trying studentId field scan...`);
-            }
-          }
-          
-          // Strategy 4: Scan by studentId field (if it exists in users table)
-          if (!user) {
-            try {
-              const studentIdScanResult = await docClient.send(new ScanCommand({
-                TableName: 'classcast-users',
-                FilterExpression: 'studentId = :studentId',
-                ExpressionAttributeValues: {
-                  ':studentId': sub.studentId
-                },
-                Limit: 1
-              }));
-              user = studentIdScanResult.Items?.[0];
-              if (user) {
-                console.log(`  ✓ Found user with studentId field scan`);
-              }
-            } catch (studentIdError) {
-              console.log(`  ❌ All lookup strategies failed`);
-            }
-          }
-          
-          if (user) {
-            studentName = user.firstName && user.lastName 
-              ? `${user.firstName} ${user.lastName}` 
-              : user.email || studentName;
-            studentAvatar = user.avatar || user.profilePicture || user.profile?.avatar;
-            console.log(`  ✓ Found user: ${studentName}, avatar: ${studentAvatar ? 'YES' : 'NO'}`);
-          } else {
-            console.warn(`  ⚠️  No user found for studentId: ${sub.studentId} after trying all strategies`);
-            // Use email as fallback if available, otherwise use a generic name
-            studentName = sub.studentId.includes('@') ? sub.studentId : 'Student';
-          }
-        } catch (userError) {
-          console.error('  ❌ Error fetching student details:', userError);
-        }
+        const likedBy = sub.likedBy || [];
+        const isLiked = userId ? likedBy.includes(userId) : false;
         
-        try {
-          console.log(`  ➕ Adding video to feed items...`);
-          
-          // Check if current user has liked this video
-          const likedBy = sub.likedBy || [];
-          const isLiked = userId ? likedBy.includes(userId) : false;
-          
-          feedItems.push({
-            id: sub.submissionId,
-            type: 'video',
-            timestamp: sub.submittedAt || sub.createdAt,
-            courseId: sub.courseId,
-            courseName: course?.name || course?.courseName,
-            courseInitials: course?.courseInitials || course?.code?.substring(0, 3).toUpperCase(),
-            assignmentId: sub.assignmentId,
-            videoUrl: videoUrl, // Use the videoUrl we extracted from all possible fields
-            thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
-            title: sub.videoTitle || sub.title,
-            author: {
-              id: sub.studentId,
-              name: studentName,
-              avatar: studentAvatar
-            },
-            likes: sub.likes || 0,
-            comments: sub.commentCount || 0,
-            isLiked: isLiked,
-            isFromEnrolledCourse: isFromEnrolledCourse, // Add this flag
-            isPinned: sub.isPinned || false,
-            isHighlighted: sub.isHighlighted || false,
-            pinnedAt: sub.pinnedAt
-          });
-          console.log(`  ✓ Video added successfully (isLiked: ${isLiked})`);
-        } catch (pushError) {
-          console.error(`  ❌ Error pushing video to feedItems:`, pushError);
-        }
+        feedItems.push({
+          id: sub.submissionId,
+          type: 'video',
+          timestamp: sub.submittedAt || sub.createdAt,
+          courseId: sub.courseId,
+          courseName: course?.name || course?.courseName,
+          courseInitials: course?.courseInitials || course?.code?.substring(0, 3).toUpperCase(),
+          assignmentId: sub.assignmentId,
+          videoUrl: videoUrl,
+          thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
+          title: sub.videoTitle || sub.title,
+          author: { id: sub.studentId, name: studentName, avatar: studentAvatar },
+          likes: sub.likes || 0,
+          comments: sub.commentCount || 0,
+          isLiked,
+          isFromEnrolledCourse,
+          isPinned: sub.isPinned || false,
+          isHighlighted: sub.isHighlighted || false,
+          pinnedAt: sub.pinnedAt
+        });
       }
       
-      console.log(`\n✅ Successfully added ${feedItems.filter(i => i.type === 'video').length} video items to feed`);
+      console.log(`✅ Feed: ${feedItems.filter(i => i.type === 'video').length} videos (limited to 30 most recent)`);
     } catch (videoError: any) {
       console.error('❌ Video submissions ERROR:', videoError);
       console.error('Error name:', videoError.name);
