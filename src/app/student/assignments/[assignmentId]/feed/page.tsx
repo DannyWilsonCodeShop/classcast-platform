@@ -350,7 +350,7 @@ const AssignmentFeedPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-0">
-              {videos.map((video) => (
+              {videos.filter(v => v && v.submissionId).map((video) => (
                 <VideoSubmissionCard key={video.submissionId} video={video} formatTimestamp={formatTimestamp} currentUserId={user?.id} onDelete={fetchAssignmentFeed} />
               ))}
             </div>
@@ -425,7 +425,7 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
             ) : hasValidAvatar ? (
               <Image
                 src={video.studentAvatar}
-                alt={`${video.studentFirstName} ${video.studentLastName}`}
+                alt={`${video.studentFirstName || ''} ${video.studentLastName || ''}`}
                 width={40}
                 height={40}
                 className="w-full h-full object-cover"
@@ -433,13 +433,13 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
               />
             ) : (
               <span className="text-gray-600 font-semibold text-sm">
-                {video.studentFirstName[0]}{video.studentLastName[0]}
+                {(video.studentFirstName || '?')[0]}{(video.studentLastName || '?')[0]}
               </span>
             )}
           </div>
           <div>
             <p className="font-semibold text-sm text-gray-900">
-              {video.studentFirstName} {video.studentLastName}
+              {video.studentFirstName || 'Unknown'} {video.studentLastName || 'Student'}
             </p>
             <p className="text-xs text-gray-500">{formatTimestamp(video.submittedAt)}</p>
           </div>
