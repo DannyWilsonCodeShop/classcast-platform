@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { AssignmentList } from '@/components/student/AssignmentList';

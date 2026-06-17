@@ -377,35 +377,41 @@ const StudentDashboard: React.FC = () => {
         title={getGreeting()} 
         subtitle="Ready to continue your learning journey?"
       >
-        <div className="pb-8">
+        <div className="h-full flex flex-col lg:block lg:pb-4">
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 lg:gap-6 flex-1 min-h-0">
             {/* Left Column - Social Feed (3/4 width) */}
-            <div className="lg:col-span-3 flex flex-col">
-              {/* Community Post Bar - Enhanced with gradient */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl shadow-lg border border-blue-200 p-4 mb-4 flex-shrink-0">
-                <div className="flex items-center space-x-3">
-                  <Avatar 
-                    user={user}
-                    size="md"
-                    className="w-10 h-10 ring-2 ring-blue-300"
-                  />
+            <div className="lg:col-span-3 flex flex-col min-h-0 h-full">
+              {/* Community Post Bar - Simplified, no thumbnail */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow-sm border border-blue-200 p-2 mb-2 flex-shrink-0">
+                <div className="flex items-center space-x-2">
+                  {/* Avatar triggers post composer */}
                   <button
                     onClick={() => setShowPostComposer(!showPostComposer)}
-                    className="flex-1 px-4 py-3 bg-gradient-to-r from-white to-blue-50 rounded-full text-left text-gray-700 text-sm hover:from-blue-50 hover:to-purple-50 transition-all border-2 border-blue-200 shadow-sm"
+                    className="flex-shrink-0"
+                  >
+                    <Avatar 
+                      user={user}
+                      size="sm"
+                      className="w-8 h-8 ring-2 ring-blue-300 hover:ring-blue-500 transition-all cursor-pointer"
+                    />
+                  </button>
+                  <button
+                    onClick={() => setShowPostComposer(!showPostComposer)}
+                    className="flex-1 px-3 py-2 bg-white rounded-full text-left text-gray-600 text-sm hover:bg-blue-50 transition-all border border-blue-200"
                   >
                     ✨ {dailyQuestion}
                   </button>
-                  <div className="hidden sm:flex items-center space-x-2">
-                    <label className="flex items-center space-x-2 text-sm text-blue-700 cursor-pointer bg-white px-3 py-2 rounded-full border border-blue-200 hover:bg-blue-50 transition-colors">
+                  <div className="hidden sm:flex items-center">
+                    <label className="flex items-center space-x-1 text-xs text-blue-700 cursor-pointer bg-white px-2 py-1.5 rounded-full border border-blue-200 hover:bg-blue-50 transition-colors">
                       <input
                         type="checkbox"
                         checked={includeAllPublicVideos}
                         onChange={(e) => setIncludeAllPublicVideos(e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                        className="w-3.5 h-3.5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                       />
                       <span className="whitespace-nowrap flex items-center font-medium">
-                        <FireIcon className="w-4 h-4 mr-1 text-orange-500" />
+                        <FireIcon className="w-3.5 h-3.5 mr-0.5 text-orange-500" />
                         Explore
                       </span>
                     </label>
@@ -414,29 +420,29 @@ const StudentDashboard: React.FC = () => {
 
                 {/* Expanded Post Composer - Enhanced */}
                 {showPostComposer && (
-                  <div className="mt-4 pt-4 border-t border-blue-200">
+                  <div className="mt-2 pt-2 border-t border-blue-200">
                     <textarea
                       value={postContent}
                       onChange={(e) => setPostContent(e.target.value)}
                       placeholder={dailyQuestion}
-                      className="w-full px-4 py-3 border-2 border-blue-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-300 text-sm bg-white shadow-sm"
-                      rows={3}
+                      className="w-full px-3 py-2 border border-blue-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-300 text-sm bg-white"
+                      rows={2}
                       autoFocus
                     />
-                    <div className="flex items-center justify-end space-x-3 mt-3">
+                    <div className="flex items-center justify-end space-x-2 mt-2">
                       <button
                         onClick={() => {
                           setShowPostComposer(false);
                           setPostContent('');
                         }}
-                        className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handlePostSubmit}
                         disabled={!postContent.trim()}
-                        className="px-6 py-2 text-sm bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md font-medium"
+                        className="px-4 py-1.5 text-sm bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                       >
                         Post ✨
                       </button>
@@ -470,19 +476,18 @@ const StudentDashboard: React.FC = () => {
               )}
 
               {/* Student Videos & Community Feed - Scrollable on mobile */}
-              <div className="bg-gradient-to-br from-white to-blue-50/30 rounded-xl shadow-lg border border-blue-200">
-                <div className="p-4 border-b border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center">
-                    <span className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white mr-3">
+              <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-blue-200 flex-1 min-h-0 flex flex-col">
+                <div className="px-3 py-1.5 border-b border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 flex-shrink-0">
+                  <h3 className="text-sm font-bold text-gray-900 flex items-center">
+                    <span className="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-600 rounded flex items-center justify-center text-white mr-2 text-[10px]">
                       🎥
                     </span>
                     Student Videos & Community
                   </h3>
-                  <p className="text-sm text-gray-600 ml-11">See what your classmates are sharing</p>
                 </div>
                 
-                {/* Mobile: constrained height so assignments are visible below. Desktop: taller */}
-                <div className="max-h-[50vh] lg:max-h-[600px] overflow-y-auto">
+                {/* Scrollable feed area - takes remaining space */}
+                <div className="flex-1 overflow-y-auto min-h-0">
                   {filteredFeedItems.length === 0 ? (
                     <div className="p-8 text-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -494,9 +499,8 @@ const StudentDashboard: React.FC = () => {
                       </p>
                     </div>
                   ) : (
-                    <VirtualizedFeed
-                      feedItems={filteredFeedItems}
-                      renderItem={(item, index) => (
+                    <div>
+                      {filteredFeedItems.map((item) => (
                         <CompactFeedItemComponent 
                           key={item.id} 
                           item={item} 
@@ -507,16 +511,13 @@ const StudentDashboard: React.FC = () => {
                           onStudyBuddy={handleStudyBuddy}
                           isConnected={connections.has(item.author?.id || '')}
                         />
-                      )}
-                    />
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Upcoming Assignments - Visible on mobile below the feed */}
-              <div className="lg:hidden mt-4">
-                <UpcomingAssignmentsWidget userId={user?.id} />
-              </div>
+              {/* Upcoming Assignments - Hidden on mobile, shown only on desktop sidebar */}
             </div>
 
             {/* Right Column - Simplified Widgets (1/4 width, desktop only) */}
@@ -602,9 +603,9 @@ const CompactVideoFeedItem: React.FC<{
   const [imageError, setImageError] = React.useState(false);
 
   return (
-    <div className="border-b border-gray-100 p-4 hover:bg-gray-50/50 transition-colors">
+    <div className="border-b border-gray-100 px-2 py-0.5">
       {/* Compact Header */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-0.5">
         <div className="flex items-center space-x-2">
           <div 
             onClick={() => item.author?.id && router.push(`/student/profile/${item.author.id}`)}
@@ -626,7 +627,7 @@ const CompactVideoFeedItem: React.FC<{
                 {item.author?.name}
               </p>
               
-              {/* Compact Study Buddy Button */}
+              {/* Compact Follow Button */}
               {item.author?.id && item.author.id !== currentUserId && onStudyBuddy && (
                 <button
                   onClick={async (e) => {
@@ -639,17 +640,16 @@ const CompactVideoFeedItem: React.FC<{
                     }
                   }}
                   disabled={isConnecting}
-                  className={`inline-flex items-center px-1.5 py-0.5 rounded border transition-all text-xs ${
+                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium transition-all ${
                     localIsConnected 
-                      ? 'bg-green-50 border-green-300 text-green-700' 
-                      : 'bg-gray-50 border-gray-300 text-gray-600 hover:bg-gray-100'
+                      ? 'bg-green-50 text-green-700' 
+                      : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
                   } disabled:opacity-50`}
                 >
-                  {localIsConnected ? '✓' : '+'}
+                  {localIsConnected ? 'Following' : 'Follow'}
                 </button>
               )}
             </div>
-            <p className="text-xs text-gray-500">{formatTimestamp(item.timestamp)}</p>
           </div>
         </div>
         
@@ -661,7 +661,7 @@ const CompactVideoFeedItem: React.FC<{
       </div>
 
       {/* Better Sized Video Player with Smart Auto-Play */}
-      <div className="relative w-full bg-black mb-3 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
+      <div className="relative w-full bg-black mb-0.5 rounded overflow-hidden" style={{ aspectRatio: '2/1' }}>
         <SmartAutoPlayVideo
           videoUrl={item.videoUrl || ''}
           title={item.title}
@@ -674,7 +674,7 @@ const CompactVideoFeedItem: React.FC<{
       <div>
         <button 
           onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed`)}
-          className="font-medium text-sm text-gray-900 hover:text-blue-600 transition-colors text-left w-full mb-3 line-clamp-2"
+          className="font-medium text-xs text-gray-900 hover:text-blue-600 transition-colors text-left w-full mb-0.5 line-clamp-1"
         >
           {item.title}
         </button>
@@ -1370,16 +1370,16 @@ const UpcomingAssignmentsWidget: React.FC<{ userId?: string }> = ({ userId }) =>
 
   return (
     <div className="bg-gradient-to-br from-white to-indigo-50 rounded-xl shadow-lg border border-indigo-200 p-4">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white mr-3">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div className="flex items-center min-w-0">
+          <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white mr-3 flex-shrink-0">
             ⏰
           </div>
-          <h3 className="text-base font-bold text-gray-900">Upcoming Assignments</h3>
+          <h3 className="text-sm font-bold text-gray-900 truncate">Upcoming Assignments</h3>
         </div>
         <button
           onClick={() => router.push('/student/assignments')}
-          className="text-sm text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50 hover:bg-indigo-100 px-3 py-1 rounded-full transition-colors"
+          className="text-xs text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded-full transition-colors flex-shrink-0"
         >
           View All →
         </button>

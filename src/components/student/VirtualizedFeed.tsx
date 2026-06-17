@@ -13,8 +13,8 @@ interface VirtualizedFeedProps {
   overscan?: number;
 }
 
-const DEFAULT_VIDEO_HEIGHT = 600; // Approximate height of video items
-const DEFAULT_COMMUNITY_HEIGHT = 200; // Approximate height of community posts
+const DEFAULT_VIDEO_HEIGHT = 280; // Compact height for video items
+const DEFAULT_COMMUNITY_HEIGHT = 120; // Compact height for community posts
 const DEFAULT_OVERSCAN = 3; // Render 3 extra items above and below
 
 // Function to calculate item height based on type
@@ -25,11 +25,11 @@ const getItemHeight = (item: FeedItem): number => {
     case 'community':
       // Dynamic height based on content length
       const contentLength = (item.content || '').length;
-      const baseHeight = 150; // Base height for header and actions
-      const contentHeight = Math.max(50, Math.min(300, contentLength * 0.8)); // Estimate based on content
+      const baseHeight = 80;
+      const contentHeight = Math.max(30, Math.min(150, contentLength * 0.5));
       return baseHeight + contentHeight;
     case 'assignment':
-      return 250; // Medium height for assignments
+      return 150;
     default:
       return DEFAULT_VIDEO_HEIGHT;
   }
@@ -122,15 +122,14 @@ export const VirtualizedFeed: React.FC<VirtualizedFeedProps> = ({
             right: 0,
           }}
         >
-          <div className="space-y-0 video-feed">
+          <div className="video-feed">
             {visibleItems.map((item, index) => {
               const actualIndex = startIndex + index;
               const itemHeight = itemHeights[actualIndex];
               return (
                 <div
                   key={item.id}
-                  style={{ height: itemHeight }}
-                  className="mb-0"
+                  style={{ minHeight: itemHeight }}
                 >
                   {renderItem(item, actualIndex)}
                 </div>
