@@ -300,3 +300,35 @@ select:focus {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari, Opera */
 }
+
+/* Mobile app containment - limits all student pages to phone width on desktop */
+body:has([data-student-page]) {
+  background: #f3f4f6;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+[data-student-page] {
+  max-width: 430px;
+  width: 100%;
+  margin: 0 auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  background: white;
+  height: 100vh;
+  overflow: hidden;
+}
+
+@media (min-width: 640px) {
+  body:has([data-student-page]) {
+    align-items: center;
+    padding: 2rem 0;
+  }
+  
+  [data-student-page] {
+    border-radius: 1.5rem;
+    height: 90vh;
+    max-height: 900px;
+  }
+}

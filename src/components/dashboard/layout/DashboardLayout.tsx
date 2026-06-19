@@ -26,15 +26,15 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
       <div
         className="fixed inset-0 z-0"
         style={{
-          backgroundImage: 'url(/pexels-yankrukov-8197532.jpg)',
+          backgroundImage: "url('/ChatGPT Image Jun 17, 2026, 06_25_33 PM.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          filter: 'blur(10px)',
+          filter: 'blur(12px)',
           transform: 'scale(1.05)',
         }}
       />
       {/* Semi-transparent overlay */}
-      <div className="fixed inset-0 z-[1] bg-white/40" />
+      <div className="fixed inset-0 z-[1] bg-black/30" />
 
       {/* Demo Mode Banner */}
       <div className="fixed top-0 left-0 right-0 z-50">
@@ -88,6 +88,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             <span className="text-[10px]">Grades</span>
+          </a>
+          {/* Center + button for recording */}
+          <a
+            href="/student/record"
+            className="flex items-center justify-center -mt-5"
+          >
+            <div className="w-14 h-14 bg-[#005587] rounded-full flex items-center justify-center shadow-xl border-4 border-white">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
           </a>
           <a
             href="/student/study-modules"
