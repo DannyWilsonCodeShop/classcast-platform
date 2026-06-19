@@ -108,7 +108,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
 // Convenience components for specific roles
 export const StudentRoute: React.FC<Omit<ProtectedRouteProps, 'requiredRole' | 'allowedRoles'>> = (props) => (
-  <ProtectedRoute {...props} requiredRole="student" />
+  <div data-student-page="">
+    <ProtectedRoute {...props} requiredRole="student" />
+  </div>
 );
 
 export const InstructorRoute: React.FC<Omit<ProtectedRouteProps, 'requiredRole' | 'allowedRoles'>> = (props) => (

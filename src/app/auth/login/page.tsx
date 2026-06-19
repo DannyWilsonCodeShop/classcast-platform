@@ -31,7 +31,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative flex flex-col items-center overflow-hidden">
+    <div className="h-screen relative flex flex-col items-center overflow-hidden">
       {/* Load Grand Hotel font from Google Fonts */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link
@@ -120,7 +120,7 @@ export default function LoginPage() {
             src="/UpdatedCCLogo.png"
             alt="ClassCast Logo"
             className="object-contain drop-shadow-lg"
-            style={{ width: '8.75rem', height: '8.75rem' }}
+            style={{ width: '10rem', height: '10rem' }}
           />
         </div>
 

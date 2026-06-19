@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
     // Check for demo users BEFORE password validation (demo passwords don't need complexity)
     const sanitizedEmailEarly = email.toLowerCase().trim();
-    const demoEmails = ['studentdemo@myclasscast.com', 'instructordemo@myclasscast.com'];
+    const demoEmails = ['studentdemo@myclasscast.com', 'instructordemo@myclasscast.com', 'student@cc.app', 'teacher@cc.app'];
     const isDemoLogin = demoEmails.includes(sanitizedEmailEarly);
 
     // Password strength validation (skip for demo users)
@@ -113,6 +113,28 @@ export async function POST(request: NextRequest) {
     // Demo user check - bypass password validation for demo accounts
     const demoUsers = [
       {
+        email: 'student@cc.app',
+        password: 'demo123',
+        user: {
+          id: 'demo-student-viewer',
+          email: 'student@cc.app',
+          firstName: 'Student',
+          lastName: 'Demo',
+          role: 'student' as const,
+          avatar: '/api/placeholder/40/40',
+          emailVerified: true,
+          bio: 'Demo viewer account - Read-only access',
+          careerGoals: 'Viewing student portal',
+          classOf: '2025',
+          funFact: 'I am a demo viewer!',
+          favoriteSubject: 'All subjects',
+          hobbies: 'Exploring the platform',
+          schoolName: 'Cristo Rey Atlanta',
+          isDemoUser: true,
+          demoViewingUserId: 'user_1760812158887_ikixnd8zx'
+        }
+      },
+      {
         email: 'studentdemo@myclasscast.com',
         password: 'DannysCodeShop',
         user: {
@@ -132,6 +154,28 @@ export async function POST(request: NextRequest) {
           schoolName: 'Cristo Rey Atlanta',
           isDemoUser: true,
           demoViewingUserId: 'user_1760812158887_ikixnd8zx'
+        }
+      },
+      {
+        email: 'teacher@cc.app',
+        password: 'demo123',
+        user: {
+          id: 'demo-instructor-viewer',
+          email: 'teacher@cc.app',
+          firstName: 'Instructor',
+          lastName: 'Demo',
+          role: 'instructor' as const,
+          avatar: '/api/placeholder/40/40',
+          emailVerified: true,
+          bio: 'Demo viewer account - Read-only access',
+          careerGoals: 'Viewing instructor portal',
+          classOf: '2020',
+          funFact: 'I am a demo viewer!',
+          favoriteSubject: 'Mathematics',
+          hobbies: 'Exploring the platform',
+          schoolName: 'Cristo Rey Atlanta',
+          isDemoUser: true,
+          demoViewingUserId: 'user_1759516010110_tatqobue9'
         }
       },
       {

@@ -29,7 +29,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, title, subtitle }) => {
 
   return (
     <>
-      <header className="bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-200" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <header className="bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-200" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 8px)' }}>
         <div className="px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-12">
             {/* Left side - Logo (bigger) */}

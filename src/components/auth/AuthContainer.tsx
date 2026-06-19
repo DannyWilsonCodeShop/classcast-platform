@@ -104,14 +104,19 @@ export default function AuthContainer({
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           {/* Logo/Brand Section */}
           <div className="text-center mb-8">
-            <div className="mx-auto h-20 w-20 mb-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
+            <div className="mx-auto h-10 w-10 mb-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
               <img 
                 src="/UpdatedCCLogo.png" 
                 alt="ClassCast Logo" 
                 className="h-full w-full object-contain rounded-2xl"
               />
             </div>
-            <h1 className="text-4xl font-bold text-[#003366] mb-2">
+            {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+            <link
+              href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap"
+              rel="stylesheet"
+            />
+            <h1 style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-5xl text-[#003366] mb-2">
               Welcome to ClassCast
             </h1>
             <p className="text-lg font-normal text-gray-700 max-w-sm mx-auto">
