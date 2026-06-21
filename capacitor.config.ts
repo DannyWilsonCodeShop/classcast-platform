@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.classcast.app',
+  appId: 'com.myclasscast.ios',
   appName: 'ClassCast',
   webDir: 'out',
   server: {
