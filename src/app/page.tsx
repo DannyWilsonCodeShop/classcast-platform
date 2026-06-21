@@ -11,16 +11,27 @@ export default function HomePage() {
   const { isAuthenticated, user, isLoading } = useAuth();
 
   // Redirect authenticated users to their appropriate dashboard
+  // Or send first-time users to onboarding
   useEffect(() => {
-    if (!isLoading && isAuthenticated && user) {
+    if (isLoading) return;
+
+    // Check if first-time user (never completed onboarding)
+    if (typeof window !== 'undefined' && !localStorage.getItem('classcast_onboarded')) {
+      router.replace('/onboarding');
+      return;
+    }
+
+    if (isAuthenticated && user) {
       if (user.role === 'instructor') {
         router.push('/instructor/dashboard');
       } else if (user.role === 'admin') {
         router.push('/admin/dashboard');
       } else {
-        // Default to student dashboard
         router.push('/student/dashboard');
       }
+    } else {
+      // Not authenticated, go to login
+      router.push('/auth/login');
     }
   }, [isAuthenticated, user, isLoading, router]);
 
