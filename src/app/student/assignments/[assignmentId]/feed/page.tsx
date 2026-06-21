@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { extractYouTubeVideoId as getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
 import { GroupAssignmentModal } from '@/components/student/GroupAssignmentModal';
 import InteractionBar from '@/components/student/InteractionBar';
@@ -21,7 +20,12 @@ interface VideoSubmission {
   videoTitle: string;
   submittedAt: string;
   likes?: number;
+  likedBy?: string[];
   commentCount?: number;
+  stats?: {
+    likes?: number;
+    averageRating?: number;
+  };
 }
 
 interface AssignmentDetails {
@@ -55,7 +59,9 @@ const AssignmentFeedPage: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const assignmentId = params?.assignmentId as string;
+  const highlightVideoId = searchParams.get('videoId');
 
   const [loading, setLoading] = useState(true);
   const [assignment, setAssignment] = useState<AssignmentDetails | null>(null);
@@ -105,11 +111,53 @@ const AssignmentFeedPage: React.FC = () => {
             groupMemberIds.includes(sub.studentId)
           );
         }
+
+        // Enrich submissions with student profile data (name, avatar)
+        const uniqueStudentIds = [...new Set(submissions.map((s: any) => s.studentId).filter(Boolean))] as string[];
+        const profileMap = new Map<string, { firstName: string; lastName: string; avatar: string }>();
+        
+        await Promise.all(uniqueStudentIds.map(async (sid) => {
+          try {
+            const pRes = await fetch(`/api/profile?userId=${sid}`, { credentials: 'include' });
+            if (pRes.ok) {
+              const pData = await pRes.json();
+              const profile = pData.data || pData;
+              if (profile) {
+                profileMap.set(sid, {
+                  firstName: profile.firstName || '',
+                  lastName: profile.lastName || '',
+                  avatar: profile.avatar || '',
+                });
+              }
+            }
+          } catch {}
+        }));
+
+        // Merge profile data into submissions
+        submissions = submissions.map((sub: any) => {
+          const profile = profileMap.get(sub.studentId);
+          return {
+            ...sub,
+            studentFirstName: sub.studentFirstName || profile?.firstName || '',
+            studentLastName: sub.studentLastName || profile?.lastName || '',
+            studentAvatar: sub.studentAvatar || profile?.avatar || '',
+          };
+        });
         
         // Sort by most recent first
-        const sorted = submissions.sort((a: VideoSubmission, b: VideoSubmission) => 
+        let sorted = submissions.sort((a: VideoSubmission, b: VideoSubmission) => 
           new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
         );
+
+        // If a specific video was clicked, put it first
+        if (highlightVideoId) {
+          const idx = sorted.findIndex((v: VideoSubmission) => v.submissionId === highlightVideoId);
+          if (idx > 0) {
+            const [highlighted] = sorted.splice(idx, 1);
+            sorted = [highlighted, ...sorted];
+          }
+        }
+
         setVideos(sorted);
       }
     } catch (error) {
@@ -136,47 +184,39 @@ const AssignmentFeedPage: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Top Bar */}
-        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+        <div className="shrink-0 bg-white border-b border-gray-100">
+          <div className="px-3 py-2.5 flex items-center justify-between gap-3">
             {/* Back Button */}
             <button
               onClick={() => router.back()}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+              className="p-1.5 -ml-1 text-gray-600"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="text-sm font-medium">Back</span>
             </button>
 
-            {/* Assignment Title */}
-            <div className="flex-1 text-center">
-              <h1 className="text-sm font-semibold text-gray-900 truncate">
-                {assignment?.title || 'Assignment'}
+            {/* Title */}
+            <div className="flex-1 text-center min-w-0">
+              <h1 className="text-sm font-bold text-gray-900 truncate">
+                Peer Videos
               </h1>
-              {assignment?.courseInitials && (
-                <span className="text-xs text-gray-500">{assignment.courseInitials}</span>
+              {assignment?.title && (
+                <p className="text-[10px] text-gray-500 truncate">{assignment.title}</p>
               )}
             </div>
 
-            {/* School Logo */}
-            <div className="w-8 h-8 flex-shrink-0">
-              <Image
-                src="/logos/cristo-rey-atlanta.png"
-                alt="Cristo Rey Atlanta"
-                width={32}
-                height={32}
-                className="w-full h-full object-contain"
-              />
-            </div>
+            {/* Logo */}
+            <img src="/UpdatedCCLogo.png" alt="ClassCast" className="w-6 h-6 object-contain" />
           </div>
-
         </div>
 
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto min-h-0">
         {/* Assignment Details & Recording Options */}
-        <div className="max-w-2xl mx-auto">
+        <div>
           {assignment && (
             <div className="bg-white border-b border-gray-200">
               {/* Assignment Details */}
@@ -324,7 +364,7 @@ const AssignmentFeedPage: React.FC = () => {
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                 {assignment?.groupAssignment 
                   ? '🎬 Group Member Videos' 
-                  : '🎬 Student Submissions'}
+                  : '🎬 Peer Videos'}
               </h3>
               {assignment?.groupAssignment && myGroup && (
                 <p className="text-xs text-gray-500 mt-1">
@@ -336,7 +376,7 @@ const AssignmentFeedPage: React.FC = () => {
         </div>
 
         {/* Video Feed */}
-        <div className="max-w-2xl mx-auto">
+        <div>
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
@@ -370,6 +410,7 @@ const AssignmentFeedPage: React.FC = () => {
             }}
           />
         )}
+        </div>{/* end scrollable */}
       </div>
     </StudentRoute>
   );
@@ -423,11 +464,9 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
             {isEmoji ? (
               <span className="text-2xl">{video.studentAvatar}</span>
             ) : hasValidAvatar ? (
-              <Image
+              <img
                 src={video.studentAvatar}
                 alt={`${video.studentFirstName || ''} ${video.studentLastName || ''}`}
-                width={40}
-                height={40}
                 className="w-full h-full object-cover"
                 onError={() => setImageError(true)}
               />
@@ -494,11 +533,9 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
       <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>
         {isYouTube ? (
           <div className="relative w-full h-full">
-            <Image
+            <img
               src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
               alt={video.videoTitle}
-              width={1280}
-              height={720}
               className="w-full h-full object-cover cursor-pointer"
               onClick={(e) => {
                 const iframe = document.createElement('iframe');
@@ -509,8 +546,7 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
                 e.currentTarget.parentElement?.replaceChild(iframe, e.currentTarget);
               }}
               onError={(e) => {
-                // Fallback to standard thumbnail if maxres doesn't exist
-                e.currentTarget.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
               }}
             />
             {/* Play button overlay */}
@@ -547,6 +583,8 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
               email: '',
               avatar: ''
             }}
+            initialLikes={video.likes || video.stats?.likes || 0}
+            initialIsLiked={Array.isArray(video.likedBy) && video.likedBy.includes(currentUserId)}
           />
         )}
       </div>
@@ -554,5 +592,13 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
   );
 };
 
-export default AssignmentFeedPage;
+function AssignmentFeedPageWrapper() {
+  return (
+    <Suspense fallback={<StudentRoute><div className="h-full flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#005587]" /></div></StudentRoute>}>
+      <AssignmentFeedPage />
+    </Suspense>
+  );
+}
+
+export default AssignmentFeedPageWrapper;
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
@@ -458,5 +458,13 @@ const AssignmentSubmissionsPage: React.FC = () => {
   );
 };
 
-export default AssignmentSubmissionsPage;
+function AssignmentSubmissionsPageWrapper() {
+  return (
+    <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#005587]" /></div>}>
+      <AssignmentSubmissionsPage />
+    </Suspense>
+  );
+}
+
+export default AssignmentSubmissionsPageWrapper;
 

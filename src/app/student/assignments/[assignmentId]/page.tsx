@@ -32,12 +32,13 @@ interface Submission {
   status: string;
 }
 
-function getDueBadge(dueDate: string) {
+function getDueBadge(dueDate: string, isSubmitted?: boolean) {
   const now = new Date();
   const due = new Date(dueDate);
   const diff = due.getTime() - now.getTime();
   const hours = diff / (1000 * 60 * 60);
 
+  if (isSubmitted) return { label: '✓ Submitted', color: 'bg-green-500 text-white' };
   if (diff <= 0) return { label: 'Overdue', color: 'bg-red-500 text-white' };
   if (hours <= 48) return { label: 'Due Soon', color: 'bg-orange-400 text-white' };
   return { label: new Date(dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), color: 'bg-gray-200 text-gray-700' };
@@ -91,6 +92,7 @@ export default function StudentAssignmentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showResourcesModal, setShowResourcesModal] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!user?.id) return;
@@ -140,9 +142,10 @@ export default function StudentAssignmentDetailPage() {
     finally { setIsDeleting(false); }
   };
 
-  const dueBadge = useMemo(() => assignment ? getDueBadge(assignment.dueDate) : null, [assignment?.dueDate]);
+  const dueBadge = useMemo(() => assignment ? getDueBadge(assignment.dueDate, assignment.isSubmitted || !!submission) : null, [assignment?.dueDate, assignment?.isSubmitted, submission]);
   const isGraded = submission?.grade !== undefined && submission?.grade !== null;
   const isSubmitted = !!submission;
+  const resourceCount = (assignment?.resources || []).length;
 
   if (loading) {
     return (
@@ -234,7 +237,7 @@ export default function StudentAssignmentDetailPage() {
           {!isSubmitted && (
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
-              <button className="flex flex-col items-center opacity-80"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg><span className="text-[10px] text-gray-400">Resources</span></button>
+              <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
               <button onClick={() => router.push(`/student/record?assignmentId=${assignmentId}`)} className="flex flex-col items-center -mt-5">
                 <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center shadow-lg border-4 border-white">
                   <div className="w-5 h-5 rounded-full bg-white" />
@@ -249,7 +252,7 @@ export default function StudentAssignmentDetailPage() {
           {isSubmitted && !isGraded && (
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
-              <button className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg><span className="text-[10px] text-gray-400">Resources</span></button>
+              <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
               <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="flex flex-col items-center -mt-5">
                 <div className="w-14 h-14 rounded-full bg-[#005587] flex items-center justify-center shadow-lg border-4 border-white ring-2 ring-[#FFC72C]">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -264,7 +267,7 @@ export default function StudentAssignmentDetailPage() {
           {isGraded && (
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
-              <button className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg><span className="text-[10px] text-gray-400">Resources</span></button>
+              <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
               <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="flex flex-col items-center -mt-5">
                 <div className="w-14 h-14 rounded-full bg-[#005587] flex items-center justify-center shadow-lg border-4 border-white ring-2 ring-[#FFC72C]">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -277,6 +280,47 @@ export default function StudentAssignmentDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Resources Modal */}
+      {showResourcesModal && assignment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowResourcesModal(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold text-gray-900">Resources</h3>
+              <button onClick={() => setShowResourcesModal(false)} className="text-gray-400 p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 space-y-2">
+              {(assignment.resources || []).map((resource: any, idx: number) => (
+                <a
+                  key={resource.id || idx}
+                  href={resource.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 active:bg-gray-100 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-[#005587]/10 flex items-center justify-center shrink-0">
+                    {resource.type === 'link' ? (
+                      <svg className="w-5 h-5 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{resource.title || resource.fileName || 'Resource'}</p>
+                    <p className="text-[10px] text-gray-400 truncate">{resource.url}</p>
+                  </div>
+                  <svg className="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </StudentRoute>
   );
 }

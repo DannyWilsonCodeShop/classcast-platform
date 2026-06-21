@@ -1,221 +1,143 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import DashboardLayout from '@/components/dashboard/layout/DashboardLayout';
-import DemoModeBanner from '@/components/common/DemoModeBanner';
-import Avatar from '@/components/common/Avatar';
-import { 
-  UserIcon,
-  BellIcon,
-  EyeIcon,
-  ShieldCheckIcon,
-  DevicePhoneMobileIcon,
-  GlobeAltIcon
-} from '@heroicons/react/24/outline';
 
-const StudentSettings: React.FC = () => {
+export default function StudentSettingsPage() {
+  const router = useRouter();
   const { user } = useAuth();
+
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
     pushNotifications: true,
     assignmentReminders: true,
     gradeNotifications: true,
-    discussionUpdates: false
   });
 
   const [privacy, setPrivacy] = useState({
     profileVisibility: 'classmates',
     videoVisibility: 'course',
-    allowStudyBuddyRequests: true
   });
 
   const handleNotificationChange = (key: string, value: boolean) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: value
-    }));
+    setNotifications(prev => ({ ...prev, [key]: value }));
   };
 
-  const handlePrivacyChange = (key: string, value: string | boolean) => {
-    setPrivacy(prev => ({
-      ...prev,
-      [key]: value
-    }));
+  const handlePrivacyChange = (key: string, value: string) => {
+    setPrivacy(prev => ({ ...prev, [key]: value }));
   };
 
   return (
     <StudentRoute>
-      <DemoModeBanner />
-      <DashboardLayout 
-        title="Settings" 
-        subtitle="Manage your account preferences and privacy settings"
-      >
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Profile Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center space-x-2">
-                <UserIcon className="w-5 h-5 text-gray-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Profile Information</h3>
-              </div>
-            </div>
-            
-            <div className="p-6">
-              <div className="flex items-center space-x-6 mb-6">
-                <Avatar 
-                  user={user}
-                  size="xl"
-                  className="w-20 h-20"
-                />
-                <div>
-                  <h4 className="text-xl font-semibold text-gray-900">
-                    {user?.firstName} {user?.lastName}
-                  </h4>
-                  <p className="text-gray-600">{user?.email}</p>
-                  <button className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
-                    Change Profile Picture
-                  </button>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    value={user?.firstName || ''}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    readOnly
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    value={user?.lastName || ''}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    readOnly
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+      <div className="h-full flex flex-col bg-white overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center px-3 py-2.5 border-b border-gray-100 shrink-0">
+          <button onClick={() => router.push('/student/dashboard')} className="p-1.5 -ml-1 text-gray-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <h1 className="flex-1 text-sm font-bold text-gray-900 mx-2">Settings</h1>
+        </div>
 
-          {/* Notification Settings */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center space-x-2">
-                <BellIcon className="w-5 h-5 text-gray-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Notification Preferences</h3>
-              </div>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
+          {/* Notifications Section */}
+          <div className="mb-6">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Notifications</h2>
+            <div className="space-y-0 border border-gray-100 rounded-xl overflow-hidden">
+              {/* Email Notifications */}
+              <div className="flex items-center justify-between px-3 py-3 border-b border-gray-50">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900">Email Notifications</h4>
-                  <p className="text-sm text-gray-600">Receive updates via email</p>
+                  <p className="text-sm font-medium text-gray-900">Email Notifications</p>
+                  <p className="text-xs text-gray-500">Receive updates via email</p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
                   <input
                     type="checkbox"
                     checked={notifications.emailNotifications}
                     onChange={(e) => handleNotificationChange('emailNotifications', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#005587]" style={{ width: 40, height: 22 }}>
+                    <div className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] rounded-full bg-white border border-gray-300 transition-transform ${notifications.emailNotifications ? 'translate-x-[18px]' : ''}`} />
+                  </div>
                 </label>
               </div>
 
-              <div className="flex items-center justify-between">
+              {/* Push Notifications */}
+              <div className="flex items-center justify-between px-3 py-3 border-b border-gray-50">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900">Push Notifications</h4>
-                  <p className="text-sm text-gray-600">Receive notifications on your device</p>
+                  <p className="text-sm font-medium text-gray-900">Push Notifications</p>
+                  <p className="text-xs text-gray-500">Receive on your device</p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
                   <input
                     type="checkbox"
                     checked={notifications.pushNotifications}
                     onChange={(e) => handleNotificationChange('pushNotifications', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#005587]" style={{ width: 40, height: 22 }}>
+                    <div className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] rounded-full bg-white border border-gray-300 transition-transform ${notifications.pushNotifications ? 'translate-x-[18px]' : ''}`} />
+                  </div>
                 </label>
               </div>
 
-              <div className="flex items-center justify-between">
+              {/* Assignment Reminders */}
+              <div className="flex items-center justify-between px-3 py-3 border-b border-gray-50">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900">Assignment Reminders</h4>
-                  <p className="text-sm text-gray-600">Get reminded about upcoming due dates</p>
+                  <p className="text-sm font-medium text-gray-900">Assignment Reminders</p>
+                  <p className="text-xs text-gray-500">Upcoming due dates</p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
                   <input
                     type="checkbox"
                     checked={notifications.assignmentReminders}
                     onChange={(e) => handleNotificationChange('assignmentReminders', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#005587]" style={{ width: 40, height: 22 }}>
+                    <div className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] rounded-full bg-white border border-gray-300 transition-transform ${notifications.assignmentReminders ? 'translate-x-[18px]' : ''}`} />
+                  </div>
                 </label>
               </div>
 
-              <div className="flex items-center justify-between">
+              {/* Grade Notifications */}
+              <div className="flex items-center justify-between px-3 py-3">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900">Grade Notifications</h4>
-                  <p className="text-sm text-gray-600">Be notified when grades are posted</p>
+                  <p className="text-sm font-medium text-gray-900">Grade Notifications</p>
+                  <p className="text-xs text-gray-500">When grades are posted</p>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer shrink-0">
                   <input
                     type="checkbox"
                     checked={notifications.gradeNotifications}
                     onChange={(e) => handleNotificationChange('gradeNotifications', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900">Discussion Updates</h4>
-                  <p className="text-sm text-gray-600">Get notified about new discussion posts</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notifications.discussionUpdates}
-                    onChange={(e) => handleNotificationChange('discussionUpdates', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#005587]" style={{ width: 40, height: 22 }}>
+                    <div className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] rounded-full bg-white border border-gray-300 transition-transform ${notifications.gradeNotifications ? 'translate-x-[18px]' : ''}`} />
+                  </div>
                 </label>
               </div>
             </div>
           </div>
 
-          {/* Privacy Settings */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center space-x-2">
-                <EyeIcon className="w-5 h-5 text-gray-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Privacy Settings</h3>
-              </div>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Profile Visibility</h4>
-                <p className="text-sm text-gray-600 mb-3">Who can see your profile information</p>
+          {/* Privacy Section */}
+          <div className="mb-6">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Privacy</h2>
+            <div className="space-y-0 border border-gray-100 rounded-xl overflow-hidden">
+              {/* Profile Visibility */}
+              <div className="px-3 py-3 border-b border-gray-50">
+                <p className="text-sm font-medium text-gray-900 mb-1">Profile Visibility</p>
+                <p className="text-xs text-gray-500 mb-2">Who can see your profile</p>
                 <select
                   value={privacy.profileVisibility}
                   onChange={(e) => handlePrivacyChange('profileVisibility', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#005587] focus:border-transparent"
                 >
                   <option value="everyone">Everyone</option>
                   <option value="classmates">Classmates Only</option>
@@ -223,48 +145,51 @@ const StudentSettings: React.FC = () => {
                 </select>
               </div>
 
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-2">Video Visibility</h4>
-                <p className="text-sm text-gray-600 mb-3">Who can see your video submissions</p>
+              {/* Video Visibility */}
+              <div className="px-3 py-3">
+                <p className="text-sm font-medium text-gray-900 mb-1">Video Visibility</p>
+                <p className="text-xs text-gray-500 mb-2">Who can see your submissions</p>
                 <select
                   value={privacy.videoVisibility}
                   onChange={(e) => handlePrivacyChange('videoVisibility', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#005587] focus:border-transparent"
                 >
                   <option value="public">Public</option>
                   <option value="course">Course Members Only</option>
                   <option value="instructor">Instructor Only</option>
                 </select>
               </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900">Study Buddy Requests</h4>
-                  <p className="text-sm text-gray-600">Allow other students to send you study buddy requests</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={privacy.allowStudyBuddyRequests}
-                    onChange={(e) => handlePrivacyChange('allowStudyBuddyRequests', e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
             </div>
           </div>
 
-          {/* Save Button */}
-          <div className="flex justify-end">
-            <button className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-              Save Changes
-            </button>
+          {/* Account info */}
+          <div className="mb-6">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Account</h2>
+            <div className="border border-gray-100 rounded-xl px-3 py-3">
+              <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
+              <p className="text-xs text-gray-500">{user?.email}</p>
+            </div>
           </div>
         </div>
-      </DashboardLayout>
+
+        {/* Bottom Nav - 3 buttons: Home | Courses | Profile */}
+        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2">
+          <div className="flex items-center justify-around">
+            <button className="flex flex-col items-center" onClick={() => router.push('/student/dashboard')}>
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+              <span className="text-[10px] text-gray-400 mt-0.5">Home</span>
+            </button>
+            <button className="flex flex-col items-center" onClick={() => router.push('/student/courses')}>
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+              <span className="text-[10px] text-gray-400 mt-0.5">Courses</span>
+            </button>
+            <button className="flex flex-col items-center" onClick={() => router.push('/student/profile')}>
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              <span className="text-[10px] text-gray-400 mt-0.5">Profile</span>
+            </button>
+          </div>
+        </nav>
+      </div>
     </StudentRoute>
   );
-};
-
-export default StudentSettings;
+}

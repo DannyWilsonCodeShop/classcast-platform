@@ -16,6 +16,7 @@ interface Assignment {
   maxScore?: number;
   isSubmitted?: boolean;
   type?: string;
+  createdAt?: string;
 }
 
 export default function StudentAssignmentsPage() {
@@ -24,6 +25,8 @@ export default function StudentAssignmentsPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showAssignmentPicker, setShowAssignmentPicker] = useState(false);
+  const [filterDate, setFilterDate] = useState<Date | null>(null);
 
   useEffect(() => {
     if (user?.id) fetchAssignments();
@@ -34,7 +37,12 @@ export default function StudentAssignmentsPage() {
       const res = await fetch(`/api/student/assignments?userId=${user?.id}`);
       if (res.ok) {
         const data = await res.json();
-        setAssignments(data.assignments || []);
+        const sorted = (data.assignments || []).sort((a: Assignment, b: Assignment) => {
+          const aDate = new Date(a.createdAt || a.dueDate).getTime();
+          const bDate = new Date(b.createdAt || b.dueDate).getTime();
+          return bDate - aDate; // newest first
+        });
+        setAssignments(sorted);
       }
     } catch (e) {
       console.error('Error fetching assignments:', e);
@@ -117,14 +125,7 @@ export default function StudentAssignmentsPage() {
     <div className={`rounded-xl p-4 mb-3 ${getAssignmentColor(assignment.assignmentId)}`}>
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          {/* Course name */}
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">📖</span>
-            <span className="font-bold text-sm uppercase tracking-wide text-gray-700 italic">
-              {assignment.courseName || assignment.courseInitials || 'Course'}
-            </span>
-          </div>
-          {/* Title */}
+          {/* Title - first and foremost */}
           <p className="font-bold text-sm text-[#005587] mb-0.5">
             {assignment.title}
           </p>
@@ -147,6 +148,13 @@ export default function StudentAssignmentsPage() {
               {assignment.maxScore} points
             </p>
           )}
+          {/* Course name - at the bottom */}
+          <div className="flex items-center gap-1.5 mt-1.5">
+            <span className="text-xs">📖</span>
+            <span className="text-[11px] text-gray-500 italic">
+              {assignment.courseName || assignment.courseInitials || 'Course'}
+            </span>
+          </div>
         </div>
         {/* Right side: badge + action button */}
         <div className="flex flex-col items-end gap-2 ml-3">
@@ -196,11 +204,23 @@ export default function StudentAssignmentsPage() {
             <div className="flex-1 flex justify-between items-center">
               {weekDays.map((day, i) => {
                 const isToday = day.toDateString() === today.toDateString();
+                const isSelected = filterDate && day.toDateString() === filterDate.toDateString();
                 const dots = getDotsForDate(day);
                 return (
-                  <div key={i} className="flex flex-col items-center w-9">
+                  <button
+                    key={i}
+                    className="flex flex-col items-center w-9"
+                    onClick={() => {
+                      if (isSelected) {
+                        setFilterDate(null); // deselect
+                      } else if (dots > 0) {
+                        setFilterDate(day); // filter to this day
+                      }
+                    }}
+                  >
                     <span className="text-[10px] text-gray-500 mb-0.5">{dayNames[i]}</span>
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium ${
+                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
+                      isSelected ? 'bg-[#FFC72C] text-[#005587] shadow-md' :
                       isToday ? 'bg-[#005587] text-white shadow-md shadow-blue-300' : 'text-gray-700'
                     }`}>
                       {day.getDate()}
@@ -210,7 +230,7 @@ export default function StudentAssignmentsPage() {
                         <div key={j} className="w-1.5 h-1.5 rounded-full bg-[#FFC72C]" />
                       ))}
                     </div>
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -230,6 +250,22 @@ export default function StudentAssignmentsPage() {
               {[1,2,3].map(i => (
                 <div key={i} className="h-24 bg-gray-100 rounded-xl animate-pulse" />
               ))}
+            </div>
+          ) : filterDate ? (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-base font-bold text-gray-900">
+                  Due {filterDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                </h2>
+                <button onClick={() => setFilterDate(null)} className="text-xs text-[#005587] font-medium">Show All</button>
+              </div>
+              {assignments.filter(a => new Date(a.dueDate).toDateString() === filterDate.toDateString()).length > 0 ? (
+                assignments
+                  .filter(a => new Date(a.dueDate).toDateString() === filterDate.toDateString())
+                  .map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)
+              ) : (
+                <p className="text-center py-8 text-gray-400 text-sm">No assignments due this day</p>
+              )}
             </div>
           ) : (
             <>
@@ -274,7 +310,7 @@ export default function StudentAssignmentsPage() {
           )}
         </div>
 
-        {/* Bottom Nav */}
+        {/* Bottom Nav - 3 buttons: Home | + | Profile */}
         <nav className="flex-shrink-0 border-t border-gray-200 bg-white">
           <div className="flex items-center justify-around h-14 px-4">
             <a href="/student/dashboard" className="flex flex-col items-center">
@@ -283,35 +319,51 @@ export default function StudentAssignmentsPage() {
               </svg>
               <span className="text-[10px] text-gray-400">Home</span>
             </a>
-            <a href="/student/assignments" className="flex flex-col items-center">
-              <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <span className="text-[10px] text-[#005587] font-medium">Assignments</span>
-            </a>
-            <a href="/student/record" className="-mt-6">
+            <button onClick={() => setShowAssignmentPicker(true)} className="-mt-6">
               <div className="w-14 h-14 bg-gradient-to-br from-[#005587] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
                 </svg>
               </div>
-            </a>
-            <a href="/student/notifications" className="flex flex-col items-center relative">
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              <span className="absolute -top-0.5 right-0 w-4 h-4 bg-red-500 rounded-full text-[8px] text-white flex items-center justify-center font-bold">1</span>
-              <span className="text-[10px] text-gray-400">Alerts</span>
-            </a>
+            </button>
             <a href="/student/profile" className="flex flex-col items-center">
-              <div className="w-6 h-6 rounded-full border-2 border-[#FFC72C] overflow-hidden">
+              <div className="w-7 h-7 rounded-full border-2 border-[#FFC72C] overflow-hidden">
                 <img src="/headshot.jpeg" alt="Profile" className="w-full h-full object-cover" />
               </div>
-              <span className="text-[10px] text-gray-400">Profile</span>
+              <span className="text-[10px] text-gray-400 mt-0.5">Profile</span>
             </a>
           </div>
         </nav>
       </div>
+
+      {/* Assignment Picker Modal */}
+      {showAssignmentPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowAssignmentPicker(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold text-gray-900">Record for which assignment?</h3>
+              <button onClick={() => setShowAssignmentPicker(false)} className="text-gray-400 p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 space-y-2">
+              {assignments.filter(a => !a.isSubmitted).length > 0 ? assignments.filter(a => !a.isSubmitted).map(a => (
+                <button
+                  key={a.assignmentId}
+                  onClick={() => { setShowAssignmentPicker(false); router.push(`/student/record?assignmentId=${a.assignmentId}`); }}
+                  className={`w-full text-left rounded-xl p-3 ${getAssignmentColor(a.assignmentId)} active:scale-[0.98] transition-transform`}
+                >
+                  <h4 className="text-[#005587] text-sm font-bold truncate">{a.title}</h4>
+                  <p className="text-[#005587]/60 text-xs">{a.courseName || ''} • {getDaysUntilDue(a.dueDate)}</p>
+                </button>
+              )) : (
+                <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </StudentRoute>
   );
 }
