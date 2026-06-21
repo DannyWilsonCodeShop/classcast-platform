@@ -4,15 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import DashboardLayout from '@/components/dashboard/layout/DashboardLayout';
-import DemoModeBanner from '@/components/common/DemoModeBanner';
-import { 
-  ChartBarIcon, 
-  TrophyIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon
-} from '@heroicons/react/24/outline';
 
 interface Grade {
   id: string;
@@ -23,434 +14,134 @@ interface Grade {
   maxPoints: number;
   submittedAt: string;
   gradedAt: string;
+  dueDate?: string;
   feedback?: string;
   status: 'graded' | 'pending' | 'late';
 }
 
-const StudentGrades: React.FC = () => {
-  const { user } = useAuth();
+export default function StudentGradesPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [grades, setGrades] = useState<Grade[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    averageGrade: 0,
-    totalAssignments: 0,
-    completedAssignments: 0,
-    pendingGrades: 0
-  });
-  const [cumulativeData, setCumulativeData] = useState<{
-    found: boolean;
-    course?: string;
-    section?: string;
-    cumulativeGrade?: number;
-    categories?: Record<string, number>;
-    weights?: Record<string, number>;
-    categoryNames?: string[];
-    lastUpdated?: string;
-    classStats?: {
-      section: { cumulative: { high: number; low: number; avg: number; count: number }; exam: { high: number; low: number; avg: number; count: number } };
-      course: { cumulative: { high: number; low: number; avg: number; count: number }; exam: { high: number; low: number; avg: number; count: number } };
-    };
-  } | null>(null);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchGrades();
-      fetchCumulativeGrades();
-    }
+    if (user?.id) fetchGrades();
   }, [user?.id]);
-
-  const fetchCumulativeGrades = async () => {
-    try {
-      const response = await fetch(`/api/student/cumulative-grades?userId=${user?.id}`, {
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setCumulativeData(data);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching cumulative grades:', error);
-    }
-  };
 
   const fetchGrades = async () => {
     try {
-      console.log('🎯 Fetching real grades for user:', user?.id);
-      
-      const response = await fetch(`/api/student/grades?userId=${user?.id}`, {
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        console.log('✅ Fetched grades successfully:', data.grades.length, 'grades');
-        setGrades(data.grades);
-        setStats(data.stats);
-      } else {
-        console.error('❌ API returned error:', data.error);
-        // Fall back to empty state instead of mock data
-        setGrades([]);
-        setStats({
-          averageGrade: 0,
-          totalAssignments: 0,
-          completedAssignments: 0,
-          pendingGrades: 0
-        });
+      const res = await fetch(`/api/student/assignments?userId=${user?.id}`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        // Map assignments to grade items
+        const assignments = data.assignments || [];
+        const mapped: Grade[] = assignments.map((a: any) => ({
+          id: a.assignmentId || a.id,
+          assignmentTitle: a.title || 'Untitled',
+          courseName: a.courseName || '',
+          courseCode: a.courseCode || '',
+          grade: a.grade ?? a.score ?? 0,
+          maxPoints: a.maxScore || a.maxPoints || 100,
+          submittedAt: a.submittedAt || '',
+          gradedAt: a.gradedAt || '',
+          dueDate: a.dueDate || '',
+          feedback: a.feedback || '',
+          status: a.gradedAt ? 'graded' : 'pending',
+        }));
+        setGrades(mapped);
       }
     } catch (error) {
-      console.error('❌ Error fetching grades:', error);
-      // Fall back to empty state instead of mock data
-      setGrades([]);
-      setStats({
-        averageGrade: 0,
-        totalAssignments: 0,
-        completedAssignments: 0,
-        pendingGrades: 0
-      });
+      console.error('Error fetching grades:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const getGradeColor = (grade: number, maxPoints: number) => {
-    const percentage = (grade / maxPoints) * 100;
-    if (percentage >= 90) return 'text-green-600 bg-green-50';
-    if (percentage >= 80) return 'text-blue-600 bg-blue-50';
-    if (percentage >= 70) return 'text-yellow-600 bg-yellow-50';
-    return 'text-red-600 bg-red-50';
-  };
-
   const formatDate = (dateString: string) => {
-    if (!dateString) return 'Not graded yet';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    if (!dateString) return '—';
+    return new Date(dateString).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
-
-  if (loading) {
-    return (
-      <StudentRoute>
-        <DemoModeBanner />
-        <DashboardLayout title="Loading..." subtitle="Getting your grades...">
-          <div className="animate-pulse space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-gray-200 h-24 rounded-xl"></div>
-              <div className="bg-gray-200 h-24 rounded-xl"></div>
-              <div className="bg-gray-200 h-24 rounded-xl"></div>
-              <div className="bg-gray-200 h-24 rounded-xl"></div>
-            </div>
-            <div className="bg-gray-200 h-64 rounded-xl"></div>
-          </div>
-        </DashboardLayout>
-      </StudentRoute>
-    );
-  }
 
   return (
     <StudentRoute>
-      <DemoModeBanner />
-      <DashboardLayout 
-        title="Gradebook" 
-        subtitle="Track your academic performance and progress"
-      >
-        {/* Mobile back button */}
-        <div className="mb-4 lg:hidden">
-          <button
-            onClick={() => router.push('/student/dashboard')}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center space-x-1"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="h-full flex flex-col bg-white overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center px-3 py-2.5 border-b border-gray-100 shrink-0">
+          <button onClick={() => router.push('/student/dashboard')} className="p-1.5 -ml-1 text-gray-600">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span>Back to Dashboard</span>
           </button>
+          <h1 className="flex-1 text-sm font-bold text-gray-900 mx-2">Grades</h1>
         </div>
 
-        {/* Report Card Grade - prominent callout */}
-        {cumulativeData?.found && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-800">📋 Report Card Grade</p>
-                <p className="text-xs text-blue-600 mt-1">This is the final grade that will be posted to your report card.</p>
-              </div>
-              <div className="text-right">
-                <p className={`text-3xl font-bold ${
-                  (cumulativeData.cumulativeGrade || 0) >= 80 ? 'text-green-600' :
-                  (cumulativeData.cumulativeGrade || 0) >= 70 ? 'text-blue-600' :
-                  (cumulativeData.cumulativeGrade || 0) >= 60 ? 'text-amber-600' : 'text-red-600'
-                }`}>{cumulativeData.cumulativeGrade}%</p>
-                <p className="text-xs text-gray-500">{cumulativeData.course} • {cumulativeData.section}</p>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <ChartBarIcon className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Average Grade</p>
-                <p className="text-2xl font-bold text-gray-900">{cumulativeData?.found ? cumulativeData.cumulativeGrade : stats.averageGrade}%</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircleIcon className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completedAssignments}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <ClockIcon className="w-6 h-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.pendingGrades}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <TrophyIcon className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Assignments</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalAssignments}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Cumulative Grade Section */}
-        {cumulativeData?.found && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">{cumulativeData.course}</h3>
-                <p className="text-sm text-gray-500">{cumulativeData.section} • Updated {cumulativeData.lastUpdated}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm text-gray-500">Cumulative Grade</p>
-                <p className={`text-4xl font-bold ${
-                  (cumulativeData.cumulativeGrade || 0) >= 90 ? 'text-green-600' :
-                  (cumulativeData.cumulativeGrade || 0) >= 80 ? 'text-blue-600' :
-                  (cumulativeData.cumulativeGrade || 0) >= 70 ? 'text-yellow-600' :
-                  'text-red-600'
-                }`}>
-                  {cumulativeData.cumulativeGrade}%
-                </p>
-              </div>
-            </div>
-
-            {/* Category Breakdown */}
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
+          {loading ? (
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-gray-700">Category Averages</h4>
-              {cumulativeData.categoryNames?.map((cat) => {
-                const grade = cumulativeData.categories?.[cat];
-                const weight = cumulativeData.weights?.[cat] || 0;
-                if (!grade) return null;
-                // Hide unweighted categories
-                if (weight === 0) return null;
-
-                // Friendly display names
-                const displayName: Record<string, string> = {
-                  'Summative': 'Tests',
-                  'Classwork/Homework': 'Classwork/Homework',
-                  'End of Semester Exam': 'End of Year Exam',
-                  'Quiz': 'Quizzes',
-                  'Formative': 'Practice Tests',
-                };
-                const label = displayName[cat] || cat;
-                
-                return (
-                  <div key={cat} className="flex items-center gap-4">
-                    <div className="w-40 flex-shrink-0">
-                      <p className="text-sm text-gray-700">{label}</p>
-                      {weight > 0 && <p className="text-xs text-gray-400">{weight}% weight</p>}
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="animate-pulse bg-gray-100 rounded-xl h-16" />
+              ))}
+            </div>
+          ) : grades.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                <svg className="w-7 h-7 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-gray-900">No grades yet</p>
+              <p className="text-xs text-gray-500 mt-1">Your grades will appear here once available.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {grades.map((grade) => (
+                <div key={grade.id} className="border border-gray-100 rounded-xl p-3 active:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-semibold text-gray-900 truncate">{grade.assignmentTitle}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{grade.courseName}</p>
                     </div>
-                    <div className="flex-1">
-                      <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full rounded-full ${
-                            grade >= 90 ? 'bg-green-500' :
-                            grade >= 80 ? 'bg-blue-500' :
-                            grade >= 70 ? 'bg-yellow-500' :
-                            'bg-red-500'
-                          }`}
-                          style={{ width: `${Math.min(grade, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div className="w-16 text-right">
-                      <span className={`text-sm font-semibold ${
-                        grade >= 90 ? 'text-green-600' :
-                        grade >= 80 ? 'text-blue-600' :
-                        grade >= 70 ? 'text-yellow-600' :
-                        'text-red-600'
-                      }`}>
-                        {grade}%
+                    {/* Grade badge */}
+                    {grade.status === 'graded' ? (
+                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                        {grade.grade}/{grade.maxPoints}
                       </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Class Statistics */}
-        {cumulativeData?.found && cumulativeData.classStats && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Class Comparison</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* End of Year Exam Stats */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-600 mb-3">End of Year Exam</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">Your Section</span>
-                    <div className="text-right text-sm">
-                      <span className="text-green-600 font-medium">High: {cumulativeData.classStats.section.exam.high}%</span>
-                      <span className="mx-2 text-gray-300">|</span>
-                      <span className="text-red-600 font-medium">Low: {cumulativeData.classStats.section.exam.low}%</span>
-                      <span className="mx-2 text-gray-300">|</span>
-                      <span className="text-gray-700 font-medium">Avg: {cumulativeData.classStats.section.exam.avg}%</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">All Sections</span>
-                    <div className="text-right text-sm">
-                      <span className="text-green-600 font-medium">High: {cumulativeData.classStats.course.exam.high}%</span>
-                      <span className="mx-2 text-gray-300">|</span>
-                      <span className="text-red-600 font-medium">Low: {cumulativeData.classStats.course.exam.low}%</span>
-                      <span className="mx-2 text-gray-300">|</span>
-                      <span className="text-gray-700 font-medium">Avg: {cumulativeData.classStats.course.exam.avg}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Cumulative Average Stats */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-600 mb-3">Cumulative Average</h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">Your Section</span>
-                    <div className="text-right text-sm">
-                      <span className="text-green-600 font-medium">High: {cumulativeData.classStats.section.cumulative.high}%</span>
-                      <span className="mx-2 text-gray-300">|</span>
-                      <span className="text-red-600 font-medium">Low: {cumulativeData.classStats.section.cumulative.low}%</span>
-                      <span className="mx-2 text-gray-300">|</span>
-                      <span className="text-gray-700 font-medium">Avg: {cumulativeData.classStats.section.cumulative.avg}%</span>
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-500">All Sections</span>
-                    <div className="text-right text-sm">
-                      <span className="text-green-600 font-medium">High: {cumulativeData.classStats.course.cumulative.high}%</span>
-                      <span className="mx-2 text-gray-300">|</span>
-                      <span className="text-red-600 font-medium">Low: {cumulativeData.classStats.course.cumulative.low}%</span>
-                      <span className="mx-2 text-gray-300">|</span>
-                      <span className="text-gray-700 font-medium">Avg: {cumulativeData.classStats.course.cumulative.avg}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Grades List */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Submissions</h3>
-            <p className="text-sm text-gray-600">Your latest assignment grades and feedback</p>
-          </div>
-
-          <div className="divide-y divide-gray-200">
-            {grades.map((grade) => (
-              <div key={grade.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        {grade.assignmentTitle}
-                      </h4>
-                      {grade.status === 'pending' ? (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          <ClockIcon className="w-3 h-3 mr-1" />
-                          Pending
-                        </span>
-                      ) : (
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getGradeColor(grade.grade, grade.maxPoints)}`}>
-                          {grade.grade}/{grade.maxPoints} ({Math.round((grade.grade / grade.maxPoints) * 100)}%)
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                      <span className="font-medium">{grade.courseName}</span>
-                      <span>•</span>
-                      <span>{grade.courseCode}</span>
-                      <span>•</span>
-                      <span>Submitted {formatDate(grade.submittedAt)}</span>
-                      {grade.gradedAt && (
-                        <>
-                          <span>•</span>
-                          <span>Graded {formatDate(grade.gradedAt)}</span>
-                        </>
-                      )}
-                    </div>
-
-                    {grade.feedback && (
-                      <div className="bg-gray-50 rounded-lg p-3 mt-3">
-                        <p className="text-sm font-medium text-gray-700 mb-1">Instructor Feedback:</p>
-                        <p className="text-sm text-gray-600">{grade.feedback}</p>
-                      </div>
+                    ) : (
+                      <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                        Pending
+                      </span>
                     )}
                   </div>
+                  {/* Due date */}
+                  {grade.dueDate && (
+                    <p className="text-[11px] text-gray-400 mt-1.5">Due {formatDate(grade.dueDate)}</p>
+                  )}
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {grades.length === 0 && (
-            <div className="p-12 text-center">
-              <ChartBarIcon className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No Grades Yet</h3>
-              <p className="text-gray-600">Your assignment grades will appear here once they're available.</p>
+              ))}
             </div>
           )}
         </div>
-      </DashboardLayout>
+
+        {/* Bottom Nav - 3 buttons: Home | Courses | Profile */}
+        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2">
+          <div className="flex items-center justify-around">
+            <button className="flex flex-col items-center" onClick={() => router.push('/student/dashboard')}>
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+              <span className="text-[10px] text-gray-400 mt-0.5">Home</span>
+            </button>
+            <button className="flex flex-col items-center" onClick={() => router.push('/student/courses')}>
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+              <span className="text-[10px] text-gray-400 mt-0.5">Courses</span>
+            </button>
+            <button className="flex flex-col items-center" onClick={() => router.push('/student/profile')}>
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              <span className="text-[10px] text-gray-400 mt-0.5">Profile</span>
+            </button>
+          </div>
+        </nav>
+      </div>
     </StudentRoute>
   );
-};
-
-export default StudentGrades;
+}

@@ -54,7 +54,23 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
             if (data.success && typeof data.rating === 'number') {
               setUserRating(data.rating);
             }
+            if (data.averageRating) {
+              setAverageRating(data.averageRating);
+            }
           }
+        }
+        // Load like status
+        if (currentUser?.id && videoId) {
+          try {
+            const l = await fetch(`/api/videos/${videoId}/like?userId=${currentUser.id}`);
+            if (!cancelled && l.ok) {
+              const data = await l.json();
+              if (data.success) {
+                if (typeof data.likes === 'number') setLikes(data.likes);
+                if (typeof data.isLiked === 'boolean') setIsLiked(data.isLiked);
+              }
+            }
+          } catch {}
         }
         // Load comments
         await loadComments();

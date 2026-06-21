@@ -80,12 +80,12 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ onClose }) => {
 
   if (success) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-2xl shadow-lg max-w-[380px] w-full mx-4">
           <div className="text-center">
             <div className="text-green-500 text-4xl mb-4">✓</div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Password Updated</h3>
-            <p className="text-gray-600">Your password has been successfully updated.</p>
+            <p className="text-gray-600 text-sm">Your password has been successfully updated.</p>
           </div>
         </div>
       </div>
@@ -93,8 +93,8 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white p-5 rounded-2xl shadow-lg max-w-[380px] w-full mx-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Change Password</h3>
           <button

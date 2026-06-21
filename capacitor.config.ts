@@ -5,11 +5,11 @@ const config: CapacitorConfig = {
   appName: 'ClassCast',
   webDir: 'out',
   server: {
-    // Local development - run `npm run dev` first
-    url: 'http://localhost:3000',
-    cleartext: true,
-    // For production App Store build, replace with your deployed URL:
-    // url: 'https://your-production-domain.com',
+    // Production App Store build
+    url: 'https://class-cast.com',
+    // For local development, uncomment:
+    // url: 'http://localhost:3001',
+    // cleartext: true,
   },
   ios: {
     contentInset: 'automatic',

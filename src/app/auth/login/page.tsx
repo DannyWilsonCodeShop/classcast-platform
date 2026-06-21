@@ -53,7 +53,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 z-[1] bg-white/20" />
 
       {/* Main content */}
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 h-screen">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 h-screen border border-gray-200 rounded-3xl bg-white/80 backdrop-blur-sm">
         {/* Top bar - hamburger menu */}
         <div className="w-full flex items-center justify-start mb-1">
           <button

@@ -11,7 +11,7 @@ interface Course {
   courseName: string;
   courseCode: string;
   instructor: string;
-  schedule?: string;
+  schedule: string;
 }
 
 interface Assignment {
@@ -22,6 +22,25 @@ interface Assignment {
   dueDate: string;
   maxScore?: number;
   isSubmitted?: boolean;
+  grade?: number | null;
+}
+
+interface Submission {
+  assignmentId: string;
+  grade?: number | null;
+  status?: string;
+  submittedAt?: string;
+}
+
+interface CourseFile {
+  fileId: string;
+  fileName: string;
+  originalName?: string;
+  fileUrl: string;
+  fileSize?: number;
+  fileType?: string;
+  category?: string;
+  description?: string;
 }
 
 export default function StudentCourseDetailPage() {
@@ -32,7 +51,11 @@ export default function StudentCourseDetailPage() {
 
   const [course, setCourse] = useState<Course | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [submissions, setSubmissions] = useState<Map<string, Submission>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [showAssignmentPicker, setShowAssignmentPicker] = useState(false);
+  const [courseFiles, setCourseFiles] = useState<CourseFile[]>([]);
+  const [showResourcesModal, setShowResourcesModal] = useState(false);
 
   useEffect(() => {
     if (user?.id) fetchData();
@@ -44,15 +67,66 @@ export default function StudentCourseDetailPage() {
       const courseRes = await fetch(`/api/courses/${courseId}`, { credentials: 'include' });
       if (courseRes.ok) {
         const courseData = await courseRes.json();
-        setCourse(courseData.course || courseData.data?.course || courseData);
+        const rawCourse = courseData.data || courseData.course || courseData;
+        
+        // Fetch instructor name
+        let instructorName = rawCourse.instructorName || rawCourse.instructor || '';
+        if (!instructorName && rawCourse.instructorId) {
+          try {
+            const instrRes = await fetch(`/api/profile?userId=${rawCourse.instructorId}`, { credentials: 'include' });
+            if (instrRes.ok) {
+              const instrData = await instrRes.json();
+              const instr = instrData.data || instrData;
+              instructorName = `${instr.firstName || ''} ${instr.lastName || ''}`.trim() || 'Instructor';
+            }
+          } catch {}
+        }
+
+        // Format schedule - could be a string or an object { days, time, location }
+        let scheduleStr = '';
+        const sched = rawCourse.schedule;
+        if (typeof sched === 'string') {
+          scheduleStr = sched;
+        } else if (sched && typeof sched === 'object') {
+          const days = Array.isArray(sched.days) ? sched.days.join(', ') : '';
+          const time = sched.time || '';
+          scheduleStr = [days, time].filter(Boolean).join(' • ');
+        }
+
+        setCourse({
+          courseId: rawCourse.courseId || courseId,
+          courseName: rawCourse.name || rawCourse.courseName || rawCourse.title || 'Course',
+          courseCode: rawCourse.courseCode || rawCourse.code || rawCourse.classCode || '',
+          instructor: instructorName,
+          schedule: scheduleStr,
+        });
       }
 
-      // Fetch assignments for this course
+      // Fetch assignments for this course (already includes grade info)
       const assignRes = await fetch(`/api/student/assignments?userId=${user?.id}&courseId=${courseId}`, { credentials: 'include' });
       if (assignRes.ok) {
         const data = await assignRes.json();
         setAssignments(data.assignments || []);
       }
+
+      // Fetch submissions for grade data
+      const subRes = await fetch(`/api/submissions?studentId=${user?.id}`, { credentials: 'include' });
+      if (subRes.ok) {
+        const subData = await subRes.json();
+        const subs = subData.data?.submissions || subData.submissions || [];
+        const subMap = new Map<string, Submission>();
+        subs.forEach((s: Submission) => subMap.set(s.assignmentId, s));
+        setSubmissions(subMap);
+      }
+
+      // Fetch course files/resources
+      try {
+        const filesRes = await fetch(`/api/courses/${courseId}/files`, { credentials: 'include' });
+        if (filesRes.ok) {
+          const filesData = await filesRes.json();
+          setCourseFiles(filesData.files || filesData.data || []);
+        }
+      } catch {}
     } catch (e) {
       console.error('Error:', e);
     } finally {
@@ -61,6 +135,7 @@ export default function StudentCourseDetailPage() {
   };
 
   const now = new Date();
+  const unsubmitted = assignments.filter(a => !a.isSubmitted);
 
   const getDueBadge = (dueDate: string) => {
     const due = new Date(dueDate);
@@ -71,7 +146,18 @@ export default function StudentCourseDetailPage() {
     return { label: `${diffDays} days`, color: 'bg-gray-100 text-gray-600' };
   };
 
-  const getCardColor = (idx: number) => 'bg-[#a8d8ea]'; // unused, kept for compat
+  const getGradeForAssignment = (assignmentId: string, assignment: Assignment): string | null => {
+    // Check from enriched assignment data first
+    if (assignment.grade !== undefined && assignment.grade !== null) {
+      return `${assignment.grade}/${assignment.maxScore || 100}`;
+    }
+    // Fallback to submissions map
+    const sub = submissions.get(assignmentId);
+    if (sub?.grade !== undefined && sub?.grade !== null) {
+      return `${sub.grade}/${assignment.maxScore || 100}`;
+    }
+    return null;
+  };
 
   return (
     <StudentRoute>
@@ -88,19 +174,48 @@ export default function StudentCourseDetailPage() {
           </button>
           <div className="flex-1 mx-2 min-w-0">
             <h1 className="text-sm font-bold text-gray-900 truncate">{course?.courseName || 'Course'}</h1>
-            <p className="text-[10px] text-gray-500 truncate">{course?.instructor || ''} {course?.courseCode ? `• ${course.courseCode}` : ''}</p>
           </div>
           <img src="/UpdatedCCLogo.png" alt="ClassCast" className="w-6 h-6 object-contain" />
         </div>
 
-        {/* Course Info Card */}
-        {course && (
+        {/* Course Info Card - Detailed */}
+        {course ? (
           <div className="px-4 py-3 bg-gradient-to-r from-[#005587] to-[#0077aa] shrink-0">
             <h2 className="text-white text-lg font-bold">{course.courseName}</h2>
-            <p className="text-white/70 text-xs">{course.instructor} • {course.courseCode}</p>
-            {course.schedule && <p className="text-white/50 text-xs mt-0.5">{course.schedule}</p>}
+            {course.instructor && (
+              <div className="flex items-center gap-2 mt-1">
+                <svg className="w-3.5 h-3.5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <p className="text-white/80 text-xs">{course.instructor}</p>
+              </div>
+            )}
+            <div className="flex items-center gap-4 mt-1.5">
+              {course.courseCode && (
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                  </svg>
+                  <span className="text-white/70 text-xs font-medium">{course.courseCode}</span>
+                </div>
+              )}
+              {course.schedule && (
+                <div className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-white/70 text-xs">{course.schedule}</span>
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        ) : loading ? (
+          <div className="px-4 py-3 bg-gradient-to-r from-[#005587] to-[#0077aa] shrink-0">
+            <div className="h-5 w-48 bg-white/20 rounded animate-pulse" />
+            <div className="h-3 w-32 bg-white/10 rounded animate-pulse mt-2" />
+            <div className="h-3 w-40 bg-white/10 rounded animate-pulse mt-1.5" />
+          </div>
+        ) : null}
 
         {/* Assignments Label */}
         <div className="px-4 pt-3 pb-1 flex items-center justify-between shrink-0">
@@ -120,6 +235,7 @@ export default function StudentCourseDetailPage() {
             <div className="space-y-2 pt-1">
               {assignments.map((a) => {
                 const badge = getDueBadge(a.dueDate);
+                const grade = getGradeForAssignment(a.assignmentId, a);
                 return (
                   <div
                     key={a.assignmentId}
@@ -129,9 +245,16 @@ export default function StudentCourseDetailPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-[#005587] text-sm font-bold truncate">{a.title}</h3>
-                        <p className="text-[#005587]/60 text-[10px]">
-                          {a.maxScore ? `${a.maxScore} pts` : ''} {a.isSubmitted ? '• ✓ Submitted' : ''}
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-[#005587]/60 text-[10px]">
+                            {a.maxScore ? `${a.maxScore} pts` : ''} {a.isSubmitted ? '• ✓ Submitted' : ''}
+                          </p>
+                          {grade && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700">
+                              Grade: {grade}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ml-2 shrink-0 ${badge.color}`}>
                         {badge.label}
@@ -144,32 +267,120 @@ export default function StudentCourseDetailPage() {
           )}
         </div>
 
-        {/* Bottom Nav */}
-        <div className="shrink-0 bg-white border-t border-gray-200 px-2 py-2">
+        {/* Bottom Nav - 3 buttons: Home | Resources | Classmates */}
+        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2">
           <div className="flex items-center justify-around">
-            <NavBtn icon="🏠" label="Home" onClick={() => router.push('/student/dashboard')} />
-            <NavBtn icon="📋" label="Assignments" onClick={() => router.push('/student/assignments')} />
-            <button onClick={() => router.push('/student/record')} className="flex flex-col items-center -mt-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#005587] to-[#0088cc] flex items-center justify-center shadow-lg border-3 border-white ring-2 ring-[#FFC72C]">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
+            <button className="flex flex-col items-center" onClick={() => router.push('/student/dashboard')}>
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span className="text-[10px] text-gray-400 mt-0.5">Home</span>
             </button>
-            <NavBtn icon="👥" label="Classmates" onClick={() => router.push(`/student/courses/${courseId}/classmates`)} />
-            <NavBtn icon="🔔" label="Alerts" onClick={() => router.push('/student/notifications')} />
+            <button className="flex flex-col items-center relative" onClick={() => { if (courseFiles.length > 0) setShowResourcesModal(true); }}>
+              <svg className={`w-6 h-6 ${courseFiles.length > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              {courseFiles.length > 0 && (
+                <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{courseFiles.length}</span>
+              )}
+              <span className={`text-[10px] mt-0.5 ${courseFiles.length > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span>
+            </button>
+            <button className="flex flex-col items-center" onClick={() => router.push(`/student/courses/${courseId}/classmates`)}>
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              <span className="text-[10px] text-gray-400 mt-0.5">Classmates</span>
+            </button>
+          </div>
+        </nav>
+      </div>
+
+      {/* Assignment Picker Modal */}
+      {showAssignmentPicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowAssignmentPicker(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold text-gray-900">Record for which assignment?</h3>
+              <button onClick={() => setShowAssignmentPicker(false)} className="text-gray-400 p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 space-y-2">
+              {unsubmitted.length > 0 ? unsubmitted.map(a => (
+                <button
+                  key={a.assignmentId}
+                  onClick={() => { setShowAssignmentPicker(false); router.push(`/student/record?assignmentId=${a.assignmentId}`); }}
+                  className={`w-full text-left rounded-xl p-3 ${getAssignmentColor(a.assignmentId)} active:scale-[0.98] transition-transform`}
+                >
+                  <h4 className="text-[#005587] text-sm font-bold truncate">{a.title}</h4>
+                  <p className="text-[#005587]/60 text-xs">{a.courseName || course?.courseName || ''} • Due {getDueBadge(a.dueDate).label}</p>
+                </button>
+              )) : (
+                <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* Resources Modal */}
+      {showResourcesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowResourcesModal(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold text-gray-900">Course Resources</h3>
+              <button onClick={() => setShowResourcesModal(false)} className="text-gray-400 p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 space-y-2">
+              {courseFiles.length > 0 ? courseFiles.map(file => (
+                <a
+                  key={file.fileId}
+                  href={file.fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 active:bg-gray-100 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-[#005587]/10 flex items-center justify-center shrink-0">
+                    <FileIcon fileType={file.fileType || file.fileName} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{file.originalName || file.fileName}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {file.category && <span className="text-[10px] text-[#005587] bg-[#005587]/10 px-1.5 py-0.5 rounded font-medium capitalize">{file.category}</span>}
+                      {file.fileSize && <span className="text-[10px] text-gray-400">{formatFileSize(file.fileSize)}</span>}
+                    </div>
+                  </div>
+                  <svg className="w-5 h-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </a>
+              )) : (
+                <p className="text-center text-gray-400 text-sm py-4">No resources available</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </StudentRoute>
   );
 }
 
-function NavBtn({ icon, label, onClick }: { icon: string; label: string; onClick?: () => void }) {
-  return (
-    <button onClick={onClick} className="flex flex-col items-center justify-center px-1 active:scale-95">
-      <span className="text-lg">{icon}</span>
-      <span className="text-[10px] text-gray-600 mt-0.5">{label}</span>
-    </button>
-  );
+function FileIcon({ fileType }: { fileType?: string }) {
+  const ext = (fileType || '').toLowerCase();
+  if (ext.includes('pdf')) return <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h6v6h6v10H6z" /></svg>;
+  if (ext.includes('doc') || ext.includes('word')) return <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h6v6h6v10H6z" /></svg>;
+  if (ext.includes('xls') || ext.includes('sheet')) return <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h6v6h6v10H6z" /></svg>;
+  if (ext.includes('ppt') || ext.includes('presentation')) return <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h6v6h6v10H6z" /></svg>;
+  if (ext.includes('image') || ext.includes('png') || ext.includes('jpg')) return <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>;
+  return <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>;
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }

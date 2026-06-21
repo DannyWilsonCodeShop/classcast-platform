@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
@@ -9,6 +9,14 @@ import { isNativePlatform } from '@/lib/capacitor';
 type Step = 'select-assignment' | 'record-video' | 'capture-cover' | 'preview' | 'uploading' | 'done';
 
 export default function RecordPage() {
+  return (
+    <Suspense fallback={<StudentRoute><div className="h-full flex items-center justify-center bg-black"><div className="animate-spin rounded-full h-10 w-10 border-2 border-white border-t-transparent" /></div></StudentRoute>}>
+      <RecordPageInner />
+    </Suspense>
+  );
+}
+
+function RecordPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const assignmentId = searchParams.get('assignmentId');
@@ -21,14 +29,108 @@ export default function RecordPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
+  const [cameraActive, setCameraActive] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const videoRecordRef = useRef<HTMLInputElement>(null);
   const videoLibraryRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const liveVideoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-activate camera on mount
+  useEffect(() => {
+    if (step === 'record-video' && cameraActive) {
+      startCamera();
+    }
+    return () => {
+      stopCamera();
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, []);
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, 
+        audio: true 
+      });
+      streamRef.current = stream;
+      if (liveVideoRef.current) {
+        liveVideoRef.current.srcObject = stream;
+      }
+      setCameraActive(true);
+    } catch (err) {
+      console.error('Camera access denied:', err);
+      setCameraActive(false);
+    }
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const startRecording = () => {
+    if (!streamRef.current) return;
+    recordedChunksRef.current = [];
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') 
+      ? 'video/webm;codecs=vp9,opus' 
+      : MediaRecorder.isTypeSupported('video/webm') 
+        ? 'video/webm' 
+        : 'video/mp4';
+    const recorder = new MediaRecorder(streamRef.current, { mimeType });
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) recordedChunksRef.current.push(e.data);
+    };
+    recorder.onstop = () => {
+      const blob = new Blob(recordedChunksRef.current, { type: mimeType });
+      const file = new File([blob], `recording-${Date.now()}.webm`, { type: mimeType });
+      setVideoFile(file);
+      setVideoPreviewUrl(URL.createObjectURL(blob));
+      stopCamera();
+      setCameraActive(false);
+      setStep('capture-cover');
+    };
+    mediaRecorderRef.current = recorder;
+    recorder.start(1000); // collect data every second
+    setIsRecording(true);
+    setRecordingTime(0);
+    timerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+  };
+
+  const handleLibraryClick = () => {
+    if (isRecording) stopRecording();
+    stopCamera();
+    setCameraActive(false);
+    videoLibraryRef.current?.click();
+  };
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
 
   // Step 1: Record or select video
   const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      stopCamera();
+      setCameraActive(false);
       setVideoFile(file);
       setVideoPreviewUrl(URL.createObjectURL(file));
       setStep('capture-cover');
@@ -161,28 +263,94 @@ export default function RecordPage() {
 
           {/* Step: Record/Select Video */}
           {step === 'record-video' && (
-            <div className="text-center space-y-6 w-full">
-              <div className="w-24 h-24 mx-auto bg-[#005587] rounded-full flex items-center justify-center">
-                <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                </svg>
+            <div className="relative w-full h-full flex flex-col items-center justify-center">
+              {/* Live camera preview */}
+              {cameraActive && (
+                <div className="absolute inset-0 overflow-hidden rounded-xl">
+                  <video
+                    ref={liveVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover scale-x-[-1]"
+                  />
+                  {/* Dark gradient overlay at bottom for buttons */}
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 to-transparent" />
+                </div>
+              )}
+
+              {/* Controls at bottom */}
+              <div className="absolute bottom-8 inset-x-0 flex flex-col items-center space-y-4 z-10">
+                {isRecording && (
+                  <div className="flex items-center gap-2 bg-black/60 px-3 py-1 rounded-full">
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                    <span className="text-white text-sm font-mono">{formatTime(recordingTime)}</span>
+                  </div>
+                )}
+                <p className="text-white/80 text-xs font-medium">
+                  {isRecording ? 'Tap to stop recording' : cameraActive ? 'Tap to start recording' : 'Select a video source'}
+                </p>
+                <div className="flex items-center gap-6">
+                  {/* Library */}
+                  <button
+                    onClick={handleLibraryClick}
+                    className="w-12 h-12 bg-white/20 backdrop-blur rounded-full flex items-center justify-center border border-white/30"
+                  >
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+
+                  {/* Record button - starts/stops MediaRecorder */}
+                  <button
+                    onClick={() => { isRecording ? stopRecording() : startRecording(); }}
+                    className={`flex items-center justify-center border-4 border-white shadow-lg ${isRecording ? 'bg-red-600' : 'bg-red-500'} rounded-full`}
+                    style={{ width: 72, height: 72 }}
+                  >
+                    {isRecording ? (
+                      <div className="w-6 h-6 bg-white rounded-sm" />
+                    ) : (
+                      <div className="w-14 h-14 bg-red-500 rounded-full border-2 border-white" />
+                    )}
+                  </button>
+
+                  {/* Flip camera placeholder */}
+                  <button
+                    onClick={() => { /* flip camera */ }}
+                    className="w-12 h-12 bg-white/20 backdrop-blur rounded-full flex items-center justify-center border border-white/30"
+                  >
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-              <p className="text-gray-300 text-sm">Record a new video or choose one from your library</p>
-              
-              <div className="space-y-3 w-full max-w-xs mx-auto">
-                <button
-                  onClick={() => videoRecordRef.current?.click()}
-                  className="w-full py-3 bg-[#005587] hover:bg-[#003d5c] rounded-full font-bold text-lg transition-colors"
-                >
-                  📹 Record Video
-                </button>
-                <button
-                  onClick={() => videoLibraryRef.current?.click()}
-                  className="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-full font-medium transition-colors"
-                >
-                  📁 Choose from Library
-                </button>
-              </div>
+
+              {/* Fallback if camera not active */}
+              {!cameraActive && (
+                <div className="text-center space-y-6 w-full">
+                  <div className="w-24 h-24 mx-auto bg-[#005587] rounded-full flex items-center justify-center">
+                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-300 text-sm">Record a new video or choose one from your library</p>
+                  <div className="space-y-3 w-full max-w-xs mx-auto">
+                    <button
+                      onClick={() => videoRecordRef.current?.click()}
+                      className="w-full py-3 bg-[#005587] hover:bg-[#003d5c] rounded-full font-bold text-lg transition-colors"
+                    >
+                      📹 Record Video
+                    </button>
+                    <button
+                      onClick={() => videoLibraryRef.current?.click()}
+                      className="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-full font-medium transition-colors"
+                    >
+                      📁 Choose from Library
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Camera input - opens camera directly */}
               <input
