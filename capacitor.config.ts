@@ -7,8 +7,8 @@ const config: CapacitorConfig = {
   server: {
     // Production App Store build
     url: 'https://class-cast.com',
-    // For local development, uncomment:
-    // url: 'http://localhost:3001',
+    // For local development with simulator, uncomment:
+    // url: 'http://localhost:3003',
     // cleartext: true,
   },
   ios: {
