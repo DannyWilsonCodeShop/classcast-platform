@@ -238,9 +238,9 @@ export default function StudentAssignmentDetailPage() {
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
               <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
-              <button onClick={() => router.push(`/student/record?assignmentId=${assignmentId}`)} className="flex flex-col items-center -mt-5">
-                <div className="w-14 h-14 rounded-full bg-red-500 flex items-center justify-center shadow-lg border-4 border-white">
-                  <div className="w-5 h-5 rounded-full bg-white" />
+              <button onClick={() => router.push(`/student/record?assignmentId=${assignmentId}`)} className="flex flex-col items-center -mt-3">
+                <div className="w-11 h-11 rounded-full bg-red-500 flex items-center justify-center shadow-lg border-3 border-white">
+                  <div className="w-4 h-4 rounded-full bg-white" />
                 </div>
                 <span className="text-[10px] font-bold text-red-600 mt-0.5">Record</span>
               </button>
