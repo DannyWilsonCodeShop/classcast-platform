@@ -240,6 +240,8 @@ function RecordPageInner() {
 
   return (
     <StudentRoute>
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
       <div className="h-full flex flex-col bg-black text-white overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 flex-shrink-0">
@@ -248,7 +250,7 @@ function RecordPageInner() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="text-lg font-bold">
+          <h1 className="text-lg font-bold uppercase tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>
             {step === 'record-video' && 'Record Video'}
             {step === 'capture-cover' && 'Cover Photo'}
             {step === 'preview' && 'Preview'}

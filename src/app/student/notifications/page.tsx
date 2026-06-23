@@ -77,6 +77,8 @@ const NotificationsPage: React.FC = () => {
 
   return (
     <StudentRoute>
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
       <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Header */}
         <div className="flex items-center px-3 py-2.5 border-b border-gray-100 shrink-0">
@@ -86,7 +88,7 @@ const NotificationsPage: React.FC = () => {
             </svg>
           </button>
           <div className="flex-1 mx-2">
-            <h1 className="text-sm font-bold text-gray-900">Notifications</h1>
+            <h1 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Notifications</h1>
           </div>
           {unreadCount > 0 && (
             <span className="text-[10px] bg-[#005587] text-white px-2 py-0.5 rounded-full font-medium">{unreadCount} new</span>

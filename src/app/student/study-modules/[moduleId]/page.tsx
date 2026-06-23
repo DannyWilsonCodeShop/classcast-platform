@@ -179,7 +179,7 @@ const ModuleViewerPage: React.FC<ModuleViewerPageProps> = ({ params }) => {
 
             {/* Lessons List */}
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
+              <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-normalr mb-3">
                 Lessons
               </h3>
               {module.lessons.map((lesson, index) => (

@@ -31,6 +31,8 @@ export default function StudentSettingsPage() {
 
   return (
     <StudentRoute>
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
       <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Header */}
         <div className="flex items-center px-3 py-2.5 border-b border-gray-100 shrink-0">
@@ -39,14 +41,14 @@ export default function StudentSettingsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="flex-1 text-sm font-bold text-gray-900 mx-2">Settings</h1>
+          <h1 className="flex-1 text-base font-bold uppercase text-[#005587] mx-2 tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Settings</h1>
         </div>
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto px-4 py-3 min-h-0">
           {/* Notifications Section */}
           <div className="mb-6">
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Notifications</h2>
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-normal mb-3">Notifications</h2>
             <div className="space-y-0 border border-gray-100 rounded-xl overflow-hidden">
               {/* Email Notifications */}
               <div className="flex items-center justify-between px-3 py-3 border-b border-gray-50">
@@ -128,7 +130,7 @@ export default function StudentSettingsPage() {
 
           {/* Privacy Section */}
           <div className="mb-6">
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Privacy</h2>
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-normal mb-3">Privacy</h2>
             <div className="space-y-0 border border-gray-100 rounded-xl overflow-hidden">
               {/* Profile Visibility */}
               <div className="px-3 py-3 border-b border-gray-50">
@@ -164,7 +166,7 @@ export default function StudentSettingsPage() {
 
           {/* Account info */}
           <div className="mb-6">
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Account</h2>
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-normal mb-3">Account</h2>
             <div className="border border-gray-100 rounded-xl px-3 py-3">
               <p className="text-sm font-medium text-gray-900">{user?.firstName} {user?.lastName}</p>
               <p className="text-xs text-gray-500">{user?.email}</p>

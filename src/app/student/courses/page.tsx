@@ -105,7 +105,7 @@ const StudentCoursesPage: React.FC = () => {
   if (loading) {
     return (
       <StudentRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e8f4f8] via-[#d4eef5] to-[#c2e4f2]">
           <LoadingSpinner text="Loading courses..." />
         </div>
       </StudentRoute>
@@ -114,56 +114,61 @@ const StudentCoursesPage: React.FC = () => {
 
   return (
     <StudentRoute>
-      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
+      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-[#e8f4f8] via-[#d4eef5] to-[#c2e4f2]">
         {/* Demo Mode Banner */}
         <DemoModeBanner />
         
-        {/* Header */}
-        <div className="bg-white/80 backdrop-blur-md shadow-lg border-b border-white/20 px-4 py-3 flex-shrink-0">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
+        {/* Header - matches other pages */}
+        <div className="bg-white/80 backdrop-blur-md border-b border-white/20 px-4 py-2.5 flex-shrink-0">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => router.push('/student/dashboard')}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-1.5 -ml-1 text-gray-600"
                 title="Back to Home"
               >
-                <span className="text-xl">←</span>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
               </button>
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                📚
-              </div>
-              <div>
-                <h1 className="text-lg font-bold text-gray-900">My Courses</h1>
-                <p className="text-xs text-gray-600">
-                  {searchQuery 
-                    ? `${filteredCourses.length} of ${courses.length} courses match "${searchQuery}"`
-                    : `${filteredCourses.length} courses`
-                  }
-                </p>
-              </div>
+              <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-2xl">ClassCast</span>
+              <img src="/UpdatedCCLogo.png" alt="" className="w-8 h-8 object-contain" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">
+                {searchQuery 
+                  ? `${filteredCourses.length} of ${courses.length} match`
+                  : `${filteredCourses.length} courses`
+                }
+              </p>
             </div>
           </div>
+
+          {/* Page title */}
+          <h1 className="text-base font-bold uppercase text-[#005587] tracking-normal mb-2.5" style={{ fontFamily: "'Oswald', sans-serif" }}>My Courses</h1>
           
           {/* Search Bar */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
             <input
               type="text"
-              placeholder="Search courses by name, code, or instructor..."
+              placeholder="Search courses..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#6cc3d3] focus:border-[#6cc3d3] text-sm bg-white/70"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -219,30 +224,30 @@ const StudentCoursesPage: React.FC = () => {
                 <div
                   key={course.id}
                   onClick={() => router.push(`/student/courses/${course.id}`)}
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 hover:shadow-2xl cursor-pointer transition-all duration-300 hover:scale-105"
+                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-5 hover:shadow-2xl cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                   style={{ borderLeftColor: course.backgroundColor, borderLeftWidth: '4px' }}
                 >
                   {/* Course Header */}
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-bold text-gray-900 truncate">{course.name}</h3>
-                      <p className="text-sm text-gray-600">{course.code}</p>
-                      <p className="text-xs text-gray-500 mt-1">{course.instructor.name}</p>
+                      <h3 className="text-base font-bold uppercase text-[#005587] truncate tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>{course.name}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">{course.code}</p>
+                      <p className="text-xs text-[#6cc3d3] font-medium mt-0.5">{course.instructor.name}</p>
                     </div>
                   </div>
 
                   {/* Course Details */}
-                  <div className="space-y-2 text-xs text-gray-600">
+                  <div className="space-y-1.5 text-xs text-gray-500">
                     <div className="flex items-center justify-between">
-                      <span>📅 {course.semester} {course.year}</span>
-                      <span>🎓 {course.credits} credits</span>
+                      <span>{course.semester} {course.year}</span>
+                      <span>{course.credits} credits</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span>👥 {course.enrollmentCount} students</span>
                       {course.schedule?.location && <span>📍 {course.schedule.location}</span>}
                     </div>
                     {course.schedule?.days && course.schedule?.time && (
-                      <div className="flex items-center">
+                      <div className="flex items-center text-gray-400">
                         <span>🕒 {course.schedule.days.join(', ')} {course.schedule.time}</span>
                       </div>
                     )}

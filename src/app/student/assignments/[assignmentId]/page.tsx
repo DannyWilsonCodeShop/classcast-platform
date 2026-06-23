@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { getVideoUrl } from '@/lib/videoUtils';
+import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
 
 interface Assignment {
   assignmentId: string;
@@ -93,6 +94,12 @@ export default function StudentAssignmentDetailPage() {
   const [error, setError] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showResourcesModal, setShowResourcesModal] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadUrl, setUploadUrl] = useState('');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const uploadFileRef = React.useRef<HTMLInputElement>(null);
+  const [allAssignmentIds, setAllAssignmentIds] = useState<string[]>([]);
 
   const fetchData = useCallback(async () => {
     if (!user?.id) return;
@@ -105,7 +112,10 @@ export default function StudentAssignmentDetailPage() {
 
       if (assignRes.ok) {
         const data = await assignRes.json();
-        const found = data.assignments?.find((a: any) => a.assignmentId === assignmentId);
+        const allAssignments = data.assignments || [];
+        // Store all IDs for prev/next navigation
+        setAllAssignmentIds(allAssignments.map((a: any) => a.assignmentId || a.id));
+        const found = allAssignments.find((a: any) => a.assignmentId === assignmentId);
         if (found) setAssignment(found);
         else {
           // Try direct API
@@ -175,18 +185,31 @@ export default function StudentAssignmentDetailPage() {
   return (
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
 
       <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Header */}
-        <div className="flex items-center px-3 py-2 bg-white border-b border-gray-100 z-10 shrink-0">
-          <button onClick={() => router.push('/student/assignments')} className="p-1.5 -ml-1 text-gray-600">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <h1 className="flex-1 text-gray-900 text-sm font-medium truncate mx-2">{assignment.title}</h1>
-          <img src="/UpdatedCCLogo.png" alt="ClassCast" className="w-6 h-6 object-contain" />
+        <div className="flex items-center px-3 py-2 border-b border-gray-100 z-10 shrink-0" style={{ backgroundColor: getAssignmentColor(assignmentId) }}>
+          {(() => {
+            const currentIdx = allAssignmentIds.indexOf(assignmentId);
+            const prevId = currentIdx > 0 ? allAssignmentIds[currentIdx - 1] : null;
+            const nextId = currentIdx < allAssignmentIds.length - 1 ? allAssignmentIds[currentIdx + 1] : null;
+            return (
+              <>
+                <button onClick={() => prevId && router.push(`/student/assignments/${prevId}`)} className={`p-1.5 -ml-1 ${prevId ? '' : 'opacity-30 pointer-events-none'}`} style={{ color: getAssignmentTitleColor(assignmentId) }}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <h1 className="flex-1 text-base font-bold uppercase truncate mx-2" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(assignmentId) }}>{assignment.title}</h1>
+                <button onClick={() => nextId && router.push(`/student/assignments/${nextId}`)} className={`p-1.5 ${nextId ? '' : 'opacity-30 pointer-events-none'}`} style={{ color: getAssignmentTitleColor(assignmentId) }}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            );
+          })()}
         </div>
 
         {/* Video Area - Top ~42% */}
@@ -194,8 +217,8 @@ export default function StudentAssignmentDetailPage() {
           {assignment.instructionalVideoUrl ? (
             <VideoPlayer url={assignment.instructionalVideoUrl} />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#005587] to-[#003d62] px-6">
-              <h2 className="text-white text-2xl font-bold text-center leading-tight mb-2">{assignment.title}</h2>
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#6cc3d3] to-[#005587] px-6">
+              <h2 className="text-white text-2xl font-bold text-center leading-tight mb-2 uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em' }}>{assignment.title}</h2>
               <p className="text-white/70 text-sm">{assignment.courseName}</p>
             </div>
           )}
@@ -221,7 +244,7 @@ export default function StudentAssignmentDetailPage() {
 
         {/* Scrollable Instructions */}
         <div className="flex-1 overflow-y-auto px-4 py-3 bg-white min-h-0">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Instructions</h3>
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-normal mb-2">Instructions</h3>
           {assignment.description ? (
             <div 
               className="text-sm text-gray-700 leading-relaxed [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:mt-3 [&_h2]:mb-1 [&_p]:mb-2 [&_ul]:pl-4 [&_ul]:mb-2 [&_li]:mb-1 [&_li]:list-disc [&_strong]:font-semibold [&_br]:hidden"
@@ -237,45 +260,46 @@ export default function StudentAssignmentDetailPage() {
           {!isSubmitted && (
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
-              <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
-              <button onClick={() => router.push(`/student/record?assignmentId=${assignmentId}`)} className="flex flex-col items-center -mt-3">
-                <div className="w-11 h-11 rounded-full bg-red-500 flex items-center justify-center shadow-lg border-3 border-white">
-                  <div className="w-4 h-4 rounded-full bg-white" />
+              <button onClick={() => setShowUploadModal(true)} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg><span className="text-[10px] text-gray-400">Upload</span></button>
+              <button onClick={() => router.push(`/student/record?assignmentId=${assignmentId}`)} className="-mt-6">
+                <div className="w-14 h-14 bg-red-500 rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-red-300">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
                 </div>
-                <span className="text-[10px] font-bold text-red-600 mt-0.5">Record</span>
+                <span className="text-[10px] font-bold text-red-500 mt-0.5 block text-center">Record</span>
               </button>
-              <button className="flex flex-col items-center opacity-80"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
-              <button className="flex flex-col items-center opacity-30"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg><span className="text-[10px] text-gray-300">Peers</span></button>
+              <button className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
+              <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
             </div>
           )}
+
 
           {isSubmitted && !isGraded && (
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
-              <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
-              <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="flex flex-col items-center -mt-5">
-                <div className="w-14 h-14 rounded-full bg-[#005587] flex items-center justify-center shadow-lg border-4 border-white ring-2 ring-[#FFC72C]">
+              <div className="flex flex-col items-center"><span className="text-[10px] font-bold text-green-600">✓ Submitted!</span></div>
+              <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="-mt-6">
+                <div className="w-14 h-14 rounded-full bg-[#005587] flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </div>
-                <span className="text-[10px] font-bold text-[#005587] mt-0.5">Peers</span>
+                <span className="text-[9px] font-bold text-[#005587] mt-0.5 block text-center leading-tight">Peer<br/>Review</span>
               </button>
               <button className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
-              <button onClick={handleDelete} disabled={isDeleting} className="flex flex-col items-center opacity-60"><svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg><span className="text-[9px] text-gray-400">Delete</span></button>
+              <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
             </div>
           )}
 
           {isGraded && (
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
-              <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
-              <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="flex flex-col items-center -mt-5">
-                <div className="w-14 h-14 rounded-full bg-[#005587] flex items-center justify-center shadow-lg border-4 border-white ring-2 ring-[#FFC72C]">
+              <div className="flex flex-col items-center"><span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">{submission!.grade}/{assignment.points || assignment.maxScore || 100}</span><span className="text-[9px] text-gray-400 mt-0.5">Grade</span></div>
+              <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="-mt-6">
+                <div className="w-14 h-14 rounded-full bg-[#005587] flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </div>
-                <span className="text-[10px] font-bold text-[#005587] mt-0.5">Peers</span>
+                <span className="text-[9px] font-bold text-[#005587] mt-0.5 block text-center leading-tight">Peer<br/>Review</span>
               </button>
               <button className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
-              <div className="flex flex-col items-center"><span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">{submission!.grade}/{assignment.points || 100}</span><span className="text-[9px] text-gray-400 mt-0.5">Grade</span></div>
+              <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
             </div>
           )}
         </div>
@@ -321,6 +345,93 @@ export default function StudentAssignmentDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowUploadModal(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-5 flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-bold text-gray-900">Upload Submission</h3>
+              <button onClick={() => setShowUploadModal(false)} className="text-gray-400 p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* File upload */}
+            <button
+              onClick={() => uploadFileRef.current?.click()}
+              className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center gap-2 hover:border-[#005587] transition-colors mb-3"
+            >
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+              <span className="text-sm text-gray-600 font-medium">Choose a video file</span>
+              <span className="text-xs text-gray-400">MP4, MOV, or WebM</span>
+            </button>
+            {uploadFile && (
+              <p className="text-xs text-green-600 mb-3 truncate">✓ {uploadFile.name}</p>
+            )}
+
+            {/* OR divider */}
+            <div className="flex items-center gap-3 my-2">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400">OR</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+
+            {/* YouTube / link paste */}
+            <input
+              type="text"
+              placeholder="Paste YouTube or Google Drive link..."
+              value={uploadUrl}
+              onChange={(e) => setUploadUrl(e.target.value)}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm mt-2 focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+            />
+
+            {/* Submit */}
+            <button
+              onClick={async () => {
+                if (!uploadUrl && !uploadFile) return;
+                setUploading(true);
+                try {
+                  if (uploadFile) {
+                    // Upload file to S3
+                    const formData = new FormData();
+                    formData.append('file', uploadFile);
+                    formData.append('assignmentId', assignmentId);
+                    formData.append('studentId', user?.id || '');
+                    const res = await fetch('/api/upload/student-video', { method: 'POST', body: formData });
+                    if (res.ok) { setShowUploadModal(false); fetchData(); }
+                    else alert('Upload failed. Please try again.');
+                  } else if (uploadUrl) {
+                    // Submit URL directly
+                    const res = await fetch('/api/submissions', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ assignmentId, studentId: user?.id, videoUrl: uploadUrl }),
+                    });
+                    if (res.ok) { setShowUploadModal(false); fetchData(); }
+                    else alert('Submission failed. Please try again.');
+                  }
+                } catch { alert('Error submitting.'); }
+                finally { setUploading(false); }
+              }}
+              disabled={uploading || (!uploadUrl && !uploadFile)}
+              className="w-full mt-4 py-3 bg-[#005587] text-white rounded-full font-bold text-sm disabled:opacity-50 active:scale-95 transition-transform"
+            >
+              {uploading ? 'Submitting...' : 'Submit'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden file input */}
+      <input
+        ref={uploadFileRef}
+        type="file"
+        accept="video/*"
+        className="hidden"
+        onChange={(e) => { if (e.target.files?.[0]) setUploadFile(e.target.files[0]); }}
+      />
     </StudentRoute>
   );
 }
