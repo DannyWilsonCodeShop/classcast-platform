@@ -15,6 +15,7 @@ interface VideoSubmission {
   studentId: string;
   studentFirstName: string;
   studentLastName: string;
+  studentName?: string;
   studentAvatar?: string;
   videoUrl: string;
   videoTitle: string;
@@ -101,6 +102,18 @@ const AssignmentFeedPage: React.FC = () => {
       const videosRes = await fetch(`/api/video-submissions?assignmentId=${assignmentId}`);
       const videosData = await videosRes.json();
 
+      // Also fetch from the other submissions endpoint that has studentName
+      let nameMap = new Map<string, string>();
+      try {
+        const namesRes = await fetch(`/api/assignments/${assignmentId}/submissions`);
+        if (namesRes.ok) {
+          const namesData = await namesRes.json();
+          (namesData.submissions || []).forEach((s: any) => {
+            if (s.studentId && s.studentName) nameMap.set(s.studentId, s.studentName);
+          });
+        }
+      } catch {}
+
       if (videosData.success) {
         let submissions = videosData.submissions || [];
         
@@ -136,11 +149,21 @@ const AssignmentFeedPage: React.FC = () => {
         // Merge profile data into submissions
         submissions = submissions.map((sub: any) => {
           const profile = profileMap.get(sub.studentId);
+          const fallbackName = nameMap.get(sub.studentId) || sub.studentName || '';
+          // Split studentName if firstName/lastName are missing
+          let firstName = (sub.studentFirstName && sub.studentFirstName.trim()) || profile?.firstName || '';
+          let lastName = (sub.studentLastName && sub.studentLastName.trim()) || profile?.lastName || '';
+          if (!firstName && !lastName && fallbackName) {
+            const parts = fallbackName.trim().split(' ');
+            firstName = parts[0] || '';
+            lastName = parts.slice(1).join(' ') || '';
+          }
           return {
             ...sub,
-            studentFirstName: sub.studentFirstName || profile?.firstName || '',
-            studentLastName: sub.studentLastName || profile?.lastName || '',
-            studentAvatar: sub.studentAvatar || profile?.avatar || '',
+            studentName: fallbackName || `${firstName} ${lastName}`.trim(),
+            studentFirstName: firstName,
+            studentLastName: lastName,
+            studentAvatar: (sub.studentAvatar && sub.studentAvatar.trim()) || profile?.avatar || '',
           };
         });
         
@@ -168,8 +191,10 @@ const AssignmentFeedPage: React.FC = () => {
   };
 
   const formatTimestamp = (timestamp: string) => {
+    if (!timestamp) return '';
     const now = new Date();
     const date = new Date(timestamp);
+    if (isNaN(date.getTime())) return '';
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
@@ -179,14 +204,16 @@ const AssignmentFeedPage: React.FC = () => {
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   return (
     <StudentRoute>
-      <div className="h-full flex flex-col bg-white overflow-hidden">
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
+      <div className="h-full flex flex-col bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc] overflow-hidden">
         {/* Top Bar */}
-        <div className="shrink-0 bg-white border-b border-gray-100">
+        <div className="shrink-0 bg-white/80 backdrop-blur-md border-b border-gray-100">
           <div className="px-3 py-2.5 flex items-center justify-between gap-3">
             {/* Back Button */}
             <button
@@ -200,7 +227,7 @@ const AssignmentFeedPage: React.FC = () => {
 
             {/* Title */}
             <div className="flex-1 text-center min-w-0">
-              <h1 className="text-sm font-bold text-gray-900 truncate">
+              <h1 className="text-base font-bold uppercase text-[#005587] truncate" style={{ fontFamily: "'Oswald', sans-serif" }}>
                 Peer Videos
               </h1>
               {assignment?.title && (
@@ -360,14 +387,14 @@ const AssignmentFeedPage: React.FC = () => {
 
           {/* Student Submissions Header */}
           {!loading && videos.length > 0 && (
-            <div className="bg-white border-b border-gray-200 px-4 py-3">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+            <div className="bg-gradient-to-r from-[#005587] to-[#0077aa] px-4 py-3">
+              <h3 className="text-base font-bold text-white uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>
                 {assignment?.groupAssignment 
-                  ? '🎬 Group Member Videos' 
-                  : '🎬 Peer Videos'}
+                  ? '🎬 GROUP MEMBER VIDEOS' 
+                  : '🎬 PEER VIDEOS'}
               </h3>
               {assignment?.groupAssignment && myGroup && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-white/70 mt-1">
                   Videos from your group: {myGroup.groupName}
                 </p>
               )}
@@ -411,6 +438,26 @@ const AssignmentFeedPage: React.FC = () => {
           />
         )}
         </div>{/* end scrollable */}
+
+        {/* Bottom Nav */}
+        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2">
+          <div className="flex items-center justify-around">
+            <button className="flex flex-col items-center" onClick={() => router.push('/student/dashboard')}>
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+              <span className="text-[10px] text-gray-400 mt-0.5">Home</span>
+            </button>
+            <button className="flex flex-col items-center" onClick={() => router.push(`/student/assignments/${assignmentId}`)}>
+              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <span className="text-[10px] text-gray-400 mt-0.5">Assignment</span>
+            </button>
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              <span className="text-[10px] text-[#005587] font-medium mt-0.5">{videos.length} / {videos.length} due</span>
+            </div>
+          </div>
+        </nav>
       </div>
     </StudentRoute>
   );
@@ -460,7 +507,7 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
       {/* Header */}
       <div className="px-4 py-3 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-[#FFC72C] flex items-center justify-center overflow-hidden flex-shrink-0">
             {isEmoji ? (
               <span className="text-2xl">{video.studentAvatar}</span>
             ) : hasValidAvatar ? (
@@ -471,16 +518,18 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
                 onError={() => setImageError(true)}
               />
             ) : (
-              <span className="text-gray-600 font-semibold text-sm">
-                {(video.studentFirstName || '?')[0]}{(video.studentLastName || '?')[0]}
+              <span className="w-full h-full bg-[#005587] flex items-center justify-center text-white font-bold text-sm">
+                {(video.studentFirstName || video.studentName || 'S')[0]}
               </span>
             )}
           </div>
           <div>
             <p className="font-semibold text-sm text-gray-900">
-              {video.studentFirstName || 'Unknown'} {video.studentLastName || 'Student'}
+              {video.studentFirstName && video.studentLastName 
+                ? `${video.studentFirstName} ${video.studentLastName}`
+                : video.studentName || 'Student'}
             </p>
-            <p className="text-xs text-gray-500">{formatTimestamp(video.submittedAt)}</p>
+            <p className="text-xs text-gray-500">{video.submittedAt ? formatTimestamp(video.submittedAt) : ''}</p>
           </div>
         </div>
         {isMyVideo && (

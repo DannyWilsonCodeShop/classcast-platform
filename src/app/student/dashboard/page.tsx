@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
-import { getAssignmentColor } from '@/lib/assignmentColors';
+import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
 
 interface Assignment { assignmentId: string; title: string; courseName?: string; courseInitials?: string; dueDate: string; maxScore?: number; isSubmitted?: boolean; createdAt?: string; }
 interface FeedItem { id: string; type?: string; title?: string; videoUrl?: string; author?: { name?: string; avatar?: string; id?: string }; rating?: number; likes?: number; comments?: number; assignmentId?: string; }
@@ -57,9 +57,9 @@ export default function StudentDashboardPage() {
   return (
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
 
-      <div className="h-full flex flex-col overflow-hidden bg-white">
+      <div className="h-full flex flex-col overflow-hidden bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc]">
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-2 pb-1 shrink-0">
           <div className="flex items-center gap-1">
@@ -68,7 +68,7 @@ export default function StudentDashboardPage() {
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => router.push('/student/courses')} className="p-1"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></button>
-            <img src="/CRAJSmallLogo.png" alt="" className="w-8 h-8 object-contain" />
+            <img src="/CristoReyLogo.png" alt="" className="w-12 h-12 object-contain" />
           </div>
         </div>
 
@@ -82,71 +82,78 @@ export default function StudentDashboardPage() {
 
         {/* TOP HALF - Assignments */}
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div className="px-4 pt-1 pb-0.5 shrink-0">
-            <h2 className="text-sm font-bold text-gray-900">Assignments</h2>
-          </div>
-          <div className="flex-1 overflow-y-auto px-4 space-y-1.5 min-h-0 pb-1">
-            {displayAssignments.length > 0 ? displayAssignments.map((a, i) => (
-              <div key={a.assignmentId} onClick={() => { const id = a.assignmentId || (a as any).id; if (id) router.push(`/student/assignments/${id}`); }} className={`rounded-xl p-3.5 cursor-pointer active:scale-[0.98] transition-transform ${getAssignmentColor(a.assignmentId)}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-[#005587] text-sm font-bold uppercase truncate">{a.title}</h3>
-                    <p className="text-[#005587]/60 text-xs mt-0.5">{a.courseName || ''} {a.maxScore ? `• ${a.maxScore} pts` : ''}</p>
+          {/* Divider line above section */}
+          <div className="h-px bg-gray-200 mx-4 shrink-0" />
+          {/* Grey rounded container */}
+          <div className="mx-3 mt-2 flex-1 flex flex-col min-h-0 bg-gray-100 rounded-2xl overflow-hidden">
+            <div className="px-3 pt-2.5 pb-1 shrink-0">
+              <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Assignments</h2>
+            </div>
+            <div className="flex-1 overflow-y-auto px-3 space-y-1.5 min-h-0 pb-1.5">
+              {displayAssignments.length > 0 ? displayAssignments.map((a, i) => (
+                <div key={a.assignmentId} onClick={() => { const id = a.assignmentId || (a as any).id; if (id) router.push(`/student/assignments/${id}`); }} className="rounded-xl p-3.5 cursor-pointer active:scale-[0.98] transition-transform" style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h3>
+                      <p className="text-xs mt-0.5 opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''} {a.maxScore ? `• ${a.maxScore} pts` : ''}</p>
+                    </div>
+                    <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ml-2 shrink-0 ${getBadgeStyle(a.dueDate)}`}>{getDueBadge(a.dueDate)}</span>
                   </div>
-                  <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ml-2 shrink-0 ${getBadgeStyle(a.dueDate)}`}>{getDueBadge(a.dueDate)}</span>
                 </div>
-              </div>
-            )) : <div className="flex items-center justify-center h-full text-gray-400 text-xs">No assignments 🎉</div>}
-          </div>
-          <div className="px-4 py-1 shrink-0">
-            <button onClick={() => router.push('/student/assignments')} className="w-full text-center text-[11px] text-[#005587] font-medium py-1">View All →</button>
+              )) : <div className="flex items-center justify-center h-full text-gray-400 text-xs">No assignments 🎉</div>}
+            </div>
+            <div className="px-3 py-1.5 shrink-0">
+              <button onClick={() => router.push('/student/assignments')} className="w-full text-center text-[11px] text-[#005587] font-medium py-1">View All →</button>
+            </div>
           </div>
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gray-200 mx-4 shrink-0" />
+        <div className="h-px bg-gray-200 mx-4 shrink-0 mt-2" />
 
         {/* BOTTOM HALF - Recent Videos */}
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          <div className="px-4 pt-2 pb-0.5 shrink-0">
-            <h2 className="text-sm font-bold text-gray-900">Recent Videos</h2>
+          <div className="px-4 pt-2 pb-1 shrink-0">
+            <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Recent Videos</h2>
           </div>
           <div className="flex-1 overflow-hidden px-4 pb-1 min-h-0">
             {feed.length > 0 ? (
-              <div className="flex gap-3 overflow-x-auto h-full items-start pt-1 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+              <div className="flex gap-3.5 overflow-x-auto h-full items-start pt-1 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
                 {feed.slice(0, 10).map(item => {
                   const ytThumb = getVideoThumbnail(item.videoUrl);
                   return (
-                    <div key={item.id} className="shrink-0 w-36 h-full flex flex-col cursor-pointer" onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed?videoId=${item.id}`)}>
+                    <div key={item.id} className="shrink-0 w-44 h-full flex flex-col cursor-pointer" onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed?videoId=${item.id}`)}>
                       {/* Author above video */}
-                      <div className="flex items-center gap-1.5 mb-1 shrink-0">
-                        <div className="w-9 h-9 rounded-full border-2 border-[#FFC72C] overflow-hidden bg-gray-300 shrink-0">
-                          {item.author?.avatar && !item.author.avatar.includes('placeholder') ? (
+                      <div className="flex items-center gap-2 mb-1.5 shrink-0">
+                        <div className="w-10 h-10 rounded-full border-2 border-[#FFC72C] overflow-hidden bg-gray-300 shrink-0">
+                          {item.author?.avatar && item.author.avatar.startsWith('http') ? (
                             <img src={item.author.avatar} alt="" className="w-full h-full object-cover" />
+                          ) : item.author?.avatar && item.author.avatar.length <= 4 ? (
+                            <div className="w-full h-full bg-[#005587] flex items-center justify-center text-lg">{item.author.avatar}</div>
                           ) : (
-                            <div className="w-full h-full bg-[#005587] flex items-center justify-center text-white text-[10px] font-bold">{(item.author?.name || '?')[0]}</div>
+                            <div className="w-full h-full bg-[#005587] flex items-center justify-center text-white text-xs font-bold">{(item.author?.name || '?')[0]}</div>
                           )}
                         </div>
-                        <span className="text-xs font-medium text-gray-800 truncate">{item.author?.name || 'Student'}</span>
+                        <span className="text-sm font-semibold text-gray-900 truncate">{item.author?.name || 'Student'}</span>
                       </div>
-                      {/* Video thumbnail */}
-                      <div className="relative rounded-lg overflow-hidden flex-1 bg-gray-800">
-                        {ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" onLoadedMetadata={e => { (e.target as HTMLVideoElement).currentTime = 3; }} /> : <div className="w-full h-full bg-gradient-to-br from-[#005587] to-[#0077aa] flex items-center justify-center"><svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>}
-                        <div className="absolute inset-0 flex items-center justify-center"><div className="w-9 h-9 bg-white/80 rounded-full flex items-center justify-center shadow"><svg className="w-4 h-4 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
+                      {/* Video thumbnail - taller */}
+                      <div className="relative rounded-xl overflow-hidden flex-1 bg-gray-800 min-h-[140px]">
+                        {ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" onLoadedMetadata={e => { (e.target as HTMLVideoElement).currentTime = 3; }} /> : <div className="w-full h-full bg-gradient-to-br from-[#005587] to-[#0077aa] flex items-center justify-center"><svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>}
+                        <div className="absolute inset-0 flex items-center justify-center"><div className="w-11 h-11 bg-white/80 rounded-full flex items-center justify-center shadow-lg"><svg className="w-5 h-5 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
                       </div>
                       {/* Title + likes below */}
-                      <div className="mt-1 shrink-0">
-                        <p className="text-[10px] text-gray-700 truncate font-medium">{item.title || 'Video'}</p>
-                        <div className="flex items-center gap-2 text-[10px] text-gray-400">
+                      <div className="mt-1.5 shrink-0">
+                        <p className="text-sm text-gray-900 truncate font-medium uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.03em' }}>{item.title || 'Video'}</p>
+                        <div className="flex items-center gap-2.5 text-xs text-gray-500 mt-0.5">
                           <span>❤️ {item.likes || 0}</span>
-                          <div className="flex gap-0.5">{[1,2,3,4,5].map(s => <svg key={s} className={`w-2.5 h-2.5 ${s <= (item.rating || 0) ? 'text-[#FFC72C]' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>)}</div>
+                          <div className="flex gap-0.5">{[1,2,3,4,5].map(s => <svg key={s} className={`w-3 h-3 ${s <= (item.rating || 0) ? 'text-[#FFC72C]' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>)}</div>
                         </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-            ) : <div className="flex items-center justify-center h-full text-gray-400 text-xs">No videos yet</div>}
+            ) : <div className="flex items-center justify-center h-full text-gray-400 text-sm">No videos yet</div>}
           </div>
         </div>
 
@@ -176,10 +183,11 @@ export default function StudentDashboardPage() {
                 <button
                   key={a.assignmentId}
                   onClick={() => { setShowAssignmentPicker(false); router.push(`/student/record?assignmentId=${a.assignmentId}`); }}
-                  className={`w-full text-left rounded-xl p-3 ${getAssignmentColor(a.assignmentId)} active:scale-[0.98] transition-transform`}
+                  className="w-full text-left rounded-xl p-3 active:scale-[0.98] transition-transform"
+                  style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}
                 >
-                  <h4 className="text-[#005587] text-sm font-bold truncate">{a.title}</h4>
-                  <p className="text-[#005587]/60 text-xs">{a.courseName || ''} • Due {getDueBadge(a.dueDate)}</p>
+                  <h4 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h4>
+                  <p className="text-xs opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''} • Due {getDueBadge(a.dueDate)}</p>
                 </button>
               )) : (
                 <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
-import { getAssignmentColor } from '@/lib/assignmentColors';
+import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
 
 interface Assignment {
   assignmentId: string;
@@ -122,21 +122,21 @@ export default function StudentAssignmentsPage() {
   };
 
   const AssignmentCard = ({ assignment }: { assignment: Assignment }) => (
-    <div className={`rounded-xl p-4 mb-3 ${getAssignmentColor(assignment.assignmentId)}`}>
+    <div className="rounded-xl p-4 mb-3" style={{ backgroundColor: getAssignmentColor(assignment.assignmentId) }}>
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           {/* Title - first and foremost */}
-          <p className="font-bold text-sm text-[#005587] mb-0.5">
+          <p className="font-bold text-base mb-0.5 uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(assignment.assignmentId) }}>
             {assignment.title}
           </p>
           {/* Description */}
           {assignment.description && (
-            <p className="text-xs text-gray-600 line-clamp-2 mb-1">
+            <p className="text-xs line-clamp-2 mb-1 opacity-70" style={{ color: getAssignmentTitleColor(assignment.assignmentId) }}>
               {assignment.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 100)}
             </p>
           )}
           {/* Due date */}
-          <p className="text-xs text-gray-500">
+          <p className="text-xs opacity-60" style={{ color: getAssignmentTitleColor(assignment.assignmentId) }}>
             {new Date(assignment.dueDate).toLocaleDateString('en-US', { 
               weekday: 'long', month: 'short', day: 'numeric', year: 'numeric',
               hour: 'numeric', minute: '2-digit'
@@ -144,14 +144,14 @@ export default function StudentAssignmentsPage() {
           </p>
           {/* Points */}
           {assignment.maxScore && (
-            <p className="text-xs text-blue-600 font-medium mt-0.5">
+            <p className="text-xs font-medium mt-0.5 opacity-80" style={{ color: getAssignmentTitleColor(assignment.assignmentId) }}>
               {assignment.maxScore} points
             </p>
           )}
           {/* Course name - at the bottom */}
           <div className="flex items-center gap-1.5 mt-1.5">
             <span className="text-xs">📖</span>
-            <span className="text-[11px] text-gray-500 italic">
+            <span className="text-[11px] italic opacity-60" style={{ color: getAssignmentTitleColor(assignment.assignmentId) }}>
               {assignment.courseName || assignment.courseInitials || 'Course'}
             </span>
           </div>
@@ -163,9 +163,9 @@ export default function StudentAssignmentsPage() {
           </span>
           <button
             onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
-            className="w-10 h-10 bg-gray-400/70 rounded-full flex items-center justify-center"
+            className="w-10 h-10 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
           >
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: getAssignmentTitleColor(assignment.assignmentId) }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
           </button>
@@ -176,6 +176,8 @@ export default function StudentAssignmentsPage() {
 
   return (
     <StudentRoute>
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
       <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Header */}
         <div className="px-4 pt-3 pb-2 flex-shrink-0">
@@ -254,7 +256,7 @@ export default function StudentAssignmentsPage() {
           ) : filterDate ? (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-base font-bold text-gray-900">
+                <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>
                   Due {filterDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                 </h2>
                 <button onClick={() => setFilterDate(null)} className="text-xs text-[#005587] font-medium">Show All</button>
@@ -272,7 +274,7 @@ export default function StudentAssignmentsPage() {
               {/* Overdue */}
               {overdue.length > 0 && (
                 <div className="mb-4">
-                  <h2 className="text-base font-bold text-gray-900 mb-2">Overdue</h2>
+                  <h2 className="text-base font-bold uppercase text-red-600 tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>Overdue</h2>
                   {overdue.map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)}
                 </div>
               )}
@@ -280,7 +282,7 @@ export default function StudentAssignmentsPage() {
               {/* Today */}
               {todayAssignments.length > 0 && (
                 <div className="mb-4">
-                  <h2 className="text-base font-bold text-gray-900 mb-2">Today</h2>
+                  <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>Today</h2>
                   {todayAssignments.map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)}
                 </div>
               )}
@@ -288,15 +290,15 @@ export default function StudentAssignmentsPage() {
               {/* This Week */}
               {thisWeek.length > 0 && (
                 <div className="mb-4">
-                  <h2 className="text-base font-bold text-gray-900 mb-2">This Week</h2>
+                  <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>This Week</h2>
                   {thisWeek.map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)}
                 </div>
               )}
 
               {/* All upcoming (if no categorized ones show) */}
-              {overdue.length === 0 && todayAssignments.length === 0 && thisWeek.length === 0 && (
+              {overdue.length === 0 && todayAssignments.length === 0 && thisWeek.length === 0 && assignments.filter(a => !a.isSubmitted).length === 0 && (
                 <div className="mb-4">
-                  <h2 className="text-base font-bold text-gray-900 mb-2">All Assignments</h2>
+                  <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>All Assignments</h2>
                   {assignments.length === 0 ? (
                     <div className="text-center py-8">
                       <p className="text-gray-500">No assignments yet</p>
@@ -304,6 +306,14 @@ export default function StudentAssignmentsPage() {
                   ) : (
                     assignments.map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)
                   )}
+                </div>
+              )}
+
+              {/* Submitted */}
+              {assignments.filter(a => a.isSubmitted).length > 0 && (
+                <div className="mb-4">
+                  <h2 className="text-base font-bold uppercase text-green-600 tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>✓ Submitted</h2>
+                  {assignments.filter(a => a.isSubmitted).map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)}
                 </div>
               )}
             </>
@@ -352,10 +362,11 @@ export default function StudentAssignmentsPage() {
                 <button
                   key={a.assignmentId}
                   onClick={() => { setShowAssignmentPicker(false); router.push(`/student/record?assignmentId=${a.assignmentId}`); }}
-                  className={`w-full text-left rounded-xl p-3 ${getAssignmentColor(a.assignmentId)} active:scale-[0.98] transition-transform`}
+                  className="w-full text-left rounded-xl p-3 active:scale-[0.98] transition-transform"
+                  style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}
                 >
-                  <h4 className="text-[#005587] text-sm font-bold truncate">{a.title}</h4>
-                  <p className="text-[#005587]/60 text-xs">{a.courseName || ''} • {getDaysUntilDue(a.dueDate)}</p>
+                  <h4 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h4>
+                  <p className="text-xs opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''} • {getDaysUntilDue(a.dueDate)}</p>
                 </button>
               )) : (
                 <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>

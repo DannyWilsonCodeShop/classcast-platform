@@ -72,6 +72,8 @@ export async function GET(request: NextRequest) {
       data: userProfile
     });
 
+    return response;
+
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return NextResponse.json(

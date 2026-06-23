@@ -34,21 +34,23 @@ export default function StudentGradesPage() {
       const res = await fetch(`/api/student/assignments?userId=${user?.id}`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
-        // Map assignments to grade items
+        // Map assignments to grade items — only include submitted ones
         const assignments = data.assignments || [];
-        const mapped: Grade[] = assignments.map((a: any) => ({
-          id: a.assignmentId || a.id,
-          assignmentTitle: a.title || 'Untitled',
-          courseName: a.courseName || '',
-          courseCode: a.courseCode || '',
-          grade: a.grade ?? a.score ?? 0,
-          maxPoints: a.maxScore || a.maxPoints || 100,
-          submittedAt: a.submittedAt || '',
-          gradedAt: a.gradedAt || '',
-          dueDate: a.dueDate || '',
-          feedback: a.feedback || '',
-          status: a.gradedAt ? 'graded' : 'pending',
-        }));
+        const mapped: Grade[] = assignments
+          .filter((a: any) => a.isSubmitted)
+          .map((a: any) => ({
+            id: a.assignmentId || a.id,
+            assignmentTitle: a.title || 'Untitled',
+            courseName: a.courseName || '',
+            courseCode: a.courseCode || '',
+            grade: a.grade ?? a.score ?? 0,
+            maxPoints: a.maxScore || a.maxPoints || 100,
+            submittedAt: a.submittedAt || '',
+            gradedAt: a.gradedAt || '',
+            dueDate: a.dueDate || '',
+            feedback: a.feedback || '',
+            status: (a.grade !== null && a.grade !== undefined) ? 'graded' : 'pending',
+          }));
         setGrades(mapped);
       }
     } catch (error) {
@@ -65,6 +67,8 @@ export default function StudentGradesPage() {
 
   return (
     <StudentRoute>
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
       <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Header */}
         <div className="flex items-center px-3 py-2.5 border-b border-gray-100 shrink-0">
@@ -73,7 +77,8 @@ export default function StudentGradesPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="flex-1 text-sm font-bold text-gray-900 mx-2">Grades</h1>
+          <h1 className="flex-1 text-base font-bold uppercase text-[#005587] mx-2 tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Grades</h1>
+          <img src="/CristoReyLogo.png" alt="" className="w-12 h-12 object-contain" />
         </div>
 
         {/* Scrollable content */}
@@ -95,12 +100,62 @@ export default function StudentGradesPage() {
               <p className="text-xs text-gray-500 mt-1">Your grades will appear here once available.</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
+              {/* Grade Summary Card */}
+              {(() => {
+                const graded = grades.filter(g => g.status === 'graded' && g.grade > 0);
+                const totalEarned = graded.reduce((sum, g) => sum + g.grade, 0);
+                const totalMax = graded.reduce((sum, g) => sum + g.maxPoints, 0);
+                const overallPct = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
+                const getLetterGrade = (pct: number) => { if (pct >= 93) return 'A'; if (pct >= 90) return 'A-'; if (pct >= 87) return 'B+'; if (pct >= 83) return 'B'; if (pct >= 80) return 'B-'; if (pct >= 77) return 'C+'; if (pct >= 73) return 'C'; if (pct >= 70) return 'C-'; if (pct >= 67) return 'D+'; if (pct >= 60) return 'D'; return 'F'; };
+                
+                // Group by course
+                const byCourse = new Map<string, { earned: number; max: number; count: number }>();
+                graded.forEach(g => {
+                  const key = g.courseName || 'Other';
+                  const cur = byCourse.get(key) || { earned: 0, max: 0, count: 0 };
+                  cur.earned += g.grade;
+                  cur.max += g.maxPoints;
+                  cur.count += 1;
+                  byCourse.set(key, cur);
+                });
+
+                return (
+                  <div className="bg-gradient-to-br from-[#005587] to-[#003d5c] rounded-2xl p-4 text-white mb-1">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-xs text-white/60 uppercase tracking-wide">Overall Grade</p>
+                        <p className="text-3xl font-bold">{getLetterGrade(overallPct)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-2xl font-bold">{overallPct}%</p>
+                        <p className="text-[10px] text-white/50">{totalEarned}/{totalMax} pts</p>
+                      </div>
+                    </div>
+                    {/* Course breakdown */}
+                    <div className="space-y-2 mt-3 pt-3 border-t border-white/10">
+                      {Array.from(byCourse.entries()).map(([course, data]) => {
+                        const pct = Math.round((data.earned / data.max) * 100);
+                        return (
+                          <div key={course} className="flex items-center gap-2">
+                            <span className="text-[11px] text-white/70 flex-1 truncate">{course}</span>
+                            <div className="w-20 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                              <div className="h-full bg-[#FFC72C] rounded-full" style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className="text-[11px] font-bold text-white/90 w-8 text-right">{pct}%</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10px] text-white/40 mt-2">{graded.length} graded • {grades.length - graded.length} pending</p>
+                  </div>
+                );
+              })()}
               {grades.map((grade) => (
                 <div key={grade.id} className="border border-gray-100 rounded-xl p-3 active:bg-gray-50 transition-colors">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-gray-900 truncate">{grade.assignmentTitle}</h3>
+                      <h3 className="text-base font-bold text-[#005587] truncate uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.03em' }}>{grade.assignmentTitle}</h3>
                       <p className="text-xs text-gray-500 mt-0.5 truncate">{grade.courseName}</p>
                     </div>
                     {/* Grade badge */}

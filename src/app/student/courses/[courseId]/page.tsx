@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
-import { getAssignmentColor } from '@/lib/assignmentColors';
+import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
 
 interface Course {
   courseId: string;
@@ -162,7 +162,7 @@ export default function StudentCourseDetailPage() {
   return (
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
 
       <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Header */}
@@ -219,7 +219,7 @@ export default function StudentCourseDetailPage() {
 
         {/* Assignments Label */}
         <div className="px-4 pt-3 pb-1 flex items-center justify-between shrink-0">
-          <h2 className="text-sm font-bold text-gray-900">Assignments</h2>
+          <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Assignments</h2>
           <span className="text-xs text-gray-400">{assignments.length} total</span>
         </div>
 
@@ -240,13 +240,14 @@ export default function StudentCourseDetailPage() {
                   <div
                     key={a.assignmentId}
                     onClick={() => router.push(`/student/assignments/${a.assignmentId}`)}
-                    className={`rounded-xl p-3 cursor-pointer ${getAssignmentColor(a.assignmentId)} active:scale-[0.98] transition-transform`}
+                    className="rounded-xl p-3 cursor-pointer active:scale-[0.98] transition-transform"
+                    style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-[#005587] text-sm font-bold truncate">{a.title}</h3>
+                        <h3 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h3>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-[#005587]/60 text-[10px]">
+                          <p className="text-[10px] opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>
                             {a.maxScore ? `${a.maxScore} pts` : ''} {a.isSubmitted ? '• ✓ Submitted' : ''}
                           </p>
                           {grade && (
@@ -311,10 +312,11 @@ export default function StudentCourseDetailPage() {
                 <button
                   key={a.assignmentId}
                   onClick={() => { setShowAssignmentPicker(false); router.push(`/student/record?assignmentId=${a.assignmentId}`); }}
-                  className={`w-full text-left rounded-xl p-3 ${getAssignmentColor(a.assignmentId)} active:scale-[0.98] transition-transform`}
+                  className="w-full text-left rounded-xl p-3 active:scale-[0.98] transition-transform"
+                  style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}
                 >
-                  <h4 className="text-[#005587] text-sm font-bold truncate">{a.title}</h4>
-                  <p className="text-[#005587]/60 text-xs">{a.courseName || course?.courseName || ''} • Due {getDueBadge(a.dueDate).label}</p>
+                  <h4 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h4>
+                  <p className="text-xs opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || course?.courseName || ''} • Due {getDueBadge(a.dueDate).label}</p>
                 </button>
               )) : (
                 <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>
