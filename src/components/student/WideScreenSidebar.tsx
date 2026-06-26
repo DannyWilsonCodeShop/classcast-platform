@@ -105,7 +105,16 @@ export function WideScreenSidebar({ onRecordClick }: WideScreenSidebarProps) {
         {/* Record Button */}
         <div className="pt-3">
           <button
-            onClick={onRecordClick}
+            onClick={() => {
+              // If on dashboard, open the assignment picker modal via event
+              // If on another page, navigate to dashboard first
+              if (pathname === '/student/dashboard') {
+                window.dispatchEvent(new CustomEvent('classcast-record-click'));
+              } else {
+                router.push('/student/dashboard?openRecord=true');
+              }
+              if (onRecordClick) onRecordClick();
+            }}
             className={`w-full flex items-center gap-2 bg-[#FFC72C] hover:bg-[#e6b225] text-[#005587] font-bold rounded-xl transition-colors min-h-[44px] ${
               isDesktop ? 'px-3 py-3 justify-start' : 'justify-center py-3'
             }`}

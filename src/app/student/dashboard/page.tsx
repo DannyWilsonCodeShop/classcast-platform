@@ -37,6 +37,24 @@ export default function StudentDashboardPage() {
     if (user?.id) { fetchAssignments(); fetchFeed(); }
   }, [user?.id, user?.isDemoUser]);
 
+  // Listen for Record button click from sidebar
+  useEffect(() => {
+    const handleRecordClick = () => setShowAssignmentPicker(true);
+    window.addEventListener('classcast-record-click', handleRecordClick);
+    
+    // Check if navigated here with ?openRecord=true
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('openRecord') === 'true') {
+        setShowAssignmentPicker(true);
+        // Clean up the URL
+        window.history.replaceState({}, '', '/student/dashboard');
+      }
+    }
+    
+    return () => window.removeEventListener('classcast-record-click', handleRecordClick);
+  }, []);
+
   const fetchAssignments = async () => {
     try {
       const res = await fetch(`/api/student/assignments?userId=${user?.id}`);
