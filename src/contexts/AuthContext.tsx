@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { api, apiClient, User, LoginRequest } from '@/lib/api';
+import { isDemoLoginCredentials, getDemoUserForAuth, enableScreenshotMode, isScreenshotMode } from '@/lib/demo-screenshot-data';
 
 // ============================================================================
 // TYPES
@@ -65,6 +66,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const storedUser = api.getCurrentUser();
       const isAuthenticated = api.isAuthenticated();
       
+      // Demo mode: if stored user is demo user, trust it without token validation
+      if (storedUser?.isDemoUser && isScreenshotMode()) {
+        setUser(storedUser);
+        setIsLoading(false);
+        return;
+      }
+
       if (storedUser && isAuthenticated) {
         // Verify token is still valid
         const tokenValid = await api.ensureValidToken();
@@ -94,6 +102,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(true);
       setError(null);
       
+      // ================================================================
+      // DEMO MODE INTERCEPT — for Apple App Review
+      // When demo credentials are used, skip real auth and load mock data
+      // ================================================================
+      if (isDemoLoginCredentials(email, password)) {
+        const demoUser = getDemoUserForAuth();
+        enableScreenshotMode();
+        api.setCurrentUser(demoUser as User);
+        setUser(demoUser as User);
+        router.push('/student/dashboard');
+        return { success: true };
+      }
+
       const credentials: LoginRequest = { email, password };
       const response = await api.login(credentials);
       

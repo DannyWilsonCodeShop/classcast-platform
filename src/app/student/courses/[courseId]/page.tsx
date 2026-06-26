@@ -269,7 +269,7 @@ export default function StudentCourseDetailPage() {
         </div>
 
         {/* Bottom Nav - 3 buttons: Home | Resources | Classmates */}
-        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2">
+        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2 native-bottom-nav">
           <div className="flex items-center justify-around">
             <button className="flex flex-col items-center" onClick={() => router.push('/student/dashboard')}>
               <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

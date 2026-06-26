@@ -4,6 +4,10 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Demo credentials — hardcoded directly to avoid any module import issues
+const DEMO_EMAIL = 'demo@classcast.ai';
+const DEMO_PASSWORD = 'Demo2026!';
+
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
@@ -22,6 +26,14 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
     try {
+      // Demo mode intercept — bypass real auth entirely
+      const emailLower = email.toLowerCase().trim();
+      if (emailLower === 'demo@classcast.ai') {
+        // Just redirect straight to the standalone demo page — no auth needed
+        localStorage.setItem('classcast-screenshot-mode', 'true');
+        router.push('/demo/screenshots');
+        return;
+      }
       await login(email, password);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
@@ -198,21 +210,21 @@ export default function LoginPage() {
         <div className="flex justify-center items-center gap-4 mb-8">
           <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6.5rem', height: '6.5rem' }}>
             <img
-              src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
+              src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face"
               alt="Student 1"
               className="w-full h-full object-cover rounded-full"
             />
           </div>
           <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6.5rem', height: '6.5rem' }}>
             <img
-              src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop&crop=face"
+              src="https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=200&h=200&fit=crop&crop=face"
               alt="Student 2"
               className="w-full h-full object-cover rounded-full"
             />
           </div>
           <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6.5rem', height: '6.5rem' }}>
             <img
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face"
+              src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=face"
               alt="Student 3"
               className="w-full h-full object-cover rounded-full"
             />
