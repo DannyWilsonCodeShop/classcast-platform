@@ -6,16 +6,17 @@ const config: CapacitorConfig = {
   webDir: 'out',
   server: {
     // Production App Store build
-    url: 'https://class-cast.com',
-    // For local development with simulator, uncomment:
-    // url: 'http://localhost:3003',
-    // cleartext: true,
+    // url: 'https://class-cast.com',
+    // For local development with simulator:
+    url: 'http://localhost:3003',
+    cleartext: true,
   },
   ios: {
-    contentInset: 'automatic',
+    contentInset: 'never',
     preferredContentMode: 'mobile',
     scheme: 'ClassCast',
     backgroundColor: '#005587',
+    scrollEnabled: false,
   },
   plugins: {
     SplashScreen: {

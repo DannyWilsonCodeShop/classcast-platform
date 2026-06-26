@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function StudentSettingsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const [notifications, setNotifications] = useState({
     emailNotifications: true,
@@ -21,12 +21,53 @@ export default function StudentSettingsPage() {
     videoVisibility: 'course',
   });
 
+  // Account deletion state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
   const handleNotificationChange = (key: string, value: boolean) => {
     setNotifications(prev => ({ ...prev, [key]: value }));
   };
 
   const handlePrivacyChange = (key: string, value: string) => {
     setPrivacy(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+    
+    setIsDeleting(true);
+    setDeleteError('');
+    
+    try {
+      const token = localStorage.getItem('classcast-access-token') || 
+                    sessionStorage.getItem('classcast-access-token');
+      
+      const res = await fetch('/api/auth/delete-account', {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (res.ok) {
+        // Clear local storage and redirect to login
+        localStorage.clear();
+        sessionStorage.clear();
+        await logout();
+        router.push('/auth/login');
+      } else {
+        const data = await res.json();
+        setDeleteError(data.error || 'Failed to delete account. Please try again.');
+      }
+    } catch (err) {
+      setDeleteError('Network error. Please check your connection and try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -172,10 +213,72 @@ export default function StudentSettingsPage() {
               <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
           </div>
+
+          {/* Delete Account Section */}
+          <div className="mb-6">
+            <h2 className="text-xs font-semibold text-red-500 uppercase tracking-normal mb-3">Danger Zone</h2>
+            <div className="border border-red-100 rounded-xl px-3 py-3">
+              <p className="text-sm font-medium text-gray-900 mb-1">Delete Account</p>
+              <p className="text-xs text-gray-500 mb-3">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+              {!showDeleteConfirm ? (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="w-full py-2.5 bg-red-50 text-red-600 font-medium text-sm rounded-lg border border-red-200 active:scale-[0.98] transition-transform"
+                >
+                  Delete My Account
+                </button>
+              ) : (
+                <div className="space-y-3">
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-xs text-red-700 font-medium mb-1">⚠️ This will permanently:</p>
+                    <ul className="text-xs text-red-600 space-y-0.5 ml-3">
+                      <li>• Delete your profile and personal information</li>
+                      <li>• Remove all your video submissions</li>
+                      <li>• Remove your grades and course enrollments</li>
+                      <li>• This cannot be reversed</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <label className="text-xs text-gray-600 mb-1 block">
+                      Type <span className="font-bold">DELETE</span> to confirm:
+                    </label>
+                    <input
+                      type="text"
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value)}
+                      placeholder="DELETE"
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-300 focus:border-red-300"
+                    />
+                  </div>
+                  {deleteError && (
+                    <p className="text-xs text-red-600 bg-red-50 px-3 py-2 rounded-lg">{deleteError}</p>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText(''); setDeleteError(''); }}
+                      className="flex-1 py-2.5 bg-gray-100 text-gray-600 font-medium text-sm rounded-lg"
+                      disabled={isDeleting}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={deleteConfirmText !== 'DELETE' || isDeleting}
+                      className="flex-1 py-2.5 bg-red-600 text-white font-medium text-sm rounded-lg disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-transform"
+                    >
+                      {isDeleting ? 'Deleting...' : 'Confirm Delete'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Bottom Nav - 3 buttons: Home | Courses | Profile */}
-        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2">
+        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2 native-bottom-nav">
           <div className="flex items-center justify-around">
             <button className="flex flex-col items-center" onClick={() => router.push('/student/dashboard')}>
               <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>

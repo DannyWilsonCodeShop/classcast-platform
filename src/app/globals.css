@@ -301,33 +301,61 @@ select:focus {
   display: none;  /* Chrome, Safari, Opera */
 }
 
-/* Mobile app containment - phone frame only on desktop browsers */
-@media (min-width: 640px) {
-  body:has([data-student-page]) {
-    background: #f3f4f6;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 2rem 0;
+/* Mobile app containment - phone frame only on desktop browsers viewing mobile pages */
+/* When data-wide-layout is present (wide sidebar layout active), skip all phone framing */
+@media (min-width: 640px) and (min-height: 640px) {
+  /* Only apply phone frame on actual desktops with mouse — and only when NOT in wide layout */
+  @media (hover: hover) and (pointer: fine) {
+    body:has([data-student-page]):not(:has([data-wide-layout])) {
+      background: #f3f4f6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem 0;
+    }
+
+    [data-wide-layout] [data-student-page],
+    [data-wide-layout][data-student-page] {
+      max-width: 100% !important;
+      height: 100% !important;
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+    }
+
+    body:not(:has([data-wide-layout])) [data-student-page] {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid #e5e7eb;
+      border-radius: 1.5rem;
+      height: 92vh;
+      max-height: 920px;
+      overflow: hidden;
+      background: white;
+    }
+
+    body:not(:has([data-wide-layout])) [data-student-page] > * {
+      height: 100%;
+      min-height: 0;
+    }
   }
 
-  [data-student-page] {
-    max-width: 480px;
-    width: 100%;
-    margin: 0 auto;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border: 1px solid #e5e7eb;
-    border-radius: 1.5rem;
-    height: 92vh;
-    max-height: 920px;
-    overflow: hidden;
-    background: white;
-  }
+  /* Tablets (touch devices) — full-screen layout always */
+  @media (hover: none), (pointer: coarse) {
+    [data-student-page] {
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+      max-width: 100%;
+    }
 
-  [data-student-page] > * {
-    height: 100%;
-    min-height: 0;
+    [data-student-page] > * {
+      height: 100%;
+      min-height: 0;
+    }
   }
 }
 
@@ -337,7 +365,6 @@ select:focus {
     height: 100%;
     height: 100dvh;
     overflow: hidden;
-    /* Extend content to edges — safe areas handled per-element */
     padding: 0;
     margin: 0;
   }
@@ -346,13 +373,27 @@ select:focus {
     height: 100%;
     height: 100dvh;
     overflow: hidden;
-    /* Account for iOS safe areas */
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   [data-student-page] > * {
     height: 100%;
     min-height: 0;
   }
+}
+
+/* iOS Safe Area Insets — applied to native Capacitor WebView only */
+/* The html[data-native] attribute is set by NativeAppInit component */
+html[data-native] [data-student-page] {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: 0; /* bottom nav handles its own safe area */
+}
+
+/* Bottom navigation safe area padding for native devices */
+html[data-native] .native-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Top header safe area for non-student pages on native */
+html[data-native] .native-safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
 }

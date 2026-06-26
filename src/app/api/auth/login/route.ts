@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
 
     // Check for demo users BEFORE password validation (demo passwords don't need complexity)
     const sanitizedEmailEarly = email.toLowerCase().trim();
-    const demoEmails = ['studentdemo@myclasscast.com', 'instructordemo@myclasscast.com', 'student@cc.app', 'teacher@cc.app'];
+    const demoEmails = ['studentdemo@myclasscast.com', 'instructordemo@myclasscast.com', 'student@cc.app', 'teacher@cc.app', 'demo@classcast.ai'];
     const isDemoLogin = demoEmails.includes(sanitizedEmailEarly);
 
     // Password strength validation (skip for demo users)
