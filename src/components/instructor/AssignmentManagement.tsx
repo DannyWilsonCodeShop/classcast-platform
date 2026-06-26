@@ -104,15 +104,17 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
               
               // Fetch full user details
               try {
-                const userResponse = await fetch(`/api/users/${student.userId}`, {
-                  credentials: 'include',
-                });
-                
-                if (userResponse.ok) {
-                  const userData = await userResponse.json();
-                  if (userData.success && userData.user) {
-                    userName = `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim() || userData.user.email;
-                    userAvatar = userData.user.avatar || userAvatar;
+                if (student.userId) {
+                  const userResponse = await fetch(`/api/users/${student.userId}`, {
+                    credentials: 'include',
+                  });
+                  
+                  if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    if (userData.success && userData.user) {
+                      userName = `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim() || userData.user.email;
+                      userAvatar = userData.user.avatar || userAvatar;
+                    }
                   }
                 }
               } catch (userError) {
@@ -204,13 +206,13 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
 
   // Filter assignments and students based on search
   const filteredAssignments = assignments.filter(assignment =>
-    assignment.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    assignment.description.toLowerCase().includes(searchQuery.toLowerCase())
+    (assignment.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (assignment.description || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (student.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (student.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (student.sectionName && student.sectionName.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
