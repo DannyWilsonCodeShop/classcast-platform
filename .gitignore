@@ -163,3 +163,4 @@ ios/DerivedData/
 # Capacitor / Android (future)
 android/app/build/
 android/.gradle/
+android/classcast-release.keystore
