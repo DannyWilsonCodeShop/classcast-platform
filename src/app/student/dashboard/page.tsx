@@ -52,7 +52,7 @@ export default function StudentDashboardPage() {
 
   const fetchFeed = async () => {
     try {
-      const res = await fetch(`/api/student/feed?userId=${user?.id}&includeAllPublic=true`);
+      const res = await fetch(`/api/student/feed?userId=${user?.id}`);
       if (res.ok) { const data = await res.json(); setFeed((data.feed || []).filter((f: FeedItem) => f.type === 'video')); }
     } catch {}
   };

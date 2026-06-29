@@ -109,7 +109,10 @@ export async function GET(request: NextRequest) {
         .filter(sub => 
           allowedCourseIds.includes(sub.courseId) && 
           sub.status !== 'deleted' && 
-          !sub.hidden
+          !sub.hidden &&
+          // Respect visibility setting: only show if user is in the same course
+          // 'global' = anyone can see, 'course' = same course only, 'section' = same section only
+          (sub.visibility === 'global' || allowedCourseIds.includes(sub.courseId))
         )
         .sort((a, b) => {
           const dateA = new Date(a.submittedAt || a.createdAt || 0).getTime();
