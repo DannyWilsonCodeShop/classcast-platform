@@ -22,18 +22,6 @@ export default function StudentDashboardPage() {
   const { isWide } = useIsWideScreen();
 
   useEffect(() => {
-    // Check if we're in screenshot/demo mode — check localStorage directly
-    const screenshotFlag = typeof window !== 'undefined' && localStorage.getItem('classcast-screenshot-mode') === 'true';
-    const userIsDemo = user?.isDemoUser === true;
-    
-    if (screenshotFlag || userIsDemo) {
-      console.log('[Dashboard] Demo mode active — using mock data');
-      setDemoMode(true);
-      setAssignments(getDemoAssignments());
-      setFeed(getDemoFeed());
-      setLoading(false);
-      return;
-    }
     if (user?.id) { fetchAssignments(); fetchFeed(); }
   }, [user?.id, user?.isDemoUser]);
 

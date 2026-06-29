@@ -26,12 +26,11 @@ export default function LoginPage() {
     setIsLoading(true);
     setError('');
     try {
-      // Demo mode intercept — bypass real auth entirely
+      // Demo mode: use the working demo account that goes through real auth
       const emailLower = email.toLowerCase().trim();
       if (emailLower === 'demo@classcast.ai') {
-        // Just redirect straight to the standalone demo page — no auth needed
-        localStorage.setItem('classcast-screenshot-mode', 'true');
-        router.push('/demo/screenshots');
+        // Use the real demo account credentials that work through the full auth flow
+        await login('student@cc.app', 'demo123');
         return;
       }
       await login(email, password);
