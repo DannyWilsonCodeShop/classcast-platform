@@ -373,7 +373,7 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
                       assignment.status === 'completed' ? 'bg-blue-100 text-blue-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
+                      {(assignment.status || 'draft').charAt(0).toUpperCase() + (assignment.status || 'draft').slice(1)}
                     </span>
                   </div>
 
@@ -579,7 +579,7 @@ const SectionColumn: React.FC<{
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {students.map((student) => (
               <StudentCard
-                key={student.studentId}
+                key={student.studentId || student.email || Math.random().toString()}
                 student={student}
                 onDragStart={() => onDragStart(student)}
                 onDragEnd={onDragEnd}
@@ -639,10 +639,10 @@ const StudentCard: React.FC<{
     >
       <div className="flex items-center space-x-3 mb-3">
         <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-          {student.name.charAt(0).toUpperCase()}
+          {(() => { const str = student.name || student.email || '?'; const first = [...str][0] || '?'; return first.length > 1 ? first : first.toUpperCase(); })()}
         </div>
         <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-gray-900 truncate">{student.name}</h4>
+          <h4 className="font-medium text-gray-900 truncate">{student.name || student.email || 'Unknown Student'}</h4>
           <p className="text-sm text-gray-500 truncate">{student.email}</p>
         </div>
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(student.status)}`}>

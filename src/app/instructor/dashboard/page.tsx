@@ -8,6 +8,7 @@ import Avatar from '@/components/common/Avatar';
 import NotificationBell from '@/components/common/NotificationBell';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { AssignmentManagement } from '@/components/instructor/AssignmentManagement';
+import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 
 interface Course {
   courseId: string;
@@ -26,6 +27,7 @@ interface Course {
 const InstructorDashboard: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
+  const { isWide } = useIsWideScreen();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -89,8 +91,9 @@ const InstructorDashboard: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-gray-50">
-        {/* Top Banner - Keep the existing header */}
+      <div className={`min-h-screen ${isWide ? 'bg-transparent' : 'bg-gray-50'}`}>
+        {/* Top Banner - only show on mobile (sidebar handles nav on wide) */}
+        {!isWide && (
         <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-indigo-600/20 px-2 sm:px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Left Side - MyClassCast Logo */}
@@ -153,9 +156,10 @@ const InstructorDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* Greeting Bar */}
-        <div className="bg-gradient-to-r from-indigo-100 to-purple-100 border-b border-indigo-200 px-4 py-4">
+        <div className={`bg-gradient-to-r from-indigo-100 to-purple-100 border-b border-indigo-200 px-4 py-4 ${isWide ? 'px-6' : ''}`}>
           <div className="max-w-7xl mx-auto">
             <h1 className="text-xl sm:text-2xl font-bold mb-1 text-gray-800">{getGreeting()}</h1>
             <p className="text-gray-600">Ready to inspire your students today?</p>

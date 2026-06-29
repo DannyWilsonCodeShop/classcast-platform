@@ -89,6 +89,7 @@ const BulkGradingContent: React.FC = () => {
   const [selectedStudent, setSelectedStudent] = useState<string>('all');
   const [selectedStudentName, setSelectedStudentName] = useState<string>('');
   const [selectedSection, setSelectedSection] = useState<string>('all');
+  const [fetchedSections, setFetchedSections] = useState<{id: string; name: string}[]>([]);
   
   // Grading state with auto-save
   const [grades, setGrades] = useState<Record<string, number | ''>>({});
@@ -112,10 +113,11 @@ const BulkGradingContent: React.FC = () => {
       .map(section => JSON.stringify(section))
   )).map(str => JSON.parse(str)).sort((a, b) => a.name.localeCompare(b.name));
   
-  // Get unique students from submissions
+  // Get unique students from submissions (include sectionId for filtering)
   const students = Array.from(new Map(allSubmissions.map(sub => [sub.studentId, {
     studentId: sub.studentId,
-    studentName: sub.studentName
+    studentName: sub.studentName,
+    sectionId: sub.sectionId || null,
   }])).values());
 
   // Fetch all submissions for instructor
@@ -228,7 +230,31 @@ const BulkGradingContent: React.FC = () => {
     };
     
     fetchData();
-  }, [user?.id, searchParams]);
+
+    // Fetch sections for the instructor's courses
+    const fetchSections = async () => {
+      try {
+        const instructorId = user?.id;
+        if (!instructorId) return;
+        // Scope to selected course if one is chosen
+        const courseParam = selectedCourse !== 'all' ? `&courseId=${selectedCourse}` : '';
+        const res = await fetch(`/api/sections?instructorId=${instructorId}${courseParam}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.sections) {
+            const mapped = data.sections
+              .filter((s: any) => s.sectionName)
+              .map((s: any) => ({ id: s.sectionId, name: `Section ${s.sectionName}` }))
+              .sort((a: any, b: any) => a.name.localeCompare(b.name));
+            setFetchedSections(mapped);
+          }
+        }
+      } catch (e) {
+        console.warn('Could not fetch sections:', e);
+      }
+    };
+    fetchSections();
+  }, [user?.id, searchParams, selectedCourse]);
 
   // Filter and sort submissions
   useEffect(() => {
@@ -271,7 +297,11 @@ const BulkGradingContent: React.FC = () => {
     
     // Apply section filter
     if (selectedSection !== 'all') {
-      filtered = filtered.filter(sub => sub.sectionId === selectedSection);
+      if (selectedSection === 'none') {
+        filtered = filtered.filter(sub => !sub.sectionId);
+      } else {
+        filtered = filtered.filter(sub => sub.sectionId === selectedSection);
+      }
     }
     
     // Apply status filter
@@ -545,7 +575,7 @@ const BulkGradingContent: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <h1 className="text-2xl font-bold text-gray-800">Bulk Grading</h1>
+                <h1 className="text-2xl font-bold text-gray-800">Grading</h1>
                 <p className="text-gray-600">Grade multiple assignments at once</p>
               </div>
             </div>
@@ -599,7 +629,7 @@ const BulkGradingContent: React.FC = () => {
                   </svg>
                 </button>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-800">Bulk Grading</h1>
+                  <h1 className="text-xl font-bold text-gray-800">Grading</h1>
                   <p className="text-sm text-gray-600">{allSubmissions.length} total submissions</p>
                 </div>
               </div>
@@ -643,6 +673,28 @@ const BulkGradingContent: React.FC = () => {
                 </div>
                 
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
+                  <select
+                    value={selectedSection}
+                    onChange={(e) => {
+                      setSelectedSection(e.target.value);
+                      // Reset student selection when section changes
+                      setSelectedStudent('all');
+                      setSelectedStudentName('');
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  >
+                    <option value="all">All Sections</option>
+                    <option value="none">No Section</option>
+                    {fetchedSections.map(section => (
+                      <option key={section.id} value={section.id}>
+                        {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Student</label>
                   <select
                     value={selectedStudent}
@@ -654,7 +706,9 @@ const BulkGradingContent: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                   >
                     <option value="all">All Students</option>
-                    {students.map(student => (
+                    {students
+                      .filter(student => selectedSection === 'all' || student.sectionId === selectedSection)
+                      .map(student => (
                       <option key={student.studentId} value={student.studentId}>
                         {student.studentName}
                       </option>
@@ -662,22 +716,6 @@ const BulkGradingContent: React.FC = () => {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
-                  <select
-                    value={selectedSection}
-                    onChange={(e) => setSelectedSection(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  >
-                    <option value="all">All Sections ({allSubmissions.length})</option>
-                    {uniqueSections.map(section => (
-                      <option key={section.id} value={section.id}>
-                        {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                   <select
@@ -775,7 +813,7 @@ const BulkGradingContent: React.FC = () => {
               </button>
               <div>
                 <h1 className="text-xl font-bold text-gray-800">
-                  {selectedStudent !== 'all' ? `${selectedStudentName}'s Videos` : 'Bulk Grading'}
+                  {selectedStudent !== 'all' ? `${selectedStudentName}'s Videos` : 'Grading'}
                 </h1>
                 <p className="text-sm text-gray-600">
                   Showing {filteredSubmissions.length} of {allSubmissions.length} submissions
@@ -829,6 +867,27 @@ const BulkGradingContent: React.FC = () => {
               </div>
               
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
+                <select
+                  value={selectedSection}
+                  onChange={(e) => {
+                    setSelectedSection(e.target.value);
+                    setSelectedStudent('all');
+                    setSelectedStudentName('');
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option value="all">All Sections</option>
+                    <option value="none">No Section</option>
+                  {fetchedSections.map(section => (
+                    <option key={section.id} value={section.id}>
+                      {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Student</label>
                 <select
                   value={selectedStudent}
@@ -840,25 +899,11 @@ const BulkGradingContent: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
                 >
                   <option value="all">All Students</option>
-                  {students.map(student => (
+                  {students
+                    .filter(student => selectedSection === 'all' || student.sectionId === selectedSection)
+                    .map(student => (
                     <option key={student.studentId} value={student.studentId}>
                       {student.studentName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
-                <select
-                  value={selectedSection}
-                  onChange={(e) => setSelectedSection(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="all">All Sections ({allSubmissions.length})</option>
-                  {uniqueSections.map(section => (
-                    <option key={section.id} value={section.id}>
-                      {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
                     </option>
                   ))}
                 </select>
