@@ -11,15 +11,8 @@ export default function HomePage() {
   const { isAuthenticated, user, isLoading } = useAuth();
 
   // Redirect authenticated users to their appropriate dashboard
-  // Or send first-time users to onboarding
   useEffect(() => {
     if (isLoading) return;
-
-    // Check if first-time user (never completed onboarding)
-    if (typeof window !== 'undefined' && !localStorage.getItem('classcast_onboarded')) {
-      router.replace('/onboarding');
-      return;
-    }
 
     if (isAuthenticated && user) {
       if (user.role === 'instructor') {

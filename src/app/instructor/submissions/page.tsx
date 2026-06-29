@@ -238,8 +238,8 @@ const SubmissionsListContent: React.FC = () => {
             </div>
             <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 text-center">
               <div className="text-2xl font-bold text-orange-600">
-                {filteredSubmissions.filter(s => s.status === 'graded').reduce((sum, s) => sum + (s.grade || 0), 0) / 
-                 Math.max(filteredSubmissions.filter(s => s.status === 'graded').length, 1)}
+                {(filteredSubmissions.filter(s => s.status === 'graded').reduce((sum, s) => sum + (s.grade || 0), 0) / 
+                 Math.max(filteredSubmissions.filter(s => s.status === 'graded').length, 1)).toFixed(1)}
               </div>
               <div className="text-sm text-gray-600">Avg Grade</div>
             </div>
