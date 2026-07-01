@@ -108,7 +108,7 @@ export default function LoginPage() {
         )}
 
         {/* ClassCast header with blue banner - full width with white border */}
-        <div className="w-full relative mb-1 mt-6 -mx-6" style={{ width: 'calc(100% + 3rem)' }}>
+        <div className="w-full relative mb-0 -mx-6" style={{ width: 'calc(100% + 3rem)' }}>
           <div className="bg-[#b3d9f2]/70 border-y-4 border-white" style={{ paddingTop: '0', paddingBottom: '0', marginTop: '-0.25rem', marginBottom: '-0.25rem' }}>
             <h1
               className="text-center"
