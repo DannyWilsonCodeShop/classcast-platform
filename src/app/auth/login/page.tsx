@@ -145,21 +145,21 @@ export default function LoginPage() {
         <div className="flex justify-center items-center gap-4 mb-4">
           <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
             <img
-              src="/pexels-deesarkee-photos-2148554063-33418728.jpg"
+              src="/student1.jpg"
               alt="Student 1"
               className="w-full h-full object-cover rounded-full"
             />
           </div>
           <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
             <img
-              src="/pexels-eduardo-barrientos-140939364-17664360.jpg"
+              src="/student2.jpg"
               alt="Student 2"
               className="w-full h-full object-cover rounded-full"
             />
           </div>
           <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
             <img
-              src="/pexels-julia-m-cameron-8841615.jpg"
+              src="/student3.jpg"
               alt="Student 3"
               className="w-full h-full object-cover rounded-full"
             />
