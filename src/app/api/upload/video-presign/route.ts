@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       ContentType: fileType,
     });
 
-    const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+    const uploadUrl = await getSignedUrl(s3, command, { expiresIn: 3600 });
     const videoUrl = `https://${BUCKET}.s3.us-east-1.amazonaws.com/${fileKey}`;
 
     return NextResponse.json({

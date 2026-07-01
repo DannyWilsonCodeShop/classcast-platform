@@ -27,6 +27,9 @@ interface Assignment {
 
 interface Submission {
   submissionId: string;
+  videoUrl?: string;
+  youtubeUrl?: string;
+  googleDriveUrl?: string;
   grade?: number;
   gradedAt?: string;
   submittedAt: string;
@@ -213,12 +216,32 @@ export default function StudentAssignmentDetailPage() {
           })()}
         </div>
 
-        {/* Video Area - Only show if assignment has a video */}
-        {assignment.instructionalVideoUrl && (
+        {/* Video Area - Show student's submission if exists, otherwise instructional video */}
+        {isSubmitted && (submission?.videoUrl || submission?.youtubeUrl || submission?.googleDriveUrl) ? (
+          <div className="relative w-full shrink-0" style={{ height: '42%', minHeight: '180px' }}>
+            <VideoPlayer url={submission.videoUrl || submission.youtubeUrl || submission.googleDriveUrl || ''} />
+            {/* Your Video label */}
+            <div className="absolute top-2 left-2 bg-green-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              ✓ Your Video
+            </div>
+            {/* Delete button */}
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-700 text-white p-2 rounded-full shadow-lg active:scale-95 disabled:opacity-50"
+            >
+              {isDeleting ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              )}
+            </button>
+          </div>
+        ) : assignment.instructionalVideoUrl ? (
           <div className="relative w-full shrink-0" style={{ height: '42%', minHeight: '180px' }}>
             <VideoPlayer url={assignment.instructionalVideoUrl} />
           </div>
-        )}
+        ) : null}
 
         {/* Info Row */}
         <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 shrink-0">

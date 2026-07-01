@@ -4,9 +4,6 @@ import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
-import { isNativePlatform } from '@/lib/capacitor';
-
-type Step = 'select-assignment' | 'record-video' | 'capture-cover' | 'preview' | 'uploading' | 'done';
 
 export default function RecordPage() {
   return (
@@ -21,109 +18,100 @@ function RecordPageInner() {
   const searchParams = useSearchParams();
   const assignmentId = searchParams.get('assignmentId');
   const { user } = useAuth();
-  const [step, setStep] = useState<Step>('record-video');
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>('');
-  const [coverPhoto, setCoverPhoto] = useState<string>('');
-  const [thumbnailUrl, setThumbnailUrl] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState('');
-  const [cameraActive, setCameraActive] = useState(true);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const videoRecordRef = useRef<HTMLInputElement>(null);
+
+  // Assignment data
   const [assignment, setAssignment] = useState<any>(null);
   const [assignmentLoading, setAssignmentLoading] = useState(!!assignmentId);
 
-  // Fetch assignment data to get courseId
-  useEffect(() => {
-    if (!assignmentId) return;
-    setAssignmentLoading(true);
-    fetch(`/api/assignments/${assignmentId}`)
-      .then(res => {
-        return res.ok ? res.json() : null;
-      })
-      .then(data => {
-        if (data?.data?.assignment) {
-          setAssignment(data.data.assignment);
-        } else if (data?.assignment) {
-          setAssignment(data.assignment);
-        } else if (data?.data) {
-          setAssignment(data.data);
-        } else if (data?.success && data?.courseId) {
-          setAssignment(data);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setAssignmentLoading(false));
-  }, [assignmentId]);
-  const videoLibraryRef = useRef<HTMLInputElement>(null);
-  const photoInputRef = useRef<HTMLInputElement>(null);
+  // Video state
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkType, setLinkType] = useState<'youtube' | 'googledrive' | null>(null);
+
+  // Recording state
+  const [cameraActive, setCameraActive] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+
+  // Upload state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
+
+  // Refs
   const liveVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-activate camera on mount
+  // Fetch assignment data
   useEffect(() => {
-    if (step === 'record-video' && cameraActive) {
-      startCamera();
-    }
+    if (!assignmentId) { setAssignmentLoading(false); return; }
+    fetch(`/api/assignments/${assignmentId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.data?.assignment) setAssignment(data.data.assignment);
+        else if (data?.assignment) setAssignment(data.assignment);
+        else if (data?.data) setAssignment(data.data);
+      })
+      .catch(() => {})
+      .finally(() => setAssignmentLoading(false));
+  }, [assignmentId]);
+
+  // Cleanup
+  useEffect(() => {
     return () => {
       stopCamera();
       if (timerRef.current) clearInterval(timerRef.current);
+      if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
     };
   }, []);
 
+  // Camera controls
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, 
-        audio: true 
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: true,
       });
       streamRef.current = stream;
-      if (liveVideoRef.current) {
-        liveVideoRef.current.srcObject = stream;
-      }
+      if (liveVideoRef.current) liveVideoRef.current.srcObject = stream;
       setCameraActive(true);
-    } catch (err) {
-      console.error('Camera access denied:', err);
+    } catch (err: any) {
+      setError(`Camera access denied: ${err?.message || err}`);
       setCameraActive(false);
     }
   };
 
   const stopCamera = () => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(t => t.stop());
       streamRef.current = null;
     }
+    setCameraActive(false);
   };
 
   const startRecording = () => {
     if (!streamRef.current) return;
     recordedChunksRef.current = [];
-    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') 
-      ? 'video/webm;codecs=vp9,opus' 
-      : MediaRecorder.isTypeSupported('video/webm') 
-        ? 'video/webm' 
-        : 'video/mp4';
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+      ? 'video/webm;codecs=vp9,opus'
+      : MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : 'video/mp4';
     const recorder = new MediaRecorder(streamRef.current, { mimeType });
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) recordedChunksRef.current.push(e.data);
-    };
+    recorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunksRef.current.push(e.data); };
     recorder.onstop = () => {
       const blob = new Blob(recordedChunksRef.current, { type: mimeType });
       const file = new File([blob], `recording-${Date.now()}.webm`, { type: mimeType });
       setVideoFile(file);
       setVideoPreviewUrl(URL.createObjectURL(blob));
       stopCamera();
-      setCameraActive(false);
-      setStep('capture-cover');
     };
     mediaRecorderRef.current = recorder;
-    recorder.start(1000); // collect data every second
+    recorder.start(1000);
     setIsRecording(true);
     setRecordingTime(0);
     timerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
@@ -137,422 +125,272 @@ function RecordPageInner() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   };
 
-  const handleLibraryClick = () => {
-    if (isRecording) stopRecording();
-    stopCamera();
-    setCameraActive(false);
-    videoLibraryRef.current?.click();
-  };
-
-  const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
-
-  // Step 1: Record or select video
-  const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // File selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      stopCamera();
-      setCameraActive(false);
-      setVideoFile(file);
-      setVideoPreviewUrl(URL.createObjectURL(file));
-      setStep('capture-cover');
-    }
-  };
-
-  // Step 2: Capture cover photo
-  const handleCoverPhotoCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        const base64 = ev.target?.result as string;
-        setCoverPhoto(base64);
-        setIsProcessing(true);
-
-        try {
-          // Send to server for background removal and compositing
-          const response = await fetch('/api/thumbnails/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: base64, userId: user?.id }),
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setThumbnailUrl(data.thumbnailUrl);
-          } else {
-            // Fallback: use the raw photo as thumbnail
-            setThumbnailUrl(base64);
-          }
-        } catch (err) {
-          // Fallback: use raw photo
-          setThumbnailUrl(base64);
-        }
-
-        setIsProcessing(false);
-        setStep('preview');
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Skip cover photo - use branded default
-  const skipCoverPhoto = () => {
-    setThumbnailUrl('');
-    setStep('preview');
-  };
-
-  // Step 3: Upload video + thumbnail
-  const handleSubmit = async () => {
-    if (!videoFile || !user?.id) return;
-    
-    // Wait for assignment data if still loading
-    if (assignmentId && assignmentLoading) {
-      setError('Still loading assignment data, please wait...');
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024 * 1024) {
+      setError('File must be under 2 GB');
       return;
     }
-    
-    // Check for required data before starting upload
-    if (assignmentId && !assignment?.courseId) {
-      setError(`Missing course info for this assignment. Try going back and selecting the assignment again.`);
-      return;
-    }
-    
-    setStep('uploading');
+    setVideoFile(file);
+    setVideoPreviewUrl(URL.createObjectURL(file));
+    setLinkUrl('');
+    setLinkType(null);
     setError('');
+  };
+
+  // Delete video
+  const deleteVideo = () => {
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    setVideoFile(null);
+    setVideoPreviewUrl('');
+    setError('');
+  };
+
+  // Detect link type
+  const detectLinkType = (url: string) => {
+    if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+    if (url.includes('drive.google')) return 'googledrive';
+    return null;
+  };
+
+  // Submit
+  const handleSubmit = async () => {
+    if (!user?.id) { setError('Not logged in'); return; }
+    if (!videoFile && !linkUrl.trim()) { setError('No video or link to submit'); return; }
+    if (assignmentId && assignmentLoading) { setError('Still loading assignment data...'); return; }
+    if (assignmentId && !assignment?.courseId) { setError(`Could not load course info for this assignment. assignment data: ${JSON.stringify(assignment)}`); return; }
+
+    setIsSubmitting(true);
+    setError('');
+    setUploadProgress(0);
 
     try {
-      // Step 1: Get presigned URL for video upload
-      const presignRes = await fetch('/api/upload/video-presign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fileName: videoFile.name,
-          fileType: videoFile.type,
-          userId: user.id,
-        }),
-      });
+      let finalVideoUrl = '';
+      let submissionMethod = 'unknown';
+      let isYouTube = false;
+      let isGoogleDrive = false;
 
-      if (!presignRes.ok) {
-        const presignError = await presignRes.text();
-        throw new Error(`Upload URL failed (${presignRes.status}): ${presignError.substring(0, 100)}`);
+      if (linkUrl.trim()) {
+        // Link submission
+        const type = detectLinkType(linkUrl.trim());
+        finalVideoUrl = linkUrl.trim();
+        if (type === 'youtube') { isYouTube = true; submissionMethod = 'youtube'; }
+        else if (type === 'googledrive') { isGoogleDrive = true; submissionMethod = 'google-drive'; }
+        else { submissionMethod = 'link'; }
+        setUploadProgress(50);
+      } else if (videoFile) {
+        // File upload via presigned URL
+        submissionMethod = videoFile.name.includes('recording') ? 'record' : 'upload';
+        setUploadProgress(5);
+
+        const presignRes = await fetch('/api/upload/video-presign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileName: videoFile.name, fileType: videoFile.type, userId: user.id }),
+        });
+        if (!presignRes.ok) {
+          const errText = await presignRes.text();
+          throw new Error(`Presign failed (${presignRes.status}): ${errText}`);
+        }
+        const { uploadUrl, videoUrl } = await presignRes.json();
+        finalVideoUrl = videoUrl;
+        setUploadProgress(10);
+
+        // Upload to S3 with progress via XMLHttpRequest
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', uploadUrl);
+          xhr.setRequestHeader('Content-Type', videoFile!.type);
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) setUploadProgress(10 + Math.round((e.loaded / e.total) * 80));
+          };
+          xhr.onload = () => { if (xhr.status >= 200 && xhr.status < 300) resolve(); else reject(new Error(`S3 upload failed: ${xhr.status} ${xhr.responseText?.substring(0, 200)}`)); };
+          xhr.onerror = () => reject(new Error(`S3 network error: ${xhr.statusText}`));
+          xhr.send(videoFile);
+        });
+        setUploadProgress(90);
       }
-      const presignData = await presignRes.json();
-      const { uploadUrl, videoUrl } = presignData;
 
-      // Step 2: Upload video to S3
-      setUploadProgress(10);
-      const uploadRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        body: videoFile,
-        headers: { 'Content-Type': videoFile.type },
-      });
-
-      if (!uploadRes.ok) {
-        throw new Error(`S3 upload failed (${uploadRes.status})`);
-      }
-      setUploadProgress(70);
-
-      // Step 3: Submit video metadata
-      const submissionBody = {
+      // Save submission
+      const body: any = {
         studentId: user.id,
         assignmentId: assignmentId || undefined,
         courseId: assignment?.courseId || undefined,
-        videoUrl,
-        thumbnailUrl: thumbnailUrl || undefined,
-        videoTitle: videoFile.name.replace(/\.[^/.]+$/, ''),
-        isRecorded: true,
-        submissionMethod: 'record',
+        videoUrl: finalVideoUrl,
+        videoTitle: videoFile?.name?.replace(/\.[^/.]+$/, '') || 'Video Submission',
+        submissionMethod,
+        isYouTube,
+        isGoogleDrive,
+        isRecorded: submissionMethod === 'record',
+        isUploaded: submissionMethod === 'upload',
       };
+      if (isYouTube) body.youtubeUrl = finalVideoUrl;
+      if (isGoogleDrive) body.googleDriveUrl = finalVideoUrl;
 
       const submitRes = await fetch('/api/video-submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submissionBody),
+        body: JSON.stringify(body),
       });
-
       const submitData = await submitRes.json().catch(() => null);
+      if (!submitRes.ok || !submitData?.success) {
+        throw new Error(`Submission save failed (${submitRes.status}): ${JSON.stringify(submitData)}`);
+      }
 
       setUploadProgress(100);
-      if (submitRes.ok && submitData?.success) {
-        setStep('done');
-        setTimeout(() => router.push(assignmentId ? `/student/assignments/${assignmentId}` : '/student/dashboard'), 1500);
-      } else {
-        const errorMsg = submitData?.error || submitData?.details || `Server error ${submitRes.status}`;
-        throw new Error(errorMsg);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Upload failed';
-      setError(errorMessage);
-      setStep('preview');
+      setSuccess(true);
+      setTimeout(() => router.push(assignmentId ? `/student/assignments/${assignmentId}` : '/student/dashboard'), 1500);
+    } catch (err: any) {
+      setError(err?.message || err?.toString() || 'Unknown error');
+      setIsSubmitting(false);
     }
   };
 
+  const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
+  const hasVideo = !!videoFile || !!linkUrl.trim();
+
   return (
     <StudentRoute>
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
-      <div className="h-full flex flex-col bg-black text-white overflow-hidden">
+      <div className="h-full flex flex-col bg-gray-950 text-white overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 flex-shrink-0">
-          <button onClick={() => router.back()} className="text-white p-2">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+        <div className="flex items-center justify-between px-4 py-3 shrink-0">
+          <button onClick={() => router.back()} className="text-white p-1">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </button>
-          <h1 className="text-lg font-bold uppercase tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>
-            {step === 'record-video' && 'Record Video'}
-            {step === 'capture-cover' && 'Cover Photo'}
-            {step === 'preview' && 'Preview'}
-            {step === 'uploading' && 'Uploading...'}
-            {step === 'done' && 'Done!'}
-          </h1>
-          <div className="w-10" /> {/* Spacer */}
+          <h1 className="text-lg font-bold">Post Video</h1>
+          <div className="w-8" />
         </div>
 
-        {/* Content */}
-        <div className="flex-1 flex flex-col items-center justify-center px-6 min-h-0">
+        {/* Content area */}
+        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 min-h-0">
 
-          {/* Step: Record/Select Video */}
-          {step === 'record-video' && (
-            <div className="relative w-full h-full flex flex-col items-center justify-center">
-              {/* Live camera preview */}
-              {cameraActive && (
-                <div className="absolute inset-0 overflow-hidden rounded-xl">
-                  <video
-                    ref={liveVideoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover scale-x-[-1]"
-                  />
-                  {/* Dark gradient overlay at bottom for buttons */}
-                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 to-transparent" />
-                </div>
-              )}
+          {/* VIDEO PREVIEW (top half when video exists) */}
+          {videoPreviewUrl && !isSubmitting && !success && (
+            <div className="relative rounded-xl overflow-hidden bg-black" style={{ height: '45%', minHeight: '200px' }}>
+              <video src={videoPreviewUrl} className="w-full h-full object-contain" controls playsInline />
+              <button onClick={deleteVideo} className="absolute top-3 right-3 bg-red-600 text-white p-2 rounded-full shadow-lg active:scale-95">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              </button>
+              <div className="absolute bottom-3 left-3 bg-black/60 px-2 py-1 rounded text-xs">
+                {videoFile && `${(videoFile.size / (1024 * 1024)).toFixed(1)} MB`}
+              </div>
+            </div>
+          )}
 
-              {/* Controls at bottom */}
-              <div className="absolute bottom-8 inset-x-0 flex flex-col items-center space-y-4 z-10">
-                {isRecording && (
-                  <div className="flex items-center gap-2 bg-black/60 px-3 py-1 rounded-full">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                    <span className="text-white text-sm font-mono">{formatTime(recordingTime)}</span>
-                  </div>
-                )}
-                <p className="text-white/80 text-xs font-medium">
-                  {isRecording ? 'Tap to stop recording' : cameraActive ? 'Tap to start recording' : 'Select a video source'}
-                </p>
-                <div className="flex items-center gap-6">
-                  {/* Library */}
-                  <button
-                    onClick={handleLibraryClick}
-                    className="w-12 h-12 bg-white/20 backdrop-blur rounded-full flex items-center justify-center border border-white/30"
-                  >
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </button>
-
-                  {/* Record button - starts/stops MediaRecorder */}
-                  <button
-                    onClick={() => { isRecording ? stopRecording() : startRecording(); }}
-                    className={`flex items-center justify-center border-4 border-white shadow-lg ${isRecording ? 'bg-red-600' : 'bg-red-500'} rounded-full`}
-                    style={{ width: 72, height: 72 }}
-                  >
-                    {isRecording ? (
-                      <div className="w-6 h-6 bg-white rounded-sm" />
-                    ) : (
-                      <div className="w-14 h-14 bg-red-500 rounded-full border-2 border-white" />
+          {/* CAMERA / RECORDING */}
+          {!videoFile && !linkUrl && !isSubmitting && !success && (
+            <div className="relative rounded-xl overflow-hidden bg-black" style={{ height: cameraActive ? '45%' : 'auto', minHeight: cameraActive ? '200px' : 'auto' }}>
+              {cameraActive ? (
+                <>
+                  <video ref={liveVideoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+                  <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 to-transparent" />
+                  <div className="absolute bottom-4 inset-x-0 flex flex-col items-center gap-2">
+                    {isRecording && (
+                      <div className="flex items-center gap-2 bg-black/60 px-3 py-1 rounded-full">
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                        <span className="text-sm font-mono">{formatTime(recordingTime)}</span>
+                      </div>
                     )}
-                  </button>
-
-                  {/* Flip camera placeholder */}
-                  <button
-                    onClick={() => { /* flip camera */ }}
-                    className="w-12 h-12 bg-white/20 backdrop-blur rounded-full flex items-center justify-center border border-white/30"
-                  >
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Fallback if camera not active */}
-              {!cameraActive && (
-                <div className="text-center space-y-6 w-full">
-                  <div className="w-24 h-24 mx-auto bg-[#005587] rounded-full flex items-center justify-center">
-                    <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <p className="text-gray-300 text-sm">Record a new video or choose one from your library</p>
-                  <div className="space-y-3 w-full max-w-xs mx-auto">
-                    <button
-                      onClick={() => videoRecordRef.current?.click()}
-                      className="w-full py-3 bg-[#005587] hover:bg-[#003d5c] rounded-full font-bold text-lg transition-colors"
-                    >
-                      📹 Record Video
-                    </button>
-                    <button
-                      onClick={() => videoLibraryRef.current?.click()}
-                      className="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-full font-medium transition-colors"
-                    >
-                      📁 Choose from Library
+                    <button onClick={isRecording ? stopRecording : startRecording} className={`w-16 h-16 rounded-full border-4 border-white flex items-center justify-center ${isRecording ? 'bg-red-600' : 'bg-red-500'}`}>
+                      {isRecording ? <div className="w-6 h-6 bg-white rounded-sm" /> : <div className="w-12 h-12 bg-red-500 rounded-full border-2 border-white" />}
                     </button>
                   </div>
-                </div>
-              )}
-
-              {/* Camera input - opens camera directly */}
-              <input
-                ref={videoRecordRef}
-                type="file"
-                accept="video/*"
-                capture="environment"
-                onChange={handleVideoSelect}
-                className="hidden"
-              />
-              {/* Library input - opens file picker */}
-              <input
-                ref={videoLibraryRef}
-                type="file"
-                accept="video/*"
-                onChange={handleVideoSelect}
-                className="hidden"
-              />
-            </div>
-          )}
-
-          {/* Step: Capture Cover Photo */}
-          {step === 'capture-cover' && (
-            <div className="text-center space-y-6 w-full">
-              <div className="w-20 h-20 mx-auto bg-[#FFC72C] rounded-full flex items-center justify-center">
-                <svg className="w-10 h-10 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold">Take Your Cover Photo</h2>
-              <p className="text-gray-400 text-sm px-4">
-                Strike a pose! This photo will be your video thumbnail. 
-                We'll remove the background and make it look great.
-              </p>
-
-              <div className="space-y-3 w-full max-w-xs mx-auto">
-                <button
-                  onClick={() => photoInputRef.current?.click()}
-                  className="w-full py-3 bg-[#FFC72C] hover:bg-[#E5A900] text-[#005587] rounded-full font-bold text-lg transition-colors"
-                >
-                  📸 Take Photo
-                </button>
-                <button
-                  onClick={skipCoverPhoto}
-                  className="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-full font-medium text-gray-300 transition-colors"
-                >
-                  Skip — use default thumbnail
-                </button>
-              </div>
-
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/*"
-                capture="user"
-                onChange={handleCoverPhotoCapture}
-                className="hidden"
-              />
-
-              {isProcessing && (
-                <div className="flex items-center justify-center space-x-2 mt-4">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span className="text-sm text-gray-300">Processing your photo...</span>
+                </>
+              ) : (
+                <div className="py-8 flex flex-col items-center gap-3">
+                  <button onClick={startCamera} className="w-full max-w-xs py-3 bg-[#005587] rounded-full font-bold text-center">📹 Open Camera</button>
                 </div>
               )}
             </div>
           )}
 
-          {/* Step: Preview */}
-          {step === 'preview' && (
-            <div className="text-center space-y-4 w-full">
-              {/* Thumbnail preview */}
-              {thumbnailUrl && (
-                <div className="mx-auto w-48 h-48 rounded-xl overflow-hidden border-2 border-white/20">
-                  <img src={thumbnailUrl} alt="Cover" className="w-full h-full object-cover" />
+          {/* ACTION BUTTONS (when no video yet) */}
+          {!videoFile && !linkUrl && !isSubmitting && !success && !cameraActive && (
+            <div className="space-y-3">
+              <button onClick={() => fileInputRef.current?.click()} className="w-full py-3 bg-gray-800 border border-gray-600 rounded-xl font-medium flex items-center justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                Upload from Device (up to 2 GB)
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-gray-700" /><span className="text-xs text-gray-500">OR PASTE A LINK</span><div className="flex-1 h-px bg-gray-700" />
+              </div>
+              <input
+                type="url"
+                placeholder="Paste YouTube or Google Drive link..."
+                value={linkUrl}
+                onChange={(e) => { setLinkUrl(e.target.value); setLinkType(detectLinkType(e.target.value)); setError(''); }}
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-[#005587] focus:ring-1 focus:ring-[#005587]"
+              />
+              {linkType && (
+                <div className="flex items-center gap-2 text-sm text-green-400">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  {linkType === 'youtube' ? 'YouTube link detected' : 'Google Drive link detected'}
                 </div>
               )}
-
-              {/* Video info */}
-              <div className="bg-gray-800 rounded-xl p-4">
-                <p className="text-sm text-gray-400">Video ready</p>
-                <p className="font-medium truncate">{videoFile?.name}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {videoFile && `${(videoFile.size / (1024 * 1024)).toFixed(1)} MB`}
-                </p>
-              </div>
-
-              {error && (
-                <div className="bg-red-900/50 border border-red-500/50 rounded-xl p-3">
-                  <p className="text-red-300 text-sm font-medium mb-1">⚠️ Error</p>
-                  <p className="text-red-200 text-xs break-words">{error}</p>
-                </div>
-              )}
-
-              <div className="space-y-3 w-full max-w-xs mx-auto">
-                <button
-                  onClick={handleSubmit}
-                  disabled={assignmentLoading}
-                  className="w-full py-3 bg-[#005587] hover:bg-[#003d5c] rounded-full font-bold text-lg transition-colors disabled:opacity-50"
-                >
-                  {assignmentLoading ? '⏳ Loading...' : '🚀 Post Video'}
-                </button>
-                <button
-                  onClick={() => setStep('capture-cover')}
-                  className="w-full py-2 text-gray-400 hover:text-white text-sm transition-colors"
-                >
-                  Retake cover photo
-                </button>
-              </div>
             </div>
           )}
 
-          {/* Step: Uploading */}
-          {step === 'uploading' && (
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 mx-auto relative">
+          {/* LINK PREVIEW (when link is entered) */}
+          {linkUrl.trim() && !videoFile && !isSubmitting && !success && (
+            <div className="bg-gray-800 rounded-xl p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-lg bg-red-600/20 flex items-center justify-center shrink-0">
+                  {linkType === 'youtube' ? <span className="text-lg">▶️</span> : <span className="text-lg">📁</span>}
+                </div>
+                <p className="text-sm truncate text-gray-300">{linkUrl}</p>
+              </div>
+              <button onClick={() => { setLinkUrl(''); setLinkType(null); }} className="text-gray-400 p-1 shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          )}
+
+          {/* SUBMIT BUTTON */}
+          {hasVideo && !isSubmitting && !success && (
+            <button onClick={handleSubmit} disabled={assignmentLoading} className="w-full py-4 bg-gradient-to-r from-[#005587] to-[#0088cc] rounded-xl font-bold text-lg active:scale-[0.98] transition-transform disabled:opacity-50">
+              {assignmentLoading ? '⏳ Loading assignment...' : '🚀 Post Video'}
+            </button>
+          )}
+
+          {/* UPLOADING STATE */}
+          {isSubmitting && !success && (
+            <div className="flex flex-col items-center gap-4 py-12">
+              <div className="w-20 h-20 relative">
                 <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
                   <circle cx="40" cy="40" r="35" fill="none" stroke="#333" strokeWidth="6" />
-                  <circle
-                    cx="40" cy="40" r="35" fill="none" stroke="#005587" strokeWidth="6"
-                    strokeDasharray={`${2 * Math.PI * 35}`}
-                    strokeDashoffset={`${2 * Math.PI * 35 * (1 - uploadProgress / 100)}`}
-                    strokeLinecap="round"
-                  />
+                  <circle cx="40" cy="40" r="35" fill="none" stroke="#005587" strokeWidth="6" strokeDasharray={`${2 * Math.PI * 35}`} strokeDashoffset={`${2 * Math.PI * 35 * (1 - uploadProgress / 100)}`} strokeLinecap="round" />
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">
-                  {uploadProgress}%
-                </span>
+                <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">{uploadProgress}%</span>
               </div>
-              <p className="text-gray-300">Uploading your video...</p>
+              <p className="text-gray-400">Uploading...</p>
             </div>
           )}
 
-          {/* Step: Done */}
-          {step === 'done' && (
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 mx-auto bg-green-500 rounded-full flex items-center justify-center">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
+          {/* SUCCESS */}
+          {success && (
+            <div className="flex flex-col items-center gap-4 py-12">
+              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
               </div>
               <h2 className="text-xl font-bold">Posted!</h2>
-              <p className="text-gray-400 text-sm">Your video is live. Redirecting...</p>
+              <p className="text-gray-400 text-sm">Redirecting...</p>
+            </div>
+          )}
+
+          {/* ERROR DISPLAY - FULL DETAILS */}
+          {error && (
+            <div className="bg-red-900/60 border border-red-500/50 rounded-xl p-4 mt-2">
+              <p className="text-red-300 text-sm font-bold mb-1">⚠️ Error</p>
+              <p className="text-red-200 text-xs break-all whitespace-pre-wrap font-mono">{error}</p>
+              <button onClick={() => setError('')} className="mt-2 text-xs text-red-400 underline">Dismiss</button>
             </div>
           )}
         </div>
+
+        {/* Hidden file input */}
+        <input ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={handleFileSelect} />
       </div>
     </StudentRoute>
   );
