@@ -98,6 +98,7 @@ export default function StudentAssignmentDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showResourcesModal, setShowResourcesModal] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
+  const [showRubricModal, setShowRubricModal] = useState(false);
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [postLinkUrl, setPostLinkUrl] = useState('');
   const [postLinkSubmitting, setPostLinkSubmitting] = useState(false);
@@ -293,7 +294,7 @@ export default function StudentAssignmentDetailPage() {
                 </div>
                 <span className="text-[9px] font-bold text-[#005587] mt-0.5">Post</span>
               </button>
-              <button className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
+              <button onClick={() => setShowRubricModal(true)} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
               <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
             </div>
           )}
@@ -309,7 +310,7 @@ export default function StudentAssignmentDetailPage() {
                 </div>
                 <span className="text-[9px] font-bold text-[#005587] mt-0.5 block text-center leading-tight">Peer<br/>Review</span>
               </button>
-              <button className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
+              <button onClick={() => setShowRubricModal(true)} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
               <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
             </div>
           )}
@@ -324,12 +325,52 @@ export default function StudentAssignmentDetailPage() {
                 </div>
                 <span className="text-[9px] font-bold text-[#005587] mt-0.5 block text-center leading-tight">Peer<br/>Review</span>
               </button>
-              <button className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
+              <button onClick={() => setShowRubricModal(true)} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
               <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Rubric Modal */}
+      {showRubricModal && assignment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowRubricModal(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-bold text-gray-900">Rubric</h3>
+              <button onClick={() => setShowRubricModal(false)} className="text-gray-400 p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 space-y-3">
+              {(assignment as any).rubric && Array.isArray((assignment as any).rubric) ? (
+                <>
+                  {(assignment as any).rubric.map((item: any, idx: number) => (
+                    <div key={item.id || idx} className="bg-gray-50 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-semibold text-gray-900">{item.name}</span>
+                        <span className="text-sm font-bold text-[#005587]">{item.maxPoints} pts</span>
+                      </div>
+                      <p className="text-xs text-gray-500">{item.description}</p>
+                    </div>
+                  ))}
+                  <div className="border-t border-gray-200 pt-2 mt-2 flex items-center justify-between">
+                    <span className="text-sm font-bold text-gray-700">Total</span>
+                    <span className="text-sm font-bold text-[#005587]">
+                      {(assignment as any).rubric.reduce((sum: number, r: any) => sum + (r.maxPoints || 0), 0)} pts
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 text-sm">No rubric available for this assignment.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Resources Modal */}
       {showResourcesModal && assignment && (
