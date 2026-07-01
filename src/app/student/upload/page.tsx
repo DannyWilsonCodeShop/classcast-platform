@@ -1,21 +1,36 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { VideoUploadZone } from '@/components/student/VideoUploadZone';
 import { VideoUploadProgress } from '@/components/student/VideoUploadProgress';
 import { ArrowLeftIcon, CloudArrowUpIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function VideoUploadPage() {
+function UploadPageInner() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const assignmentId = searchParams.get('assignmentId');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [uploadedVideo, setUploadedVideo] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [assignment, setAssignment] = useState<any>(null);
+
+  // Fetch assignment data if assignmentId is present
+  useEffect(() => {
+    if (!assignmentId) return;
+    fetch(`/api/assignments/${assignmentId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.data?.assignment) setAssignment(data.data.assignment);
+        else if (data?.assignment) setAssignment(data.assignment);
+      })
+      .catch(() => {});
+  }, [assignmentId]);
 
   const handleFileSelect = async (file: File) => {
     if (!file) return;
@@ -38,18 +53,6 @@ export default function VideoUploadPage() {
     setUploadProgress(0);
 
     try {
-      // Create form data
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('folder', 'videos');
-      formData.append('userId', user?.id || '');
-      formData.append('metadata', JSON.stringify({
-        fileType: 'video',
-        uploadedAt: new Date().toISOString(),
-        originalName: file.name,
-        size: file.size
-      }));
-
       // Simulate upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
@@ -62,26 +65,64 @@ export default function VideoUploadPage() {
       }, 200);
 
       // Upload file
-      const response = await fetch('/api/upload', {
+      const response = await fetch('/api/upload/video-presign', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type,
+          userId: user?.id || '',
+        }),
       });
 
       clearInterval(progressInterval);
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
+        throw new Error(errorData.error || 'Failed to get upload URL');
       }
 
-      const result = await response.json();
-      setUploadedVideo(result.data);
+      const { uploadUrl, videoUrl } = await response.json();
+
+      // Upload to S3
+      const s3Res = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type },
+      });
+
+      if (!s3Res.ok) throw new Error('Upload to storage failed');
+
+      setUploadProgress(90);
+
+      // If we have an assignment, save the submission
+      if (assignmentId && assignment?.courseId) {
+        const submitRes = await fetch('/api/video-submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentId: user?.id,
+            assignmentId,
+            courseId: assignment.courseId,
+            videoUrl,
+            videoTitle: file.name.replace(/\.[^/.]+$/, ''),
+            isUploaded: true,
+            submissionMethod: 'upload',
+          }),
+        });
+        const submitData = await submitRes.json().catch(() => null);
+        if (!submitRes.ok || !submitData?.success) {
+          throw new Error(submitData?.error || 'Failed to save submission');
+        }
+      }
+
+      setUploadedVideo({ fileName: file.name, videoUrl });
       setUploadStatus('success');
       setUploadProgress(100);
 
-      // Redirect to dashboard after successful upload
+      // Redirect after successful upload
       setTimeout(() => {
-        router.push('/student/dashboard');
+        router.push(assignmentId ? `/student/assignments/${assignmentId}` : '/student/dashboard');
       }, 2000);
 
     } catch (error) {
@@ -130,7 +171,8 @@ export default function VideoUploadPage() {
             {uploadStatus === 'idle' && (
               <VideoUploadZone
                 onFileSelect={handleFileSelect}
-                isUploading={isUploading}
+                allowedTypes={['video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo', 'video/x-ms-wmv', 'video/ogg', 'video/3gpp']}
+                maxFileSize={500 * 1024 * 1024}
               />
             )}
 
@@ -206,5 +248,13 @@ export default function VideoUploadPage() {
         </div>
       </div>
     </StudentRoute>
+  );
+}
+
+export default function VideoUploadPage() {
+  return (
+    <Suspense fallback={<StudentRoute><div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-2 border-[#005587] border-t-transparent" /></div></StudentRoute>}>
+      <UploadPageInner />
+    </Suspense>
   );
 }
