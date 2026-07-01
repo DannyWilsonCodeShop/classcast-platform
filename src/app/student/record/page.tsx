@@ -30,6 +30,11 @@ function RecordPageInner() {
   const [linkUrl, setLinkUrl] = useState('');
   const [linkType, setLinkType] = useState<'youtube' | 'googledrive' | null>(null);
 
+  // Thumbnail state
+  const [showThumbnailStep, setShowThumbnailStep] = useState(false);
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
   // Recording state
   const [cameraActive, setCameraActive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -127,6 +132,7 @@ function RecordPageInner() {
       setVideoFile(file);
       setVideoPreviewUrl(URL.createObjectURL(blob));
       stopCamera();
+      setShowThumbnailStep(true); // Show cover photo step after recording
     };
     mediaRecorderRef.current = recorder;
     recorder.start(1000);
@@ -238,6 +244,7 @@ function RecordPageInner() {
         courseId: assignment?.courseId || undefined,
         videoUrl: finalVideoUrl,
         videoTitle: videoFile?.name?.replace(/\.[^/.]+$/, '') || 'Video Submission',
+        thumbnailUrl: thumbnailUrl || undefined,
         submissionMethod,
         isYouTube,
         isGoogleDrive,
@@ -311,8 +318,60 @@ function RecordPageInner() {
         {/* Content area */}
         <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 min-h-0">
 
+          {/* THUMBNAIL STEP - after recording */}
+          {showThumbnailStep && !isSubmitting && !success && (
+            <div className="flex flex-col items-center gap-4 py-8">
+              <div className="w-20 h-20 bg-[#FFC72C] rounded-full flex items-center justify-center">
+                <svg className="w-10 h-10 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-center">Take Your Cover Photo</h2>
+              <p className="text-gray-400 text-sm text-center px-4">
+                Strike a pose! This will be your video thumbnail.
+              </p>
+              {thumbnailUrl && (
+                <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-white/20">
+                  <img src={thumbnailUrl} alt="Cover" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="w-full max-w-xs space-y-3">
+                <button
+                  onClick={() => thumbnailInputRef.current?.click()}
+                  className="w-full py-3 bg-[#FFC72C] text-[#005587] rounded-full font-bold text-lg"
+                >
+                  📸 {thumbnailUrl ? 'Retake Photo' : 'Take Photo'}
+                </button>
+                <button
+                  onClick={() => setShowThumbnailStep(false)}
+                  className="w-full py-3 bg-gray-700 text-gray-300 rounded-full font-medium"
+                >
+                  {thumbnailUrl ? 'Use This Photo →' : 'Skip — use default'}
+                </button>
+              </div>
+              <input
+                ref={thumbnailInputRef}
+                type="file"
+                accept="image/*"
+                capture="user"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      setThumbnailUrl(ev.target?.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+          )}
+
           {/* VIDEO PREVIEW (top half when video exists) */}
-          {videoPreviewUrl && !isSubmitting && !success && (
+          {videoPreviewUrl && !showThumbnailStep && !isSubmitting && !success && (
             <div className="relative rounded-xl overflow-hidden bg-black" style={{ height: '45%', minHeight: '200px' }}>
               <video src={videoPreviewUrl} className="w-full h-full object-contain" controls playsInline />
               <button onClick={deleteVideo} className="absolute top-3 right-3 bg-red-600 text-white p-2 rounded-full shadow-lg active:scale-95">
@@ -373,7 +432,7 @@ function RecordPageInner() {
           )}
 
           {/* SUBMIT BUTTON */}
-          {hasVideo && !isSubmitting && !success && (
+          {hasVideo && !showThumbnailStep && !isSubmitting && !success && (
             <button onClick={handleSubmit} disabled={assignmentLoading} className="w-full py-4 bg-gradient-to-r from-[#005587] to-[#0088cc] rounded-xl font-bold text-lg active:scale-[0.98] transition-transform disabled:opacity-50">
               {assignmentLoading ? '⏳ Loading assignment...' : '🚀 Post Video'}
             </button>
