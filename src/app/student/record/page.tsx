@@ -17,6 +17,7 @@ function RecordPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const assignmentId = searchParams.get('assignmentId');
+  const mode = searchParams.get('mode'); // 'record', 'upload', or null
   const { user } = useAuth();
 
   // Assignment data
@@ -70,6 +71,16 @@ function RecordPageInner() {
       if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
     };
   }, []);
+
+  // Auto-trigger based on mode param
+  useEffect(() => {
+    if (mode === 'upload') {
+      // Small delay to ensure ref is mounted
+      setTimeout(() => fileInputRef.current?.click(), 300);
+    } else if (mode === 'record') {
+      startCamera();
+    }
+  }, [mode]);
 
   // Camera controls
   const startCamera = async () => {

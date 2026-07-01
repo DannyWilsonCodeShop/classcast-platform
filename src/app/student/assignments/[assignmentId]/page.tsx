@@ -98,6 +98,10 @@ export default function StudentAssignmentDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showResourcesModal, setShowResourcesModal] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
+  const [showLinkInput, setShowLinkInput] = useState(false);
+  const [postLinkUrl, setPostLinkUrl] = useState('');
+  const [postLinkSubmitting, setPostLinkSubmitting] = useState(false);
+  const [postError, setPostError] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadUrl, setUploadUrl] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -370,49 +374,115 @@ export default function StudentAssignmentDetailPage() {
 
       {/* Post Modal - Record or Upload */}
       {showPostModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowPostModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => { setShowPostModal(false); setShowLinkInput(false); setPostError(''); }}>
           <div className="absolute inset-0 bg-black/40" />
           <div className="relative bg-white w-full max-w-[400px] mx-4 mb-8 rounded-2xl p-5 flex flex-col gap-3" onClick={e => e.stopPropagation()}>
             <h3 className="text-base font-bold text-gray-900 text-center mb-1">Post to Assignment</h3>
-            <button
-              onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${assignmentId}`); }}
-              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-[#005587] to-[#0088cc] active:scale-[0.98] transition-transform"
-            >
-              <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+            
+            {!showLinkInput ? (
+              <>
+                <button
+                  onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${assignmentId}&mode=record`); }}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-[#005587] to-[#0088cc] active:scale-[0.98] transition-transform"
+                >
+                  <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-white font-bold text-sm block">Record Live</span>
+                    <span className="text-white/70 text-xs">Open camera and record</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${assignmentId}&mode=upload`); }}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
+                >
+                  <div className="w-11 h-11 rounded-full bg-[#005587]/10 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-gray-900 font-bold text-sm block">Upload a File</span>
+                    <span className="text-gray-500 text-xs">Choose from your device</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setShowLinkInput(true)}
+                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
+                >
+                  <div className="w-11 h-11 rounded-full bg-[#005587]/10 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-gray-900 font-bold text-sm block">Paste a Link</span>
+                    <span className="text-gray-500 text-xs">YouTube or Google Drive</span>
+                  </div>
+                </button>
+              </>
+            ) : (
+              /* Link input inline */
+              <div className="space-y-3">
+                <input
+                  type="url"
+                  autoFocus
+                  placeholder="Paste YouTube or Google Drive link..."
+                  value={postLinkUrl}
+                  onChange={(e) => { setPostLinkUrl(e.target.value); setPostError(''); }}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-[#005587] focus:ring-1 focus:ring-[#005587]"
+                />
+                {postError && <p className="text-red-500 text-xs break-all">{postError}</p>}
+                <button
+                  onClick={async () => {
+                    if (!postLinkUrl.trim()) { setPostError('Please paste a link'); return; }
+                    if (!user?.id) { setPostError('Not logged in'); return; }
+                    setPostLinkSubmitting(true);
+                    setPostError('');
+                    try {
+                      const isYT = postLinkUrl.includes('youtube.com') || postLinkUrl.includes('youtu.be');
+                      const isGD = postLinkUrl.includes('drive.google');
+                      const res = await fetch('/api/video-submissions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          studentId: user.id,
+                          assignmentId,
+                          courseId: assignment?.courseId,
+                          videoUrl: postLinkUrl.trim(),
+                          youtubeUrl: isYT ? postLinkUrl.trim() : undefined,
+                          googleDriveUrl: isGD ? postLinkUrl.trim() : undefined,
+                          videoTitle: 'Video Submission',
+                          isYouTube: isYT,
+                          isGoogleDrive: isGD,
+                          submissionMethod: isYT ? 'youtube' : isGD ? 'google-drive' : 'link',
+                        }),
+                      });
+                      const data = await res.json().catch(() => null);
+                      if (res.ok && data?.success) {
+                        setShowPostModal(false);
+                        setShowLinkInput(false);
+                        setPostLinkUrl('');
+                        fetchData(); // Refresh to show submission
+                      } else {
+                        setPostError(data?.error || data?.details || `Failed (${res.status}): ${JSON.stringify(data)}`);
+                      }
+                    } catch (err: any) {
+                      setPostError(err?.message || 'Network error');
+                    }
+                    setPostLinkSubmitting(false);
+                  }}
+                  disabled={postLinkSubmitting || !postLinkUrl.trim()}
+                  className="w-full py-3 bg-[#005587] text-white rounded-xl font-bold disabled:opacity-50"
+                >
+                  {postLinkSubmitting ? 'Submitting...' : 'Submit Link'}
+                </button>
+                <button onClick={() => setShowLinkInput(false)} className="w-full py-2 text-sm text-gray-400">← Back</button>
               </div>
-              <div className="text-left">
-                <span className="text-white font-bold text-sm block">Record Live</span>
-                <span className="text-white/70 text-xs">Record a video now</span>
-              </div>
-            </button>
-            <button
-              onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${assignmentId}`); }}
-              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
-            >
-              <div className="w-11 h-11 rounded-full bg-[#005587]/10 flex items-center justify-center shrink-0">
-                <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-              </div>
-              <div className="text-left">
-                <span className="text-gray-900 font-bold text-sm block">Upload a File</span>
-                <span className="text-gray-500 text-xs">Choose a video from your device</span>
-              </div>
-            </button>
-            <button
-              onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${assignmentId}`); }}
-              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
-            >
-              <div className="w-11 h-11 rounded-full bg-[#005587]/10 flex items-center justify-center shrink-0">
-                <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-              </div>
-              <div className="text-left">
-                <span className="text-gray-900 font-bold text-sm block">Paste a Link</span>
-                <span className="text-gray-500 text-xs">YouTube or Google Drive URL</span>
-              </div>
-            </button>
-            <button onClick={() => setShowPostModal(false)} className="w-full py-2.5 text-sm text-gray-400 font-medium mt-1">
-              Cancel
-            </button>
+            )}
+            
+            {!showLinkInput && (
+              <button onClick={() => { setShowPostModal(false); setShowLinkInput(false); }} className="w-full py-2.5 text-sm text-gray-400 font-medium mt-1">
+                Cancel
+              </button>
+            )}
           </div>
         </div>
       )}
