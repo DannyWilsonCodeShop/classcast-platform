@@ -31,6 +31,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   const [responseText, setResponseText] = React.useState<string>('');
   const [postingComment, setPostingComment] = React.useState<boolean>(false);
   const [postingResponse, setPostingResponse] = React.useState<boolean>(false);
+  const [responsePosted, setResponsePosted] = React.useState<boolean>(false);
   const [userRating, setUserRating] = React.useState<number>(initialUserRating);
   const [averageRating, setAverageRating] = React.useState<number>(0);
   const [loadingRating, setLoadingRating] = React.useState<boolean>(false);
@@ -220,12 +221,15 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         console.log('✅ Response posted:', data);
         if (data.success) {
           setResponseText('');
-          // Responses don't increment comment count since they're for grading
+          setResponsePosted(true);
+          // Reset after 3 seconds
+          setTimeout(() => setResponsePosted(false), 3000);
           // Refresh responses list to show new response
           await loadResponses();
         }
       } else {
         console.error('❌ Response post failed:', res.status, await res.text().catch(() => 'Unknown error'));
+        alert('Failed to submit response. Please try again.');
       }
     } catch (error) {
       console.error('❌ Response post error:', error);
@@ -301,13 +305,19 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
 
       {/* Respond (inline toggle) */}
       <details>
-        <summary className="list-none cursor-pointer flex items-center space-x-1.5 hover:text-green-500 transition-colors py-2">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <summary className={`list-none cursor-pointer flex items-center space-x-1.5 transition-colors py-2 ${responsePosted ? 'text-green-500' : 'hover:text-green-500'}`}>
+          <svg className="w-6 h-6" fill={responsePosted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-sm font-medium">Respond to this Video</span>
+          <span className="text-sm font-medium">{responsePosted ? 'Response Submitted ✓' : 'Respond to this Video'}</span>
         </summary>
         <div className="mt-2">
+          {responsePosted && (
+            <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+              <svg className="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              <span className="text-sm text-green-700 font-medium">Response submitted successfully!</span>
+            </div>
+          )}
           <textarea
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             placeholder="Write your response for grading..."
