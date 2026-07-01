@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showLoadingModal, setShowLoadingModal] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,19 +26,24 @@ export default function LoginPage() {
     }
     setIsLoading(true);
     setError('');
+    // Show loading modal after 1.5 seconds if still loading
+    const loadingTimer = setTimeout(() => setShowLoadingModal(true), 1500);
     try {
       // Demo mode: use the working demo account that goes through real auth
       const emailLower = email.toLowerCase().trim();
       if (emailLower === 'demo@classcast.ai') {
         // Use the real demo account credentials that work through the full auth flow
         await login('student@cc.app', 'demo123');
+        clearTimeout(loadingTimer);
         return;
       }
       await login(email, password);
+      clearTimeout(loadingTimer);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
+      setShowLoadingModal(false);
     }
   };
 
@@ -61,7 +67,7 @@ export default function LoginPage() {
         }}
       />
       {/* Semi-transparent overlay */}
-      <div className="absolute inset-0 z-[1] bg-white/20" />
+      <div className="absolute inset-0 z-[1] bg-white/10" />
 
       {/* Main content */}
       <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 h-screen border border-gray-200 rounded-3xl bg-white/80 backdrop-blur-sm">
@@ -126,7 +132,7 @@ export default function LoginPage() {
         </div>
 
         {/* Logo - Camera with lightbulb */}
-        <div className="flex justify-center mb-20">
+        <div className="flex justify-center mb-8">
           <img
             src="/UpdatedCCLogo.png"
             alt="ClassCast Logo"
@@ -230,6 +236,16 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Loading Modal */}
+      {showLoadingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl p-8 shadow-xl flex flex-col items-center">
+            <div className="w-12 h-12 border-4 border-[#005587] border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-700 font-medium">Loading...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

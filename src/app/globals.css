@@ -397,3 +397,16 @@ html[data-native] .native-bottom-nav {
 html[data-native] .native-safe-top {
   padding-top: env(safe-area-inset-top, 0px);
 }
+
+/* Dynamic Type / Accessibility - Respect system font size */
+@supports (font: -apple-system-body) {
+  html {
+    font: -apple-system-body;
+  }
+}
+
+/* Ensure text scales with system settings on iOS */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}

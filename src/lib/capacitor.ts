@@ -22,7 +22,7 @@ export async function initializeNativeApp() {
   try {
     // Status bar setup
     const { StatusBar, Style } = await import('@capacitor/status-bar');
-    await StatusBar.setStyle({ style: Style.Light });
+    await StatusBar.setStyle({ style: Style.Dark });
     if (isIOS()) {
       await StatusBar.setOverlaysWebView({ overlay: true });
     }
