@@ -213,13 +213,13 @@ export default function LoginPage() {
 
         {/* Student profile photos at bottom */}
         <div className="flex justify-center items-center gap-4 mt-4 mb-2">
-          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
+          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6.9rem', height: '6.9rem' }}>
             <img src="/student1.jpg" alt="Student 1" className="w-full h-full object-cover rounded-full" />
           </div>
-          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
+          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6.9rem', height: '6.9rem' }}>
             <img src="/student2.jpg" alt="Student 2" className="w-full h-full object-cover rounded-full" />
           </div>
-          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
+          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6.9rem', height: '6.9rem' }}>
             <img src="/student3.jpg" alt="Student 3" className="w-full h-full object-cover rounded-full" />
           </div>
         </div>
