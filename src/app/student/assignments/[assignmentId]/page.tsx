@@ -94,6 +94,7 @@ export default function StudentAssignmentDetailPage() {
   const [error, setError] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showResourcesModal, setShowResourcesModal] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadUrl, setUploadUrl] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -255,12 +256,15 @@ export default function StudentAssignmentDetailPage() {
           {!isSubmitted && (
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
-              <button onClick={() => setShowUploadModal(true)} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg><span className="text-[10px] text-gray-400">Upload</span></button>
-              <button onClick={() => router.push(`/student/record?assignmentId=${assignmentId}`)} className="">
-                <div className="w-14 h-14 bg-red-500 rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-red-300">
-                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-medium text-orange-600">Unsubmitted</span>
+                {dueBadge && <span className={`text-[9px] mt-0.5 ${dueBadge.color} px-1.5 py-0.5 rounded-full`}>{dueBadge.label}</span>}
+              </div>
+              <button onClick={() => setShowPostModal(true)} className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#005587] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                 </div>
-                <span className="text-[10px] font-bold text-red-500 mt-0.5 block text-center">Record</span>
+                <span className="text-[9px] font-bold text-[#005587] mt-0.5">Post</span>
               </button>
               <button className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[10px] text-gray-400">Rubric</span></button>
               <button className="flex flex-col items-center relative" onClick={() => resourceCount > 0 && setShowResourcesModal(true)}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[10px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
@@ -337,6 +341,43 @@ export default function StudentAssignmentDetailPage() {
                 </a>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Post Modal - Record or Upload */}
+      {showPostModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" onClick={() => setShowPostModal(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="relative bg-white w-full max-w-[400px] mx-4 mb-8 rounded-2xl p-5 flex flex-col gap-3" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-gray-900 text-center mb-1">Post to Assignment</h3>
+            <button
+              onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${assignmentId}`); }}
+              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-[#005587] to-[#0088cc] active:scale-[0.98] transition-transform"
+            >
+              <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+              </div>
+              <div className="text-left">
+                <span className="text-white font-bold text-sm block">Record Live</span>
+                <span className="text-white/70 text-xs">Record a video now</span>
+              </div>
+            </button>
+            <button
+              onClick={() => { setShowPostModal(false); router.push(`/student/upload?assignmentId=${assignmentId}`); }}
+              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
+            >
+              <div className="w-11 h-11 rounded-full bg-[#005587]/10 flex items-center justify-center shrink-0">
+                <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+              </div>
+              <div className="text-left">
+                <span className="text-gray-900 font-bold text-sm block">Upload a File</span>
+                <span className="text-gray-500 text-xs">Choose a video from your device</span>
+              </div>
+            </button>
+            <button onClick={() => setShowPostModal(false)} className="w-full py-2.5 text-sm text-gray-400 font-medium mt-1">
+              Cancel
+            </button>
           </div>
         </div>
       )}
