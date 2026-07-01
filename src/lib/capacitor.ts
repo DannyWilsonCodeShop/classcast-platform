@@ -22,9 +22,9 @@ export async function initializeNativeApp() {
   try {
     // Status bar setup
     const { StatusBar, Style } = await import('@capacitor/status-bar');
-    await StatusBar.setStyle({ style: Style.Dark });
+    await StatusBar.setStyle({ style: Style.Light });
     if (isIOS()) {
-      await StatusBar.setOverlaysWebView({ overlay: true });
+      await StatusBar.setOverlaysWebView({ overlay: false });
     }
   } catch (e) {
     console.warn('StatusBar plugin not available:', e);

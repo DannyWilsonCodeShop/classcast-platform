@@ -15,7 +15,7 @@ const config: CapacitorConfig = {
     contentInset: 'never',
     preferredContentMode: 'mobile',
     scheme: 'ClassCast',
-    backgroundColor: '#005587',
+    backgroundColor: '#ffffff',
     scrollEnabled: false,
   },
   plugins: {
@@ -29,9 +29,8 @@ const config: CapacitorConfig = {
       splashImmersive: true,
     },
     StatusBar: {
-      style: 'DARK',
-      backgroundColor: '#ffffff',
-      overlaysWebView: true,
+      style: 'LIGHT',
+      backgroundColor: '#005587',
     },
     Keyboard: {
       resize: 'body',
