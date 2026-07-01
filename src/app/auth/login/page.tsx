@@ -70,7 +70,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 z-[1]" />
 
       {/* Main content */}
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 min-h-screen min-h-dvh bg-white/25 backdrop-blur-sm">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 min-h-screen min-h-dvh bg-white/10">
         {/* Top bar - hamburger menu */}
         <div className="w-full flex items-center justify-start mb-1">
           <button
@@ -111,7 +111,7 @@ export default function LoginPage() {
         )}
 
         {/* ClassCast header with blue banner - full width with white border */}
-        <div className="w-full relative mb-1 -mx-6" style={{ width: 'calc(100% + 3rem)' }}>
+        <div className="w-full relative mb-1 mt-6 -mx-6" style={{ width: 'calc(100% + 3rem)' }}>
           <div className="bg-[#b3d9f2]/70 border-y-4 border-white" style={{ paddingTop: '0', paddingBottom: '0', marginTop: '-0.25rem', marginBottom: '-0.25rem' }}>
             <h1
               className="text-center"
