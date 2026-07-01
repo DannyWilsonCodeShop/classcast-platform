@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
+import { StudentTabBar } from '@/components/student/StudentTabBar';
 
 interface Assignment {
   assignmentId: string;
@@ -320,30 +321,8 @@ export default function StudentAssignmentsPage() {
           )}
         </div>
 
-        {/* Bottom Nav - 3 buttons: Home | + | Profile */}
-        <nav className="flex-shrink-0 border-t border-gray-200 bg-white">
-          <div className="flex items-center justify-around h-14 px-4">
-            <a href="/student/dashboard" className="flex flex-col items-center">
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-              </svg>
-              <span className="text-[10px] text-gray-400">Home</span>
-            </a>
-            <button onClick={() => setShowAssignmentPicker(true)} className="-mt-6">
-              <div className="w-14 h-14 bg-gradient-to-br from-[#005587] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                </svg>
-              </div>
-            </button>
-            <a href="/student/profile" className="flex flex-col items-center">
-              <div className="w-7 h-7 rounded-full border-2 border-[#FFC72C] overflow-hidden">
-                <img src="/headshot.jpeg" alt="Profile" className="w-full h-full object-cover" />
-              </div>
-              <span className="text-[10px] text-gray-400 mt-0.5">Profile</span>
-            </a>
-          </div>
-        </nav>
+        {/* Bottom Nav */}
+        <StudentTabBar />
       </div>
 
       {/* Assignment Picker Modal */}

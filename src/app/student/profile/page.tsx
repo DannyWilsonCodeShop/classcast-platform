@@ -9,6 +9,7 @@ import { api } from '@/lib/api';
 import { PasswordReset } from '@/components/PasswordReset';
 import { NotificationPreferences } from '@/components/NotificationPreferences';
 import DemoModeBanner from '@/components/common/DemoModeBanner';
+import { StudentTabBar } from '@/components/student/StudentTabBar';
 
 const StudentProfilePage: React.FC = () => {
   const { user, logout, updateUser } = useAuth();
@@ -162,31 +163,8 @@ const StudentProfilePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Bottom Nav - 3 buttons */}
-        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2 native-bottom-nav">
-          <div className="flex items-center justify-around">
-            <button className="flex flex-col items-center" onClick={() => router.push('/student/dashboard')}>
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-              <span className="text-[10px] text-gray-400">Home</span>
-            </button>
-            <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#005587] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]"><svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>
-              <span className="text-[9px] text-gray-500 mt-0.5">Post</span>
-            </button>
-            <button className="flex flex-col items-center">
-              <div className="w-7 h-7 rounded-full border-2 border-[#FFC72C] overflow-hidden bg-[#005587]">
-                {user.avatar && user.avatar.startsWith('http') ? (
-                  <img src={user.avatar} alt="" className="w-full h-full object-cover" />
-                ) : user.avatar && user.avatar.length <= 4 ? (
-                  <span className="w-full h-full flex items-center justify-center text-sm">{user.avatar}</span>
-                ) : (
-                  <span className="w-full h-full flex items-center justify-center text-white text-[9px] font-bold">{(user.firstName || '?')[0]}</span>
-                )}
-              </div>
-              <span className="text-[10px] text-[#005587] font-medium mt-0.5">Profile</span>
-            </button>
-          </div>
-        </nav>
+        {/* Bottom Nav */}
+        <StudentTabBar />
       </div>
 
       {/* Emoji Picker */}

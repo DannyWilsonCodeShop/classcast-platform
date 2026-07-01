@@ -9,6 +9,7 @@ import { GroupAssignmentModal } from '@/components/student/GroupAssignmentModal'
 import InteractionBar from '@/components/student/InteractionBar';
 import RichTextRenderer from '@/components/common/RichTextRenderer';
 import { getVideoUrl } from '@/lib/videoUtils';
+import { StudentTabBar } from '@/components/student/StudentTabBar';
 
 interface VideoSubmission {
   submissionId: string;
@@ -440,24 +441,7 @@ const AssignmentFeedPage: React.FC = () => {
         </div>{/* end scrollable */}
 
         {/* Bottom Nav */}
-        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2 native-bottom-nav">
-          <div className="flex items-center justify-around">
-            <button className="flex flex-col items-center" onClick={() => router.push('/student/dashboard')}>
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-              <span className="text-[10px] text-gray-400 mt-0.5">Home</span>
-            </button>
-            <button className="flex flex-col items-center" onClick={() => router.push(`/student/assignments/${assignmentId}`)}>
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              <span className="text-[10px] text-gray-400 mt-0.5">Assignment</span>
-            </button>
-            <div className="flex flex-col items-center">
-              <div className="relative">
-                <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              </div>
-              <span className="text-[10px] text-[#005587] font-medium mt-0.5">{videos.length} / {videos.length} due</span>
-            </div>
-          </div>
-        </nav>
+        <StudentTabBar />
       </div>
     </StudentRoute>
   );
