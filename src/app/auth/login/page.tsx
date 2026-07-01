@@ -67,10 +67,10 @@ export default function LoginPage() {
         }}
       />
       {/* Semi-transparent overlay */}
-      <div className="absolute inset-0 z-[1] bg-white/10" />
+      <div className="absolute inset-0 z-[1] bg-white/5" />
 
       {/* Main content */}
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 h-screen border border-gray-200 rounded-3xl bg-white/80 backdrop-blur-sm">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 h-screen border border-gray-200 rounded-3xl bg-white/50 backdrop-blur-sm">
         {/* Top bar - hamburger menu */}
         <div className="w-full flex items-center justify-start mb-1">
           <button
@@ -132,14 +132,42 @@ export default function LoginPage() {
         </div>
 
         {/* Logo - Camera with lightbulb */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-4">
           <img
             src="/UpdatedCCLogo.png"
             alt="ClassCast Logo"
             className="object-contain drop-shadow-lg"
-            style={{ width: '10rem', height: '10rem' }}
+            style={{ width: '8rem', height: '8rem' }}
           />
         </div>
+
+        {/* Student profile photos - moved above form, closer to logo */}
+        <div className="flex justify-center items-center gap-4 mb-4">
+          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
+            <img
+              src="/pexels-deesarkee-photos-2148554063-33418728.jpg"
+              alt="Student 1"
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
+            <img
+              src="/pexels-eduardo-barrientos-140939364-17664360.jpg"
+              alt="Student 2"
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
+            <img
+              src="/pexels-julia-m-cameron-8841615.jpg"
+              alt="Student 3"
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+        </div>
+
+        {/* Spacer to push form toward bottom */}
+        <div className="flex-1" />
 
         {/* Login form */}
         <form onSubmit={handleSubmit} className="w-full space-y-3 mb-2">
@@ -211,30 +239,8 @@ export default function LoginPage() {
           </div>
         </form>
 
-        {/* Student profile photos */}
-        <div className="flex justify-center items-center gap-4 mb-8">
-          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6.5rem', height: '6.5rem' }}>
-            <img
-              src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face"
-              alt="Student 1"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6.5rem', height: '6.5rem' }}>
-            <img
-              src="https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?w=200&h=200&fit=crop&crop=face"
-              alt="Student 2"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6.5rem', height: '6.5rem' }}>
-            <img
-              src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&h=200&fit=crop&crop=face"
-              alt="Student 3"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-        </div>
+        {/* Bottom spacer */}
+        <div className="h-2" />
       </div>
 
       {/* Loading Modal */}
