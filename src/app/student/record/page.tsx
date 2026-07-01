@@ -38,13 +38,33 @@ function RecordPageInner() {
   // Fetch assignment data to get courseId
   useEffect(() => {
     if (!assignmentId) return;
+    console.log('📤 RECORD: Fetching assignment data for:', assignmentId);
     fetch(`/api/assignments/${assignmentId}`)
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data?.assignment) setAssignment(data.assignment);
-        else if (data?.data) setAssignment(data.data);
+      .then(res => {
+        console.log('📤 RECORD: Assignment fetch status:', res.status);
+        return res.ok ? res.json() : null;
       })
-      .catch(() => {});
+      .then(data => {
+        console.log('📤 RECORD: Assignment fetch response:', JSON.stringify(data));
+        if (data?.assignment) {
+          console.log('📤 RECORD: Found assignment at data.assignment, courseId:', data.assignment.courseId);
+          setAssignment(data.assignment);
+        } else if (data?.data?.assignment) {
+          console.log('📤 RECORD: Found assignment at data.data.assignment, courseId:', data.data.assignment.courseId);
+          setAssignment(data.data.assignment);
+        } else if (data?.data) {
+          console.log('📤 RECORD: Found assignment at data.data, courseId:', data.data.courseId);
+          setAssignment(data.data);
+        } else if (data?.success && data?.courseId) {
+          console.log('📤 RECORD: Found assignment at root, courseId:', data.courseId);
+          setAssignment(data);
+        } else {
+          console.warn('📤 RECORD: Could not find assignment data in response');
+        }
+      })
+      .catch((err) => {
+        console.error('📤 RECORD: Assignment fetch error:', err);
+      });
   }, [assignmentId]);
   const videoLibraryRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
@@ -196,11 +216,23 @@ function RecordPageInner() {
   // Step 3: Upload video + thumbnail
   const handleSubmit = async () => {
     if (!videoFile || !user?.id) return;
+    
+    // Check for required data before starting upload
+    if (assignmentId && !assignment?.courseId) {
+      setError('Missing course data for this assignment. Please go back and try again.');
+      console.error('📤 RECORD: courseId is missing! assignment:', JSON.stringify(assignment));
+      return;
+    }
+    
     setStep('uploading');
     setError('');
 
     try {
-      // Get presigned URL for video upload
+      // Step 1: Get presigned URL for video upload
+      console.log('📤 RECORD: Step 1 - Getting presigned URL...');
+      console.log('📤 RECORD: videoFile:', videoFile.name, videoFile.type, videoFile.size);
+      console.log('📤 RECORD: userId:', user.id);
+      
       const presignRes = await fetch('/api/upload/video-presign', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -211,10 +243,17 @@ function RecordPageInner() {
         }),
       });
 
-      if (!presignRes.ok) throw new Error('Failed to get upload URL');
-      const { uploadUrl, videoUrl } = await presignRes.json();
+      if (!presignRes.ok) {
+        const presignError = await presignRes.text();
+        console.error('📤 RECORD: Presign failed:', presignRes.status, presignError);
+        throw new Error(`Failed to get upload URL (${presignRes.status}): ${presignError}`);
+      }
+      const presignData = await presignRes.json();
+      const { uploadUrl, videoUrl } = presignData;
+      console.log('📤 RECORD: Step 1 complete - got presigned URL, videoUrl:', videoUrl);
 
-      // Upload video to S3
+      // Step 2: Upload video to S3
+      console.log('📤 RECORD: Step 2 - Uploading video to S3...');
       setUploadProgress(10);
       const uploadRes = await fetch(uploadUrl, {
         method: 'PUT',
@@ -222,34 +261,54 @@ function RecordPageInner() {
         headers: { 'Content-Type': videoFile.type },
       });
 
-      if (!uploadRes.ok) throw new Error('Video upload failed');
+      if (!uploadRes.ok) {
+        const uploadError = await uploadRes.text();
+        console.error('📤 RECORD: S3 upload failed:', uploadRes.status, uploadError);
+        throw new Error(`Video upload to S3 failed (${uploadRes.status}): ${uploadError.substring(0, 200)}`);
+      }
       setUploadProgress(70);
+      console.log('📤 RECORD: Step 2 complete - video uploaded to S3');
 
-      // Submit video metadata with thumbnail and assignmentId
+      // Step 3: Submit video metadata
+      console.log('📤 RECORD: Step 3 - Saving submission...');
+      console.log('📤 RECORD: assignmentId:', assignmentId);
+      console.log('📤 RECORD: courseId:', assignment?.courseId);
+      console.log('📤 RECORD: assignment object:', JSON.stringify(assignment));
+      
+      const submissionBody = {
+        studentId: user.id,
+        assignmentId: assignmentId || undefined,
+        courseId: assignment?.courseId || undefined,
+        videoUrl,
+        thumbnailUrl: thumbnailUrl || undefined,
+        videoTitle: videoFile.name.replace(/\.[^/.]+$/, ''),
+        isRecorded: true,
+        submissionMethod: 'record',
+      };
+      console.log('📤 RECORD: Submission body:', JSON.stringify(submissionBody));
+
       const submitRes = await fetch('/api/video-submissions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentId: user.id,
-          assignmentId: assignmentId || undefined,
-          courseId: assignment?.courseId || undefined,
-          videoUrl,
-          thumbnailUrl: thumbnailUrl || undefined,
-          videoTitle: videoFile.name.replace(/\.[^/.]+$/, ''),
-          isRecorded: true,
-          submissionMethod: 'record',
-        }),
+        body: JSON.stringify(submissionBody),
       });
 
+      const submitData = await submitRes.json().catch(() => null);
+      console.log('📤 RECORD: Submission response status:', submitRes.status);
+      console.log('📤 RECORD: Submission response body:', JSON.stringify(submitData));
+
       setUploadProgress(100);
-      if (submitRes.ok) {
+      if (submitRes.ok && submitData?.success) {
         setStep('done');
         setTimeout(() => router.push(assignmentId ? `/student/assignments/${assignmentId}` : '/student/dashboard'), 1500);
       } else {
-        throw new Error('Failed to save submission');
+        const errorMsg = submitData?.error || submitData?.details || `Server returned ${submitRes.status}`;
+        throw new Error(`Submission not saved: ${errorMsg}`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      const errorMessage = err instanceof Error ? err.message : 'Upload failed';
+      console.error('📤 RECORD: Error:', errorMessage);
+      setError(errorMessage);
       setStep('preview');
     }
   };
@@ -458,7 +517,10 @@ function RecordPageInner() {
               </div>
 
               {error && (
-                <p className="text-red-400 text-sm">{error}</p>
+                <div className="bg-red-900/50 border border-red-500/50 rounded-xl p-3">
+                  <p className="text-red-300 text-sm font-medium mb-1">⚠️ Error</p>
+                  <p className="text-red-200 text-xs break-words">{error}</p>
+                </div>
               )}
 
               <div className="space-y-3 w-full max-w-xs mx-auto">
