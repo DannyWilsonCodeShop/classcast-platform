@@ -43,7 +43,7 @@ export function AgeGate({ children }: { children: React.ReactNode }) {
   if (showDeclined) {
     return (
       <div className="h-screen flex flex-col items-center justify-center px-8 bg-white">
-        <img src="/greenlogo.png" alt="ClassCast" className="w-20 h-20 mb-6" />
+        <img src="/UpdatedCCLogo.png" alt="ClassCast" className="w-20 h-20 mb-6" />
         <h2 className="text-xl font-bold text-gray-900 mb-3 text-center">
           Age Requirement Not Met
         </h2>
@@ -64,7 +64,7 @@ export function AgeGate({ children }: { children: React.ReactNode }) {
   // Age gate screen
   return (
     <div className="h-screen flex flex-col items-center justify-center px-8 bg-gradient-to-b from-white to-[#f0f9fc]">
-      <img src="/greenlogo.png" alt="ClassCast" className="w-24 h-24 mb-6" />
+      <img src="/UpdatedCCLogo.png" alt="ClassCast" className="w-24 h-24 mb-6" />
       <h1 className="text-2xl font-bold text-[#005587] mb-2 text-center" style={{ fontFamily: "'Oswald', sans-serif" }}>
         Welcome to ClassCast
       </h1>

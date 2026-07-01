@@ -61,7 +61,7 @@ export default function DemoScreenshotIpad() {
         <div className="px-4 pt-5 pb-4 border-b border-gray-50">
           <div className="flex items-center gap-2">
             <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-xl">ClassCast</span>
-            <img src="/greenlogo.png" alt="" className="w-7 h-7 object-contain" />
+            <img src="/UpdatedCCLogo.png" alt="" className="w-7 h-7 object-contain" />
           </div>
           <div className="mt-2">
             <img src="/Demo1Logo.png" alt="" className="h-10 object-contain" />
