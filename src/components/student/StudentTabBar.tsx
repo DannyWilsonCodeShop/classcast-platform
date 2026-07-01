@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface StudentTabBarProps {
   onPostClick?: () => void;
@@ -10,6 +11,7 @@ interface StudentTabBarProps {
 export function StudentTabBar({ onPostClick }: StudentTabBarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const isActive = (path: string) => {
     if (path === '/student/dashboard') return pathname === '/student/dashboard';
@@ -21,6 +23,10 @@ export function StudentTabBar({ onPostClick }: StudentTabBarProps) {
 
   const activeColor = 'text-[#005587]';
   const inactiveColor = 'text-gray-400';
+
+  // Get user avatar
+  const avatarUrl = user?.avatar || user?.profileImage || null;
+  const userInitial = (user?.firstName || user?.email || '?')[0]?.toUpperCase();
 
   return (
     <nav className="shrink-0 bg-white border-t border-gray-200 px-1 py-2 native-bottom-nav">
@@ -51,9 +57,17 @@ export function StudentTabBar({ onPostClick }: StudentTabBarProps) {
           <span className={`text-[9px] ${isActive('/student/courses') ? activeColor + ' font-medium' : inactiveColor}`}>Courses</span>
         </button>
 
-        {/* Profile */}
+        {/* Profile - shows user avatar */}
         <button className="flex flex-col items-center min-w-0" onClick={() => router.push('/student/profile')}>
-          <svg className={`w-6 h-6 ${isActive('/student/profile') ? activeColor : inactiveColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+          <div className={`w-7 h-7 rounded-full overflow-hidden border-2 ${isActive('/student/profile') ? 'border-[#005587]' : 'border-[#FFC72C]'} bg-[#005587] flex items-center justify-center`}>
+            {avatarUrl && avatarUrl.startsWith('http') ? (
+              <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+            ) : avatarUrl && avatarUrl.length <= 4 ? (
+              <span className="text-sm">{avatarUrl}</span>
+            ) : (
+              <span className="text-white text-[10px] font-bold">{userInitial}</span>
+            )}
+          </div>
           <span className={`text-[9px] ${isActive('/student/profile') ? activeColor + ' font-medium' : inactiveColor}`}>Profile</span>
         </button>
       </div>
