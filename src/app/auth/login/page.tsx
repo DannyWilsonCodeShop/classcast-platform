@@ -67,10 +67,10 @@ export default function LoginPage() {
         }}
       />
       {/* Semi-transparent overlay */}
-      <div className="absolute inset-0 z-[1] bg-white/5" />
+      <div className="absolute inset-0 z-[1]" />
 
       {/* Main content */}
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 min-h-screen min-h-dvh border border-gray-200 rounded-3xl bg-white/50 backdrop-blur-sm">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 min-h-screen min-h-dvh bg-white/25 backdrop-blur-sm">
         {/* Top bar - hamburger menu */}
         <div className="w-full flex items-center justify-start mb-1">
           <button
