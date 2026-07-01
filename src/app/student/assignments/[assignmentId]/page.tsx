@@ -232,7 +232,7 @@ export default function StudentAssignmentDetailPage() {
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-700 text-white p-2 rounded-full shadow-lg active:scale-95 disabled:opacity-50"
+              className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-700 text-white w-10 h-10 rounded-full shadow-lg active:scale-95 disabled:opacity-50 flex items-center justify-center"
             >
               {isDeleting ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
