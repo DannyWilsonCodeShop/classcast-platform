@@ -272,7 +272,32 @@ function RecordPageInner() {
   return (
     <StudentRoute>
       <div className="h-full flex flex-col bg-gray-950 text-white overflow-hidden">
-        {/* Header - minimal when camera is active */}
+
+        {/* FULL SCREEN CAMERA MODE */}
+        {cameraActive && !videoFile && (
+          <div className="absolute inset-0 z-50 bg-black flex flex-col">
+            <video ref={liveVideoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+            {/* Back button */}
+            <button onClick={() => { stopCamera(); router.back(); }} className="absolute top-12 left-4 z-10 bg-black/50 text-white p-2.5 rounded-full">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            {/* Recording indicator + controls at bottom */}
+            <div className="absolute inset-x-0 bottom-0 pb-12 pt-20 bg-gradient-to-t from-black/80 to-transparent flex flex-col items-center gap-3">
+              {isRecording && (
+                <div className="flex items-center gap-2 bg-black/60 px-3 py-1 rounded-full">
+                  <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
+                  <span className="text-white text-sm font-mono">{formatTime(recordingTime)}</span>
+                </div>
+              )}
+              <button onClick={isRecording ? stopRecording : startRecording} className={`w-20 h-20 rounded-full border-4 border-white flex items-center justify-center ${isRecording ? 'bg-red-600' : 'bg-red-500'}`}>
+                {isRecording ? <div className="w-7 h-7 bg-white rounded-sm" /> : <div className="w-16 h-16 bg-red-500 rounded-full border-2 border-white" />}
+              </button>
+              <p className="text-white/60 text-xs">{isRecording ? 'Tap to stop' : 'Tap to record'}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Header - hidden when camera is active */}
         {!cameraActive && (
           <div className="flex items-center justify-between px-4 py-3 shrink-0">
             <button onClick={() => router.back()} className="text-white p-1">
@@ -299,34 +324,10 @@ function RecordPageInner() {
             </div>
           )}
 
-          {/* CAMERA / RECORDING */}
-          {!videoFile && !linkUrl && !isSubmitting && !success && (
-            <div className="relative rounded-xl overflow-hidden bg-black flex-1" style={{ minHeight: cameraActive ? '300px' : 'auto' }}>
-              {cameraActive ? (
-                <>
-                  <video ref={liveVideoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
-                  {/* Back button overlay */}
-                  <button onClick={() => { stopCamera(); router.back(); }} className="absolute top-4 left-4 z-10 bg-black/50 text-white p-2 rounded-full">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                  </button>
-                  <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 to-transparent" />
-                  <div className="absolute bottom-4 inset-x-0 flex flex-col items-center gap-2">
-                    {isRecording && (
-                      <div className="flex items-center gap-2 bg-black/60 px-3 py-1 rounded-full">
-                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                        <span className="text-sm font-mono">{formatTime(recordingTime)}</span>
-                      </div>
-                    )}
-                    <button onClick={isRecording ? stopRecording : startRecording} className={`w-16 h-16 rounded-full border-4 border-white flex items-center justify-center ${isRecording ? 'bg-red-600' : 'bg-red-500'}`}>
-                      {isRecording ? <div className="w-6 h-6 bg-white rounded-sm" /> : <div className="w-12 h-12 bg-red-500 rounded-full border-2 border-white" />}
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="py-8 flex flex-col items-center gap-3">
-                  <button onClick={startCamera} className="w-full max-w-xs py-3 bg-[#005587] rounded-full font-bold text-center">📹 Open Camera</button>
-                </div>
-              )}
+          {/* Open Camera button (when camera not active and no video yet) */}
+          {!videoFile && !linkUrl && !isSubmitting && !success && !cameraActive && (
+            <div className="py-4 flex flex-col items-center">
+              <button onClick={startCamera} className="w-full max-w-xs py-3 bg-[#005587] rounded-full font-bold text-center">📹 Open Camera</button>
             </div>
           )}
 
