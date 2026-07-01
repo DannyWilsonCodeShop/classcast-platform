@@ -201,7 +201,7 @@ export default function StudentAssignmentDetailPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <h1 className="flex-1 text-base font-bold uppercase truncate mx-2" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(assignmentId) }}>{assignment.title}</h1>
+                <h1 className="flex-1 text-base font-bold uppercase mx-2 break-words leading-tight" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(assignmentId) }}>{assignment.title}</h1>
                 <button onClick={() => nextId && router.push(`/student/assignments/${nextId}`)} className={`p-1.5 ${nextId ? '' : 'opacity-30 pointer-events-none'}`} style={{ color: getAssignmentTitleColor(assignmentId) }}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -212,17 +212,12 @@ export default function StudentAssignmentDetailPage() {
           })()}
         </div>
 
-        {/* Video Area - Top ~42% */}
-        <div className="relative w-full shrink-0" style={{ height: '42%', minHeight: '180px' }}>
-          {assignment.instructionalVideoUrl ? (
+        {/* Video Area - Only show if assignment has a video */}
+        {assignment.instructionalVideoUrl && (
+          <div className="relative w-full shrink-0" style={{ height: '42%', minHeight: '180px' }}>
             <VideoPlayer url={assignment.instructionalVideoUrl} />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-[#6cc3d3] to-[#005587] px-6">
-              <h2 className="text-white text-2xl font-bold text-center leading-tight mb-2 uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em' }}>{assignment.title}</h2>
-              <p className="text-white/70 text-sm">{assignment.courseName}</p>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Info Row */}
         <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 shrink-0">
@@ -256,7 +251,7 @@ export default function StudentAssignmentDetailPage() {
         </div>
 
         {/* Bottom Nav */}
-        <div className="shrink-0 bg-white border-t border-gray-200 px-2 py-2 native-bottom-nav">
+        <div className="shrink-0 bg-white border-t border-gray-200 px-2 py-3 native-bottom-nav">
           {!isSubmitted && (
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
