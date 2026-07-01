@@ -256,7 +256,7 @@ export default function StudentAssignmentDetailPage() {
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
               <button onClick={() => setShowUploadModal(true)} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg><span className="text-[10px] text-gray-400">Upload</span></button>
-              <button onClick={() => router.push(`/student/record?assignmentId=${assignmentId}`)} className="-mt-6">
+              <button onClick={() => router.push(`/student/record?assignmentId=${assignmentId}`)} className="">
                 <div className="w-14 h-14 bg-red-500 rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-red-300">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
                 </div>
@@ -272,7 +272,7 @@ export default function StudentAssignmentDetailPage() {
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
               <div className="flex flex-col items-center"><span className="text-[10px] font-bold text-green-600">✓ Submitted!</span></div>
-              <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="-mt-6">
+              <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="">
                 <div className="w-14 h-14 rounded-full bg-[#005587] flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </div>
@@ -287,7 +287,7 @@ export default function StudentAssignmentDetailPage() {
             <div className="flex items-center justify-around">
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[10px] text-gray-400">Home</span></button>
               <div className="flex flex-col items-center"><span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">{submission!.grade}/{assignment.points || assignment.maxScore || 100}</span><span className="text-[9px] text-gray-400 mt-0.5">Grade</span></div>
-              <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="-mt-6">
+              <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="">
                 <div className="w-14 h-14 rounded-full bg-[#005587] flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]">
                   <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </div>

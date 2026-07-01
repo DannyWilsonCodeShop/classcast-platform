@@ -33,6 +33,19 @@ function RecordPageInner() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const videoRecordRef = useRef<HTMLInputElement>(null);
+  const [assignment, setAssignment] = useState<any>(null);
+
+  // Fetch assignment data to get courseId
+  useEffect(() => {
+    if (!assignmentId) return;
+    fetch(`/api/assignments/${assignmentId}`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.assignment) setAssignment(data.assignment);
+        else if (data?.data) setAssignment(data.data);
+      })
+      .catch(() => {});
+  }, [assignmentId]);
   const videoLibraryRef = useRef<HTMLInputElement>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
   const liveVideoRef = useRef<HTMLVideoElement>(null);
@@ -217,11 +230,14 @@ function RecordPageInner() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user.id,
+          studentId: user.id,
           assignmentId: assignmentId || undefined,
+          courseId: assignment?.courseId || undefined,
           videoUrl,
           thumbnailUrl: thumbnailUrl || undefined,
-          title: videoFile.name.replace(/\.[^/.]+$/, ''),
+          videoTitle: videoFile.name.replace(/\.[^/.]+$/, ''),
+          isRecorded: true,
+          submissionMethod: 'record',
         }),
       });
 
