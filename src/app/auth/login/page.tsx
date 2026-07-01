@@ -134,7 +134,7 @@ export default function LoginPage() {
         {/* Logo - Camera with lightbulb */}
         <div className="flex justify-center mb-8">
           <img
-            src="/UpdatedCCLogo.png"
+            src="/greenlogo.png"
             alt="ClassCast Logo"
             className="object-contain drop-shadow-lg"
             style={{ width: '10rem', height: '10rem' }}
