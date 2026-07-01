@@ -75,12 +75,19 @@ function RecordPageInner() {
   // Auto-trigger based on mode param
   useEffect(() => {
     if (mode === 'upload') {
-      // Small delay to ensure ref is mounted
       setTimeout(() => fileInputRef.current?.click(), 300);
     } else if (mode === 'record') {
-      startCamera();
+      // Delay to ensure video element is rendered
+      setTimeout(() => startCamera(), 100);
     }
   }, [mode]);
+
+  // Attach stream to video element when camera becomes active
+  useEffect(() => {
+    if (cameraActive && streamRef.current && liveVideoRef.current) {
+      liveVideoRef.current.srcObject = streamRef.current;
+    }
+  }, [cameraActive]);
 
   // Camera controls
   const startCamera = async () => {
@@ -265,14 +272,16 @@ function RecordPageInner() {
   return (
     <StudentRoute>
       <div className="h-full flex flex-col bg-gray-950 text-white overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 shrink-0">
-          <button onClick={() => router.back()} className="text-white p-1">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          </button>
-          <h1 className="text-lg font-bold">Post Video</h1>
-          <div className="w-8" />
-        </div>
+        {/* Header - minimal when camera is active */}
+        {!cameraActive && (
+          <div className="flex items-center justify-between px-4 py-3 shrink-0">
+            <button onClick={() => router.back()} className="text-white p-1">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            <h1 className="text-lg font-bold">Post Video</h1>
+            <div className="w-8" />
+          </div>
+        )}
 
         {/* Content area */}
         <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4 min-h-0">
@@ -292,10 +301,14 @@ function RecordPageInner() {
 
           {/* CAMERA / RECORDING */}
           {!videoFile && !linkUrl && !isSubmitting && !success && (
-            <div className="relative rounded-xl overflow-hidden bg-black" style={{ height: cameraActive ? '45%' : 'auto', minHeight: cameraActive ? '200px' : 'auto' }}>
+            <div className="relative rounded-xl overflow-hidden bg-black flex-1" style={{ minHeight: cameraActive ? '300px' : 'auto' }}>
               {cameraActive ? (
                 <>
                   <video ref={liveVideoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+                  {/* Back button overlay */}
+                  <button onClick={() => { stopCamera(); router.back(); }} className="absolute top-4 left-4 z-10 bg-black/50 text-white p-2 rounded-full">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                  </button>
                   <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 to-transparent" />
                   <div className="absolute bottom-4 inset-x-0 flex flex-col items-center gap-2">
                     {isRecording && (
