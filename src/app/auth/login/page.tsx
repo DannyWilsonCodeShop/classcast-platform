@@ -48,7 +48,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-screen relative flex flex-col items-center overflow-hidden">
+    <div className="min-h-screen min-h-dvh relative flex flex-col items-center overflow-auto">
       {/* Load Grand Hotel font from Google Fonts */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link
@@ -70,7 +70,7 @@ export default function LoginPage() {
       <div className="absolute inset-0 z-[1] bg-white/5" />
 
       {/* Main content */}
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 h-screen border border-gray-200 rounded-3xl bg-white/50 backdrop-blur-sm">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 min-h-screen min-h-dvh border border-gray-200 rounded-3xl bg-white/50 backdrop-blur-sm">
         {/* Top bar - hamburger menu */}
         <div className="w-full flex items-center justify-start mb-1">
           <button
