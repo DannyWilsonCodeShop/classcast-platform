@@ -85,18 +85,7 @@ button, [role="button"] {
   }
 }
 
-/* Add a subtle overlay to ensure text readability - reduced opacity */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.3);
-  z-index: -1;
-  pointer-events: none;
-}
+/* Overlay removed - was causing white film on login background */
 
 /* Custom scrollbar with Cristo Rey colors - solid, no gradients */
 ::-webkit-scrollbar {
