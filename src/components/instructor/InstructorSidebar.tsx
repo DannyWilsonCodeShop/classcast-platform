@@ -74,10 +74,10 @@ export function InstructorSidebar() {
             {/* eslint-disable-next-line @next/next/no-page-custom-font */}
             <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
             <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-xl">ClassCast</span>
-            <img src="/UpdatedCCLogo.png" alt="" className="w-7 h-7 object-contain" />
+            <img src="/greenlogo.png" alt="" className="w-7 h-7 object-contain" />
           </div>
         ) : (
-          <img src="/UpdatedCCLogo.png" alt="" className="w-8 h-8 object-contain" />
+          <img src="/greenlogo.png" alt="" className="w-8 h-8 object-contain" />
         )}
       </div>
 

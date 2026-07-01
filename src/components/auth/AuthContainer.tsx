@@ -106,7 +106,7 @@ export default function AuthContainer({
           <div className="text-center mb-8">
             <div className="mx-auto h-10 w-10 mb-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110">
               <img 
-                src="/UpdatedCCLogo.png" 
+                src="/greenlogo.png" 
                 alt="ClassCast Logo" 
                 className="h-full w-full object-contain rounded-2xl"
               />

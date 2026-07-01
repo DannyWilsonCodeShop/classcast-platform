@@ -77,7 +77,7 @@ export default function OnboardingPage() {
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-8">
         {/* Logo */}
         <img
-          src="/UpdatedCCLogo.png"
+          src="/greenlogo.png"
           alt="ClassCast"
           className="w-12 h-12 object-contain mb-4 opacity-80"
         />

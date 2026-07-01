@@ -236,7 +236,7 @@ const AssignmentFeedPage: React.FC = () => {
             </div>
 
             {/* Logo */}
-            <img src="/UpdatedCCLogo.png" alt="ClassCast" className="w-6 h-6 object-contain" />
+            <img src="/greenlogo.png" alt="ClassCast" className="w-6 h-6 object-contain" />
           </div>
         </div>
 

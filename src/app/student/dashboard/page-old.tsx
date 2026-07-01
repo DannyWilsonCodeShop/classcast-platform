@@ -324,7 +324,7 @@ const StudentDashboard: React.FC = () => {
             <div className="flex items-center justify-center mb-6">
               <div className="w-16 h-16 rounded-2xl shadow-lg overflow-hidden">
                 <img 
-                  src="/UpdatedCCLogo.png" 
+                  src="/greenlogo.png" 
                   alt="ClassCast Logo" 
                   className="w-full h-full object-contain"
                 />
@@ -371,7 +371,7 @@ const StudentDashboard: React.FC = () => {
             <div className="flex items-center justify-center mb-6">
               <div className="w-16 h-16 rounded-2xl shadow-lg overflow-hidden">
                 <img 
-                  src="/UpdatedCCLogo.png" 
+                  src="/greenlogo.png" 
                   alt="ClassCast Logo" 
                   className="w-full h-full object-contain"
                 />
@@ -656,7 +656,7 @@ const StudentDashboard: React.FC = () => {
               <div className="flex items-center space-x-1">
                 <div className="w-4 h-4 rounded overflow-hidden">
                   <img 
-                    src="/UpdatedCCLogo.png" 
+                    src="/greenlogo.png" 
                     alt="ClassCast Logo" 
                     className="w-full h-full object-contain"
                   />
