@@ -381,16 +381,18 @@ select:focus {
   }
 }
 
-/* iOS Safe Area Insets — applied to native Capacitor WebView only */
-/* The html[data-native] attribute is set by NativeAppInit component */
+/* iOS Safe Area Insets — with overlay:false, iOS handles safe areas natively */
+/* These are kept as fallbacks but set to 0 to prevent doubling */
 html[data-native] [data-student-page] {
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-bottom: 0; /* bottom nav handles its own safe area */
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 /* Bottom navigation safe area padding for native devices */
+/* Note: With StatusBar overlay:false, iOS handles safe areas natively.
+   Only add this padding if content overlaps the home indicator. */
 html[data-native] .native-bottom-nav {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: 0;
 }
 
 /* Top header safe area for non-student pages on native */
