@@ -18,6 +18,7 @@ export default function StudentDashboardPage() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAssignmentPicker, setShowAssignmentPicker] = useState(false);
+  const [postMode, setPostMode] = useState<'record' | 'upload' | null>(null);
   const [demoMode, setDemoMode] = useState(false);
   const { isWide } = useIsWideScreen();
 
@@ -260,39 +261,86 @@ export default function StudentDashboardPage() {
         <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2 native-bottom-nav">
           <div className="flex items-center justify-around">
             <button className="flex flex-col items-center" onClick={() => router.push('/student/courses')}><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg><span className="text-[10px] text-gray-400">Courses</span></button>
-            <button onClick={() => setShowAssignmentPicker(true)} className="-mt-6"><div className="w-14 h-14 bg-gradient-to-br from-[#005587] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]"><svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg></div></button>
+            <button onClick={() => setShowAssignmentPicker(true)} className="-mt-6"><div className="w-14 h-14 bg-gradient-to-br from-[#005587] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]"><svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div><span className="text-[9px] text-gray-500 mt-0.5">Post</span></button>
             <button className="flex flex-col items-center" onClick={() => router.push('/student/profile')}><div className="w-7 h-7 rounded-full border-2 border-[#FFC72C] overflow-hidden"><img src={demoMode ? DEMO_STUDENT.avatar : "/headshot.jpeg"} alt="" className="w-full h-full object-cover" /></div><span className="text-[10px] text-gray-400 mt-0.5">Profile</span></button>
           </div>
         </nav>
       </div>
       )}
 
-      {/* Assignment Picker Modal */}
+      {/* Post Modal */}
       {showAssignmentPicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowAssignmentPicker(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => { setShowAssignmentPicker(false); setPostMode(null); }}>
           <div className="absolute inset-0 bg-black/40" />
           <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-bold text-gray-900">Record for which assignment?</h3>
-              <button onClick={() => setShowAssignmentPicker(false)} className="text-gray-400 p-1">
+              <h3 className="text-base font-bold text-gray-900">
+                {!postMode ? 'Post a Video' : 'Select Assignment'}
+              </h3>
+              <button onClick={() => { setShowAssignmentPicker(false); setPostMode(null); }} className="text-gray-400 p-1">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="overflow-y-auto flex-1 space-y-2">
-              {unsubmitted.length > 0 ? unsubmitted.map(a => (
+
+            {/* Step 1: Choose Record or Upload */}
+            {!postMode && (
+              <div className="space-y-3">
                 <button
-                  key={a.assignmentId}
-                  onClick={() => { setShowAssignmentPicker(false); router.push(`/student/record?assignmentId=${a.assignmentId}`); }}
-                  className="w-full text-left rounded-xl p-3 active:scale-[0.98] transition-transform"
-                  style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}
+                  onClick={() => setPostMode('record')}
+                  className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-[#005587] to-[#0088cc] text-white rounded-xl active:scale-[0.98] transition-transform"
                 >
-                  <h4 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h4>
-                  <p className="text-xs opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''} • Due {getDueBadge(a.dueDate)}</p>
+                  <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-sm">Record Live</p>
+                    <p className="text-xs text-white/70">Record a video with your camera</p>
+                  </div>
                 </button>
-              )) : (
-                <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>
-              )}
-            </div>
+                <button
+                  onClick={() => setPostMode('upload')}
+                  className="w-full flex items-center gap-3 p-4 bg-gray-100 text-gray-900 rounded-xl active:scale-[0.98] transition-transform"
+                >
+                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-sm">Upload a File</p>
+                    <p className="text-xs text-gray-500">Upload a video from your device</p>
+                  </div>
+                </button>
+              </div>
+            )}
+
+            {/* Step 2: Choose Assignment */}
+            {postMode && (
+              <div className="overflow-y-auto flex-1 space-y-2">
+                {postMode === 'record' && <p className="text-xs text-gray-500 mb-2">Choose which assignment to record for:</p>}
+                {postMode === 'upload' && <p className="text-xs text-gray-500 mb-2">Choose which assignment to upload to:</p>}
+                {unsubmitted.length > 0 ? unsubmitted.map(a => (
+                  <button
+                    key={a.assignmentId}
+                    onClick={() => {
+                      setShowAssignmentPicker(false);
+                      if (postMode === 'record') {
+                        router.push(`/student/record?assignmentId=${a.assignmentId}`);
+                      } else {
+                        router.push(`/student/upload?assignmentId=${a.assignmentId}`);
+                      }
+                      setPostMode(null);
+                    }}
+                    className="w-full text-left rounded-xl p-3 active:scale-[0.98] transition-transform"
+                    style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}
+                  >
+                    <h4 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h4>
+                    <p className="text-xs opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''} • Due {getDueBadge(a.dueDate)}</p>
+                  </button>
+                )) : (
+                  <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>
+                )}
+                <button onClick={() => setPostMode(null)} className="w-full text-center text-xs text-[#005587] font-medium py-2 mt-2">← Back</button>
+              </div>
+            )}
           </div>
         </div>
       )}
