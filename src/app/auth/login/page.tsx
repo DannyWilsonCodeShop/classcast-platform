@@ -141,31 +141,6 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Student profile photos - moved above form, closer to logo */}
-        <div className="flex justify-center items-center gap-4 mb-4">
-          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
-            <img
-              src="/student1.jpg"
-              alt="Student 1"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
-            <img
-              src="/student2.jpg"
-              alt="Student 2"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
-            <img
-              src="/student3.jpg"
-              alt="Student 3"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-        </div>
-
         {/* Spacer to push form toward bottom */}
         <div className="flex-1" />
 
@@ -238,6 +213,19 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
+
+        {/* Student profile photos at bottom */}
+        <div className="flex justify-center items-center gap-4 mt-4 mb-2">
+          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
+            <img src="/student1.jpg" alt="Student 1" className="w-full h-full object-cover rounded-full" />
+          </div>
+          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
+            <img src="/student2.jpg" alt="Student 2" className="w-full h-full object-cover rounded-full" />
+          </div>
+          <div className="rounded-full border-4 border-[#FFC72C] overflow-hidden shadow-lg bg-white p-1" style={{ width: '6rem', height: '6rem' }}>
+            <img src="/student3.jpg" alt="Student 3" className="w-full h-full object-cover rounded-full" />
+          </div>
+        </div>
 
         {/* Bottom spacer */}
         <div className="h-2" />
