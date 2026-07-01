@@ -66,11 +66,8 @@ export default function LoginPage() {
           transform: 'scale(1.05)',
         }}
       />
-      {/* Semi-transparent overlay */}
-      <div className="absolute inset-0 z-[1]" />
-
       {/* Main content */}
-      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 min-h-screen min-h-dvh bg-white/10">
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col items-center px-6 pt-4 pb-4 min-h-screen min-h-dvh">
         {/* Top bar - hamburger menu */}
         <div className="w-full flex items-center justify-start mb-1">
           <button
