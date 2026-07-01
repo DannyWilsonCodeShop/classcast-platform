@@ -45,15 +45,19 @@ export async function DELETE(
     const updateCommand = new UpdateCommand({
       TableName: 'classcast-submissions',
       Key: { submissionId },
-      UpdateExpression: 'SET #status = :status, #updatedAt = :updatedAt, #hidden = :hidden',
+      UpdateExpression: 'SET #status = :status, #updatedAt = :updatedAt, #isHidden = :isHidden, #isDeleted = :isDeleted, #hidden = :hidden',
       ExpressionAttributeNames: {
         '#status': 'status',
         '#updatedAt': 'updatedAt',
+        '#isHidden': 'isHidden',
+        '#isDeleted': 'isDeleted',
         '#hidden': 'hidden'
       },
       ExpressionAttributeValues: {
         ':status': 'deleted',
         ':updatedAt': new Date().toISOString(),
+        ':isHidden': true,
+        ':isDeleted': true,
         ':hidden': true
       }
     });
