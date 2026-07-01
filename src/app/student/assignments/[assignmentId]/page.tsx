@@ -387,7 +387,7 @@ export default function StudentAssignmentDetailPage() {
               </div>
             </button>
             <button
-              onClick={() => { setShowPostModal(false); router.push(`/student/upload?assignmentId=${assignmentId}`); }}
+              onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${assignmentId}`); }}
               className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
             >
               <div className="w-11 h-11 rounded-full bg-[#005587]/10 flex items-center justify-center shrink-0">
@@ -396,6 +396,18 @@ export default function StudentAssignmentDetailPage() {
               <div className="text-left">
                 <span className="text-gray-900 font-bold text-sm block">Upload a File</span>
                 <span className="text-gray-500 text-xs">Choose a video from your device</span>
+              </div>
+            </button>
+            <button
+              onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${assignmentId}`); }}
+              className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
+            >
+              <div className="w-11 h-11 rounded-full bg-[#005587]/10 flex items-center justify-center shrink-0">
+                <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+              </div>
+              <div className="text-left">
+                <span className="text-gray-900 font-bold text-sm block">Paste a Link</span>
+                <span className="text-gray-500 text-xs">YouTube or Google Drive URL</span>
               </div>
             </button>
             <button onClick={() => setShowPostModal(false)} className="w-full py-2.5 text-sm text-gray-400 font-medium mt-1">
