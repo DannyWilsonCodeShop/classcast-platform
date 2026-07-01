@@ -501,7 +501,7 @@ const NewAssignmentGradingPage: React.FC = () => {
                   title="Go to Dashboard"
                 >
                   <img 
-                    src="/greenlogo.png" 
+                    src="/UpdatedCCLogo.png" 
                     alt="ClassCast Logo" 
                     className="h-10 w-10 object-contain"
                   />
@@ -573,7 +573,7 @@ const NewAssignmentGradingPage: React.FC = () => {
                   title="Go to Dashboard"
                 >
                   <img 
-                    src="/greenlogo.png" 
+                    src="/UpdatedCCLogo.png" 
                     alt="ClassCast Logo" 
                     className="h-10 w-10 object-contain"
                   />
@@ -710,7 +710,7 @@ const NewAssignmentGradingPage: React.FC = () => {
                 title="Go to Dashboard"
               >
                 <img 
-                  src="/greenlogo.png" 
+                  src="/UpdatedCCLogo.png" 
                   alt="ClassCast Logo" 
                   className="h-10 w-10 object-contain"
                 />

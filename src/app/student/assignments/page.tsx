@@ -183,7 +183,7 @@ export default function StudentAssignmentsPage() {
         <div className="px-4 pt-3 pb-2 flex-shrink-0">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <img src="/greenlogo.png" alt="ClassCast" className="w-8 h-8 object-contain" />
+              <img src="/UpdatedCCLogo.png" alt="ClassCast" className="w-8 h-8 object-contain" />
               <div>
                 <h1 className="text-2xl font-light">
                   <span className="text-[#2196C9] italic">{monthNames[selectedDate.getMonth()]}</span>

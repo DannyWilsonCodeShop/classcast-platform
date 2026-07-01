@@ -134,7 +134,7 @@ const StudentCoursesPage: React.FC = () => {
                 </svg>
               </button>
               <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-2xl">ClassCast</span>
-              <img src="/greenlogo.png" alt="" className="w-8 h-8 object-contain" />
+              <img src="/UpdatedCCLogo.png" alt="" className="w-8 h-8 object-contain" />
             </div>
             <div>
               <p className="text-xs text-gray-500">
