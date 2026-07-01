@@ -7,6 +7,36 @@ const dynamoClient = new DynamoDBClient({
 });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ videoId: string }> }
+) {
+  try {
+    const { videoId } = await params;
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId') || '';
+
+    const submissionId = videoId;
+    const getCommand = new GetCommand({
+      TableName: 'classcast-submissions',
+      Key: { submissionId }
+    });
+
+    const result = await docClient.send(getCommand);
+    if (!result.Item) {
+      return NextResponse.json({ success: false, error: 'Not found' }, { status: 404 });
+    }
+
+    const likes = result.Item.likes || 0;
+    const likedBy = result.Item.likedBy || [];
+    const isLiked = userId ? likedBy.includes(userId) : false;
+
+    return NextResponse.json({ success: true, likes, isLiked, likedBy });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ videoId: string }> }
