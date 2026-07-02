@@ -42,6 +42,11 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   const [showResponses, setShowResponses] = React.useState<boolean>(false);
   const [loadingComments, setLoadingComments] = React.useState<boolean>(false);
   const [loadingResponses, setLoadingResponses] = React.useState<boolean>(false);
+  const responseInputRef = React.useRef<HTMLTextAreaElement>(null);
+  const commentInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Detect if this is the current user's own video (prevent self-grading)
+  const isOwnVideo = currentUser?.id && contentCreatorId && currentUser.id === contentCreatorId;
 
   // Load persisted user rating and comment count on mount
   React.useEffect(() => {
@@ -310,7 +315,8 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         <span className="text-sm font-medium">{comments}</span>
       </button>
 
-      {/* Respond (inline toggle) */}
+      {/* Respond (inline toggle) - hidden for own videos */}
+      {!isOwnVideo && (
       <details>
         <summary className={`list-none cursor-pointer flex items-center space-x-1.5 transition-colors py-2 ${responsePosted ? 'text-green-500' : 'hover:text-green-500'}`}>
           <svg className="w-6 h-6" fill={responsePosted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
@@ -329,6 +335,8 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             placeholder="Write your response for grading..."
             rows={3}
+            ref={responseInputRef}
+            onFocus={() => { setTimeout(() => responseInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
             onChange={(e) => setResponseText(e.target.value)}
             value={responseText}
           />
@@ -346,8 +354,10 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
           </p>
         </div>
       </details>
+      )}
 
-      {/* Star Rating */}
+      {/* Star Rating - hidden for own videos */}
+      {!isOwnVideo && (
       <div className="flex items-center space-x-0.5 border-l border-gray-300 pl-4">
         {[1, 2, 3, 4, 5].map((star) => (
           <button key={star} onClick={() => handleRating(star)} className="focus:outline-none" type="button" title={`Rate ${star} star${star > 1 ? 's' : ''}`} disabled={loadingRating}>
@@ -360,6 +370,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
           <span className="ml-1.5 text-xs text-gray-500">({averageRating.toFixed(1)})</span>
         )}
       </div>
+      )}
 
       {/* View Responses Button */}
       <button 
@@ -384,6 +395,8 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Add a casual comment..."
+              ref={commentInputRef}
+              onFocus={() => { setTimeout(() => commentInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onKeyDown={(e) => e.key === 'Enter' && handlePostComment()}
             />
