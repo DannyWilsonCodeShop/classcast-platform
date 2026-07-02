@@ -118,6 +118,7 @@ export default function StudentAssignmentDetailPage() {
   const [uploading, setUploading] = useState(false);
   const uploadFileRef = React.useRef<HTMLInputElement>(null);
   const [allAssignmentIds, setAllAssignmentIds] = useState<string[]>([]);
+  const [peerResponseCount, setPeerResponseCount] = useState(0);
 
   const fetchData = useCallback(async () => {
     if (!user?.id) return;
@@ -155,6 +156,20 @@ export default function StudentAssignmentDetailPage() {
   }, [assignmentId, user?.id]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Fetch peer response count for this user on this assignment
+  useEffect(() => {
+    if (!user?.id || !assignmentId || !submission) return;
+    fetch(`/api/videos/${assignmentId}/interactions?type=response`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.interactions) {
+          const myResponses = data.interactions.filter((i: any) => i.userId === user.id);
+          setPeerResponseCount(myResponses.length);
+        }
+      })
+      .catch(() => {});
+  }, [user?.id, assignmentId, submission]);
 
   const handleDelete = async () => {
     if (!submission?.submissionId || !confirm('Delete your submission? This cannot be undone.')) return;
@@ -274,6 +289,29 @@ export default function StudentAssignmentDetailPage() {
             <span className="ml-auto text-xs text-[#005587] font-medium">✓ Submitted</span>
           )}
         </div>
+
+        {/* Peer Review Status - only show after submission and if peer responses enabled */}
+        {isSubmitted && (assignment as any).enablePeerResponses && (
+          <div className="px-4 py-2 bg-blue-50 border-y border-blue-100 shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg className={`w-4 h-4 ${peerResponseCount >= ((assignment as any).minResponsesRequired || 0) ? 'text-green-600' : 'text-orange-500'}`} fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span className="text-xs font-medium text-gray-700">
+                  Peer Reviews: <span className={peerResponseCount >= ((assignment as any).minResponsesRequired || 0) ? 'text-green-600' : 'text-orange-600'}>{peerResponseCount}/{(assignment as any).minResponsesRequired || 0}</span>
+                </span>
+              </div>
+              {peerResponseCount >= ((assignment as any).minResponsesRequired || 0) ? (
+                <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">✓ Complete</span>
+              ) : (
+                <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="text-[10px] font-bold text-[#005587] bg-blue-100 px-2 py-0.5 rounded-full active:scale-95">
+                  Review Peers →
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Scrollable Instructions */}
         <div className="flex-1 overflow-y-auto px-4 py-3 bg-white min-h-0">
