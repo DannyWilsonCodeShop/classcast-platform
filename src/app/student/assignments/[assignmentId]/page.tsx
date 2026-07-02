@@ -30,6 +30,7 @@ interface Submission {
   videoUrl?: string;
   youtubeUrl?: string;
   googleDriveUrl?: string;
+  thumbnailUrl?: string;
   grade?: number;
   gradedAt?: string;
   submittedAt: string;
@@ -48,7 +49,7 @@ function getDueBadge(dueDate: string, isSubmitted?: boolean) {
   return { label: new Date(dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), color: 'bg-gray-200 text-gray-700' };
 }
 
-function VideoPlayer({ url }: { url: string }) {
+function VideoPlayer({ url, poster }: { url: string; poster?: string }) {
   if (url.includes('youtube.com') || url.includes('youtu.be')) {
     let videoId = '';
     if (url.includes('youtu.be/')) videoId = url.split('youtu.be/')[1]?.split(/[?&]/)[0] || '';
@@ -81,6 +82,14 @@ function VideoPlayer({ url }: { url: string }) {
       controls
       playsInline
       preload="metadata"
+      poster={poster || undefined}
+      onLoadedMetadata={(e) => {
+        // If no poster, seek to 2 seconds to generate a preview frame
+        if (!poster) {
+          const video = e.target as HTMLVideoElement;
+          video.currentTime = 2;
+        }
+      }}
     />
   );
 }
@@ -224,7 +233,7 @@ export default function StudentAssignmentDetailPage() {
         {/* Video Area - Show student's submission if exists, otherwise instructional video */}
         {isSubmitted && (submission?.videoUrl || submission?.youtubeUrl || submission?.googleDriveUrl) ? (
           <div className="relative w-full shrink-0" style={{ height: '42%', minHeight: '180px' }}>
-            <VideoPlayer url={submission.videoUrl || submission.youtubeUrl || submission.googleDriveUrl || ''} />
+            <VideoPlayer url={submission.videoUrl || submission.youtubeUrl || submission.googleDriveUrl || ''} poster={(submission as any).thumbnailUrl || undefined} />
             {/* Your Video label */}
             <div className="absolute top-2 left-2 bg-green-600/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
               ✓ Your Video
