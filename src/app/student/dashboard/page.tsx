@@ -264,7 +264,7 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Bottom Nav */}
-        <StudentTabBar onPostClick={() => setShowAssignmentPicker(true)} />
+        <StudentTabBar />
       </div>
       )}
 
