@@ -185,7 +185,7 @@ export default function StudentAssignmentDetailPage() {
     finally { setIsDeleting(false); }
   };
 
-  const dueBadge = useMemo(() => assignment ? getDueBadge(assignment.dueDate, assignment.isSubmitted || !!submission) : null, [assignment?.dueDate, assignment?.isSubmitted, submission]);
+  const dueBadge = useMemo(() => assignment ? getDueBadge(assignment.dueDate, !!submission) : null, [assignment?.dueDate, submission]);
   const isGraded = submission?.grade !== undefined && submission?.grade !== null;
   const isSubmitted = !!submission;
   const resourceCount = (assignment?.resources || []).length;
