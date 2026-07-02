@@ -21,6 +21,9 @@ export default function StudentDashboardPage() {
   const [showAssignmentPicker, setShowAssignmentPicker] = useState(false);
   const [postMode, setPostMode] = useState<'record' | 'upload' | 'link' | null>(null);
   const [selectedPostAssignment, setSelectedPostAssignment] = useState<string | null>(null);
+  const [postLinkUrl, setPostLinkUrl] = useState('');
+  const [postLinkSubmitting, setPostLinkSubmitting] = useState(false);
+  const [postLinkError, setPostLinkError] = useState('');
   const postFileInputRef = React.useRef<HTMLInputElement>(null);
   const [demoMode, setDemoMode] = useState(false);
   const { isWide } = useIsWideScreen();
@@ -299,7 +302,7 @@ export default function StudentDashboardPage() {
             )}
 
             {/* Step 2: Choose method */}
-            {selectedPostAssignment && (
+            {selectedPostAssignment && !postMode && (
               <div className="space-y-3">
                 <button
                   onClick={() => { setShowAssignmentPicker(false); setSelectedPostAssignment(null); router.push(`/student/record?assignmentId=${selectedPostAssignment}&mode=record`); }}
@@ -326,7 +329,7 @@ export default function StudentDashboardPage() {
                   </div>
                 </button>
                 <button
-                  onClick={() => { setShowAssignmentPicker(false); setSelectedPostAssignment(null); router.push(`/student/record?assignmentId=${selectedPostAssignment}`); }}
+                  onClick={() => setPostMode('link')}
                   className="w-full flex items-center gap-3 p-4 bg-gray-100 text-gray-900 rounded-xl active:scale-[0.98] transition-transform"
                 >
                   <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
@@ -338,6 +341,73 @@ export default function StudentDashboardPage() {
                   </div>
                 </button>
                 <button onClick={() => setSelectedPostAssignment(null)} className="w-full text-center text-xs text-[#005587] font-medium py-2 mt-1">← Back to assignments</button>
+              </div>
+            )}
+
+            {/* Step 3: Link input inline */}
+            {selectedPostAssignment && postMode === 'link' && (
+              <div className="space-y-3">
+                <input
+                  type="url"
+                  autoFocus
+                  placeholder="Paste YouTube or Google Drive link..."
+                  value={postLinkUrl}
+                  onChange={(e) => { setPostLinkUrl(e.target.value); setPostLinkError(''); }}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-[#005587] focus:ring-1 focus:ring-[#005587]"
+                />
+                {postLinkError && <p className="text-red-500 text-xs">{postLinkError}</p>}
+                <button
+                  onClick={async () => {
+                    if (!postLinkUrl.trim()) { setPostLinkError('Please paste a link'); return; }
+                    if (!user?.id) { setPostLinkError('Not logged in'); return; }
+                    setPostLinkSubmitting(true);
+                    setPostLinkError('');
+                    try {
+                      // Fetch assignment to get courseId
+                      const aRes = await fetch(`/api/assignments/${selectedPostAssignment}`);
+                      const aData = aRes.ok ? await aRes.json() : null;
+                      const courseId = aData?.data?.assignment?.courseId || aData?.assignment?.courseId;
+                      
+                      const isYT = postLinkUrl.includes('youtube.com') || postLinkUrl.includes('youtu.be');
+                      const isGD = postLinkUrl.includes('drive.google');
+                      const res = await fetch('/api/video-submissions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          studentId: user.id,
+                          assignmentId: selectedPostAssignment,
+                          courseId,
+                          videoUrl: postLinkUrl.trim(),
+                          youtubeUrl: isYT ? postLinkUrl.trim() : undefined,
+                          googleDriveUrl: isGD ? postLinkUrl.trim() : undefined,
+                          videoTitle: 'Video Submission',
+                          isYouTube: isYT,
+                          isGoogleDrive: isGD,
+                          submissionMethod: isYT ? 'youtube' : isGD ? 'google-drive' : 'link',
+                        }),
+                      });
+                      const data = await res.json().catch(() => null);
+                      if (res.ok && data?.success) {
+                        setShowAssignmentPicker(false);
+                        setPostMode(null);
+                        setSelectedPostAssignment(null);
+                        setPostLinkUrl('');
+                        // Refresh data
+                        fetchFeed();
+                      } else {
+                        setPostLinkError(data?.error || `Failed (${res.status})`);
+                      }
+                    } catch (err: any) {
+                      setPostLinkError(err?.message || 'Network error');
+                    }
+                    setPostLinkSubmitting(false);
+                  }}
+                  disabled={postLinkSubmitting || !postLinkUrl.trim()}
+                  className="w-full py-3 bg-[#005587] text-white rounded-xl font-bold disabled:opacity-50"
+                >
+                  {postLinkSubmitting ? 'Submitting...' : 'Submit Link'}
+                </button>
+                <button onClick={() => { setPostMode(null); setPostLinkUrl(''); setPostLinkError(''); }} className="w-full text-center text-xs text-[#005587] font-medium py-2">← Back</button>
               </div>
             )}
           </div>
