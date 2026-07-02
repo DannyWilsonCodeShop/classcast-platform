@@ -391,29 +391,37 @@ export default function StudentAssignmentDetailPage() {
               </button>
             </div>
             <div className="overflow-y-auto flex-1 space-y-3">
-              {(assignment as any).rubric && Array.isArray((assignment as any).rubric) ? (
-                <>
-                  {(assignment as any).rubric.map((item: any, idx: number) => (
-                    <div key={item.id || idx} className="bg-gray-50 rounded-xl p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-semibold text-gray-900">{item.name}</span>
-                        <span className="text-sm font-bold text-[#005587]">{item.maxPoints} pts</span>
+              {(() => {
+                const totalPts = (assignment.points || assignment.maxScore || 100) === 100 ? 30 : (assignment.points || assignment.maxScore || 30);
+                const rubricData = (assignment as any).rubric && Array.isArray((assignment as any).rubric) 
+                  ? (assignment as any).rubric 
+                  : [
+                      { id: '1', name: 'Content & Understanding', description: 'Demonstrates clear understanding of the topic and covers key concepts accurately', maxPoints: Math.ceil(totalPts * 0.25) },
+                      { id: '2', name: 'Communication & Clarity', description: 'Speaks clearly, organized thoughts logically, and presents ideas in a way that is easy to follow', maxPoints: Math.ceil(totalPts * 0.25) },
+                      { id: '3', name: 'Creativity & Engagement', description: 'Uses creative approaches to make the video engaging, interesting, and memorable', maxPoints: Math.ceil(totalPts * 0.2) },
+                      { id: '4', name: 'Production Quality', description: 'Good video/audio quality, appropriate length, proper framing and lighting', maxPoints: Math.ceil(totalPts * 0.15) },
+                      { id: '5', name: 'Effort & Completeness', description: 'Shows genuine effort, meets all requirements, and delivers a complete response', maxPoints: Math.ceil(totalPts * 0.15) },
+                    ];
+                return (
+                  <>
+                    {rubricData.map((item: any, idx: number) => (
+                      <div key={item.id || idx} className="bg-gray-50 rounded-xl p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-semibold text-gray-900">{item.name}</span>
+                          <span className="text-sm font-bold text-[#005587]">{item.maxPoints} pts</span>
+                        </div>
+                        <p className="text-xs text-gray-500">{item.description}</p>
                       </div>
-                      <p className="text-xs text-gray-500">{item.description}</p>
+                    ))}
+                    <div className="border-t border-gray-200 pt-2 mt-2 flex items-center justify-between">
+                      <span className="text-sm font-bold text-gray-700">Total</span>
+                      <span className="text-sm font-bold text-[#005587]">
+                        {rubricData.reduce((sum: number, r: any) => sum + (r.maxPoints || 0), 0)} pts
+                      </span>
                     </div>
-                  ))}
-                  <div className="border-t border-gray-200 pt-2 mt-2 flex items-center justify-between">
-                    <span className="text-sm font-bold text-gray-700">Total</span>
-                    <span className="text-sm font-bold text-[#005587]">
-                      {(assignment as any).rubric.reduce((sum: number, r: any) => sum + (r.maxPoints || 0), 0)} pts
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-400 text-sm">No rubric available for this assignment.</p>
-                </div>
-              )}
+                  </>
+                );
+              })()}
             </div>
           </div>
         </div>
