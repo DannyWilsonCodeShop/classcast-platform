@@ -30,6 +30,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   const [commentText, setCommentText] = React.useState<string>('');
   const [responseText, setResponseText] = React.useState<string>('');
   const [postingComment, setPostingComment] = React.useState<boolean>(false);
+  const [commentPosted, setCommentPosted] = React.useState<boolean>(false);
   const [postingResponse, setPostingResponse] = React.useState<boolean>(false);
   const [responsePosted, setResponsePosted] = React.useState<boolean>(false);
   const [userRating, setUserRating] = React.useState<number>(initialUserRating);
@@ -161,6 +162,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
 
   const handlePostComment = async () => {
     if (!commentText.trim() || postingComment) return;
+    if (!currentUser?.id) { alert('You must be logged in to comment.'); return; }
     
     console.log('💬 Posting comment:', { videoId, userId: currentUser.id, content: commentText });
     setPostingComment(true);
@@ -172,7 +174,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         body: JSON.stringify({
           type: 'comment',
           userId: currentUser.id,
-          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email || 'Student',
           userAvatar: currentUser.avatar || '/api/placeholder/40/40',
           content: commentText.trim(),
         }),
@@ -184,15 +186,19 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         if (data.success) {
           setComments((p) => p + 1);
           setCommentText('');
+          setCommentPosted(true);
+          setTimeout(() => setCommentPosted(false), 2000);
           onCountsChange?.({ comments: comments + 1 });
-          // Refresh comments list to show new comment
           await loadComments();
         }
       } else {
-        console.error('❌ Comment post failed:', res.status, await res.text().catch(() => 'Unknown error'));
+        const errText = await res.text().catch(() => 'Unknown error');
+        console.error('❌ Comment post failed:', res.status, errText);
+        alert(`Failed to post comment (${res.status}): ${errText}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Comment post error:', error);
+      alert(`Error posting comment: ${error?.message || error}`);
     }
     setPostingComment(false);
   };
@@ -386,7 +392,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
               disabled={!commentText.trim() || postingComment}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {postingComment ? 'Posting...' : 'Comment'}
+              {postingComment ? 'Posting...' : commentPosted ? '✓ Posted!' : 'Comment'}
             </button>
           </div>
           
