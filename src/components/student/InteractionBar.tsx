@@ -199,6 +199,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
 
   const handlePostResponse = async () => {
     if (!responseText.trim() || postingResponse) return;
+    if (!currentUser?.id) { alert('You must be logged in to respond.'); return; }
     
     console.log('📝 Posting response:', { videoId, userId: currentUser.id, content: responseText });
     setPostingResponse(true);
@@ -210,7 +211,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         body: JSON.stringify({
           type: 'response',
           userId: currentUser.id,
-          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email,
+          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email || 'Student',
           userAvatar: currentUser.avatar || '/api/placeholder/40/40',
           content: responseText.trim(),
         }),
@@ -222,17 +223,17 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         if (data.success) {
           setResponseText('');
           setResponsePosted(true);
-          // Reset after 3 seconds
           setTimeout(() => setResponsePosted(false), 3000);
-          // Refresh responses list to show new response
           await loadResponses();
         }
       } else {
-        console.error('❌ Response post failed:', res.status, await res.text().catch(() => 'Unknown error'));
-        alert('Failed to submit response. Please try again.');
+        const errText = await res.text().catch(() => 'Unknown error');
+        console.error('❌ Response post failed:', res.status, errText);
+        alert(`Failed to submit response (${res.status}): ${errText}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Response post error:', error);
+      alert(`Error submitting response: ${error?.message || error}`);
     }
     setPostingResponse(false);
   };
