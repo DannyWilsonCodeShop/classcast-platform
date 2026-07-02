@@ -135,6 +135,16 @@ export async function GET(request: NextRequest) {
         if (u.email) userMap.set(u.email, u);
       }
       
+      // Batch load assignments for title lookup
+      const allAssignmentsResult = await docClient.send(new ScanCommand({
+        TableName: 'classcast-assignments',
+        ProjectionExpression: 'assignmentId, title'
+      }));
+      const assignmentMap = new Map<string, string>();
+      for (const a of (allAssignmentsResult.Items || [])) {
+        if (a.assignmentId && a.title) assignmentMap.set(a.assignmentId, a.title);
+      }
+      
       // For each submission, build feed item
       for (const sub of submissions) {
         const isFromEnrolledCourse = courseIds.includes(sub.courseId);
@@ -165,7 +175,7 @@ export async function GET(request: NextRequest) {
           assignmentId: sub.assignmentId,
           videoUrl: videoUrl,
           thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
-          title: sub.videoTitle || sub.title,
+          title: assignmentMap.get(sub.assignmentId) || sub.videoTitle || sub.title || 'Video',
           author: { id: sub.studentId, name: studentName, avatar: studentAvatar },
           likes: sub.likes || 0,
           comments: sub.commentCount || 0,
