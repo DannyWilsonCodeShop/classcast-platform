@@ -20,6 +20,8 @@ export default function StudentDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [showAssignmentPicker, setShowAssignmentPicker] = useState(false);
   const [postMode, setPostMode] = useState<'record' | 'upload' | 'link' | null>(null);
+  const [selectedPostAssignment, setSelectedPostAssignment] = useState<string | null>(null);
+  const postFileInputRef = React.useRef<HTMLInputElement>(null);
   const [demoMode, setDemoMode] = useState(false);
   const { isWide } = useIsWideScreen();
 
@@ -265,23 +267,42 @@ export default function StudentDashboardPage() {
 
       {/* Post Modal */}
       {showAssignmentPicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => { setShowAssignmentPicker(false); setPostMode(null); }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => { setShowAssignmentPicker(false); setPostMode(null); setSelectedPostAssignment(null); }}>
           <div className="absolute inset-0 bg-black/40" />
           <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-gray-900">
-                {!postMode ? 'Post a Video' : 'Select Assignment'}
+                {!selectedPostAssignment ? 'Select Assignment' : 'How do you want to post?'}
               </h3>
-              <button onClick={() => { setShowAssignmentPicker(false); setPostMode(null); }} className="text-gray-400 p-1">
+              <button onClick={() => { setShowAssignmentPicker(false); setPostMode(null); setSelectedPostAssignment(null); }} className="text-gray-400 p-1">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
 
-            {/* Step 1: Choose Record, Upload, or Link */}
-            {!postMode && (
+            {/* Step 1: Choose Assignment */}
+            {!selectedPostAssignment && (
+              <div className="overflow-y-auto flex-1 space-y-2">
+                {unsubmitted.length > 0 ? unsubmitted.map(a => (
+                  <button
+                    key={a.assignmentId}
+                    onClick={() => setSelectedPostAssignment(a.assignmentId)}
+                    className="w-full text-left rounded-xl p-3 active:scale-[0.98] transition-transform"
+                    style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}
+                  >
+                    <h4 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h4>
+                    <p className="text-xs opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''} • Due {getDueBadge(a.dueDate)}</p>
+                  </button>
+                )) : (
+                  <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>
+                )}
+              </div>
+            )}
+
+            {/* Step 2: Choose method */}
+            {selectedPostAssignment && (
               <div className="space-y-3">
                 <button
-                  onClick={() => setPostMode('record')}
+                  onClick={() => { setShowAssignmentPicker(false); setSelectedPostAssignment(null); router.push(`/student/record?assignmentId=${selectedPostAssignment}&mode=record`); }}
                   className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-[#005587] to-[#0088cc] text-white rounded-xl active:scale-[0.98] transition-transform"
                 >
                   <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -293,7 +314,7 @@ export default function StudentDashboardPage() {
                   </div>
                 </button>
                 <button
-                  onClick={() => setPostMode('upload')}
+                  onClick={() => { setShowAssignmentPicker(false); postFileInputRef.current?.click(); }}
                   className="w-full flex items-center gap-3 p-4 bg-gray-100 text-gray-900 rounded-xl active:scale-[0.98] transition-transform"
                 >
                   <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
@@ -305,7 +326,7 @@ export default function StudentDashboardPage() {
                   </div>
                 </button>
                 <button
-                  onClick={() => setPostMode('link')}
+                  onClick={() => { setShowAssignmentPicker(false); setSelectedPostAssignment(null); router.push(`/student/record?assignmentId=${selectedPostAssignment}`); }}
                   className="w-full flex items-center gap-3 p-4 bg-gray-100 text-gray-900 rounded-xl active:scale-[0.98] transition-transform"
                 >
                   <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
@@ -313,45 +334,31 @@ export default function StudentDashboardPage() {
                   </div>
                   <div className="text-left">
                     <p className="font-semibold text-sm">Paste a Link</p>
-                    <p className="text-xs text-gray-500">YouTube or Google Drive URL</p>
+                    <p className="text-xs text-gray-500">YouTube or Google Drive</p>
                   </div>
                 </button>
-              </div>
-            )}
-
-            {/* Step 2: Choose Assignment */}
-            {postMode && (
-              <div className="overflow-y-auto flex-1 space-y-2">
-                <p className="text-xs text-gray-500 mb-2">Choose which assignment to post to:</p>
-                {unsubmitted.length > 0 ? unsubmitted.map(a => (
-                  <button
-                    key={a.assignmentId}
-                    onClick={() => {
-                      setShowAssignmentPicker(false);
-                      setPostMode(null);
-                      if (postMode === 'record') {
-                        router.push(`/student/record?assignmentId=${a.assignmentId}&mode=record`);
-                      } else if (postMode === 'upload') {
-                        router.push(`/student/record?assignmentId=${a.assignmentId}&mode=upload`);
-                      } else {
-                        router.push(`/student/record?assignmentId=${a.assignmentId}`);
-                      }
-                    }}
-                    className="w-full text-left rounded-xl p-3 active:scale-[0.98] transition-transform"
-                    style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}
-                  >
-                    <h4 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h4>
-                    <p className="text-xs opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''} • Due {getDueBadge(a.dueDate)}</p>
-                  </button>
-                )) : (
-                  <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>
-                )}
-                <button onClick={() => setPostMode(null)} className="w-full text-center text-xs text-[#005587] font-medium py-2 mt-2">← Back</button>
+                <button onClick={() => setSelectedPostAssignment(null)} className="w-full text-center text-xs text-[#005587] font-medium py-2 mt-1">← Back to assignments</button>
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Hidden file input for upload from modal */}
+      <input
+        ref={postFileInputRef}
+        type="file"
+        accept="video/*"
+        className="hidden"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (!file || !selectedPostAssignment) return;
+          // Navigate to record page with file — since we can't pass files between pages,
+          // navigate to record page in upload mode (it will auto-open file picker there too)
+          router.push(`/student/record?assignmentId=${selectedPostAssignment}&mode=upload`);
+          setSelectedPostAssignment(null);
+        }}
+      />
     </StudentRoute>
   );
 }
