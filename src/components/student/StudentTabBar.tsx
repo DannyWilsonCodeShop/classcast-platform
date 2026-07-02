@@ -59,7 +59,7 @@ export function StudentTabBar({ onPostClick }: StudentTabBarProps) {
 
         {/* Profile - shows user avatar */}
         <button className="flex flex-col items-center min-w-0" onClick={() => router.push('/student/profile')}>
-          <div className={`w-12 h-12 rounded-full overflow-hidden border-4 border-white ring-2 ${isActive('/student/profile') ? 'ring-[#005587]' : 'ring-[#FFC72C]'} bg-[#005587] flex items-center justify-center shadow-lg`}>
+          <div className={`w-12 h-12 rounded-full overflow-hidden ${isActive('/student/profile') ? 'ring-2 ring-[#005587]' : ''} bg-[#005587] flex items-center justify-center shadow-lg`}>
             {avatarUrl && avatarUrl.startsWith('http') ? (
               <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
             ) : avatarUrl && avatarUrl.length <= 4 ? (
