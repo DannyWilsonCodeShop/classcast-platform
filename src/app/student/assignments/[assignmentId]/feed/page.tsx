@@ -598,6 +598,7 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
             className="w-full h-full object-contain"
             playsInline
             preload="metadata"
+            onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 2; }}
           />
         )}
       </div>
