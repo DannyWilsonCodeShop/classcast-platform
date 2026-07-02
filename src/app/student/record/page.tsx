@@ -162,6 +162,7 @@ function RecordPageInner() {
     setLinkUrl('');
     setLinkType(null);
     setError('');
+    setShowThumbnailStep(true); // Show cover photo step after file upload
   };
 
   // Delete video
