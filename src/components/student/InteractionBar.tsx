@@ -236,6 +236,7 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
           setResponsePosted(true);
           setTimeout(() => setResponsePosted(false), 3000);
           await loadResponses();
+          setShowResponses(true); // Auto-show responses panel so user can see their response
         }
       } else {
         const errText = await res.text().catch(() => 'Unknown error');
@@ -461,29 +462,47 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
               <p className="text-sm text-gray-500">Loading responses...</p>
             ) : responsesList.length > 0 ? (
               <div className="space-y-2">
-                {responsesList.map((response, index) => (
-                  <div key={response.id || index} className="bg-white rounded-lg p-3 border border-green-300">
-                    <div className="flex items-start space-x-2">
-                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xs font-bold">
-                          {response.userName?.charAt(0) || 'U'}
-                        </span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className="text-sm font-medium text-gray-900">{response.userName}</span>
-                          <span className="text-xs text-gray-500">
-                            {response.createdAt ? new Date(response.createdAt).toLocaleDateString() : 'Recently'}
-                          </span>
-                          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
-                            For Grading
+                {responsesList.map((response, index) => {
+                  const isMyResponse = currentUser?.id && response.userId === currentUser.id;
+                  return (
+                    <div key={response.id || index} className={`bg-white rounded-lg p-3 border ${isMyResponse ? 'border-blue-300 bg-blue-50/50' : 'border-green-300'}`}>
+                      <div className="flex items-start space-x-2">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isMyResponse ? 'bg-blue-500' : 'bg-green-500'}`}>
+                          <span className="text-white text-xs font-bold">
+                            {response.userName?.charAt(0) || 'U'}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-700">{response.content}</p>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <span className="text-sm font-medium text-gray-900">{response.userName}{isMyResponse ? ' (You)' : ''}</span>
+                            <span className="text-xs text-gray-500">
+                              {response.createdAt ? new Date(response.createdAt).toLocaleDateString() : 'Recently'}
+                            </span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${isMyResponse ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                              For Grading
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700">{response.content}</p>
+                          {isMyResponse && (
+                            <button
+                              onClick={async () => {
+                                if (!confirm('Delete your response? This cannot be undone.')) return;
+                                try {
+                                  const res = await fetch(`/api/videos/${videoId}/interactions/${response.id}`, { method: 'DELETE' });
+                                  if (res.ok) { await loadResponses(); }
+                                  else { alert('Failed to delete response'); }
+                                } catch { alert('Error deleting response'); }
+                              }}
+                              className="mt-2 text-xs text-red-500 hover:text-red-700 font-medium"
+                            >
+                              🗑 Delete my response
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <p className="text-sm text-gray-500">No responses yet.</p>
