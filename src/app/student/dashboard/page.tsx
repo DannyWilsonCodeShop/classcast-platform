@@ -208,8 +208,8 @@ export default function StudentDashboardPage() {
                 </div>
               )) : <div className="flex items-center justify-center h-full text-gray-400 text-xs">No assignments 🎉</div>}
             </div>
-            <div className="px-3 py-1.5 shrink-0">
-              <button onClick={() => router.push('/student/assignments')} className="w-full text-center text-[11px] text-[#005587] font-medium py-1">View All →</button>
+            <div className="px-3 py-0.5 shrink-0">
+              <button onClick={() => router.push('/student/assignments')} className="w-full text-center text-[11px] text-[#005587] font-medium py-0.5">View All →</button>
             </div>
           </div>
         </div>
@@ -224,28 +224,16 @@ export default function StudentDashboardPage() {
           </div>
           <div className="flex-1 overflow-hidden px-4 pb-1 min-h-0">
             {feed.length > 0 ? (
-              <div className="flex gap-3.5 overflow-x-auto h-full items-start pt-1 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+              <div className="flex gap-2 overflow-x-auto h-full items-start pt-1 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
                 {feed.slice(0, 10).map(item => {
                   const ytThumb = getVideoThumbnail(item.videoUrl);
                   return (
                     <div key={item.id} className="shrink-0 w-44 h-full flex flex-col cursor-pointer" onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed?videoId=${item.id}`)}>
-                      {/* Author above video */}
-                      <div className="flex items-center gap-2 mb-1.5 shrink-0">
-                        <div className="w-10 h-10 rounded-full border-2 border-[#FFC72C] overflow-hidden bg-gray-300 shrink-0">
-                          {item.author?.avatar && item.author.avatar.startsWith('http') ? (
-                            <img src={item.author.avatar} alt="" className="w-full h-full object-cover" />
-                          ) : item.author?.avatar && item.author.avatar.length <= 4 ? (
-                            <div className="w-full h-full bg-[#005587] flex items-center justify-center text-lg">{item.author.avatar}</div>
-                          ) : (
-                            <div className="w-full h-full bg-[#005587] flex items-center justify-center text-white text-xs font-bold">{(item.author?.name || '?')[0]}</div>
-                          )}
-                        </div>
-                        <span className="text-sm font-semibold text-gray-900 truncate">{item.author?.name || 'Student'}</span>
-                      </div>
                       {/* Video thumbnail - taller */}
-                      <div className="relative rounded-xl overflow-hidden flex-1 bg-gray-800 min-h-[140px]">
+                      <div className="relative rounded-xl overflow-hidden flex-1 bg-gray-800 min-h-[180px]">
                         {ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" onLoadedMetadata={e => { (e.target as HTMLVideoElement).currentTime = 3; }} /> : <div className="w-full h-full bg-gradient-to-br from-[#005587] to-[#0077aa] flex items-center justify-center"><svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>}
                         <div className="absolute inset-0 flex items-center justify-center"><div className="w-11 h-11 bg-white/80 rounded-full flex items-center justify-center shadow-lg"><svg className="w-5 h-5 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
+                        <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-full truncate max-w-[80%]">{item.author?.name || 'Student'}</div>
                       </div>
                       {/* Title + likes below */}
                       <div className="mt-1.5 shrink-0">
