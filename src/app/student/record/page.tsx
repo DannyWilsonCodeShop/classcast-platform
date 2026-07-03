@@ -238,6 +238,24 @@ function RecordPageInner() {
         setUploadProgress(90);
       }
 
+      // Upload thumbnail to S3 if it's a base64 image
+      let finalThumbnailUrl: string | undefined = undefined;
+      if (thumbnailUrl && thumbnailUrl.startsWith('data:')) {
+        try {
+          const thumbRes = await fetch('/api/upload/thumbnail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: thumbnailUrl, userId: user.id }),
+          });
+          if (thumbRes.ok) {
+            const thumbData = await thumbRes.json();
+            finalThumbnailUrl = thumbData.url || thumbData.thumbnailUrl;
+          }
+        } catch { /* skip thumbnail if upload fails */ }
+      } else if (thumbnailUrl) {
+        finalThumbnailUrl = thumbnailUrl;
+      }
+
       // Save submission
       const body: any = {
         studentId: user.id,
@@ -245,7 +263,7 @@ function RecordPageInner() {
         courseId: assignment?.courseId || undefined,
         videoUrl: finalVideoUrl,
         videoTitle: videoFile?.name?.replace(/\.[^/.]+$/, '') || 'Video Submission',
-        thumbnailUrl: thumbnailUrl || undefined,
+        thumbnailUrl: finalThumbnailUrl,
         submissionMethod,
         isYouTube,
         isGoogleDrive,
