@@ -555,7 +555,7 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
       )}
 
       {/* Video Player - Mobile Optimized */}
-      <div className="relative w-full bg-black" style={{ aspectRatio: '16/9' }}>
+      <div className="relative w-full bg-black" style={{ aspectRatio: '16/9', minHeight: '200px' }}>
         {isYouTube ? (
           <div className="relative w-full h-full">
             <img
