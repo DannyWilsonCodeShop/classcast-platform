@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
 
 interface StudentTabBarProps {
   /** If provided, skips assignment selection and uses this assignmentId directly */
@@ -76,13 +77,13 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
     <>
       {/* Spacer to prevent content from hiding behind fixed nav */}
       <div className="shrink-0 h-[80px] native-bottom-nav" />
-      <nav className="fixed bottom-4 left-4 right-4 z-40 px-2 py-2 rounded-2xl native-bottom-nav" style={{ background: 'rgba(255,255,255,0.45)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.4)' }}>
+      <nav className="fixed bottom-4 left-4 right-4 z-40 px-2 py-2 rounded-2xl native-bottom-nav" style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', border: '1px solid rgba(255,255,255,0.3)', boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.4)' }}>
         <div className="flex items-center justify-around">
-          <button className="flex flex-col items-center min-w-0 transition-transform duration-200" style={{ transform: isActive('/student/dashboard') ? 'scale(1.2)' : 'scale(1)' }} onClick={() => router.push('/student/dashboard')}>
+          <button className="flex flex-col items-center min-w-0 transition-transform duration-200" style={{ transform: isActive('/student/dashboard') ? 'scale(1.35)' : 'scale(1)' }} onClick={() => router.push('/student/dashboard')}>
             <svg className={`w-6 h-6 ${isActive('/student/dashboard') ? activeColor : inactiveColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
             <span className={`text-[9px] ${isActive('/student/dashboard') ? activeColor + ' font-medium' : inactiveColor}`}>Home</span>
           </button>
-          <button className="flex flex-col items-center min-w-0 transition-transform duration-200" style={{ transform: isActive('/student/assignments') ? 'scale(1.2)' : 'scale(1)' }} onClick={() => router.push('/student/assignments')}>
+          <button className="flex flex-col items-center min-w-0 transition-transform duration-200" style={{ transform: isActive('/student/assignments') ? 'scale(1.35)' : 'scale(1)' }} onClick={() => router.push('/student/assignments')}>
             <svg className={`w-6 h-6 ${isActive('/student/assignments') ? activeColor : inactiveColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
             <span className={`text-[9px] ${isActive('/student/assignments') ? activeColor + ' font-medium' : inactiveColor}`}>Assignments</span>
           </button>
@@ -92,11 +93,11 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
             </div>
             <span className="text-[9px] text-gray-500 mt-0.5">Post</span>
           </button>
-          <button className="flex flex-col items-center min-w-0 transition-transform duration-200" style={{ transform: isActive('/student/courses') ? 'scale(1.2)' : 'scale(1)' }} onClick={() => router.push('/student/courses')}>
+          <button className="flex flex-col items-center min-w-0 transition-transform duration-200" style={{ transform: isActive('/student/courses') ? 'scale(1.35)' : 'scale(1)' }} onClick={() => router.push('/student/courses')}>
             <svg className={`w-6 h-6 ${isActive('/student/courses') ? activeColor : inactiveColor}`} fill={isActive('/student/courses') ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
             <span className={`text-[9px] ${isActive('/student/courses') ? activeColor + ' font-medium' : inactiveColor}`}>Courses</span>
           </button>
-          <button className="flex flex-col items-center min-w-0 transition-transform duration-200" style={{ transform: isActive('/student/profile') ? 'scale(1.2)' : 'scale(1)' }} onClick={() => router.push('/student/profile')}>
+          <button className="flex flex-col items-center min-w-0 transition-transform duration-200" style={{ transform: isActive('/student/profile') ? 'scale(1.35)' : 'scale(1)' }} onClick={() => router.push('/student/profile')}>
             <div className={`w-12 h-12 rounded-full overflow-hidden ${isActive('/student/profile') ? 'ring-2 ring-[#005587]' : ''} bg-[#005587] flex items-center justify-center shadow-lg`}>
               {avatarUrl && avatarUrl.startsWith('http') ? (
                 <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
@@ -129,9 +130,9 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
             {!selectedAssignment && (
               <div className="overflow-y-auto flex-1 space-y-2">
                 {assignments.length > 0 ? assignments.map((a: any) => (
-                  <button key={a.assignmentId} onClick={() => setSelectedAssignment(a.assignmentId)} className="w-full text-left rounded-xl p-3 bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform">
-                    <h4 className="text-sm font-bold text-gray-900 truncate">{a.title}</h4>
-                    <p className="text-xs text-gray-500 truncate">{a.courseName || ''}</p>
+                  <button key={a.assignmentId} onClick={() => setSelectedAssignment(a.assignmentId)} className="w-full text-left rounded-xl p-3 active:scale-[0.98] transition-transform" style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}>
+                    <h4 className="text-sm font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h4>
+                    <p className="text-xs truncate opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''}</p>
                   </button>
                 )) : (
                   <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>
