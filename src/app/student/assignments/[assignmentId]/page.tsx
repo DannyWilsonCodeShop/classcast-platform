@@ -392,31 +392,67 @@ export default function StudentAssignmentDetailPage() {
             </div>
             <div className="overflow-y-auto flex-1 space-y-3">
               {(() => {
-                const totalPts = (assignment.points || assignment.maxScore || 100) === 100 ? 30 : (assignment.points || assignment.maxScore || 30);
                 const rubricData = (assignment as any).rubric && Array.isArray((assignment as any).rubric) 
                   ? (assignment as any).rubric 
                   : [
-                      { id: '1', name: 'Content & Understanding', description: 'Demonstrates clear understanding of the topic and covers key concepts accurately', maxPoints: Math.ceil(totalPts * 0.25) },
-                      { id: '2', name: 'Communication & Clarity', description: 'Speaks clearly, organized thoughts logically, and presents ideas in a way that is easy to follow', maxPoints: Math.ceil(totalPts * 0.25) },
-                      { id: '3', name: 'Creativity & Engagement', description: 'Uses creative approaches to make the video engaging, interesting, and memorable', maxPoints: Math.ceil(totalPts * 0.2) },
-                      { id: '4', name: 'Production Quality', description: 'Good video/audio quality, appropriate length, proper framing and lighting', maxPoints: Math.ceil(totalPts * 0.15) },
-                      { id: '5', name: 'Effort & Completeness', description: 'Shows genuine effort, meets all requirements, and delivers a complete response', maxPoints: Math.ceil(totalPts * 0.15) },
+                      { id: '1', name: 'Mathematical Accuracy', levels: [
+                        { score: 4, description: 'All work is correct.' },
+                        { score: 3, description: 'One minor error.' },
+                        { score: 2, description: 'Multiple errors but demonstrates understanding.' },
+                        { score: 1, description: 'Little or no understanding shown.' },
+                      ]},
+                      { id: '2', name: 'Work Shown', levels: [
+                        { score: 4, description: 'All steps are shown and easy to follow.' },
+                        { score: 3, description: 'Most steps shown.' },
+                        { score: 2, description: 'Some steps missing.' },
+                        { score: 1, description: 'Little or no work shown.' },
+                      ]},
+                      { id: '3', name: 'Explanation', levels: [
+                        { score: 4, description: 'Reasoning is clear and complete.' },
+                        { score: 3, description: 'Mostly clear.' },
+                        { score: 2, description: 'Limited explanation.' },
+                        { score: 1, description: 'No meaningful explanation.' },
+                      ]},
+                      { id: '4', name: 'Organization', levels: [
+                        { score: 4, description: 'Neat and easy to read.' },
+                        { score: 3, description: 'Mostly organized.' },
+                        { score: 2, description: 'Somewhat difficult to follow.' },
+                        { score: 1, description: 'Disorganized.' },
+                      ]},
                     ];
+                // Check if it's the new 4/3/2/1 format (has levels) or old format (has maxPoints)
+                const isNewFormat = rubricData[0]?.levels;
                 return (
                   <>
-                    {rubricData.map((item: any, idx: number) => (
-                      <div key={item.id || idx} className="bg-gray-50 rounded-xl p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-semibold text-gray-900">{item.name}</span>
-                          <span className="text-sm font-bold text-[#005587]">{item.maxPoints} pts</span>
+                    {isNewFormat ? (
+                      rubricData.map((item: any, idx: number) => (
+                        <div key={item.id || idx} className="bg-gray-50 rounded-xl p-3">
+                          <h4 className="text-sm font-semibold text-gray-900 mb-2">{item.name}</h4>
+                          <div className="space-y-1">
+                            {item.levels.map((level: any) => (
+                              <div key={level.score} className="flex items-start gap-2">
+                                <span className={`text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${level.score === 4 ? 'bg-green-100 text-green-700' : level.score === 3 ? 'bg-blue-100 text-blue-700' : level.score === 2 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>{level.score}</span>
+                                <span className="text-xs text-gray-600">{level.description}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-500">{item.description}</p>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      rubricData.map((item: any, idx: number) => (
+                        <div key={item.id || idx} className="bg-gray-50 rounded-xl p-3">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-semibold text-gray-900">{item.name}</span>
+                            <span className="text-sm font-bold text-[#005587]">{item.maxPoints} pts</span>
+                          </div>
+                          <p className="text-xs text-gray-500">{item.description}</p>
+                        </div>
+                      ))
+                    )}
                     <div className="border-t border-gray-200 pt-2 mt-2 flex items-center justify-between">
-                      <span className="text-sm font-bold text-gray-700">Total</span>
+                      <span className="text-sm font-bold text-gray-700">Max Score</span>
                       <span className="text-sm font-bold text-[#005587]">
-                        {rubricData.reduce((sum: number, r: any) => sum + (r.maxPoints || 0), 0)} pts
+                        {isNewFormat ? `${rubricData.length * 4} pts (4 per category)` : `${rubricData.reduce((sum: number, r: any) => sum + (r.maxPoints || 0), 0)} pts`}
                       </span>
                     </div>
                   </>
