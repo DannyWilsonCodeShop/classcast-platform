@@ -106,7 +106,7 @@ const StudentCoursesPage: React.FC = () => {
   if (loading) {
     return (
       <StudentRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e8f4f8] via-[#d4eef5] to-[#c2e4f2]">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc]">
           <LoadingSpinner text="Loading courses..." />
         </div>
       </StudentRoute>
@@ -117,7 +117,7 @@ const StudentCoursesPage: React.FC = () => {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
-      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-[#e8f4f8] via-[#d4eef5] to-[#c2e4f2]">
+      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc]">
         {/* Demo Mode Banner */}
         <DemoModeBanner />
         
