@@ -66,19 +66,6 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
             }
           }
         }
-        // Load like status
-        if (currentUser?.id && videoId) {
-          try {
-            const l = await fetch(`/api/videos/${videoId}/like?userId=${currentUser.id}`);
-            if (!cancelled && l.ok) {
-              const data = await l.json();
-              if (data.success) {
-                if (typeof data.likes === 'number') setLikes(data.likes);
-                if (typeof data.isLiked === 'boolean') setIsLiked(data.isLiked);
-              }
-            }
-          } catch {}
-        }
         // Load comments
         await loadComments();
       } catch (error) {
@@ -300,13 +287,33 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
 
   return (
     <div className="flex items-center flex-wrap gap-4 text-gray-600">
-      {/* Like */}
-      <button onClick={handleLike} className={`flex items-center space-x-1.5 transition-colors py-2 ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}>
-        <svg className="w-6 h-6" fill={isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-        </svg>
-        <span className="text-sm font-medium">{likes}</span>
-      </button>
+      {/* Star Rating - primary interaction (replaces hearts) */}
+      {!isOwnVideo ? (
+        <div className="flex items-center space-x-1 py-2">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button key={star} onClick={() => handleRating(star)} className="focus:outline-none" type="button" title={`Rate ${star} star${star > 1 ? 's' : ''}`} disabled={loadingRating}>
+              <svg className={`w-6 h-6 transition-all ${star <= userRating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 hover:text-yellow-400'}`} fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            </button>
+          ))}
+          {averageRating > 0 && (
+            <span className="ml-1.5 text-xs text-gray-500 font-medium">({averageRating.toFixed(1)})</span>
+          )}
+        </div>
+      ) : (
+        /* Show average rating read-only for own videos */
+        <div className="flex items-center space-x-1 py-2">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <svg key={star} className={`w-5 h-5 ${star <= Math.round(averageRating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+            </svg>
+          ))}
+          {averageRating > 0 && (
+            <span className="ml-1.5 text-xs text-gray-500 font-medium">{averageRating.toFixed(1)}</span>
+          )}
+        </div>
+      )}
 
       {/* Comment */}
       <button onClick={() => setShowComments((s) => !s)} className="flex items-center space-x-1.5 hover:text-blue-500 transition-colors py-2">
@@ -355,22 +362,6 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
           </p>
         </div>
       </details>
-      )}
-
-      {/* Star Rating - hidden for own videos */}
-      {!isOwnVideo && (
-      <div className="flex items-center space-x-0.5 border-l border-gray-300 pl-4">
-        {[1, 2, 3, 4, 5].map((star) => (
-          <button key={star} onClick={() => handleRating(star)} className="focus:outline-none" type="button" title={`Rate ${star} star${star > 1 ? 's' : ''}`} disabled={loadingRating}>
-            <svg className={`w-5 h-5 transition-all ${star <= userRating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 hover:text-yellow-400'}`} fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          </button>
-        ))}
-        {averageRating > 0 && (
-          <span className="ml-1.5 text-xs text-gray-500">({averageRating.toFixed(1)})</span>
-        )}
-      </div>
       )}
 
       {/* View Responses Button */}
