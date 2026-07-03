@@ -214,24 +214,23 @@ const AssignmentFeedPage: React.FC = () => {
       <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
       <div className="h-full flex flex-col bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc] overflow-hidden">
         {/* Top Bar */}
-        <div className="shrink-0 sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-100">
-          <div className="px-3 py-2.5 flex items-center justify-between gap-3">
-            {/* School Logo */}
-            <img src="/CristoReyLogo.png" alt="" className="w-10 h-10 object-contain" />
-
-            {/* Title */}
-            <div className="flex-1 text-center min-w-0">
-              <h1 className="text-base font-bold uppercase text-[#005587] truncate" style={{ fontFamily: "'Oswald', sans-serif" }}>
-                Peer Videos
-              </h1>
-              {assignment?.title && (
-                <p className="text-[10px] text-gray-500 truncate">{assignment.title}</p>
-              )}
+        <div className="shrink-0 sticky top-0 z-10 bg-white/80 backdrop-blur-md">
+          <div className="flex items-center justify-between px-4 pt-2 pb-1">
+            <div className="flex items-center gap-1">
+              <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-2xl">ClassCast</span>
+              <img src="/UpdatedCCLogo.png" alt="" className="w-9 h-9 object-contain" />
             </div>
-
-            {/* Logo */}
-            <img src="/UpdatedCCLogo.png" alt="ClassCast" className="w-6 h-6 object-contain" />
+            <div className="flex items-center gap-2">
+              <img src="/CristoReyLogo.png" alt="" className="w-12 h-12 object-contain" />
+            </div>
           </div>
+          {assignment?.title && (
+            <div className="px-4 pb-1.5">
+              <h1 className="text-sm font-bold uppercase text-[#005587] truncate" style={{ fontFamily: "'Oswald', sans-serif" }}>
+                Peer Videos — {assignment.title}
+              </h1>
+            </div>
+          )}
         </div>
 
         {/* Scrollable Content */}
