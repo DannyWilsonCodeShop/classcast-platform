@@ -262,7 +262,7 @@ function RecordPageInner() {
         assignmentId: assignmentId || undefined,
         courseId: assignment?.courseId || undefined,
         videoUrl: finalVideoUrl,
-        videoTitle: videoFile?.name?.replace(/\.[^/.]+$/, '') || 'Video Submission',
+        videoTitle: assignment?.title || videoFile?.name?.replace(/\.[^/.]+$/, '') || 'Video Submission',
         thumbnailUrl: finalThumbnailUrl,
         submissionMethod,
         isYouTube,

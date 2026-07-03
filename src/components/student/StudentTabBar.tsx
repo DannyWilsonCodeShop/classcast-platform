@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -24,7 +24,6 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
   const [postLinkSubmitting, setPostLinkSubmitting] = useState(false);
   const [postLinkError, setPostLinkError] = useState('');
   const [assignments, setAssignments] = useState<any[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch unsubmitted assignments when modal opens
   useEffect(() => {
@@ -145,7 +144,7 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
                   <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>
                   <div className="text-left"><p className="font-semibold text-sm">Record Live</p><p className="text-xs text-white/70">Open camera and record</p></div>
                 </button>
-                <button onClick={() => { closeModal(); setTimeout(() => fileInputRef.current?.click(), 100); }} className="w-full flex items-center gap-3 p-4 bg-gray-100 text-gray-900 rounded-xl active:scale-[0.98] transition-transform">
+                <button onClick={() => { closeModal(); router.push(`/student/record?assignmentId=${selectedAssignment}&mode=upload`); }} className="w-full flex items-center gap-3 p-4 bg-gray-100 text-gray-900 rounded-xl active:scale-[0.98] transition-transform">
                   <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center"><svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg></div>
                   <div className="text-left"><p className="font-semibold text-sm">Upload a File</p><p className="text-xs text-gray-500">Choose from your device</p></div>
                 </button>
@@ -175,7 +174,14 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
                       const isGD = postLinkUrl.includes('drive.google');
                       const res = await fetch('/api/video-submissions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ studentId: user.id, assignmentId: selectedAssignment, courseId, videoUrl: postLinkUrl.trim(), youtubeUrl: isYT ? postLinkUrl.trim() : undefined, googleDriveUrl: isGD ? postLinkUrl.trim() : undefined, videoTitle: 'Video Submission', isYouTube: isYT, isGoogleDrive: isGD, submissionMethod: isYT ? 'youtube' : isGD ? 'google-drive' : 'link' }) });
                       const data = await res.json().catch(() => null);
-                      if (res.ok && data?.success) { closeModal(); router.refresh(); }
+                      if (res.ok && data?.success) { 
+                        setPostLinkUrl('');
+                        setPostLinkError('');
+                        setPostMode(null);
+                        // Show brief success then close
+                        setPostLinkError('✅ Posted successfully!');
+                        setTimeout(() => { closeModal(); router.refresh(); }, 1000);
+                      }
                       else { setPostLinkError(data?.error || `Failed (${res.status})`); }
                     } catch (err: any) { setPostLinkError(err?.message || 'Network error'); }
                     setPostLinkSubmitting(false);
@@ -190,12 +196,7 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
         </div>
       )}
 
-      {/* Hidden file input */}
-      <input ref={fileInputRef} type="file" accept="video/*" className="hidden" onChange={(e) => {
-        const file = e.target.files?.[0];
-        if (file && selectedAssignment) router.push(`/student/record?assignmentId=${selectedAssignment}&mode=upload`);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-      }} />
+      {/* Hidden file input removed - upload navigates to record page */}
     </>
   );
 }

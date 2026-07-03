@@ -46,13 +46,25 @@ export async function GET(
 
       if (result.Items && result.Items.length > 0) {
         const rating = result.Items[0].rating || 0;
+        // Also compute average rating
+        const allRatingsResult = await docClient.send(new QueryCommand({
+          TableName: INTERACTIONS_TABLE,
+          IndexName: 'videoId-index',
+          KeyConditionExpression: 'videoId = :videoId',
+          FilterExpression: '#type = :type',
+          ExpressionAttributeValues: { ':videoId': videoId, ':type': 'rating' },
+          ExpressionAttributeNames: { '#type': 'type' }
+        }));
+        const allRatings = (allRatingsResult.Items || []).filter(i => i.rating > 0);
+        const avgRating = allRatings.length > 0 ? allRatings.reduce((s, i) => s + i.rating, 0) / allRatings.length : 0;
+        
         return NextResponse.json({
           success: true,
-          rating: rating
+          rating: rating,
+          averageRating: Math.round(avgRating * 10) / 10,
+          totalRatings: allRatings.length,
         }, {
-          headers: {
-            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
-          }
+          headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
         });
       }
     } catch (error) {
@@ -61,11 +73,9 @@ export async function GET(
 
     return NextResponse.json({
       success: true,
-      rating: 0 // Not rated
+      rating: 0
     }, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
-      }
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
     });
 
   } catch (error) {
