@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { getVideoUrl } from '@/lib/videoUtils';
 import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
 import ModalTransition from '@/components/transitions/ModalTransition';
+import { computeCommitDecision, computeTranslation, checkDirectionLock, computeRubberBand } from '@/hooks/useSwipeNavigation';
+import { setSwipeDirection } from '@/hooks/useNavigationDirection';
 
 interface Assignment {
   assignmentId: string;
@@ -121,6 +123,18 @@ export default function StudentAssignmentDetailPage() {
   const [allAssignmentIds, setAllAssignmentIds] = useState<string[]>([]);
   const [peerResponseCount, setPeerResponseCount] = useState(0);
 
+  // Swipe navigation refs
+  const swipeContainerRef = useRef<HTMLDivElement | null>(null);
+  const gestureRef = useRef({
+    startX: 0,
+    startY: 0,
+    startTime: 0,
+    currentX: 0,
+    locked: false,
+    isHorizontal: null as boolean | null,
+    active: false,
+  });
+
   const fetchData = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
@@ -172,6 +186,139 @@ export default function StudentAssignmentDetailPage() {
       .catch(() => {});
   }, [user?.id, assignmentId, submission]);
 
+  // Swipe navigation between assignments
+  useEffect(() => {
+    const container = swipeContainerRef.current;
+    if (!container || allAssignmentIds.length <= 1) return;
+
+    const currentIdx = allAssignmentIds.indexOf(assignmentId);
+    if (currentIdx === -1) return;
+
+    const prevId = currentIdx > 0 ? allAssignmentIds[currentIdx - 1] : null;
+    const nextId = currentIdx < allAssignmentIds.length - 1 ? allAssignmentIds[currentIdx + 1] : null;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const startX = touch.clientX;
+      const screenWidth = window.innerWidth;
+
+      // Edge zone exclusion (20px)
+      if (startX < 20 || startX > screenWidth - 20) return;
+      if (e.defaultPrevented) return;
+
+      // Check if target is horizontally scrollable
+      let el = e.target as HTMLElement | null;
+      while (el && el !== container) {
+        if (el.scrollWidth > el.clientWidth) {
+          const overflow = getComputedStyle(el).overflowX;
+          if (overflow === 'auto' || overflow === 'scroll') return;
+        }
+        el = el.parentElement;
+      }
+
+      gestureRef.current = {
+        startX,
+        startY: touch.clientY,
+        startTime: Date.now(),
+        currentX: startX,
+        locked: false,
+        isHorizontal: null,
+        active: true,
+      };
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const gesture = gestureRef.current;
+      if (!gesture.active) return;
+
+      const touch = e.touches[0];
+      const dx = touch.clientX - gesture.startX;
+      const dy = touch.clientY - gesture.startY;
+
+      // Direction lock check
+      if (!gesture.locked) {
+        const lockResult = checkDirectionLock(dx, dy);
+        if (lockResult === 'undecided') return;
+
+        gesture.locked = true;
+        gesture.isHorizontal = lockResult === 'horizontal';
+
+        if (!gesture.isHorizontal) {
+          gesture.active = false;
+          return;
+        }
+      }
+
+      if (!gesture.isHorizontal) return;
+
+      // Determine direction: negative dx = swipe left (next), positive = swipe right (prev)
+      const direction: 'left' | 'right' = dx < 0 ? 'left' : 'right';
+      const hasTarget = direction === 'left' ? !!nextId : !!prevId;
+
+      // Prevent vertical scroll while swiping horizontally
+      e.preventDefault();
+
+      gesture.currentX = touch.clientX;
+
+      const screenWidth = window.innerWidth;
+      let translation: number;
+
+      if (!hasTarget) {
+        // At boundary — rubber-band effect
+        translation = computeRubberBand(dx, screenWidth);
+      } else {
+        translation = computeTranslation(dx, screenWidth);
+      }
+
+      // Apply translation directly to DOM
+      container.style.transform = `translateX(${translation}px)`;
+    };
+
+    const handleTouchEnd = () => {
+      const gesture = gestureRef.current;
+      if (!gesture.active || !gesture.isHorizontal) {
+        gestureRef.current = { startX: 0, startY: 0, startTime: 0, currentX: 0, locked: false, isHorizontal: null, active: false };
+        return;
+      }
+
+      const displacement = gesture.currentX - gesture.startX;
+      const elapsed = Date.now() - gesture.startTime;
+      const velocity = elapsed > 0 ? Math.abs(displacement) / (elapsed / 1000) : 0;
+
+      const direction: 'left' | 'right' = displacement < 0 ? 'left' : 'right';
+      const targetId = direction === 'left' ? nextId : prevId;
+
+      const decision = computeCommitDecision(displacement, velocity);
+
+      if (decision === 'commit' && targetId) {
+        // Commit: navigate to target assignment
+        const swipeDir = direction === 'left' ? 'swipe-left' : 'swipe-right';
+        setSwipeDirection(swipeDir as 'swipe-left' | 'swipe-right');
+        container.style.transform = '';
+        router.push(`/student/assignments/${targetId}`);
+      } else {
+        // Cancel: snap back
+        container.style.transition = 'transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1)';
+        container.style.transform = 'translateX(0)';
+        setTimeout(() => {
+          container.style.transition = '';
+        }, 200);
+      }
+
+      gestureRef.current = { startX: 0, startY: 0, startTime: 0, currentX: 0, locked: false, isHorizontal: null, active: false };
+    };
+
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [allAssignmentIds, assignmentId, router]);
+
   const handleDelete = async () => {
     if (!submission?.submissionId || !confirm('Delete your submission? This cannot be undone.')) return;
     setIsDeleting(true);
@@ -221,7 +368,7 @@ export default function StudentAssignmentDetailPage() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
 
-      <div className="h-full flex flex-col bg-white overflow-hidden">
+      <div ref={swipeContainerRef} className="h-full flex flex-col bg-white overflow-hidden" style={{ touchAction: 'pan-y' }}>
         {/* Header */}
         <div className="flex items-center px-3 py-2 border-b border-gray-100 z-10 shrink-0" style={{ backgroundColor: getAssignmentColor(assignmentId) }}>
           {(() => {

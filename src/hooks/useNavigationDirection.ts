@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 // Types
 // ---------------------------------------------------------------------------
 
-export type NavigationDirection = 'tab-switch' | 'drill-in' | 'drill-out' | 'none';
+export type NavigationDirection = 'tab-switch' | 'drill-in' | 'drill-out' | 'swipe-left' | 'swipe-right' | 'none';
 
 export interface TransitionState {
   direction: NavigationDirection;
@@ -32,6 +32,21 @@ const TAB_PATHS = [
 const MAX_ANIMATION_DURATION = 350;
 
 // ---------------------------------------------------------------------------
+// Swipe direction override
+// ---------------------------------------------------------------------------
+
+/** Module-level override for swipe-initiated navigation direction */
+let swipeDirectionOverride: 'swipe-left' | 'swipe-right' | null = null;
+
+/**
+ * Set by the swipe engine before router.push to override direction classification.
+ * Cleared after one use by classifyNavigation.
+ */
+export function setSwipeDirection(direction: 'swipe-left' | 'swipe-right') {
+  swipeDirectionOverride = direction;
+}
+
+// ---------------------------------------------------------------------------
 // Classification logic
 // ---------------------------------------------------------------------------
 
@@ -44,6 +59,13 @@ function classifyNavigation(
   currPath: string,
   isPopState: boolean
 ): NavigationDirection {
+  // Check for swipe override (set by useSwipeNavigation before router.push)
+  if (swipeDirectionOverride) {
+    const direction = swipeDirectionOverride;
+    swipeDirectionOverride = null; // Clear after use
+    return direction;
+  }
+
   // First navigation (no previous path) — no animation
   if (!prevPath) return 'none';
 
