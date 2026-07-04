@@ -11,6 +11,7 @@ import { StudentTabBar } from '@/components/student/StudentTabBar';
 import { useStudentAssignments, useStudentFeed, Assignment, FeedItem } from '@/hooks/useStudentData';
 import { DashboardSkeleton } from '@/components/student/DashboardSkeleton';
 import { useQueryClient } from '@tanstack/react-query';
+import ModalTransition from '@/components/transitions/ModalTransition';
 
 export default function StudentDashboardPage() {
   const router = useRouter();
@@ -233,10 +234,9 @@ export default function StudentDashboardPage() {
       )}
 
       {/* Post Modal */}
-      {showAssignmentPicker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => { setShowAssignmentPicker(false); setPostMode(null); setSelectedPostAssignment(null); }}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
+      <ModalTransition isOpen={showAssignmentPicker} onClose={() => { setShowAssignmentPicker(false); setPostMode(null); setSelectedPostAssignment(null); }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-gray-900">
                 {!selectedPostAssignment ? 'Select Assignment' : 'How do you want to post?'}
@@ -376,7 +376,7 @@ export default function StudentDashboardPage() {
             )}
           </div>
         </div>
-      )}
+      </ModalTransition>
 
       {/* Hidden file input for upload from modal */}
       <input
