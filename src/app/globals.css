@@ -404,10 +404,10 @@ html {
 
 /* Page transition slide-in animation */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateX(20px); }
+  from { opacity: 0; transform: translateX(30px); }
   to { opacity: 1; transform: translateX(0); }
 }
 
 .animate-fadeIn {
-  animation: fadeIn 0.2s ease-out;
+  animation: fadeIn 0.35s ease-out;
 }
