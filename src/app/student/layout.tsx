@@ -5,6 +5,7 @@ import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import { WideScreenSidebar } from '@/components/student/WideScreenSidebar';
 import { usePathname } from 'next/navigation';
 import { StudentHeader } from '@/components/student/StudentHeader';
+import TransitionContainer from '@/components/transitions/TransitionContainer';
 
 // Pages that show the shared ClassCast header (main tab pages only, not sub-routes)
 const SHARED_HEADER_PATHS = ['/student/dashboard', '/student/assignments', '/student/courses', '/student/profile'];
@@ -42,9 +43,9 @@ export default function StudentLayout({
           <StudentHeader />
         </>
       )}
-      <div className="flex-1 min-h-0">
+      <TransitionContainer>
         {children}
-      </div>
+      </TransitionContainer>
     </div>
   );
 }

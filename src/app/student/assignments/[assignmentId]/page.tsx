@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { getVideoUrl } from '@/lib/videoUtils';
 import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
+import ModalTransition from '@/components/transitions/ModalTransition';
 
 interface Assignment {
   assignmentId: string;
@@ -374,10 +375,9 @@ export default function StudentAssignmentDetailPage() {
       </div>
 
       {/* Rubric Modal */}
-      {showRubricModal && assignment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowRubricModal(false)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+      <ModalTransition isOpen={showRubricModal && !!assignment} onClose={() => setShowRubricModal(false)}>
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-gray-900">Rubric</h3>
               <button onClick={() => setShowRubricModal(false)} className="text-gray-400 p-1">
@@ -455,13 +455,12 @@ export default function StudentAssignmentDetailPage() {
             </div>
           </div>
         </div>
-      )}
+      </ModalTransition>
 
       {/* Resources Modal */}
-      {showResourcesModal && assignment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowResourcesModal(false)}>
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
+      <ModalTransition isOpen={showResourcesModal && !!assignment} onClose={() => setShowResourcesModal(false)}>
+        <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
+          <div className="pointer-events-auto bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-gray-900">Resources</h3>
               <button onClick={() => setShowResourcesModal(false)} className="text-gray-400 p-1">
@@ -496,7 +495,7 @@ export default function StudentAssignmentDetailPage() {
             </div>
           </div>
         </div>
-      )}
+      </ModalTransition>
 
       {/* Post Modal - Record or Upload */}
       {showPostModal && (
