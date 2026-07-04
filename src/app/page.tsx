@@ -31,10 +31,33 @@ export default function HomePage() {
   // Show loading state while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+      <div className="min-h-screen h-dvh bg-[#005587] flex flex-col animate-loading-fade-in">
+        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+          <img
+            src="/UpdatedCCLogo.png"
+            alt="ClassCast"
+            className="w-20 h-20 object-contain animate-pulse"
+          />
+          <span
+            style={{ fontFamily: "'Grand Hotel', cursive" }}
+            className="text-white text-4xl opacity-90"
+          >
+            ClassCast
+          </span>
+        </div>
+        <div className="bg-white rounded-t-3xl px-4 pt-4 pb-8 animate-skeleton-slide-up">
+          <div className="flex items-center justify-between mb-4">
+            <div className="h-7 w-28 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="h-8 w-8 bg-gray-200 rounded-full animate-pulse" />
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="rounded-xl p-4 bg-gray-100">
+                <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse mb-2" />
+                <div className="h-3 w-1/2 bg-gray-200 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
