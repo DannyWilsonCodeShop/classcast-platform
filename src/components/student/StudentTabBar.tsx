@@ -138,8 +138,7 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
 
       {/* Post Modal */}
       <ModalTransition isOpen={showPostModal} onClose={closeModal}>
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col pointer-events-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-white w-full rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-gray-900">
                 {!selectedAssignment ? 'Select Assignment' : postMode === 'link' ? 'Paste a Link' : 'How do you want to post?'}
@@ -219,7 +218,6 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
               </div>
             )}
           </div>
-        </div>
       </ModalTransition>
 
       {/* Hidden file input removed - upload navigates to record page */}
