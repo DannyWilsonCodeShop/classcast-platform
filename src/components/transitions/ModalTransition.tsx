@@ -26,12 +26,14 @@ export default function ModalTransition({ isOpen, onClose, children }: ModalTran
   if (!shouldRender) return null;
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
         className={`absolute inset-0 bg-black/40 ${isOpen ? 'animate-backdrop-enter' : 'animate-backdrop-exit'}`}
         onClick={onClose}
       />
-      <div className={`relative ${animClass}`}>{children}</div>
+      <div className={`relative z-10 w-full max-w-[380px] mx-4 ${animClass}`}>
+        {children}
+      </div>
     </div>
   );
 }

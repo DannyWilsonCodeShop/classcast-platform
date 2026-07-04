@@ -329,8 +329,7 @@ export default function StudentCourseDetailPage() {
 
       {/* Resources Modal */}
       <ModalTransition isOpen={showResourcesModal} onClose={() => setShowResourcesModal(false)}>
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <div className="relative bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[70vh] flex flex-col pointer-events-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-white w-full rounded-2xl p-4 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-gray-900">Course Resources</h3>
               <button onClick={() => setShowResourcesModal(false)} className="text-gray-400 p-1">
@@ -365,7 +364,6 @@ export default function StudentCourseDetailPage() {
               )}
             </div>
           </div>
-        </div>
       </ModalTransition>
     </StudentRoute>
   );

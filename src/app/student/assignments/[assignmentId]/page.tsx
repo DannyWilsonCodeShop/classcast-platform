@@ -376,8 +376,7 @@ export default function StudentAssignmentDetailPage() {
 
       {/* Rubric Modal */}
       <ModalTransition isOpen={showRubricModal && !!assignment} onClose={() => setShowRubricModal(false)}>
-        <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-          <div className="pointer-events-auto bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
+          <div className="bg-white w-full rounded-2xl p-4 max-h-[70vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-gray-900">Rubric</h3>
               <button onClick={() => setShowRubricModal(false)} className="text-gray-400 p-1">
@@ -454,13 +453,11 @@ export default function StudentAssignmentDetailPage() {
               })()}
             </div>
           </div>
-        </div>
       </ModalTransition>
 
       {/* Resources Modal */}
       <ModalTransition isOpen={showResourcesModal && !!assignment} onClose={() => setShowResourcesModal(false)}>
-        <div className="fixed inset-0 flex items-center justify-center pointer-events-none">
-          <div className="pointer-events-auto bg-white w-full max-w-[380px] mx-4 rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
+          <div className="bg-white w-full rounded-2xl p-4 max-h-[60vh] flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-gray-900">Resources</h3>
               <button onClick={() => setShowResourcesModal(false)} className="text-gray-400 p-1">
@@ -494,7 +491,6 @@ export default function StudentAssignmentDetailPage() {
               ))}
             </div>
           </div>
-        </div>
       </ModalTransition>
 
       {/* Post Modal - Record or Upload */}
