@@ -403,8 +403,6 @@ select:focus {
 .swipe-pane {
   position: absolute;
   inset: 0;
-  will-change: transform;
-  transform: translateZ(0);
 }
 
 .swipe-pane--current {
