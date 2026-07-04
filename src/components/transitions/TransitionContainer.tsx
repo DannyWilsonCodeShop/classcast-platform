@@ -8,6 +8,8 @@ const ANIMATION_CLASS_MAP: Record<string, string> = {
   'tab-switch': 'animate-tab-enter',
   'drill-in': 'animate-drill-in-enter',
   'drill-out': 'animate-drill-out-enter',
+  'swipe-left': 'animate-swipe-left-enter',
+  'swipe-right': 'animate-swipe-right-enter',
   'none': '',
 };
 

@@ -6,6 +6,7 @@ import { WideScreenSidebar } from '@/components/student/WideScreenSidebar';
 import { usePathname } from 'next/navigation';
 import { StudentHeader } from '@/components/student/StudentHeader';
 import TransitionContainer from '@/components/transitions/TransitionContainer';
+import { SwipeNavigationProvider } from '@/components/transitions/SwipeNavigationProvider';
 import { useNavigationDirection } from '@/hooks/useNavigationDirection';
 
 // Pages that show the shared ClassCast header (main tab pages only, not sub-routes)
@@ -48,9 +49,11 @@ export default function StudentLayout({
           <StudentHeader />
         </>
       )}
-      <TransitionContainer>
-        {children}
-      </TransitionContainer>
+      <SwipeNavigationProvider>
+        <TransitionContainer>
+          {children}
+        </TransitionContainer>
+      </SwipeNavigationProvider>
     </div>
   );
 }
