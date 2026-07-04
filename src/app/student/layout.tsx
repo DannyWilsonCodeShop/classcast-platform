@@ -6,7 +6,7 @@ import { WideScreenSidebar } from '@/components/student/WideScreenSidebar';
 import { usePathname } from 'next/navigation';
 import { StudentHeader } from '@/components/student/StudentHeader';
 
-// Pages that show the shared ClassCast header (main tab pages)
+// Pages that show the shared ClassCast header (main tab pages only, not sub-routes)
 const SHARED_HEADER_PATHS = ['/student/dashboard', '/student/assignments', '/student/courses'];
 
 export default function StudentLayout({
@@ -17,8 +17,8 @@ export default function StudentLayout({
   const { isWide } = useIsWideScreen();
   const pathname = usePathname();
 
-  // Show shared header on main tab pages (mobile only)
-  const showSharedHeader = !isWide && SHARED_HEADER_PATHS.some(p => pathname === p || pathname?.startsWith(p + '/'));
+  // Show shared header on main tab pages only (exact match, not sub-routes)
+  const showSharedHeader = !isWide && SHARED_HEADER_PATHS.includes(pathname || '');
 
   if (isWide) {
     return (
