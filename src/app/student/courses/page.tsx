@@ -106,7 +106,7 @@ const StudentCoursesPage: React.FC = () => {
   if (loading) {
     return (
       <StudentRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc]">
+        <div className="min-h-screen flex items-center justify-center bg-white">
           <LoadingSpinner text="Loading courses..." />
         </div>
       </StudentRoute>
@@ -117,21 +117,9 @@ const StudentCoursesPage: React.FC = () => {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
-      <div className="h-screen overflow-hidden flex flex-col bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc]">
+      <div className="h-full overflow-hidden flex flex-col bg-white">
         {/* Demo Mode Banner */}
         <DemoModeBanner />
-        
-        {/* Header - matches dashboard exactly */}
-        <div className="flex items-center justify-between px-4 pt-2 pb-1 shrink-0">
-          <div className="flex items-center gap-1">
-            <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-2xl">ClassCast</span>
-            <img src="/UpdatedCCLogo.png" alt="" className="w-9 h-9 object-contain" />
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => router.push('/student/dashboard')} className="p-1"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></button>
-            <img src={user?.isDemoUser ? "/Demo1Logo.png" : "/CristoReyLogo.png"} alt="" className="w-12 h-12 object-contain" />
-          </div>
-        </div>
 
         {/* Page title + Search */}
         <div className="px-4 pt-1 pb-2 shrink-0">

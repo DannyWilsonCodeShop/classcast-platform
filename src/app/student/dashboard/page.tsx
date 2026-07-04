@@ -90,7 +90,7 @@ export default function StudentDashboardPage() {
 
       {/* ===== WIDE SCREEN LAYOUT (iPad/Desktop) ===== */}
       {isWide ? (
-        <div className="h-full flex flex-col overflow-hidden bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc]">
+        <div className="h-full flex flex-col overflow-hidden bg-white">
           {/* Quick Stats Row */}
           <div className="flex items-center gap-4 px-6 py-3 shrink-0 border-b border-gray-100">
             <h1 className="text-lg font-bold uppercase text-[#005587]" style={{ fontFamily: "'Oswald', sans-serif" }}>Dashboard</h1>
@@ -165,19 +165,7 @@ export default function StudentDashboardPage() {
         </div>
       ) : (
       /* ===== MOBILE LAYOUT (existing) ===== */
-      <div className="h-full flex flex-col overflow-hidden bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc]">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 pt-2 pb-1 shrink-0">
-          <div className="flex items-center gap-1">
-            <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-2xl">ClassCast</span>
-            <img src="/UpdatedCCLogo.png" alt="" className="w-9 h-9 object-contain" />
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => router.push('/student/courses')} className="p-1"><svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg></button>
-            <img src={user?.isDemoUser ? "/Demo1Logo.png" : "/CristoReyLogo.png"} alt="" className="w-12 h-12 object-contain" />
-          </div>
-        </div>
-
+      <div className="h-full flex flex-col overflow-hidden bg-white">
         {/* Quick Stats Row - replaces greeting */}
         <div className="flex items-center gap-3 px-4 py-1.5 shrink-0">
           <div className="flex-1 flex items-center gap-2 text-[11px]">
