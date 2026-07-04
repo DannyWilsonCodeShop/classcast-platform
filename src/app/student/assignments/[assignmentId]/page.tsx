@@ -341,8 +341,55 @@ export default function StudentAssignmentDetailPage() {
   if (loading) {
     return (
       <StudentRoute>
-        <div className="h-full flex items-center justify-center bg-black">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-white border-t-transparent" />
+        <div className="h-full flex flex-col bg-white overflow-hidden">
+          {/* Header skeleton */}
+          <div className="flex items-center px-3 py-2 border-b border-gray-100 shrink-0 bg-gray-100">
+            <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
+            <div className="flex-1 mx-3">
+              <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse" />
+            </div>
+            <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
+          </div>
+
+          {/* Video area skeleton */}
+          <div className="w-full shrink-0 bg-gray-200 animate-pulse" style={{ height: '42%', minHeight: '180px' }}>
+            <div className="h-full flex items-center justify-center">
+              <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Info row skeleton */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 shrink-0">
+            <div className="h-5 w-20 bg-gray-200 rounded-full animate-pulse" />
+            <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
+          </div>
+
+          {/* Instructions skeleton */}
+          <div className="flex-1 px-4 py-3">
+            <div className="h-3 w-20 bg-gray-200 rounded animate-pulse mb-3" />
+            <div className="space-y-2">
+              <div className="h-3 w-full bg-gray-100 rounded animate-pulse" />
+              <div className="h-3 w-5/6 bg-gray-100 rounded animate-pulse" />
+              <div className="h-3 w-4/6 bg-gray-100 rounded animate-pulse" />
+              <div className="h-3 w-full bg-gray-100 rounded animate-pulse" />
+              <div className="h-3 w-3/4 bg-gray-100 rounded animate-pulse" />
+            </div>
+          </div>
+
+          {/* Bottom nav skeleton */}
+          <div className="shrink-0 h-[80px]" />
+          <div className="fixed bottom-4 left-4 right-4 z-40 px-2 py-3 rounded-2xl" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', border: '1px solid rgba(255,255,255,0.25)' }}>
+            <div className="flex items-center justify-around">
+              {[1,2,3,4,5].map(i => (
+                <div key={i} className="flex flex-col items-center gap-1">
+                  <div className="w-6 h-6 bg-gray-200/50 rounded animate-pulse" />
+                  <div className="w-8 h-2 bg-gray-200/50 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </StudentRoute>
     );
