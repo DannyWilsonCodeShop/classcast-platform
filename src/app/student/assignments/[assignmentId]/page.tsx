@@ -125,6 +125,7 @@ export default function StudentAssignmentDetailPage() {
 
   // Swipe navigation refs
   const swipeContainerRef = useRef<HTMLDivElement | null>(null);
+  const previewPaneRef = useRef<HTMLDivElement | null>(null);
   const gestureRef = useRef({
     startX: 0,
     startY: 0,
@@ -133,6 +134,7 @@ export default function StudentAssignmentDetailPage() {
     locked: false,
     isHorizontal: null as boolean | null,
     active: false,
+    direction: null as 'left' | 'right' | null,
   });
 
   const fetchData = useCallback(async () => {
@@ -224,6 +226,7 @@ export default function StudentAssignmentDetailPage() {
         locked: false,
         isHorizontal: null,
         active: true,
+        direction: null,
       };
     };
 
@@ -254,6 +257,7 @@ export default function StudentAssignmentDetailPage() {
       // Determine direction: negative dx = swipe left (next), positive = swipe right (prev)
       const direction: 'left' | 'right' = dx < 0 ? 'left' : 'right';
       const hasTarget = direction === 'left' ? !!nextId : !!prevId;
+      gesture.direction = direction;
 
       // Prevent vertical scroll while swiping horizontally
       e.preventDefault();
@@ -270,14 +274,25 @@ export default function StudentAssignmentDetailPage() {
         translation = computeTranslation(dx, screenWidth);
       }
 
-      // Apply translation directly to DOM
+      // Apply translation to current page
       container.style.transform = `translateX(${translation}px)`;
+
+      // Move preview skeleton pane in from the edge
+      const preview = previewPaneRef.current;
+      if (preview && hasTarget) {
+        preview.style.display = 'block';
+        const previewOffset = direction === 'left'
+          ? screenWidth + translation  // Coming from right
+          : -screenWidth + translation; // Coming from left
+        preview.style.transform = `translateX(${previewOffset}px)`;
+      }
     };
 
     const handleTouchEnd = () => {
       const gesture = gestureRef.current;
       if (!gesture.active || !gesture.isHorizontal) {
-        gestureRef.current = { startX: 0, startY: 0, startTime: 0, currentX: 0, locked: false, isHorizontal: null, active: false };
+        gestureRef.current = { startX: 0, startY: 0, startTime: 0, currentX: 0, locked: false, isHorizontal: null, active: false, direction: null };
+        if (previewPaneRef.current) previewPaneRef.current.style.display = 'none';
         return;
       }
 
@@ -291,21 +306,54 @@ export default function StudentAssignmentDetailPage() {
       const decision = computeCommitDecision(displacement, velocity);
 
       if (decision === 'commit' && targetId) {
-        // Commit: navigate to target assignment
-        const swipeDir = direction === 'left' ? 'swipe-left' : 'swipe-right';
-        setSwipeDirection(swipeDir as 'swipe-left' | 'swipe-right');
-        container.style.transform = '';
-        router.push(`/student/assignments/${targetId}`);
+        // Commit: animate current page off-screen and preview into position
+        const screenWidth = window.innerWidth;
+        const exitX = direction === 'left' ? -screenWidth : screenWidth;
+        
+        container.style.transition = 'transform 250ms cubic-bezier(0.2, 0.9, 0.3, 1)';
+        container.style.transform = `translateX(${exitX}px)`;
+
+        const preview = previewPaneRef.current;
+        if (preview) {
+          preview.style.transition = 'transform 250ms cubic-bezier(0.2, 0.9, 0.3, 1)';
+          preview.style.transform = 'translateX(0)';
+        }
+
+        // Navigate after animation completes
+        setTimeout(() => {
+          const swipeDir = direction === 'left' ? 'swipe-left' : 'swipe-right';
+          setSwipeDirection(swipeDir as 'swipe-left' | 'swipe-right');
+          container.style.transition = '';
+          container.style.transform = '';
+          if (preview) {
+            preview.style.transition = '';
+            preview.style.transform = '';
+            preview.style.display = 'none';
+          }
+          router.push(`/student/assignments/${targetId}`);
+        }, 250);
       } else {
         // Cancel: snap back
         container.style.transition = 'transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1)';
         container.style.transform = 'translateX(0)';
+        
+        const preview = previewPaneRef.current;
+        if (preview) {
+          const snapDir = gesture.direction === 'left' ? '100%' : '-100%';
+          preview.style.transition = 'transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1)';
+          preview.style.transform = `translateX(${snapDir})`;
+        }
+
         setTimeout(() => {
           container.style.transition = '';
+          if (preview) {
+            preview.style.transition = '';
+            preview.style.display = 'none';
+          }
         }, 200);
       }
 
-      gestureRef.current = { startX: 0, startY: 0, startTime: 0, currentX: 0, locked: false, isHorizontal: null, active: false };
+      gestureRef.current = { startX: 0, startY: 0, startTime: 0, currentX: 0, locked: false, isHorizontal: null, active: false, direction: null };
     };
 
     container.addEventListener('touchstart', handleTouchStart, { passive: true });
@@ -415,6 +463,7 @@ export default function StudentAssignmentDetailPage() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
 
+      <div className="relative h-full overflow-hidden">
       <div ref={swipeContainerRef} className="h-full flex flex-col bg-white overflow-hidden" style={{ touchAction: 'pan-y' }}>
         {/* Header */}
         <div className="flex items-center px-3 py-2 border-b border-gray-100 z-10 shrink-0" style={{ backgroundColor: getAssignmentColor(assignmentId) }}>
@@ -566,6 +615,40 @@ export default function StudentAssignmentDetailPage() {
             </div>
           )}
         </nav>
+      </div>
+
+      {/* Preview skeleton pane for swipe transitions */}
+      <div
+        ref={previewPaneRef}
+        className="absolute inset-0 z-20 bg-white flex flex-col overflow-hidden"
+        style={{ display: 'none' }}
+      >
+        {/* Header skeleton */}
+        <div className="flex items-center px-3 py-2 border-b border-gray-100 shrink-0 bg-gray-100">
+          <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
+          <div className="flex-1 mx-3"><div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse" /></div>
+          <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
+        </div>
+        {/* Video skeleton */}
+        <div className="w-full shrink-0 bg-gray-200 animate-pulse flex items-center justify-center" style={{ height: '42%', minHeight: '180px' }}>
+          <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+        </div>
+        {/* Info row skeleton */}
+        <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 shrink-0">
+          <div className="h-5 w-20 bg-gray-200 rounded-full animate-pulse" />
+          <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
+        </div>
+        {/* Instructions skeleton */}
+        <div className="flex-1 px-4 py-3">
+          <div className="h-3 w-20 bg-gray-200 rounded animate-pulse mb-3" />
+          <div className="space-y-2">
+            <div className="h-3 w-full bg-gray-100 rounded animate-pulse" />
+            <div className="h-3 w-5/6 bg-gray-100 rounded animate-pulse" />
+            <div className="h-3 w-4/6 bg-gray-100 rounded animate-pulse" />
+            <div className="h-3 w-full bg-gray-100 rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
       </div>
 
       {/* Rubric Modal */}
