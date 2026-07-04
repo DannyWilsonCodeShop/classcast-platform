@@ -74,26 +74,8 @@ const StudentProfilePage: React.FC = () => {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
-      <div className="h-full flex flex-col bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc] overflow-hidden">
+      <div className="h-full flex flex-col bg-white overflow-hidden">
         <DemoModeBanner />
-        {/* Header */}
-        <div className="flex items-center px-3 py-2.5 border-b border-gray-100 shrink-0">
-          <button onClick={() => router.push('/student/dashboard')} className="p-1.5 -ml-1 text-gray-600">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          </button>
-          <h1 className="flex-1 text-base font-bold uppercase text-[#005587] mx-2 tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Profile</h1>
-          {!isEditing ? (
-            <div className="flex items-center gap-2">
-              <button onClick={() => setIsEditing(true)} className="text-[#005587] text-xs font-medium">Edit</button>
-              <img src="/CristoReyLogo.png" alt="" className="w-12 h-12 object-contain" />
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <button onClick={() => setIsEditing(false)} className="text-gray-400 text-xs">Cancel</button>
-              <button onClick={handleSave} disabled={isLoading} className="text-[#005587] text-xs font-bold">{isLoading ? '...' : 'Save'}</button>
-            </div>
-          )}
-        </div>
 
         {/* Scrollable content - everything fits on one screen */}
         <div className="flex-1 overflow-y-auto min-h-0">

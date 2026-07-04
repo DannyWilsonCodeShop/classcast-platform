@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { StudentHeader } from '@/components/student/StudentHeader';
 
 // Pages that show the shared ClassCast header (main tab pages only, not sub-routes)
-const SHARED_HEADER_PATHS = ['/student/dashboard', '/student/assignments', '/student/courses'];
+const SHARED_HEADER_PATHS = ['/student/dashboard', '/student/assignments', '/student/courses', '/student/profile'];
 
 export default function StudentLayout({
   children,
