@@ -18,7 +18,7 @@ export function StudentHeader() {
       <div className="flex items-center gap-1">
         <span
           style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }}
-          className="text-xl"
+          className="text-2xl"
         >
           ClassCast
         </span>
