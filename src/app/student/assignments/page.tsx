@@ -1,56 +1,30 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
 import { StudentTabBar } from '@/components/student/StudentTabBar';
-
-interface Assignment {
-  assignmentId: string;
-  title: string;
-  description?: string;
-  courseName?: string;
-  courseInitials?: string;
-  dueDate: string;
-  maxScore?: number;
-  isSubmitted?: boolean;
-  type?: string;
-  createdAt?: string;
-}
+import { useStudentAssignments, Assignment } from '@/hooks/useStudentData';
 
 export default function StudentAssignmentsPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: rawAssignments = [], isLoading: loading } = useStudentAssignments();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAssignmentPicker, setShowAssignmentPicker] = useState(false);
   const [filterDate, setFilterDate] = useState<Date | null>(null);
 
-  useEffect(() => {
-    if (user?.id) fetchAssignments();
-  }, [user?.id]);
-
-  const fetchAssignments = async () => {
-    try {
-      const res = await fetch(`/api/student/assignments?userId=${user?.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        const sorted = (data.assignments || []).sort((a: Assignment, b: Assignment) => {
-          const aDate = new Date(a.createdAt || a.dueDate).getTime();
-          const bDate = new Date(b.createdAt || b.dueDate).getTime();
-          return bDate - aDate; // newest first
-        });
-        setAssignments(sorted);
-      }
-    } catch (e) {
-      console.error('Error fetching assignments:', e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Sort assignments newest first (memoized)
+  const assignments = useMemo(() => 
+    [...rawAssignments].sort((a, b) => {
+      const aDate = new Date(a.createdAt || a.dueDate).getTime();
+      const bDate = new Date(b.createdAt || b.dueDate).getTime();
+      return bDate - aDate;
+    }),
+    [rawAssignments]
+  );
 
   // Get current week days
   const getWeekDays = () => {

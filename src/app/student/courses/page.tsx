@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
@@ -8,6 +8,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import DemoModeBanner from '@/components/common/DemoModeBanner';
 import { StudentTabBar } from '@/components/student/StudentTabBar';
+import { useStudentCourses } from '@/hooks/useStudentData';
 
 interface Course {
   id: string;
@@ -42,49 +43,12 @@ interface Course {
 const StudentCoursesPage: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: courses = [], isLoading: loading, error: fetchError } = useStudentCourses();
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchCourses();
-    }
-  }, [user?.id]);
+  const error = fetchError ? 'Failed to load courses' : null;
 
-  const fetchCourses = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      if (!user?.id) {
-        setError('User not authenticated');
-        return;
-      }
-
-      const response = await fetch(`/api/student/courses?userId=${user.id}`, {
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setCourses(data.courses || []);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to load courses');
-        setCourses([]);
-      }
-    } catch (err) {
-      console.error('Error fetching courses:', err);
-      setError('Failed to load courses');
-      setCourses([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filteredCourses = courses.filter(course => {
+  const filteredCourses = courses.filter((course: Course) => {
     // Apply search filter
     const searchMatch = searchQuery === '' || 
       course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -106,8 +70,20 @@ const StudentCoursesPage: React.FC = () => {
   if (loading) {
     return (
       <StudentRoute>
-        <div className="min-h-screen flex items-center justify-center bg-white">
-          <LoadingSpinner text="Loading courses..." />
+        <div className="h-full flex flex-col bg-white overflow-hidden">
+          <div className="px-4 pt-3 pb-2 shrink-0">
+            <div className="h-5 w-24 bg-gray-200 rounded animate-pulse mb-3" />
+            <div className="h-9 w-full bg-gray-100 rounded-xl animate-pulse" />
+          </div>
+          <div className="flex-1 px-4 py-3 space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="rounded-xl p-4 bg-gray-100 animate-pulse">
+                <div className="h-5 w-2/3 bg-gray-200 rounded mb-2" />
+                <div className="h-3 w-1/2 bg-gray-200 rounded mb-3" />
+                <div className="h-3 w-1/3 bg-gray-200 rounded" />
+              </div>
+            ))}
+          </div>
         </div>
       </StudentRoute>
     );
