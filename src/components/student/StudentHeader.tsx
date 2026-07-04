@@ -18,7 +18,7 @@ export function StudentHeader() {
       <div className="flex items-center gap-1">
         <span
           style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }}
-          className="text-2xl"
+          className="text-3xl"
         >
           ClassCast
         </span>
@@ -37,7 +37,7 @@ export function StudentHeader() {
         <img
           src={user?.isDemoUser ? "/Demo1Logo.png" : "/CristoReyLogo.png"}
           alt=""
-          className="w-8 h-8 object-contain"
+          className="w-10 h-10 object-contain"
         />
       </div>
     </div>

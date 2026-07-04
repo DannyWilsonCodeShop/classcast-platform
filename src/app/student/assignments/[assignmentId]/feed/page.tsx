@@ -212,16 +212,16 @@ const AssignmentFeedPage: React.FC = () => {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
-      <div className="h-full flex flex-col bg-gradient-to-br from-[#e8f4f8] via-white to-[#f0f9fc] overflow-hidden">
+      <div className="h-full flex flex-col bg-white overflow-hidden">
         {/* Top Bar */}
-        <div className="shrink-0 sticky top-0 z-10 bg-white/80 backdrop-blur-md">
+        <div className="shrink-0 sticky top-0 z-10 bg-white">
           <div className="flex items-center justify-between px-4 pt-2 pb-1">
             <div className="flex items-center gap-1">
-              <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-2xl">ClassCast</span>
-              <img src="/UpdatedCCLogo.png" alt="" className="w-9 h-9 object-contain" />
+              <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-3xl">ClassCast</span>
+              <img src="/UpdatedCCLogo.png" alt="" className="w-6 h-6 object-contain" />
             </div>
             <div className="flex items-center gap-2">
-              <img src="/CristoReyLogo.png" alt="" className="w-12 h-12 object-contain" />
+              <img src="/CristoReyLogo.png" alt="" className="w-10 h-10 object-contain" />
             </div>
           </div>
           {assignment?.title && (
