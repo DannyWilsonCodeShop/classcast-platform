@@ -8,16 +8,16 @@ import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentCol
 import { isScreenshotMode, getDemoAssignments, getDemoFeed, DEMO_STUDENT } from '@/lib/demo-screenshot-data';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import { StudentTabBar } from '@/components/student/StudentTabBar';
-
-interface Assignment { assignmentId: string; title: string; courseName?: string; courseInitials?: string; dueDate: string; maxScore?: number; isSubmitted?: boolean; createdAt?: string; }
-interface FeedItem { id: string; type?: string; title?: string; videoUrl?: string; author?: { name?: string; avatar?: string; id?: string }; rating?: number; likes?: number; comments?: number; assignmentId?: string; }
+import { useStudentAssignments, useStudentFeed, Assignment, FeedItem } from '@/hooks/useStudentData';
+import { DashboardSkeleton } from '@/components/student/DashboardSkeleton';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function StudentDashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [feed, setFeed] = useState<FeedItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: assignments = [], isLoading: loading } = useStudentAssignments();
+  const { data: feed = [] } = useStudentFeed();
   const [showAssignmentPicker, setShowAssignmentPicker] = useState(false);
   const [postMode, setPostMode] = useState<'record' | 'upload' | 'link' | null>(null);
   const [selectedPostAssignment, setSelectedPostAssignment] = useState<string | null>(null);
@@ -27,10 +27,6 @@ export default function StudentDashboardPage() {
   const postFileInputRef = React.useRef<HTMLInputElement>(null);
   const [demoMode, setDemoMode] = useState(false);
   const { isWide } = useIsWideScreen();
-
-  useEffect(() => {
-    if (user?.id) { fetchAssignments(); fetchFeed(); }
-  }, [user?.id, user?.isDemoUser]);
 
   // Listen for Record button click from sidebar
   useEffect(() => {
@@ -49,20 +45,6 @@ export default function StudentDashboardPage() {
     
     return () => window.removeEventListener('classcast-record-click', handleRecordClick);
   }, []);
-
-  const fetchAssignments = async () => {
-    try {
-      const res = await fetch(`/api/student/assignments?userId=${user?.id}`);
-      if (res.ok) { const data = await res.json(); setAssignments(data.assignments || []); }
-    } catch {} finally { setLoading(false); }
-  };
-
-  const fetchFeed = async () => {
-    try {
-      const res = await fetch(`/api/student/feed?userId=${user?.id}`);
-      if (res.ok) { const data = await res.json(); setFeed((data.feed || []).filter((f: FeedItem) => f.type === 'video')); }
-    } catch {}
-  };
 
   const now = new Date();
   const overdue = assignments.filter(a => new Date(a.dueDate) < now && !a.isSubmitted);
@@ -166,6 +148,10 @@ export default function StudentDashboardPage() {
       ) : (
       /* ===== MOBILE LAYOUT (existing) ===== */
       <div className="h-full flex flex-col overflow-hidden bg-white">
+        {loading ? (
+          <DashboardSkeleton />
+        ) : (
+        <>
         {/* Quick Stats Row - replaces greeting */}
         <div className="flex items-center gap-3 px-4 py-1.5 shrink-0">
           <div className="flex-1 flex items-center gap-2 text-[11px]">
@@ -240,6 +226,8 @@ export default function StudentDashboardPage() {
         </div>
 
         {/* Bottom Nav */}
+        </>
+        )}
         <StudentTabBar />
       </div>
       )}
@@ -369,7 +357,7 @@ export default function StudentDashboardPage() {
                         setSelectedPostAssignment(null);
                         setPostLinkUrl('');
                         // Refresh data
-                        fetchFeed();
+                        queryClient.invalidateQueries({ queryKey: ['student-feed'] });
                       } else {
                         setPostLinkError(data?.error || `Failed (${res.status})`);
                       }
