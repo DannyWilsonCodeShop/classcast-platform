@@ -6,6 +6,7 @@ import { WideScreenSidebar } from '@/components/student/WideScreenSidebar';
 import { usePathname } from 'next/navigation';
 import { StudentHeader } from '@/components/student/StudentHeader';
 import TransitionContainer from '@/components/transitions/TransitionContainer';
+import { useNavigationDirection } from '@/hooks/useNavigationDirection';
 
 // Pages that show the shared ClassCast header (main tab pages only, not sub-routes)
 const SHARED_HEADER_PATHS = ['/student/dashboard', '/student/assignments', '/student/courses', '/student/profile'];
@@ -17,9 +18,13 @@ export default function StudentLayout({
 }) {
   const { isWide } = useIsWideScreen();
   const pathname = usePathname();
+  const { direction, prevPath, isAnimating } = useNavigationDirection();
 
-  // Show shared header on main tab pages only (exact match, not sub-routes)
-  const showSharedHeader = !isWide && SHARED_HEADER_PATHS.includes(pathname || '');
+  // Show header on main tab pages. During drill-in from a tab page, keep it visible
+  // until the animation completes so it doesn't blink away.
+  const isOnTabPage = SHARED_HEADER_PATHS.includes(pathname || '');
+  const wasDrillingFromTab = direction === 'drill-in' && isAnimating && prevPath && SHARED_HEADER_PATHS.includes(prevPath);
+  const showSharedHeader = !isWide && (isOnTabPage || wasDrillingFromTab);
 
   if (isWide) {
     return (
