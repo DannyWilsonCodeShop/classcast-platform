@@ -18,7 +18,6 @@ export default function TransitionContainer({ children }: { children: React.Reac
   const pathname = usePathname();
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Start animating when direction changes to something other than 'none'
   const shouldAnimate = direction !== 'none';
   if (shouldAnimate && !isAnimating) {
     setIsAnimating(true);
@@ -30,9 +29,14 @@ export default function TransitionContainer({ children }: { children: React.Reac
 
   const animationClass = ANIMATION_CLASS_MAP[direction] || '';
 
+  // Only use key for drill navigations (forces remount for new page content)
+  // Tab switches and swipes don't remount — page persists and data updates in-place
+  const needsRemount = direction === 'drill-in' || direction === 'drill-out';
+  const containerKey = needsRemount ? pathname : undefined;
+
   return (
     <div
-      key={pathname}
+      key={containerKey}
       className={`flex-1 min-h-0 overflow-hidden ${animationClass}`}
       onAnimationEnd={handleAnimationEnd}
     >
