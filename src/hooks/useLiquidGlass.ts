@@ -78,8 +78,12 @@ export function useLiquidGlass(): UseLiquidGlassReturn {
     const el = indicatorRef.current;
     if (!el) return;
 
-    // Remove snapping class if present
+    // Remove any existing transition classes
     el.classList.remove('liquid-glass-indicator--snapping');
+    el.classList.remove('liquid-glass-indicator--animating');
+
+    // Force a reflow to ensure the class removal takes effect before re-adding
+    void el.offsetWidth;
 
     // Add animating class for CSS transition
     el.classList.add('liquid-glass-indicator--animating');
@@ -88,12 +92,13 @@ export function useLiquidGlass(): UseLiquidGlassReturn {
     el.style.left = `${targetVisualIndex * 20}%`;
     el.style.transform = 'translateZ(0) scaleX(1)';
 
-    // Remove animating class after transition completes
-    const handleEnd = () => {
-      el.classList.remove('liquid-glass-indicator--animating');
-      el.removeEventListener('transitionend', handleEnd);
+    // Remove animating class after transition completes (listen for 'left' only)
+    const handleEnd = (e: TransitionEvent) => {
+      if (e.propertyName === 'left') {
+        el.classList.remove('liquid-glass-indicator--animating');
+      }
     };
-    el.addEventListener('transitionend', handleEnd);
+    el.addEventListener('transitionend', handleEnd, { once: true });
   }, []);
 
   /**
@@ -127,8 +132,14 @@ export function useLiquidGlass(): UseLiquidGlassReturn {
     const el = indicatorRef.current;
     if (!el) return;
 
-    // Add snapping class for CSS transition
+    // Remove any existing transition classes
     el.classList.remove('liquid-glass-indicator--animating');
+    el.classList.remove('liquid-glass-indicator--snapping');
+
+    // Force reflow
+    void el.offsetWidth;
+
+    // Add snapping class for CSS transition
     el.classList.add('liquid-glass-indicator--snapping');
 
     // Animate back to source
@@ -136,11 +147,12 @@ export function useLiquidGlass(): UseLiquidGlassReturn {
     el.style.transform = 'translateZ(0) scaleX(1)';
 
     // Remove snapping class after transition
-    const handleEnd = () => {
-      el.classList.remove('liquid-glass-indicator--snapping');
-      el.removeEventListener('transitionend', handleEnd);
+    const handleEnd = (e: TransitionEvent) => {
+      if (e.propertyName === 'left') {
+        el.classList.remove('liquid-glass-indicator--snapping');
+      }
     };
-    el.addEventListener('transitionend', handleEnd);
+    el.addEventListener('transitionend', handleEnd, { once: true });
   }, []);
 
   return {

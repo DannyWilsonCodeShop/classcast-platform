@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
@@ -119,10 +120,15 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
     };
   }, [swipeContext, activeIdx, syncWithSwipeProgress]);
 
+  // Portal target for rendering nav bar outside transform containers
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   return (
     <>
       {/* Spacer to prevent content from hiding behind fixed nav */}
       <div className="shrink-0 h-[80px] native-bottom-nav" />
+      {mounted && createPortal(
       <nav className="fixed bottom-4 left-4 right-4 z-40 px-2 py-2 rounded-2xl native-bottom-nav" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.3)' }}>
         <div className="relative flex items-center justify-around">
           {/* Active tab indicator */}
@@ -158,7 +164,9 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
             <span className={`text-[9px] ${isActive('/student/profile') ? activeColor + ' font-medium' : inactiveColor}`}>Profile</span>
           </button>
         </div>
-      </nav>
+      </nav>,
+      document.body
+      )}
 
       {/* Post Modal */}
       <ModalTransition isOpen={showPostModal} onClose={closeModal}>
