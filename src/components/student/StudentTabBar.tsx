@@ -54,7 +54,12 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
     setPostMode(null);
     setPostLinkUrl('');
     setPostLinkError('');
-    setShowPostModal(true);
+    
+    // Slide indicator to Post position first, then open modal
+    animateToTab(2);
+    setTimeout(() => {
+      setShowPostModal(true);
+    }, 450);
   };
 
   const closeModal = () => {
@@ -63,6 +68,11 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
     setPostMode(null);
     setPostLinkUrl('');
     setPostLinkError('');
+    
+    // After modal exits, slide indicator back to active tab
+    setTimeout(() => {
+      animateToTab(activeIdx >= 0 ? activeIdx : 0);
+    }, 280);
   };
 
   const isActive = (path: string) => {
