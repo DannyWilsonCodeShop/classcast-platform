@@ -78,7 +78,7 @@ export default function StudentGradesPage() {
             </svg>
           </button>
           <h1 className="flex-1 text-base font-bold uppercase text-[#005587] mx-2 tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Grades</h1>
-          <img src="/Demo1Logo.png" alt="" className="w-12 h-12 object-contain" />
+          <img src="/CristoReyLogo.png" alt="" className="w-14 h-14 object-contain" />
         </div>
 
         {/* Scrollable content */}

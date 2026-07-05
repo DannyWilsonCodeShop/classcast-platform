@@ -221,7 +221,7 @@ const AssignmentFeedPage: React.FC = () => {
               <img src="/UpdatedCCLogo.png" alt="" className="w-6 h-6 object-contain" />
             </div>
             <div className="flex items-center gap-2">
-              <img src="/Demo1Logo.png" alt="" className="w-10 h-10 object-contain" />
+              <img src="/CristoReyLogo.png" alt="" className="w-14 h-14 object-contain" />
             </div>
           </div>
           {assignment?.title && (

@@ -302,7 +302,7 @@ const StudentDashboardNew: React.FC = () => {
             {/* School Logo */}
             <div className="w-10 h-10 flex-shrink-0">
               <Image
-                src="/Demo1Logo.png"
+                src="/CristoReyLogo.png"
                 alt="Cristo Rey Atlanta"
                 width={40}
                 height={40}
