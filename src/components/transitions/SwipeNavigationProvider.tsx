@@ -59,7 +59,7 @@ export function SwipeNavigationProvider({ children }: SwipeNavigationProviderPro
       >
         <div
           ref={currentPaneRef}
-          className="swipe-pane swipe-pane--current"
+          className="h-full"
         >
           {children}
         </div>

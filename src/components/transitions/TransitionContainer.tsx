@@ -34,7 +34,6 @@ export default function TransitionContainer({ children }: { children: React.Reac
     <div
       key={pathname}
       className={`flex-1 min-h-0 overflow-hidden ${animationClass}`}
-      style={{ willChange: isAnimating ? 'transform, opacity' : 'auto' }}
       onAnimationEnd={handleAnimationEnd}
     >
       {children}
