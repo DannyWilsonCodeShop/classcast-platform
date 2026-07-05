@@ -1,4 +1,4 @@
-package com.myclasscast.ios;
+package com.classcast.app;
 
 import com.getcapacitor.BridgeActivity;
 
