@@ -11,7 +11,7 @@ import ModalTransition from '@/components/transitions/ModalTransition';
 import { LiquidGlassIndicator } from '@/components/student/LiquidGlassIndicator';
 import { useLiquidGlass } from '@/hooks/useLiquidGlass';
 import { computeCommitDecision, computeTranslation, checkDirectionLock, computeRubberBand } from '@/hooks/useSwipeNavigation';
-import { setSwipeDirection } from '@/hooks/useNavigationDirection';
+import { StudentHeader } from '@/components/student/StudentHeader';
 
 interface Assignment {
   assignmentId: string;
@@ -125,6 +125,8 @@ export default function StudentAssignmentDetailPage() {
   const uploadFileRef = React.useRef<HTMLInputElement>(null);
   const [allAssignmentIds, setAllAssignmentIds] = useState<string[]>([]);
   const [peerResponseCount, setPeerResponseCount] = useState(0);
+  const [currentAssignmentId, setCurrentAssignmentId] = useState(assignmentId);
+  const [isTitleTransitioning, setIsTitleTransitioning] = useState(false);
 
   // Liquid glass indicator for detail page nav
   const { indicatorRef, animateToTab } = useLiquidGlass();
@@ -132,9 +134,11 @@ export default function StudentAssignmentDetailPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
+  // Keep currentAssignmentId in sync if params change externally (e.g. browser nav)
+  useEffect(() => { setCurrentAssignmentId(assignmentId); }, [assignmentId]);
+
   // Swipe navigation refs
   const swipeContainerRef = useRef<HTMLDivElement | null>(null);
-  const previewPaneRef = useRef<HTMLDivElement | null>(null);
   const gestureRef = useRef({
     startX: 0,
     startY: 0,
@@ -152,7 +156,7 @@ export default function StudentAssignmentDetailPage() {
     try {
       const [assignRes, subRes] = await Promise.all([
         fetch(`/api/student/assignments?userId=${user.id}&t=${Date.now()}`, { credentials: 'include', cache: 'no-store' }),
-        fetch(`/api/assignments/${assignmentId}/submissions?studentId=${user.id}&t=${Date.now()}`, { credentials: 'include', cache: 'no-store' }),
+        fetch(`/api/assignments/${currentAssignmentId}/submissions?studentId=${user.id}&t=${Date.now()}`, { credentials: 'include', cache: 'no-store' }),
       ]);
 
       if (assignRes.ok) {
@@ -160,11 +164,11 @@ export default function StudentAssignmentDetailPage() {
         const allAssignments = data.assignments || [];
         // Store all IDs for prev/next navigation
         setAllAssignmentIds(allAssignments.map((a: any) => a.assignmentId || a.id));
-        const found = allAssignments.find((a: any) => a.assignmentId === assignmentId);
+        const found = allAssignments.find((a: any) => a.assignmentId === currentAssignmentId);
         if (found) setAssignment(found);
         else {
           // Try direct API
-          const directRes = await fetch(`/api/assignments/${assignmentId}?t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
+          const directRes = await fetch(`/api/assignments/${currentAssignmentId}?t=${Date.now()}`, { credentials: 'include', cache: 'no-store' });
           if (directRes.ok) {
             const directData = await directRes.json();
             if (directData.success && directData.data?.assignment) setAssignment(directData.data.assignment);
@@ -176,17 +180,18 @@ export default function StudentAssignmentDetailPage() {
       if (subRes.ok) {
         const subData = await subRes.json();
         if (subData.success && subData.submissions?.length > 0) setSubmission(subData.submissions[0]);
+        else setSubmission(null);
       }
     } catch { setError(true); } 
     finally { setLoading(false); }
-  }, [assignmentId, user?.id]);
+  }, [currentAssignmentId, user?.id]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
   // Fetch peer response count for this user on this assignment
   useEffect(() => {
-    if (!user?.id || !assignmentId || !submission) return;
-    fetch(`/api/videos/${assignmentId}/interactions?type=response`)
+    if (!user?.id || !currentAssignmentId || !submission) return;
+    fetch(`/api/videos/${currentAssignmentId}/interactions?type=response`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.interactions) {
@@ -195,14 +200,14 @@ export default function StudentAssignmentDetailPage() {
         }
       })
       .catch(() => {});
-  }, [user?.id, assignmentId, submission]);
+  }, [user?.id, currentAssignmentId, submission]);
 
   // Swipe navigation between assignments
   useEffect(() => {
     const container = swipeContainerRef.current;
     if (!container || allAssignmentIds.length <= 1) return;
 
-    const currentIdx = allAssignmentIds.indexOf(assignmentId);
+    const currentIdx = allAssignmentIds.indexOf(currentAssignmentId);
     if (currentIdx === -1) return;
 
     const prevId = currentIdx > 0 ? allAssignmentIds[currentIdx - 1] : null;
@@ -283,25 +288,14 @@ export default function StudentAssignmentDetailPage() {
         translation = computeTranslation(dx, screenWidth);
       }
 
-      // Apply translation to current page
+      // Apply translation to content area only
       container.style.transform = `translateX(${translation}px)`;
-
-      // Move preview skeleton pane in from the edge
-      const preview = previewPaneRef.current;
-      if (preview && hasTarget) {
-        preview.style.display = 'block';
-        const previewOffset = direction === 'left'
-          ? screenWidth + translation  // Coming from right
-          : -screenWidth + translation; // Coming from left
-        preview.style.transform = `translateX(${previewOffset}px)`;
-      }
     };
 
     const handleTouchEnd = () => {
       const gesture = gestureRef.current;
       if (!gesture.active || !gesture.isHorizontal) {
         gestureRef.current = { startX: 0, startY: 0, startTime: 0, currentX: 0, locked: false, isHorizontal: null, active: false, direction: null };
-        if (previewPaneRef.current) previewPaneRef.current.style.display = 'none';
         return;
       }
 
@@ -315,50 +309,44 @@ export default function StudentAssignmentDetailPage() {
       const decision = computeCommitDecision(displacement, velocity);
 
       if (decision === 'commit' && targetId) {
-        // Commit: animate current page off-screen and preview into position
         const screenWidth = window.innerWidth;
         const exitX = direction === 'left' ? -screenWidth : screenWidth;
-        
+
+        // Animate content off-screen
         container.style.transition = 'transform 250ms cubic-bezier(0.2, 0.9, 0.3, 1)';
         container.style.transform = `translateX(${exitX}px)`;
 
-        const preview = previewPaneRef.current;
-        if (preview) {
-          preview.style.transition = 'transform 250ms cubic-bezier(0.2, 0.9, 0.3, 1)';
-          preview.style.transform = 'translateX(0)';
-        }
+        // Start title dissolve
+        setIsTitleTransitioning(true);
 
-        // Navigate after animation completes
         setTimeout(() => {
-          const swipeDir = direction === 'left' ? 'swipe-left' : 'swipe-right';
-          setSwipeDirection(swipeDir as 'swipe-left' | 'swipe-right');
-          container.style.transition = '';
-          container.style.transform = '';
-          if (preview) {
-            preview.style.transition = '';
-            preview.style.transform = '';
-            preview.style.display = 'none';
-          }
-          router.push(`/student/assignments/${targetId}`);
+          // Update URL without full navigation
+          window.history.replaceState(null, '', `/student/assignments/${targetId}`);
+
+          // Update state to trigger data refetch
+          setCurrentAssignmentId(targetId);
+
+          // Reset content position (slides in from opposite side)
+          container.style.transition = 'none';
+          container.style.transform = `translateX(${-exitX}px)`;
+
+          // Force reflow, then animate to center
+          void container.offsetWidth;
+          container.style.transition = 'transform 250ms cubic-bezier(0.2, 0.9, 0.3, 1)';
+          container.style.transform = 'translateX(0)';
+
+          setTimeout(() => {
+            container.style.transition = '';
+            setIsTitleTransitioning(false);
+          }, 250);
         }, 250);
       } else {
         // Cancel: snap back
         container.style.transition = 'transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1)';
         container.style.transform = 'translateX(0)';
-        
-        const preview = previewPaneRef.current;
-        if (preview) {
-          const snapDir = gesture.direction === 'left' ? '100%' : '-100%';
-          preview.style.transition = 'transform 200ms cubic-bezier(0.2, 0.9, 0.3, 1)';
-          preview.style.transform = `translateX(${snapDir})`;
-        }
 
         setTimeout(() => {
           container.style.transition = '';
-          if (preview) {
-            preview.style.transition = '';
-            preview.style.display = 'none';
-          }
         }, 200);
       }
 
@@ -374,7 +362,7 @@ export default function StudentAssignmentDetailPage() {
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [allAssignmentIds, assignmentId, router]);
+  }, [allAssignmentIds, currentAssignmentId]);
 
   const handleDelete = async () => {
     if (!submission?.submissionId || !confirm('Delete your submission? This cannot be undone.')) return;
@@ -472,31 +460,53 @@ export default function StudentAssignmentDetailPage() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
 
-      <div className="relative h-full overflow-hidden">
-      <div ref={swipeContainerRef} className="h-full flex flex-col bg-white overflow-hidden" style={{ touchAction: 'pan-y' }}>
-        {/* Header */}
-        <div className="flex items-center px-3 py-2 border-b border-gray-100 z-10 shrink-0" style={{ backgroundColor: getAssignmentColor(assignmentId) }}>
-          {(() => {
-            const currentIdx = allAssignmentIds.indexOf(assignmentId);
-            const prevId = currentIdx > 0 ? allAssignmentIds[currentIdx - 1] : null;
-            const nextId = currentIdx < allAssignmentIds.length - 1 ? allAssignmentIds[currentIdx + 1] : null;
-            return (
-              <>
-                <button onClick={() => prevId && router.push(`/student/assignments/${prevId}`)} className={`p-1.5 -ml-1 ${prevId ? '' : 'opacity-30 pointer-events-none'}`} style={{ color: getAssignmentTitleColor(assignmentId) }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <h1 className="flex-1 text-base font-bold uppercase mx-2 break-words leading-tight" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(assignmentId) }}>{assignment.title}</h1>
-                <button onClick={() => nextId && router.push(`/student/assignments/${nextId}`)} className={`p-1.5 ${nextId ? '' : 'opacity-30 pointer-events-none'}`} style={{ color: getAssignmentTitleColor(assignmentId) }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </>
-            );
-          })()}
-        </div>
+      <div className="h-full flex flex-col bg-white overflow-hidden">
+      {/* ClassCast branded header */}
+      <StudentHeader />
+
+      {/* Colored assignment header — stays pinned during swipe */}
+      <div
+        className="flex items-center px-3 py-2 border-b border-gray-100 z-10 shrink-0"
+        style={{
+          backgroundColor: getAssignmentColor(currentAssignmentId),
+          transition: 'background-color 300ms ease-out',
+        }}
+      >
+        {(() => {
+          const currentIdx = allAssignmentIds.indexOf(currentAssignmentId);
+          const prevId = currentIdx > 0 ? allAssignmentIds[currentIdx - 1] : null;
+          const nextId = currentIdx < allAssignmentIds.length - 1 ? allAssignmentIds[currentIdx + 1] : null;
+          return (
+            <>
+              <button onClick={() => prevId && setCurrentAssignmentId(prevId)} className={`p-1.5 -ml-1 ${prevId ? '' : 'opacity-30 pointer-events-none'}`} style={{ color: getAssignmentTitleColor(currentAssignmentId) }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h1
+                className="flex-1 text-base font-bold uppercase mx-2 break-words leading-tight"
+                style={{
+                  fontFamily: "'Oswald', sans-serif",
+                  letterSpacing: '0.02em',
+                  color: getAssignmentTitleColor(currentAssignmentId),
+                  opacity: isTitleTransitioning ? 0 : 1,
+                  transition: 'opacity 200ms ease-out',
+                }}
+              >
+                {assignment.title}
+              </h1>
+              <button onClick={() => nextId && setCurrentAssignmentId(nextId)} className={`p-1.5 ${nextId ? '' : 'opacity-30 pointer-events-none'}`} style={{ color: getAssignmentTitleColor(currentAssignmentId) }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          );
+        })()}
+      </div>
+
+      {/* Swipeable content area */}
+      <div ref={swipeContainerRef} className="flex-1 flex flex-col overflow-hidden" style={{ touchAction: 'pan-y' }}>
 
         {/* Video Area - Show student's submission if exists, otherwise instructional video */}
         {isSubmitted && (submission?.videoUrl || submission?.youtubeUrl || submission?.googleDriveUrl) ? (
@@ -558,7 +568,7 @@ export default function StudentAssignmentDetailPage() {
               {peerResponseCount >= ((assignment as any).minResponsesRequired || 0) ? (
                 <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">✓ Complete</span>
               ) : (
-                <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="text-[10px] font-bold text-[#005587] bg-blue-100 px-2 py-0.5 rounded-full active:scale-95">
+                <button onClick={() => router.push(`/student/assignments/${currentAssignmentId}/feed`)} className="text-[10px] font-bold text-[#005587] bg-blue-100 px-2 py-0.5 rounded-full active:scale-95">
                   Review Peers →
                 </button>
               )}
@@ -581,7 +591,9 @@ export default function StudentAssignmentDetailPage() {
 
         {/* Bottom Nav */}
         <div className="shrink-0 h-[80px] native-bottom-nav" />
-        {mounted && createPortal(
+      </div>
+
+      {mounted && createPortal(
         <nav className="fixed bottom-4 left-4 right-4 z-40 px-2 py-2 rounded-2xl native-bottom-nav" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.3)' }}>
           {!isSubmitted && (
             <div className="relative flex items-center justify-around">
@@ -605,7 +617,7 @@ export default function StudentAssignmentDetailPage() {
               <LiquidGlassIndicator activeIndex={detailActiveIdx} indicatorRef={indicatorRef} />
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center min-w-0 py-1 z-10"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[9px] text-gray-400">Home</span></button>
               <div className="flex flex-col items-center min-w-0 py-1 z-10"><span className="text-[9px] font-bold text-green-600">✓ Submitted!</span></div>
-              <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="flex flex-col items-center min-w-0 py-1 z-10">
+              <button onClick={() => router.push(`/student/assignments/${currentAssignmentId}/feed`)} className="flex flex-col items-center min-w-0 py-1 z-10">
                 <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 <span className="text-[9px] text-[#005587]">Peers</span>
               </button>
@@ -619,7 +631,7 @@ export default function StudentAssignmentDetailPage() {
               <LiquidGlassIndicator activeIndex={detailActiveIdx} indicatorRef={indicatorRef} />
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center min-w-0 py-1 z-10"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[9px] text-gray-400">Home</span></button>
               <div className="flex flex-col items-center min-w-0 py-1 z-10"><span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">{submission!.grade}/{assignment.points || assignment.maxScore || 100}</span><span className="text-[8px] text-gray-400 mt-0.5">Grade</span></div>
-              <button onClick={() => router.push(`/student/assignments/${assignmentId}/feed`)} className="flex flex-col items-center min-w-0 py-1 z-10">
+              <button onClick={() => router.push(`/student/assignments/${currentAssignmentId}/feed`)} className="flex flex-col items-center min-w-0 py-1 z-10">
                 <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 <span className="text-[9px] text-[#005587]">Peers</span>
               </button>
@@ -630,41 +642,6 @@ export default function StudentAssignmentDetailPage() {
         </nav>,
         document.body
         )}
-      </div>
-
-      {/* Preview skeleton pane for swipe transitions */}
-      <div
-        ref={previewPaneRef}
-        className="absolute inset-0 z-20 bg-white flex flex-col overflow-hidden"
-        style={{ display: 'none' }}
-      >
-        {/* Header skeleton */}
-        <div className="flex items-center px-3 py-2 border-b border-gray-100 shrink-0 bg-gray-100">
-          <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
-          <div className="flex-1 mx-3"><div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse" /></div>
-          <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
-        </div>
-        {/* Video skeleton */}
-        <div className="w-full shrink-0 bg-gray-200 animate-pulse flex items-center justify-center" style={{ height: '42%', minHeight: '180px' }}>
-          <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-        </div>
-        {/* Info row skeleton */}
-        <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 shrink-0">
-          <div className="h-5 w-20 bg-gray-200 rounded-full animate-pulse" />
-          <div className="h-4 w-12 bg-gray-200 rounded animate-pulse" />
-        </div>
-        {/* Instructions skeleton */}
-        <div className="flex-1 px-4 py-3">
-          <div className="h-3 w-20 bg-gray-200 rounded animate-pulse mb-3" />
-          <div className="space-y-2">
-            <div className="h-3 w-full bg-gray-100 rounded animate-pulse" />
-            <div className="h-3 w-5/6 bg-gray-100 rounded animate-pulse" />
-            <div className="h-3 w-4/6 bg-gray-100 rounded animate-pulse" />
-            <div className="h-3 w-full bg-gray-100 rounded animate-pulse" />
-          </div>
-        </div>
-      </div>
-      </div>
 
       {/* Rubric Modal */}
       <ModalTransition isOpen={showRubricModal && !!assignment} onClose={() => { setShowRubricModal(false); setTimeout(() => animateToTab(1), 280); }}>
@@ -795,7 +772,7 @@ export default function StudentAssignmentDetailPage() {
             {!showLinkInput ? (
               <>
                 <button
-                  onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${assignmentId}&mode=record`); }}
+                  onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${currentAssignmentId}&mode=record`); }}
                   className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-[#005587] to-[#0088cc] active:scale-[0.98] transition-transform"
                 >
                   <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center shrink-0">
@@ -807,7 +784,7 @@ export default function StudentAssignmentDetailPage() {
                   </div>
                 </button>
                 <button
-                  onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${assignmentId}&mode=upload`); }}
+                  onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${currentAssignmentId}&mode=upload`); }}
                   className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
                 >
                   <div className="w-11 h-11 rounded-full bg-[#005587]/10 flex items-center justify-center shrink-0">
@@ -857,7 +834,7 @@ export default function StudentAssignmentDetailPage() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                           studentId: user.id,
-                          assignmentId,
+                          assignmentId: currentAssignmentId,
                           courseId: assignment?.courseId,
                           videoUrl: postLinkUrl.trim(),
                           youtubeUrl: isYT ? postLinkUrl.trim() : undefined,
@@ -951,7 +928,7 @@ export default function StudentAssignmentDetailPage() {
                     // Upload file to S3
                     const formData = new FormData();
                     formData.append('file', uploadFile);
-                    formData.append('assignmentId', assignmentId);
+                    formData.append('assignmentId', currentAssignmentId);
                     formData.append('studentId', user?.id || '');
                     const res = await fetch('/api/upload/student-video', { method: 'POST', body: formData });
                     if (res.ok) { setShowUploadModal(false); fetchData(); }
@@ -961,7 +938,7 @@ export default function StudentAssignmentDetailPage() {
                     const res = await fetch('/api/submissions', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ assignmentId, studentId: user?.id, videoUrl: uploadUrl }),
+                      body: JSON.stringify({ assignmentId: currentAssignmentId, studentId: user?.id, videoUrl: uploadUrl }),
                     });
                     if (res.ok) { setShowUploadModal(false); fetchData(); }
                     else alert('Submission failed. Please try again.');
@@ -986,6 +963,7 @@ export default function StudentAssignmentDetailPage() {
         className="hidden"
         onChange={(e) => { if (e.target.files?.[0]) setUploadFile(e.target.files[0]); }}
       />
+      </div>
     </StudentRoute>
   );
 }
