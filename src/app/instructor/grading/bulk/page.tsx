@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -9,7 +10,14 @@ import { getVideoUrl } from '@/lib/videoUtils';
 import { parseVideoUrl, getEmbedUrl } from '@/lib/urlUtils';
 import { extractYouTubeVideoId, getYouTubeEmbedUrl, getYouTubeThumbnail } from '@/lib/youtube';
 import { RubricGradingPanel } from '@/components/instructor/RubricGradingPanel';
+import { PeerResponseIndicator } from '@/components/instructor/PeerResponseIndicator';
 import { RubricCategory } from '@/types/rubric';
+import { GradingResult } from '@/types/aiGrading';
+
+const AIGradingWizard = dynamic(
+  () => import('@/components/instructor/AIGradingWizard'),
+  { ssr: false }
+);
 
 interface Assignment {
   assignmentId: string;
@@ -104,6 +112,7 @@ const BulkGradingContent: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [assignmentRubrics, setAssignmentRubrics] = useState<Record<string, RubricCategory[] | null>>({});
+  const [showAIWizard, setShowAIWizard] = useState(false);
   
   // Remove peer response state - not needed in continuous feed
 
@@ -882,6 +891,12 @@ const BulkGradingContent: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setShowAIWizard(true)}
+                className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-full text-xs font-bold hover:bg-[#e6b225] transition-colors"
+              >
+                🤖 AI Grade
+              </button>
               <div className="text-sm text-gray-600">
                 Scrollable Feed • Auto-save • v2.0
               </div>
@@ -1069,6 +1084,19 @@ const BulkGradingContent: React.FC = () => {
                           <span>{submission.courseCode}</span>
                           {submission.grade && <span className="text-green-700 font-medium">{submission.grade}/{submission.maxScore}</span>}
                         </div>
+                        <div className="mt-1">
+                          <PeerResponseIndicator
+                            enablePeerResponses={(() => {
+                              const assn = assignments.find(a => a.assignmentId === submission.assignmentId);
+                              return assn?.enablePeerResponses || false;
+                            })()}
+                            minResponsesRequired={(() => {
+                              const assn = assignments.find(a => a.assignmentId === submission.assignmentId);
+                              return assn?.minResponsesRequired || 0;
+                            })()}
+                            completedCount={submission.peerResponses?.length || 0}
+                          />
+                        </div>
                       </div>
 
                       {/* Grading + Peer Responses */}
@@ -1131,14 +1159,16 @@ const BulkGradingContent: React.FC = () => {
                         {submission.peerResponses && submission.peerResponses.length > 0 && (
                           <div className="bg-purple-50 rounded-lg p-3 border border-purple-100">
                             <h4 className="text-xs font-semibold text-purple-800 mb-2">Peer Responses ({submission.peerResponses.length})</h4>
-                            <div className="space-y-1.5 max-h-[120px] overflow-y-auto">
+                            <div className="space-y-1.5 max-h-[160px] overflow-y-auto">
                               {submission.peerResponses.map((peer: any, i: number) => (
-                                <div key={i} className="flex items-start justify-between gap-2 text-xs bg-white p-2 rounded border border-purple-50">
-                                  <div className="flex-1 min-w-0">
-                                    <span className="font-medium text-gray-700">{peer.studentName || 'Peer'}:</span>
-                                    <span className="text-gray-600 ml-1">{peer.response || peer.comment || '—'}</span>
+                                <div key={i} className="text-xs bg-white p-2 rounded border border-purple-50">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="font-medium text-gray-700">{peer.studentName || peer.reviewerName || 'Peer'}</span>
+                                    {peer.submittedAt && (
+                                      <span className="text-gray-400 text-[10px]">{new Date(peer.submittedAt).toLocaleDateString()}</span>
+                                    )}
                                   </div>
-                                  <input type="number" min="0" max="10" placeholder="—" className="w-10 px-1 py-0.5 border border-gray-200 rounded text-center text-xs" defaultValue={peer.grade || ''} />
+                                  <p className="text-gray-600 leading-relaxed">{peer.response || peer.content || peer.comment || '—'}</p>
                                 </div>
                               ))}
                             </div>
@@ -1164,6 +1194,76 @@ const BulkGradingContent: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* AI Grading Wizard */}
+        {showAIWizard && (
+          <AIGradingWizard
+            isOpen={showAIWizard}
+            onClose={() => setShowAIWizard(false)}
+            assignmentId={selectedAssignment !== 'all' ? selectedAssignment : (assignments[0]?.assignmentId || '')}
+            assignmentTitle={selectedAssignment !== 'all'
+              ? (assignments.find(a => a.assignmentId === selectedAssignment)?.title || 'Assignment')
+              : (assignments[0]?.title || 'Assignment')
+            }
+            rubric={(() => {
+              const targetId = selectedAssignment !== 'all' ? selectedAssignment : (assignments[0]?.assignmentId || '');
+              return assignmentRubrics[targetId] || [];
+            })()}
+            ungradedCount={filteredSubmissions.filter(s => s.status === 'submitted').length}
+            onGradingComplete={async () => {
+              setShowAIWizard(false);
+              // Re-fetch all submissions to reflect new grades
+              if (user?.id) {
+                try {
+                  const submissionsResponse = await fetch(`/api/instructor/video-submissions?instructorId=${user.id}`, {
+                    credentials: 'include',
+                  });
+                  if (submissionsResponse.ok) {
+                    const submissionsData = await submissionsResponse.json();
+                    if (submissionsData.success && submissionsData.submissions) {
+                      const transformedSubmissions: VideoSubmission[] = submissionsData.submissions.map((sub: any) => ({
+                        submissionId: sub.submissionId || sub.id,
+                        studentId: sub.studentId,
+                        studentName: sub.student?.name || 'Unknown Student',
+                        studentEmail: sub.student?.email || '',
+                        assignmentId: sub.assignmentId,
+                        assignmentTitle: sub.assignment?.title || 'Unknown Assignment',
+                        videoUrl: sub.videoUrl,
+                        thumbnailUrl: sub.thumbnailUrl,
+                        submittedAt: sub.submittedAt || sub.createdAt,
+                        duration: sub.duration || 0,
+                        fileSize: sub.fileSize || 0,
+                        grade: sub.grade,
+                        feedback: sub.instructorFeedback || sub.feedback,
+                        status: sub.grade !== null && sub.grade !== undefined ? 'graded' : 'submitted',
+                        courseName: sub.assignment?.courseName || 'Unknown Course',
+                        courseCode: sub.assignment?.courseCode || 'N/A',
+                        courseId: sub.courseId || sub.assignment?.courseId || '',
+                        sectionId: sub.student?.sectionId || null,
+                        sectionName: sub.student?.sectionName || null,
+                        maxScore: sub.maxScore,
+                        rubricScores: sub.rubricScores,
+                        peerResponses: sub.peerResponses,
+                      }));
+                      setAllSubmissions(transformedSubmissions);
+                      // Re-initialize grades and feedback
+                      const initialGrades: Record<string, number | ''> = {};
+                      const initialFeedback: Record<string, string> = {};
+                      transformedSubmissions.forEach(sub => {
+                        initialGrades[sub.submissionId] = sub.grade || '';
+                        initialFeedback[sub.submissionId] = sub.feedback || '';
+                      });
+                      setGrades(initialGrades);
+                      setFeedback(initialFeedback);
+                    }
+                  }
+                } catch (err) {
+                  console.error('Error refreshing submissions after AI grading:', err);
+                }
+              }
+            }}
+          />
+        )}
       </div>
     </InstructorRoute>
   );
