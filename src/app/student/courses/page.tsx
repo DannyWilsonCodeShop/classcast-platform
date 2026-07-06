@@ -45,6 +45,44 @@ const StudentCoursesPage: React.FC = () => {
   const router = useRouter();
   const { data: courses = [], isLoading: loading, error: fetchError } = useStudentCourses();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showJoinInput, setShowJoinInput] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState('');
+  const [joinSuccess, setJoinSuccess] = useState('');
+
+  const handleJoinCourse = async () => {
+    if (!joinCode.trim() || !user?.id) return;
+    setJoining(true);
+    setJoinError('');
+    setJoinSuccess('');
+    try {
+      const res = await fetch('/api/courses/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classCode: joinCode.trim(),
+          studentId: user.id,
+          studentEmail: user.email || '',
+          studentFirstName: user.firstName || '',
+          studentLastName: user.lastName || '',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setJoinSuccess(`Enrolled in ${data.course.title}!`);
+        setJoinCode('');
+        setShowJoinInput(false);
+        // Refresh courses list
+        window.location.reload();
+      } else {
+        setJoinError(data.error || 'Failed to join course');
+      }
+    } catch {
+      setJoinError('Network error. Please try again.');
+    }
+    setJoining(false);
+  };
 
   const error = fetchError ? 'Failed to load courses' : null;
 
@@ -124,6 +162,46 @@ const StudentCoursesPage: React.FC = () => {
               </button>
             )}
           </div>
+        </div>
+
+        {/* Join with Code */}
+        <div className="px-4 pb-2">
+          {!showJoinInput ? (
+            <button
+              onClick={() => setShowJoinInput(true)}
+              className="w-full py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-bold text-sm active:scale-[0.98] transition-transform"
+            >
+              + Join Course with Class Code
+            </button>
+          ) : (
+            <div className="bg-gray-50 rounded-xl p-3 space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={joinCode}
+                  onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setJoinError(''); }}
+                  placeholder="Enter class code..."
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono uppercase focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                  autoFocus
+                />
+                <button
+                  onClick={handleJoinCourse}
+                  disabled={!joinCode.trim() || joining}
+                  className="px-4 py-2 bg-[#005587] text-white rounded-lg text-sm font-bold disabled:opacity-50"
+                >
+                  {joining ? '...' : 'Join'}
+                </button>
+              </div>
+              {joinError && <p className="text-xs text-red-600">{joinError}</p>}
+              {joinSuccess && <p className="text-xs text-green-600">{joinSuccess}</p>}
+              <button
+                onClick={() => { setShowJoinInput(false); setJoinCode(''); setJoinError(''); }}
+                className="text-xs text-gray-500"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Content */}
