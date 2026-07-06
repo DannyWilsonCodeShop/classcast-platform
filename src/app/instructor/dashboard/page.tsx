@@ -4,9 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import NotificationBell from '@/components/common/NotificationBell';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { AssignmentManagement } from '@/components/instructor/AssignmentManagement';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 
 interface Course {
@@ -18,19 +16,26 @@ interface Course {
   status?: string;
 }
 
-/**
- * Enhanced Instructor Dashboard
- * 
- * Shows assignments and students for the selected course instead of course cards.
- * Includes course selection dropdown and search for assignments/students.
- */
+interface Assignment {
+  assignmentId: string;
+  title: string;
+  dueDate: string;
+  points: number;
+  status: string;
+  submissionsCount: number;
+  gradedCount: number;
+  courseId: string;
+}
+
 const InstructorDashboard: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
   const { isWide } = useIsWideScreen();
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [assignmentsLoading, setAssignmentsLoading] = useState(false);
 
   // Fetch courses for the dropdown
   useEffect(() => {
@@ -52,12 +57,11 @@ const InstructorDashboard: React.FC = () => {
               title: course.title || course.courseName,
               code: course.code || course.courseCode,
               classCode: course.classCode || '',
-              studentCount: course.studentCount || course.currentEnrollment || course.enrollment?.students?.length || 0,
+              studentCount: course.studentCount || course.currentEnrollment || 0,
               status: course.status || 'published'
             }));
             setCourses(mappedCourses);
             
-            // Auto-select first course if available
             if (mappedCourses.length > 0 && !selectedCourseId) {
               setSelectedCourseId(mappedCourses[0].courseId);
             }
@@ -75,6 +79,44 @@ const InstructorDashboard: React.FC = () => {
     }
   }, [user?.id]);
 
+  // Fetch assignments when course changes
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      if (!selectedCourseId) {
+        setAssignments([]);
+        return;
+      }
+      try {
+        setAssignmentsLoading(true);
+        const response = await fetch(`/api/assignments?courseId=${selectedCourseId}`, {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            const mapped = (data.data.assignments || []).map((a: any) => ({
+              assignmentId: a.assignmentId || a.id,
+              title: a.title,
+              dueDate: a.dueDate,
+              points: a.maxScore || a.points || 100,
+              status: a.status || 'published',
+              submissionsCount: a.submissionsCount || 0,
+              gradedCount: a.gradedCount || 0,
+              courseId: selectedCourseId,
+            }));
+            setAssignments(mapped);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching assignments:', error);
+      } finally {
+        setAssignmentsLoading(false);
+      }
+    };
+
+    fetchAssignments();
+  }, [selectedCourseId]);
+
   const handleCourseChange = (courseId: string) => {
     setSelectedCourseId(courseId);
   };
@@ -83,30 +125,17 @@ const InstructorDashboard: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
-      <div className={`min-h-screen ${isWide ? 'bg-transparent' : 'bg-white'}`}>
-        {/* Top Banner - only show on mobile (sidebar handles nav on wide) */}
-        {!isWide && (
-          <div className="flex items-center justify-between px-4 pt-2 pb-1 shrink-0 bg-white">
-            <div className="flex items-center gap-1">
-              <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-3xl">ClassCast</span>
-              <img src="/UpdatedCCLogo.png" alt="" className="w-6 h-6 object-contain" />
-            </div>
-            <div className="flex items-center gap-2">
-              {user?.id && <NotificationBell userId={user.id} userRole="instructor" className="flex-shrink-0" />}
-              <img src="/CristoReyLogo.png" alt="" className="w-14 h-14 object-contain" />
-            </div>
-          </div>
-        )}
+      <div className={`h-full overflow-y-auto ${isWide ? 'bg-transparent' : 'bg-white'}`}>
+        {/* NOTE: Mobile header is handled by instructor layout — do NOT add one here */}
 
         {/* Page Title + Course Selector */}
-        <div className="px-4 py-2">
-          <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Instructor Dashboard</h2>
+        <div className="px-4 py-3">
+          <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Dashboard</h2>
           {courses.length > 0 && (
             <select
               value={selectedCourseId}
               onChange={(e) => handleCourseChange(e.target.value)}
-              className="mt-1 px-3 py-1.5 bg-gray-100 border-0 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#005587]"
+              className="mt-1 w-full px-3 py-2 bg-gray-100 border-0 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#005587]"
             >
               <option value="">Select a course...</option>
               {courses.map((course) => (
@@ -118,72 +147,86 @@ const InstructorDashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Course Details Card */}
+        {/* Course Details - Compact */}
         {selectedCourse && (
-          <div className="mx-4 mb-3 bg-gray-50 rounded-2xl p-4">
+          <div className="mx-4 mb-3 bg-gray-50 rounded-2xl p-3">
             <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-[#005587] uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>
-                  {selectedCourse.title}
-                </h3>
-                <div className="flex items-center gap-3 mt-1">
-                  {selectedCourse.code && (
-                    <span className="text-xs text-gray-600">Code: <span className="font-medium text-gray-900">{selectedCourse.code}</span></span>
-                  )}
-                  {selectedCourse.classCode && (
-                    <span className="text-xs text-gray-600">Class Code: <span className="font-mono font-bold text-[#005587]">{selectedCourse.classCode}</span></span>
-                  )}
-                </div>
+              <div className="flex items-center gap-3">
+                {selectedCourse.classCode && (
+                  <span className="text-xs text-gray-600">Join: <span className="font-mono font-bold text-[#005587]">{selectedCourse.classCode}</span></span>
+                )}
+                {selectedCourse.code && (
+                  <span className="text-xs text-gray-500">{selectedCourse.code}</span>
+                )}
               </div>
-              <div className="text-right">
-                <span className="text-lg font-bold text-[#005587]">{selectedCourse.studentCount || 0}</span>
-                <span className="block text-xs text-gray-500">Students</span>
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-bold text-[#005587]">{selectedCourse.studentCount || 0}</span>
+                <span className="text-xs text-gray-500">students</span>
               </div>
             </div>
           </div>
         )}
 
-        {/* Main Content - Assignment Management */}
-        <div className="flex-1">
+        {/* Assignments List */}
+        <div className="px-4 pb-4">
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <LoadingSpinner size="lg" />
             </div>
-          ) : selectedCourse ? (
-            <AssignmentManagement 
-              courseId={selectedCourse.courseId}
-              courseName={selectedCourse.title}
-            />
+          ) : !selectedCourse ? (
+            <div className="text-center py-12">
+              <div className="text-4xl mb-3">📚</div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                {courses.length === 0 ? 'No Courses Yet' : 'Select a Course'}
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                {courses.length === 0 
+                  ? 'Create your first course to get started.'
+                  : 'Choose a course above to view assignments.'
+                }
+              </p>
+              {courses.length === 0 && (
+                <button
+                  onClick={() => router.push('/instructor/classes/create')}
+                  className="px-5 py-3 bg-[#FFC72C] text-[#005587] rounded-xl font-bold"
+                >
+                  + Create Course
+                </button>
+              )}
+            </div>
+          ) : assignmentsLoading ? (
+            <div className="flex justify-center py-8">
+              <LoadingSpinner size="sm" />
+            </div>
+          ) : assignments.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-3xl mb-2">📝</div>
+              <p className="text-sm text-gray-600 mb-4">No assignments yet</p>
+              <button
+                onClick={() => router.push(`/instructor/courses/${selectedCourseId}/assignments/create`)}
+                className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-bold text-sm"
+              >
+                + Create Assignment
+              </button>
+            </div>
           ) : (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-              <div className="text-center">
-                <div className="text-6xl mb-4">📚</div>
-                <h3 className="text-2xl font-semibold text-gray-800 mb-2">
-                  {courses.length === 0 ? 'No Courses Yet' : 'Select a Course'}
-                </h3>
-                <p className="text-gray-600 mb-8">
-                  {courses.length === 0 
-                    ? 'Create your first course to get started teaching.'
-                    : 'Choose a course from the dropdown above to view its assignments and students.'
-                  }
-                </p>
-                {courses.length === 0 && (
-                  <div className="flex space-x-4 justify-center">
-                    <button
-                      onClick={() => router.push('/instructor/classes/create')}
-                      className="px-6 py-4 bg-[#005587] text-white rounded-xl font-bold hover:bg-[#004470] transition-colors"
-                    >
-                      + Create Course
-                    </button>
-                    <button
-                      onClick={() => router.push('/instructor/classes/create')}
-                      className="px-6 py-4 bg-[#FFC72C] text-[#005587] rounded-xl font-bold hover:bg-[#e6b225] transition-colors"
-                    >
-                      🧙 Start Wizard
-                    </button>
+            <div className="space-y-3">
+              {assignments.map((assignment) => (
+                <button
+                  key={assignment.assignmentId}
+                  onClick={() => router.push(`/instructor/courses/${selectedCourseId}/assignments/${assignment.assignmentId}/grades`)}
+                  className="w-full bg-gray-50 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-sm font-bold text-gray-900 line-clamp-1">{assignment.title}</h3>
+                    <span className="text-xs font-medium text-[#005587]">{assignment.points} pts</span>
                   </div>
-                )}
-              </div>
+                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                    <span>Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
+                    <span className="text-green-600 font-medium">{assignment.gradedCount}/{assignment.submissionsCount} graded</span>
+                  </div>
+                </button>
+              ))}
             </div>
           )}
         </div>

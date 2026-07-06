@@ -989,31 +989,31 @@ const InstructorCourseDetailPage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-white">
-        {/* Header */}
+      <div className="h-full overflow-y-auto bg-white">
+        {/* Header - compact on mobile */}
         <div className="bg-white border-b border-gray-100 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="px-4 py-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <button
                   onClick={() => router.push('/instructor/dashboard')}
-                  className="text-[#005587] hover:text-[#004060] transition-colors"
+                  className="text-[#005587] hover:text-[#004060] transition-colors shrink-0"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <div>
-                  <h1 className="text-3xl font-bold text-[#005587] mb-2 uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>
-                      {course.courseName}
-                    </h1>
-                    <p className="text-gray-600">
-                      {course.courseCode} • {course.semester} {course.year} • {course.enrollmentCount} students
-                    </p>
+                <div className="min-w-0">
+                  <h1 className="text-lg font-bold text-[#005587] uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif" }}>
+                    {course.courseName}
+                  </h1>
+                  <p className="text-xs text-gray-500 truncate">
+                    {course.courseCode} • {course.enrollmentCount} students
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-4">
-                <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+              <div className="flex items-center space-x-2 shrink-0">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                   course.status === 'published' ? 'bg-green-100 text-green-800' :
                   course.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
                   'bg-gray-100 text-gray-800'
@@ -1022,88 +1022,60 @@ const InstructorCourseDetailPage: React.FC = () => {
                 </span>
                 <button 
                   onClick={() => setShowSettingsModal(true)}
-                  className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-bold hover:bg-[#e6b326] transition-colors"
+                  className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-xl font-bold text-xs hover:bg-[#e6b326] transition-colors"
                 >
-                  ⚙️ Settings
+                  ⚙️
                 </button>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Course Info Card */}
-          <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold text-[#005587] mb-2 uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>Course Information</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600">Course Name:</span>
-                    <span className="ml-2 font-medium">{course.courseName}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Course Code:</span>
-                    <span className="ml-2 font-medium">{course.courseCode}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Semester:</span>
-                    <span className="ml-2 font-medium">{course.semester} {course.year}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600">Enrollment:</span>
-                    <span className="ml-2 font-medium">
-                      {course.enrollmentCount} / {course.maxEnrollment || 'Unlimited'} students
-                    </span>
-                  </div>
-                </div>
-                {course.description && (
-                  <div className="mt-3">
-                    <span className="text-gray-600">Description:</span>
-                    <p className="mt-1 text-gray-800">{course.description}</p>
-                  </div>
-                )}
-              </div>
+        <div className="px-4 py-4 space-y-4">
+          {/* Course Info - Compact for mobile */}
+          <div className="bg-gray-50 rounded-2xl p-3">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div><span className="text-gray-500">Code:</span> <span className="font-medium">{course.courseCode}</span></div>
+              <div><span className="text-gray-500">Semester:</span> <span className="font-medium">{course.semester} {course.year}</span></div>
+              <div><span className="text-gray-500">Students:</span> <span className="font-medium">{course.enrollmentCount}/{course.maxEnrollment || '∞'}</span></div>
+              <div><span className="text-gray-500">Assignments:</span> <span className="font-medium">{assignments.length}</span></div>
             </div>
+            {course.description && (
+              <p className="mt-2 text-xs text-gray-600 line-clamp-2">{course.description}</p>
+            )}
           </div>
 
-          {/* Course Stats */}
-          <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {/* Stats Row - Compact */}
+          <div className="bg-gray-50 rounded-2xl p-3">
+            <div className="grid grid-cols-4 gap-2">
               <div className="text-center">
-                <div className="text-3xl font-bold text-[#005587] mb-2">{assignments.length}</div>
-                <div className="text-sm text-gray-600">Total Assignments</div>
+                <div className="text-lg font-bold text-[#005587]">{assignments.length}</div>
+                <div className="text-[10px] text-gray-500">Assignments</div>
               </div>
               <div className="text-center">
-                <button
-                  onClick={() => router.push(`/instructor/courses/${courseId}/students`)}
-                  className="group cursor-pointer hover:bg-white rounded-lg p-2 -m-2 transition-colors"
-                >
-                  <div className="text-3xl font-bold text-[#005587] mb-2 transition-colors">{course.enrollmentCount}</div>
-                  <div className="text-sm text-gray-600 transition-colors">Students Enrolled</div>
-                </button>
+                <div className="text-lg font-bold text-[#005587]">{course.enrollmentCount}</div>
+                <div className="text-[10px] text-gray-500">Students</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-[#005587] mb-2">
+                <div className="text-lg font-bold text-[#005587]">
                   {assignments.reduce((sum, assignment) => sum + assignment.submissionsCount, 0)}
                 </div>
-                <div className="text-sm text-gray-600">Total Submissions</div>
+                <div className="text-[10px] text-gray-500">Submitted</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-[#005587] mb-2">
+                <div className="text-lg font-bold text-[#005587]">
                   {assignments.reduce((sum, assignment) => sum + assignment.gradedCount, 0)}
                 </div>
-                <div className="text-sm text-gray-600">Graded Submissions</div>
+                <div className="text-[10px] text-gray-500">Graded</div>
               </div>
             </div>
           </div>
-
           {/* Tab Navigation */}
-          <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
+          <div className="bg-gray-50 rounded-2xl p-4">
+            <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-4">
               <button
                 onClick={() => setActiveTab('assignments')}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
                   activeTab === 'assignments'
                     ? 'bg-[#005587] text-white'
                     : 'text-gray-600 hover:text-gray-800'
@@ -1113,7 +1085,7 @@ const InstructorCourseDetailPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('submissions')}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
                   activeTab === 'submissions'
                     ? 'bg-[#005587] text-white'
                     : 'text-gray-600 hover:text-gray-800'
@@ -1123,7 +1095,7 @@ const InstructorCourseDetailPage: React.FC = () => {
               </button>
               <button
                 onClick={() => setActiveTab('students')}
-                className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
                   activeTab === 'students'
                     ? 'bg-[#005587] text-white'
                     : 'text-gray-600 hover:text-gray-800'

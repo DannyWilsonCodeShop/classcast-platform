@@ -113,6 +113,7 @@ const BulkGradingContent: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [assignmentRubrics, setAssignmentRubrics] = useState<Record<string, RubricCategory[] | null>>({});
   const [showAIWizard, setShowAIWizard] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [speedLock, setSpeedLock] = useState<boolean>(false);
   
   // Remove peer response state - not needed in continuous feed
@@ -960,16 +961,28 @@ const BulkGradingContent: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+        {/* Filters - collapsible on mobile */}
+        <div className="px-4 py-2 shrink-0">
+          <button
+            onClick={() => setShowFilters(prev => !prev)}
+            className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl text-sm"
+          >
+            <span className="font-medium text-gray-700">
+              🔍 Filters {filteredSubmissions.length !== allSubmissions.length ? `(${filteredSubmissions.length}/${allSubmissions.length})` : ''}
+            </span>
+            <svg className={`w-4 h-4 text-gray-500 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {showFilters && (
+          <div className="bg-gray-50 rounded-xl p-3 mt-2">
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Course</label>
                 <select
                   value={selectedCourse}
                   onChange={(e) => setSelectedCourse(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
                 >
                   <option value="all">All Courses</option>
                   {instructorCourses.map(course => (
@@ -981,11 +994,11 @@ const BulkGradingContent: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Assignment</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Assignment</label>
                 <select
                   value={selectedAssignment}
                   onChange={(e) => setSelectedAssignment(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
                 >
                   <option value="all">All Assignments</option>
                   {assignments.map(assignment => (
@@ -997,7 +1010,7 @@ const BulkGradingContent: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Section</label>
                 <select
                   value={selectedSection}
                   onChange={(e) => {
@@ -1005,20 +1018,20 @@ const BulkGradingContent: React.FC = () => {
                     setSelectedStudent('all');
                     setSelectedStudentName('');
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
                 >
                   <option value="all">All Sections</option>
-                    <option value="none">No Section</option>
+                  <option value="none">No Section</option>
                   {fetchedSections.map(section => (
                     <option key={section.id} value={section.id}>
-                      {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
+                      {section.name}
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Student</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Student</label>
                 <select
                   value={selectedStudent}
                   onChange={(e) => {
@@ -1026,7 +1039,7 @@ const BulkGradingContent: React.FC = () => {
                     const student = students.find(s => s.studentId === e.target.value);
                     setSelectedStudentName(student?.studentName || '');
                   }}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
                 >
                   <option value="all">All Students</option>
                   {students
@@ -1040,50 +1053,49 @@ const BulkGradingContent: React.FC = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Status</label>
                 <select
                   value={filter}
                   onChange={(e) => setFilter(e.target.value as FilterType)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
                 >
-                  <option value="all">All ({allSubmissions.length})</option>
-                  <option value="ungraded">Ungraded ({allSubmissions.filter(s => s.status === 'submitted').length})</option>
-                  <option value="graded">Graded ({allSubmissions.filter(s => s.status === 'graded').length})</option>
+                  <option value="all">All</option>
+                  <option value="ungraded">Ungraded</option>
+                  <option value="graded">Graded</option>
                 </select>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Sort</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as SortType)}
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+                >
+                  <option value="section">Section</option>
+                  <option value="name">Name</option>
+                  <option value="date">Date</option>
+                  <option value="assignment">Assignment</option>
+                </select>
+              </div>
+              
+              <div className="col-span-2">
+                <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Search</label>
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Student or assignment..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
                 />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortType)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="section">Section + Name</option>
-                  <option value="name">Student Name</option>
-                  <option value="date">Submission Date</option>
-                  <option value="assignment">Assignment</option>
-                  <option value="course">Course</option>
-                  <option value="grade">Grade</option>
-                </select>
               </div>
             </div>
           </div>
+          )}
         </div>
 
-        {/* Main Content - Scrollable cards, 5 at a time */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-8 py-4">
+        {/* Main Content - Scrollable cards */}
+        <div className="flex-1 overflow-y-auto px-4 py-2">
           {filteredSubmissions.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
