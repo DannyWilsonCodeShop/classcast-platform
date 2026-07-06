@@ -989,7 +989,7 @@ const InstructorCourseDetailPage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="h-full overflow-y-auto bg-white">
+      <div className="h-full flex flex-col overflow-y-auto bg-white">
         {/* Header - compact on mobile */}
         <div className="bg-white border-b border-gray-100 sticky top-0 z-40">
           <div className="px-4 py-3">
