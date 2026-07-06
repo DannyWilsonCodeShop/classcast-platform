@@ -6,10 +6,10 @@ const config: CapacitorConfig = {
   webDir: 'out',
   server: {
     // Production App Store build
-    // url: 'https://class-cast.com',
+    url: 'https://class-cast.com',
     // For local development with simulator:
-    url: 'http://localhost:3003',
-    cleartext: true,
+    // url: 'http://localhost:3003',
+    // cleartext: true,
   },
   ios: {
     contentInset: 'never',
