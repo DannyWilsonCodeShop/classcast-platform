@@ -218,14 +218,14 @@ const SectionColumn: React.FC<{
 
   return (
     <div 
-      className={`bg-white rounded-2xl shadow-lg border-2 transition-all duration-200 ${
-        isDragOver ? 'border-blue-400 bg-blue-50' : 'border-gray-200'
+      className={`bg-gray-50 rounded-2xl border border-gray-100 transition-all duration-200 ${
+        isDragOver ? 'border-[#FFC72C] bg-[#FFC72C]/10' : ''
       }`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-700">
             📚 {title}
@@ -235,7 +235,7 @@ const SectionColumn: React.FC<{
           </span>
         </div>
         {isDragOver && (
-          <div className="mt-2 text-sm text-blue-600 font-medium">
+          <div className="mt-2 text-sm text-[#005587] font-medium">
             Drop here to move student to {title}
           </div>
         )}
@@ -250,7 +250,7 @@ const SectionColumn: React.FC<{
                 draggable
                 onDragStart={() => setDraggedStudent(student)}
                 onDragEnd={() => setDraggedStudent(null)}
-                className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:bg-white hover:shadow-sm transition-all cursor-move"
+                className="bg-white rounded-xl p-4 border border-gray-100 hover:bg-white transition-all cursor-move"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2 flex-1 min-w-0">
@@ -325,7 +325,7 @@ const SectionColumn: React.FC<{
             <div className="text-4xl mb-2">👤</div>
             <p className="text-sm">No students in this section</p>
             {isDragOver && (
-              <p className="text-xs text-blue-600 mt-1">Drop a student here</p>
+              <p className="text-xs text-[#005587] mt-1">Drop a student here</p>
             )}
           </div>
         )}
@@ -955,7 +955,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   if (loading) {
     return (
       <InstructorRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="text-center">
             <LoadingSpinner />
           </div>
@@ -967,14 +967,14 @@ const InstructorCourseDetailPage: React.FC = () => {
   if (error || !course) {
     return (
       <InstructorRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="text-center">
             <div className="text-6xl mb-4">😞</div>
             <h1 className="text-2xl font-bold text-gray-800 mb-2">Course Not Found</h1>
             <p className="text-gray-600 mb-6">{error || 'The course you are looking for does not exist.'}</p>
             <button
               onClick={() => router.push('/instructor/courses')}
-              className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+              className="px-6 py-3 bg-[#005587] text-white rounded-xl font-bold hover:bg-[#004060] transition-colors"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -989,34 +989,27 @@ const InstructorCourseDetailPage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div className="bg-white border-b border-gray-100 sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <button
                   onClick={() => router.push('/instructor/dashboard')}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  className="text-[#005587] hover:text-[#004060] transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-                <div className="flex items-center space-x-4">
-                  <img 
-                    src="/MyClassCast (800 x 200 px).png" 
-                    alt="ClassCast Logo" 
-                    className="h-8 w-auto"
-                  />
-                  <div>
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                <div>
+                  <h1 className="text-3xl font-bold text-[#005587] mb-2 uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>
                       {course.courseName}
                     </h1>
                     <p className="text-gray-600">
                       {course.courseCode} • {course.semester} {course.year} • {course.enrollmentCount} students
                     </p>
-                  </div>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
@@ -1029,7 +1022,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 </span>
                 <button 
                   onClick={() => setShowSettingsModal(true)}
-                  className="px-4 py-2 bg-indigo-500 text-white rounded-xl font-bold hover:bg-indigo-600 transition-colors"
+                  className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-bold hover:bg-[#e6b326] transition-colors"
                 >
                   ⚙️ Settings
                 </button>
@@ -1040,10 +1033,10 @@ const InstructorCourseDetailPage: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Course Info Card */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+          <div className="bg-gray-50 rounded-2xl p-6 mb-8">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Course Information</h2>
+                <h2 className="text-xl font-semibold text-[#005587] mb-2 uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>Course Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-gray-600">Course Name:</span>
@@ -1075,29 +1068,29 @@ const InstructorCourseDetailPage: React.FC = () => {
           </div>
 
           {/* Course Stats */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+          <div className="bg-gray-50 rounded-2xl p-6 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-indigo-600 mb-2">{assignments.length}</div>
+                <div className="text-3xl font-bold text-[#005587] mb-2">{assignments.length}</div>
                 <div className="text-sm text-gray-600">Total Assignments</div>
               </div>
               <div className="text-center">
                 <button
                   onClick={() => router.push(`/instructor/courses/${courseId}/students`)}
-                  className="group cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors"
+                  className="group cursor-pointer hover:bg-white rounded-lg p-2 -m-2 transition-colors"
                 >
-                  <div className="text-3xl font-bold text-purple-600 mb-2 group-hover:text-purple-700 transition-colors">{course.enrollmentCount}</div>
-                  <div className="text-sm text-gray-600 group-hover:text-gray-700 transition-colors">Students Enrolled</div>
+                  <div className="text-3xl font-bold text-[#005587] mb-2 transition-colors">{course.enrollmentCount}</div>
+                  <div className="text-sm text-gray-600 transition-colors">Students Enrolled</div>
                 </button>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-rose-500 mb-2">
+                <div className="text-3xl font-bold text-[#005587] mb-2">
                   {assignments.reduce((sum, assignment) => sum + assignment.submissionsCount, 0)}
                 </div>
                 <div className="text-sm text-gray-600">Total Submissions</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-600 mb-2">
+                <div className="text-3xl font-bold text-[#005587] mb-2">
                   {assignments.reduce((sum, assignment) => sum + assignment.gradedCount, 0)}
                 </div>
                 <div className="text-sm text-gray-600">Graded Submissions</div>
@@ -1106,13 +1099,13 @@ const InstructorCourseDetailPage: React.FC = () => {
           </div>
 
           {/* Tab Navigation */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-8">
+          <div className="bg-gray-50 rounded-2xl p-6 mb-8">
             <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-6">
               <button
                 onClick={() => setActiveTab('assignments')}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'assignments'
-                    ? 'bg-white text-blue-600 shadow-sm'
+                    ? 'bg-[#005587] text-white'
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
@@ -1122,7 +1115,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 onClick={() => setActiveTab('submissions')}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'submissions'
-                    ? 'bg-white text-blue-600 shadow-sm'
+                    ? 'bg-[#005587] text-white'
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
@@ -1132,7 +1125,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 onClick={() => setActiveTab('students')}
                 className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                   activeTab === 'students'
-                    ? 'bg-white text-blue-600 shadow-sm'
+                    ? 'bg-[#005587] text-white'
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
@@ -1147,7 +1140,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                   <h2 className="text-2xl font-bold text-gray-800">Assignments</h2>
                   <button 
                     onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+                    className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-bold hover:bg-[#e6b326] transition-colors"
                   >
                     + Create Assignment
                   </button>
@@ -1158,7 +1151,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 {assignments.map((assignment) => (
                   <div
                     key={assignment.assignmentId}
-                    className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300"
+                    className="bg-gray-50 rounded-2xl p-6 transition-all duration-300"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
@@ -1167,9 +1160,6 @@ const InstructorCourseDetailPage: React.FC = () => {
                           <span>📅 Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
                           <span>⭐ {assignment.points} pts</span>
                         </div>
-                      </div>
-                      <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                        📝
                       </div>
                     </div>
                     
@@ -1216,13 +1206,13 @@ const InstructorCourseDetailPage: React.FC = () => {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => setViewingAssignment(assignment)}
-                          className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors text-sm"
+                          className="flex-1 px-4 py-2 bg-[#005587] text-white rounded-xl font-medium hover:bg-[#004060] transition-colors text-sm"
                         >
                           👁️ View Details
                         </button>
                         <button
                           onClick={() => setEditingAssignment(assignment)}
-                          className="flex-1 px-4 py-2 bg-indigo-500 text-white rounded-lg font-medium hover:bg-indigo-600 transition-colors text-sm"
+                          className="flex-1 px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-medium hover:bg-[#e6b326] transition-colors text-sm"
                         >
                           ✏️ Edit
                         </button>
@@ -1233,7 +1223,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                             console.log('🎯 Navigating to NEW assignment grading page:', assignment.assignmentId);
                             router.push(`/instructor/grading/assignment/${assignment.assignmentId}`);
                           }}
-                          className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                          className="flex-1 px-4 py-2 bg-[#005587] text-white rounded-xl font-medium hover:bg-[#004060] transition-colors text-sm"
                         >
                           📊 Grade Submissions ({assignment.submissionsCount || 0})
                         </button>
@@ -1241,7 +1231,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                           onClick={() => {
                             router.push(`/instructor/courses/${courseId}/assignments/${assignment.assignmentId}/grades`);
                           }}
-                          className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors text-sm"
+                          className="flex-1 px-4 py-2 bg-[#005587] text-white rounded-xl font-medium hover:bg-[#004060] transition-colors text-sm"
                         >
                           📋 View Grades
                         </button>
@@ -1257,7 +1247,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 <p className="text-gray-600 mb-6">Create your first assignment to get started with this course.</p>
                 <button 
                   onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
+                  className="px-6 py-3 bg-[#FFC72C] text-[#005587] rounded-xl font-bold hover:bg-[#e6b326] transition-colors"
                 >
                   Create Your First Assignment
                 </button>
@@ -1312,7 +1302,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                     
                     <button
                       onClick={() => router.push(`/instructor/grading/bulk?course=${courseId}`)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                      className="px-4 py-2 bg-[#005587] text-white rounded-xl font-medium hover:bg-[#004060] transition-colors text-sm"
                     >
                       Bulk Grading
                     </button>
@@ -1325,11 +1315,11 @@ const InstructorCourseDetailPage: React.FC = () => {
                       <div
                         key={submission.submissionId}
                         id={`submission-${submission.submissionId}`}
-                        className="bg-gray-50 rounded-xl p-6 border border-gray-200 scroll-mt-24"
+                        className="bg-gray-50 rounded-xl p-6 border border-gray-100 scroll-mt-24"
                       >
                         <div className="flex items-start space-x-4">
                           {/* Student Avatar */}
-                          <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                          <div className="w-12 h-12 bg-[#005587] rounded-full flex items-center justify-center text-white font-bold">
                             {submission.student.name.charAt(0).toUpperCase()}
                           </div>
                           
@@ -1496,7 +1486,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                                       }
                                     }));
                                   }}
-                                  className="mt-3 w-full px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                                  className="mt-3 w-full px-4 py-2 bg-[#005587] text-white rounded-xl text-sm font-medium hover:bg-[#004060] transition-colors"
                                 >
                                   Edit Grade
                                 </button>
@@ -1547,13 +1537,13 @@ const InstructorCourseDetailPage: React.FC = () => {
                                   <div className="flex space-x-2">
                                     <button
                                       onClick={() => handleGradeSubmission(submission.submissionId)}
-                                      className="flex-1 px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-medium hover:bg-green-600 transition-colors"
+                                      className="flex-1 px-4 py-2 bg-[#005587] text-white rounded-xl text-sm font-medium hover:bg-[#004060] transition-colors"
                                     >
                                       Submit Grade
                                     </button>
                                     <button
                                       onClick={() => setGradingSubmission(null)}
-                                      className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+                                      className="flex-1 px-4 py-2 bg-gray-500 text-white rounded-xl text-sm font-medium hover:bg-gray-600 transition-colors"
                                     >
                                       Cancel
                                     </button>
@@ -1572,7 +1562,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                                     }
                                   }));
                                 }}
-                                className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                                className="w-full px-4 py-2 bg-[#005587] text-white rounded-xl text-sm font-medium hover:bg-[#004060] transition-colors"
                               >
                                 📝 Grade This Submission
                               </button>
@@ -1603,7 +1593,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                     </div>
                     <button
                       onClick={() => router.push(`/instructor/courses/${courseId}/students`)}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                      className="px-4 py-2 bg-[#005587] text-white rounded-xl font-medium hover:bg-[#004060] transition-colors text-sm"
                       title="Manage students with drag-and-drop section changes"
                     >
                       🔄 Manage Students
