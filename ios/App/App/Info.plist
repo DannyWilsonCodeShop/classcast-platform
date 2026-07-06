@@ -44,9 +44,9 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<true/>
+	<false/>
 	<key>UIStatusBarStyle</key>
-	<string>UIStatusBarStyleLightContent</string>
+	<string>UIStatusBarStyleDarkContent</string>
 	<key>NSCameraUsageDescription</key>
 	<string>ClassCast needs camera access to record video assignments and update your profile photo.</string>
 	<key>NSMicrophoneUsageDescription</key>

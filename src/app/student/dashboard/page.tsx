@@ -161,8 +161,8 @@ export default function StudentDashboardPage() {
           </div>
         </div>
 
-        {/* TOP HALF - Assignments */}
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {/* TOP HALF - Assignments (40% of space) */}
+        <div className="flex-[2] flex flex-col min-h-0 overflow-hidden">
           {/* Divider line above section */}
           <div className="h-px bg-gray-200 mx-4 shrink-0" />
           {/* Grey rounded container */}
@@ -192,8 +192,8 @@ export default function StudentDashboardPage() {
         {/* Divider */}
         <div className="h-px bg-gray-200 mx-4 shrink-0 mt-2" />
 
-        {/* BOTTOM HALF - Recent Videos */}
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+        {/* BOTTOM HALF - Recent Videos (60% of space) */}
+        <div className="flex-[3] flex flex-col min-h-0 overflow-hidden">
           <div className="px-4 pt-2 pb-1 shrink-0">
             <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Recent Videos</h2>
           </div>
