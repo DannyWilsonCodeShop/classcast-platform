@@ -1834,8 +1834,8 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
 
       {/* AI Subscription Modal */}
       {showSubscriptionModal && subscriptionData && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
               <div className="flex items-center justify-between mb-2">

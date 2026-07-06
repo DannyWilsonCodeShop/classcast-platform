@@ -1217,8 +1217,8 @@ const InstructorStudentsPage: React.FC = () => {
 
         {/* Move Student Modal */}
         {showMoveModal && studentToMove && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                   <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1347,8 +1347,8 @@ const InstructorStudentsPage: React.FC = () => {
 
         {/* Export Grades Modal */}
         {showExportModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-2xl p-6 max-w-md w-full">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
                   <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

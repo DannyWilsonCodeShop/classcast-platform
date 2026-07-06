@@ -134,13 +134,13 @@ export const GradingModal: React.FC<GradingModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-black/40 transition-opacity"
         onClick={handleClose}
       />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className={`relative bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden ${className}`}>
+        <div className={`relative bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden ${className}`}>
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div>
