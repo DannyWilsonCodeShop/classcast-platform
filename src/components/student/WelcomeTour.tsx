@@ -140,7 +140,7 @@ const WelcomeTour: React.FC<WelcomeTourProps> = ({
   return (
     <>
       {/* Tour Overlay */}
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 tour-overlay">
+      <div className="fixed inset-0 bg-black/40 z-50 tour-overlay">
         {/* Highlight Target Element */}
         {currentTourStep.target && (
           <style jsx global>{`
@@ -161,7 +161,7 @@ const WelcomeTour: React.FC<WelcomeTourProps> = ({
           currentTourStep.position === 'left' ? 'top-1/2 left-1/4' :
           'top-1/2 left-3/4'
         } z-52`}>
-          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 p-6 max-w-md w-full mx-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
             {/* Progress Bar */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
