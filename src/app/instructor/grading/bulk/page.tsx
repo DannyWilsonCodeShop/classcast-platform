@@ -961,7 +961,7 @@ const BulkGradingContent: React.FC = () => {
                 onClick={() => setShowAIWizard(true)}
                 className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-full text-xs font-bold hover:bg-[#e6b225] transition-colors"
               >
-                🤖 AI Grade
+                🤖 AI Grading Assistant
               </button>
               <div className="text-sm text-gray-600">
                 Scrollable Feed • Auto-save • v2.0

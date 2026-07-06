@@ -27,6 +27,7 @@ const AIGradingWizard: React.FC<AIGradingWizardProps> = ({
   onGradingComplete,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [showUpgradeGate, setShowUpgradeGate] = useState(false);
   const [gradingMode, setGradingMode] = useState<GradingMode | null>(null);
   const [strictness, setStrictness] = useState<StrictnessLevel>('moderate');
   const [keywords, setKeywords] = useState('');
@@ -74,6 +75,11 @@ const AIGradingWizard: React.FC<AIGradingWizardProps> = ({
     : ['Mode', 'Criteria', 'Review'];
 
   const handleNext = () => {
+    if (currentStep === 1) {
+      // Show upgrade gate instead of proceeding
+      setShowUpgradeGate(true);
+      return;
+    }
     if (currentStep === 2 && gradingMode !== 'rubric_feedback') {
       // Skip step 3 (feedback prefs) when mode is not rubric_feedback
       setCurrentStep(totalSteps);
@@ -162,6 +168,39 @@ const AIGradingWizard: React.FC<AIGradingWizardProps> = ({
 
         {/* Step Content */}
         <div className="px-6 py-5 min-h-[320px]">
+          {showUpgradeGate ? (
+            <div className="flex flex-col items-center justify-center text-center h-full min-h-[280px]">
+              <div className="w-16 h-16 bg-[#FFC72C]/20 rounded-full flex items-center justify-center mb-4">
+                <span className="text-3xl">🔒</span>
+              </div>
+              <h3 className="text-lg font-bold text-[#005587] mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>
+                AI GRADING ASSISTANT
+              </h3>
+              <p className="text-sm text-gray-600 mb-4 max-w-sm">
+                The AI Grading Assistant is a premium feature available on ClassCast Pro and Enterprise plans.
+              </p>
+              <div className="bg-gray-50 rounded-2xl p-4 mb-4 max-w-sm">
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  To unlock AI-powered rubric grading, individualized video feedback, and batch auto-grading, please have your <strong>school administrator</strong> contact a ClassCast representative to upgrade your institution&apos;s subscription.
+                </p>
+              </div>
+              <div className="space-y-2 w-full max-w-xs">
+                <a
+                  href="mailto:support@class-cast.com?subject=AI%20Grading%20Assistant%20Upgrade%20Inquiry"
+                  className="block w-full px-4 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold text-center hover:bg-[#004470] transition-colors"
+                >
+                  ✉️ Contact ClassCast Sales
+                </a>
+                <button
+                  onClick={() => { setShowUpgradeGate(false); onClose(); }}
+                  className="block w-full px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium text-center hover:bg-gray-200 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          ) : (
+          <>
           {currentStep === 1 && (
             <Step1GradingMode
               gradingMode={gradingMode}
@@ -207,10 +246,12 @@ const AIGradingWizard: React.FC<AIGradingWizardProps> = ({
               onRetry={() => setError(null)}
             />
           )}
+          </>
+          )}
         </div>
 
         {/* Footer Navigation */}
-        {!isProcessing && results.length === 0 && (
+        {!isProcessing && results.length === 0 && !showUpgradeGate && (
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
             <button
               onClick={handleBack}
