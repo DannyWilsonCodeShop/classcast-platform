@@ -13,6 +13,7 @@ interface Course {
   courseId: string;
   title: string;
   code?: string;
+  classCode?: string;
   studentCount?: number;
   status?: string;
 }
@@ -50,6 +51,7 @@ const InstructorDashboard: React.FC = () => {
               courseId: course.id || course.courseId,
               title: course.title || course.courseName,
               code: course.code || course.courseCode,
+              classCode: course.classCode || '',
               studentCount: course.studentCount || course.currentEnrollment || course.enrollment?.students?.length || 0,
               status: course.status || 'published'
             }));
@@ -115,6 +117,31 @@ const InstructorDashboard: React.FC = () => {
             </select>
           )}
         </div>
+
+        {/* Course Details Card */}
+        {selectedCourse && (
+          <div className="mx-4 mb-3 bg-gray-50 rounded-2xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-[#005587] uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>
+                  {selectedCourse.title}
+                </h3>
+                <div className="flex items-center gap-3 mt-1">
+                  {selectedCourse.code && (
+                    <span className="text-xs text-gray-600">Code: <span className="font-medium text-gray-900">{selectedCourse.code}</span></span>
+                  )}
+                  {selectedCourse.classCode && (
+                    <span className="text-xs text-gray-600">Class Code: <span className="font-mono font-bold text-[#005587]">{selectedCourse.classCode}</span></span>
+                  )}
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-lg font-bold text-[#005587]">{selectedCourse.studentCount || 0}</span>
+                <span className="block text-xs text-gray-500">Students</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Main Content - Assignment Management */}
         <div className="flex-1">

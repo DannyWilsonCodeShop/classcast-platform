@@ -48,6 +48,8 @@ export async function GET(request: NextRequest) {
       title: course.title, // Dashboard expects 'title'
       courseName: course.courseName || course.title,
       courseCode: course.courseCode || course.code,
+      code: course.code || course.courseCode,
+      classCode: course.classCode || '',
       description: course.description,
       semester: course.semester,
       year: course.year,

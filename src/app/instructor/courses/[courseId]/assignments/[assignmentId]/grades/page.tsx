@@ -82,25 +82,28 @@ const AssignmentGradesPage: React.FC = () => {
     
     // Apply search filter
     if (searchTerm) {
+      const term = searchTerm.toLowerCase();
       filtered = filtered.filter(grade => 
-        grade.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        grade.studentEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (grade.sectionName && grade.sectionName.toLowerCase().includes(searchTerm.toLowerCase()))
+        (grade.studentName || '').toLowerCase().includes(term) ||
+        (grade.studentEmail || '').toLowerCase().includes(term) ||
+        (grade.sectionName || '').toLowerCase().includes(term)
       );
     }
     
     // Apply sorting
     filtered.sort((a, b) => {
+      const nameA = a.studentName || a.studentEmail || '';
+      const nameB = b.studentName || b.studentEmail || '';
       switch (sortBy) {
         case 'name':
-          return a.studentName.localeCompare(b.studentName);
+          return nameA.localeCompare(nameB);
         case 'section':
           const sectionA = a.sectionName || 'No Section';
           const sectionB = b.sectionName || 'No Section';
           if (sectionA !== sectionB) {
             return sectionA.localeCompare(sectionB);
           }
-          return a.studentName.localeCompare(b.studentName);
+          return nameA.localeCompare(nameB);
         case 'grade':
           if (a.grade === undefined && b.grade === undefined) return 0;
           if (a.grade === undefined) return 1;
@@ -110,7 +113,7 @@ const AssignmentGradesPage: React.FC = () => {
           const statusOrder = { 'graded': 0, 'submitted': 1, 'not_submitted': 2 };
           const statusCompare = statusOrder[a.status] - statusOrder[b.status];
           if (statusCompare !== 0) return statusCompare;
-          return a.studentName.localeCompare(b.studentName);
+          return nameA.localeCompare(nameB);
         default:
           return 0;
       }
@@ -195,25 +198,29 @@ const AssignmentGradesPage: React.FC = () => {
       }
       
       // Combine student data with submission data
-      const gradesData: StudentGrade[] = await Promise.all(
-        enrolledStudents.map(async (student: any) => {
-          let userName = student.email;
+      const gradesData: StudentGrade[] = (await Promise.all(
+        enrolledStudents
+          .filter((student: any) => student.userId) // Skip students with no userId
+          .map(async (student: any) => {
+          let userName = student.email || student.userId || 'Unknown';
           let userAvatar = student.avatar;
           
-          // Fetch full user details
-          try {
-            const userResponse = await fetch(`/api/users/${student.userId}`, {
-              credentials: 'include',
-            });
-            
-            if (userResponse.ok) {
-              const userData = await userResponse.json();
-              if (userData.success && userData.user) {
-                userName = `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim() || userData.user.email;
+          // Fetch full user details (skip if no userId)
+          if (student.userId) {
+            try {
+              const userResponse = await fetch(`/api/users/${student.userId}`, {
+                credentials: 'include',
+              });
+              
+              if (userResponse.ok) {
+                const userData = await userResponse.json();
+                if (userData.success && userData.user) {
+                  userName = `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim() || userData.user.email || userName;
+                }
               }
+            } catch (userError) {
+              console.warn('Could not fetch user details for:', student.userId);
             }
-          } catch (userError) {
-            console.warn('Could not fetch user details for:', student.userId);
           }
           
           const submission = submissionMap.get(student.userId);
@@ -221,7 +228,7 @@ const AssignmentGradesPage: React.FC = () => {
           return {
             studentId: student.userId,
             studentName: userName,
-            studentEmail: student.email,
+            studentEmail: student.email || '',
             sectionId: student.sectionId,
             sectionName: student.sectionName || 'No Section',
             submissionId: submission?.submissionId,
@@ -231,7 +238,7 @@ const AssignmentGradesPage: React.FC = () => {
             status: submission ? submission.status : 'not_submitted'
           };
         })
-      );
+      )) as StudentGrade[];
       
       console.log('Final grades data:', gradesData.length);
       setStudentGrades(gradesData);

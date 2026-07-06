@@ -714,7 +714,7 @@ export default function StudentAssignmentDetailPage() {
                     <div className="border-t border-gray-200 pt-2 mt-2 flex items-center justify-between">
                       <span className="text-sm font-bold text-gray-700">Max Score</span>
                       <span className="text-sm font-bold text-[#005587]">
-                        {isNewFormat ? `${rubricData.length * 4} pts (4 per category)` : `${rubricData.reduce((sum: number, r: any) => sum + (r.maxPoints || 0), 0)} pts`}
+                        {isNewFormat ? `${rubricData.reduce((sum: number, cat: any) => sum + Math.max(...cat.levels.map((l: any) => l.score)), 0)} pts` : `${rubricData.reduce((sum: number, r: any) => sum + (r.maxPoints || 0), 0)} pts`}
                       </span>
                     </div>
                   </>

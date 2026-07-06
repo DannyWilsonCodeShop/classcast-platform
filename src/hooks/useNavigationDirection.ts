@@ -22,10 +22,16 @@ export interface TransitionState {
 
 /** Top-level tab paths — navigation between any two of these is a tab switch */
 const TAB_PATHS = [
+  // Student
   '/student/dashboard',
   '/student/assignments',
   '/student/courses',
   '/student/profile',
+  // Instructor
+  '/instructor/dashboard',
+  '/instructor/grading',
+  '/instructor/courses',
+  '/instructor/profile',
 ];
 
 /** Duration of the longest transition (drill) in ms — used to clear isAnimating */

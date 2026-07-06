@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Course, CreateCourseData, UpdateCourseData } from '@/types/course';
+import { useAuth } from '@/contexts/AuthContext';
 import { CourseCard } from './CourseCard';
 import { CourseForm } from './CourseForm';
 import { CourseFilters } from './CourseFilters';
@@ -11,6 +12,7 @@ import { EmptyState } from '../common/EmptyState';
 import InstructorOnboardingWizard from '../wizards/InstructorOnboardingWizard';
 
 export const CourseManagement: React.FC = () => {
+  const { user } = useAuth();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -39,17 +41,10 @@ export const CourseManagement: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams();
-      params.append('page', pagination.page.toString());
-      params.append('limit', pagination.limit.toString());
+      const instructorId = user?.id;
+      if (!instructorId) return;
 
-      if (filters.department) params.append('department', filters.department);
-      if (filters.semester) params.append('semester', filters.semester);
-      if (filters.year) params.append('year', filters.year);
-      if (filters.status) params.append('status', filters.status);
-      if (filters.search) params.append('search', filters.search);
-
-      const response = await fetch(`/api/courses?${params.toString()}`, {
+      const response = await fetch(`/api/instructor/courses?instructorId=${instructorId}`, {
         credentials: 'include',
       });
 
@@ -60,11 +55,35 @@ export const CourseManagement: React.FC = () => {
       const data = await response.json();
       
       if (data.success) {
-        setCourses(data.data.courses);
+        let filteredCourses = data.data.courses as Course[];
+
+        // Apply client-side filters
+        if (filters.department) {
+          filteredCourses = filteredCourses.filter(c => c.department === filters.department);
+        }
+        if (filters.semester) {
+          filteredCourses = filteredCourses.filter(c => c.semester === filters.semester);
+        }
+        if (filters.year) {
+          filteredCourses = filteredCourses.filter(c => String(c.year) === filters.year);
+        }
+        if (filters.status) {
+          filteredCourses = filteredCourses.filter(c => c.status === filters.status);
+        }
+        if (filters.search) {
+          const search = filters.search.toLowerCase();
+          filteredCourses = filteredCourses.filter(c =>
+            c.title?.toLowerCase().includes(search) ||
+            c.code?.toLowerCase().includes(search) ||
+            c.description?.toLowerCase().includes(search)
+          );
+        }
+
+        setCourses(filteredCourses);
         setPagination(prev => ({
           ...prev,
-          total: data.data.pagination.total,
-          totalPages: data.data.pagination.totalPages,
+          total: filteredCourses.length,
+          totalPages: Math.ceil(filteredCourses.length / prev.limit),
         }));
       } else {
         throw new Error(data.error || 'Failed to fetch courses');
@@ -75,7 +94,7 @@ export const CourseManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters, pagination.page, pagination.limit]);
+  }, [filters, pagination.page, pagination.limit, user?.id]);
 
   // Create course
   const handleCreateCourse = async (courseData: CreateCourseData | UpdateCourseData) => {
