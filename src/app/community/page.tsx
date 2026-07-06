@@ -830,8 +830,8 @@ export default function CommunityPage() {
 
       {/* Quick Action Modal */}
       {showQuickActionModal && quickActionData && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4">
             <div className="flex items-center space-x-3 mb-4">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold ${
                 quickActionData.color === 'blue' ? 'bg-blue-500' :
