@@ -41,7 +41,7 @@ export default function StudentLayout({
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {showSharedHeader && (
         <>
           {/* eslint-disable-next-line @next/next/no-page-custom-font */}

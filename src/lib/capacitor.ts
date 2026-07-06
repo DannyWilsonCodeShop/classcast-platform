@@ -20,11 +20,12 @@ export async function initializeNativeApp() {
   if (!isNativePlatform()) return;
 
   try {
-    // Status bar setup
+    // Status bar setup - transparent, overlays web view
     const { StatusBar, Style } = await import('@capacitor/status-bar');
-    await StatusBar.setStyle({ style: Style.Light });
+    await StatusBar.setStyle({ style: Style.Dark });
+    await StatusBar.setBackgroundColor({ color: '#ffffff' });
     if (isIOS()) {
-      await StatusBar.setOverlaysWebView({ overlay: false });
+      await StatusBar.setOverlaysWebView({ overlay: true });
     }
   } catch (e) {
     console.warn('StatusBar plugin not available:', e);
