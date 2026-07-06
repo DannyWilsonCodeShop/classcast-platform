@@ -399,7 +399,7 @@ const InstructorCourseDetailPage: React.FC = () => {
       if (sectionA !== sectionB) {
         return sectionA.localeCompare(sectionB);
       }
-      return a.name.localeCompare(b.name);
+      return (a.name || '').localeCompare(b.name || '');
     });
   }, [students, videoSubmissions, courseId]);
 
@@ -596,15 +596,17 @@ const InstructorCourseDetailPage: React.FC = () => {
               
               // Fetch full user details
               try {
-                const userResponse = await fetch(`/api/users/${student.userId}`, {
-                  credentials: 'include',
-                });
-                
-                if (userResponse.ok) {
-                  const userData = await userResponse.json();
-                  if (userData.success && userData.user) {
-                    userName = `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim() || userData.user.email;
-                    userAvatar = userData.user.avatar || userAvatar;
+                if (student.userId) {
+                  const userResponse = await fetch(`/api/users/${student.userId}`, {
+                    credentials: 'include',
+                  });
+                  
+                  if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    if (userData.success && userData.user) {
+                      userName = `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim() || userData.user.email;
+                      userAvatar = userData.user.avatar || userAvatar;
+                    }
                   }
                 }
               } catch (userError) {
