@@ -79,10 +79,26 @@ export function calculateTotal(scores: Record<string, number>): number {
 
 /**
  * Gets the maximum possible score for a category (highest score in its levels).
+ * Handles multiple rubric formats:
+ * - New format: { id, name, levels: [{ score, description }] }
+ * - Old format: { id/name, maxPoints, description }
+ * - DynamoDB format: levels may have score as string
  */
 export function getCategoryMaxScore(category: RubricCategory): number {
-  if (!category.levels || category.levels.length === 0) return 0;
-  return Math.max(...category.levels.map(l => l.score));
+  // Try maxPoints first (old format)
+  if ((category as any).maxPoints && typeof (category as any).maxPoints === 'number') {
+    return (category as any).maxPoints;
+  }
+  
+  // Try levels array (new format)
+  if (!category.levels || !Array.isArray(category.levels) || category.levels.length === 0) return 0;
+  
+  const scores = category.levels.map(l => {
+    const score = typeof l.score === 'string' ? Number(l.score) : l.score;
+    return isNaN(score) ? 0 : score;
+  });
+  
+  return Math.max(...scores);
 }
 
 /**

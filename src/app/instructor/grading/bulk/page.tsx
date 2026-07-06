@@ -113,10 +113,28 @@ const BulkGradingContent: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [assignmentRubrics, setAssignmentRubrics] = useState<Record<string, RubricCategory[] | null>>({});
   const [showAIWizard, setShowAIWizard] = useState(false);
+  const [speedLock, setSpeedLock] = useState<boolean>(false);
   
   // Remove peer response state - not needed in continuous feed
 
   // Remove scroll navigation state - using continuous feed instead
+
+  // Apply 2x speed lock to all video elements
+  useEffect(() => {
+    const videos = document.querySelectorAll('video');
+    videos.forEach(video => {
+      video.playbackRate = speedLock ? 2 : 1;
+    });
+    // Also set up a MutationObserver to catch newly added videos
+    const observer = new MutationObserver(() => {
+      const allVideos = document.querySelectorAll('video');
+      allVideos.forEach(video => {
+        video.playbackRate = speedLock ? 2 : 1;
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, [speedLock]);
 
   // Get unique courses from the instructor's courses API (not from submissions)
   const [instructorCourses, setInstructorCourses] = useState<{id: string; label: string}[]>([]);
@@ -302,6 +320,34 @@ const BulkGradingContent: React.FC = () => {
     fetchSections();
   }, [user?.id, searchParams, selectedCourse, allSubmissions.length]);
 
+  // Default fallback rubric — matches what students see on assignment detail page
+  const DEFAULT_FALLBACK_RUBRIC: RubricCategory[] = [
+    { id: '1', name: 'Mathematical Accuracy', levels: [
+      { score: 4, description: 'All work is correct.' },
+      { score: 3, description: 'One minor error.' },
+      { score: 2, description: 'Multiple errors but demonstrates understanding.' },
+      { score: 1, description: 'Little or no understanding shown.' },
+    ]},
+    { id: '2', name: 'Work Shown', levels: [
+      { score: 4, description: 'All steps are shown and easy to follow.' },
+      { score: 3, description: 'Most steps shown.' },
+      { score: 2, description: 'Some steps missing.' },
+      { score: 1, description: 'Little or no work shown.' },
+    ]},
+    { id: '3', name: 'Explanation', levels: [
+      { score: 4, description: 'Reasoning is clear and complete.' },
+      { score: 3, description: 'Mostly clear.' },
+      { score: 2, description: 'Limited explanation.' },
+      { score: 1, description: 'No meaningful explanation.' },
+    ]},
+    { id: '4', name: 'Organization', levels: [
+      { score: 4, description: 'Neat and easy to read.' },
+      { score: 3, description: 'Mostly organized.' },
+      { score: 2, description: 'Somewhat difficult to follow.' },
+      { score: 1, description: 'Disorganized.' },
+    ]},
+  ];
+
   // Fetch rubric data for each unique assignment in submissions
   const fetchedRubricIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
@@ -316,10 +362,10 @@ const BulkGradingContent: React.FC = () => {
         const rubric = data?.data?.assignment?.rubric;
         setAssignmentRubrics(prev => ({
           ...prev,
-          [assignmentId]: (rubric && Array.isArray(rubric) && rubric.length > 0) ? rubric : null,
+          [assignmentId]: (rubric && Array.isArray(rubric) && rubric.length > 0) ? rubric : DEFAULT_FALLBACK_RUBRIC,
         }));
       } catch {
-        setAssignmentRubrics(prev => ({ ...prev, [assignmentId]: null }));
+        setAssignmentRubrics(prev => ({ ...prev, [assignmentId]: DEFAULT_FALLBACK_RUBRIC }));
       }
     });
   }, [allSubmissions]);
@@ -892,6 +938,16 @@ const BulkGradingContent: React.FC = () => {
             
             <div className="flex items-center space-x-4">
               <button
+                onClick={() => setSpeedLock(prev => !prev)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                  speedLock 
+                    ? 'bg-[#FFC72C] text-[#005587] font-bold' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {speedLock ? '⚡ 2x ON' : '▶ 1x'}
+              </button>
+              <button
                 onClick={() => setShowAIWizard(true)}
                 className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-full text-xs font-bold hover:bg-[#e6b225] transition-colors"
               >
@@ -1081,7 +1137,7 @@ const BulkGradingContent: React.FC = () => {
                         </div>
                         <div className="mt-2 text-xs text-gray-500 flex items-center gap-3">
                           <span>{new Date(submission.submittedAt).toLocaleDateString()}</span>
-                          <span>{submission.courseCode}</span>
+                          {submission.courseCode && submission.courseCode !== 'N/A' && <span>{submission.courseCode}</span>}
                           {submission.grade && <span className="text-green-700 font-medium">{submission.grade}/{submission.maxScore}</span>}
                         </div>
                         <div className="mt-1">
@@ -1102,7 +1158,7 @@ const BulkGradingContent: React.FC = () => {
                       {/* Grading + Peer Responses */}
                       <div className="space-y-3">
                         {/* Grade & Feedback */}
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-100" data-grading-card>
                           <h4 className="text-xs font-semibold text-gray-700 mb-2">Grade & Feedback</h4>
                           
                           {assignmentRubrics[submission.assignmentId] ? (
@@ -1134,12 +1190,24 @@ const BulkGradingContent: React.FC = () => {
                           )}
                           
                           <textarea
+                            data-feedback-input
                             value={feedback[submission.submissionId] ?? submission.feedback ?? ''}
                             onChange={(e) => setFeedback(prev => ({ ...prev, [submission.submissionId]: e.target.value }))}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
                                 handleSaveGrade(submission.submissionId);
+                                // Advance to next student's first rubric input
+                                const allCards = document.querySelectorAll('[data-grading-card]');
+                                const currentCard = (e.target as Element).closest('[data-grading-card]');
+                                const currentIdx = Array.from(allCards).indexOf(currentCard as Element);
+                                const nextCard = allCards[currentIdx + 1] as HTMLElement;
+                                if (nextCard) {
+                                  const firstInput = nextCard.querySelector('[data-rubric-input]') as HTMLElement;
+                                  if (firstInput) {
+                                    setTimeout(() => firstInput.focus(), 100);
+                                  }
+                                }
                               }
                             }}
                             placeholder="Feedback..."

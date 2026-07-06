@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext } from 'react';
-import { useSwipeNavigation, getSwipeIndexFromPath } from '@/hooks/useSwipeNavigation';
+import { useSwipeNavigation, getSwipeIndexFromPath, type SwipeTabConfig } from '@/hooks/useSwipeNavigation';
 import { usePathname } from 'next/navigation';
 
 // ---------------------------------------------------------------------------
@@ -27,9 +27,10 @@ export function useSwipeNavigationContext(): SwipeNavigationContextValue | null 
 
 interface SwipeNavigationProviderProps {
   children: React.ReactNode;
+  tabOrder?: SwipeTabConfig[];
 }
 
-export function SwipeNavigationProvider({ children }: SwipeNavigationProviderProps) {
+export function SwipeNavigationProvider({ children, tabOrder }: SwipeNavigationProviderProps) {
   const pathname = usePathname();
   const {
     containerRef,
@@ -39,9 +40,9 @@ export function SwipeNavigationProvider({ children }: SwipeNavigationProviderPro
     isSwipingRef,
     targetTabIndexRef,
     isSwipeEnabled,
-  } = useSwipeNavigation();
+  } = useSwipeNavigation(tabOrder ? { tabOrder } : undefined);
 
-  const swipeIndex = getSwipeIndexFromPath(pathname || '');
+  const swipeIndex = getSwipeIndexFromPath(pathname || '', tabOrder);
   const currentTabIndex = swipeIndex ?? 0;
 
   const contextValue: SwipeNavigationContextValue = {

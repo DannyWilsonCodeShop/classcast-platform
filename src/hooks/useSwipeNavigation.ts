@@ -4,13 +4,25 @@ import { useRef, useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { setSwipeDirection } from './useNavigationDirection';
 
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface SwipeTabConfig {
+  path: string;
+  visualIndex: number;
+}
+
+// ---------------------------------------------------------------------------
 // Constants
-const SWIPE_TAB_ORDER = [
+// ---------------------------------------------------------------------------
+
+export const DEFAULT_STUDENT_TAB_ORDER: SwipeTabConfig[] = [
   { path: '/student/dashboard', visualIndex: 0 },
   { path: '/student/assignments', visualIndex: 1 },
   { path: '/student/courses', visualIndex: 3 },
   { path: '/student/profile', visualIndex: 4 },
-] as const;
+];
 
 const CONFIG = {
   displacementThreshold: 50,
@@ -29,22 +41,32 @@ const CONFIG = {
 // Utility functions (exported for testing)
 // ---------------------------------------------------------------------------
 
-export function getSwipeIndexFromPath(pathname: string): number | null {
-  const idx = SWIPE_TAB_ORDER.findIndex(t => t.path === pathname);
+export function getSwipeIndexFromPath(
+  pathname: string,
+  tabOrder: SwipeTabConfig[] = DEFAULT_STUDENT_TAB_ORDER
+): number | null {
+  const idx = tabOrder.findIndex(t => t.path === pathname);
   return idx >= 0 ? idx : null;
 }
 
-export function getAdjacentTab(currentIndex: number, direction: 'left' | 'right'): number | null {
+export function getAdjacentTab(
+  currentIndex: number,
+  direction: 'left' | 'right',
+  tabOrder: SwipeTabConfig[] = DEFAULT_STUDENT_TAB_ORDER
+): number | null {
   if (direction === 'left') {
     // Swipe left = go to next tab
-    return currentIndex < SWIPE_TAB_ORDER.length - 1 ? currentIndex + 1 : null;
+    return currentIndex < tabOrder.length - 1 ? currentIndex + 1 : null;
   }
   // Swipe right = go to previous tab
   return currentIndex > 0 ? currentIndex - 1 : null;
 }
 
-export function isTabPage(pathname: string): boolean {
-  return SWIPE_TAB_ORDER.some(t => t.path === pathname);
+export function isTabPage(
+  pathname: string,
+  tabOrder: SwipeTabConfig[] = DEFAULT_STUDENT_TAB_ORDER
+): boolean {
+  return tabOrder.some(t => t.path === pathname);
 }
 
 export function computeCommitDecision(displacement: number, velocity: number): 'commit' | 'cancel' {
@@ -124,6 +146,10 @@ function createInitialGestureState(): GestureState {
 // Hook Interface
 // ---------------------------------------------------------------------------
 
+export interface UseSwipeNavigationOptions {
+  tabOrder: SwipeTabConfig[];
+}
+
 export interface UseSwipeNavigationReturn {
   containerRef: React.RefObject<HTMLDivElement | null>;
   currentPaneRef: React.RefObject<HTMLDivElement | null>;
@@ -138,9 +164,12 @@ export interface UseSwipeNavigationReturn {
 // Main Hook
 // ---------------------------------------------------------------------------
 
-export function useSwipeNavigation(): UseSwipeNavigationReturn {
+export function useSwipeNavigation(options?: UseSwipeNavigationOptions): UseSwipeNavigationReturn {
   const pathname = usePathname();
   const router = useRouter();
+
+  // Determine effective tab order
+  const effectiveTabOrder = options?.tabOrder ?? DEFAULT_STUDENT_TAB_ORDER;
 
   // DOM refs
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -155,8 +184,12 @@ export function useSwipeNavigation(): UseSwipeNavigationReturn {
   // Internal gesture state ref
   const gestureRef = useRef<GestureState>(createInitialGestureState());
 
+  // Store effective tab order in a ref so callbacks always have the latest value
+  const tabOrderRef = useRef<SwipeTabConfig[]>(effectiveTabOrder);
+  tabOrderRef.current = effectiveTabOrder;
+
   // Determine if current page is swipeable
-  const currentSwipeIndex = getSwipeIndexFromPath(pathname || '');
+  const currentSwipeIndex = getSwipeIndexFromPath(pathname || '', effectiveTabOrder);
   const isSwipeEnabled = currentSwipeIndex !== null;
 
   // ---------------------------------------------------------------------------
@@ -225,7 +258,7 @@ export function useSwipeNavigation(): UseSwipeNavigationReturn {
 
     // Determine swipe direction: negative deltaX = swipe left (next), positive = swipe right (prev)
     const direction: 'left' | 'right' = dx < 0 ? 'left' : 'right';
-    const adjacentIndex = getAdjacentTab(currentSwipeIndex, direction);
+    const adjacentIndex = getAdjacentTab(currentSwipeIndex, direction, tabOrderRef.current);
 
     gesture.currentX = touch.clientX;
     gesture.swipeDirection = direction;
@@ -279,7 +312,7 @@ export function useSwipeNavigation(): UseSwipeNavigationReturn {
 
     if (decision === 'commit' && gesture.targetIndex !== null) {
       // Commit navigation
-      const targetPath = SWIPE_TAB_ORDER[gesture.targetIndex].path;
+      const targetPath = tabOrderRef.current[gesture.targetIndex].path;
       const swipeDir = gesture.swipeDirection === 'left' ? 'swipe-left' : 'swipe-right';
 
       // Set direction before navigation

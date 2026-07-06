@@ -60,7 +60,13 @@ function CategoryScoreRow({ category, value, maxValue, onChange }: CategoryScore
             const inputs = document.querySelectorAll('[data-rubric-input]');
             const currentIndex = Array.from(inputs).indexOf(e.target as Element);
             const next = inputs[currentIndex + 1] as HTMLElement;
-            if (next) next.focus();
+            if (next) {
+              next.focus();
+            } else {
+              // Last rubric input — focus the feedback textarea
+              const feedbackTextarea = (e.target as Element).closest('[data-grading-card]')?.querySelector('[data-feedback-input]') as HTMLElement;
+              if (feedbackTextarea) feedbackTextarea.focus();
+            }
           }
         }}
         data-rubric-input
@@ -156,7 +162,7 @@ export function RubricGradingPanel({
   const handleSetAllToMax = () => {
     const maxScores: Record<string, number> = {};
     rubric.forEach((cat) => {
-      maxScores[cat.id] = getCategoryMaxScore(cat);
+      maxScores[cat.id] = getCategoryMaxScore(cat) || (cat as any).maxPoints || 0;
     });
     setScores(maxScores);
 
@@ -175,7 +181,7 @@ export function RubricGradingPanel({
 
   const total = calculateTotal(scores);
   const maxPossible = rubric.reduce(
-    (sum, cat) => sum + getCategoryMaxScore(cat),
+    (sum, cat) => sum + (getCategoryMaxScore(cat) || (cat as any).maxPoints || 0),
     0
   );
 
@@ -201,15 +207,19 @@ export function RubricGradingPanel({
       </div>
 
       <div className="space-y-0">
-        {rubric.map((category) => (
-          <CategoryScoreRow
-            key={category.id}
-            category={category}
-            value={scores[category.id] ?? 0}
-            maxValue={getCategoryMaxScore(category)}
-            onChange={(val) => handleScoreChange(category.id, val)}
-          />
-        ))}
+        {rubric.map((category) => {
+          // Handle both old format (maxPoints) and new format (levels)
+          const maxValue = getCategoryMaxScore(category) || (category as any).maxPoints || 0;
+          return (
+            <CategoryScoreRow
+              key={category.id}
+              category={category}
+              value={scores[category.id] ?? 0}
+              maxValue={maxValue}
+              onChange={(val) => handleScoreChange(category.id, val)}
+            />
+          );
+        })}
       </div>
 
       <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200">

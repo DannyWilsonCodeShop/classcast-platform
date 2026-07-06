@@ -3,6 +3,24 @@
 import React from 'react';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import { InstructorSidebar } from '@/components/instructor/InstructorSidebar';
+import { usePathname } from 'next/navigation';
+import { useNavigationDirection } from '@/hooks/useNavigationDirection';
+import { SwipeNavigationProvider } from '@/components/transitions/SwipeNavigationProvider';
+import TransitionContainer from '@/components/transitions/TransitionContainer';
+import { InstructorHeader } from '@/components/instructor/InstructorHeader';
+import { InstructorTabBar } from '@/components/instructor/InstructorTabBar';
+import { SwipeTabConfig } from '@/hooks/useSwipeNavigation';
+
+// Pages that show the shared ClassCast header (main tab pages only, not sub-routes)
+const INSTRUCTOR_TAB_PATHS = ['/instructor/dashboard', '/instructor/grading', '/instructor/courses', '/instructor/profile'];
+
+// Instructor swipeable tab order (excludes Create since it's a modal action)
+const INSTRUCTOR_SWIPE_TAB_ORDER: SwipeTabConfig[] = [
+  { path: '/instructor/dashboard', visualIndex: 0 },
+  { path: '/instructor/grading', visualIndex: 1 },
+  { path: '/instructor/courses', visualIndex: 3 },
+  { path: '/instructor/profile', visualIndex: 4 },
+];
 
 export default function InstructorLayout({
   children,
@@ -10,6 +28,14 @@ export default function InstructorLayout({
   children: React.ReactNode;
 }) {
   const { isWide } = useIsWideScreen();
+  const pathname = usePathname();
+  const { direction, prevPath, isAnimating } = useNavigationDirection();
+
+  // Show header on main tab pages. During drill-in from a tab page, keep it visible
+  // until the animation completes so it doesn't blink away.
+  const isOnTabPage = INSTRUCTOR_TAB_PATHS.includes(pathname || '');
+  const wasDrillingFromTab = direction === 'drill-in' && isAnimating && prevPath && INSTRUCTOR_TAB_PATHS.includes(prevPath);
+  const showSharedHeader = isOnTabPage || wasDrillingFromTab;
 
   if (isWide) {
     return (
@@ -22,5 +48,21 @@ export default function InstructorLayout({
     );
   }
 
-  return <div>{children}</div>;
+  return (
+    <div className="h-full flex flex-col overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+      {showSharedHeader && (
+        <>
+          {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+          <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
+          <InstructorHeader />
+        </>
+      )}
+      <SwipeNavigationProvider tabOrder={INSTRUCTOR_SWIPE_TAB_ORDER}>
+        <TransitionContainer>
+          {children}
+        </TransitionContainer>
+      </SwipeNavigationProvider>
+      <InstructorTabBar />
+    </div>
+  );
 }
