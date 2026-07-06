@@ -114,14 +114,11 @@ export async function GET(request: NextRequest) {
           // 'global' = anyone can see, 'course' = same course only, 'section' = same section only
           (sub.visibility === 'global' || allowedCourseIds.includes(sub.courseId))
         )
-        .sort((a, b) => {
-          const dateA = new Date(a.submittedAt || a.createdAt || 0).getTime();
-          const dateB = new Date(b.submittedAt || b.createdAt || 0).getTime();
-          return dateB - dateA; // Newest first
-        })
-        .slice(0, 30); // Only process the 30 most recent
+        // Shuffle randomly for variety on the dashboard
+        .sort(() => Math.random() - 0.5)
+        .slice(0, 30); // Process up to 30 random submissions
       
-      console.log(`📹 Processing ${submissions.length} recent submissions (limited to 30)`);
+      console.log(`📹 Processing ${submissions.length} random submissions (limited to 30)`);
       
       // Batch load all users at once instead of per-submission
       const allUsersResult = await docClient.send(new ScanCommand({
@@ -187,7 +184,7 @@ export async function GET(request: NextRequest) {
         });
       }
       
-      console.log(`✅ Feed: ${feedItems.filter(i => i.type === 'video').length} videos (limited to 30 most recent)`);
+      console.log(`✅ Feed: ${feedItems.filter(i => i.type === 'video').length} videos (random selection, up to 30)`);
     } catch (videoError: any) {
       console.error('❌ Video submissions ERROR:', videoError);
       console.error('Error name:', videoError.name);
