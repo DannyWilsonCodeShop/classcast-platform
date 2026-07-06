@@ -50,7 +50,7 @@ const InstructorDashboard: React.FC = () => {
               courseId: course.id || course.courseId,
               title: course.title || course.courseName,
               code: course.code || course.courseCode,
-              studentCount: course.studentCount || course.currentEnrollment || 0,
+              studentCount: course.studentCount || course.currentEnrollment || course.enrollment?.students?.length || 0,
               status: course.status || 'published'
             }));
             setCourses(mappedCourses);
@@ -97,55 +97,23 @@ const InstructorDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Status Bar with Course Selection */}
-        <div className="bg-white px-4 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-lg font-bold text-[#005587]" style={{ fontFamily: "'Oswald', sans-serif" }}>INSTRUCTOR DASHBOARD</h2>
-              
-              {/* Course Selection Dropdown */}
-              {courses.length > 0 && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Current Course:</span>
-                  <select
-                    value={selectedCourseId}
-                    onChange={(e) => handleCourseChange(e.target.value)}
-                    className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
-                  >
-                    <option value="">Select a course...</option>
-                    {courses.map((course) => (
-                      <option key={course.courseId} value={course.courseId}>
-                        {course.code ? `${course.code} - ` : ''}{course.title} ({course.studentCount} students)
-                      </option>
-                    ))}
-                  </select>
-                  
-                  {/* Edit Course Button */}
-                  {selectedCourseId && (
-                    <button
-                      onClick={() => router.push(`/instructor/courses/${selectedCourseId}?openSettings=true`)}
-                      className="px-3 py-1.5 bg-[#005587]/10 text-[#005587] border border-[#005587]/20 rounded-lg text-sm font-medium hover:bg-[#005587]/20 transition-colors flex items-center space-x-1"
-                      title="Edit course details, assignments, and students"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                      <span>Edit Course</span>
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {/* School Logo - Right Side */}
-            {(user as any)?.schoolLogo && (
-              <img
-                src={(user as any).schoolLogo}
-                alt="School Logo"
-                className="h-6 w-auto object-contain"
-              />
-            )}
-          </div>
+        {/* Page Title + Course Selector */}
+        <div className="px-4 py-2">
+          <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Instructor Dashboard</h2>
+          {courses.length > 0 && (
+            <select
+              value={selectedCourseId}
+              onChange={(e) => handleCourseChange(e.target.value)}
+              className="mt-1 px-3 py-1.5 bg-gray-100 border-0 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#005587]"
+            >
+              <option value="">Select a course...</option>
+              {courses.map((course) => (
+                <option key={course.courseId} value={course.courseId}>
+                  {course.title}{course.studentCount ? ` (${course.studentCount})` : ''}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* Main Content - Assignment Management */}

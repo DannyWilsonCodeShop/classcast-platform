@@ -240,29 +240,22 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="px-4 py-3">
       {/* Header with Course Info */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{courseName}</h1>
-            <p className="text-gray-600 mt-1">
-              {assignments.length} assignments • {students.length} students
-            </p>
+          <div className="flex items-center gap-2">
+            <span className="bg-blue-50 text-[#005587] px-3 py-1 rounded-full text-xs font-medium">📝 {assignments.length} assignments</span>
+            <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full text-xs font-medium">👥 {students.length} students</span>
           </div>
           <div className="flex items-center space-x-3">
             <button
               onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
-              className="px-4 py-2 bg-[#005587] text-white rounded-lg hover:bg-[#004470] transition-colors font-medium"
+              className="px-3 py-1.5 bg-[#005587] text-white rounded-full text-xs font-bold hover:bg-[#004470] transition-colors"
             >
               + Create Assignment
             </button>
-            <button
-              onClick={() => router.push(`/instructor/courses/${courseId}`)}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
-            >
-              View Full Course
-            </button>
+
           </div>
         </div>
 
@@ -322,11 +315,11 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
               {filteredAssignments.map((assignment) => (
                 <div
                   key={assignment.assignmentId}
-                  className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200"
+                  className="bg-gray-50 rounded-xl p-4 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                      <h3 className="text-sm font-bold uppercase text-gray-900 mb-1 line-clamp-2" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em' }}>
                         {assignment.title}
                       </h3>
                       <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
@@ -382,13 +375,13 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
                     <div className="flex space-x-2">
                       <button
                         onClick={() => router.push(`/instructor/courses/${courseId}?tab=assignments&viewAssignment=${assignment.assignmentId}`)}
-                        className="flex-1 px-3 py-2 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-colors text-sm"
+                        className="flex-1 px-3 py-2 bg-gray-500 text-white rounded-full text-xs font-medium hover:bg-gray-600 transition-colors"
                       >
                         👁️ View Details
                       </button>
                       <button
                         onClick={() => router.push(`/instructor/courses/${courseId}?tab=assignments&editAssignment=${assignment.assignmentId}`)}
-                        className="flex-1 px-3 py-2 bg-[#005587] text-white rounded-lg font-medium hover:bg-[#004470] transition-colors text-sm"
+                        className="flex-1 px-3 py-2 bg-[#005587] text-white rounded-full text-xs font-medium hover:bg-[#004470] transition-colors"
                       >
                         ✏️ Edit
                       </button>
@@ -396,13 +389,13 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
                     <div className="flex space-x-2">
                       <button
                         onClick={() => router.push(`/instructor/grading/assignment/${assignment.assignmentId}`)}
-                        className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors text-sm"
+                        className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-full text-xs font-medium hover:bg-blue-600 transition-colors"
                       >
                         📊 Grade Submissions ({assignment.submissionsCount || 0})
                       </button>
                       <button
                         onClick={() => router.push(`/instructor/courses/${courseId}/assignments/${assignment.assignmentId}/grades`)}
-                        className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors text-sm"
+                        className="flex-1 px-3 py-2 bg-green-500 text-white rounded-full text-xs font-medium hover:bg-green-600 transition-colors"
                       >
                         📋 View Grades
                       </button>
