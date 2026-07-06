@@ -96,6 +96,7 @@ export async function GET(
           email: courseInfo?.instructorEmail || 'unknown@example.com'
         }
       },
+      rubric: assignment.rubric || null,
       resources: assignment.resources || [],
       submissions: [], // Would need to fetch from submissions table
       createdAt: assignment.createdAt,

@@ -14,9 +14,9 @@ export async function PUT(
   try {
     const { submissionId } = await params;
     const body = await request.json();
-    const { grade, feedback, status } = body;
+    const { grade, feedback, status, rubricScores, gradingMethod } = body;
 
-    console.log('Grading submission:', { submissionId, grade, feedback, status });
+    console.log('Grading submission:', { submissionId, grade, feedback, status, gradingMethod });
 
     // Validate input
     if (!submissionId) {
@@ -73,6 +73,16 @@ export async function PUT(
       updateParts.push('#status = :status');
       expressionAttributeNames['#status'] = 'status';
       expressionAttributeValues[':status'] = status;
+    }
+
+    if (rubricScores !== undefined && rubricScores !== null) {
+      updateParts.push('rubricScores = :rubricScores');
+      expressionAttributeValues[':rubricScores'] = rubricScores;
+    }
+
+    if (gradingMethod !== undefined && gradingMethod !== null) {
+      updateParts.push('gradingMethod = :gradingMethod');
+      expressionAttributeValues[':gradingMethod'] = gradingMethod;
     }
 
     updateParts.push('updatedAt = :updatedAt');

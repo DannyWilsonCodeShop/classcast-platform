@@ -1,6 +1,8 @@
 'use client';
 import React, { useState, useCallback, useEffect } from 'react';
 import { InstructorSubmissionData } from './InstructorCommunityFeed';
+import { RubricGradingPanel } from './RubricGradingPanel';
+import { RubricCategory } from '@/types/rubric';
 
 export interface GradingModalProps {
   submission: InstructorSubmissionData | null;
@@ -29,8 +31,10 @@ export const GradingModal: React.FC<GradingModalProps> = ({
   const [notes, setNotes] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rubricScores, setRubricScores] = useState<Record<string, number>>({});
+  const [assignmentRubric, setAssignmentRubric] = useState<RubricCategory[] | null>(null);
+  const [loadingRubric, setLoadingRubric] = useState(false);
 
-  // Sample rubric - in a real app, this would come from the assignment
+  // Sample rubric - fallback when assignment doesn't have a rubric
   const sampleRubric: GradeRubric[] = [
     {
       id: 'content',
@@ -57,6 +61,29 @@ export const GradingModal: React.FC<GradingModalProps> = ({
       description: 'Technical skills and implementation quality'
     }
   ];
+
+  // Fetch the assignment's rubric when the modal opens
+  useEffect(() => {
+    if (submission && isOpen && submission.assignmentId) {
+      setLoadingRubric(true);
+      fetch(`/api/assignments/${submission.assignmentId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const rubric = data?.data?.assignment?.rubric;
+          if (rubric && Array.isArray(rubric) && rubric.length > 0) {
+            setAssignmentRubric(rubric);
+          } else {
+            setAssignmentRubric(null);
+          }
+        })
+        .catch(() => {
+          setAssignmentRubric(null);
+        })
+        .finally(() => {
+          setLoadingRubric(false);
+        });
+    }
+  }, [submission, isOpen]);
 
   useEffect(() => {
     if (submission && isOpen) {
@@ -223,6 +250,21 @@ export const GradingModal: React.FC<GradingModalProps> = ({
 
               {/* Right Column - Grading Interface */}
               <div className="space-y-4">
+                {loadingRubric ? (
+                  <div className="text-center py-4 text-gray-500 text-sm">Loading rubric...</div>
+                ) : assignmentRubric && assignmentRubric.length > 0 ? (
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-3">Rubric Scoring</h3>
+                    <RubricGradingPanel
+                      rubric={assignmentRubric}
+                      submissionId={submission.id}
+                      onScoresChange={(scores, total) => {
+                        setRubricScores(scores);
+                        setGrade(total);
+                      }}
+                    />
+                  </div>
+                ) : (
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-3">Rubric Scoring</h3>
                   <div className="space-y-3">
@@ -250,6 +292,7 @@ export const GradingModal: React.FC<GradingModalProps> = ({
                     ))}
                   </div>
                 </div>
+                )}
 
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-3">Feedback</h3>
