@@ -109,7 +109,7 @@ const InstructorDashboard: React.FC = () => {
               <option value="">Select a course...</option>
               {courses.map((course) => (
                 <option key={course.courseId} value={course.courseId}>
-                  {course.title}{course.studentCount ? ` (${course.studentCount})` : ''}
+                  {course.title}
                 </option>
               ))}
             </select>
