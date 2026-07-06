@@ -110,7 +110,7 @@ const InstructorDashboard: React.FC = () => {
                   <select
                     value={selectedCourseId}
                     onChange={(e) => handleCourseChange(e.target.value)}
-                    className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                   >
                     <option value="">Select a course...</option>
                     {courses.map((course) => (
@@ -124,7 +124,7 @@ const InstructorDashboard: React.FC = () => {
                   {selectedCourseId && (
                     <button
                       onClick={() => router.push(`/instructor/courses/${selectedCourseId}?openSettings=true`)}
-                      className="px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-medium hover:bg-indigo-100 transition-colors flex items-center space-x-1"
+                      className="px-3 py-1.5 bg-[#005587]/10 text-[#005587] border border-[#005587]/20 rounded-lg text-sm font-medium hover:bg-[#005587]/20 transition-colors flex items-center space-x-1"
                       title="Edit course details, assignments, and students"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,13 +176,13 @@ const InstructorDashboard: React.FC = () => {
                   <div className="flex space-x-4 justify-center">
                     <button
                       onClick={() => router.push('/instructor/classes/create')}
-                      className="px-6 py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+                      className="px-6 py-4 bg-[#005587] text-white rounded-xl font-bold hover:bg-[#004470] transition-colors"
                     >
                       + Create Course
                     </button>
                     <button
                       onClick={() => router.push('/instructor/classes/create')}
-                      className="px-6 py-4 bg-purple-600 text-white rounded-xl font-bold hover:bg-purple-700 transition-colors"
+                      className="px-6 py-4 bg-[#FFC72C] text-[#005587] rounded-xl font-bold hover:bg-[#e6b225] transition-colors"
                     >
                       🧙 Start Wizard
                     </button>
