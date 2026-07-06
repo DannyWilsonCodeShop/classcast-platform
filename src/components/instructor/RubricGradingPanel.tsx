@@ -54,6 +54,16 @@ function CategoryScoreRow({ category, value, maxValue, onChange }: CategoryScore
         max={maxValue}
         value={value}
         onChange={handleNumberChange}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const inputs = document.querySelectorAll('[data-rubric-input]');
+            const currentIndex = Array.from(inputs).indexOf(e.target as Element);
+            const next = inputs[currentIndex + 1] as HTMLElement;
+            if (next) next.focus();
+          }
+        }}
+        data-rubric-input
         className="w-16 px-2 py-1 text-center border border-gray-200 rounded-lg text-sm"
         aria-label={`Score input for ${category.name}`}
       />

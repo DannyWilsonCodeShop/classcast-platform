@@ -8,6 +8,8 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { getVideoUrl } from '@/lib/videoUtils';
 import { parseVideoUrl, getEmbedUrl } from '@/lib/urlUtils';
 import { extractYouTubeVideoId, getYouTubeEmbedUrl, getYouTubeThumbnail } from '@/lib/youtube';
+import { RubricGradingPanel } from '@/components/instructor/RubricGradingPanel';
+import { RubricCategory } from '@/types/rubric';
 
 interface Assignment {
   assignmentId: string;
@@ -46,6 +48,9 @@ interface VideoSubmission {
   courseId: string;
   sectionId?: string;
   sectionName?: string;
+  maxScore?: number;
+  rubricScores?: Record<string, number>;
+  peerResponses?: any[];
 }
 
 interface PeerResponse {
@@ -98,6 +103,7 @@ const BulkGradingContent: React.FC = () => {
   const [saveTimeouts, setSaveTimeouts] = useState<Record<string, NodeJS.Timeout>>({});
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [assignmentRubrics, setAssignmentRubrics] = useState<Record<string, RubricCategory[] | null>>({});
   
   // Remove peer response state - not needed in continuous feed
 
@@ -286,6 +292,28 @@ const BulkGradingContent: React.FC = () => {
     };
     fetchSections();
   }, [user?.id, searchParams, selectedCourse, allSubmissions.length]);
+
+  // Fetch rubric data for each unique assignment in submissions
+  const fetchedRubricIdsRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    const uniqueAssignmentIds = [...new Set(allSubmissions.map(s => s.assignmentId))];
+    uniqueAssignmentIds.forEach(async (assignmentId) => {
+      if (fetchedRubricIdsRef.current.has(assignmentId)) return;
+      fetchedRubricIdsRef.current.add(assignmentId);
+
+      try {
+        const res = await fetch(`/api/assignments/${assignmentId}`);
+        const data = await res.json();
+        const rubric = data?.data?.assignment?.rubric;
+        setAssignmentRubrics(prev => ({
+          ...prev,
+          [assignmentId]: (rubric && Array.isArray(rubric) && rubric.length > 0) ? rubric : null,
+        }));
+      } catch {
+        setAssignmentRubrics(prev => ({ ...prev, [assignmentId]: null }));
+      }
+    });
+  }, [allSubmissions]);
 
   // Filter and sort submissions
   useEffect(() => {
@@ -1045,31 +1073,50 @@ const BulkGradingContent: React.FC = () => {
 
                       {/* Grading + Peer Responses */}
                       <div className="space-y-3">
-                        {/* Grade */}
+                        {/* Grade & Feedback */}
                         <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                           <h4 className="text-xs font-semibold text-gray-700 mb-2">Grade & Feedback</h4>
-                          <div className="flex items-center gap-2 mb-2">
-                            <input
-                              type="number"
-                              min="0"
-                              max={submission.maxScore || 100}
-                              value={grades[submission.submissionId] ?? submission.grade ?? ''}
-                              onChange={(e) => {
-                                const val = e.target.value === '' ? '' : Number(e.target.value);
-                                setGrades(prev => ({ ...prev, [submission.submissionId]: val }));
+                          
+                          {assignmentRubrics[submission.assignmentId] ? (
+                            <RubricGradingPanel
+                              rubric={assignmentRubrics[submission.assignmentId]!}
+                              submissionId={submission.submissionId}
+                              initialScores={submission.rubricScores}
+                              onScoresChange={(scores, total) => {
+                                setGrades(prev => ({ ...prev, [submission.submissionId]: total }));
                               }}
-                              className="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm font-medium text-center"
-                              placeholder="0"
                             />
-                            <span className="text-xs text-gray-500">/ {submission.maxScore || 100}</span>
-                            {savingGrades.has(submission.submissionId) && <span className="text-xs text-blue-600 animate-pulse">Saving...</span>}
-                          </div>
+                          ) : (
+                            <div className="flex items-center gap-2 mb-2">
+                              <input
+                                type="number"
+                                min="0"
+                                max={submission.maxScore || 100}
+                                value={grades[submission.submissionId] ?? submission.grade ?? ''}
+                                onChange={(e) => {
+                                  const val = e.target.value === '' ? '' : Number(e.target.value);
+                                  setGrades(prev => ({ ...prev, [submission.submissionId]: val }));
+                                }}
+                                className="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm font-medium text-center"
+                                placeholder="0"
+                              />
+                              <span className="text-xs text-gray-500">/ {submission.maxScore || 100}</span>
+                              {savingGrades.has(submission.submissionId) && <span className="text-xs text-blue-600 animate-pulse">Saving...</span>}
+                            </div>
+                          )}
+                          
                           <textarea
                             value={feedback[submission.submissionId] ?? submission.feedback ?? ''}
                             onChange={(e) => setFeedback(prev => ({ ...prev, [submission.submissionId]: e.target.value }))}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSaveGrade(submission.submissionId);
+                              }
+                            }}
                             placeholder="Feedback..."
                             rows={2}
-                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm resize-none"
+                            className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm resize-none mt-2"
                           />
                           <button
                             onClick={() => handleSaveGrade(submission.submissionId)}
