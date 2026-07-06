@@ -557,6 +557,12 @@ html[data-native] .native-bottom-nav {
   padding-bottom: 0;
 }
 
+/* Make tab bar visible (navy background) when modals are open */
+body:has([data-modal-open]) nav.native-bottom-nav {
+  background: rgba(0, 85, 135, 0.95) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
 /* Top header safe area for non-student pages on native */
 html[data-native] .native-safe-top {
   padding-top: env(safe-area-inset-top, 0px);
