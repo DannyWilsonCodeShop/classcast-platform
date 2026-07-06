@@ -58,9 +58,9 @@ const CreateClassPage: React.FC = () => {
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [newRequirement, setNewRequirement] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [sections, setSections] = useState<Array<{id: string, name: string, code?: string, classCode?: string, maxEnrollment?: number}>>([]);
+  const [sections, setSections] = useState<Array<{id: string, name: string, classCode?: string, maxEnrollment?: number}>>([]);
   const [showSectionForm, setShowSectionForm] = useState(false);
-  const [newSection, setNewSection] = useState({name: '', code: '', maxEnrollment: 30});
+  const [newSection, setNewSection] = useState({name: '', maxEnrollment: 30});
   const [previewClassCode, setPreviewClassCode] = useState('');
   const [coInstructorSearchResults, setCoInstructorSearchResults] = useState<Array<{id: string, name: string, email: string}>>([]);
   const [isSearchingCoInstructor, setIsSearchingCoInstructor] = useState(false);
@@ -74,7 +74,7 @@ const CreateClassPage: React.FC = () => {
     semester: 'Fall+Spring',
     year: new Date().getFullYear().toString(),
     maxStudents: 30,
-    privacy: 'public',
+    privacy: 'private',
     prerequisites: '',
     learningObjectives: '',
     gradingPolicy: '',
@@ -380,12 +380,11 @@ const CreateClassPage: React.FC = () => {
       const section = {
         id: `section_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         name: newSection.name.trim(),
-        code: newSection.code.trim() || undefined,
         classCode: generatedClassCode,
         maxEnrollment: newSection.maxEnrollment || 30
       };
       setSections(prev => [...prev, section]);
-      setNewSection({name: '', code: '', maxEnrollment: 30});
+      setNewSection({name: '', maxEnrollment: 30});
       setPreviewClassCode('');
       setShowSectionForm(false);
     }
@@ -540,7 +539,6 @@ const CreateClassPage: React.FC = () => {
                 body: JSON.stringify({
                   courseId: result.data.courseId,
                   sectionName: section.name,
-                  sectionCode: section.code,
                   classCode: section.classCode,
                   maxEnrollment: section.maxEnrollment,
                   instructorId: user?.id
@@ -819,19 +817,19 @@ const CreateClassPage: React.FC = () => {
                   Course Visibility
                 </label>
                 <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3 opacity-50">
                     <input
                       type="radio"
                       id="privacy-public"
                       name="privacy"
                       value="public"
-                      checked={formData.privacy === 'public'}
-                      onChange={(e) => handleInputChange('privacy', e.target.value as 'public' | 'private')}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                      checked={false}
+                      disabled
+                      className="h-4 w-4 text-gray-400 border-gray-300 cursor-not-allowed"
                     />
                     <label htmlFor="privacy-public" className="flex-1">
-                      <div className="font-medium text-gray-900">Public Course</div>
-                      <div className="text-sm text-gray-500">
+                      <div className="font-medium text-gray-400">Public Course <span className="text-xs italic">(Coming soon)</span></div>
+                      <div className="text-sm text-gray-400">
                         Students can search and discover this course in the course directory
                       </div>
                     </label>
@@ -842,8 +840,8 @@ const CreateClassPage: React.FC = () => {
                       id="privacy-private"
                       name="privacy"
                       value="private"
-                      checked={formData.privacy === 'private'}
-                      onChange={(e) => handleInputChange('privacy', e.target.value as 'public' | 'private')}
+                      checked={true}
+                      disabled
                       className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
                     />
                     <label htmlFor="privacy-private" className="flex-1">
@@ -854,9 +852,6 @@ const CreateClassPage: React.FC = () => {
                     </label>
                   </div>
                 </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  You can change this setting later in your course settings.
-                </p>
               </div>
             </div>
 
@@ -1014,11 +1009,6 @@ const CreateClassPage: React.FC = () => {
                           <div className="flex-1">
                             <div className="flex items-center space-x-3 mb-2">
                               <h4 className="font-medium text-gray-900">{section.name}</h4>
-                              {section.code && (
-                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                                  {section.code}
-                                </span>
-                              )}
                             </div>
                             <div className="flex items-center space-x-4 text-sm text-gray-500">
                               <span>Max Enrollment: {section.maxEnrollment}</span>
@@ -1090,32 +1080,18 @@ const CreateClassPage: React.FC = () => {
                           placeholder="e.g., Section A, Period 1"
                         />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Section Code (Optional)
-                          </label>
-                          <input
-                            type="text"
-                            value={newSection.code}
-                            onChange={(e) => setNewSection(prev => ({ ...prev, code: e.target.value }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="e.g., A, 1, MORNING"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Max Enrollment
-                          </label>
-                          <input
-                            type="number"
-                            value={newSection.maxEnrollment}
-                            onChange={(e) => setNewSection(prev => ({ ...prev, maxEnrollment: parseInt(e.target.value) || 30 }))}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            min="1"
-                            max="500"
-                          />
-                        </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Max Enrollment
+                        </label>
+                        <input
+                          type="number"
+                          value={newSection.maxEnrollment}
+                          onChange={(e) => setNewSection(prev => ({ ...prev, maxEnrollment: parseInt(e.target.value) || 30 }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          min="1"
+                          max="500"
+                        />
                       </div>
 
                       {/* Generated Class Code Preview */}
