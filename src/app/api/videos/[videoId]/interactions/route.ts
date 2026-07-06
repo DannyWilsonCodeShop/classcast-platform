@@ -159,33 +159,83 @@ export async function POST(
             error: 'Valid rating (1-5) is required'
           }, { status: 400 });
         }
+        
+        // Check if user already rated this video — update instead of creating new
+        const existingRating = await docClient.send(new QueryCommand({
+          TableName: INTERACTIONS_TABLE,
+          IndexName: 'videoId-index',
+          KeyConditionExpression: 'videoId = :videoId',
+          FilterExpression: 'userId = :userId AND #type = :type',
+          ExpressionAttributeValues: {
+            ':videoId': videoId,
+            ':userId': userId,
+            ':type': 'rating'
+          },
+          ExpressionAttributeNames: { '#type': 'type' }
+        }));
+
+        if (existingRating.Items && existingRating.Items.length > 0) {
+          // Update existing rating
+          const existingId = existingRating.Items[0].id;
+          await docClient.send(new UpdateCommand({
+            TableName: INTERACTIONS_TABLE,
+            Key: { id: existingId },
+            UpdateExpression: 'SET rating = :rating, updatedAt = :now',
+            ExpressionAttributeValues: { ':rating': body.rating, ':now': now }
+          }));
+          
+          // Compute average
+          const allRatings = await docClient.send(new QueryCommand({
+            TableName: INTERACTIONS_TABLE,
+            IndexName: 'videoId-index',
+            KeyConditionExpression: 'videoId = :videoId',
+            FilterExpression: '#type = :type',
+            ExpressionAttributeValues: { ':videoId': videoId, ':type': 'rating' },
+            ExpressionAttributeNames: { '#type': 'type' }
+          }));
+          const ratings = (allRatings.Items || []).map(i => i.rating).filter(r => r > 0);
+          // Update the one we just changed
+          const idx = ratings.findIndex((_, i) => (allRatings.Items || [])[i]?.id === existingId);
+          if (idx >= 0) ratings[idx] = body.rating;
+          const avg = ratings.length > 0 ? ratings.reduce((s, r) => s + r, 0) / ratings.length : 0;
+          
+          return NextResponse.json({
+            success: true,
+            interaction: { ...existingRating.Items[0], rating: body.rating },
+            averageRating: Math.round(avg * 10) / 10
+          });
+        }
+
         // Derive content creator ID from the video submission if not provided
         let contentCreatorId = body.contentCreatorId as string | undefined;
         if (!contentCreatorId) {
           try {
+            // Try submissionId key first
             let getResult = await docClient.send(new GetCommand({
               TableName: VIDEOS_TABLE,
               Key: { submissionId: videoId }
             }));
             if (!getResult.Item) {
-              getResult = await docClient.send(new GetCommand({
+              // Try scanning by submissionId field
+              const scanResult = await docClient.send(new ScanCommand({
                 TableName: VIDEOS_TABLE,
-                Key: { id: videoId }
+                FilterExpression: 'submissionId = :vid',
+                ExpressionAttributeValues: { ':vid': videoId },
+                Limit: 1
               }));
-            }
-            if (getResult.Item) {
-              // Commonly stored as studentId/authorId on submissions
+              if (scanResult.Items && scanResult.Items.length > 0) {
+                contentCreatorId = scanResult.Items[0].studentId || scanResult.Items[0].authorId || scanResult.Items[0].userId;
+              }
+            } else {
               contentCreatorId = getResult.Item.studentId || getResult.Item.authorId || getResult.Item.userId;
             }
           } catch (e) {
             console.warn('Could not derive contentCreatorId for rating', e);
           }
         }
+        // If still no creator, use a placeholder rather than blocking the rating
         if (!contentCreatorId) {
-          return NextResponse.json({
-            success: false,
-            error: 'Content creator could not be determined'
-          }, { status: 400 });
+          contentCreatorId = 'unknown';
         }
         interactionData.rating = body.rating;
         interactionData.contentCreatorId = contentCreatorId;
