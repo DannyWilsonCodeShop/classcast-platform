@@ -936,36 +936,33 @@ const BulkGradingContent: React.FC = () => {
                 </svg>
               </button>
               <div>
-                <h1 className="text-xl font-bold text-gray-800">
-                  {selectedStudent !== 'all' ? `${selectedStudentName}'s Videos` : 'Grading'}
+                <h1 className="text-lg font-bold text-gray-800">
+                  {selectedStudent !== 'all' ? `${selectedStudentName}` : 'Grading'}
                 </h1>
-                <p className="text-sm text-gray-600">
-                  Showing {filteredSubmissions.length} of {allSubmissions.length} submissions
-                  {selectedStudent !== 'all' && ` for ${selectedStudentName}`}
+                <p className="text-xs text-gray-500">
+                  {filteredSubmissions.length}/{allSubmissions.length}
+                  {selectedStudent !== 'all' && ` • ${selectedStudentName}`}
                 </p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => setSpeedLock(prev => !prev)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   speedLock 
                     ? 'bg-[#FFC72C] text-[#005587] font-bold' 
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
-                {speedLock ? '⚡ 2x ON' : '▶ 1x'}
+                {speedLock ? '⚡2x' : '▶️1x Speed'}
               </button>
               <button
                 onClick={() => setShowAIWizard(true)}
-                className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-full text-xs font-bold hover:bg-[#e6b225] transition-colors"
+                className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-full text-xs font-bold hover:bg-[#e6b225] transition-colors"
               >
-                🤖 AI Grading Assistant
+                🤖 AI
               </button>
-              <div className="text-sm text-gray-600">
-                Scrollable Feed • Auto-save • v2.0
-              </div>
             </div>
           </div>
         </div>
@@ -1153,11 +1150,11 @@ const BulkGradingContent: React.FC = () => {
                           ) : isGoogleDrive && embedUrl ? (
                             <iframe src={embedUrl} className="w-full h-full" allow="autoplay" allowFullScreen title={`${submission.studentName}'s video`} />
                           ) : (
-                            <video key={submission.submissionId} src={getVideoUrl(submission.videoUrl)} className="w-full h-full object-contain" controls preload="none" crossOrigin="anonymous" />
+                            <video key={submission.submissionId} src={getVideoUrl(submission.videoUrl)} className="w-full h-full object-contain" controls playsInline preload="none" crossOrigin="anonymous" />
                           )}
                         </div>
                         <div className="mt-2 text-xs text-gray-500 flex items-center gap-3">
-                          <span>{new Date(submission.submittedAt).toLocaleDateString()}</span>
+                          <span>Submitted: {new Date(submission.submittedAt).toLocaleDateString()}</span>
                           {submission.courseCode && submission.courseCode !== 'N/A' && <span>{submission.courseCode}</span>}
                           {submission.grade && <span className="text-green-700 font-medium">{submission.grade}/{submission.maxScore}</span>}
                         </div>

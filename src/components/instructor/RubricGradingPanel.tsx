@@ -36,7 +36,7 @@ function CategoryScoreRow({ category, value, maxValue, onChange }: CategoryScore
 
   return (
     <div className="flex items-center gap-3 py-2 border-b border-gray-100">
-      <span className="text-sm font-medium text-gray-900 min-w-[120px]">
+      <span className="text-xs font-medium text-gray-900 min-w-[80px] max-w-[100px] truncate" title={category.name}>
         {category.name}
       </span>
       <input
