@@ -406,185 +406,135 @@ const AssignmentGradesPage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-6">
+      <div className="h-full overflow-y-auto bg-white">
+        {/* Header - compact */}
+        <div className="bg-white border-b border-gray-100 sticky top-0 z-10 px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 flex-1 min-w-0">
               <button
                 onClick={() => router.back()}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-[#005587] shrink-0"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-800">{assignment.title} - Grades</h1>
-                <p className="text-gray-600">{assignment.courseName} ({assignment.courseCode})</p>
+              <div className="min-w-0">
+                <h1 className="text-sm font-bold text-[#005587] uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif" }}>{assignment.title}</h1>
+                <p className="text-xs text-gray-500 truncate">{assignment.courseName}</p>
               </div>
             </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={fetchData}
-                disabled={loading}
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Refreshing...' : '🔄 Refresh'}
-              </button>
-              <button
-                onClick={handleExportGrades}
-                disabled={isExporting || studentGrades.length === 0}
-                className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-              >
-                {isExporting ? 'Exporting...' : '📊 Export Grades'}
-              </button>
-            </div>
+            <button
+              onClick={handleExportGrades}
+              disabled={isExporting || studentGrades.length === 0}
+              className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold disabled:opacity-50 shrink-0"
+            >
+              {isExporting ? '...' : '📊 Export'}
+            </button>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-              <div className="text-sm text-gray-600">Total Students</div>
+        <div className="px-4 py-3 space-y-3">
+          {/* Stats Row - compact */}
+          <div className="grid grid-cols-5 gap-2">
+            <div className="bg-gray-50 rounded-xl p-2 text-center">
+              <div className="text-lg font-bold text-[#005587]">{stats.total}</div>
+              <div className="text-[9px] text-gray-500">Total</div>
             </div>
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="text-2xl font-bold text-yellow-600">{stats.submitted}</div>
-              <div className="text-sm text-gray-600">Submitted</div>
+            <div className="bg-gray-50 rounded-xl p-2 text-center">
+              <div className="text-lg font-bold text-[#005587]">{stats.submitted}</div>
+              <div className="text-[9px] text-gray-500">Submitted</div>
             </div>
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="text-2xl font-bold text-green-600">{stats.graded}</div>
-              <div className="text-sm text-gray-600">Graded</div>
+            <div className="bg-gray-50 rounded-xl p-2 text-center">
+              <div className="text-lg font-bold text-[#005587]">{stats.graded}</div>
+              <div className="text-[9px] text-gray-500">Graded</div>
             </div>
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="text-2xl font-bold text-red-600">{stats.notSubmitted}</div>
-              <div className="text-sm text-gray-600">Not Submitted</div>
+            <div className="bg-gray-50 rounded-xl p-2 text-center">
+              <div className="text-lg font-bold text-[#005587]">{stats.notSubmitted}</div>
+              <div className="text-[9px] text-gray-500">Missing</div>
             </div>
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="text-2xl font-bold text-purple-600">
-                {stats.averageGrade > 0 && assignment?.maxScore ? 
-                  `${Math.round((stats.averageGrade / assignment.maxScore) * 100)}%` : 
-                  '—'
-                }
+            <div className="bg-gray-50 rounded-xl p-2 text-center">
+              <div className="text-lg font-bold text-[#005587]">
+                {stats.averageGrade > 0 && assignment?.maxScore ? `${Math.round((stats.averageGrade / assignment.maxScore) * 100)}%` : '—'}
               </div>
-              <div className="text-sm text-gray-600">Average Grade</div>
+              <div className="text-[9px] text-gray-500">Avg</div>
             </div>
           </div>
 
-          {/* Filters */}
-          <div className="bg-white rounded-lg shadow p-4 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
-                <select
-                  value={selectedSection}
-                  onChange={(e) => setSelectedSection(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="all">All Sections ({studentGrades.length})</option>
-                  {sections.map(section => (
-                    <option key={section.sectionId} value={section.sectionId}>
-                      {section.sectionName} ({section.studentCount})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value as any)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="all">All Status</option>
-                  <option value="graded">Graded</option>
-                  <option value="submitted">Submitted</option>
-                  <option value="not_submitted">Not Submitted</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortType)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                >
-                  <option value="section">Section + Name</option>
-                  <option value="name">Name</option>
-                  <option value="grade">Grade</option>
-                  <option value="status">Status</option>
-                </select>
-              </div>
-              
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search students..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                />
-              </div>
+          {/* Filters - compact */}
+          <div className="bg-gray-50 rounded-xl p-3">
+            <div className="grid grid-cols-2 gap-2">
+              <select
+                value={selectedSection}
+                onChange={(e) => setSelectedSection(e.target.value)}
+                className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+              >
+                <option value="all">All Sections</option>
+                {sections.map(section => (
+                  <option key={section.sectionId} value={section.sectionId}>
+                    {section.sectionName}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+              >
+                <option value="all">All Status</option>
+                <option value="graded">Graded</option>
+                <option value="submitted">Submitted</option>
+                <option value="not_submitted">Not Submitted</option>
+              </select>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortType)}
+                className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+              >
+                <option value="section">Section</option>
+                <option value="name">Name</option>
+                <option value="grade">Grade</option>
+                <option value="status">Status</option>
+              </select>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search..."
+                className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+              />
             </div>
           </div>
-
-          {/* Grades Table */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          {/* Grades List */}
+          <div className="bg-gray-50 rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+                <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Student
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Section
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Grade
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Submitted
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase">Student</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase">Status</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase">Grade</th>
+                    <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase">Action</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-100">
                   {filteredGrades.map((grade) => (
-                    <tr key={grade.studentId} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{grade.studentName}</div>
-                          <div className="text-sm text-gray-500">{grade.studentEmail}</div>
-                        </div>
+                    <tr key={grade.studentId}>
+                      <td className="px-3 py-2">
+                        <div className="text-xs font-medium text-gray-900 truncate max-w-[120px]">{grade.studentName}</div>
+                        <div className="text-[10px] text-gray-400 truncate">{grade.sectionName}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">{grade.sectionName}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-3 py-2">
                         {getStatusBadge(grade.status)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-3 py-2 text-xs text-gray-900">
                         {getGradeDisplay(grade.grade, assignment.maxScore)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {grade.submittedAt ? new Date(grade.submittedAt).toLocaleDateString() : '—'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <td className="px-3 py-2">
                         {grade.submissionId && (
                           <button
                             onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}?submissionId=${grade.submissionId}&student=${grade.studentId}`)}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-xs text-[#005587] font-medium"
                           >
                             Grade
                           </button>
@@ -597,24 +547,11 @@ const AssignmentGradesPage: React.FC = () => {
             </div>
             
             {filteredGrades.length === 0 && (
-              <div className="text-center py-12">
-                {studentGrades.length === 0 ? (
-                  <div>
-                    <div className="text-6xl mb-4">👥</div>
-                    <div className="text-gray-500 text-lg font-medium mb-2">No Students Enrolled</div>
-                    <div className="text-gray-400 text-sm">
-                      This course doesn't have any enrolled students yet.
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="text-6xl mb-4">🔍</div>
-                    <div className="text-gray-500 text-lg font-medium mb-2">No Results Found</div>
-                    <div className="text-gray-400 text-sm">
-                      No students match the current filters. Try adjusting your search criteria.
-                    </div>
-                  </div>
-                )}
+              <div className="text-center py-8">
+                <div className="text-3xl mb-2">{studentGrades.length === 0 ? '👥' : '🔍'}</div>
+                <p className="text-sm text-gray-500">
+                  {studentGrades.length === 0 ? 'No students enrolled yet' : 'No results match your filters'}
+                </p>
               </div>
             )}
           </div>
