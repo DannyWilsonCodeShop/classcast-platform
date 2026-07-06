@@ -202,25 +202,30 @@ export default function StudentDashboardPage() {
               <div className="flex gap-2 overflow-x-auto h-full items-start pt-1 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
                 {feed.slice(0, 10).map(item => {
                   const ytThumb = getVideoThumbnail(item.videoUrl);
+                  const isEmojiAvatar = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
+                  const hasImageAvatar = item.author?.avatar && item.author.avatar.startsWith('http');
                   return (
                     <div key={item.id} className="shrink-0 w-44 h-full flex flex-col cursor-pointer" onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed?videoId=${item.id}`)}>
-                      {/* Video thumbnail - taller */}
+                      {/* Video thumbnail */}
                       <div className="relative rounded-xl overflow-hidden flex-1 bg-gray-800 min-h-[180px]">
                         {ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" onLoadedMetadata={e => { (e.target as HTMLVideoElement).currentTime = 3; }} /> : <div className="w-full h-full bg-gradient-to-br from-[#005587] to-[#0077aa] flex items-center justify-center"><svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>}
                         <div className="absolute inset-0 flex items-center justify-center"><div className="w-11 h-11 bg-white/80 rounded-full flex items-center justify-center shadow-lg"><svg className="w-5 h-5 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
-                        <div className="absolute bottom-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded-full truncate max-w-[80%] flex items-center gap-1">
-                          {item.author?.avatar ? (
-                            <img src={item.author.avatar} alt="" className="w-4 h-4 rounded-full object-cover shrink-0" />
+                      </div>
+                      {/* Author row — prominent avatar + name */}
+                      <div className="flex items-center gap-2 mt-2 shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-[#005587] border-2 border-[#FFC72C] flex items-center justify-center shrink-0 overflow-hidden">
+                          {isEmojiAvatar ? (
+                            <span className="text-base">{item.author!.avatar}</span>
+                          ) : hasImageAvatar ? (
+                            <img src={item.author!.avatar!} alt="" className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-4 h-4 rounded-full bg-white/30 flex items-center justify-center shrink-0">
-                              <span className="text-[8px] font-bold">{(item.author?.name || 'S')[0]}</span>
-                            </div>
+                            <span className="text-white text-[10px] font-bold">{(item.author?.name || 'S')[0].toUpperCase()}</span>
                           )}
-                          <span className="truncate">{item.author?.name || 'Student'}</span>
                         </div>
+                        <span className="text-xs text-gray-700 font-medium truncate">{item.author?.name || 'Student'}</span>
                       </div>
                       {/* Title + likes below */}
-                      <div className="mt-1.5 shrink-0">
+                      <div className="mt-1 shrink-0">
                         <p className="text-sm text-gray-900 truncate font-medium uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.03em' }}>{item.title || 'Video'}</p>
                         <div className="flex items-center gap-2.5 text-xs text-gray-500 mt-0.5">
                           <span>⭐ {item.likes || 0}</span>
