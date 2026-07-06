@@ -149,9 +149,9 @@ const SubmissionsListContent: React.FC = () => {
   if (isLoading) {
     return (
       <InstructorRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+        <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005587] mx-auto mb-4"></div>
             <p className="text-gray-600">Loading submissions...</p>
           </div>
         </div>
@@ -161,9 +161,9 @@ const SubmissionsListContent: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-white border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -182,7 +182,7 @@ const SubmissionsListContent: React.FC = () => {
                     className="h-8 w-auto"
                   />
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Video Submissions</h1>
+                    <h1 className="text-2xl font-bold text-[#005587] uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>Video Submissions</h1>
                     <p className="text-gray-600">Review and manage student video submissions</p>
                   </div>
                 </div>
@@ -195,20 +195,20 @@ const SubmissionsListContent: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           {/* Filters */}
-          <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200 mb-6">
+          <div className="bg-gray-50 p-4 rounded-xl mb-6">
             <div className="flex items-center space-x-4">
               <div className="flex-1">
                 <input
                   type="text"
                   placeholder="Search submissions..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005587]"
                 />
               </div>
               
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005587]"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -220,24 +220,24 @@ const SubmissionsListContent: React.FC = () => {
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{filteredSubmissions.length}</div>
+            <div className="bg-gray-50 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-[#005587]">{filteredSubmissions.length}</div>
               <div className="text-sm text-gray-600">Total Submissions</div>
             </div>
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">
+            <div className="bg-gray-50 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-[#005587]">
                 {filteredSubmissions.filter(s => s.status === 'pending').length}
               </div>
               <div className="text-sm text-gray-600">Pending</div>
             </div>
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 text-center">
+            <div className="bg-gray-50 rounded-xl p-4 text-center">
               <div className="text-2xl font-bold text-green-600">
                 {filteredSubmissions.filter(s => s.status === 'graded').length}
               </div>
               <div className="text-sm text-gray-600">Graded</div>
             </div>
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 text-center">
-              <div className="text-2xl font-bold text-orange-600">
+            <div className="bg-gray-50 rounded-xl p-4 text-center">
+              <div className="text-2xl font-bold text-[#005587]">
                 {(filteredSubmissions.filter(s => s.status === 'graded').reduce((sum, s) => sum + (s.grade || 0), 0) / 
                  Math.max(filteredSubmissions.filter(s => s.status === 'graded').length, 1)).toFixed(1)}
               </div>
@@ -246,12 +246,12 @@ const SubmissionsListContent: React.FC = () => {
           </div>
 
           {/* Submissions List */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+          <div className="bg-gray-50 rounded-xl p-6">
             <div className="space-y-4">
               {filteredSubmissions.map((submission) => (
                 <div
                   key={submission.id}
-                  className="p-4 rounded-lg border-2 border-gray-200 bg-white hover:border-gray-300 hover:shadow-md transition-all duration-300"
+                  className="p-4 rounded-xl bg-white hover:bg-gray-50 transition-all duration-300"
                 >
                   <div className="flex items-start space-x-4">
                     {/* Video Thumbnail */}
@@ -299,7 +299,7 @@ const SubmissionsListContent: React.FC = () => {
                     <div className="flex-shrink-0">
                       <button
                         onClick={() => router.push(`/instructor/grading/bulk?assignment=${submission.assignmentId}&course=${submission.courseCode.toLowerCase()}&submission=${submission.id}`)}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors"
+                        className="px-4 py-2 bg-[#005587] text-white rounded-full text-xs font-medium hover:bg-[#005587]/90 transition-colors"
                       >
                         Grade
                       </button>
@@ -319,9 +319,9 @@ const SubmissionsListPage: React.FC = () => {
   return (
     <Suspense fallback={
       <InstructorRoute>
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-blue-50 to-purple-50">
+        <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005587] mx-auto mb-4"></div>
             <p className="text-gray-600">Loading...</p>
           </div>
         </div>

@@ -170,7 +170,7 @@ const ModerationDashboard: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005587] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading moderation dashboard...</p>
         </div>
       </div>
@@ -185,9 +185,9 @@ const ModerationDashboard: React.FC = () => {
   const highSeverityCount = flags.filter(f => f.severity === 'high' && f.status === 'pending').length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header with branding and back button */}
-      <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-indigo-600/20 px-2 sm:px-4 py-3">
+      <div className="bg-white border-b border-gray-100 px-2 sm:px-4 py-3">
         <div className="flex items-center justify-between">
           {/* Left Side - Back button and MyClassCast Logo */}
           <div className="flex items-center space-x-4 min-w-0 flex-1">
@@ -229,13 +229,13 @@ const ModerationDashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Content Moderation</h1>
+          <h1 className="text-3xl font-bold text-[#005587] uppercase mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>Content Moderation</h1>
           <p className="text-gray-600">Review flagged content and take appropriate action</p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-xl p-6">
             <div className="flex items-center">
               <div className="p-3 bg-blue-100 rounded-lg">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -249,7 +249,7 @@ const ModerationDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-xl p-6">
             <div className="flex items-center">
               <div className="p-3 bg-red-100 rounded-lg">
                 <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -263,7 +263,7 @@ const ModerationDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-xl p-6">
             <div className="flex items-center">
               <div className="p-3 bg-gray-100 rounded-lg">
                 <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,14 +279,14 @@ const ModerationDashboard: React.FC = () => {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-gray-50 rounded-xl p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -300,7 +300,7 @@ const ModerationDashboard: React.FC = () => {
               <select
                 value={selectedSeverity}
                 onChange={(e) => setSelectedSeverity(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent"
               >
                 <option value="all">All Severities</option>
                 <option value="high">High</option>
@@ -314,7 +314,7 @@ const ModerationDashboard: React.FC = () => {
         {/* Flags List */}
         <div className="space-y-4">
           {filteredFlags.length === 0 ? (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
+            <div className="bg-gray-50 rounded-xl p-12 text-center">
               <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -327,7 +327,7 @@ const ModerationDashboard: React.FC = () => {
             </div>
           ) : (
             filteredFlags.map((flag) => (
-              <div key={flag.flagId} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+              <div key={flag.flagId} className="bg-gray-50 rounded-xl transition-colors">
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -355,7 +355,7 @@ const ModerationDashboard: React.FC = () => {
                     {flag.status === 'pending' && (
                       <button
                         onClick={() => setSelectedFlag(flag)}
-                        className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                        className="px-4 py-2 bg-[#005587] text-white rounded-full text-xs hover:bg-[#005587]/90 transition-colors font-medium"
                       >
                         Review
                       </button>
@@ -374,7 +374,7 @@ const ModerationDashboard: React.FC = () => {
                       {flag.categories.map((category, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium"
+                          className="px-2 py-1 bg-[#005587]/10 text-[#005587] rounded text-xs font-medium"
                         >
                           {category}
                         </span>
@@ -442,7 +442,7 @@ const ModerationDashboard: React.FC = () => {
                     {selectedFlag.categories.map((category, index) => (
                       <span
                         key={index}
-                        className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium"
+                        className="px-2 py-1 bg-[#005587]/10 text-[#005587] rounded text-xs font-medium"
                       >
                         {category}
                       </span>
@@ -464,7 +464,7 @@ const ModerationDashboard: React.FC = () => {
                   <textarea
                     value={reviewNotes}
                     onChange={(e) => setReviewNotes(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent resize-none"
                     rows={3}
                     placeholder="Add any notes about your decision..."
                   />

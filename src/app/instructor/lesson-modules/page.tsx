@@ -80,9 +80,9 @@ const LessonModulesPage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         {/* Top Banner */}
-        <div className="bg-white/90 backdrop-blur-md shadow-lg border-b border-indigo-600/20 px-2 sm:px-4 py-3">
+        <div className="bg-white border-b border-gray-100 px-2 sm:px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center min-w-0 flex-1">
               <img
@@ -103,7 +103,7 @@ const LessonModulesPage: React.FC = () => {
               
               <button
                 onClick={() => router.push('/instructor/dashboard')}
-                className="flex items-center space-x-1 sm:space-x-2 bg-gray-600 text-white px-2 sm:px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors shadow-lg hover:shadow-xl"
+                className="flex items-center space-x-1 sm:space-x-2 bg-[#005587] text-white px-2 sm:px-4 py-2 rounded-full text-xs hover:bg-[#005587]/90 transition-colors"
               >
                 <span className="text-base sm:text-lg">←</span>
                 <span className="font-medium text-xs sm:text-sm hidden sm:inline">Dashboard</span>
@@ -113,23 +113,23 @@ const LessonModulesPage: React.FC = () => {
                 user={user}
                 size="lg"
                 onClick={() => router.push('/instructor/profile')}
-                className="shadow-lg hover:scale-110 transition-all duration-200"
+                className="hover:scale-110 transition-all duration-200"
               />
             </div>
           </div>
         </div>
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-8">
+        <div className="bg-white px-4 py-8">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold mb-2">Lesson Modules</h1>
-                <p className="text-purple-100">Create interactive learning experiences with videos, quizzes, and practice tests</p>
+                <h1 className="text-3xl font-bold text-[#005587] uppercase mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>Lesson Modules</h1>
+                <p className="text-gray-600">Create interactive learning experiences with videos, quizzes, and practice tests</p>
               </div>
               <button
                 onClick={() => setShowCreateWizard(true)}
-                className="flex items-center space-x-2 bg-white text-purple-600 px-6 py-3 rounded-lg hover:bg-purple-50 transition-colors shadow-lg font-semibold"
+                className="flex items-center space-x-2 bg-[#FFC72C] text-[#005587] px-6 py-3 rounded-full hover:bg-[#FFC72C]/90 transition-colors font-semibold text-xs"
               >
                 <PlusIcon className="w-5 h-5" />
                 <span>Create Module</span>
@@ -146,8 +146,8 @@ const LessonModulesPage: React.FC = () => {
             </div>
           ) : modules.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <AcademicCapIcon className="w-12 h-12 text-purple-600" />
+              <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AcademicCapIcon className="w-12 h-12 text-[#005587]" />
               </div>
               <h3 className="text-2xl font-semibold text-gray-800 mb-2">No Lesson Modules Yet</h3>
               <p className="text-gray-600 mb-8 max-w-md mx-auto">
@@ -155,7 +155,7 @@ const LessonModulesPage: React.FC = () => {
               </p>
               <button
                 onClick={() => setShowCreateWizard(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-xl font-bold transition-colors inline-flex items-center space-x-2"
+                className="bg-[#005587] hover:bg-[#005587]/90 text-white px-8 py-4 rounded-full font-bold transition-colors inline-flex items-center space-x-2 text-xs"
               >
                 <PlusIcon className="w-6 h-6" />
                 <span>Create Your First Module</span>
@@ -164,21 +164,21 @@ const LessonModulesPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {modules.map((module) => (
-                <div key={module.moduleId} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                <div key={module.moduleId} className="bg-white rounded-xl overflow-hidden hover:bg-gray-50 transition-colors">
                   {/* Thumbnail */}
-                  <div className="relative h-48 bg-gradient-to-br from-purple-500 to-indigo-600">
+                  <div className="relative h-48 bg-gray-100">
                     {module.thumbnail ? (
                       <img src={module.thumbnail} alt={module.title} className="w-full h-full object-cover" />
                     ) : (
                       <div className="flex items-center justify-center h-full">
-                        <AcademicCapIcon className="w-16 h-16 text-white opacity-50" />
+                        <AcademicCapIcon className="w-16 h-16 text-[#005587] opacity-50" />
                       </div>
                     )}
                     <div className="absolute top-3 right-3">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         module.status === 'published' 
                           ? 'bg-green-500 text-white' 
-                          : 'bg-yellow-500 text-white'
+                          : 'bg-[#FFC72C] text-[#005587]'
                       }`}>
                         {module.status === 'published' ? 'Published' : 'Draft'}
                       </span>
@@ -206,21 +206,21 @@ const LessonModulesPage: React.FC = () => {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => router.push(`/instructor/lesson-modules/${module.moduleId}`)}
-                        className="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center space-x-1"
+                        className="flex-1 bg-[#005587] hover:bg-[#005587]/90 text-white px-4 py-2 rounded-full text-xs font-medium transition-colors flex items-center justify-center space-x-1"
                       >
                         <PencilIcon className="w-4 h-4" />
                         <span>Edit</span>
                       </button>
                       <button
                         onClick={() => router.push(`/instructor/lesson-modules/${module.moduleId}/preview`)}
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-xs font-medium transition-colors"
                         title="Preview"
                       >
                         <EyeIcon className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteModule(module.moduleId)}
-                        className="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        className="bg-red-100 hover:bg-red-200 text-red-700 px-4 py-2 rounded-full text-xs font-medium transition-colors"
                         title="Delete"
                       >
                         <TrashIcon className="w-4 h-4" />
@@ -318,15 +318,15 @@ const ModuleCreationWizard: React.FC<{
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-6 rounded-t-xl">
-          <h2 className="text-2xl font-bold mb-2">Create Lesson Module</h2>
-          <p className="text-purple-100">Step {step} of 3</p>
+        <div className="bg-[#005587] text-white p-6 rounded-t-xl">
+          <h2 className="text-2xl font-bold mb-2 uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>Create Lesson Module</h2>
+          <p className="text-white/80">Step {step} of 3</p>
           <div className="mt-4 flex space-x-2">
             {[1, 2, 3].map((s) => (
               <div
                 key={s}
                 className={`flex-1 h-2 rounded-full ${
-                  s <= step ? 'bg-white' : 'bg-purple-400'
+                  s <= step ? 'bg-white' : 'bg-[#005587]/40'
                 }`}
               />
             ))}
@@ -348,7 +348,7 @@ const ModuleCreationWizard: React.FC<{
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g., Introduction to Calculus"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent"
                 />
               </div>
 
@@ -361,7 +361,7 @@ const ModuleCreationWizard: React.FC<{
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe what students will learn in this module..."
                   rows={4}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent"
                 />
               </div>
 
@@ -372,7 +372,7 @@ const ModuleCreationWizard: React.FC<{
                 <select
                   value={formData.courseId}
                   onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent"
                 >
                   <option value="">Select a course...</option>
                   {courses.map((course) => (
@@ -401,7 +401,7 @@ const ModuleCreationWizard: React.FC<{
                   value={formData.introVideoUrl}
                   onChange={(e) => setFormData({ ...formData, introVideoUrl: e.target.value })}
                   placeholder="https://youtube.com/watch?v=..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent"
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   You can skip this and add it later
@@ -473,7 +473,7 @@ const ModuleCreationWizard: React.FC<{
                 disabled={
                   (step === 1 && (!formData.title || !formData.description || !formData.courseId))
                 }
-                className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+                className="px-6 py-2 bg-[#005587] hover:bg-[#005587]/90 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-full font-medium transition-colors text-xs"
               >
                 Next
               </button>
