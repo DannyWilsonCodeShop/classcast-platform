@@ -24,7 +24,9 @@ export async function POST(request: NextRequest) {
       flagReason,
       severity, // 'low', 'medium', 'high'
       categories, // Array of flagged categories
-      moderationData // Full moderation result
+      moderationData, // Full moderation result
+      isAnonymous, // Whether the report is anonymous
+      reporterId // ID of the reporter (omitted if anonymous)
     } = body;
 
     if (!contentId || !contentType || !content || !authorId) {
@@ -50,6 +52,9 @@ export async function POST(request: NextRequest) {
       severity: severity || 'low',
       categories: categories || [],
       moderationData: moderationData || {},
+      isAnonymous: isAnonymous || false,
+      // Don't store reporterId if anonymous
+      ...(isAnonymous ? {} : { reporterId }),
       status: 'pending', // 'pending', 'approved', 'removed'
       reviewedBy: null,
       reviewedAt: null,
@@ -66,10 +71,43 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Moderation flag created:', flagId, severity, categories);
 
+    // Auto-suspend: If this content has 2+ reports, suspend it automatically
+    let autoSuspended = false;
+    try {
+      const existingFlags = await dynamoDB.send(new ScanCommand({
+        TableName: MODERATION_FLAGS_TABLE,
+        FilterExpression: 'contentId = :cid AND #s = :pending',
+        ExpressionAttributeNames: { '#s': 'status' },
+        ExpressionAttributeValues: { ':cid': contentId, ':pending': 'pending' }
+      }));
+
+      const flagCount = (existingFlags.Items || []).length;
+      console.log(`📊 Content ${contentId} now has ${flagCount} pending reports`);
+
+      if (flagCount >= 2 && contentType === 'submission') {
+        // Suspend the submission by marking it as hidden
+        await dynamoDB.send(new UpdateCommand({
+          TableName: 'classcast-submissions',
+          Key: { submissionId: contentId },
+          UpdateExpression: 'SET hidden = :hidden, suspendedAt = :now, suspendReason = :reason, updatedAt = :now',
+          ExpressionAttributeValues: {
+            ':hidden': true,
+            ':now': now,
+            ':reason': `Auto-suspended: ${flagCount} reports received`,
+          }
+        }));
+        autoSuspended = true;
+        console.log(`🚫 Auto-suspended submission ${contentId} — ${flagCount} reports`);
+      }
+    } catch (suspendError) {
+      console.warn('Auto-suspend check failed (non-critical):', suspendError);
+    }
+
     return NextResponse.json({
       success: true,
       flagId,
-      flag
+      flag,
+      autoSuspended
     });
 
   } catch (error) {
@@ -180,6 +218,35 @@ export async function PATCH(request: NextRequest) {
         ':notes': reviewNotes || null
       }
     }));
+
+    // If approved (content is OK), un-suspend the submission
+    if (status === 'approved') {
+      try {
+        // Get the flag to find the contentId
+        const flagResult = await dynamoDB.send(new ScanCommand({
+          TableName: MODERATION_FLAGS_TABLE,
+          FilterExpression: 'flagId = :fid',
+          ExpressionAttributeValues: { ':fid': flagId }
+        }));
+        const flagItem = flagResult.Items?.[0];
+        
+        if (flagItem && flagItem.contentType === 'submission' && flagItem.contentId) {
+          await dynamoDB.send(new UpdateCommand({
+            TableName: 'classcast-submissions',
+            Key: { submissionId: flagItem.contentId },
+            UpdateExpression: 'SET hidden = :hidden, suspendedAt = :null, suspendReason = :null, updatedAt = :now',
+            ExpressionAttributeValues: {
+              ':hidden': false,
+              ':null': null,
+              ':now': now,
+            }
+          }));
+          console.log(`✅ Submission ${flagItem.contentId} un-suspended (approved by moderator)`);
+        }
+      } catch (unsuspendError) {
+        console.warn('Failed to un-suspend submission:', unsuspendError);
+      }
+    }
 
     console.log('✅ Moderation flag updated:', flagId, status);
 

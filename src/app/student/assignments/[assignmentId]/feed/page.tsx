@@ -443,6 +443,9 @@ const AssignmentFeedPage: React.FC = () => {
 const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (timestamp: string) => string; currentUserId?: string; onDelete?: () => void }> = ({ video, formatTimestamp, currentUserId, onDelete }) => {
   const [imageError, setImageError] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const [showReportModal, setShowReportModal] = React.useState(false);
+  const [reportReason, setReportReason] = React.useState('');
+  const [reportSubmitting, setReportSubmitting] = React.useState(false);
   const videoId = getYouTubeVideoId(video.videoUrl);
   const isYouTube = !!videoId;
   
@@ -519,6 +522,18 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
             </svg>
           </button>
         )}
+        {/* Show report button for other people's videos */}
+        {!isMyVideo && (
+          <button
+            onClick={() => setShowReportModal(true)}
+            className="p-2 hover:bg-orange-50 rounded-full transition-colors"
+            title="Report content"
+          >
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -548,6 +563,75 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Content Modal */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-5 max-w-[340px] w-full" onClick={e => e.stopPropagation()}>
+            <h3 className="text-base font-bold text-gray-900 mb-3">Report Content</h3>
+            <p className="text-xs text-gray-500 mb-3">Your report is anonymous. Select a reason:</p>
+            
+            <div className="space-y-2 mb-4">
+              {['Inappropriate content', 'Bullying or harassment', 'Safety concern', 'Spam or off-topic', 'Other'].map(reason => (
+                <button
+                  key={reason}
+                  onClick={() => setReportReason(reason)}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors ${
+                    reportReason === reason 
+                      ? 'bg-[#005587] text-white' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex space-x-2">
+              <button
+                onClick={() => { setShowReportModal(false); setReportReason(''); }}
+                className="flex-1 py-2 text-sm text-gray-500 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!reportReason) return;
+                  setReportSubmitting(true);
+                  try {
+                    await fetch('/api/moderation/flag', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        contentId: video.submissionId,
+                        contentType: 'submission',
+                        content: video.videoTitle || 'Video submission',
+                        authorId: video.studentId,
+                        authorName: video.studentName || 'Student',
+                        flagReason: reportReason,
+                        severity: reportReason === 'Safety concern' ? 'high' : reportReason === 'Bullying or harassment' ? 'high' : 'medium',
+                        categories: [reportReason.toLowerCase().replace(/ /g, '-')],
+                        isAnonymous: true,
+                      })
+                    });
+                    setShowReportModal(false);
+                    setReportReason('');
+                    // Show brief confirmation
+                    alert('Report submitted anonymously. Thank you.');
+                  } catch (err) {
+                    alert('Failed to submit report. Please try again.');
+                  }
+                  setReportSubmitting(false);
+                }}
+                disabled={!reportReason || reportSubmitting}
+                className="flex-1 py-2 bg-[#005587] text-white rounded-full text-sm font-bold disabled:opacity-50"
+              >
+                {reportSubmitting ? 'Sending...' : 'Submit Report'}
               </button>
             </div>
           </div>
