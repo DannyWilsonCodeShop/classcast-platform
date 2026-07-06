@@ -197,7 +197,7 @@ export default function StudentDashboardPage() {
           <div className="px-4 pt-2 pb-1 shrink-0">
             <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Recent Videos</h2>
           </div>
-          <div className="flex-1 overflow-hidden px-4 pb-1 min-h-0">
+          <div className="flex-1 overflow-hidden px-4 pb-20 min-h-0">
             {feed.length > 0 ? (
               <div className="flex gap-2 overflow-x-auto h-full items-start pt-1 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
                 {feed.slice(0, 10).map(item => {
