@@ -16,7 +16,7 @@ const config: CapacitorConfig = {
     preferredContentMode: 'mobile',
     scheme: 'ClassCast',
     backgroundColor: '#ffffff',
-    scrollEnabled: false,
+    scrollEnabled: true,
   },
   plugins: {
     SplashScreen: {
@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
       splashImmersive: true,
     },
     StatusBar: {
-      style: 'LIGHT',
+      style: 'DARK',
       backgroundColor: '#ffffff',
       overlaysWebView: true,
     },
