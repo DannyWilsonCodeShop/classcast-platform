@@ -112,6 +112,7 @@ const BulkGradingContent: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [assignmentRubrics, setAssignmentRubrics] = useState<Record<string, RubricCategory[] | null>>({});
+  const [assignmentDetails, setAssignmentDetails] = useState<Record<string, any>>({});
   const [showAIWizard, setShowAIWizard] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [speedLock, setSpeedLock] = useState<boolean>(false);
@@ -237,9 +238,12 @@ const BulkGradingContent: React.FC = () => {
             status: sub.grade !== null && sub.grade !== undefined ? 'graded' : 'submitted',
             courseName: sub.assignment?.courseName || 'Unknown Course',
             courseCode: sub.assignment?.courseCode || 'N/A',
-            courseId: sub.courseId || sub.assignment?.courseId || '', // Add courseId
+            courseId: sub.courseId || sub.assignment?.courseId || '',
             sectionId: sub.student?.sectionId || null,
-            sectionName: sub.student?.sectionName || null
+            sectionName: sub.student?.sectionName || null,
+            maxScore: sub.maxScore || sub.assignment?.maxScore || 100,
+            rubricScores: sub.rubricScores || undefined,
+            peerResponses: sub.peerResponses || []
           }));
           
           console.log('🎯 BULK GRADING: Transformed submissions:', transformedSubmissions.length);
@@ -360,11 +364,16 @@ const BulkGradingContent: React.FC = () => {
       try {
         const res = await fetch(`/api/assignments/${assignmentId}`);
         const data = await res.json();
-        const rubric = data?.data?.assignment?.rubric;
+        const assignment = data?.data?.assignment;
+        const rubric = assignment?.rubric;
         setAssignmentRubrics(prev => ({
           ...prev,
           [assignmentId]: (rubric && Array.isArray(rubric) && rubric.length > 0) ? rubric : DEFAULT_FALLBACK_RUBRIC,
         }));
+        // Store full assignment details for peer response info
+        if (assignment) {
+          setAssignmentDetails(prev => ({ ...prev, [assignmentId]: assignment }));
+        }
       } catch {
         setAssignmentRubrics(prev => ({ ...prev, [assignmentId]: DEFAULT_FALLBACK_RUBRIC }));
       }
@@ -1154,14 +1163,8 @@ const BulkGradingContent: React.FC = () => {
                         </div>
                         <div className="mt-1">
                           <PeerResponseIndicator
-                            enablePeerResponses={(() => {
-                              const assn = assignments.find(a => a.assignmentId === submission.assignmentId);
-                              return assn?.enablePeerResponses || false;
-                            })()}
-                            minResponsesRequired={(() => {
-                              const assn = assignments.find(a => a.assignmentId === submission.assignmentId);
-                              return assn?.minResponsesRequired || 0;
-                            })()}
+                            enablePeerResponses={assignmentDetails[submission.assignmentId]?.enablePeerResponses || false}
+                            minResponsesRequired={assignmentDetails[submission.assignmentId]?.minResponsesRequired || 0}
                             completedCount={submission.peerResponses?.length || 0}
                           />
                         </div>

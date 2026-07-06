@@ -13,7 +13,14 @@ export function PeerResponseIndicator({
   minResponsesRequired,
   completedCount,
 }: PeerResponseIndicatorProps) {
-  if (!enablePeerResponses) return null;
+  if (!enablePeerResponses) {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+        <span>—</span>
+        <span>No responses required</span>
+      </span>
+    );
+  }
 
   const isComplete = completedCount >= minResponsesRequired;
 
@@ -26,7 +33,7 @@ export function PeerResponseIndicator({
       }`}
     >
       <span>{isComplete ? '✓' : '⚠'}</span>
-      <span>{completedCount} of {minResponsesRequired} responses</span>
+      <span>{completedCount}/{minResponsesRequired} responses</span>
     </span>
   );
 }

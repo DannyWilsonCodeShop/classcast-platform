@@ -57,14 +57,17 @@ function CategoryScoreRow({ category, value, maxValue, onChange }: CategoryScore
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
-            const inputs = document.querySelectorAll('[data-rubric-input]');
+            // Scope to rubric inputs within the SAME grading card only
+            const card = (e.target as Element).closest('[data-grading-card]');
+            if (!card) return;
+            const inputs = card.querySelectorAll('[data-rubric-input]');
             const currentIndex = Array.from(inputs).indexOf(e.target as Element);
             const next = inputs[currentIndex + 1] as HTMLElement;
             if (next) {
               next.focus();
             } else {
-              // Last rubric input — focus the feedback textarea
-              const feedbackTextarea = (e.target as Element).closest('[data-grading-card]')?.querySelector('[data-feedback-input]') as HTMLElement;
+              // Last rubric input in this card — focus the feedback textarea
+              const feedbackTextarea = card.querySelector('[data-feedback-input]') as HTMLElement;
               if (feedbackTextarea) feedbackTextarea.focus();
             }
           }
@@ -111,7 +114,7 @@ export function RubricGradingPanel({
       const total = calculateTotal(currentScores);
       setSaveStatus('saving');
       try {
-        await fetch(`/api/submissions/${submissionId}/grade`, {
+        const res = await fetch(`/api/submissions/${submissionId}/grade`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -120,13 +123,20 @@ export function RubricGradingPanel({
             gradingMethod: 'rubric',
           }),
         });
+        const data = await res.json();
         if (isMountedRef.current) {
-          setSaveStatus('saved');
-          setTimeout(() => {
-            if (isMountedRef.current) setSaveStatus('idle');
-          }, 2000);
+          if (res.ok && data.success) {
+            setSaveStatus('saved');
+            setTimeout(() => {
+              if (isMountedRef.current) setSaveStatus('idle');
+            }, 2000);
+          } else {
+            console.error('Grade save failed:', data.error || res.status);
+            setSaveStatus('idle');
+          }
         }
-      } catch {
+      } catch (err) {
+        console.error('Grade save error:', err);
         if (isMountedRef.current) {
           setSaveStatus('idle');
         }
