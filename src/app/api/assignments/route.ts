@@ -317,6 +317,12 @@ export async function POST(request: NextRequest) {
       color: color || '#3B82F6',
       targetSections: Array.isArray(targetSections) ? targetSections : [],
       resources: Array.isArray(resources) ? resources : [],
+      // Discussion Board config
+      discussionConfig: body.discussionConfig || null,
+      // Assessment questions
+      assessmentQuestions: body.assessmentQuestions || null,
+      // Module config
+      moduleConfig: body.moduleConfig || null,
       createdAt: now,
       updatedAt: now,
       isActive: true

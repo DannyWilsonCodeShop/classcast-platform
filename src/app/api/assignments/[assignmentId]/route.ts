@@ -104,7 +104,10 @@ export async function GET(
       enablePeerResponses: assignment.enablePeerResponses || false,
       minResponsesRequired: assignment.minResponsesRequired || 0,
       maxResponsesPerVideo: assignment.maxResponsesPerVideo || 0,
-      instructionalVideoUrl: assignment.instructionalVideoUrl || '' // ADD INSTRUCTIONAL VIDEO URL
+      instructionalVideoUrl: assignment.instructionalVideoUrl || '',
+      discussionConfig: assignment.discussionConfig || null,
+      assessmentQuestions: assignment.assessmentQuestions || null,
+      moduleConfig: assignment.moduleConfig || null,
     };
     
     return NextResponse.json({
@@ -233,7 +236,10 @@ export async function PUT(
       allowYouTubeUrl: 'allowYouTubeUrl',
       resources: 'resources',
       instructionalVideoUrl: 'instructionalVideoUrl',
-      rubric: 'rubric'
+      rubric: 'rubric',
+      discussionConfig: 'discussionConfig',
+      assessmentQuestions: 'assessmentQuestions',
+      moduleConfig: 'moduleConfig'
     };
     
     // Process each field in the body
