@@ -60,7 +60,7 @@ export function SwipeNavigationProvider({ children, tabOrder }: SwipeNavigationP
       >
         <div
           ref={currentPaneRef}
-          className="h-full"
+          className="h-full relative"
         >
           {children}
         </div>
