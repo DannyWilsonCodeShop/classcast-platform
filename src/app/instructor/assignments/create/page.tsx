@@ -52,15 +52,15 @@ const CreateAssignmentPage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (user?.userId) {
+    if (user?.id) {
       fetchCourses();
     }
-  }, [user?.userId]);
+  }, [user?.id]);
 
   const fetchCourses = async () => {
     setLoadingCourses(true);
     try {
-      const res = await fetch(`/api/instructor/courses?instructorId=${user?.userId}`);
+      const res = await fetch(`/api/instructor/courses?instructorId=${user?.id}`);
       const data = await res.json();
       if (data.success && data.data?.courses) {
         setCourses(data.data.courses);
@@ -110,7 +110,7 @@ const CreateAssignmentPage: React.FC = () => {
           dueDate: formData.dueDate,
           maxScore: formData.maxScore,
           rubric: formData.rubric.length > 0 ? formData.rubric : null,
-          instructorId: user?.userId,
+          instructorId: user?.id,
           status: 'published',
         }),
       });
@@ -169,7 +169,6 @@ const CreateAssignmentPage: React.FC = () => {
     <div className="space-y-4">
       <h2
         className="text-lg font-bold text-[#005587]"
-        
       >
         Select a Course
       </h2>
@@ -200,7 +199,6 @@ const CreateAssignmentPage: React.FC = () => {
     <div className="space-y-4">
       <h2
         className="text-lg font-bold text-[#005587]"
-        
       >
         Assignment Details
       </h2>
