@@ -649,16 +649,16 @@ const CreateClassPage: React.FC = () => {
             <div className="bg-gray-50 rounded-2xl p-4">
               <h2 className="text-sm font-bold text-[#005587] mb-4">Basic Information</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Class Title *
                   </label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => handleInputChange('title', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${
                       errors.title ? 'border-red-500' : 'border-gray-300'
                     }`}
                     placeholder="e.g., Introduction to Computer Science"
@@ -670,7 +670,7 @@ const CreateClassPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Class Code * 
                     <span className="text-xs text-gray-500 ml-1">(Auto-generated for students to join)</span>
                   </label>
@@ -689,11 +689,11 @@ const CreateClassPage: React.FC = () => {
                       type="button"
                       onClick={generateClassCode}
                       disabled={isGeneratingCode}
-                      className="ml-2 px-4 py-3 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium"
+                      className="ml-2 px-4 py-3 bg-[#005587]/10 text-[#005587] rounded-lg hover:bg-[#005587]/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium"
                     >
                       {isGeneratingCode ? (
                         <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#005587]"></div>
                           <span>Generating...</span>
                         </>
                       ) : (
@@ -712,27 +712,27 @@ const CreateClassPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Department
                   </label>
                   <input
                     type="text"
                     value={formData.department}
                     onChange={(e) => handleInputChange('department', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                     placeholder="e.g., Computer Science"
                   />
                 </div>
 
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Semester
                   </label>
                   <select
                     value={formData.semester}
                     onChange={(e) => handleInputChange('semester', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                   >
                     <option value="Spring">Spring</option>
                     <option value="Summer">Summer</option>
@@ -743,28 +743,28 @@ const CreateClassPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Year
                   </label>
                   <input
                     type="number"
                     value={formData.year}
                     onChange={(e) => handleInputChange('year', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                     min="2020"
                     max="2030"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Max Students
                   </label>
                   <input
                     type="number"
                     value={formData.maxStudents}
                     onChange={(e) => handleInputChange('maxStudents', parseInt(e.target.value))}
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${
                       errors.maxStudents ? 'border-red-500' : 'border-gray-300'
                     }`}
                     min="1"
@@ -778,14 +778,14 @@ const CreateClassPage: React.FC = () => {
               </div>
 
               <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs font-medium text-gray-600 mb-1">
                   Description
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                   placeholder="Describe your class..."
                 />
               </div>
@@ -847,7 +847,7 @@ const CreateClassPage: React.FC = () => {
               <div className="space-y-4">
                 {/* Co-instructor search */}
                 <div className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Search by Email Address
                   </label>
                   <div className="relative">
@@ -864,13 +864,13 @@ const CreateClassPage: React.FC = () => {
                           setCoInstructorSearchResults([]);
                         }
                       }}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                       placeholder="Enter instructor email address..."
                       disabled={!!formData.coInstructorId}
                     />
                     {isSearchingCoInstructor && (
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <div className="w-5 h-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                        <div className="w-5 h-5 border-2 border-[#005587] border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     )}
                     {formData.coInstructorId && (
@@ -1036,7 +1036,7 @@ const CreateClassPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowSectionForm(true)}
-                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors font-medium"
+                    className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-[#005587]/10 text-[#005587] rounded-lg hover:bg-[#005587]/20 transition-colors font-medium"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -1048,7 +1048,7 @@ const CreateClassPage: React.FC = () => {
                     <h3 className="font-medium text-gray-900 mb-4">Add New Section</h3>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
                           Section Name *
                         </label>
                         <input
@@ -1060,7 +1060,7 @@ const CreateClassPage: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
                           Max Enrollment
                         </label>
                         <input
@@ -1115,7 +1115,7 @@ const CreateClassPage: React.FC = () => {
                           type="button"
                           onClick={() => addSection()}
                           disabled={!newSection.name.trim()}
-                          className="px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-2 bg-[#005587] text-white rounded-lg hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Add Section
                         </button>
@@ -1142,18 +1142,18 @@ const CreateClassPage: React.FC = () => {
               </div>
 
               {formData.createAssignment && (
-                <div className="space-y-8">
+                <div className="space-y-4">
                   {/* Basic Assignment Information */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Assignment Title *
                       </label>
                       <input
                         type="text"
                         value={formData.assignmentTitle || ''}
                         onChange={(e) => handleInputChange('assignmentTitle', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${
                           errors.assignmentTitle ? 'border-red-500' : 'border-gray-300'
                         }`}
                         placeholder="e.g., Introduction Video"
@@ -1165,13 +1165,13 @@ const CreateClassPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Assignment Type
                       </label>
                       <select
                         value={formData.assignmentType}
                         onChange={(e) => handleInputChange('assignmentType', e.target.value as 'video' | 'file' | 'text' | 'quiz')}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                       >
                         <option value="video">🎥 Video Assignment</option>
                         <option value="file">📁 File Upload</option>
@@ -1181,14 +1181,14 @@ const CreateClassPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Points
                       </label>
                       <input
                         type="number"
                         value={formData.assignmentPoints || 100}
                         onChange={(e) => handleInputChange('assignmentPoints', parseInt(e.target.value))}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${
                           errors.assignmentPoints ? 'border-red-500' : 'border-gray-300'
                         }`}
                         min="1"
@@ -1200,14 +1200,14 @@ const CreateClassPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
                         Due Date
                       </label>
                       <input
                         type="datetime-local"
                         value={formData.assignmentDueDate || ''}
                         onChange={(e) => handleInputChange('assignmentDueDate', e.target.value)}
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent ${
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${
                           errors.assignmentDueDate ? 'border-red-500' : 'border-gray-300'
                         }`}
                         required={formData.createAssignment}
@@ -1220,14 +1220,14 @@ const CreateClassPage: React.FC = () => {
 
                   {/* Assignment Description */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
                       Assignment Description
                     </label>
                     <textarea
                       value={formData.assignmentDescription || ''}
                       onChange={(e) => handleInputChange('assignmentDescription', e.target.value)}
                       rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-600 focus:border-transparent"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                       placeholder="Describe the assignment requirements..."
                     />
                   </div>
@@ -1239,10 +1239,10 @@ const CreateClassPage: React.FC = () => {
                       Visual Identity
                     </h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
                       {/* Emoji Selection */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
                           Assignment Emoji
                         </label>
                         <div className="flex items-center space-x-2">
@@ -1295,7 +1295,7 @@ const CreateClassPage: React.FC = () => {
 
                   {/* Requirements */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
                       Assignment Requirements
                     </label>
                     <div className="space-y-2">
@@ -1338,7 +1338,7 @@ const CreateClassPage: React.FC = () => {
                   </div>
 
                   {/* Submission Settings */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
                     <div className="space-y-4">
                       <h3 className="text-lg font-medium text-gray-900">Submission Settings</h3>
                       
@@ -1425,9 +1425,9 @@ const CreateClassPage: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">File Upload Settings</h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
                           Maximum File Size
                         </label>
                         <select
@@ -1447,7 +1447,7 @@ const CreateClassPage: React.FC = () => {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
                           Allowed File Types
                         </label>
                         <div className="space-y-2">
@@ -1516,7 +1516,7 @@ const CreateClassPage: React.FC = () => {
                       {/* Response Due Date */}
                       {formData.enablePeerResponses && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
                             Response Due Date
                           </label>
                           <input
@@ -1530,10 +1530,10 @@ const CreateClassPage: React.FC = () => {
                       )}
 
                       {formData.enablePeerResponses && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
                           {/* Minimum Responses Required */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">
                               Minimum Responses Required per Student
                             </label>
                             <input
@@ -1549,7 +1549,7 @@ const CreateClassPage: React.FC = () => {
 
                           {/* Maximum Responses Per Video */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">
                               Maximum Responses Per Video
                             </label>
                             <input
@@ -1565,7 +1565,7 @@ const CreateClassPage: React.FC = () => {
 
                           {/* Response Word Limit */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">
                               Minimum Word Count
                             </label>
                             <input
@@ -1581,7 +1581,7 @@ const CreateClassPage: React.FC = () => {
 
                           {/* Response Character Limit */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-xs font-medium text-gray-600 mb-1">
                               Maximum Character Count
                             </label>
                             <input
