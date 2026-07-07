@@ -6,6 +6,10 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { RubricBuilder } from '@/components/instructor/RubricBuilder';
 import { RubricCategory } from '@/types/rubric';
+import { DiscussionSetupWizard } from '@/components/instructor/wizards/DiscussionSetupWizard';
+import { AssessmentSetupWizard } from '@/components/instructor/wizards/AssessmentSetupWizard';
+import { DiscussionConfig } from '@/types/discussion';
+import { AssessmentQuestion } from '@/types/assessment';
 
 interface CourseOption {
   id: string;
@@ -23,6 +27,8 @@ interface AssignmentFormData {
   maxScore: number;
   rubric: RubricCategory[];
   instructionalVideoUrl: string;
+  discussionConfig?: DiscussionConfig;
+  assessmentQuestions?: AssessmentQuestion[];
 }
 
 const STEPS = [
@@ -115,6 +121,8 @@ const CreateAssignmentPage: React.FC = () => {
           instructionalVideoUrl: formData.instructionalVideoUrl || '',
           instructorId: user?.id,
           status: 'published',
+          discussionConfig: formData.discussionConfig || undefined,
+          assessmentQuestions: formData.assessmentQuestions || undefined,
         }),
       });
       const data = await res.json();
@@ -338,23 +346,47 @@ const CreateAssignmentPage: React.FC = () => {
     </div>
   );
 
-  const renderStep3 = () => (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2
-          className="text-lg font-bold text-[#005587]"
-          
-        >
-          Rubric Builder
-        </h2>
-        <span className="text-xs text-gray-400 italic">Optional — skip if not needed</span>
+  const renderStep3 = () => {
+    if (formData.assignmentType === 'discussion') {
+      return (
+        <DiscussionSetupWizard
+          onComplete={(config) => {
+            setFormData({ ...formData, discussionConfig: config });
+            setCurrentStep(4);
+          }}
+          onBack={() => setCurrentStep(2)}
+        />
+      );
+    }
+    if (formData.assignmentType === 'assessment') {
+      return (
+        <AssessmentSetupWizard
+          onComplete={(questions) => {
+            setFormData({ ...formData, assessmentQuestions: questions });
+            setCurrentStep(4);
+          }}
+          onBack={() => setCurrentStep(2)}
+        />
+      );
+    }
+    // Default: Rubric Builder (for video type)
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2
+            className="text-lg font-bold text-[#005587]"
+          >
+            Rubric Builder
+          </h2>
+          <span className="text-xs text-gray-400 italic">Optional — skip if not needed</span>
+        </div>
+        <RubricBuilder
+          value={formData.rubric}
+          onChange={(rubric) => setFormData({ ...formData, rubric })}
+        />
       </div>
-      <RubricBuilder
-        value={formData.rubric}
-        onChange={(rubric) => setFormData({ ...formData, rubric })}
-      />
-    </div>
-  );
+    );
+  };
 
   const renderStep4 = () => {
     const selectedCourse = courses.find((c) => c.courseId === formData.courseId);
@@ -399,6 +431,20 @@ const CreateAssignmentPage: React.FC = () => {
                 : 'None'}
             </span>
           </div>
+          {formData.assignmentType === 'discussion' && formData.discussionConfig && (
+            <div className="pt-2 border-t border-gray-200 space-y-1">
+              <span className="font-medium text-gray-600 block mb-1">Discussion Config:</span>
+              <p className="text-gray-700 text-xs">Format: {formData.discussionConfig.format === 'whole-class' ? 'Whole Class' : `Small Groups (${formData.discussionConfig.groupSize})`}</p>
+              <p className="text-gray-700 text-xs">Min Posts: {formData.discussionConfig.minPosts} | Min Words: {formData.discussionConfig.minWordCount}</p>
+              <p className="text-gray-700 text-xs">Response: {formData.discussionConfig.allowedResponseTypes}</p>
+            </div>
+          )}
+          {formData.assignmentType === 'assessment' && formData.assessmentQuestions && (
+            <div className="pt-2 border-t border-gray-200 space-y-1">
+              <span className="font-medium text-gray-600 block mb-1">Assessment:</span>
+              <p className="text-gray-700 text-xs">{formData.assessmentQuestions.length} question{formData.assessmentQuestions.length !== 1 ? 's' : ''} | Total: {Math.floor(formData.assessmentQuestions.reduce((s, q) => s + q.timeLimitSeconds, 0) / 60)}m</p>
+            </div>
+          )}
           {formData.description && (
             <div className="pt-2 border-t border-gray-200">
               <span className="font-medium text-gray-600 block mb-1">Description:</span>
