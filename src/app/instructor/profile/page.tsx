@@ -256,8 +256,7 @@ const InstructorProfilePage: React.FC = () => {
             )}
           </div>
           <h1
-            className="text-2xl font-bold text-[#005587] uppercase"
-            style={{ fontFamily: 'Oswald, sans-serif' }}
+            className="text-2xl font-bold text-[#005587]"
           >
             {profile.firstName} {profile.lastName}
           </h1>
@@ -270,8 +269,7 @@ const InstructorProfilePage: React.FC = () => {
         {/* Profile Info Card */}
         <div className="bg-gray-50 rounded-2xl p-4 mb-4">
           <h2
-            className="text-lg font-bold text-[#005587] uppercase mb-3"
-            style={{ fontFamily: 'Oswald, sans-serif' }}
+            className="text-lg font-bold text-[#005587] mb-3"
           >
             Basic Information
           </h2>
@@ -302,8 +300,7 @@ const InstructorProfilePage: React.FC = () => {
         {/* Professional Info Card */}
         <div className="bg-gray-50 rounded-2xl p-4 mb-4">
           <h2
-            className="text-lg font-bold text-[#005587] uppercase mb-3"
-            style={{ fontFamily: 'Oswald, sans-serif' }}
+            className="text-lg font-bold text-[#005587] mb-3"
           >
             Professional
           </h2>
@@ -333,8 +330,7 @@ const InstructorProfilePage: React.FC = () => {
         {(profile.bio || profile.hobbies || profile.funFact) && (
           <div className="bg-gray-50 rounded-2xl p-4 mb-4">
             <h2
-              className="text-lg font-bold text-[#005587] uppercase mb-3"
-              style={{ fontFamily: 'Oswald, sans-serif' }}
+              className="text-lg font-bold text-[#005587] mb-3"
             >
               Personal
             </h2>
@@ -365,22 +361,19 @@ const InstructorProfilePage: React.FC = () => {
         <div className="space-y-3 mt-6">
           <button
             onClick={() => setIsEditing(true)}
-            className="w-full py-3 bg-[#005587] text-white font-semibold rounded-2xl uppercase text-sm"
-            style={{ fontFamily: 'Oswald, sans-serif' }}
+            className="w-full py-3 bg-[#005587] text-white font-semibold rounded-2xl text-sm"
           >
             Edit Profile
           </button>
           <button
             onClick={() => setShowPasswordReset(true)}
-            className="w-full py-3 bg-gray-50 text-[#005587] font-semibold rounded-2xl uppercase text-sm border border-gray-200"
-            style={{ fontFamily: 'Oswald, sans-serif' }}
+            className="w-full py-3 bg-gray-50 text-[#005587] font-semibold rounded-2xl text-sm border border-gray-200"
           >
             Change Password
           </button>
           <button
             onClick={handleSignOut}
-            className="w-full py-3 bg-[#FFC72C] text-[#005587] font-bold rounded-2xl uppercase text-sm"
-            style={{ fontFamily: 'Oswald, sans-serif' }}
+            className="w-full py-3 bg-[#FFC72C] text-[#005587] font-bold rounded-2xl text-sm"
           >
             Sign Out
           </button>
@@ -400,8 +393,7 @@ const InstructorProfilePage: React.FC = () => {
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
                 <h2
-                  className="text-xl font-bold text-[#005587] uppercase"
-                  style={{ fontFamily: 'Oswald, sans-serif' }}
+                  className="text-xl font-bold text-[#005587]"
                 >
                   Edit Profile
                 </h2>

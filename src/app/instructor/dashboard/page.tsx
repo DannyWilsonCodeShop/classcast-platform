@@ -130,7 +130,7 @@ const InstructorDashboard: React.FC = () => {
 
         {/* Page Title + Course Selector */}
         <div className="px-4 py-3">
-          <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Dashboard</h2>
+          <h2 className="text-base font-bold text-[#005587]">Dashboard</h2>
           {courses.length > 0 && (
             <select
               value={selectedCourseId}
@@ -211,6 +211,9 @@ const InstructorDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
+              {selectedCourse && !assignmentsLoading && assignments.length > 0 && (
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2 mb-1">Assignments</h3>
+              )}
               {assignments.map((assignment) => (
                 <button
                   key={assignment.assignmentId}
@@ -218,7 +221,7 @@ const InstructorDashboard: React.FC = () => {
                   className="w-full bg-gray-50 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="text-sm font-bold text-gray-900 line-clamp-1">{assignment.title}</h3>
+                    <h3 className="text-sm font-bold text-[#005587] line-clamp-1">{assignment.title}</h3>
                     <span className="text-xs font-medium text-[#005587]">{assignment.points} pts</span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-gray-500">

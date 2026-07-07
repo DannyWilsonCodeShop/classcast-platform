@@ -916,27 +916,13 @@ const BulkGradingContent: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <img src="/ClassCastLogo.png" alt="ClassCast" className="w-7 h-7 object-contain" />
-              <div>
-                <h1 className="text-sm font-bold text-[#005587] uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>
-                  {selectedStudent !== 'all' ? selectedStudentName : 'Grading'}
-                </h1>
-                <p className="text-[10px] text-gray-500">
-                  {filteredSubmissions.length}/{allSubmissions.length}
-                </p>
-              </div>
+              <h1 className="text-sm font-bold text-[#005587]">
+                {selectedStudent !== 'all' ? selectedStudentName : 'Grading'}
+              </h1>
             </div>
             
             <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setSpeedLock(prev => !prev)}
-                className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                  speedLock 
-                    ? 'bg-[#FFC72C] text-[#005587] font-bold' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
-                {speedLock ? '⚡2x' : '▶️1x Speed'}
-              </button>
+              <img src="/CristoReyLogo.png" alt="" className="w-10 h-10 object-contain" />
               <button
                 onClick={() => setShowAIWizard(true)}
                 className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-full text-xs font-bold hover:bg-[#e6b225] transition-colors"
@@ -949,19 +935,30 @@ const BulkGradingContent: React.FC = () => {
 
         {/* Filters - collapsible on mobile */}
         <div className="px-4 py-2 shrink-0">
-          <button
-            onClick={() => setShowFilters(prev => !prev)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl text-sm"
-          >
-            <span className="font-medium text-gray-700">
-              🔍 Filters {filteredSubmissions.length !== allSubmissions.length ? `(${filteredSubmissions.length}/${allSubmissions.length})` : ''}
-            </span>
-            <svg className={`w-4 h-4 text-gray-500 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setSpeedLock(prev => !prev)}
+              className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                speedLock 
+                  ? 'bg-[#FFC72C] text-[#005587] font-bold' 
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+            >
+              {speedLock ? '⚡2x' : '▶️1x Speed'}
+            </button>
+            <button
+              onClick={() => setShowFilters(prev => !prev)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-gray-50 rounded-xl text-xs text-gray-600"
+            >
+              <span>Filters</span>
+              <svg className={`w-3 h-3 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
           {showFilters && (
           <div className="bg-gray-50 rounded-xl p-3 mt-2">
+            <p className="text-[10px] text-gray-400 mb-2">{filteredSubmissions.length} of {allSubmissions.length} submissions</p>
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Course</label>
@@ -1104,7 +1101,7 @@ const BulkGradingContent: React.FC = () => {
                     {/* Student Header */}
                     <div className="px-4 py-3 flex items-center justify-between bg-gray-50 border-b border-gray-100">
                       <div className="flex items-center space-x-3">
-                        <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                        <div className="w-9 h-9 bg-[#005587] rounded-full flex items-center justify-center text-white font-semibold text-sm">
                           {(() => { const s = submission.studentName || '?'; return [...s][0] || '?'; })()}
                         </div>
                         <div>

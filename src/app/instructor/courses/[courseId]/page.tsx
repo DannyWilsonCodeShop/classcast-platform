@@ -994,31 +994,19 @@ const InstructorCourseDetailPage: React.FC = () => {
         <div className="bg-white border-b border-gray-100 px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <button
-                  onClick={() => router.push('/instructor/dashboard')}
-                  className="text-[#005587] hover:text-[#004060] transition-colors shrink-0"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <div className="min-w-0">
-                  <h1 className="text-lg font-bold text-[#005587] uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif" }}>
-                    {course.courseName}
-                  </h1>
-                  <p className="text-xs text-gray-500 truncate">
-                    {course.courseCode} • {course.enrollmentCount} students
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2 shrink-0">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                <img src="/ClassCastLogo.png" alt="" className="w-7 h-7 object-contain" />
+                <h1 className="text-lg font-bold text-[#005587] truncate">
+                  {course.courseName}
+                </h1>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-bold shrink-0 ${
                   course.status === 'published' ? 'bg-green-100 text-green-800' :
                   course.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
                   'bg-gray-100 text-gray-800'
                 }`}>
                   {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
                 </span>
+              </div>
+              <div className="flex items-center space-x-2 shrink-0">
                 <button 
                   onClick={() => setShowSettingsModal(true)}
                   className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-xl font-bold text-xs hover:bg-[#e6b326] transition-colors"
@@ -1030,19 +1018,6 @@ const InstructorCourseDetailPage: React.FC = () => {
           </div>
 
         <div className="px-4 py-4 space-y-4">
-          {/* Course Info - Compact for mobile */}
-          <div className="bg-gray-50 rounded-2xl p-3">
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div><span className="text-gray-500">Code:</span> <span className="font-medium">{course.courseCode}</span></div>
-              <div><span className="text-gray-500">Semester:</span> <span className="font-medium">{course.semester} {course.year}</span></div>
-              <div><span className="text-gray-500">Students:</span> <span className="font-medium">{course.enrollmentCount}/{course.maxEnrollment || '∞'}</span></div>
-              <div><span className="text-gray-500">Assignments:</span> <span className="font-medium">{assignments.length}</span></div>
-            </div>
-            {course.description && (
-              <p className="mt-2 text-xs text-gray-600 line-clamp-2">{course.description}</p>
-            )}
-          </div>
-
           {/* Stats Row - Compact */}
           <div className="bg-gray-50 rounded-2xl p-3">
             <div className="grid grid-cols-4 gap-2">
@@ -1115,7 +1090,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                     className="bg-gray-50 rounded-xl p-3 active:scale-[0.98] transition-transform"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-sm font-bold text-gray-900 line-clamp-1 flex-1">{assignment.title}</h3>
+                      <h3 className="text-sm font-bold text-gray-900 flex-1">{assignment.title}</h3>
                       <span className="text-xs font-medium text-[#005587] ml-2">{assignment.points} pts</span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
@@ -1514,6 +1489,18 @@ const InstructorCourseDetailPage: React.FC = () => {
             courseId={courseId}
             sections={sections}
           />
+          {/* Course Info - Compact for mobile */}
+          <div className="bg-gray-50 rounded-2xl p-3">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div><span className="text-gray-500">Code:</span> <span className="font-medium">{course.courseCode}</span></div>
+              <div><span className="text-gray-500">Semester:</span> <span className="font-medium">{course.semester} {course.year}</span></div>
+              <div><span className="text-gray-500">Students:</span> <span className="font-medium">{course.enrollmentCount}/{course.maxEnrollment || '∞'}</span></div>
+              <div><span className="text-gray-500">Assignments:</span> <span className="font-medium">{assignments.length}</span></div>
+            </div>
+            {course.description && (
+              <p className="mt-2 text-xs text-gray-600 line-clamp-2">{course.description}</p>
+            )}
+          </div>
         </div>
 
         {/* Course Settings Modal */}
