@@ -990,34 +990,32 @@ const InstructorCourseDetailPage: React.FC = () => {
   return (
     <InstructorRoute>
       <div className="min-h-full overflow-y-auto pb-24 bg-white">
-        {/* Header - compact on mobile */}
+        {/* Header */}
         <div className="bg-white border-b border-gray-100 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3 flex-1 min-w-0">
-                <img src="/ClassCastLogo.png" alt="" className="w-7 h-7 object-contain" />
-                <h1 className="text-lg font-bold text-[#005587] truncate">
-                  {course.courseName}
-                </h1>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-bold shrink-0 ${
-                  course.status === 'published' ? 'bg-green-100 text-green-800' :
-                  course.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
-                </span>
-              </div>
-              <div className="flex items-center space-x-2 shrink-0">
-                <button 
-                  onClick={() => setShowSettingsModal(true)}
-                  className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-xl font-bold text-xs hover:bg-[#e6b326] transition-colors"
-                >
-                  ⚙️
-                </button>
-              </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <img src="/ClassCastLogo.png" alt="" className="w-7 h-7 object-contain" />
+              <span className="text-base font-bold text-[#005587]">Course Detail</span>
             </div>
+            <img src="/CristoReyLogo.png" alt="" className="w-10 h-10 object-contain" />
           </div>
+        </div>
 
-        <div className="px-4 py-4 space-y-4">
+        <div className="px-4 py-3 space-y-4">
+          {/* Course title + status */}
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <h2 className="text-sm font-bold text-[#005587] truncate">{course.courseName}</h2>
+              <p className="text-xs text-gray-500">{course.courseCode}</p>
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${
+              course.status === 'published' ? 'bg-green-100 text-green-700' :
+              course.status === 'draft' ? 'bg-yellow-100 text-yellow-700' :
+              'bg-gray-100 text-gray-600'
+            }`}>
+              {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
+            </span>
+          </div>
           {/* Stats Row - Compact */}
           <div className="bg-gray-50 rounded-2xl p-3">
             <div className="grid grid-cols-4 gap-2">
@@ -1043,6 +1041,15 @@ const InstructorCourseDetailPage: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Settings */}
+          <button 
+            onClick={() => setShowSettingsModal(true)}
+            className="w-full flex items-center justify-center gap-2 py-2 bg-gray-50 rounded-xl text-xs text-gray-600"
+          >
+            ⚙️ <span>Course Settings</span>
+          </button>
+
           {/* Tab Navigation */}
           <div className="bg-gray-50 rounded-2xl p-4">
             <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-4">
