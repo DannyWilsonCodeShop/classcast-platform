@@ -148,7 +148,7 @@ const CreateAssignmentPage: React.FC = () => {
               className={`mt-1 text-xs font-medium ${
                 currentStep >= step.number ? 'text-[#005587]' : 'text-gray-400'
               }`}
-              style={{ fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' }}
+              
             >
               {step.label}
             </span>
@@ -169,7 +169,7 @@ const CreateAssignmentPage: React.FC = () => {
     <div className="space-y-4">
       <h2
         className="text-lg font-bold text-[#005587]"
-        style={{ fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' }}
+        
       >
         Select a Course
       </h2>
@@ -200,7 +200,7 @@ const CreateAssignmentPage: React.FC = () => {
     <div className="space-y-4">
       <h2
         className="text-lg font-bold text-[#005587]"
-        style={{ fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' }}
+        
       >
         Assignment Details
       </h2>
@@ -272,7 +272,7 @@ const CreateAssignmentPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <h2
           className="text-lg font-bold text-[#005587]"
-          style={{ fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' }}
+          
         >
           Rubric Builder
         </h2>
@@ -292,7 +292,7 @@ const CreateAssignmentPage: React.FC = () => {
       <div className="space-y-4">
         <h2
           className="text-lg font-bold text-[#005587]"
-          style={{ fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' }}
+          
         >
           Review & Save
         </h2>
@@ -361,7 +361,7 @@ const CreateAssignmentPage: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <h1
               className="text-2xl font-bold text-[#005587]"
-              style={{ fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' }}
+              
             >
               Create Assignment
             </h1>

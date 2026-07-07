@@ -625,29 +625,29 @@ const CreateClassPage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-8">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-full overflow-y-auto pb-24 bg-white px-4 py-4">
+        <div className="max-w-lg mx-auto">
           {/* Header */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6 mb-8">
+          <div className="mb-6">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Create New Class</h1>
-                <p className="text-gray-600 mt-2">Set up your class and optionally create your first assignment</p>
-              </div>
+              <h1 className="text-xl font-bold text-[#005587]">Create New Course</h1>
               <button
                 onClick={handleCancel}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-400 hover:text-gray-600"
               >
-                <span className="text-2xl">×</span>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
+            <p className="text-xs text-gray-500 mt-1">Set up your class and start teaching</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6">Basic Information</h2>
+            <div className="bg-gray-50 rounded-2xl p-4">
+              <h2 className="text-sm font-bold text-[#005587] mb-4">Basic Information</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -835,8 +835,8 @@ const CreateClassPage: React.FC = () => {
             </div>
 
             {/* Co-Instructor Section */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center">
+            <div className="bg-gray-50 rounded-2xl p-4">
+              <h2 className="text-sm font-bold text-[#005587] mb-4 flex items-center">
                 <span className="mr-2">👥</span>
                 Co-Instructor (Optional)
               </h2>
@@ -976,8 +976,8 @@ const CreateClassPage: React.FC = () => {
             </div>
 
             {/* Course Sections */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-6">Course Sections</h2>
+            <div className="bg-gray-50 rounded-2xl p-4">
+              <h2 className="text-sm font-bold text-[#005587] mb-4">Course Sections</h2>
               
               <div className="space-y-4">
                 {sections.length > 0 ? (
@@ -1127,7 +1127,7 @@ const CreateClassPage: React.FC = () => {
             </div>
 
             {/* Assignment Creation */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+            <div className="bg-gray-50 rounded-2xl p-4">
               <div className="flex items-center mb-6">
                 <input
                   type="checkbox"
