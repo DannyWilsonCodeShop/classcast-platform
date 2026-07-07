@@ -913,22 +913,6 @@ const BulkGradingContent: React.FC = () => {
   return (
     <InstructorRoute>
       <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-100 px-4 py-3 shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <img src="/ClassCastLogo.png" alt="ClassCast" className="w-7 h-7 object-contain" />
-              <h1 className="text-base font-bold text-[#005587]">
-                {selectedStudent !== 'all' ? selectedStudentName : 'Grading'}
-              </h1>
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <img src="/CristoReyLogo.png" alt="" className="w-10 h-10 object-contain" />
-            </div>
-          </div>
-        </div>
-
         {/* Filters - collapsible on mobile */}
         <div className="px-4 py-2 shrink-0">
           <div className="flex items-center justify-between">

@@ -10,9 +10,6 @@ export default function GradingPage() {
     router.replace('/instructor/grading/bulk');
   }, [router]);
 
-  return (
-    <div className="flex items-center justify-center min-h-[50vh]">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#005587]"></div>
-    </div>
-  );
+  // Return empty — layout header already shows "Grading"
+  return null;
 }

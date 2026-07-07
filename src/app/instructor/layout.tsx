@@ -12,7 +12,7 @@ import { InstructorTabBar } from '@/components/instructor/InstructorTabBar';
 import { SwipeTabConfig } from '@/hooks/useSwipeNavigation';
 
 // Pages that show the shared ClassCast header (main tab pages only, not sub-routes)
-const INSTRUCTOR_TAB_PATHS = ['/instructor/dashboard', '/instructor/grading', '/instructor/courses', '/instructor/profile'];
+const INSTRUCTOR_TAB_PATHS = ['/instructor/dashboard', '/instructor/grading', '/instructor/grading/bulk', '/instructor/courses', '/instructor/profile'];
 
 // Instructor swipeable tab order (excludes Create since it's a modal action)
 const INSTRUCTOR_SWIPE_TAB_ORDER: SwipeTabConfig[] = [
