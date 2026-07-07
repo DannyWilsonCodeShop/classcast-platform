@@ -320,6 +320,11 @@ export async function GET(request: NextRequest) {
         students: studentsWithSections,
         waitlist: course.enrollment?.waitlist || [],
       },
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+      }
     });
   } catch (error) {
     console.error('Error fetching course enrollment:', error);

@@ -388,6 +388,11 @@ export async function GET(request: NextRequest) {
       success: true,
       submissions: enrichedSubmissions,
       count: enrichedSubmissions.length
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+      }
     });
 
   } catch (error) {
