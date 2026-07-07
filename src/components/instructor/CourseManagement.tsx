@@ -278,9 +278,9 @@ export const CourseManagement: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="py-2">
       {/* Filters */}
-      <div className="mb-8">
+      <div className="mb-3">
         <CourseFilters
           filters={filters}
           onFilterChange={handleFilterChange}
@@ -309,7 +309,7 @@ export const CourseManagement: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="space-y-2">
           {courses.map((course) => (
             <CourseCard
               key={course.courseId}
