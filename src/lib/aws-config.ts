@@ -22,6 +22,11 @@ export interface AWSConfig {
       submissions: string;
       courses: string;
       contentModeration: string;
+      discussionPosts: string;
+      discussionGroups: string;
+      assessmentSessions: string;
+      moduleGroups: string;
+      moduleLessons: string;
     };
   };
   s3: {
@@ -61,6 +66,11 @@ const getAWSConfig = (): AWSConfig => {
         submissions: process.env.SUBMISSIONS_TABLE_NAME || 'classcast-submissions',
         courses: process.env.COURSES_TABLE_NAME || 'classcast-courses',
         contentModeration: process.env.CONTENT_MODERATION_TABLE_NAME || 'classcast-content-moderation',
+        discussionPosts: process.env.DISCUSSION_POSTS_TABLE_NAME || 'classcast-discussion-posts',
+        discussionGroups: process.env.DISCUSSION_GROUPS_TABLE_NAME || 'classcast-discussion-groups',
+        assessmentSessions: process.env.ASSESSMENT_SESSIONS_TABLE_NAME || 'classcast-assessment-sessions',
+        moduleGroups: process.env.MODULE_GROUPS_TABLE_NAME || 'classcast-module-groups',
+        moduleLessons: process.env.MODULE_LESSONS_TABLE_NAME || 'classcast-module-lessons',
       },
     },
     s3: {
