@@ -407,20 +407,13 @@ const AssignmentGradesPage: React.FC = () => {
   return (
     <InstructorRoute>
       <div className="min-h-full overflow-y-auto pb-24 bg-white">
-        {/* Header - compact */}
+        {/* Header */}
         <div className="bg-white border-b border-gray-100 px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 flex-1 min-w-0">
-              <button
-                onClick={() => router.back()}
-                className="text-[#005587] shrink-0"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
+              <img src="/ClassCastLogo.png" alt="" className="w-7 h-7 object-contain shrink-0" />
               <div className="min-w-0">
-                <h1 className="text-sm font-bold text-[#005587] uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif" }}>{assignment.title}</h1>
+                <h1 className="text-sm font-bold text-[#005587] truncate">{assignment.title}</h1>
                 <p className="text-xs text-gray-500 truncate">{assignment.courseName}</p>
               </div>
             </div>
