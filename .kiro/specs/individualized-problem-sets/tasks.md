@@ -6,20 +6,20 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
 
 ## Tasks
 
-- [ ] 1. Create types, utilities, and DynamoDB table definitions
-  - [ ] 1.1 Create TypeScript types and interfaces
+- [x] 1. Create types, utilities, and DynamoDB table definitions
+  - [x] 1.1 Create TypeScript types and interfaces
     - Create `src/types/problemBank.ts` with interfaces: `ProblemBank`, `Problem`, `ProblemAssignmentRecord`, `ProblemInput`, `ParsedSpreadsheet`, `ProblemAssignment`
     - Include API request/response types: `CreateBankRequest`, `DistributeRequest`, `DistributeResponse`
     - _Requirements: 6.1, 6.2, 6.3_
 
-  - [ ] 1.2 Create DynamoDB table infrastructure
+  - [x] 1.2 Create DynamoDB table infrastructure
     - Add `classcast-problem-banks` table definition with `bankId` PK and `instructorId-index` GSI (PK: instructorId, SK: createdAt)
     - Add `classcast-problems` table definition with `problemId` PK and `bankId-index` GSI (PK: bankId, SK: orderIndex)
     - Add `classcast-problem-assignments` table definition with `id` PK, `assignmentId-index` GSI (PK: assignmentId, SK: studentId), and `studentId-assignmentId-index` GSI (PK: studentId, SK: assignmentId)
     - Follow existing DynamoDB patterns in the project
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ] 1.3 Implement problem distribution utility
+  - [x] 1.3 Implement problem distribution utility
     - Create `src/lib/problemDistribution.ts`
     - Implement `distributeProblemSet(problemIds, studentIds)` using Fisher-Yates shuffle (similar to `src/lib/groupAssignment.ts`)
     - Validate `problemIds.length >= studentIds.length` before distribution, throw error if insufficient
@@ -32,7 +32,7 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
     - **Property 5: Late enrollment assigns from unassigned pool**
     - **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.8**
 
-  - [ ] 1.5 Implement spreadsheet parser utility
+  - [x] 1.5 Implement spreadsheet parser utility
     - Create `src/lib/spreadsheetParser.ts`
     - Implement `parseSpreadsheet(file: File): Promise<ParsedSpreadsheet>` using `papaparse` for CSV and `xlsx` (SheetJS) for XLS/XLSX
     - Extract first column of each row as problem text, skip empty rows
@@ -48,22 +48,22 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
 - [ ] 2. Checkpoint – Ensure foundation tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 3. Implement Problem Banks API endpoints
-  - [ ] 3.1 Create POST /api/problem-banks route
+- [x] 3. Implement Problem Banks API endpoints
+  - [x] 3.1 Create POST /api/problem-banks route
     - Create `src/app/api/problem-banks/route.ts`
     - Implement POST handler: validate request body, generate `bankId` UUID, create bank record in DynamoDB, batch-write all problems with generated `problemId`s, return 201 with created bank and problem IDs
     - Implement GET handler: query `instructorId-index` GSI to list all banks for the authenticated instructor
     - Include authentication check (instructor role required)
     - _Requirements: 1.1, 1.7, 5.1, 6.1, 6.2_
 
-  - [ ] 3.2 Create GET/PUT/DELETE /api/problem-banks/[bankId] route
+  - [x] 3.2 Create GET/PUT/DELETE /api/problem-banks/[bankId] route
     - Create `src/app/api/problem-banks/[bankId]/route.ts`
     - GET: fetch bank by `bankId`, fetch all problems via `bankId-index` GSI, return bank with problems array
     - PUT: update bank metadata (title, description), use `updatedAt` condition expression for optimistic concurrency
     - DELETE: check for active distributions (query `assignmentId-index`), return 409 if linked, otherwise delete bank and all its problems
     - _Requirements: 1.5, 5.2, 5.4, 6.1_
 
-  - [ ] 3.3 Create problems CRUD under /api/problem-banks/[bankId]/problems
+  - [x] 3.3 Create problems CRUD under /api/problem-banks/[bankId]/problems
     - Create `src/app/api/problem-banks/[bankId]/problems/route.ts` (POST for adding problems)
     - Create `src/app/api/problem-banks/[bankId]/problems/[problemId]/route.ts` (PUT/DELETE for individual problems)
     - POST: add problems to existing bank, update `problemCount` on bank record
@@ -71,7 +71,7 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
     - DELETE: remove problem, decrement `problemCount`
     - _Requirements: 1.5, 6.2_
 
-  - [ ] 3.4 Create bank duplication and export endpoints
+  - [x] 3.4 Create bank duplication and export endpoints
     - Add POST `/api/problem-banks/[bankId]/duplicate` — create new bank with new IDs but same content/imageUrls
     - Add GET `/api/problem-banks/[bankId]/export` — stream CSV with columns: #, Problem Text, Image URL
     - _Requirements: 5.3, 5.5_
@@ -80,15 +80,15 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
     - **Property 7: Bank duplication preserves content with new identifiers**
     - **Validates: Requirements 5.3**
 
-- [ ] 4. Implement Problem Distribution API endpoints
-  - [ ] 4.1 Create POST /api/problem-assignments/distribute route
+- [x] 4. Implement Problem Distribution API endpoints
+  - [x] 4.1 Create POST /api/problem-assignments/distribute route
     - Create `src/app/api/problem-assignments/route.ts`
     - Implement POST `/distribute`: fetch problems for bankId, fetch enrolled students for sectionId, validate count, call `distributeProblemSet`, BatchWrite all `ProblemAssignmentRecord`s with retry loop for `UnprocessedItems`, update assignment record with `problemBankId`
     - Implement POST `/redistribute`: delete existing assignments for the assignmentId, then re-distribute
     - Return distribution summary with counts
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.6, 2.8_
 
-  - [ ] 4.2 Create GET /api/problem-assignments query endpoints
+  - [x] 4.2 Create GET /api/problem-assignments query endpoints
     - Add GET handler: query by `assignmentId` (instructor view — returns full distribution list)
     - Add GET `/student` handler: query `studentId-assignmentId-index` GSI for specific student's assigned problem, join with problem content
     - Enforce access control: students can only query their own assignment
@@ -104,8 +104,8 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
 - [ ] 5. Checkpoint – Ensure all API tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Implement Instructor UI — ProblemBankBuilder component
-  - [ ] 6.1 Create ProblemBankBuilder shell with tab navigation
+- [x] 6. Implement Instructor UI — ProblemBankBuilder component
+  - [x] 6.1 Create ProblemBankBuilder shell with tab navigation
     - Create `src/components/instructor/ProblemBankBuilder.tsx`
     - Implement `ProblemBankBuilderProps` interface with `bankId?`, `courseId`, `sectionId?`, `onSave`, `onCancel`
     - Implement four-tab layout: "Paste Text", "Upload Image", "Take Photo", "Upload Spreadsheet"
@@ -118,21 +118,21 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
     - **Property 2: Enrollment indicator correctness**
     - **Validates: Requirements 1.4**
 
-  - [ ] 6.3 Implement Paste Text tab
+  - [x] 6.3 Implement Paste Text tab
     - Add dynamic list of textarea inputs for each problem
     - Add "Add Problem" button to append new empty row
     - Add remove button per row
     - Support paste of multi-line text (each row becomes a problem if pasted with newlines)
     - _Requirements: 1.2, 1.5_
 
-  - [ ] 6.4 Implement Upload Image tab
+  - [x] 6.4 Implement Upload Image tab
     - Add file picker accepting PNG, JPG, HEIC
     - Upload each selected image via `/api/upload/presigned` with folder `problem-banks/{bankId}`
     - Display thumbnail preview grid of uploaded images
     - Allow removal of individual images
     - _Requirements: 1.2, 1.6, 6.4_
 
-  - [ ] 6.5 Implement Take Photo tab with Capacitor camera integration
+  - [x] 6.5 Implement Take Photo tab with Capacitor camera integration
     - Create `src/components/instructor/CameraCapture.tsx`
     - On native (Capacitor): use `Camera.getPhoto()` with `CameraSource.Camera`
     - On web: fall back to `<input type="file" accept="image/*" capture="environment">`
@@ -140,7 +140,7 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
     - Upload captured photos via presigned URL flow
     - _Requirements: 1.2, 1.6_
 
-  - [ ] 6.6 Implement Upload Spreadsheet tab
+  - [x] 6.6 Implement Upload Spreadsheet tab
     - Add file picker accepting .csv, .xls, .xlsx
     - Call `parseSpreadsheet` utility on file selection
     - Display parsed preview table showing row number and problem text
@@ -148,8 +148,8 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
     - Allow user to confirm or re-upload
     - _Requirements: 1.2, 1.3_
 
-- [ ] 7. Implement Problem Banks management page
-  - [ ] 7.1 Create Problem Banks list page
+- [x] 7. Implement Problem Banks management page
+  - [x] 7.1 Create Problem Banks list page
     - Create `src/app/instructor/problem-banks/page.tsx`
     - Fetch and display all banks for the instructor (title, problem count, last modified)
     - Add "Create New Bank" button that opens ProblemBankBuilder
@@ -157,22 +157,22 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
     - Follow existing ClassCast instructor page patterns (navy/gold theme, Oswald headings)
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-  - [ ] 7.2 Wire ProblemBankBuilder into management page
+  - [x] 7.2 Wire ProblemBankBuilder into management page
     - Open ProblemBankBuilder in edit mode when clicking a bank
     - Open ProblemBankBuilder in create mode from "Create New Bank" button
     - Handle save callback to refresh the bank list
     - Handle duplicate action via `/api/problem-banks/[bankId]/duplicate`
     - _Requirements: 1.5, 1.8, 5.3_
 
-- [ ] 8. Implement Student UI — Problem in Resources section
-  - [ ] 8.1 Create ProblemDisplay component
+- [x] 8. Implement Student UI — Problem in Resources section
+  - [x] 8.1 Create ProblemDisplay component
     - Create `src/components/student/ProblemDisplay.tsx`
     - Render text problems in a styled card with readable typography
     - Render image problems with `next/image` and tap-to-zoom (lightbox modal)
     - Show fallback message when no problem assigned: "Your problem has not been assigned yet. Please contact your instructor."
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-  - [ ] 8.2 Integrate ProblemDisplay into assignment detail page
+  - [x] 8.2 Integrate ProblemDisplay into assignment detail page
     - Modify the student assignment detail view to check for a linked problem bank on the assignment
     - Call `GET /api/problem-assignments/student?assignmentId={id}&studentId={id}` to fetch the student's assigned problem
     - Render ProblemDisplay in the Resources section with the fetched problem data
@@ -184,15 +184,15 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
     - Test fallback state when problem is null
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
 
-- [ ] 9. Implement Grading Integration — 📎 clip icon with problem modal
-  - [ ] 9.1 Create ProblemReferenceModal component
+- [x] 9. Implement Grading Integration — 📎 clip icon with problem modal
+  - [x] 9.1 Create ProblemReferenceModal component
     - Create `src/components/instructor/ProblemReferenceModal.tsx`
     - Implement slide-over/modal displaying problem text and/or image with zoom
     - Position as right-side panel (desktop) or bottom sheet (mobile) to not obscure video player
     - Accept `ProblemReferenceModalProps`: `isOpen`, `onClose`, `problem`, `studentName`
     - _Requirements: 4.2, 4.3_
 
-  - [ ] 9.2 Integrate 📎 clip icon into grading page
+  - [x] 9.2 Integrate 📎 clip icon into grading page
     - Modify the grading page to fetch problem assignment data alongside submissions
     - Add a 📎 clip icon next to each student's name/info in the grading feed
     - On 📎 click, open ProblemReferenceModal with that student's assigned problem
@@ -206,8 +206,8 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
     - Test null problem state (no assignment)
     - _Requirements: 4.2, 4.3_
 
-- [ ] 10. Implement Assignment Wizard integration
-  - [ ] 10.1 Add problem bank linking step to assignment creation wizard
+- [x] 10. Implement Assignment Wizard integration
+  - [x] 10.1 Add problem bank linking step to assignment creation wizard
     - Extend the assignment creation wizard with an optional step to link a Problem Bank
     - Show a dropdown/selector of existing banks for the course
     - Display bank details (title, problem count) and enrollment comparison indicator
@@ -215,13 +215,13 @@ This plan implements the Individualized Problem Sets feature, enabling instructo
     - Store selected `bankId` on the assignment record
     - _Requirements: 1.8, 2.1_
 
-  - [ ] 10.2 Trigger distribution on assignment creation/publish
+  - [x] 10.2 Trigger distribution on assignment creation/publish
     - After assignment is created with a linked bank, call `POST /api/problem-assignments/distribute` with assignmentId, bankId, and sectionId
     - Handle errors (insufficient problems) with user-friendly message and option to add more problems
     - Show distribution success confirmation with count
     - _Requirements: 2.1, 2.3, 2.7_
 
-  - [ ] 10.3 Add redistribution option to assignment management
+  - [x] 10.3 Add redistribution option to assignment management
     - On the assignment detail/edit page, add a "Redistribute Problems" button (visible only before due date)
     - Confirm with the instructor before redistributing
     - Call `POST /api/problem-assignments/redistribute`

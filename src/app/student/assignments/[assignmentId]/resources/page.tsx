@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import AssignmentResources from '@/components/assignments/AssignmentResources';
+import { ProblemDisplay } from '@/components/student/ProblemDisplay';
 
 interface StudentAssignmentResourcesPageProps {
   params: { assignmentId: string };
@@ -11,6 +12,29 @@ interface StudentAssignmentResourcesPageProps {
 export default function StudentAssignmentResourcesPage({ params }: StudentAssignmentResourcesPageProps) {
   const { user } = useAuth();
   const assignmentId = params.assignmentId;
+  const [problem, setProblem] = useState<any>(undefined); // undefined = loading, null = no problem
+  const [hasProblemBank, setHasProblemBank] = useState(false);
+
+  useEffect(() => {
+    if (user?.id && assignmentId) {
+      fetchProblem();
+    }
+  }, [user?.id, assignmentId]);
+
+  const fetchProblem = async () => {
+    try {
+      const res = await fetch(`/api/problem-assignments?assignmentId=${assignmentId}&studentId=${user?.id}`);
+      const data = await res.json();
+      if (data.success && data.data?.problem) {
+        setProblem(data.data.problem);
+        setHasProblemBank(true);
+      } else {
+        setProblem(null);
+      }
+    } catch {
+      setProblem(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -35,12 +59,26 @@ export default function StudentAssignmentResourcesPage({ params }: StudentAssign
           </div>
         </div>
 
+        {/* Assigned Problem Section */}
+        {hasProblemBank && (
+          <div className="mb-6 px-4 sm:px-0">
+            {problem === undefined ? (
+              <div className="bg-white rounded-2xl p-4 animate-pulse">
+                <div className="h-4 bg-gray-200 rounded w-1/3 mb-3" />
+                <div className="h-20 bg-gray-100 rounded-xl" />
+              </div>
+            ) : (
+              <ProblemDisplay problem={problem} />
+            )}
+          </div>
+        )}
+
         {/* Resources Component - Student View (Read-only) */}
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <AssignmentResources
               assignmentId={assignmentId}
-              canManage={false} // Students cannot manage resources
+              canManage={false}
             />
           </div>
         </div>
@@ -51,7 +89,7 @@ export default function StudentAssignmentResourcesPage({ params }: StudentAssign
             <h3 className="text-lg font-medium text-green-900 mb-2">📖 How to Use Resources</h3>
             <div className="text-sm text-green-800 space-y-2">
               <p>• <strong>Download files</strong> by clicking the download button next to each file</p>
-              <p>• <strong>Open links</strong> by clicking "Open Link" - they will open in a new tab</p>
+              <p>• <strong>Open links</strong> by clicking &quot;Open Link&quot; - they will open in a new tab</p>
               <p>• <strong>Check categories</strong> to find specific types of resources (rubrics, templates, etc.)</p>
               <p>• <strong>Read descriptions</strong> to understand what each resource contains</p>
             </div>

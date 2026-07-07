@@ -11,6 +11,7 @@ import { parseVideoUrl, getEmbedUrl } from '@/lib/urlUtils';
 import { extractYouTubeVideoId, getYouTubeEmbedUrl, getYouTubeThumbnail } from '@/lib/youtube';
 import { RubricGradingPanel } from '@/components/instructor/RubricGradingPanel';
 import { PeerResponseIndicator } from '@/components/instructor/PeerResponseIndicator';
+import { ProblemReferenceModal } from '@/components/instructor/ProblemReferenceModal';
 import { RubricCategory } from '@/types/rubric';
 import { GradingResult } from '@/types/aiGrading';
 
@@ -117,6 +118,35 @@ const BulkGradingContent: React.FC = () => {
   const [showAIWizard, setShowAIWizard] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [speedLock, setSpeedLock] = useState<boolean>(false);
+  const [problemAssignments, setProblemAssignments] = useState<Record<string, any>>({});
+  const [showProblemModal, setShowProblemModal] = useState(false);
+  const [selectedProblem, setSelectedProblem] = useState<any>(null);
+  const [selectedProblemStudent, setSelectedProblemStudent] = useState<string>('');
+
+  // Fetch problem assignment for a student when clip icon is clicked
+  const handleShowProblem = async (submission: VideoSubmission) => {
+    const cacheKey = `${submission.assignmentId}_${submission.studentId}`;
+    if (problemAssignments[cacheKey] !== undefined) {
+      setSelectedProblem(problemAssignments[cacheKey]);
+      setSelectedProblemStudent(submission.studentName);
+      setShowProblemModal(true);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/problem-assignments?assignmentId=${submission.assignmentId}&studentId=${submission.studentId}`);
+      const data = await res.json();
+      const problem = data?.data?.problem || null;
+      setProblemAssignments(prev => ({ ...prev, [cacheKey]: problem }));
+      setSelectedProblem(problem);
+      setSelectedProblemStudent(submission.studentName);
+      setShowProblemModal(true);
+    } catch (err) {
+      console.error('Failed to fetch problem assignment:', err);
+      setSelectedProblem(null);
+      setSelectedProblemStudent(submission.studentName);
+      setShowProblemModal(true);
+    }
+  };
   
   // Remove peer response state - not needed in continuous feed
 
@@ -1100,6 +1130,13 @@ const BulkGradingContent: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleShowProblem(submission)}
+                          className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-[#005587]/10 hover:text-[#005587] transition-colors"
+                          title="View assigned problem"
+                        >
+                          📎
+                        </button>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${submission.status === 'graded' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
                           {submission.status === 'graded' ? '✓ Graded' : 'Pending'}
                         </span>
@@ -1312,6 +1349,14 @@ const BulkGradingContent: React.FC = () => {
           />
         )}
       </div>
+
+      {/* Problem Reference Modal */}
+      <ProblemReferenceModal
+        isOpen={showProblemModal}
+        onClose={() => setShowProblemModal(false)}
+        problem={selectedProblem}
+        studentName={selectedProblemStudent}
+      />
     </InstructorRoute>
   );
 };

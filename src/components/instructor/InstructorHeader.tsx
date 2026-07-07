@@ -14,6 +14,7 @@ export function InstructorHeader() {
     if (pathname === '/instructor/dashboard') return 'Dashboard';
     if (pathname?.startsWith('/instructor/grading')) return 'Grading';
     if (pathname === '/instructor/courses') return 'Courses';
+    if (pathname?.startsWith('/instructor/problem-banks')) return 'Problem Banks';
     if (pathname?.startsWith('/instructor/profile')) return 'Profile';
     return '';
   };

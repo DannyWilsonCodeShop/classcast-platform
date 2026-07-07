@@ -8,6 +8,8 @@ import { RubricBuilder } from '@/components/instructor/RubricBuilder';
 import { RubricCategory } from '@/types/rubric';
 import { DiscussionSetupWizard } from '@/components/instructor/wizards/DiscussionSetupWizard';
 import { AssessmentSetupWizard } from '@/components/instructor/wizards/AssessmentSetupWizard';
+import { ProblemBankBuilder } from '@/components/instructor/ProblemBankBuilder';
+import { ProblemBank } from '@/types/problemBank';
 import { DiscussionConfig } from '@/types/discussion';
 import { AssessmentQuestion } from '@/types/assessment';
 
@@ -29,13 +31,16 @@ interface AssignmentFormData {
   instructionalVideoUrl: string;
   discussionConfig?: DiscussionConfig;
   assessmentQuestions?: AssessmentQuestion[];
+  problemBankId?: string;
+  problemBankTitle?: string;
 }
 
 const STEPS = [
   { number: 1, label: 'Course Selection' },
   { number: 2, label: 'Assignment Details' },
   { number: 3, label: 'Rubric Builder' },
-  { number: 4, label: 'Review & Save' },
+  { number: 4, label: 'Problem Bank' },
+  { number: 5, label: 'Review & Save' },
 ];
 
 const CreateAssignmentPage: React.FC = () => {
@@ -47,6 +52,8 @@ const CreateAssignmentPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [problemBanks, setProblemBanks] = useState<ProblemBank[]>([]);
+  const [showBankBuilder, setShowBankBuilder] = useState(false);
 
   const [formData, setFormData] = useState<AssignmentFormData>({
     courseId: '',
@@ -81,7 +88,7 @@ const CreateAssignmentPage: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (currentStep < 4) setCurrentStep(currentStep + 1);
+    if (currentStep < 5) setCurrentStep(currentStep + 1);
   };
 
   const handleBack = () => {
@@ -97,9 +104,24 @@ const CreateAssignmentPage: React.FC = () => {
       case 3:
         return true; // Rubric is optional
       case 4:
+        return true; // Problem bank is optional
+      case 5:
         return true;
       default:
         return false;
+    }
+  };
+
+  // Fetch problem banks when reaching step 4
+  const fetchProblemBanks = async () => {
+    try {
+      const res = await fetch(`/api/problem-banks?instructorId=${user?.id}`);
+      const data = await res.json();
+      if (data.success) {
+        setProblemBanks(data.data.banks || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch problem banks:', err);
     }
   };
 
@@ -123,10 +145,27 @@ const CreateAssignmentPage: React.FC = () => {
           status: 'published',
           discussionConfig: formData.discussionConfig || undefined,
           assessmentQuestions: formData.assessmentQuestions || undefined,
+          problemBankId: formData.problemBankId || undefined,
         }),
       });
       const data = await res.json();
       if (data.success) {
+        // If a problem bank is linked, trigger distribution
+        if (formData.problemBankId && data.data?.assignmentId) {
+          try {
+            await fetch('/api/problem-assignments', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                assignmentId: data.data.assignmentId,
+                bankId: formData.problemBankId,
+                courseId: formData.courseId,
+              }),
+            });
+          } catch (distErr) {
+            console.warn('Problem distribution failed:', distErr);
+          }
+        }
         setSuccess(true);
         setTimeout(() => {
           router.push('/instructor/dashboard');
@@ -352,7 +391,7 @@ const CreateAssignmentPage: React.FC = () => {
         <DiscussionSetupWizard
           onComplete={(config) => {
             setFormData({ ...formData, discussionConfig: config });
-            setCurrentStep(4);
+            setCurrentStep(5);
           }}
           onBack={() => setCurrentStep(2)}
         />
@@ -363,7 +402,7 @@ const CreateAssignmentPage: React.FC = () => {
         <AssessmentSetupWizard
           onComplete={(questions) => {
             setFormData({ ...formData, assessmentQuestions: questions });
-            setCurrentStep(4);
+            setCurrentStep(5);
           }}
           onBack={() => setCurrentStep(2)}
         />
@@ -389,6 +428,116 @@ const CreateAssignmentPage: React.FC = () => {
   };
 
   const renderStep4 = () => {
+    // Problem Bank linking step (optional)
+    if (showBankBuilder) {
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-[#005587]">Create Problem Bank</h2>
+            <button onClick={() => setShowBankBuilder(false)} className="text-sm text-gray-500">Cancel</button>
+          </div>
+          <ProblemBankBuilder
+            courseId={formData.courseId}
+            onSave={async (bankData) => {
+              // Create the bank, then select it
+              try {
+                const res = await fetch('/api/problem-banks', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ ...bankData, instructorId: user?.id, courseId: formData.courseId }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                  setFormData({ ...formData, problemBankId: data.data.bank.bankId, problemBankTitle: data.data.bank.title });
+                  setShowBankBuilder(false);
+                  fetchProblemBanks();
+                }
+              } catch (err) {
+                console.error('Failed to create bank:', err);
+              }
+            }}
+            onCancel={() => setShowBankBuilder(false)}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-[#005587]">Problem Bank</h2>
+          <span className="text-xs text-gray-400 italic">Optional — for individualized problems</span>
+        </div>
+
+        <p className="text-sm text-gray-600">
+          Link a problem bank to assign each student a unique problem from the set.
+        </p>
+
+        {/* Current selection */}
+        {formData.problemBankId && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-green-800">✓ {formData.problemBankTitle}</p>
+              <p className="text-xs text-green-600">Problems will be distributed when assignment is created</p>
+            </div>
+            <button
+              onClick={() => setFormData({ ...formData, problemBankId: undefined, problemBankTitle: undefined })}
+              className="text-xs text-red-500 font-medium"
+            >
+              Remove
+            </button>
+          </div>
+        )}
+
+        {!formData.problemBankId && (
+          <>
+            {/* Bank selector */}
+            {problemBanks.length > 0 && (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">Select existing bank</label>
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const bank = problemBanks.find(b => b.bankId === e.target.value);
+                    if (bank) {
+                      setFormData({ ...formData, problemBankId: bank.bankId, problemBankTitle: bank.title });
+                    }
+                  }}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none"
+                >
+                  <option value="">-- Select a problem bank --</option>
+                  {problemBanks.map(bank => (
+                    <option key={bank.bankId} value={bank.bankId}>
+                      {bank.title} ({bank.problemCount} problems)
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Create new bank button */}
+            <button
+              onClick={() => { setShowBankBuilder(true); fetchProblemBanks(); }}
+              className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-600 hover:border-[#005587] hover:text-[#005587] transition-colors"
+            >
+              + Create New Problem Bank
+            </button>
+
+            {problemBanks.length === 0 && (
+              <button
+                onClick={fetchProblemBanks}
+                className="text-xs text-[#005587] font-medium"
+              >
+                Load existing banks
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const renderStep5 = () => {
     const selectedCourse = courses.find((c) => c.courseId === formData.courseId);
 
     return (
@@ -430,6 +579,10 @@ const CreateAssignmentPage: React.FC = () => {
                 ? `${formData.rubric.length} categor${formData.rubric.length === 1 ? 'y' : 'ies'}`
                 : 'None'}
             </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-medium text-gray-600">Problem Bank:</span>
+            <span className="text-gray-900">{formData.problemBankTitle || 'None'}</span>
           </div>
           {formData.assignmentType === 'discussion' && formData.discussionConfig && (
             <div className="pt-2 border-t border-gray-200 space-y-1">
@@ -499,6 +652,7 @@ const CreateAssignmentPage: React.FC = () => {
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
             {currentStep === 4 && renderStep4()}
+            {currentStep === 5 && renderStep5()}
           </div>
 
           {/* Navigation */}
@@ -511,7 +665,7 @@ const CreateAssignmentPage: React.FC = () => {
               Back
             </button>
 
-            {currentStep < 4 ? (
+            {currentStep < 5 ? (
               <button
                 onClick={handleNext}
                 disabled={!canProceed()}
