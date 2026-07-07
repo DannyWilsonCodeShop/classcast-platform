@@ -270,59 +270,49 @@ const AssignmentGradesPage: React.FC = () => {
     try {
       setIsExporting(true);
       
-      const response = await fetch(`/api/instructor/courses/${courseId}/assignments/${assignmentId}/export-grades`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to export grades');
-      }
-      
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to export grades');
-      }
-      
-      // Convert JSON to CSV on the frontend
-      const csvHeaders = ['Student Name', 'Grade', 'Submitted At', 'Feedback', 'Section'];
-      const csvRows = data.data.grades.map((grade: any) => [
-        grade.studentName,
-        grade.grade || '',
-        grade.submittedAt || '',
-        (grade.feedback || '').replace(/"/g, '""'), // Escape quotes
-        grade.sectionName
+      // Export from client-side data (already loaded)
+      const csvHeaders = ['Student Name', 'Email', 'Section', 'Status', 'Grade'];
+      const csvRows = studentGrades.map((grade) => [
+        grade.studentName || '',
+        grade.studentEmail || '',
+        grade.sectionName || '',
+        grade.status || '',
+        grade.grade !== undefined && grade.grade !== null ? String(grade.grade) : '',
       ]);
       
       const csvContent = [
         csvHeaders.join(','),
-        ...csvRows.map((row: any[]) => 
+        ...csvRows.map((row) => 
           row.map(cell => 
             typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))
-              ? `"${cell}"`
+              ? `"${cell.replace(/"/g, '""')}"`
               : cell
           ).join(',')
         )
       ].join('\n');
       
-      // Download CSV
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = `${assignment?.title || 'assignment'}_grades.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      alert('✅ Grades exported successfully!');
+      // Try download (works in browser, may not in WKWebView)
+      try {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `${assignment?.title || 'grades'}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        alert('✅ Grades exported!');
+      } catch {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(csvContent);
+        alert('✅ Grades copied to clipboard (CSV format)');
+      }
       
     } catch (error) {
       console.error('Error exporting grades:', error);
-      alert('Failed to export grades. Please try again.');
+      alert('Failed to export grades.');
     } finally {
       setIsExporting(false);
     }
