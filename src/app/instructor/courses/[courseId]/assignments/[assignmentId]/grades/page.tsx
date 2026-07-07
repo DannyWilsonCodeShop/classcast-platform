@@ -331,13 +331,13 @@ const AssignmentGradesPage: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'graded':
-        return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Graded</span>;
+        return <span className="px-1.5 py-0.5 bg-green-100 text-green-800 text-[10px] font-medium rounded-full">✓</span>;
       case 'submitted':
-        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">Submitted</span>;
+        return <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-800 text-[10px] font-medium rounded-full">Pending</span>;
       case 'not_submitted':
-        return <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">Not Submitted</span>;
+        return <span className="px-1.5 py-0.5 bg-red-100 text-red-800 text-[10px] font-medium rounded-full">Missing</span>;
       default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">Unknown</span>;
+        return <span className="px-1.5 py-0.5 bg-gray-100 text-gray-800 text-[10px] font-medium rounded-full">—</span>;
     }
   };
 
@@ -412,22 +412,25 @@ const AssignmentGradesPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               <img src="/ClassCastLogo.png" alt="" className="w-7 h-7 object-contain shrink-0" />
-              <div className="min-w-0">
-                <h1 className="text-sm font-bold text-[#005587] truncate">{assignment.title}</h1>
-                <p className="text-xs text-gray-500 truncate">{assignment.courseName}</p>
-              </div>
+              <span className="text-sm font-bold text-[#005587] shrink-0">Assignment Details</span>
             </div>
             <button
               onClick={handleExportGrades}
               disabled={isExporting || studentGrades.length === 0}
-              className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold disabled:opacity-50 shrink-0"
+              className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center disabled:opacity-50 shrink-0"
             >
-              {isExporting ? '...' : '📊 Export'}
+              📊
             </button>
           </div>
         </div>
 
         <div className="px-4 py-3 space-y-3">
+          {/* Assignment title + course */}
+          <div>
+            <h2 className="text-sm font-bold text-[#005587]">{assignment.title}</h2>
+            <p className="text-xs text-gray-500">{assignment.courseName}</p>
+          </div>
+
           {/* Stats Row - compact */}
           <div className="grid grid-cols-5 gap-2">
             <div className="bg-gray-50 rounded-xl p-2 text-center">
@@ -454,9 +457,13 @@ const AssignmentGradesPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Filters - compact */}
-          <div className="bg-gray-50 rounded-xl p-3">
-            <div className="grid grid-cols-2 gap-2">
+          {/* Filters - collapsible */}
+          <details className="bg-gray-50 rounded-xl">
+            <summary className="px-3 py-2 text-xs text-gray-600 font-medium cursor-pointer flex items-center justify-between">
+              <span>Filters</span>
+              <span className="text-[10px] text-gray-400">{filteredGrades.length}/{studentGrades.length}</span>
+            </summary>
+            <div className="px-3 pb-3 grid grid-cols-2 gap-2">
               <select
                 value={selectedSection}
                 onChange={(e) => setSelectedSection(e.target.value)}
@@ -477,7 +484,7 @@ const AssignmentGradesPage: React.FC = () => {
                 <option value="all">All Status</option>
                 <option value="graded">Graded</option>
                 <option value="submitted">Submitted</option>
-                <option value="not_submitted">Not Submitted</option>
+                <option value="not_submitted">Missing</option>
               </select>
               <select
                 value={sortBy}
@@ -497,57 +504,41 @@ const AssignmentGradesPage: React.FC = () => {
                 className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
               />
             </div>
-          </div>
-          {/* Grades List */}
-          <div className="bg-gray-50 rounded-xl overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase">Student</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase">Grade</th>
-                    <th className="px-3 py-2 text-left text-[10px] font-medium text-gray-500 uppercase">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {filteredGrades.map((grade) => (
-                    <tr key={grade.studentId}>
-                      <td className="px-3 py-2">
-                        <div className="text-xs font-medium text-gray-900 truncate max-w-[120px]">{grade.studentName}</div>
-                        <div className="text-[10px] text-gray-400 truncate">{grade.sectionName}</div>
-                      </td>
-                      <td className="px-3 py-2">
-                        {getStatusBadge(grade.status)}
-                      </td>
-                      <td className="px-3 py-2 text-xs text-gray-900">
-                        {getGradeDisplay(grade.grade, assignment.maxScore)}
-                      </td>
-                      <td className="px-3 py-2">
-                        {grade.submissionId && (
-                          <button
-                            onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}?submissionId=${grade.submissionId}&student=${grade.studentId}`)}
-                            className="text-xs text-[#005587] font-medium"
-                          >
-                            Grade
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            {filteredGrades.length === 0 && (
-              <div className="text-center py-8">
-                <div className="text-3xl mb-2">{studentGrades.length === 0 ? '👥' : '🔍'}</div>
-                <p className="text-sm text-gray-500">
-                  {studentGrades.length === 0 ? 'No students enrolled yet' : 'No results match your filters'}
-                </p>
+          </details>
+          {/* Student List */}
+          <div className="space-y-1">
+            {filteredGrades.map((grade) => (
+              <div key={grade.studentId} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+                <div className="flex-1 min-w-0 mr-2">
+                  <div className="text-xs font-medium text-gray-900 truncate">{grade.studentName}</div>
+                  <div className="text-[10px] text-gray-400">{grade.sectionName}</div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {getStatusBadge(grade.status)}
+                  <span className="text-xs font-medium text-gray-700 w-8 text-right">
+                    {grade.grade !== undefined && grade.grade !== null ? grade.grade : '—'}
+                  </span>
+                  {grade.submissionId && (
+                    <button
+                      onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}?submissionId=${grade.submissionId}&student=${grade.studentId}`)}
+                      className="text-[10px] text-[#005587] font-bold"
+                    >
+                      Grade
+                    </button>
+                  )}
+                </div>
               </div>
-            )}
+            ))}
           </div>
+            
+          {filteredGrades.length === 0 && (
+            <div className="text-center py-8">
+              <div className="text-3xl mb-2">{studentGrades.length === 0 ? '👥' : '🔍'}</div>
+              <p className="text-sm text-gray-500">
+                {studentGrades.length === 0 ? 'No students enrolled yet' : 'No results match your filters'}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </InstructorRoute>
