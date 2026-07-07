@@ -8,10 +8,12 @@ import { RubricBuilder } from '@/components/instructor/RubricBuilder';
 import { RubricCategory } from '@/types/rubric';
 import { DiscussionSetupWizard } from '@/components/instructor/wizards/DiscussionSetupWizard';
 import { AssessmentSetupWizard } from '@/components/instructor/wizards/AssessmentSetupWizard';
+import { ModuleSetupWizard } from '@/components/instructor/wizards/ModuleSetupWizard';
 import { ProblemBankBuilder } from '@/components/instructor/ProblemBankBuilder';
 import { ProblemBank } from '@/types/problemBank';
 import { DiscussionConfig } from '@/types/discussion';
 import { AssessmentQuestion } from '@/types/assessment';
+import { ModuleConfig } from '@/types/module';
 
 interface CourseOption {
   id: string;
@@ -24,13 +26,14 @@ interface AssignmentFormData {
   courseId: string;
   title: string;
   description: string;
-  assignmentType: 'video' | 'discussion' | 'assessment';
+  assignmentType: 'video' | 'discussion' | 'assessment' | 'group-project' | 'study-module';
   dueDate: string;
   maxScore: number;
   rubric: RubricCategory[];
   instructionalVideoUrl: string;
   discussionConfig?: DiscussionConfig;
   assessmentQuestions?: AssessmentQuestion[];
+  moduleConfig?: ModuleConfig;
   problemBankId?: string;
   problemBankTitle?: string;
 }
@@ -136,7 +139,7 @@ const CreateAssignmentPage: React.FC = () => {
           title: formData.title,
           description: formData.description,
           courseId: formData.courseId,
-          assignmentType: formData.assignmentType,
+          assignmentType: formData.assignmentType === 'group-project' ? 'module' : formData.assignmentType === 'study-module' ? 'study-module' : formData.assignmentType,
           dueDate: formData.dueDate,
           maxScore: formData.maxScore,
           rubric: formData.rubric.length > 0 ? formData.rubric : null,
@@ -145,6 +148,7 @@ const CreateAssignmentPage: React.FC = () => {
           status: 'published',
           discussionConfig: formData.discussionConfig || undefined,
           assessmentQuestions: formData.assessmentQuestions || undefined,
+          moduleConfig: formData.moduleConfig || undefined,
           problemBankId: formData.problemBankId || undefined,
         }),
       });
@@ -325,6 +329,40 @@ const CreateAssignmentPage: React.FC = () => {
               </div>
             </div>
           </button>
+          <button
+            type="button"
+            onClick={() => setFormData({ ...formData, assignmentType: 'group-project' })}
+            className={`w-full p-3 rounded-xl border text-left transition-colors ${
+              formData.assignmentType === 'group-project'
+                ? 'border-[#005587] bg-[#005587]/5'
+                : 'border-gray-200 bg-white'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🎬</span>
+              <div>
+                <span className="text-sm font-bold text-gray-900">Group Project</span>
+                <p className="text-xs text-gray-500">Student groups collaborate to produce videos on a topic</p>
+              </div>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormData({ ...formData, assignmentType: 'study-module' })}
+            className={`w-full p-3 rounded-xl border text-left transition-colors ${
+              formData.assignmentType === 'study-module'
+                ? 'border-[#005587] bg-[#005587]/5'
+                : 'border-gray-200 bg-white'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📖</span>
+              <div>
+                <span className="text-sm font-bold text-gray-900">Study Module</span>
+                <p className="text-xs text-gray-500">Self-paced lessons with videos, quizzes, and progress tracking</p>
+              </div>
+            </div>
+          </button>
         </div>
       </div>
 
@@ -406,6 +444,34 @@ const CreateAssignmentPage: React.FC = () => {
           }}
           onBack={() => setCurrentStep(2)}
         />
+      );
+    }
+    if (formData.assignmentType === 'group-project') {
+      return (
+        <ModuleSetupWizard
+          onComplete={(config) => {
+            setFormData({ ...formData, moduleConfig: config });
+            setCurrentStep(5);
+          }}
+          onBack={() => setCurrentStep(2)}
+        />
+      );
+    }
+    if (formData.assignmentType === 'study-module') {
+      return (
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-[#005587]">Study Module Setup</h2>
+          <div className="bg-blue-50 rounded-xl p-4">
+            <p className="text-sm text-blue-800">
+              <strong>Study modules</strong> are self-paced learning experiences with videos, quizzes, and progress tracking. 
+              The module builder is coming soon — for now, create the assignment and add lesson content later from the course detail page.
+            </p>
+          </div>
+          <div className="flex justify-between pt-2">
+            <button onClick={() => setCurrentStep(2)} className="px-4 py-2 text-xs text-gray-600 font-medium">Back</button>
+            <button onClick={() => setCurrentStep(4)} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium">Next</button>
+          </div>
+        </div>
       );
     }
     // Default: Rubric Builder (for video type)
@@ -560,7 +626,7 @@ const CreateAssignmentPage: React.FC = () => {
           </div>
           <div className="flex justify-between">
             <span className="font-medium text-gray-600">Type:</span>
-            <span className="text-gray-900 capitalize">{formData.assignmentType}</span>
+            <span className="text-gray-900 capitalize">{formData.assignmentType === 'group-project' ? 'Group Project' : formData.assignmentType === 'study-module' ? 'Study Module' : formData.assignmentType}</span>
           </div>
           <div className="flex justify-between">
             <span className="font-medium text-gray-600">Due Date:</span>
@@ -596,6 +662,14 @@ const CreateAssignmentPage: React.FC = () => {
             <div className="pt-2 border-t border-gray-200 space-y-1">
               <span className="font-medium text-gray-600 block mb-1">Assessment:</span>
               <p className="text-gray-700 text-xs">{formData.assessmentQuestions.length} question{formData.assessmentQuestions.length !== 1 ? 's' : ''} | Total: {Math.floor(formData.assessmentQuestions.reduce((s, q) => s + q.timeLimitSeconds, 0) / 60)}m</p>
+            </div>
+          )}
+          {formData.assignmentType === 'group-project' && formData.moduleConfig && (
+            <div className="pt-2 border-t border-gray-200 space-y-1">
+              <span className="font-medium text-gray-600 block mb-1">Group Project:</span>
+              <p className="text-gray-700 text-xs">Topic: {formData.moduleConfig.topic}</p>
+              <p className="text-gray-700 text-xs">{formData.moduleConfig.requiredVideos} videos | Groups of {formData.moduleConfig.groupSize} ({formData.moduleConfig.groupFormation})</p>
+              <p className="text-gray-700 text-xs">Grading: {formData.moduleConfig.gradingPolicy}</p>
             </div>
           )}
           {formData.description && (

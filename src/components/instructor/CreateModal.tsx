@@ -10,7 +10,7 @@ interface CreateModalProps {
 }
 
 interface CreateOption {
-  id: 'course' | 'assignment' | 'module';
+  id: 'course' | 'assignment';
   label: string;
   description: string;
   icon: string;
@@ -29,17 +29,9 @@ const CREATE_OPTIONS: CreateOption[] = [
   {
     id: 'assignment',
     label: 'New Assignment',
-    description: 'Build an assignment with rubric grading',
+    description: 'Video, discussion, assessment, group project, or study module',
     icon: '📝',
     route: '/instructor/assignments/create',
-  },
-  {
-    id: 'module',
-    label: 'New Module',
-    description: 'Coming soon',
-    icon: '🎬',
-    route: '',
-    disabled: true,
   },
 ];
 
