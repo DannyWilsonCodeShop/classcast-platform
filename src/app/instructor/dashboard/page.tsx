@@ -5,6 +5,7 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { HelpTooltip } from '@/components/common/HelpTooltip';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 
 interface Course {
@@ -211,7 +212,7 @@ const InstructorDashboard: React.FC = () => {
           ) : (
             <div className="space-y-3">
               {selectedCourse && !assignmentsLoading && assignments.length > 0 && (
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2 mb-1">Assignments</h3>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mt-2 mb-1 flex items-center gap-1">Assignments <HelpTooltip text="These are the assignments for the selected course. Tap one to view grades and submissions. Use the Create button to add new ones." /></h3>
               )}
               {assignments.map((assignment) => (
                 <button

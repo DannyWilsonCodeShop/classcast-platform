@@ -12,6 +12,7 @@ import { extractYouTubeVideoId, getYouTubeEmbedUrl, getYouTubeThumbnail } from '
 import { RubricGradingPanel } from '@/components/instructor/RubricGradingPanel';
 import { PeerResponseIndicator } from '@/components/instructor/PeerResponseIndicator';
 import { ProblemReferenceModal } from '@/components/instructor/ProblemReferenceModal';
+import { HelpTooltip } from '@/components/common/HelpTooltip';
 import { RubricCategory } from '@/types/rubric';
 import { GradingResult } from '@/types/aiGrading';
 
@@ -1133,7 +1134,7 @@ const BulkGradingContent: React.FC = () => {
                         <button
                           onClick={() => handleShowProblem(submission)}
                           className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-[#005587]/10 hover:text-[#005587] transition-colors"
-                          title="View assigned problem"
+                          title="View this student's individually assigned problem"
                         >
                           📎
                         </button>

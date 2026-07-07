@@ -14,6 +14,7 @@ import { ProblemBank } from '@/types/problemBank';
 import { DiscussionConfig } from '@/types/discussion';
 import { AssessmentQuestion } from '@/types/assessment';
 import { ModuleConfig } from '@/types/module';
+import { HelpTooltip } from '@/components/common/HelpTooltip';
 
 interface CourseOption {
   id: string;
@@ -289,8 +290,11 @@ const CreateAssignmentPage: React.FC = () => {
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">🎥</span>
-              <div>
-                <span className="text-sm font-bold text-gray-900">Video</span>
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-gray-900">Video</span>
+                  <HelpTooltip text="Students record themselves answering a prompt or solving a problem, then upload the video for grading." />
+                </div>
                 <p className="text-xs text-gray-500">Students record or upload a video submission</p>
               </div>
             </div>
@@ -306,8 +310,11 @@ const CreateAssignmentPage: React.FC = () => {
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">💬</span>
-              <div>
-                <span className="text-sm font-bold text-gray-900">Discussion Board</span>
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-gray-900">Discussion Board</span>
+                  <HelpTooltip text="An online forum where students post responses to a question or topic. They can reply to each other, building a class conversation." />
+                </div>
                 <p className="text-xs text-gray-500">Students dialog around a topic — whole class or small groups</p>
               </div>
             </div>
@@ -323,8 +330,11 @@ const CreateAssignmentPage: React.FC = () => {
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">📋</span>
-              <div>
-                <span className="text-sm font-bold text-gray-900">Assessment</span>
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-gray-900">Assessment</span>
+                  <HelpTooltip text="A timed video exam. Questions appear on screen one at a time, and the student must answer on camera within the time limit. Full upper body and arms must be visible." />
+                </div>
                 <p className="text-xs text-gray-500">Live recording with timed on-screen questions, full upper body required</p>
               </div>
             </div>
@@ -340,8 +350,11 @@ const CreateAssignmentPage: React.FC = () => {
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">🎬</span>
-              <div>
-                <span className="text-sm font-bold text-gray-900">Group Project</span>
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-gray-900">Group Project</span>
+                  <HelpTooltip text="Students are placed into small groups and work together to create a series of short videos on a topic. Groups can be random, manual, or student-selected. Grading can be shared or individual." />
+                </div>
                 <p className="text-xs text-gray-500">Student groups collaborate to produce videos on a topic</p>
               </div>
             </div>
@@ -357,8 +370,11 @@ const CreateAssignmentPage: React.FC = () => {
           >
             <div className="flex items-center gap-3">
               <span className="text-xl">📖</span>
-              <div>
-                <span className="text-sm font-bold text-gray-900">Study Module</span>
+              <div className="flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-bold text-gray-900">Study Module</span>
+                  <HelpTooltip text="A self-paced learning experience you build for students. It can include video lessons, reading material, quizzes, and interactive checkpoints. Students progress through at their own pace and earn a completion grade." />
+                </div>
                 <p className="text-xs text-gray-500">Self-paced lessons with videos, quizzes, and progress tracking</p>
               </div>
             </div>
@@ -531,7 +547,10 @@ const CreateAssignmentPage: React.FC = () => {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-[#005587]">Problem Bank</h2>
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-lg font-bold text-[#005587]">Problem Bank</h2>
+            <HelpTooltip text="A problem bank is a set of unique questions you create. When linked to an assignment, each student automatically receives a different problem — ensuring no two students work the same question." />
+          </div>
           <span className="text-xs text-gray-400 italic">Optional — for individualized problems</span>
         </div>
 

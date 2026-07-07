@@ -324,6 +324,13 @@ select:focus {
 .animate-slide-up {
   animation: modalSlideUp 300ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
 }
+.animate-fade-in {
+  animation: tooltipFadeIn 150ms ease-out both;
+}
+@keyframes tooltipFadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
 @keyframes backdropFadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

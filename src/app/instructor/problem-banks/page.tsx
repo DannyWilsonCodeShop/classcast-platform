@@ -6,6 +6,7 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProblemBank } from '@/types/problemBank';
 import { ProblemBankBuilder } from '@/components/instructor/ProblemBankBuilder';
+import { HelpTooltip } from '@/components/common/HelpTooltip';
 
 export default function ProblemBanksPage() {
   const router = useRouter();
@@ -111,7 +112,10 @@ export default function ProblemBanksPage() {
         <div className="max-w-2xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold text-[#005587]">Problem Banks</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-xl font-bold text-[#005587]">Problem Banks</h1>
+              <HelpTooltip text="Problem banks let you create sets of unique questions. Link a bank to an assignment and each student gets a different problem — great for individualized homework and preventing cheating." />
+            </div>
             <button
               onClick={() => setShowBuilder(true)}
               className="px-4 py-2 bg-[#005587] text-white rounded-xl text-sm font-medium"
