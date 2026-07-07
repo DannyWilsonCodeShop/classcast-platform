@@ -125,7 +125,7 @@ const InstructorDashboard: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className={`absolute inset-0 overflow-y-auto ${isWide ? 'bg-transparent' : 'bg-white'}`}>
+      <div className={`min-h-full overflow-y-auto pb-24 ${isWide ? 'bg-transparent' : 'bg-white'}`}>
         {/* NOTE: Mobile header is handled by instructor layout — do NOT add one here */}
 
         {/* Page Title + Course Selector */}

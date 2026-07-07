@@ -7,7 +7,7 @@ import { CourseManagement } from '@/components/instructor/CourseManagement';
 const InstructorCoursesPage: React.FC = () => {
   return (
     <InstructorRoute>
-      <div className="absolute inset-0 overflow-y-auto px-4">
+      <div className="min-h-full overflow-y-auto pb-24 px-4">
         <CourseManagement />
       </div>
     </InstructorRoute>
