@@ -130,20 +130,25 @@ const InstructorDashboard: React.FC = () => {
         {/* NOTE: Mobile header is handled by instructor layout — do NOT add one here */}
 
         {/* Course Selector */}
-        <div className="px-4 py-2">
+        <div className={`px-4 ${isWide ? 'pt-4 pb-2' : 'py-2'}`}>
           {courses.length > 0 && (
-            <select
-              value={selectedCourseId}
-              onChange={(e) => handleCourseChange(e.target.value)}
-              className="mt-1 w-full px-3 py-2 bg-gray-100 border-0 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#005587]"
-            >
-              <option value="">Select a course...</option>
-              {courses.map((course) => (
-                <option key={course.courseId} value={course.courseId}>
-                  {course.title}
-                </option>
-              ))}
-            </select>
+            <div className={isWide ? 'flex items-center gap-3' : ''}>
+              {isWide && (
+                <label className="text-sm font-medium text-gray-600 whitespace-nowrap">Course:</label>
+              )}
+              <select
+                value={selectedCourseId}
+                onChange={(e) => handleCourseChange(e.target.value)}
+                className={`w-full px-3 py-2 bg-gray-100 border-0 rounded-xl text-sm font-bold text-[#005587] focus:outline-none focus:ring-2 focus:ring-[#005587] ${isWide ? 'text-base' : ''}`}
+              >
+                <option value="" className="font-normal text-gray-500">Select a course...</option>
+                {courses.map((course) => (
+                  <option key={course.courseId} value={course.courseId} className="font-bold">
+                    {course.title}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
         </div>
 
