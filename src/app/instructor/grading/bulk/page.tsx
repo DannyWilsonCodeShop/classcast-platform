@@ -923,12 +923,6 @@ const BulkGradingContent: React.FC = () => {
             
             <div className="flex items-center space-x-2">
               <img src="/CristoReyLogo.png" alt="" className="w-10 h-10 object-contain" />
-              <button
-                onClick={() => setShowAIWizard(true)}
-                className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-full text-xs font-bold hover:bg-[#e6b225] transition-colors"
-              >
-                🤖 AI
-              </button>
             </div>
           </div>
         </div>

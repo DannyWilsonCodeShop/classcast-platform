@@ -128,9 +128,8 @@ const InstructorDashboard: React.FC = () => {
       <div className={`min-h-full overflow-y-auto pb-24 ${isWide ? 'bg-transparent' : 'bg-white'}`}>
         {/* NOTE: Mobile header is handled by instructor layout — do NOT add one here */}
 
-        {/* Page Title + Course Selector */}
-        <div className="px-4 py-3">
-          <h2 className="text-base font-bold text-[#005587]">Dashboard</h2>
+        {/* Course Selector */}
+        <div className="px-4 py-2">
           {courses.length > 0 && (
             <select
               value={selectedCourseId}
