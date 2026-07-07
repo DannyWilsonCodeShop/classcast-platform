@@ -671,48 +671,6 @@ const CreateClassPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-medium text-gray-600 mb-1">
-                    Class Code * 
-                    <span className="text-xs text-gray-500 ml-1">(Auto-generated for students to join)</span>
-                  </label>
-                  <div className="flex">
-                    <div className="flex-1 relative">
-                      <div className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg bg-gray-50 font-mono text-lg font-semibold text-gray-800">
-                        {formData.classCode || 'Generating...'}
-                      </div>
-                      {formData.classCode && (
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                          <span className="text-green-500 text-sm">✓</span>
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={generateClassCode}
-                      disabled={isGeneratingCode}
-                      className="ml-2 px-4 py-3 bg-[#005587]/10 text-[#005587] rounded-lg hover:bg-[#005587]/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium"
-                    >
-                      {isGeneratingCode ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#005587]"></div>
-                          <span>Generating...</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          <span>New Code</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    Students will use this code to join your class. You can edit it if needed.
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">
                     Department
                   </label>
                   <input
@@ -977,7 +935,8 @@ const CreateClassPage: React.FC = () => {
 
             {/* Course Sections */}
             <div className="bg-gray-50 rounded-2xl p-4">
-              <h2 className="text-sm font-bold text-[#005587] mb-4">Course Sections</h2>
+              <h2 className="text-sm font-bold text-[#005587] mb-1">Course Sections</h2>
+              <p className="text-xs text-gray-500 mb-4">Each section gets a unique class code that students use to enroll.</p>
               
               <div className="space-y-4">
                 {sections.length > 0 ? (
