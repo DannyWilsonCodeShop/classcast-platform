@@ -27,6 +27,9 @@ export interface AWSConfig {
       assessmentSessions: string;
       moduleGroups: string;
       moduleLessons: string;
+      problemBanks: string;
+      problems: string;
+      problemAssignments: string;
     };
   };
   s3: {
@@ -71,6 +74,9 @@ const getAWSConfig = (): AWSConfig => {
         assessmentSessions: process.env.ASSESSMENT_SESSIONS_TABLE_NAME || 'classcast-assessment-sessions',
         moduleGroups: process.env.MODULE_GROUPS_TABLE_NAME || 'classcast-module-groups',
         moduleLessons: process.env.MODULE_LESSONS_TABLE_NAME || 'classcast-module-lessons',
+        problemBanks: process.env.PROBLEM_BANKS_TABLE_NAME || 'classcast-problem-banks',
+        problems: process.env.PROBLEMS_TABLE_NAME || 'classcast-problems',
+        problemAssignments: process.env.PROBLEM_ASSIGNMENTS_TABLE_NAME || 'classcast-problem-assignments',
       },
     },
     s3: {
