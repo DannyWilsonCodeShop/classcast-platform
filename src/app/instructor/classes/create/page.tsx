@@ -451,6 +451,10 @@ const CreateClassPage: React.FC = () => {
       newErrors.year = 'Year must be between 2020 and 2030';
     }
 
+    if (sections.length === 0) {
+      newErrors.sections = 'At least one section is required. Add a section so students can enroll.';
+    }
+
     if (formData.createAssignment) {
       if (!formData.assignmentTitle || formData.assignmentTitle.trim().length === 0) {
         newErrors.assignmentTitle = 'Assignment title is required when creating an assignment';
@@ -934,9 +938,12 @@ const CreateClassPage: React.FC = () => {
             </div>
 
             {/* Course Sections */}
-            <div className="bg-gray-50 rounded-2xl p-4">
-              <h2 className="text-sm font-bold text-[#005587] mb-1">Course Sections</h2>
-              <p className="text-xs text-gray-500 mb-4">Each section gets a unique class code that students use to enroll.</p>
+            <div className={`bg-gray-50 rounded-2xl p-4 ${errors.sections ? 'ring-2 ring-red-300' : ''}`}>
+              <h2 className="text-sm font-bold text-[#005587] mb-1">Course Sections *</h2>
+              <p className="text-xs text-gray-500 mb-2">Each section gets a unique class code that students use to enroll.</p>
+              {errors.sections && (
+                <p className="text-xs text-red-600 mb-3">{errors.sections}</p>
+              )}
               
               <div className="space-y-4">
                 {sections.length > 0 ? (
