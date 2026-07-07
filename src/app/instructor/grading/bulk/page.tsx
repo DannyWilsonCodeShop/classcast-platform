@@ -912,36 +912,16 @@ const BulkGradingContent: React.FC = () => {
     <InstructorRoute>
       <div className="h-screen flex flex-col bg-gray-50 overflow-hidden">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4 shrink-0">
+        <div className="bg-white border-b border-gray-100 px-4 py-3 shrink-0">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => {
-                  // If we came from a specific course and student, go back to that course's Students tab
-                  const courseParam = searchParams.get('course');
-                  const studentParam = searchParams.get('student');
-                  
-                  if (courseParam && courseParam.startsWith('course_') && studentParam) {
-                    // Navigate back to the course page with Students tab active
-                    router.push(`/instructor/courses/${courseParam}?tab=students`);
-                  } else {
-                    // Default back behavior
-                    router.back();
-                  }
-                }}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
+            <div className="flex items-center space-x-3">
+              <img src="/ClassCastLogo.png" alt="ClassCast" className="w-7 h-7 object-contain" />
               <div>
-                <h1 className="text-lg font-bold text-gray-800">
-                  {selectedStudent !== 'all' ? `${selectedStudentName}` : 'Grading'}
+                <h1 className="text-sm font-bold text-[#005587] uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>
+                  {selectedStudent !== 'all' ? selectedStudentName : 'Grading'}
                 </h1>
-                <p className="text-xs text-gray-500">
+                <p className="text-[10px] text-gray-500">
                   {filteredSubmissions.length}/{allSubmissions.length}
-                  {selectedStudent !== 'all' && ` • ${selectedStudentName}`}
                 </p>
               </div>
             </div>
