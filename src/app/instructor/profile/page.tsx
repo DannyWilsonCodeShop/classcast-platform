@@ -239,7 +239,7 @@ const InstructorProfilePage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-screen bg-white px-4 py-6">
+      <div className="h-full overflow-y-auto bg-white px-4 py-6">
         {/* Profile Header - Centered Avatar */}
         <div className="flex flex-col items-center mb-6">
           <div className="relative mb-4">

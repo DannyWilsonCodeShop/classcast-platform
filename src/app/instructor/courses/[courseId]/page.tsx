@@ -991,8 +991,7 @@ const InstructorCourseDetailPage: React.FC = () => {
     <InstructorRoute>
       <div className="h-full overflow-y-auto bg-white">
         {/* Header - compact on mobile */}
-        <div className="bg-white border-b border-gray-100 sticky top-0 z-40">
-          <div className="px-4 py-3">
+        <div className="bg-white border-b border-gray-100 px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <button
@@ -1029,7 +1028,6 @@ const InstructorCourseDetailPage: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
 
         <div className="px-4 py-4 space-y-4">
           {/* Course Info - Compact for mobile */}
