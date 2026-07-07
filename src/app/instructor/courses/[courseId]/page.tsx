@@ -1106,121 +1106,49 @@ const InstructorCourseDetailPage: React.FC = () => {
             {/* Assignments Tab */}
             {activeTab === 'assignments' && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Assignments</h2>
-                  <button 
-                    onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
-                    className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-bold hover:bg-[#e6b326] transition-colors"
-                  >
-                    + Create Assignment
-                  </button>
-                </div>
             
             {assignments.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="space-y-3">
                 {assignments.map((assignment) => (
                   <div
                     key={assignment.assignmentId}
-                    className="bg-gray-50 rounded-2xl p-6 transition-all duration-300"
+                    className="bg-gray-50 rounded-xl p-3 active:scale-[0.98] transition-transform"
                   >
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">{assignment.title}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600 mb-3">
-                          <span>📅 Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
-                          <span>⭐ {assignment.points} pts</span>
-                        </div>
-                      </div>
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="text-sm font-bold text-gray-900 line-clamp-1 flex-1">{assignment.title}</h3>
+                      <span className="text-xs font-medium text-[#005587] ml-2">{assignment.points} pts</span>
                     </div>
-                    
-                    <RichTextRenderer 
-                      content={assignment.description}
-                      className="text-gray-600 mb-4 text-sm"
-                      maxLines={2}
-                    />
-                    
-                    {/* Submission Stats */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600">Submissions</span>
-                        <span className="font-medium">{assignment.submissionsCount} total</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600">Graded</span>
-                        <span className="font-medium text-green-600">{assignment.gradedCount}</span>
-                      </div>
-                      {assignment.submissionsCount > assignment.gradedCount && (
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Pending</span>
-                          <span className="font-medium text-orange-600">
-                            {assignment.submissionsCount - assignment.gradedCount}
-                          </span>
-                        </div>
-                      )}
+                    <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
+                      <span>Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
+                      <span className="text-green-600 font-medium">{assignment.gradedCount}/{assignment.submissionsCount} graded</span>
+                      <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                        assignment.status === 'published' ? 'bg-green-100 text-green-700' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>{assignment.status}</span>
                     </div>
 
-                    {/* Status Badge */}
-                    <div className="flex items-center justify-between mb-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        assignment.status === 'published' ? 'bg-green-100 text-green-800' :
-                        assignment.status === 'grading' ? 'bg-yellow-100 text-yellow-800' :
-                        assignment.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {assignment.status.charAt(0).toUpperCase() + assignment.status.slice(1)}
-                      </span>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="space-y-2">
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => setViewingAssignment(assignment)}
-                          className="flex-1 px-4 py-2 bg-[#005587] text-white rounded-xl font-medium hover:bg-[#004060] transition-colors text-sm"
-                        >
-                          👁️ View Details
-                        </button>
-                        <button
-                          onClick={() => setEditingAssignment(assignment)}
-                          className="flex-1 px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-medium hover:bg-[#e6b326] transition-colors text-sm"
-                        >
-                          ✏️ Edit
-                        </button>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => {
-                            console.log('🎯 Navigating to NEW assignment grading page:', assignment.assignmentId);
-                            router.push(`/instructor/grading/assignment/${assignment.assignmentId}`);
-                          }}
-                          className="flex-1 px-4 py-2 bg-[#005587] text-white rounded-xl font-medium hover:bg-[#004060] transition-colors text-sm"
-                        >
-                          📊 Grade Submissions ({assignment.submissionsCount || 0})
-                        </button>
-                        <button
-                          onClick={() => {
-                            router.push(`/instructor/courses/${courseId}/assignments/${assignment.assignmentId}/grades`);
-                          }}
-                          className="flex-1 px-4 py-2 bg-[#005587] text-white rounded-xl font-medium hover:bg-[#004060] transition-colors text-sm"
-                        >
-                          📋 View Grades
-                        </button>
-                      </div>
+                    {/* Action Buttons - compact */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setViewingAssignment(assignment)}
+                        className="flex-1 px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-medium"
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => router.push(`/instructor/courses/${courseId}/assignments/${assignment.assignmentId}/grades`)}
+                        className="flex-1 px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-lg text-xs font-medium"
+                      >
+                        Grades
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">📝</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">No Assignments Yet</h3>
-                <p className="text-gray-600 mb-6">Create your first assignment to get started with this course.</p>
-                <button 
-                  onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
-                  className="px-6 py-3 bg-[#FFC72C] text-[#005587] rounded-xl font-bold hover:bg-[#e6b326] transition-colors"
-                >
-                  Create Your First Assignment
-                </button>
+              <div className="text-center py-8">
+                <div className="text-3xl mb-2">📝</div>
+                <p className="text-sm text-gray-500">No assignments yet</p>
               </div>
             )}
               </div>
@@ -1229,54 +1157,8 @@ const InstructorCourseDetailPage: React.FC = () => {
             {/* Video Submissions Tab */}
             {activeTab === 'submissions' && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Video Submissions</h2>
-                  <div className="flex items-center space-x-3">
-                    <div className="text-sm text-gray-600">
-                      {videoSubmissions.length} submission{videoSubmissions.length !== 1 ? 's' : ''}
-                    </div>
-                    
-                    {/* Quick Actions */}
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => setCollapsedVideos(new Set(videoSubmissions.map(s => s.submissionId)))}
-                        className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                      >
-                        ▲ Collapse All
-                      </button>
-                      <button
-                        onClick={() => setCollapsedVideos(new Set())}
-                        className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                      >
-                        ▼ Expand All
-                      </button>
-                    </div>
-                    
-                    {/* Global Playback Speed Control */}
-                    <div className="flex items-center space-x-2">
-                      <label className="text-sm font-medium text-gray-700">Speed:</label>
-                      <select
-                        value={globalPlaybackSpeed}
-                        onChange={(e) => handlePlaybackSpeedChange(Number(e.target.value))}
-                        className="px-2 py-1 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value={0.5}>0.5x</option>
-                        <option value={0.75}>0.75x</option>
-                        <option value={1.0}>1x</option>
-                        <option value={1.25}>1.25x</option>
-                        <option value={1.5}>1.5x</option>
-                        <option value={1.75}>1.75x</option>
-                        <option value={2.0}>2x</option>
-                      </select>
-                    </div>
-                    
-                    <button
-                      onClick={() => router.push(`/instructor/grading/bulk?course=${courseId}`)}
-                      className="px-4 py-2 bg-[#005587] text-white rounded-xl font-medium hover:bg-[#004060] transition-colors text-sm"
-                    >
-                      Bulk Grading
-                    </button>
-                  </div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-xs text-gray-500">{videoSubmissions.length} video{videoSubmissions.length !== 1 ? 's' : ''}</p>
                 </div>
                 
                 {videoSubmissions.length > 0 ? (
