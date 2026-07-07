@@ -18,10 +18,11 @@ interface AssignmentFormData {
   courseId: string;
   title: string;
   description: string;
-  assignmentType: 'video' | 'text' | 'file';
+  assignmentType: 'video' | 'discussion' | 'assessment';
   dueDate: string;
   maxScore: number;
   rubric: RubricCategory[];
+  instructionalVideoUrl: string;
 }
 
 const STEPS = [
@@ -49,6 +50,7 @@ const CreateAssignmentPage: React.FC = () => {
     dueDate: '',
     maxScore: 100,
     rubric: [],
+    instructionalVideoUrl: '',
   });
 
   useEffect(() => {
@@ -110,6 +112,7 @@ const CreateAssignmentPage: React.FC = () => {
           dueDate: formData.dueDate,
           maxScore: formData.maxScore,
           rubric: formData.rubric.length > 0 ? formData.rubric : null,
+          instructionalVideoUrl: formData.instructionalVideoUrl || '',
           instructorId: user?.id,
           status: 'published',
         }),
@@ -197,11 +200,7 @@ const CreateAssignmentPage: React.FC = () => {
 
   const renderStep2 = () => (
     <div className="space-y-4">
-      <h2
-        className="text-lg font-bold text-[#005587]"
-      >
-        Assignment Details
-      </h2>
+      <h2 className="text-lg font-bold text-[#005587]">Assignment Details</h2>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
@@ -215,52 +214,126 @@ const CreateAssignmentPage: React.FC = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Description / Instructions</label>
         <textarea
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Describe the assignment..."
+          placeholder="Describe the assignment, include prompts or questions..."
           rows={4}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587] resize-none"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Assignment Type</label>
-        <select
-          value={formData.assignmentType}
-          onChange={(e) =>
-            setFormData({ ...formData, assignmentType: e.target.value as 'video' | 'text' | 'file' })
-          }
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
-        >
-          <option value="video">Video</option>
-          <option value="text">Text</option>
-          <option value="file">File Upload</option>
-        </select>
+        <label className="block text-sm font-medium text-gray-700 mb-2">Assignment Type</label>
+        <div className="space-y-2">
+          <button
+            type="button"
+            onClick={() => setFormData({ ...formData, assignmentType: 'video' })}
+            className={`w-full p-3 rounded-xl border text-left transition-colors ${
+              formData.assignmentType === 'video'
+                ? 'border-[#005587] bg-[#005587]/5'
+                : 'border-gray-200 bg-white'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">🎥</span>
+              <div>
+                <span className="text-sm font-bold text-gray-900">Video</span>
+                <p className="text-xs text-gray-500">Students record or upload a video submission</p>
+              </div>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormData({ ...formData, assignmentType: 'discussion' })}
+            className={`w-full p-3 rounded-xl border text-left transition-colors ${
+              formData.assignmentType === 'discussion'
+                ? 'border-[#005587] bg-[#005587]/5'
+                : 'border-gray-200 bg-white'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">💬</span>
+              <div>
+                <span className="text-sm font-bold text-gray-900">Discussion Board</span>
+                <p className="text-xs text-gray-500">Students dialog around a topic — whole class or small groups</p>
+              </div>
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setFormData({ ...formData, assignmentType: 'assessment' })}
+            className={`w-full p-3 rounded-xl border text-left transition-colors ${
+              formData.assignmentType === 'assessment'
+                ? 'border-[#005587] bg-[#005587]/5'
+                : 'border-gray-200 bg-white'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">📋</span>
+              <div>
+                <span className="text-sm font-bold text-gray-900">Assessment</span>
+                <p className="text-xs text-gray-500">Live recording with timed on-screen questions, full upper body required</p>
+              </div>
+            </div>
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
-          <input
-            type="datetime-local"
-            value={formData.dueDate}
-            onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
-          />
+      {/* Discussion Board options */}
+      {formData.assignmentType === 'discussion' && (
+        <div className="bg-gray-50 rounded-xl p-3">
+          <label className="block text-xs font-medium text-gray-600 mb-2">Discussion Format</label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setFormData({ ...formData, description: formData.description })}
+              className="flex-1 px-3 py-2 bg-[#005587] text-white rounded-lg text-xs font-medium"
+            >
+              Whole Class
+            </button>
+            <button
+              type="button"
+              className="flex-1 px-3 py-2 bg-gray-200 text-gray-500 rounded-lg text-xs font-medium"
+              disabled
+            >
+              Small Groups (Coming soon)
+            </button>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Max Points</label>
-          <input
-            type="number"
-            min={1}
-            max={1000}
-            value={formData.maxScore}
-            onChange={(e) => setFormData({ ...formData, maxScore: Number(e.target.value) })}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
-          />
+      )}
+
+      {/* Assessment info */}
+      {formData.assignmentType === 'assessment' && (
+        <div className="bg-blue-50 rounded-xl p-3">
+          <p className="text-xs text-blue-800">
+            <strong>Assessment mode:</strong> Questions appear on screen with a timer. Students must show full upper body and arms in frame. Each question auto-advances when time expires.
+          </p>
         </div>
+      )}
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+        <input
+          type="datetime-local"
+          value={formData.dueDate}
+          onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+        />
+      </div>
+
+      {/* Instructional Video */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Instructional Video (optional)</label>
+        <p className="text-xs text-gray-500 mb-2">Record or paste a link to a video explaining this assignment</p>
+        <input
+          type="url"
+          value={formData.instructionalVideoUrl}
+          onChange={(e) => setFormData({ ...formData, instructionalVideoUrl: e.target.value })}
+          placeholder="Paste YouTube, Google Drive, or video URL..."
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+        />
       </div>
     </div>
   );
