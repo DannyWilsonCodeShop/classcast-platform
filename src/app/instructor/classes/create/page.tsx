@@ -790,27 +790,6 @@ const CreateClassPage: React.FC = () => {
                 />
               </div>
 
-              <div className="mt-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Class Color Theme
-                </label>
-                <div className="flex space-x-3">
-                  {colorOptions.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      onClick={() => handleInputChange('backgroundColor', color.value)}
-                      className={`w-12 h-12 rounded-lg border-2 ${
-                        formData.backgroundColor === color.value
-                          ? 'border-gray-800'
-                          : 'border-gray-300'
-                      } ${color.preview} hover:scale-110 transition-transform`}
-                      title={color.label}
-                    />
-                  ))}
-                </div>
-              </div>
-
               {/* Course Privacy Setting */}
               <div className="mt-6">
                 <label className="block text-sm font-medium text-gray-700 mb-3">

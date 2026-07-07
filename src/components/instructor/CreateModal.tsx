@@ -2,6 +2,7 @@
 
 import React, { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import ModalTransition from '@/components/transitions/ModalTransition';
 
 interface CreateModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface CreateOption {
   description: string;
   icon: string;
   route: string;
+  disabled?: boolean;
 }
 
 const CREATE_OPTIONS: CreateOption[] = [
@@ -34,72 +36,51 @@ const CREATE_OPTIONS: CreateOption[] = [
   {
     id: 'module',
     label: 'New Module',
-    description: 'Add instructional video content',
+    description: 'Coming soon',
     icon: '🎬',
-    route: '/instructor/lesson-modules',
+    route: '',
+    disabled: true,
   },
 ];
 
 export function CreateModal({ isOpen, onClose }: CreateModalProps) {
   const router = useRouter();
 
-  const handleEscape = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    },
-    [onClose]
-  );
-
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }
-  }, [isOpen, handleEscape]);
-
-  if (!isOpen) return null;
-
-  const handleOptionClick = (route: string) => {
+  const handleOptionClick = (option: CreateOption) => {
+    if (option.disabled) return;
     onClose();
-    router.push(route);
+    router.push(option.route);
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Create content"
-    >
-      <div
-        className="bg-white rounded-2xl p-6 max-w-[380px] w-full mx-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2
-          className="text-lg font-bold text-[#005587] mb-4"
-          style={{ fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' }}
-        >
-          What do you want to create?
-        </h2>
+    <ModalTransition isOpen={isOpen} onClose={onClose}>
+      <div className="bg-white w-full rounded-2xl p-5" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-[#005587]">
+            What do you want to create?
+          </h2>
+          <button onClick={onClose} className="text-gray-400 p-1">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
         <div className="space-y-3">
           {CREATE_OPTIONS.map((option) => (
             <button
               key={option.id}
-              onClick={() => handleOptionClick(option.route)}
-              className="w-full bg-gray-50 rounded-2xl p-4 hover:bg-gray-100 cursor-pointer transition-colors text-left flex items-center gap-4"
+              onClick={() => handleOptionClick(option)}
+              disabled={option.disabled}
+              className={`w-full bg-gray-50 rounded-2xl p-4 transition-colors text-left flex items-center gap-4 active:scale-[0.98] transition-transform ${
+                option.disabled ? 'opacity-50' : 'hover:bg-gray-100'
+              }`}
             >
               <span className="text-2xl" role="img" aria-label={option.label}>
                 {option.icon}
               </span>
               <div>
-                <span
-                  className="block text-sm font-bold text-[#005587]"
-                  style={{ fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' }}
-                >
+                <span className="block text-sm font-bold text-[#005587]">
                   {option.label}
                 </span>
                 <span className="block text-xs text-gray-500 mt-0.5">
@@ -110,6 +91,6 @@ export function CreateModal({ isOpen, onClose }: CreateModalProps) {
           ))}
         </div>
       </div>
-    </div>
+    </ModalTransition>
   );
 }
