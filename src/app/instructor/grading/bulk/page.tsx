@@ -41,6 +41,7 @@ interface VideoSubmission {
   studentId: string;
   studentName: string;
   studentEmail: string;
+  studentAvatar?: string;
   assignmentId: string;
   assignmentTitle: string;
   videoUrl: string;
@@ -226,6 +227,7 @@ const BulkGradingContent: React.FC = () => {
             studentId: sub.studentId,
             studentName: sub.student?.name || 'Unknown Student',
             studentEmail: sub.student?.email || '',
+            studentAvatar: sub.student?.avatar || '',
             assignmentId: sub.assignmentId,
             assignmentTitle: sub.assignment?.title || 'Unknown Assignment',
             videoUrl: sub.videoUrl,
@@ -916,7 +918,7 @@ const BulkGradingContent: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <img src="/ClassCastLogo.png" alt="ClassCast" className="w-7 h-7 object-contain" />
-              <h1 className="text-sm font-bold text-[#005587]">
+              <h1 className="text-base font-bold text-[#005587]">
                 {selectedStudent !== 'all' ? selectedStudentName : 'Grading'}
               </h1>
             </div>
@@ -1095,8 +1097,18 @@ const BulkGradingContent: React.FC = () => {
                     {/* Student Header */}
                     <div className="px-4 py-3 flex items-center justify-between bg-gray-50 border-b border-gray-100">
                       <div className="flex items-center space-x-3">
-                        <div className="w-9 h-9 bg-[#005587] rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                          {(() => { const s = submission.studentName || '?'; return [...s][0] || '?'; })()}
+                        <div className="w-9 h-9 rounded-full overflow-hidden bg-[#005587] flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                          {(() => {
+                            const avatar = submission.studentAvatar;
+                            if (avatar && avatar.startsWith('http')) {
+                              return <img src={avatar} alt="" className="w-full h-full object-cover" />;
+                            }
+                            if (avatar && avatar.length <= 4 && !avatar.startsWith('http')) {
+                              return <span className="text-lg">{avatar}</span>;
+                            }
+                            const s = submission.studentName || '?';
+                            return [...s][0]?.toUpperCase() || '?';
+                          })()}
                         </div>
                         <div>
                           <p className="font-semibold text-sm text-gray-900">{submission.studentName}</p>
