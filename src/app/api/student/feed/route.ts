@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
           courseInitials: course?.courseInitials || course?.code?.substring(0, 3).toUpperCase(),
           assignmentId: sub.assignmentId,
           videoUrl: videoUrl,
-          thumbnailUrl: videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : sub.thumbnailUrl,
+          thumbnailUrl: sub.thumbnailUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null),
           title: assignmentMap.get(sub.assignmentId) || sub.videoTitle || sub.title || 'Video',
           author: { id: sub.studentId, name: studentName, avatar: studentAvatar },
           likes: sub.likes || 0,

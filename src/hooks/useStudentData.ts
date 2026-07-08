@@ -19,6 +19,7 @@ export interface FeedItem {
   type?: string;
   title?: string;
   videoUrl?: string;
+  thumbnailUrl?: string;
   author?: { name?: string; avatar?: string; id?: string };
   rating?: number;
   likes?: number;
