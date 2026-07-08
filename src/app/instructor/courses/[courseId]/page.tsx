@@ -1064,16 +1064,6 @@ const InstructorCourseDetailPage: React.FC = () => {
                 📝 Assignments
               </button>
               <button
-                onClick={() => setActiveTab('submissions')}
-                className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
-                  activeTab === 'submissions'
-                    ? 'bg-[#005587] text-white'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                🎥 Video Submissions
-              </button>
-              <button
                 onClick={() => setActiveTab('students')}
                 className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
                   activeTab === 'students'

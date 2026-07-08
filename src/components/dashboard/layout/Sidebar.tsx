@@ -8,7 +8,6 @@ import {
   ChartBarIcon,
   Cog6ToothIcon,
   XMarkIcon,
-  AcademicCapIcon,
   BookOpenIcon
 } from '@heroicons/react/24/outline';
 
@@ -198,26 +197,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
               <div className="text-left">
                 <div className="font-medium">Recent Grades</div>
                 <div className="text-xs text-gray-500">View your performance</div>
-              </div>
-            </button>
-
-            <button
-              onClick={() => handleNavigation('/student/study-modules')}
-              className={`
-                w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors
-                ${isActive('/student/study-modules')
-                  ? 'bg-blue-50 text-blue-700'
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                }
-              `}
-            >
-              <AcademicCapIcon className={`
-                w-5 h-5 mr-3 flex-shrink-0
-                ${isActive('/student/study-modules') ? 'text-blue-500' : 'text-gray-400'}
-              `} />
-              <div className="text-left">
-                <div className="font-medium">Study Modules</div>
-                <div className="text-xs text-gray-500">Interactive learning</div>
               </div>
             </button>
           </nav>
