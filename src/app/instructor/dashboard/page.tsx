@@ -139,7 +139,7 @@ const InstructorDashboard: React.FC = () => {
               <select
                 value={selectedCourseId}
                 onChange={(e) => handleCourseChange(e.target.value)}
-                className={`w-full px-3 py-2 bg-gray-100 border-0 rounded-xl text-sm font-bold text-[#005587] focus:outline-none focus:ring-2 focus:ring-[#005587] ${isWide ? 'text-base' : ''}`}
+                className={`px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-bold text-[#005587] focus:outline-none focus:ring-2 focus:ring-[#005587] ${isWide ? 'max-w-[280px]' : 'w-full'}`}
               >
                 <option value="" className="font-normal text-gray-500">Select a course...</option>
                 {courses.map((course) => (
