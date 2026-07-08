@@ -148,7 +148,7 @@ export default function StudentDashboardPage() {
         </div>
       ) : (
       /* ===== MOBILE LAYOUT (existing) ===== */
-      <div className="h-full flex flex-col overflow-hidden bg-white" style={{ maxHeight: '100%' }}>
+      <div className="h-full flex flex-col overflow-hidden bg-white" style={{ maxHeight: '100%', overflowY: 'hidden' }}>
         {loading ? (
           <DashboardSkeleton />
         ) : (
@@ -197,7 +197,7 @@ export default function StudentDashboardPage() {
           <div className="px-4 pt-2 pb-1 shrink-0">
             <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Recent Videos</h2>
           </div>
-          <div className="flex-1 overflow-hidden px-4 pb-2 min-h-0">
+          <div className="flex-1 overflow-hidden px-4 min-h-0">
             {feed.length > 0 ? (
               <div className="flex gap-2 overflow-x-auto h-full items-start pt-1 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
                 {feed.slice(0, 10).map(item => {
@@ -206,30 +206,32 @@ export default function StudentDashboardPage() {
                   const hasImageAvatar = item.author?.avatar && item.author.avatar.startsWith('http');
                   return (
                     <div key={item.id} className="shrink-0 w-44 h-full flex flex-col cursor-pointer" onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed?videoId=${item.id}`)}>
-                      {/* Video thumbnail */}
-                      <div className="relative rounded-xl overflow-hidden flex-1 bg-gray-800 min-h-[180px]">
+                      {/* Video thumbnail with overlay info */}
+                      <div className="relative rounded-xl overflow-hidden flex-1 bg-gray-800">
                         {ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" onLoadedMetadata={e => { (e.target as HTMLVideoElement).currentTime = 3; }} /> : <div className="w-full h-full bg-gradient-to-br from-[#005587] to-[#0077aa] flex items-center justify-center"><svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>}
+                        {/* Play button */}
                         <div className="absolute inset-0 flex items-center justify-center"><div className="w-11 h-11 bg-white/80 rounded-full flex items-center justify-center shadow-lg"><svg className="w-5 h-5 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
-                      </div>
-                      {/* Author row — prominent avatar + name */}
-                      <div className="flex items-center gap-2 mt-2 shrink-0">
-                        <div className="w-7 h-7 rounded-full bg-[#005587] border-2 border-[#FFC72C] flex items-center justify-center shrink-0 overflow-hidden">
-                          {isEmojiAvatar ? (
-                            <span className="text-base">{item.author!.avatar}</span>
-                          ) : hasImageAvatar ? (
-                            <img src={item.author!.avatar!} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-white text-[10px] font-bold">{(item.author?.name || 'S')[0].toUpperCase()}</span>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-700 font-medium truncate">{item.author?.name || 'Student'}</span>
-                      </div>
-                      {/* Title + likes below */}
-                      <div className="mt-1 shrink-0">
-                        <p className="text-sm text-gray-900 truncate font-medium uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.03em' }}>{item.title || 'Video'}</p>
-                        <div className="flex items-center gap-2.5 text-xs text-gray-500 mt-0.5">
-                          <span>⭐ {item.likes || 0}</span>
-                          <div className="flex gap-0.5">{[1,2,3,4,5].map(s => <svg key={s} className={`w-3 h-3 ${s <= (item.rating || 0) ? 'text-[#FFC72C]' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>)}</div>
+                        {/* Overlay info at bottom of thumbnail */}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2.5 pt-8">
+                          {/* Author */}
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-6 h-6 rounded-full bg-[#005587] border-[1.5px] border-[#FFC72C] flex items-center justify-center shrink-0 overflow-hidden">
+                              {isEmojiAvatar ? (
+                                <span className="text-sm">{item.author!.avatar}</span>
+                              ) : hasImageAvatar ? (
+                                <img src={item.author!.avatar!} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="text-white text-[9px] font-bold">{(item.author?.name || 'S')[0].toUpperCase()}</span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-white font-medium truncate">{item.author?.name || 'Student'}</span>
+                          </div>
+                          {/* Title + stars */}
+                          <p className="text-xs text-white truncate font-medium mt-1 uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.03em' }}>{item.title || 'Video'}</p>
+                          <div className="flex items-center gap-2 text-[10px] text-white/70 mt-0.5">
+                            <span>⭐ {item.likes || 0}</span>
+                            <div className="flex gap-0.5">{[1,2,3,4,5].map(s => <svg key={s} className={`w-2.5 h-2.5 ${s <= (item.rating || 0) ? 'text-[#FFC72C]' : 'text-white/30'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>)}</div>
+                          </div>
                         </div>
                       </div>
                     </div>
