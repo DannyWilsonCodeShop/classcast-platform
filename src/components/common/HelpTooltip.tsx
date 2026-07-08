@@ -28,9 +28,9 @@ export function HelpTooltip({ text, className = '' }: HelpTooltipProps) {
       {isOpen && (
         <>
           {/* Backdrop to close on tap anywhere */}
-          <div className="fixed inset-0 z-[999]" onClick={() => setIsOpen(false)} />
+          <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
           {/* Tooltip */}
-          <div className="absolute z-[1000] bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg p-3 text-xs text-gray-700 leading-relaxed animate-fade-in">
+          <div className="absolute z-[9999] bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg p-3 text-xs text-gray-700 leading-relaxed animate-fade-in">
             {text}
             <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-white border-r border-b border-gray-200 transform rotate-45 -mt-1" />
           </div>
