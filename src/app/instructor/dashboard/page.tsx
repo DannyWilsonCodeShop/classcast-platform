@@ -164,10 +164,6 @@ const InstructorDashboard: React.FC = () => {
                   <span className="text-xs text-gray-500">{selectedCourse.code}</span>
                 )}
               </div>
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-bold text-[#005587]">{selectedCourse.studentCount || 0}</span>
-                <span className="text-xs text-gray-500">students</span>
-              </div>
             </div>
           </div>
         )}

@@ -449,9 +449,12 @@ const AssignmentGradesPage: React.FC = () => {
 
           {/* Filters - collapsible */}
           <details className="bg-gray-50 rounded-xl">
-            <summary className="px-3 py-2 text-xs text-gray-600 font-medium cursor-pointer flex items-center justify-between">
+            <summary className="px-3 py-2 text-xs text-gray-600 font-medium cursor-pointer flex items-center justify-between list-none [&::-webkit-details-marker]:hidden">
               <span>Filters</span>
-              <span className="text-[10px] text-gray-400">{filteredGrades.length}/{studentGrades.length}</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] text-gray-400">{filteredGrades.length}/{studentGrades.length}</span>
+                <svg className="w-3.5 h-3.5 text-gray-400 transition-transform [[open]>&]:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
             </summary>
             <div className="px-3 pb-3 grid grid-cols-2 gap-2">
               <select
@@ -505,8 +508,8 @@ const AssignmentGradesPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {getStatusBadge(grade.status)}
-                  <span className="text-xs font-medium text-gray-700 w-8 text-right">
-                    {grade.grade !== undefined && grade.grade !== null ? grade.grade : '—'}
+                  <span className="text-xs font-medium text-gray-700 w-12 text-right">
+                    {grade.grade !== undefined && grade.grade !== null ? `${grade.grade}/${assignment.maxScore}` : '—'}
                   </span>
                   {grade.submissionId && (
                     <button
