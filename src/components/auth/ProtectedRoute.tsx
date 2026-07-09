@@ -61,8 +61,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Show loading state while checking authentication
   if (isLoading) {
     return fallback || (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#005587] border-t-transparent"></div>
       </div>
     );
   }
@@ -70,9 +70,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Show fallback while redirecting
   if (!isAuthenticated || !user) {
     return fallback || (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#005587] border-t-transparent mx-auto mb-4"></div>
           <p className="text-gray-600">Redirecting to login...</p>
         </div>
       </div>
