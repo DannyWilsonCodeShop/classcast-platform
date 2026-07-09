@@ -1050,6 +1050,37 @@ const InstructorCourseDetailPage: React.FC = () => {
             ⚙️ <span>Course Settings</span>
           </button>
 
+          {/* Course Info - Compact */}
+          <div className="bg-gray-50 rounded-2xl p-3">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div><span className="text-gray-500">Code:</span> <span className="font-medium">{course.courseCode}</span></div>
+              <div><span className="text-gray-500">Semester:</span> <span className="font-medium">{course.semester} {course.year}</span></div>
+              <div><span className="text-gray-500">Students:</span> <span className="font-medium">{course.enrollmentCount}/{course.maxEnrollment || '∞'}</span></div>
+              <div><span className="text-gray-500">Assignments:</span> <span className="font-medium">{assignments.length}</span></div>
+            </div>
+          </div>
+
+          {/* Section Cards - horizontal row */}
+          {sections.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+              {sections.map((section: any) => (
+                <button
+                  key={section.sectionId}
+                  onClick={() => router.push(`/instructor/courses/${courseId}/sections/${section.sectionId}`)}
+                  className="shrink-0 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 active:scale-[0.98] transition-transform"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-[#005587]">{section.sectionName}</span>
+                    {section.classCode && (
+                      <span className="text-[9px] font-mono bg-[#005587]/10 text-[#005587] px-1.5 py-0.5 rounded-full">{section.classCode}</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{section.currentEnrollment || 0}/{section.maxEnrollment || '∞'} students</p>
+                </button>
+              ))}
+            </div>
+          )}
+
           {/* Tab Navigation */}
           <div className="bg-gray-50 rounded-2xl p-4">
             <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-4">
@@ -1482,22 +1513,9 @@ const InstructorCourseDetailPage: React.FC = () => {
           </div>
 
           {/* Section List - shows sections if they exist */}
-          <SectionList
-            courseId={courseId}
-            sections={sections}
-          />
-          {/* Course Info - Compact for mobile */}
-          <div className="bg-gray-50 rounded-2xl p-3">
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div><span className="text-gray-500">Code:</span> <span className="font-medium">{course.courseCode}</span></div>
-              <div><span className="text-gray-500">Semester:</span> <span className="font-medium">{course.semester} {course.year}</span></div>
-              <div><span className="text-gray-500">Students:</span> <span className="font-medium">{course.enrollmentCount}/{course.maxEnrollment || '∞'}</span></div>
-              <div><span className="text-gray-500">Assignments:</span> <span className="font-medium">{assignments.length}</span></div>
-            </div>
-            {course.description && (
-              <p className="mt-2 text-xs text-gray-600 line-clamp-2">{course.description}</p>
-            )}
-          </div>
+          {/* (moved to top - see above tab navigation) */}
+          
+          {/* Course Info - moved to top */}
         </div>
 
         {/* Course Settings Modal */}
