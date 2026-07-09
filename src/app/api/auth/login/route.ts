@@ -89,23 +89,6 @@ export async function POST(request: NextRequest) {
     const demoEmails = ['studentdemo@myclasscast.com', 'instructordemo@myclasscast.com', 'student@cc.app', 'teacher@cc.app', 'demo@classcast.ai'];
     const isDemoLogin = demoEmails.includes(sanitizedEmailEarly);
 
-    // Password strength validation (skip for demo users)
-    if (!isDemoLogin && password.length < 8) {
-      return NextResponse.json(
-        { error: { message: 'Password must be at least 8 characters long' } },
-        { status: 400 }
-      );
-    }
-
-    // Password complexity validation (skip for demo users)
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
-    if (!isDemoLogin && !passwordRegex.test(password)) {
-      return NextResponse.json(
-        { error: { message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character' } },
-        { status: 400 }
-      );
-    }
-
     // Input sanitization
     const sanitizedEmail = email.toLowerCase().trim();
     const sanitizedPassword = password.trim();

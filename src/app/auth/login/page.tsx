@@ -40,7 +40,10 @@ export default function LoginPage() {
       await login(email, password);
       clearTimeout(loadingTimer);
     } catch (err) {
+      clearTimeout(loadingTimer);
       setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
+      setIsLoading(false);
+      setShowLoadingModal(false);
     } finally {
       setIsLoading(false);
       setShowLoadingModal(false);
