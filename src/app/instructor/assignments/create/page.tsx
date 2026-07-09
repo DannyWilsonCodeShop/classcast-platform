@@ -129,7 +129,7 @@ const CreateAssignmentPage: React.FC = () => {
     }
   };
 
-  // Fetch problem banks when reaching step 4
+  // Fetch question banks when reaching step 4
   const fetchProblemBanks = async () => {
     try {
       const res = await fetch(`/api/problem-banks?instructorId=${user?.id}`);
@@ -138,7 +138,7 @@ const CreateAssignmentPage: React.FC = () => {
         setProblemBanks(data.data.banks || []);
       }
     } catch (err) {
-      console.error('Failed to fetch problem banks:', err);
+      console.error('Failed to fetch question banks:', err);
     }
   };
 
@@ -240,7 +240,7 @@ const CreateAssignmentPage: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
-        // If a problem bank is linked, trigger distribution
+        // If a question bank is linked, trigger distribution
         if (formData.problemBankId && data.data?.assignmentId) {
           try {
             await fetch('/api/problem-assignments', {
@@ -629,12 +629,12 @@ const CreateAssignmentPage: React.FC = () => {
   const renderStep5 = () => {
     const selectedCourse = courses.find((c) => c.courseId === formData.courseId);
 
-    // If building a new problem bank inline
+    // If building a new question bank inline
     if (showBankBuilder) {
       return (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#005587]">Create Problem Bank</h2>
+            <h2 className="text-lg font-bold text-[#005587]">Create Question Bank</h2>
             <button onClick={() => setShowBankBuilder(false)} className="text-sm text-gray-500">Cancel</button>
           </div>
           <ProblemBankBuilder
@@ -732,7 +732,7 @@ const CreateAssignmentPage: React.FC = () => {
           )}
         </div>
 
-        {/* Problem Bank toggle */}
+        {/* Question Bank toggle */}
         <div className="border border-gray-200 rounded-xl p-3">
           {formData.problemBankId ? (
             <div className="flex items-center justify-between">
@@ -750,14 +750,14 @@ const CreateAssignmentPage: React.FC = () => {
             >
               <div>
                 <p className="text-xs font-medium text-gray-700">Need individualized problems?</p>
-                <p className="text-[10px] text-gray-400">Assign each student a unique question from a problem bank</p>
+                <p className="text-[10px] text-gray-400">Assign each student a unique question from a question bank</p>
               </div>
               <span className="text-xs text-[#005587] font-medium">Add →</span>
             </button>
           ) : (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-gray-700">Link a Problem Bank</p>
+                <p className="text-xs font-medium text-gray-700">Link a Question Bank</p>
                 <button onClick={() => setShowProblemBankSection(false)} className="text-[10px] text-gray-400">Cancel</button>
               </div>
               {problemBanks.length > 0 && (

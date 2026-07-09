@@ -171,7 +171,7 @@ export function ProblemBankBuilder({
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Problem Bank Title"
+          placeholder="Question Bank Title"
           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-bold text-[#005587] focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
         />
         <textarea

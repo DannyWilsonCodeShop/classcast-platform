@@ -109,7 +109,7 @@ export default function ProblemBanksPage() {
         <div className="min-h-full overflow-y-auto pb-24">
           <div className="max-w-2xl mx-auto px-4 py-6">
             <h1 className="text-xl font-bold text-[#005587] mb-4">
-              {editingBank ? 'Edit Problem Bank' : 'Create Problem Bank'}
+              {editingBank ? 'Edit Question Bank' : 'Create Question Bank'}
             </h1>
             <ProblemBankBuilder
               bankId={editingBank?.bankId}
@@ -132,7 +132,7 @@ export default function ProblemBanksPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-1.5">
-              <h1 className="text-xl font-bold text-[#005587]">Problem Banks</h1>
+              <h1 className="text-xl font-bold text-[#005587]">Question Banks</h1>
               <HelpTooltip text="Problem banks let you create sets of unique questions. Link a bank to an assignment and each student gets a different problem — great for individualized homework and preventing cheating." />
             </div>
             <button
@@ -153,7 +153,7 @@ export default function ProblemBanksPage() {
           ) : banks.length === 0 ? (
             <div className="text-center py-12">
               <span className="text-4xl block mb-3">📋</span>
-              <p className="text-gray-600 font-medium">No problem banks yet</p>
+              <p className="text-gray-600 font-medium">No question banks yet</p>
               <p className="text-gray-400 text-sm mt-1">Create one to distribute unique problems to students</p>
             </div>
           ) : (
@@ -220,7 +220,7 @@ export default function ProblemBanksPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setDeleteConfirm(null)}>
             <div className="absolute inset-0 bg-black/40" />
             <div className="relative bg-white rounded-2xl p-6 mx-4 max-w-sm w-full" onClick={e => e.stopPropagation()}>
-              <h3 className="font-bold text-gray-900 mb-2">Delete Problem Bank?</h3>
+              <h3 className="font-bold text-gray-900 mb-2">Delete Question Bank?</h3>
               <p className="text-sm text-gray-600 mb-4">This will permanently delete the bank and all its problems. This cannot be undone.</p>
               <div className="flex gap-3">
                 <button
