@@ -15,7 +15,7 @@ const config: CapacitorConfig = {
     contentInset: 'never',
     preferredContentMode: 'mobile',
     scheme: 'ClassCast',
-    backgroundColor: '#005587',
+    backgroundColor: '#ffffff',
     scrollEnabled: true,
   },
   plugins: {
