@@ -76,35 +76,33 @@ export const TemplateRubricSelector: React.FC<TemplateRubricSelectorProps> = ({
   }
 
   return (
-    <div className="mb-6">
-      <h3 className="text-sm font-semibold text-[#005587] uppercase tracking-wide mb-1" style={{ fontFamily: "'Oswald', sans-serif" }}>
-        Start from Template
+    <div className="mb-4">
+      <h3 className="text-xs font-semibold text-gray-500 tracking-wide mb-2">
+        Templates
       </h3>
-      <p className="text-xs text-gray-500 mb-3">Select a pre-built rubric to customize</p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
         {templates.map(([key, template]) => {
           const maxScore = getTemplateMaxScore(template.categories);
-          const categoryCount = template.categories.length;
+          const isDefault = key === 'video_presentation';
 
           return (
             <button
               key={key}
               type="button"
               onClick={() => handleTemplateClick(key)}
-              className="bg-gray-50 rounded-xl p-3 hover:bg-gray-100 cursor-pointer border border-transparent hover:border-[#005587]/20 text-left transition-all"
+              className={`rounded-xl p-2.5 text-left transition-all border ${
+                isDefault && !hasExistingContent
+                  ? 'border-[#005587] bg-[#005587]/5'
+                  : 'border-transparent bg-gray-50 hover:bg-gray-100 hover:border-gray-200'
+              }`}
             >
-              <p className="text-sm font-semibold text-gray-900 mb-0.5">
+              <p className="text-xs font-bold text-gray-900 truncate">
                 {template.label}
               </p>
-              <p className="text-xs text-gray-500 mb-2 line-clamp-2">
-                {template.description}
+              <p className="text-[10px] text-gray-400 mt-0.5">
+                {template.categories.length} cat • {maxScore} pts
               </p>
-              <div className="flex items-center gap-3 text-xs text-gray-400">
-                <span>{categoryCount} {categoryCount === 1 ? 'category' : 'categories'}</span>
-                <span>•</span>
-                <span>{maxScore} pts max</span>
-              </div>
             </button>
           );
         })}

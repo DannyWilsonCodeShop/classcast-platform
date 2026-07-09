@@ -596,16 +596,19 @@ const CreateAssignmentPage: React.FC = () => {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2
-            className="text-lg font-bold text-[#005587]"
+          <h2 className="text-lg font-bold text-[#005587]">Rubric</h2>
+          <button
+            type="button"
+            onClick={() => setCurrentStep(5)}
+            className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors"
           >
-            Rubric Builder
-          </h2>
-          <span className="text-xs text-gray-400 italic">Optional — skip if not needed</span>
+            Skip →
+          </button>
         </div>
         <RubricBuilder
           value={formData.rubric}
           onChange={(rubric) => setFormData({ ...formData, rubric })}
+          autoLoadDefault={formData.rubric.length === 0}
         />
       </div>
     );

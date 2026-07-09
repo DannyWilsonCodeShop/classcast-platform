@@ -1,20 +1,68 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { RubricCategory, ScoringLevel, generateCategoryId } from '@/types/rubric';
 import { TemplateRubricSelector } from './TemplateRubricSelector';
+import { TEMPLATE_RUBRICS } from '@/lib/template-rubrics';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface RubricBuilderProps {
   value: RubricCategory[];
   onChange: (rubric: RubricCategory[]) => void;
   disabled?: boolean;
+  autoLoadDefault?: boolean;
 }
 
 export const RubricBuilder: React.FC<RubricBuilderProps> = ({
   value,
   onChange,
   disabled = false,
+  autoLoadDefault = false,
 }) => {
+  const { user } = useAuth();
+  const [savedMessage, setSavedMessage] = useState('');
+
+  // Auto-load default template (Video Presentation) when rubric is empty
+  useEffect(() => {
+    if (autoLoadDefault && value.length === 0) {
+      // Try loading instructor's custom default first
+      if (user?.id) {
+        fetch(`/api/instructor/rubric-templates?instructorId=${user.id}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success && data.data?.rubricTemplates?.length > 0) {
+              onChange(data.data.rubricTemplates);
+            } else if (TEMPLATE_RUBRICS.video_presentation) {
+              onChange(TEMPLATE_RUBRICS.video_presentation.categories);
+            }
+          })
+          .catch(() => {
+            if (TEMPLATE_RUBRICS.video_presentation) {
+              onChange(TEMPLATE_RUBRICS.video_presentation.categories);
+            }
+          });
+      } else if (TEMPLATE_RUBRICS.video_presentation) {
+        onChange(TEMPLATE_RUBRICS.video_presentation.categories);
+      }
+    }
+  }, [autoLoadDefault]);
+
+  const saveAsDefault = async () => {
+    if (!user?.id || value.length === 0) return;
+    try {
+      await fetch('/api/instructor/rubric-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ instructorId: user.id, rubricTemplates: value }),
+      });
+      setSavedMessage('✓ Saved as your default');
+      setTimeout(() => setSavedMessage(''), 2000);
+    } catch {
+      setSavedMessage('Failed to save');
+      setTimeout(() => setSavedMessage(''), 2000);
+    }
+  };
+
   const handleTemplateSelect = (categories: RubricCategory[]) => {
     onChange(categories);
   };
@@ -167,14 +215,28 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
       </div>
 
       {/* Add Category button */}
-      <button
-        type="button"
-        onClick={addCategory}
-        disabled={disabled}
-        className="bg-[#005587] text-white rounded-full px-4 py-2 text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        + Add Category
-      </button>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={addCategory}
+          disabled={disabled}
+          className="bg-[#005587] text-white rounded-full px-4 py-2 text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          + Add Category
+        </button>
+        {value.length > 0 && (
+          <button
+            type="button"
+            onClick={saveAsDefault}
+            className="text-xs text-[#005587] font-medium hover:underline"
+          >
+            Save as my default
+          </button>
+        )}
+        {savedMessage && (
+          <span className="text-xs text-green-600 font-medium">{savedMessage}</span>
+        )}
+      </div>
     </div>
   );
 };
