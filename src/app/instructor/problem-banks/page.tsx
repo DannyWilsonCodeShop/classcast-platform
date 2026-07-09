@@ -16,6 +16,25 @@ export default function ProblemBanksPage() {
   const [showBuilder, setShowBuilder] = useState(false);
   const [editingBank, setEditingBank] = useState<ProblemBank | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [viewingBank, setViewingBank] = useState<string | null>(null);
+  const [viewingProblems, setViewingProblems] = useState<any[]>([]);
+  const [viewingLoading, setViewingLoading] = useState(false);
+
+  const handleViewBank = async (bankId: string) => {
+    setViewingBank(bankId);
+    setViewingLoading(true);
+    try {
+      const res = await fetch(`/api/problem-banks/${bankId}`);
+      const data = await res.json();
+      if (data.success) {
+        setViewingProblems(data.data.problems || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch problems:', err);
+    } finally {
+      setViewingLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (user?.id) fetchBanks();
@@ -160,6 +179,12 @@ export default function ProblemBanksPage() {
                   {/* Actions */}
                   <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
                     <button
+                      onClick={() => handleViewBank(bank.bankId)}
+                      className="px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-medium"
+                    >
+                      View
+                    </button>
+                    <button
                       onClick={() => setEditingBank(bank)}
                       className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700"
                     >
@@ -210,6 +235,53 @@ export default function ProblemBanksPage() {
                 >
                   Delete
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* View Questions Modal */}
+        {viewingBank && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center" onClick={() => { setViewingBank(null); setViewingProblems([]); }}>
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md sm:mx-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-4 pt-4 pb-2 border-b border-gray-100 shrink-0">
+                <h3 className="font-bold text-sm text-[#005587]">
+                  {banks.find(b => b.bankId === viewingBank)?.title || 'Questions'}
+                </h3>
+                <button onClick={() => { setViewingBank(null); setViewingProblems([]); }} className="text-gray-400 p-1">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 py-3">
+                {viewingLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="w-6 h-6 border-2 border-[#005587] border-t-transparent rounded-full animate-spin" />
+                  </div>
+                ) : viewingProblems.length === 0 ? (
+                  <p className="text-center text-gray-400 text-sm py-8">No questions in this bank</p>
+                ) : (
+                  <div className="space-y-2">
+                    {viewingProblems.map((problem: any, idx: number) => (
+                      <div key={problem.problemId || idx} className="bg-gray-50 rounded-xl p-3">
+                        <div className="flex items-start gap-2">
+                          <span className="text-[10px] text-gray-400 font-mono shrink-0 mt-0.5">{idx + 1}.</span>
+                          <div className="flex-1 min-w-0">
+                            {problem.content && (
+                              <p className="text-xs text-gray-800 whitespace-pre-wrap">{problem.content}</p>
+                            )}
+                            {problem.imageUrl && (
+                              <img src={problem.imageUrl} alt={`Problem ${idx + 1}`} className="mt-2 rounded-lg max-h-32 object-contain" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="px-4 py-3 border-t border-gray-100 shrink-0">
+                <p className="text-[10px] text-gray-400 text-center">{viewingProblems.length} question{viewingProblems.length !== 1 ? 's' : ''}</p>
               </div>
             </div>
           </div>
