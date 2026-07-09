@@ -52,18 +52,45 @@ export default function ClassmatesPage() {
         // Extract classmates from enrollment data
         const enrollment = rawCourse.enrollment;
         if (enrollment && enrollment.students && Array.isArray(enrollment.students)) {
-          const students: Classmate[] = enrollment.students
-            .filter((s: any) => s.userId !== user?.id && s.status === 'active')
-            .map((s: any) => ({
-              userId: s.userId,
-              firstName: s.firstName || '',
-              lastName: s.lastName || '',
-              email: s.email || '',
-              avatar: s.avatar || '',
-              sectionName: s.sectionName || '',
-            }));
+          const activeStudents = enrollment.students
+            .filter((s: any) => s.userId !== user?.id && s.userId && s.status === 'active');
 
-          setClassmates(students);
+          // Fetch user profiles to get actual names and avatars
+          const studentProfiles: Classmate[] = await Promise.all(
+            activeStudents.map(async (s: any) => {
+              let firstName = s.firstName || '';
+              let lastName = s.lastName || '';
+              let email = s.email || '';
+              let avatar = s.avatar || '';
+
+              // If name is missing, fetch from user profile
+              if (!firstName && !lastName) {
+                try {
+                  const userRes = await fetch(`/api/users/${s.userId}`, { credentials: 'include' });
+                  if (userRes.ok) {
+                    const userData = await userRes.json();
+                    if (userData.success && userData.user) {
+                      firstName = userData.user.firstName || '';
+                      lastName = userData.user.lastName || '';
+                      email = userData.user.email || email;
+                      avatar = userData.user.avatar || avatar;
+                    }
+                  }
+                } catch { /* skip failed lookups */ }
+              }
+
+              return {
+                userId: s.userId,
+                firstName,
+                lastName,
+                email,
+                avatar,
+                sectionName: s.sectionName || '',
+              };
+            })
+          );
+
+          setClassmates(studentProfiles);
         }
       }
     } catch (e) {
@@ -129,7 +156,7 @@ export default function ClassmatesPage() {
         </div>
 
         {/* Classmates List */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4 min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 pb-24 min-h-0">
           {loading ? (
             <div className="space-y-2 pt-2">
               {[1,2,3,4,5].map(i => (
@@ -193,29 +220,20 @@ export default function ClassmatesPage() {
           )}
         </div>
 
-        {/* Bottom Nav */}
-        <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2 native-bottom-nav">
+        {/* Bottom Nav - Liquid Glass */}
+        <nav className="fixed bottom-4 left-4 right-4 z-40 px-2 py-2 rounded-2xl native-bottom-nav" style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)', border: '1px solid rgba(255,255,255,0.25)', boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.3)' }}>
           <div className="flex items-center justify-around">
-            <button className="flex flex-col items-center" onClick={() => router.push('/student/dashboard')}>
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-              <span className="text-[10px] text-gray-400 mt-0.5">Home</span>
+            <button className="flex flex-col items-center w-1/3 py-1" onClick={() => router.push('/student/dashboard')}>
+              <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+              <span className="text-[9px] text-gray-500">Home</span>
             </button>
-            <button className="flex flex-col items-center" onClick={() => router.push(`/student/courses/${courseId}`)}>
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-              <span className="text-[10px] text-gray-400 mt-0.5">Resources</span>
+            <button className="flex flex-col items-center w-1/3 py-1" onClick={() => router.push(`/student/courses/${courseId}`)}>
+              <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+              <span className="text-[9px] text-gray-500">Course</span>
             </button>
-            <button className="-mt-6" onClick={() => router.push(`/student/courses/${courseId}`)}>
-              <div className="w-14 h-14 bg-gradient-to-br from-[#005587] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-              </div>
-            </button>
-            <button className="flex flex-col items-center">
+            <button className="flex flex-col items-center w-1/3 py-1">
               <svg className="w-6 h-6 text-[#005587]" fill="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-              <span className="text-[10px] text-[#005587] font-medium mt-0.5">Classmates</span>
-            </button>
-            <button className="flex flex-col items-center" onClick={() => router.push('/student/notifications')}>
-              <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-              <span className="text-[10px] text-gray-400 mt-0.5">Alerts</span>
+              <span className="text-[9px] text-[#005587] font-medium">Peers</span>
             </button>
           </div>
         </nav>
