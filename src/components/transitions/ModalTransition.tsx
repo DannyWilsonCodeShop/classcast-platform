@@ -26,12 +26,12 @@ export default function ModalTransition({ isOpen, onClose, children }: ModalTran
   if (!shouldRender) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center pb-20 sm:pb-0" data-modal-open>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" data-modal-open>
       <div
         className={`absolute inset-0 bg-black/40 ${isOpen ? 'animate-backdrop-enter' : 'animate-backdrop-exit'}`}
         onClick={onClose}
       />
-      <div className={`relative z-10 w-full max-w-[380px] mx-4 ${animClass}`}>
+      <div className={`relative z-10 w-full max-w-[380px] ${animClass}`}>
         {children}
       </div>
     </div>
