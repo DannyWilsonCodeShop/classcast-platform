@@ -204,7 +204,7 @@ const InstructorDashboard: React.FC = () => {
               <div className="text-3xl mb-2">📝</div>
               <p className="text-sm text-gray-600 mb-4">No assignments yet</p>
               <button
-                onClick={() => router.push(`/instructor/courses/${selectedCourseId}/assignments/create`)}
+                onClick={() => router.push('/instructor/assignments/create')}
                 className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-bold text-sm"
               >
                 + Create Assignment

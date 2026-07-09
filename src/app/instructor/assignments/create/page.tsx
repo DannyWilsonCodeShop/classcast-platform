@@ -40,11 +40,12 @@ interface AssignmentFormData {
 }
 
 const STEPS = [
-  { number: 1, label: 'Course Selection' },
-  { number: 2, label: 'Assignment Details' },
-  { number: 3, label: 'Rubric Builder' },
-  { number: 4, label: 'Problem Bank' },
-  { number: 5, label: 'Review & Save' },
+  { number: 1, label: 'Course' },
+  { number: 2, label: 'Type' },
+  { number: 3, label: 'Details' },
+  { number: 4, label: 'Setup' },
+  { number: 5, label: 'Problem Bank' },
+  { number: 6, label: 'Review' },
 ];
 
 const CreateAssignmentPage: React.FC = () => {
@@ -92,7 +93,7 @@ const CreateAssignmentPage: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (currentStep < 5) setCurrentStep(currentStep + 1);
+    if (currentStep < 6) setCurrentStep(currentStep + 1);
   };
 
   const handleBack = () => {
@@ -104,12 +105,14 @@ const CreateAssignmentPage: React.FC = () => {
       case 1:
         return formData.courseId !== '';
       case 2:
-        return formData.title.trim() !== '' && formData.dueDate !== '';
+        return formData.assignmentType !== '' as any;
       case 3:
-        return true; // Rubric is optional
+        return formData.title.trim() !== '' && formData.dueDate !== '';
       case 4:
-        return true; // Problem bank is optional
+        return true; // Setup is optional
       case 5:
+        return true; // Problem bank is optional
+      case 6:
         return true;
       default:
         return false;
@@ -252,33 +255,8 @@ const CreateAssignmentPage: React.FC = () => {
 
   const renderStep2 = () => (
     <div className="space-y-4">
-      <h2 className="text-lg font-bold text-[#005587]">Assignment Details</h2>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-        <input
-          type="text"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Assignment title"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Description / Instructions</label>
-        <textarea
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Describe the assignment, include prompts or questions..."
-          rows={4}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587] resize-none"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Assignment Type</label>
-        <div className="space-y-2">
+      <h2 className="text-lg font-bold text-[#005587]">Assignment Type</h2>
+      <div className="space-y-2">
           <button
             type="button"
             onClick={() => setFormData({ ...formData, assignmentType: 'video' })}
@@ -380,39 +358,34 @@ const CreateAssignmentPage: React.FC = () => {
             </div>
           </button>
         </div>
+    </div>
+  );
+
+  const renderStep3 = () => (
+    <div className="space-y-4">
+      <h2 className="text-lg font-bold text-[#005587]">Assignment Details</h2>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+        <input
+          type="text"
+          value={formData.title}
+          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          placeholder="Assignment title"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+        />
       </div>
 
-      {/* Discussion Board options */}
-      {formData.assignmentType === 'discussion' && (
-        <div className="bg-gray-50 rounded-xl p-3">
-          <label className="block text-xs font-medium text-gray-600 mb-2">Discussion Format</label>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setFormData({ ...formData, description: formData.description })}
-              className="flex-1 px-3 py-2 bg-[#005587] text-white rounded-lg text-xs font-medium"
-            >
-              Whole Class
-            </button>
-            <button
-              type="button"
-              className="flex-1 px-3 py-2 bg-gray-200 text-gray-500 rounded-lg text-xs font-medium"
-              disabled
-            >
-              Small Groups (Coming soon)
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Assessment info */}
-      {formData.assignmentType === 'assessment' && (
-        <div className="bg-blue-50 rounded-xl p-3">
-          <p className="text-xs text-blue-800">
-            <strong>Assessment mode:</strong> Questions appear on screen with a timer. Students must show full upper body and arms in frame. Each question auto-advances when time expires.
-          </p>
-        </div>
-      )}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Description / Instructions</label>
+        <textarea
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Describe the assignment, include prompts or questions..."
+          rows={3}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587] resize-none"
+        />
+      </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
@@ -439,15 +412,15 @@ const CreateAssignmentPage: React.FC = () => {
     </div>
   );
 
-  const renderStep3 = () => {
+  const renderStep4 = () => {
     if (formData.assignmentType === 'discussion') {
       return (
         <DiscussionSetupWizard
           onComplete={(config) => {
             setFormData({ ...formData, discussionConfig: config });
-            setCurrentStep(5);
+            setCurrentStep(6);
           }}
-          onBack={() => setCurrentStep(2)}
+          onBack={() => setCurrentStep(3)}
         />
       );
     }
@@ -456,9 +429,9 @@ const CreateAssignmentPage: React.FC = () => {
         <AssessmentSetupWizard
           onComplete={(questions) => {
             setFormData({ ...formData, assessmentQuestions: questions });
-            setCurrentStep(5);
+            setCurrentStep(6);
           }}
-          onBack={() => setCurrentStep(2)}
+          onBack={() => setCurrentStep(3)}
         />
       );
     }
@@ -467,9 +440,9 @@ const CreateAssignmentPage: React.FC = () => {
         <ModuleSetupWizard
           onComplete={(config) => {
             setFormData({ ...formData, moduleConfig: config });
-            setCurrentStep(5);
+            setCurrentStep(6);
           }}
-          onBack={() => setCurrentStep(2)}
+          onBack={() => setCurrentStep(3)}
         />
       );
     }
@@ -484,8 +457,8 @@ const CreateAssignmentPage: React.FC = () => {
             </p>
           </div>
           <div className="flex justify-between pt-2">
-            <button onClick={() => setCurrentStep(2)} className="px-4 py-2 text-xs text-gray-600 font-medium">Back</button>
-            <button onClick={() => setCurrentStep(4)} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium">Next</button>
+            <button onClick={() => setCurrentStep(3)} className="px-4 py-2 text-xs text-gray-600 font-medium">Back</button>
+            <button onClick={() => setCurrentStep(5)} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium">Next</button>
           </div>
         </div>
       );
@@ -509,7 +482,7 @@ const CreateAssignmentPage: React.FC = () => {
     );
   };
 
-  const renderStep4 = () => {
+  const renderStep5 = () => {
     // Problem Bank linking step (optional)
     if (showBankBuilder) {
       return (
@@ -622,7 +595,7 @@ const CreateAssignmentPage: React.FC = () => {
     );
   };
 
-  const renderStep5 = () => {
+  const renderStep6 = () => {
     const selectedCourse = courses.find((c) => c.courseId === formData.courseId);
 
     return (
@@ -746,6 +719,7 @@ const CreateAssignmentPage: React.FC = () => {
             {currentStep === 3 && renderStep3()}
             {currentStep === 4 && renderStep4()}
             {currentStep === 5 && renderStep5()}
+            {currentStep === 6 && renderStep6()}
           </div>
 
           {/* Navigation */}
@@ -758,7 +732,7 @@ const CreateAssignmentPage: React.FC = () => {
               Back
             </button>
 
-            {currentStep < 5 ? (
+            {currentStep < 6 ? (
               <button
                 onClick={handleNext}
                 disabled={!canProceed()}
