@@ -7,8 +7,11 @@ interface DiscussionSetupWizardProps {
   onBack: () => void;
 }
 
+const DEFAULT_DIRECTIONS = `Participate in this discussion by responding to the prompt below. Read your classmates' posts and respond thoughtfully to at least one other student.`;
+
 export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWizardProps) {
   const [step, setStep] = useState(1);
+  const [directions, setDirections] = useState(DEFAULT_DIRECTIONS);
   const [config, setConfig] = useState<DiscussionConfig>({
     prompt: '',
     format: 'whole-class',
@@ -20,11 +23,15 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
   });
 
   const canProceed = () => {
-    if (step === 1) return config.prompt.trim().length >= 10;
+    if (step === 1) return config.prompt.trim().length >= 5;
     return true;
   };
 
-  const handleComplete = () => onComplete(config);
+  const handleComplete = () => {
+    // Combine directions with prompt for the final config
+    const finalConfig = { ...config, directions };
+    onComplete(finalConfig);
+  };
 
   return (
     <div className="space-y-4">
@@ -40,14 +47,33 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
 
       {step === 1 && (
         <div className="space-y-4">
-          <h3 className="text-sm font-bold text-[#005587]">Discussion Prompt</h3>
-          <textarea
-            value={config.prompt}
-            onChange={(e) => setConfig({ ...config, prompt: e.target.value })}
-            placeholder="Enter the discussion prompt or question (min 10 characters)..."
-            rows={4}
-            className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:ring-1 focus:ring-[#005587] focus:border-[#005587] focus:outline-none"
-          />
+          <h3 className="text-sm font-bold text-[#005587]">What should students discuss?</h3>
+          
+          {/* Discussion Prompt — the main question */}
+          <div>
+            <label className="text-xs font-medium text-gray-600 block mb-1">Discussion Prompt</label>
+            <textarea
+              value={config.prompt}
+              onChange={(e) => setConfig({ ...config, prompt: e.target.value })}
+              placeholder="e.g., What are the key differences between mitosis and meiosis?"
+              rows={3}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:ring-1 focus:ring-[#005587] focus:border-[#005587] focus:outline-none"
+            />
+            <p className="text-[10px] text-gray-400 mt-1">This is the question or topic students will respond to</p>
+          </div>
+
+          {/* Editable directions */}
+          <div>
+            <label className="text-xs font-medium text-gray-600 block mb-1">Directions (editable)</label>
+            <textarea
+              value={directions}
+              onChange={(e) => setDirections(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs resize-none focus:ring-1 focus:ring-[#005587] focus:border-[#005587] focus:outline-none text-gray-600"
+            />
+          </div>
+
+          {/* Format */}
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-2">Format</label>
             <div className="flex gap-2">
@@ -95,6 +121,33 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
 
       {step === 2 && (
         <div className="space-y-4">
+          <h3 className="text-sm font-bold text-[#005587]">Response Type</h3>
+          <p className="text-xs text-gray-500">How can students respond to the discussion?</p>
+          <div className="space-y-2">
+            {(['both', 'text', 'video'] as const).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setConfig({ ...config, allowedResponseTypes: type })}
+                className={`w-full p-3 rounded-xl border text-left text-sm ${
+                  config.allowedResponseTypes === type
+                    ? 'border-[#005587] bg-[#005587]/5 font-medium'
+                    : 'border-gray-200'
+                }`}
+              >
+                {type === 'both'
+                  ? '💬🎥 Text & Video responses'
+                  : type === 'text'
+                    ? '💬 Text responses only'
+                    : '🎥 Video responses only'}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {step === 3 && (
+        <div className="space-y-4">
           <h3 className="text-sm font-bold text-[#005587]">Participation Rules</h3>
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-1">
@@ -125,36 +178,17 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
         </div>
       )}
 
-      {step === 3 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-bold text-[#005587]">Response Settings</h3>
-          <div className="space-y-2">
-            {(['both', 'text', 'video'] as const).map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setConfig({ ...config, allowedResponseTypes: type })}
-                className={`w-full p-3 rounded-xl border text-left text-sm ${
-                  config.allowedResponseTypes === type
-                    ? 'border-[#005587] bg-[#005587]/5 font-medium'
-                    : 'border-gray-200'
-                }`}
-              >
-                {type === 'both'
-                  ? '💬🎥 Text & Video'
-                  : type === 'text'
-                    ? '💬 Text Only'
-                    : '🎥 Video Only'}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {step === 4 && (
         <div className="space-y-3">
           <h3 className="text-sm font-bold text-[#005587]">Review</h3>
           <div className="bg-gray-50 rounded-xl p-3 space-y-2 text-xs">
+            <div>
+              <span className="text-gray-500">Prompt:</span>{' '}
+              <span className="font-medium">
+                {config.prompt.substring(0, 80)}
+                {config.prompt.length > 80 ? '...' : ''}
+              </span>
+            </div>
             <div>
               <span className="text-gray-500">Format:</span>{' '}
               <span className="font-medium">
@@ -164,23 +198,16 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
               </span>
             </div>
             <div>
+              <span className="text-gray-500">Responses:</span>{' '}
+              <span className="font-medium">{config.allowedResponseTypes === 'both' ? 'Text & Video' : config.allowedResponseTypes}</span>
+            </div>
+            <div>
               <span className="text-gray-500">Min Posts:</span>{' '}
               <span className="font-medium">{config.minPosts}</span>
             </div>
             <div>
               <span className="text-gray-500">Min Words:</span>{' '}
               <span className="font-medium">{config.minWordCount}</span>
-            </div>
-            <div>
-              <span className="text-gray-500">Response Type:</span>{' '}
-              <span className="font-medium">{config.allowedResponseTypes}</span>
-            </div>
-            <div>
-              <span className="text-gray-500">Prompt:</span>{' '}
-              <span className="font-medium">
-                {config.prompt.substring(0, 80)}
-                {config.prompt.length > 80 ? '...' : ''}
-              </span>
             </div>
           </div>
         </div>

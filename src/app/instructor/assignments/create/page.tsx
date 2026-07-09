@@ -489,13 +489,31 @@ const CreateAssignmentPage: React.FC = () => {
         {/* Show recorded video preview or recording UI */}
         {instructionalVideoRecording ? (
           <div className="relative rounded-xl overflow-hidden bg-black mb-2">
-            <video src={instructionalVideoPreview} className="w-full aspect-video object-cover" controls />
+            <video 
+              src={instructionalVideoPreview} 
+              className="w-full aspect-video object-cover" 
+              controls 
+              onLoadStart={(e) => { (e.target as HTMLVideoElement).poster = ''; }}
+            />
+            {!formData.instructionalVideoUrl && (
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-white text-xs">Processing video...</p>
+                </div>
+              </div>
+            )}
             <button
               onClick={() => { setInstructionalVideoRecording(null); setInstructionalVideoPreview(''); setFormData({ ...formData, instructionalVideoUrl: '' }); }}
               className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
             >
               ✕
             </button>
+            {formData.instructionalVideoUrl && (
+              <div className="absolute bottom-2 left-2 bg-green-500/90 text-white text-[10px] px-2 py-0.5 rounded-full font-medium">
+                ✓ Uploaded
+              </div>
+            )}
           </div>
         ) : showInstructorCamera ? (
           <div className="relative rounded-xl overflow-hidden bg-black aspect-video mb-2">
