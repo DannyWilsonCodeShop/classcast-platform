@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { DiscussionConfig } from '@/types/discussion';
 import { RubricBuilder } from '@/components/instructor/RubricBuilder';
 import { RubricCategory } from '@/types/rubric';
@@ -16,6 +16,21 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
   const [directions, setDirections] = useState(DEFAULT_DIRECTIONS);
   const [rubric, setRubric] = useState<RubricCategory[]>([]);
   const [groupFormation, setGroupFormation] = useState<'random' | 'teacher-assigned' | 'student-chosen'>('random');
+  const [videoPromptUrl, setVideoPromptUrl] = useState('');
+  const [videoPromptFile, setVideoPromptFile] = useState<File | null>(null);
+  const [videoPromptPreview, setVideoPromptPreview] = useState('');
+  const [isRecordingPrompt, setIsRecordingPrompt] = useState(false);
+  const [isUploadingPrompt, setIsUploadingPrompt] = useState(false);
+  const [showPromptCamera, setShowPromptCamera] = useState(false);
+  const [promptRecording, setPromptRecording] = useState(false);
+  const [promptRecordTime, setPromptRecordTime] = useState(0);
+  const promptVideoRef = useRef<HTMLVideoElement>(null);
+  const promptStreamRef = useRef<MediaStream | null>(null);
+  const promptRecorderRef = useRef<MediaRecorder | null>(null);
+  const promptChunksRef = useRef<Blob[]>([]);
+  const promptTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const promptFileRef = useRef<HTMLInputElement>(null);
+
   const [config, setConfig] = useState<DiscussionConfig>({
     prompt: '',
     format: 'whole-class',
@@ -27,13 +42,85 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
   });
 
   const canProceed = () => {
-    if (step === 1) return config.prompt.trim().length >= 5;
+    if (step === 1) return config.prompt.trim().length >= 5 || !!videoPromptUrl;
     return true;
   };
 
   const handleComplete = () => {
-    const finalConfig = { ...config, directions, groupFormation, rubric: rubric.length > 0 ? rubric : undefined } as any;
+    const finalConfig = { ...config, directions, groupFormation, videoPromptUrl: videoPromptUrl || undefined, rubric: rubric.length > 0 ? rubric : undefined } as any;
     onComplete(finalConfig);
+  };
+
+  // Video prompt recording functions
+  const openPromptCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: true });
+      promptStreamRef.current = stream;
+      setShowPromptCamera(true);
+      setTimeout(() => { if (promptVideoRef.current) promptVideoRef.current.srcObject = stream; }, 100);
+    } catch { alert('Camera access denied.'); }
+  };
+
+  const startPromptRecording = () => {
+    if (!promptStreamRef.current) return;
+    promptChunksRef.current = [];
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus') ? 'video/webm;codecs=vp9,opus' : 'video/webm';
+    const recorder = new MediaRecorder(promptStreamRef.current, { mimeType });
+    recorder.ondataavailable = (e) => { if (e.data.size > 0) promptChunksRef.current.push(e.data); };
+    recorder.onstop = async () => {
+      const blob = new Blob(promptChunksRef.current, { type: mimeType });
+      const file = new File([blob], `prompt-video-${Date.now()}.webm`, { type: mimeType });
+      setVideoPromptFile(file);
+      setVideoPromptPreview(URL.createObjectURL(blob));
+      setShowPromptCamera(false);
+      promptStreamRef.current?.getTracks().forEach(t => t.stop());
+      // Upload
+      setIsUploadingPrompt(true);
+      try {
+        const res = await fetch('/api/upload/presigned', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileName: file.name, contentType: file.type, folder: 'discussion-prompts' }) });
+        const data = await res.json();
+        if (data.success) {
+          await fetch(data.data.presignedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+          setVideoPromptUrl(data.data.fileUrl);
+        }
+      } catch (err) { console.error('Upload failed:', err); }
+      finally { setIsUploadingPrompt(false); }
+    };
+    promptRecorderRef.current = recorder;
+    recorder.start(1000);
+    setPromptRecording(true);
+    setPromptRecordTime(0);
+    promptTimerRef.current = setInterval(() => setPromptRecordTime(t => t + 1), 1000);
+  };
+
+  const stopPromptRecording = () => {
+    if (promptRecorderRef.current && promptRecorderRef.current.state !== 'inactive') promptRecorderRef.current.stop();
+    setPromptRecording(false);
+    if (promptTimerRef.current) { clearInterval(promptTimerRef.current); promptTimerRef.current = null; }
+  };
+
+  const handlePromptFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setVideoPromptFile(file);
+    setVideoPromptPreview(URL.createObjectURL(file));
+    setIsUploadingPrompt(true);
+    try {
+      const res = await fetch('/api/upload/presigned', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fileName: file.name, contentType: file.type, folder: 'discussion-prompts' }) });
+      const data = await res.json();
+      if (data.success) {
+        await fetch(data.data.presignedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+        setVideoPromptUrl(data.data.fileUrl);
+      }
+    } catch (err) { console.error('Upload failed:', err); }
+    finally { setIsUploadingPrompt(false); }
+  };
+
+  const removeVideoPrompt = () => {
+    if (videoPromptPreview) URL.revokeObjectURL(videoPromptPreview);
+    setVideoPromptFile(null);
+    setVideoPromptPreview('');
+    setVideoPromptUrl('');
   };
 
   const totalSteps = 5;
@@ -53,7 +140,7 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
           <h3 className="text-sm font-bold text-[#005587]">What should students discuss?</h3>
           
           <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1">Discussion Prompt</label>
+            <label className="text-xs font-medium text-gray-600 block mb-1">Discussion Prompt (text)</label>
             <textarea
               value={config.prompt}
               onChange={(e) => setConfig({ ...config, prompt: e.target.value })}
@@ -61,6 +148,56 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
               rows={3}
               className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:ring-1 focus:ring-[#005587] focus:border-[#005587] focus:outline-none"
             />
+          </div>
+
+          {/* Video Prompt */}
+          <div>
+            <label className="text-xs font-medium text-gray-600 block mb-1">Video Prompt (optional)</label>
+            <p className="text-[10px] text-gray-400 mb-2">Record or upload a video prompt for the discussion</p>
+            
+            {videoPromptPreview ? (
+              <div className="relative rounded-xl overflow-hidden bg-black">
+                <video src={videoPromptPreview} className="w-full aspect-video object-cover" controls />
+                {isUploadingPrompt && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-1" />
+                      <p className="text-white text-[10px]">Uploading...</p>
+                    </div>
+                  </div>
+                )}
+                {videoPromptUrl && <div className="absolute bottom-2 left-2 bg-green-500/90 text-white text-[10px] px-2 py-0.5 rounded-full">✓ Ready</div>}
+                <button onClick={removeVideoPrompt} className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px]">✕</button>
+              </div>
+            ) : showPromptCamera ? (
+              <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
+                <video ref={promptVideoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+                <div className="absolute bottom-3 inset-x-0 flex justify-center gap-3">
+                  {promptRecording ? (
+                    <button onClick={stopPromptRecording} className="w-12 h-12 bg-red-600 rounded-full border-3 border-white flex items-center justify-center"><div className="w-4 h-4 bg-white rounded-sm" /></button>
+                  ) : (
+                    <button onClick={startPromptRecording} className="w-12 h-12 bg-red-500 rounded-full border-3 border-white flex items-center justify-center"><div className="w-8 h-8 bg-red-500 rounded-full border-2 border-white" /></button>
+                  )}
+                  <button onClick={() => { promptStreamRef.current?.getTracks().forEach(t => t.stop()); setShowPromptCamera(false); }} className="w-8 h-8 bg-black/50 rounded-full flex items-center justify-center text-white text-xs">✕</button>
+                </div>
+                {promptRecording && (
+                  <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/60 px-2 py-0.5 rounded-full">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                    <span className="text-white text-[10px] font-mono">{Math.floor(promptRecordTime / 60)}:{(promptRecordTime % 60).toString().padStart(2, '0')}</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <button type="button" onClick={openPromptCamera} className="flex items-center gap-1.5 px-3 py-2 border-2 border-dashed border-gray-300 rounded-xl text-xs text-gray-600 hover:border-[#005587] hover:text-[#005587] transition-colors">
+                  🎥 Record
+                </button>
+                <button type="button" onClick={() => promptFileRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 border-2 border-dashed border-gray-300 rounded-xl text-xs text-gray-600 hover:border-[#005587] hover:text-[#005587] transition-colors">
+                  📁 Upload
+                </button>
+                <input ref={promptFileRef} type="file" accept="video/*" className="hidden" onChange={handlePromptFileUpload} />
+              </div>
+            )}
           </div>
 
           <div>
