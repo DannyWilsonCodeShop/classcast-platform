@@ -184,6 +184,7 @@ const SectionColumn: React.FC<{
   onGradeStudent: (student: Student) => void;
   setDraggedStudent: (student: Student | null) => void;
   removingStudent: string | null;
+  allSections?: string[];
 }> = ({ 
   title, 
   sectionName, 
@@ -193,7 +194,8 @@ const SectionColumn: React.FC<{
   onRemoveStudent, 
   onGradeStudent, 
   setDraggedStudent,
-  removingStudent 
+  removingStudent,
+  allSections = [],
 }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -250,6 +252,8 @@ const SectionColumn: React.FC<{
                 draggable
                 onDragStart={() => setDraggedStudent(student)}
                 onDragEnd={() => setDraggedStudent(null)}
+                onTouchStart={() => setDraggedStudent(student)}
+                onTouchEnd={() => setDraggedStudent(null)}
                 className="bg-white rounded-xl p-4 border border-gray-100 hover:bg-white transition-all cursor-move"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -316,6 +320,20 @@ const SectionColumn: React.FC<{
                   <div className="text-xs text-gray-500">
                     Enrolled {new Date(student.enrollmentDate).toLocaleDateString()}
                   </div>
+                  
+                  {/* Mobile-friendly section move dropdown */}
+                  {allSections.length > 1 && (
+                    <select
+                      value=""
+                      onChange={(e) => { if (e.target.value) onDrop(student.studentId, e.target.value === '__none__' ? null : e.target.value); }}
+                      className="w-full mt-2 px-2 py-1 text-[10px] border border-gray-200 rounded-lg text-gray-600 bg-white md:hidden"
+                    >
+                      <option value="">Move to section...</option>
+                      {allSections.filter(s => s !== (sectionName || 'No Section')).map(s => (
+                        <option key={s} value={s === 'No Section' ? '__none__' : s}>{s}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               </div>
             ))}
@@ -1497,6 +1515,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                           }}
                           setDraggedStudent={setDraggedStudent}
                           removingStudent={removingStudent}
+                          allSections={Array.from(new Set(studentsWithSubmissionCounts.map(s => s.sectionName || 'No Section')))}
                         />
                       );
                     })}
