@@ -148,7 +148,7 @@ export default function StudentDashboardPage() {
         </div>
       ) : (
       /* ===== MOBILE LAYOUT (existing) ===== */
-      <div className="h-full flex flex-col overflow-hidden bg-white" style={{ maxHeight: '100%', overflowY: 'hidden' }}>
+      <div className="h-full flex flex-col overflow-hidden bg-white" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
         {loading ? (
           <DashboardSkeleton />
         ) : (

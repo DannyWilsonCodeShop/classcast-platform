@@ -61,6 +61,7 @@ export function SwipeNavigationProvider({ children, tabOrder }: SwipeNavigationP
         <div
           ref={currentPaneRef}
           className="h-full overflow-y-auto"
+          style={{ overscrollBehavior: 'none' }}
         >
           {children}
         </div>
