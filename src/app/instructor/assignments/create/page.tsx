@@ -44,8 +44,7 @@ const STEPS = [
   { number: 2, label: 'Type' },
   { number: 3, label: 'Details' },
   { number: 4, label: 'Setup' },
-  { number: 5, label: 'Problem Bank' },
-  { number: 6, label: 'Review' },
+  { number: 5, label: 'Review' },
 ];
 
 const CreateAssignmentPage: React.FC = () => {
@@ -105,7 +104,7 @@ const CreateAssignmentPage: React.FC = () => {
   };
 
   const handleNext = () => {
-    if (currentStep < 6) setCurrentStep(currentStep + 1);
+    if (currentStep < 5) setCurrentStep(currentStep + 1);
   };
 
   const handleBack = () => {
@@ -123,8 +122,6 @@ const CreateAssignmentPage: React.FC = () => {
       case 4:
         return true; // Setup is optional
       case 5:
-        return true; // Problem bank is optional
-      case 6:
         return true;
       default:
         return false;
@@ -565,7 +562,7 @@ const CreateAssignmentPage: React.FC = () => {
         <DiscussionSetupWizard
           onComplete={(config) => {
             setFormData({ ...formData, discussionConfig: config });
-            setCurrentStep(6);
+            setCurrentStep(5);
           }}
           onBack={() => setCurrentStep(3)}
         />
@@ -576,7 +573,7 @@ const CreateAssignmentPage: React.FC = () => {
         <AssessmentSetupWizard
           onComplete={(questions) => {
             setFormData({ ...formData, assessmentQuestions: questions });
-            setCurrentStep(6);
+            setCurrentStep(5);
           }}
           onBack={() => setCurrentStep(3)}
         />
@@ -587,7 +584,7 @@ const CreateAssignmentPage: React.FC = () => {
         <ModuleSetupWizard
           onComplete={(config) => {
             setFormData({ ...formData, moduleConfig: config });
-            setCurrentStep(6);
+            setCurrentStep(5);
           }}
           onBack={() => setCurrentStep(3)}
         />
@@ -632,8 +629,12 @@ const CreateAssignmentPage: React.FC = () => {
     );
   };
 
+  const [showProblemBankSection, setShowProblemBankSection] = useState(false);
+
   const renderStep5 = () => {
-    // Problem Bank linking step (optional)
+    const selectedCourse = courses.find((c) => c.courseId === formData.courseId);
+
+    // If building a new problem bank inline
     if (showBankBuilder) {
       return (
         <div className="space-y-4">
@@ -644,7 +645,6 @@ const CreateAssignmentPage: React.FC = () => {
           <ProblemBankBuilder
             courseId={formData.courseId}
             onSave={async (bankData) => {
-              // Create the bank, then select it
               try {
                 const res = await fetch('/api/problem-banks', {
                   method: 'POST',
@@ -669,99 +669,7 @@ const CreateAssignmentPage: React.FC = () => {
 
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-lg font-bold text-[#005587]">Problem Bank</h2>
-            <HelpTooltip text="A problem bank is a set of unique questions you create. When linked to an assignment, each student automatically receives a different problem — ensuring no two students work the same question." />
-          </div>
-          <button
-            type="button"
-            onClick={() => setCurrentStep(6)}
-            className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors"
-          >
-            Skip →
-          </button>
-        </div>
-
-        <p className="text-sm text-gray-600">
-          Link a problem bank to assign each student a unique problem from the set.
-        </p>
-
-        {/* Current selection */}
-        {formData.problemBankId && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-green-800">✓ {formData.problemBankTitle}</p>
-              <p className="text-xs text-green-600">Problems will be distributed when assignment is created</p>
-            </div>
-            <button
-              onClick={() => setFormData({ ...formData, problemBankId: undefined, problemBankTitle: undefined })}
-              className="text-xs text-red-500 font-medium"
-            >
-              Remove
-            </button>
-          </div>
-        )}
-
-        {!formData.problemBankId && (
-          <>
-            {/* Bank selector */}
-            {problemBanks.length > 0 && (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Select existing bank</label>
-                <select
-                  value=""
-                  onChange={(e) => {
-                    const bank = problemBanks.find(b => b.bankId === e.target.value);
-                    if (bank) {
-                      setFormData({ ...formData, problemBankId: bank.bankId, problemBankTitle: bank.title });
-                    }
-                  }}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none"
-                >
-                  <option value="">-- Select a problem bank --</option>
-                  {problemBanks.map(bank => (
-                    <option key={bank.bankId} value={bank.bankId}>
-                      {bank.title} ({bank.problemCount} problems)
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Create new bank button */}
-            <button
-              onClick={() => { setShowBankBuilder(true); fetchProblemBanks(); }}
-              className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-600 hover:border-[#005587] hover:text-[#005587] transition-colors"
-            >
-              + Create New Problem Bank
-            </button>
-
-            {problemBanks.length === 0 && (
-              <button
-                onClick={fetchProblemBanks}
-                className="text-xs text-[#005587] font-medium"
-              >
-                Load existing banks
-              </button>
-            )}
-          </>
-        )}
-      </div>
-    );
-  };
-
-  const renderStep6 = () => {
-    const selectedCourse = courses.find((c) => c.courseId === formData.courseId);
-
-    return (
-      <div className="space-y-4">
-        <h2
-          className="text-lg font-bold text-[#005587]"
-          
-        >
-          Review & Save
-        </h2>
+        <h2 className="text-lg font-bold text-[#005587]">Review & Save</h2>
 
         <div className="bg-gray-50 rounded-2xl p-5 space-y-3 text-sm">
           <div className="flex justify-between">
@@ -805,13 +713,9 @@ const CreateAssignmentPage: React.FC = () => {
                 : 'None'}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="font-medium text-gray-600">Problem Bank:</span>
-            <span className="text-gray-900">{formData.problemBankTitle || 'None'}</span>
-          </div>
           {formData.assignmentType === 'discussion' && formData.discussionConfig && (
             <div className="pt-2 border-t border-gray-200 space-y-1">
-              <span className="font-medium text-gray-600 block mb-1">Discussion Config:</span>
+              <span className="font-medium text-gray-600 block mb-1">Discussion:</span>
               <p className="text-gray-700 text-xs">Format: {formData.discussionConfig.format === 'whole-class' ? 'Whole Class' : `Small Groups (${formData.discussionConfig.groupSize})`}</p>
               <p className="text-gray-700 text-xs">Min Posts: {formData.discussionConfig.minPosts} | Min Words: {formData.discussionConfig.minWordCount}</p>
               <p className="text-gray-700 text-xs">Response: {formData.discussionConfig.allowedResponseTypes}</p>
@@ -831,10 +735,55 @@ const CreateAssignmentPage: React.FC = () => {
               <p className="text-gray-700 text-xs">Grading: {formData.moduleConfig.gradingPolicy}</p>
             </div>
           )}
-          {formData.description && (
-            <div className="pt-2 border-t border-gray-200">
-              <span className="font-medium text-gray-600 block mb-1">Description:</span>
-              <p className="text-gray-900 whitespace-pre-wrap">{formData.description}</p>
+        </div>
+
+        {/* Problem Bank toggle */}
+        <div className="border border-gray-200 rounded-xl p-3">
+          {formData.problemBankId ? (
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-green-700">✓ {formData.problemBankTitle}</p>
+                <p className="text-[10px] text-gray-500">Each student gets a unique problem</p>
+              </div>
+              <button onClick={() => setFormData({ ...formData, problemBankId: undefined, problemBankTitle: undefined })} className="text-[10px] text-red-500 font-medium">Remove</button>
+            </div>
+          ) : !showProblemBankSection ? (
+            <button
+              type="button"
+              onClick={() => { setShowProblemBankSection(true); fetchProblemBanks(); }}
+              className="w-full text-left flex items-center justify-between"
+            >
+              <div>
+                <p className="text-xs font-medium text-gray-700">Need individualized problems?</p>
+                <p className="text-[10px] text-gray-400">Assign each student a unique question from a problem bank</p>
+              </div>
+              <span className="text-xs text-[#005587] font-medium">Add →</span>
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-gray-700">Link a Problem Bank</p>
+                <button onClick={() => setShowProblemBankSection(false)} className="text-[10px] text-gray-400">Cancel</button>
+              </div>
+              {problemBanks.length > 0 && (
+                <select
+                  value=""
+                  onChange={(e) => {
+                    const bank = problemBanks.find(b => b.bankId === e.target.value);
+                    if (bank) {
+                      setFormData({ ...formData, problemBankId: bank.bankId, problemBankTitle: bank.title });
+                      setShowProblemBankSection(false);
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                >
+                  <option value="">Select a bank...</option>
+                  {problemBanks.map(bank => (
+                    <option key={bank.bankId} value={bank.bankId}>{bank.title} ({bank.problemCount} problems)</option>
+                  ))}
+                </select>
+              )}
+              <button onClick={() => setShowBankBuilder(true)} className="text-xs text-[#005587] font-medium">+ Create new bank</button>
             </div>
           )}
         </div>
@@ -886,7 +835,6 @@ const CreateAssignmentPage: React.FC = () => {
             {currentStep === 3 && renderStep3()}
             {currentStep === 4 && renderStep4()}
             {currentStep === 5 && renderStep5()}
-            {currentStep === 6 && renderStep6()}
           </div>
 
           {/* Navigation */}
@@ -899,7 +847,7 @@ const CreateAssignmentPage: React.FC = () => {
               Back
             </button>
 
-            {currentStep < 6 ? (
+            {currentStep < 5 ? (
               <button
                 onClick={handleNext}
                 disabled={!canProceed()}
