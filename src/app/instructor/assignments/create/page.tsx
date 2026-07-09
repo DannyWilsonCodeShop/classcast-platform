@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { RubricBuilder } from '@/components/instructor/RubricBuilder';
-import { RubricCategory } from '@/types/rubric';
+import { RubricCategory, getRubricMaxScore } from '@/types/rubric';
 import { DiscussionSetupWizard } from '@/components/instructor/wizards/DiscussionSetupWizard';
 import { AssessmentSetupWizard } from '@/components/instructor/wizards/AssessmentSetupWizard';
 import { ModuleSetupWizard } from '@/components/instructor/wizards/ModuleSetupWizard';
@@ -229,7 +229,7 @@ const CreateAssignmentPage: React.FC = () => {
           courseId: formData.courseId,
           assignmentType: formData.assignmentType === 'group-project' ? 'module' : formData.assignmentType === 'study-module' ? 'study-module' : formData.assignmentType,
           dueDate: formData.dueDate,
-          maxScore: formData.maxScore,
+          maxScore: formData.rubric.length > 0 ? getRubricMaxScore(formData.rubric) : formData.maxScore,
           rubric: formData.rubric.length > 0 ? formData.rubric : null,
           instructionalVideoUrl: formData.instructionalVideoUrl || '',
           instructorId: user?.id,
@@ -764,9 +764,20 @@ const CreateAssignmentPage: React.FC = () => {
               {formData.dueDate ? new Date(formData.dueDate).toLocaleString() : '—'}
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <span className="font-medium text-gray-600">Max Points:</span>
-            <span className="text-gray-900">{formData.maxScore}</span>
+            {formData.rubric.length > 0 ? (
+              <span className="text-gray-900">{getRubricMaxScore(formData.rubric)} <span className="text-xs text-gray-400">(from rubric)</span></span>
+            ) : (
+              <input
+                type="number"
+                value={formData.maxScore}
+                onChange={(e) => setFormData({ ...formData, maxScore: Number(e.target.value) || 100 })}
+                min={1}
+                max={1000}
+                className="w-20 px-2 py-1 border border-gray-200 rounded-lg text-sm text-right focus:border-[#005587] focus:outline-none"
+              />
+            )}
           </div>
           <div className="flex justify-between">
             <span className="font-medium text-gray-600">Rubric:</span>
