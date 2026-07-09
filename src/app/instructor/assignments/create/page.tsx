@@ -656,7 +656,13 @@ const CreateAssignmentPage: React.FC = () => {
             <h2 className="text-lg font-bold text-[#005587]">Problem Bank</h2>
             <HelpTooltip text="A problem bank is a set of unique questions you create. When linked to an assignment, each student automatically receives a different problem — ensuring no two students work the same question." />
           </div>
-          <span className="text-xs text-gray-400 italic">Optional — for individualized problems</span>
+          <button
+            type="button"
+            onClick={() => setCurrentStep(6)}
+            className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors"
+          >
+            Skip →
+          </button>
         </div>
 
         <p className="text-sm text-gray-600">
