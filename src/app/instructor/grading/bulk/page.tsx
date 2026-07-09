@@ -741,161 +741,45 @@ const BulkGradingContent: React.FC = () => {
   if (filteredSubmissions.length === 0) {
     return (
       <InstructorRoute>
-        <div className="min-h-screen bg-gray-50">
-          {/* Header */}
-          <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div>
-                  <h1 className="text-xl font-bold text-gray-800">Grading</h1>
-                  <p className="text-sm text-gray-600">{allSubmissions.length} total submissions</p>
-                </div>
+        <div className="min-h-full overflow-y-auto pb-24 bg-white">
+          {/* Collapsed course title */}
+          <div className="px-4 py-3 border-b border-gray-100">
+            <button
+              onClick={() => setShowFilters(prev => !prev)}
+              className="flex items-center gap-1.5"
+            >
+              <span className="text-sm font-bold text-[#005587]">
+                {instructorCourses.find(c => c.id === selectedCourse)?.label || 'All Courses'}
+              </span>
+              <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {showFilters && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)} className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs">
+                  <option value="all">All Courses</option>
+                  {instructorCourses.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                </select>
+                <select value={filter} onChange={(e) => setFilter(e.target.value as any)} className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs">
+                  <option value="all">All</option>
+                  <option value="ungraded">Ungraded</option>
+                  <option value="graded">Graded</option>
+                </select>
               </div>
-            </div>
+            )}
           </div>
 
-          {/* Filters */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Course</label>
-                  <select
-                    value={selectedCourse}
-                    onChange={(e) => setSelectedCourse(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  >
-                    <option value="all">All Courses</option>
-                    {instructorCourses.map(course => (
-                      <option key={course.id} value={course.id}>
-                        {course.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Assignment</label>
-                  <select
-                    value={selectedAssignment}
-                    onChange={(e) => setSelectedAssignment(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  >
-                    <option value="all">All Assignments</option>
-                    {assignments.map(assignment => (
-                      <option key={assignment.assignmentId} value={assignment.assignmentId}>
-                        {assignment.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Section</label>
-                  <select
-                    value={selectedSection}
-                    onChange={(e) => {
-                      setSelectedSection(e.target.value);
-                      // Reset student selection when section changes
-                      setSelectedStudent('all');
-                      setSelectedStudentName('');
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  >
-                    <option value="all">All Sections</option>
-                    <option value="none">No Section</option>
-                    {fetchedSections.map(section => (
-                      <option key={section.id} value={section.id}>
-                        {section.name} ({allSubmissions.filter(s => s.sectionId === section.id).length})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Student</label>
-                  <select
-                    value={selectedStudent}
-                    onChange={(e) => {
-                      setSelectedStudent(e.target.value);
-                      const student = students.find(s => s.studentId === e.target.value);
-                      setSelectedStudentName(student?.studentName || '');
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  >
-                    <option value="all">All Students</option>
-                    {students
-                      .filter(student => selectedSection === 'all' || student.sectionId === selectedSection)
-                      .map(student => (
-                      <option key={student.studentId} value={student.studentId}>
-                        {student.studentName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value as FilterType)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  >
-                    <option value="all">All ({allSubmissions.length})</option>
-                    <option value="ungraded">Ungraded ({allSubmissions.filter(s => s.status === 'submitted').length})</option>
-                    <option value="graded">Graded ({allSubmissions.filter(s => s.status === 'graded').length})</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Student or assignment..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as SortType)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                  >
-                    <option value="section">Section + Name</option>
-                    <option value="name">Student Name</option>
-                    <option value="date">Submission Date</option>
-                    <option value="assignment">Assignment</option>
-                    <option value="course">Course</option>
-                    <option value="grade">Grade</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* No results message */}
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔍</div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">No Matching Submissions</h2>
-              <p className="text-gray-600 mb-6">Try adjusting your filters or search terms.</p>
-              <button
-                onClick={() => {
-                  setSelectedCourse('all');
-                  setSelectedAssignment('all');
-                  setSelectedStudent('all');
-                  setSelectedStudentName('');
-                  setSelectedSection('all');
-                  setFilter('all');
-                  setSearchTerm('');
-                }}
-                className="px-6 py-3 bg-blue-500 text-white rounded-xl font-bold hover:bg-blue-600 transition-colors"
-              >
-                Clear Filters
-              </button>
-            </div>
+          <div className="text-center py-12">
+            <div className="text-4xl mb-3">📝</div>
+            <h2 className="text-lg font-bold text-gray-800 mb-2">No submissions to grade</h2>
+            <p className="text-sm text-gray-500 mb-4">Try selecting a different course or clearing filters.</p>
+            <button
+              onClick={() => { setSelectedCourse('all'); setFilter('all'); setSelectedAssignment('all'); setSelectedStudent('all'); setSelectedSection('all'); setSearchTerm(''); }}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium"
+            >
+              Clear Filters
+            </button>
           </div>
         </div>
       </InstructorRoute>
