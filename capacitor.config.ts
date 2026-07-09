@@ -20,18 +20,16 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 2000,
+      launchShowDuration: 0,
       launchAutoHide: true,
-      backgroundColor: '#005587',
       showSpinner: false,
-      androidScaleType: 'CENTER_CROP',
       splashFullScreen: true,
       splashImmersive: true,
     },
     StatusBar: {
-      style: 'LIGHT',
-      backgroundColor: '#005587',
-      overlaysWebView: true,
+      style: 'DARK',
+      backgroundColor: '#ffffff',
+      overlaysWebView: false,
     },
     Keyboard: {
       resize: 'body',
