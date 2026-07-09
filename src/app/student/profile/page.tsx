@@ -188,11 +188,10 @@ function EditableField({ label, value, isEditing, onChange, placeholder }: {
       </div>
     );
   }
-  if (!value) return null;
   return (
     <div className="bg-gray-50 rounded-lg px-3 py-2">
       <span className="text-[10px] font-bold text-gray-400 uppercase">{label}</span>
-      <p className="text-sm text-gray-800 mt-0.5">{value}</p>
+      <p className="text-sm text-gray-800 mt-0.5">{value || <span className="text-gray-300 italic">Not set</span>}</p>
     </div>
   );
 }

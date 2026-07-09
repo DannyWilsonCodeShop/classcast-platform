@@ -61,8 +61,7 @@ export default function ClassmatesPage() {
               email: s.email || '',
               avatar: s.avatar || '',
               sectionName: s.sectionName || '',
-            }))
-            .filter((s: Classmate) => s.firstName || s.lastName || s.email);
+            }));
 
           setClassmates(students);
         }
