@@ -52,7 +52,8 @@ const StudentCoursesPage: React.FC = () => {
   const [joinSuccess, setJoinSuccess] = useState('');
 
   const handleJoinCourse = async () => {
-    if (!joinCode.trim() || !user?.id) return;
+    const code = joinCode.trim() || searchQuery.trim();
+    if (!code || !user?.id) return;
     setJoining(true);
     setJoinError('');
     setJoinSuccess('');
@@ -61,7 +62,7 @@ const StudentCoursesPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          classCode: joinCode.trim(),
+          classCode: code,
           studentId: user.id,
           studentEmail: user.email || '',
           studentFirstName: user.firstName || '',
@@ -70,11 +71,11 @@ const StudentCoursesPage: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
-        setJoinSuccess(`Enrolled in ${data.course.title}!`);
+        setJoinSuccess(`Enrolled in ${data.course.title}${data.course.sectionName ? ` (${data.course.sectionName})` : ''}!`);
+        setSearchQuery('');
         setJoinCode('');
-        setShowJoinInput(false);
         // Refresh courses list
-        window.location.reload();
+        setTimeout(() => window.location.reload(), 1500);
       } else {
         setJoinError(data.error || 'Failed to join course');
       }
@@ -135,7 +136,7 @@ const StudentCoursesPage: React.FC = () => {
         {/* Demo Mode Banner */}
         <DemoModeBanner />
 
-        {/* Page title + Search */}
+        {/* Search / Join unified input */}
         <div className="px-4 pt-1 pb-2 shrink-0">
           <h1 className="text-base font-bold uppercase text-[#005587] tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>My Courses</h1>
           <div className="relative">
@@ -146,62 +147,34 @@ const StudentCoursesPage: React.FC = () => {
             </div>
             <input
               type="text"
-              placeholder="Search courses..."
+              placeholder="Search courses or enter class code..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#6cc3d3] focus:border-[#6cc3d3] text-sm bg-white/70"
+              onChange={(e) => { setSearchQuery(e.target.value); setJoinError(''); setJoinSuccess(''); }}
+              className="w-full pl-9 pr-16 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#005587] focus:border-[#005587] text-sm bg-white"
             />
-            {searchQuery && (
+            {/* Show Join button when input looks like a class code (4-8 chars, no spaces) */}
+            {searchQuery.trim().length >= 4 && searchQuery.trim().length <= 8 && !searchQuery.includes(' ') && filteredCourses.length === 0 && (
+              <button
+                onClick={() => { setJoinCode(searchQuery.trim().toUpperCase()); handleJoinCourse(); }}
+                disabled={joining}
+                className="absolute inset-y-1 right-1 px-3 bg-[#005587] text-white rounded-lg text-xs font-bold disabled:opacity-50"
+              >
+                {joining ? '...' : 'Join'}
+              </button>
+            )}
+            {searchQuery && filteredCourses.length > 0 && (
               <button
                 onClick={() => setSearchQuery('')}
                 className="absolute inset-y-0 right-0 pr-3 flex items-center"
               >
-                <svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             )}
           </div>
-        </div>
-
-        {/* Join with Code */}
-        <div className="px-4 pb-2">
-          {!showJoinInput ? (
-            <button
-              onClick={() => setShowJoinInput(true)}
-              className="w-full py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-bold text-sm active:scale-[0.98] transition-transform"
-            >
-              + Join Course with Class Code
-            </button>
-          ) : (
-            <div className="bg-gray-50 rounded-xl p-3 space-y-2">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={joinCode}
-                  onChange={(e) => { setJoinCode(e.target.value.toUpperCase()); setJoinError(''); }}
-                  placeholder="Enter class code..."
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm font-mono uppercase focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
-                  autoFocus
-                />
-                <button
-                  onClick={handleJoinCourse}
-                  disabled={!joinCode.trim() || joining}
-                  className="px-4 py-2 bg-[#005587] text-white rounded-lg text-sm font-bold disabled:opacity-50"
-                >
-                  {joining ? '...' : 'Join'}
-                </button>
-              </div>
-              {joinError && <p className="text-xs text-red-600">{joinError}</p>}
-              {joinSuccess && <p className="text-xs text-green-600">{joinSuccess}</p>}
-              <button
-                onClick={() => { setShowJoinInput(false); setJoinCode(''); setJoinError(''); }}
-                className="text-xs text-gray-500"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
+          {joinError && <p className="text-xs text-red-600 mt-1">{joinError}</p>}
+          {joinSuccess && <p className="text-xs text-green-600 mt-1">{joinSuccess}</p>}
         </div>
 
         {/* Content */}
