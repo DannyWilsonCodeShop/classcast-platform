@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
@@ -59,6 +59,18 @@ const CreateAssignmentPage: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [problemBanks, setProblemBanks] = useState<ProblemBank[]>([]);
   const [showBankBuilder, setShowBankBuilder] = useState(false);
+
+  // Instructor video recording state
+  const [showInstructorCamera, setShowInstructorCamera] = useState(false);
+  const [instructorRecording, setInstructorRecording] = useState(false);
+  const [instructorRecordingTime, setInstructorRecordingTime] = useState(0);
+  const [instructionalVideoRecording, setInstructionalVideoRecording] = useState<File | null>(null);
+  const [instructionalVideoPreview, setInstructionalVideoPreview] = useState('');
+  const instructorVideoRef = useRef<HTMLVideoElement>(null);
+  const instructorStreamRef = useRef<MediaStream | null>(null);
+  const instructorRecorderRef = useRef<MediaRecorder | null>(null);
+  const instructorChunksRef = useRef<Blob[]>([]);
+  const instructorTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [formData, setFormData] = useState<AssignmentFormData>({
     courseId: '',
@@ -130,6 +142,78 @@ const CreateAssignmentPage: React.FC = () => {
     } catch (err) {
       console.error('Failed to fetch problem banks:', err);
     }
+  };
+
+  // Instructor camera functions
+  const openInstructorCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: true,
+      });
+      instructorStreamRef.current = stream;
+      setShowInstructorCamera(true);
+      setTimeout(() => {
+        if (instructorVideoRef.current) instructorVideoRef.current.srcObject = stream;
+      }, 100);
+    } catch (err) {
+      alert('Camera access denied. Please allow camera and microphone access.');
+    }
+  };
+
+  const startInstructorRecording = () => {
+    if (!instructorStreamRef.current) return;
+    instructorChunksRef.current = [];
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+      ? 'video/webm;codecs=vp9,opus'
+      : MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : 'video/mp4';
+    const recorder = new MediaRecorder(instructorStreamRef.current, { mimeType });
+    recorder.ondataavailable = (e) => { if (e.data.size > 0) instructorChunksRef.current.push(e.data); };
+    recorder.onstop = async () => {
+      const blob = new Blob(instructorChunksRef.current, { type: mimeType });
+      const file = new File([blob], `instructor-video-${Date.now()}.webm`, { type: mimeType });
+      setInstructionalVideoRecording(file);
+      setInstructionalVideoPreview(URL.createObjectURL(blob));
+      setShowInstructorCamera(false);
+      instructorStreamRef.current?.getTracks().forEach(t => t.stop());
+      instructorStreamRef.current = null;
+      // Upload the video and set the URL
+      try {
+        const presignRes = await fetch('/api/upload/presigned', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fileName: file.name, contentType: file.type, folder: 'instructional-videos' }),
+        });
+        const presignData = await presignRes.json();
+        if (presignData.success) {
+          await fetch(presignData.data.presignedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+          setFormData(prev => ({ ...prev, instructionalVideoUrl: presignData.data.fileUrl }));
+        }
+      } catch (uploadErr) {
+        console.error('Failed to upload instructional video:', uploadErr);
+      }
+    };
+    instructorRecorderRef.current = recorder;
+    recorder.start(1000);
+    setInstructorRecording(true);
+    setInstructorRecordingTime(0);
+    instructorTimerRef.current = setInterval(() => setInstructorRecordingTime(t => t + 1), 1000);
+  };
+
+  const stopInstructorRecording = () => {
+    if (instructorRecorderRef.current && instructorRecorderRef.current.state !== 'inactive') {
+      instructorRecorderRef.current.stop();
+    }
+    setInstructorRecording(false);
+    if (instructorTimerRef.current) { clearInterval(instructorTimerRef.current); instructorTimerRef.current = null; }
+  };
+
+  const cancelInstructorCamera = () => {
+    instructorStreamRef.current?.getTracks().forEach(t => t.stop());
+    instructorStreamRef.current = null;
+    setShowInstructorCamera(false);
+    setInstructorRecording(false);
+    if (instructorTimerRef.current) { clearInterval(instructorTimerRef.current); instructorTimerRef.current = null; }
   };
 
   const handleSubmit = async () => {
@@ -400,14 +484,59 @@ const CreateAssignmentPage: React.FC = () => {
       {/* Instructional Video */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Instructional Video (optional)</label>
-        <p className="text-xs text-gray-500 mb-2">Record or paste a link to a video explaining this assignment</p>
-        <input
-          type="url"
-          value={formData.instructionalVideoUrl}
-          onChange={(e) => setFormData({ ...formData, instructionalVideoUrl: e.target.value })}
-          placeholder="Paste YouTube, Google Drive, or video URL..."
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
-        />
+        <p className="text-xs text-gray-500 mb-2">Record live or paste a link to a video explaining this assignment</p>
+        
+        {/* Show recorded video preview or recording UI */}
+        {instructionalVideoRecording ? (
+          <div className="relative rounded-xl overflow-hidden bg-black mb-2">
+            <video src={instructionalVideoPreview} className="w-full aspect-video object-cover" controls />
+            <button
+              onClick={() => { setInstructionalVideoRecording(null); setInstructionalVideoPreview(''); setFormData({ ...formData, instructionalVideoUrl: '' }); }}
+              className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center text-xs"
+            >
+              ✕
+            </button>
+          </div>
+        ) : showInstructorCamera ? (
+          <div className="relative rounded-xl overflow-hidden bg-black aspect-video mb-2">
+            <video ref={instructorVideoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+            <div className="absolute bottom-3 inset-x-0 flex justify-center gap-3">
+              {instructorRecording ? (
+                <button onClick={stopInstructorRecording} className="w-14 h-14 bg-red-600 rounded-full border-4 border-white flex items-center justify-center">
+                  <div className="w-5 h-5 bg-white rounded-sm" />
+                </button>
+              ) : (
+                <button onClick={startInstructorRecording} className="w-14 h-14 bg-red-500 rounded-full border-4 border-white flex items-center justify-center">
+                  <div className="w-10 h-10 bg-red-500 rounded-full border-2 border-white" />
+                </button>
+              )}
+              <button onClick={cancelInstructorCamera} className="w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white text-xs">✕</button>
+            </div>
+            {instructorRecording && (
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/60 px-2 py-1 rounded-full">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <span className="text-white text-xs font-mono">{Math.floor(instructorRecordingTime / 60)}:{(instructorRecordingTime % 60).toString().padStart(2, '0')}</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={openInstructorCamera}
+              className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-600 hover:border-[#005587] hover:text-[#005587] transition-colors"
+            >
+              🎥 Record
+            </button>
+            <input
+              type="url"
+              value={formData.instructionalVideoUrl}
+              onChange={(e) => setFormData({ ...formData, instructionalVideoUrl: e.target.value })}
+              placeholder="Or paste video URL..."
+              className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+            />
+          </div>
+        )}
       </div>
     </div>
   );
