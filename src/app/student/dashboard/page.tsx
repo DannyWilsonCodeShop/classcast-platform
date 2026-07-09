@@ -150,7 +150,7 @@ export default function StudentDashboardPage() {
       /* ===== MOBILE LAYOUT (existing) ===== */
       <div className="h-full flex flex-col overflow-hidden bg-white" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
         {loading ? (
-          <DashboardSkeleton />
+          <div className="flex-1 bg-white" />
         ) : (
         <>
         {/* Quick Stats Row - replaces greeting */}
