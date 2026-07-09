@@ -149,6 +149,27 @@ function RecordPageInner() {
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
   };
 
+  // Anti-cheat: abort recording if user leaves the screen
+  const [recordingAborted, setRecordingAborted] = useState(false);
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden && isRecording) {
+        // User switched away during recording — abort immediately
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
+        }
+        setIsRecording(false);
+        if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+        recordedChunksRef.current = [];
+        stopCamera();
+        setRecordingAborted(true);
+        setError('Recording aborted — you left the screen. You must stay on this screen during the entire recording. Please try again.');
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [isRecording]);
+
   // File selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -307,6 +328,12 @@ function RecordPageInner() {
             <button onClick={() => { stopCamera(); router.back(); }} className="absolute top-12 left-4 z-10 bg-black/50 text-white p-2.5 rounded-full">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
+            {/* Security notice */}
+            {!isRecording && (
+              <div className="absolute top-12 right-4 z-10 bg-black/60 backdrop-blur-sm text-white/80 text-[10px] px-2.5 py-1.5 rounded-lg max-w-[140px] text-center">
+                🔒 Full-screen recording. Leaving will abort.
+              </div>
+            )}
             {/* Recording indicator + controls at bottom */}
             <div className="absolute inset-x-0 bottom-0 pb-12 pt-20 bg-gradient-to-t from-black/80 to-transparent flex flex-col items-center gap-3">
               {isRecording && (

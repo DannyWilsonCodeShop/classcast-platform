@@ -271,7 +271,7 @@ const CreateAssignmentPage: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-bold text-gray-900">Video</span>
-                  <HelpTooltip text="Students record themselves answering a prompt or solving a problem, then upload the video for grading." />
+                  <HelpTooltip text="Students record themselves answering a prompt or solving a problem, then upload the video for grading. Live recordings are full-screen and abort if the student leaves the screen (anti-cheat)." />
                 </div>
                 <p className="text-xs text-gray-500">Students record or upload a video submission</p>
               </div>
@@ -311,7 +311,7 @@ const CreateAssignmentPage: React.FC = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-bold text-gray-900">Assessment</span>
-                  <HelpTooltip text="A timed video exam. Questions appear on screen one at a time, and the student must answer on camera within the time limit. Full upper body and arms must be visible." />
+                  <HelpTooltip text="A timed video exam. Questions appear on screen one at a time, and the student must answer on camera within the time limit. Full upper body and arms must be visible. Recording is full-screen and is immediately aborted if the student navigates away (anti-cheat)." />
                 </div>
                 <p className="text-xs text-gray-500">Live recording with timed on-screen questions, full upper body required</p>
               </div>

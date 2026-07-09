@@ -87,14 +87,18 @@ export function AssessmentRecordingView({
 
     init();
 
-    // Monitor tab visibility
+    // Monitor tab visibility — abort recording if student leaves
     const handleVisibility = () => {
       if (document.hidden) {
         const ts = (Date.now() - sessionStartRef.current) / 1000;
-        integrityEventsRef.current.push({ type: 'tab-navigation', timestampSeconds: ts, description: 'Left assessment tab' });
-        setIntegrityWarning('⚠️ Do not leave the assessment!');
-      } else {
-        setTimeout(() => setIntegrityWarning(''), 3000);
+        integrityEventsRef.current.push({ type: 'tab-navigation', timestampSeconds: ts, description: 'Left assessment tab — recording aborted' });
+        setIntegrityWarning('⚠️ Recording aborted — you left the screen. Your assessment has been invalidated.');
+        // Stop recording immediately
+        if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+          recorderRef.current.stop();
+        }
+        streamRef.current?.getTracks().forEach(t => t.stop());
+        if (timerRef.current) clearInterval(timerRef.current);
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
