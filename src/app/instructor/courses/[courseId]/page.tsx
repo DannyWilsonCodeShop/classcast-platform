@@ -1163,19 +1163,19 @@ const InstructorCourseDetailPage: React.FC = () => {
                       }`}>{assignment.status}</span>
                     </div>
 
-                    {/* Action Buttons - compact */}
+                    {/* Action Buttons - pill style matching dashboard */}
                     <div className="flex gap-2">
                       <button
-                        onClick={() => setViewingAssignment(assignment)}
-                        className="flex-1 px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-medium"
+                        onClick={() => router.push(`/instructor/courses/${courseId}/assignments/${assignment.assignmentId}/grades`)}
+                        className="px-3 py-1 bg-white border border-gray-200 rounded-full text-[10px] font-medium text-gray-600 active:scale-95 transition-transform"
                       >
                         View
                       </button>
                       <button
-                        onClick={() => router.push(`/instructor/courses/${courseId}/assignments/${assignment.assignmentId}/grades`)}
-                        className="flex-1 px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-lg text-xs font-medium"
+                        onClick={() => router.push(`/instructor/grading/bulk?course=${courseId}&assignment=${assignment.assignmentId}`)}
+                        className="px-3 py-1 bg-[#005587] rounded-full text-[10px] font-medium text-white active:scale-95 transition-transform"
                       >
-                        Grades
+                        Grade
                       </button>
                     </div>
                   </div>
