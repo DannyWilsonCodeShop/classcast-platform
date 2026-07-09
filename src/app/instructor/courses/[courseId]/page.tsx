@@ -355,7 +355,7 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState<Assignment | null>(null);
   const [viewingAssignment, setViewingAssignment] = useState<Assignment | null>(null);
-  const [activeTab, setActiveTab] = useState<'assignments' | 'submissions' | 'students'>(tabParam || 'assignments');
+  const [activeTab, setActiveTab] = useState<'assignments' | 'submissions' | 'students'>(tabParam || 'students');
   const [globalPlaybackSpeed, setGlobalPlaybackSpeed] = useState(1.0);
   const [gradingSubmission, setGradingSubmission] = useState<string | null>(null);
   const [grades, setGrades] = useState<{[key: string]: { grade: number | '', feedback: string }}>({});
@@ -1085,16 +1085,6 @@ const InstructorCourseDetailPage: React.FC = () => {
           <div className="bg-gray-50 rounded-2xl p-4">
             <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg mb-4">
               <button
-                onClick={() => setActiveTab('assignments')}
-                className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
-                  activeTab === 'assignments'
-                    ? 'bg-[#005587] text-white'
-                    : 'text-gray-600 hover:text-gray-800'
-                }`}
-              >
-                📝 Assignments
-              </button>
-              <button
                 onClick={() => setActiveTab('students')}
                 className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
                   activeTab === 'students'
@@ -1103,6 +1093,16 @@ const InstructorCourseDetailPage: React.FC = () => {
                 }`}
               >
                 👥 Students
+              </button>
+              <button
+                onClick={() => setActiveTab('assignments')}
+                className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
+                  activeTab === 'assignments'
+                    ? 'bg-[#005587] text-white'
+                    : 'text-gray-600 hover:text-gray-800'
+                }`}
+              >
+                📝 Assignments
               </button>
             </div>
 

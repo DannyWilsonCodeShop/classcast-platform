@@ -5,7 +5,6 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { HelpTooltip } from '@/components/common/HelpTooltip';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 
 interface Course {
@@ -154,22 +153,6 @@ const InstructorDashboard: React.FC = () => {
           )}
         </div>
 
-        {/* Course Details - Compact */}
-        {selectedCourse && (
-          <div className="mx-4 mb-3 bg-gray-50 rounded-2xl p-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {selectedCourse.classCode && (
-                  <span className="text-xs text-gray-600">Join: <span className="font-mono font-bold text-[#005587]">{selectedCourse.classCode}</span></span>
-                )}
-                {selectedCourse.code && (
-                  <span className="text-xs text-gray-500">{selectedCourse.code}</span>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Assignments List */}
         <div className="px-4 pb-4">
           {loading ? (
@@ -214,29 +197,39 @@ const InstructorDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {selectedCourse && !assignmentsLoading && assignments.length > 0 && (
-                <h3 className="text-xs font-semibold text-gray-500 tracking-wider mt-2 mb-1 flex items-center gap-1">Assignments <HelpTooltip text="These are the assignments for the selected course. Tap one to view grades and submissions. Use the Create button to add new ones." /></h3>
-              )}
               {assignments.map((assignment) => {
-                const typeIcon = assignment.assignmentType === 'discussion' ? '💬' : assignment.assignmentType === 'assessment' ? '📋' : assignment.assignmentType === 'module' || assignment.assignmentType === 'group-project' ? '🎬' : assignment.assignmentType === 'study-module' ? '📖' : '🎥';
+                const typeLabel = assignment.assignmentType === 'discussion' ? 'Discussion' : assignment.assignmentType === 'assessment' ? 'Assessment' : assignment.assignmentType === 'module' || assignment.assignmentType === 'group-project' ? 'Group' : assignment.assignmentType === 'study-module' ? 'Module' : '';
                 return (
-                <button
+                <div
                   key={assignment.assignmentId}
-                  onClick={() => router.push(`/instructor/courses/${selectedCourseId}/assignments/${assignment.assignmentId}/grades`)}
-                  className="w-full bg-gray-50 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
+                  className="bg-gray-50 rounded-2xl p-4"
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <span className="text-sm shrink-0">{typeIcon}</span>
                       <h3 className="text-sm font-bold text-[#005587] line-clamp-1">{assignment.title}</h3>
+                      {typeLabel && <span className="text-[9px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full shrink-0">{typeLabel}</span>}
                     </div>
                     <span className="text-xs font-medium text-[#005587] shrink-0 ml-2">{assignment.points} pts</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-500">
+                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
                     <span>Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
                     <span className="text-green-600 font-medium">{assignment.gradedCount}/{assignment.submissionsCount} graded</span>
                   </div>
-                </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => router.push(`/instructor/courses/${selectedCourseId}/assignments/${assignment.assignmentId}/grades`)}
+                      className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 active:scale-95 transition-transform"
+                    >
+                      View
+                    </button>
+                    <button
+                      onClick={() => router.push(`/instructor/grading/bulk?course=${selectedCourseId}&assignment=${assignment.assignmentId}`)}
+                      className="px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-medium active:scale-95 transition-transform"
+                    >
+                      Grade
+                    </button>
+                  </div>
+                </div>
                 );
               })}
             </div>
