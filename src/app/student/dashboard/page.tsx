@@ -193,7 +193,7 @@ export default function StudentDashboardPage() {
         <div className="h-px bg-gray-200 mx-4 shrink-0 mt-2" />
 
         {/* BOTTOM HALF - Recent Videos */}
-        <div className="flex-[3] flex flex-col min-h-0 overflow-hidden mb-20">
+        <div className="flex-[3] flex flex-col min-h-0 overflow-hidden pb-16">
           <div className="px-4 pt-2 pb-1 shrink-0">
             <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Recent Videos</h2>
           </div>

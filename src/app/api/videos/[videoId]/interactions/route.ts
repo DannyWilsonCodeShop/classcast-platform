@@ -341,6 +341,18 @@ export async function POST(
         if (ratingsResult.Items && ratingsResult.Items.length > 0) {
           const totalRating = ratingsResult.Items.reduce((sum, item) => sum + (item.rating || 0), 0);
           averageRating = totalRating / ratingsResult.Items.length;
+          
+          // Store averageRating on the submission record for fast feed lookups
+          try {
+            await docClient.send(new UpdateCommand({
+              TableName: SUBMISSIONS_TABLE,
+              Key: { submissionId: videoId },
+              UpdateExpression: 'SET averageRating = :avg, totalRatings = :total',
+              ExpressionAttributeValues: { ':avg': Math.round(averageRating * 10) / 10, ':total': ratingsResult.Items.length },
+            }));
+          } catch (updateErr) {
+            console.warn('Could not update averageRating on submission:', updateErr);
+          }
         }
       } catch (error) {
         console.error('Error calculating average rating:', error);

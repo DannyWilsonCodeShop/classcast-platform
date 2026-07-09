@@ -1,16 +1,14 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Shared header for the student mobile layout.
- * Renders ClassCast branding + search icon + school logo.
+ * Renders ClassCast branding + school logo.
  * Lives in layout.tsx so it stays fixed during page transitions.
  */
 export function StudentHeader() {
-  const router = useRouter();
   const { user } = useAuth();
 
   return (
@@ -24,22 +22,11 @@ export function StudentHeader() {
         </span>
         <img src="/UpdatedCCLogo.png" alt="" className="w-6 h-6 object-contain" />
       </div>
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => router.push('/student/courses')}
-          className="p-1"
-          aria-label="Search courses"
-        >
-          <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </button>
-        <img
-          src="/CristoReyLogo.png"
-          alt=""
-          className="w-14 h-14 object-contain"
-        />
-      </div>
+      <img
+        src="/CristoReyLogo.png"
+        alt=""
+        className="w-14 h-14 object-contain"
+      />
     </div>
   );
 }
