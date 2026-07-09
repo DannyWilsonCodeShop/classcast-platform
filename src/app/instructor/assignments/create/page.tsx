@@ -9,6 +9,7 @@ import { RubricCategory, getRubricMaxScore } from '@/types/rubric';
 import { DiscussionSetupWizard } from '@/components/instructor/wizards/DiscussionSetupWizard';
 import { AssessmentSetupWizard } from '@/components/instructor/wizards/AssessmentSetupWizard';
 import { ModuleSetupWizard } from '@/components/instructor/wizards/ModuleSetupWizard';
+import { StudyModuleSetupWizard } from '@/components/instructor/wizards/StudyModuleSetupWizard';
 import { ProblemBankBuilder } from '@/components/instructor/ProblemBankBuilder';
 import { ProblemBank } from '@/types/problemBank';
 import { DiscussionConfig } from '@/types/discussion';
@@ -592,19 +593,13 @@ const CreateAssignmentPage: React.FC = () => {
     }
     if (formData.assignmentType === 'study-module') {
       return (
-        <div className="space-y-4">
-          <h2 className="text-lg font-bold text-[#005587]">Study Module Setup</h2>
-          <div className="bg-blue-50 rounded-xl p-4">
-            <p className="text-sm text-blue-800">
-              <strong>Study modules</strong> are self-paced learning experiences with videos, quizzes, and progress tracking. 
-              The module builder is coming soon — for now, create the assignment and add lesson content later from the course detail page.
-            </p>
-          </div>
-          <div className="flex justify-between pt-2">
-            <button onClick={() => setCurrentStep(3)} className="px-4 py-2 text-xs text-gray-600 font-medium">Back</button>
-            <button onClick={() => setCurrentStep(5)} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium">Next</button>
-          </div>
-        </div>
+        <StudyModuleSetupWizard
+          onComplete={(config) => {
+            setFormData({ ...formData, moduleConfig: config as any });
+            setCurrentStep(5);
+          }}
+          onBack={() => setCurrentStep(3)}
+        />
       );
     }
     // Default: Rubric Builder (for video type)
