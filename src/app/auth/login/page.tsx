@@ -90,16 +90,10 @@ export default function LoginPage() {
         {menuOpen && (
           <div className="absolute top-16 left-4 bg-white/95 backdrop-blur-md rounded-xl shadow-xl p-4 z-50 min-w-[180px]">
             <button
-              onClick={() => { router.push('/'); setMenuOpen(false); }}
+              onClick={() => { router.push('/about'); setMenuOpen(false); }}
               className="block w-full text-left px-3 py-2 text-[#005587] font-medium hover:bg-gray-100 rounded-lg"
             >
-              Home
-            </button>
-            <button
-              onClick={() => { router.push('/auth/login'); setMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-[#005587] font-medium hover:bg-gray-100 rounded-lg"
-            >
-              Login
+              About Us
             </button>
             <button
               onClick={() => { router.push('/auth/signup'); setMenuOpen(false); }}
