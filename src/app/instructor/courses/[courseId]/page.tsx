@@ -584,12 +584,27 @@ const InstructorCourseDetailPage: React.FC = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setSections(data.data || []);
+          const fetchedSections = data.data || [];
+          // If sections don't have classCode, try to get from course document
+          if (fetchedSections.length > 0 && !fetchedSections[0].classCode) {
+            try {
+              const courseRes = await fetch(`/api/courses/${courseId}`, { credentials: 'include' });
+              if (courseRes.ok) {
+                const courseData = await courseRes.json();
+                const courseSections = courseData.data?.sections || [];
+                // Merge classCodes from course document
+                for (const sec of fetchedSections) {
+                  const match = courseSections.find((cs: any) => cs.sectionId === sec.sectionId || cs.sectionName === sec.sectionName);
+                  if (match?.classCode) sec.classCode = match.classCode;
+                }
+              }
+            } catch {}
+          }
+          setSections(fetchedSections);
         }
       }
     } catch (err) {
       console.error('Error fetching sections:', err);
-      // Don't set error for sections as it's not critical
     }
   };
 
@@ -1458,65 +1473,63 @@ const InstructorCourseDetailPage: React.FC = () => {
             {/* Students Tab */}
             {activeTab === 'students' && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800">Students</h2>
-                  <div className="flex items-center space-x-4">
-                    <div className="text-sm text-gray-600">
-                      {studentsWithSubmissionCounts.length} student{studentsWithSubmissionCounts.length !== 1 ? 's' : ''}
-                    </div>
-                    <button
-                      onClick={() => router.push(`/instructor/courses/${courseId}/students`)}
-                      className="px-4 py-2 bg-[#005587] text-white rounded-xl font-medium hover:bg-[#004060] transition-colors text-sm"
-                      title="Manage students with drag-and-drop section changes"
-                    >
-                      🔄 Manage Students
-                    </button>
-                  </div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs text-gray-500 font-medium">{studentsWithSubmissionCounts.length} student{studentsWithSubmissionCounts.length !== 1 ? 's' : ''}</span>
                 </div>
                 
                 {studentsWithSubmissionCounts.length > 0 ? (
-                  <div className="space-y-6">
-                    {/* Info Banner */}
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="text-blue-600">
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm text-blue-800">
-                            <strong>Drag and Drop:</strong> You can now drag students between sections to move them. Click "Manage Students" for additional features like exporting grades.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    {/* Group students by section with drag-and-drop */}
+                  <div className="space-y-4">
+                    {/* Group students by section */}
                     {Array.from(new Set(studentsWithSubmissionCounts.map(s => s.sectionName || 'No Section'))).map(sectionName => {
                       const sectionStudents = studentsWithSubmissionCounts.filter(s => (s.sectionName || 'No Section') === sectionName);
+                      const allSections = Array.from(new Set(studentsWithSubmissionCounts.map(s => s.sectionName || 'No Section')));
                       
                       return (
-                        <SectionColumn
-                          key={sectionName}
-                          title={sectionName}
-                          sectionName={sectionName === 'No Section' ? null : sectionName}
-                          students={sectionStudents}
-                          onDrop={handleDropStudent}
-                          draggedStudent={draggedStudent}
-                          onRemoveStudent={(studentId: string, studentName: string) => 
-                            setShowRemoveConfirm({studentId, studentName})
-                          }
-                          onGradeStudent={(student: Student) => {
-                            if (student.assignmentsSubmitted === 0) {
-                              alert(`${student.name} has not submitted any videos yet.`);
-                              return;
-                            }
-                            router.push(`/instructor/grading/bulk?course=${courseId}&student=${student.studentId}&studentName=${encodeURIComponent(student.name)}`);
-                          }}
-                          setDraggedStudent={setDraggedStudent}
-                          removingStudent={removingStudent}
-                          allSections={Array.from(new Set(studentsWithSubmissionCounts.map(s => s.sectionName || 'No Section')))}
-                        />
+                        <div key={sectionName}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-xs font-bold text-[#005587]">{sectionName}</span>
+                            <span className="text-[10px] text-gray-400">({sectionStudents.length})</span>
+                          </div>
+                          <div className="space-y-1">
+                            {sectionStudents.map(student => (
+                              <div key={student.studentId} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
+                                <div className="w-7 h-7 rounded-full bg-[#005587] flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                                  {student.avatar && student.avatar.length <= 4 && !student.avatar.startsWith('http') ? (
+                                    <span className="text-sm">{student.avatar}</span>
+                                  ) : student.avatar?.startsWith('http') ? (
+                                    <img src={student.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                                  ) : (
+                                    <span>{(student.name || '?')[0]}</span>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-gray-900 truncate">{student.name}</p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    if (student.assignmentsSubmitted === 0) return;
+                                    router.push(`/instructor/grading/bulk?course=${courseId}&student=${student.studentId}&studentName=${encodeURIComponent(student.name)}`);
+                                  }}
+                                  className={`text-[10px] px-2 py-0.5 rounded-full ${student.assignmentsSubmitted > 0 ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-400'}`}
+                                >
+                                  🎥 {student.assignmentsSubmitted}
+                                </button>
+                                {allSections.length > 1 && (
+                                  <select
+                                    value=""
+                                    onChange={(e) => { if (e.target.value) handleDropStudent(student.studentId, e.target.value === '__none__' ? null : e.target.value); }}
+                                    className="w-14 text-[9px] border border-gray-200 rounded px-1 py-0.5 text-gray-400"
+                                  >
+                                    <option value="">Move</option>
+                                    {allSections.filter(s => s !== sectionName).map(s => (
+                                      <option key={s} value={s === 'No Section' ? '__none__' : s}>{s}</option>
+                                    ))}
+                                  </select>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
