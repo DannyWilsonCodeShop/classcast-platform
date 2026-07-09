@@ -10,7 +10,7 @@ function Bone({ className = '' }: { className?: string }) {
 /** Skeleton shown while dashboard data loads */
 export function DashboardSkeleton() {
   return (
-    <div className="flex flex-col gap-3 px-4 py-3">
+    <div className="flex flex-col gap-3 px-4 py-3 bg-white flex-1">
       {/* Stats row skeleton */}
       <div className="flex gap-2">
         <Bone className="h-6 w-32 rounded-full" />
