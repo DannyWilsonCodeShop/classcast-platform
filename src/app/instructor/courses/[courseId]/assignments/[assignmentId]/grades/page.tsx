@@ -15,6 +15,8 @@ interface Assignment {
   courseId: string;
   courseName: string;
   courseCode: string;
+  assignmentType?: string;
+  instructionalVideoUrl?: string;
 }
 
 interface StudentGrade {
@@ -149,7 +151,9 @@ const AssignmentGradesPage: React.FC = () => {
           maxScore: assignment.points || assignment.maxScore || 100,
           courseId: assignment.courseId,
           courseName: assignment.courseName || assignment.course?.name || 'Course',
-          courseCode: assignment.courseCode || assignment.course?.code || 'N/A'
+          courseCode: assignment.courseCode || assignment.course?.code || 'N/A',
+          assignmentType: assignment.assignmentType || assignment.type,
+          instructionalVideoUrl: assignment.instructionalVideoUrl || assignment.videoUrl,
         });
       }
       
@@ -404,22 +408,86 @@ const AssignmentGradesPage: React.FC = () => {
               <img src="/ClassCastLogo.png" alt="" className="w-7 h-7 object-contain shrink-0" />
               <span className="text-sm font-bold text-[#005587] shrink-0">Assignment Details</span>
             </div>
-            <button
-              onClick={handleExportGrades}
-              disabled={isExporting || studentGrades.length === 0}
-              className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center disabled:opacity-50 shrink-0"
-            >
-              📊
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => alert('Edit coming soon')}
+                className="px-3 py-1 bg-gray-50 rounded-full text-[10px] font-bold text-[#005587]"
+              >
+                Edit
+              </button>
+              <button
+                onClick={handleExportGrades}
+                disabled={isExporting || studentGrades.length === 0}
+                className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center disabled:opacity-50 shrink-0"
+              >
+                📊
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="px-4 py-3 space-y-3">
-          {/* Assignment title + course */}
-          <div>
+          {/* Assignment Info Section */}
+          <div className="bg-gray-50 rounded-2xl p-3 space-y-2">
             <h2 className="text-sm font-bold text-[#005587]">{assignment.title}</h2>
-            <p className="text-xs text-gray-500">{assignment.courseName}</p>
+            <p className="text-xs text-gray-500">{assignment.courseName} · {assignment.courseCode}</p>
+            {assignment.description && (
+              <p className="text-xs text-gray-700 leading-relaxed">{assignment.description}</p>
+            )}
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="text-xs text-gray-600">
+                📅 Due: {new Date(assignment.dueDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs text-gray-600">🎯 Max Score: {assignment.maxScore}</span>
+              {assignment.assignmentType && (
+                <span className="px-2 py-0.5 bg-white border border-gray-200 rounded-full text-[10px] font-medium text-[#005587]">
+                  {assignment.assignmentType}
+                </span>
+              )}
+            </div>
+            {assignment.instructionalVideoUrl && (
+              <div className="pt-1">
+                <p className="text-[10px] text-gray-500 mb-1 font-medium">Instructional Video</p>
+                <div
+                  className="w-32 h-20 bg-white border border-gray-200 rounded-xl flex items-center justify-center cursor-pointer"
+                  onClick={() => window.open(assignment.instructionalVideoUrl, '_blank')}
+                >
+                  <div className="text-center">
+                    <div className="text-2xl">🎬</div>
+                    <div className="text-[9px] text-gray-400 mt-0.5">Watch</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Video Submissions Grid */}
+          {studentGrades.filter(g => (g.status === 'submitted' || g.status === 'graded') && g.submissionId).length > 0 && (
+            <div>
+              <p className="text-sm font-bold text-[#005587] mb-2">Video Submissions</p>
+              <div className="flex overflow-x-auto gap-2 pb-2 -mx-1 px-1">
+                {studentGrades
+                  .filter(g => (g.status === 'submitted' || g.status === 'graded') && g.submissionId)
+                  .map((grade) => (
+                    <button
+                      key={grade.studentId}
+                      onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}?submissionId=${grade.submissionId}&student=${grade.studentId}`)}
+                      className="flex-shrink-0 w-[120px] bg-gray-50 rounded-2xl p-2 text-center"
+                    >
+                      <div className="w-full h-16 bg-white border border-gray-200 rounded-xl flex items-center justify-center mb-1.5">
+                        <div className="text-xl">🎥</div>
+                      </div>
+                      <p className="text-[10px] text-gray-700 font-medium truncate">{grade.studentName}</p>
+                      <p className="text-[9px] text-gray-400">
+                        {grade.status === 'graded' ? `${grade.grade}/${assignment.maxScore}` : 'Pending'}
+                      </p>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
 
           {/* Stats Row - compact */}
           <div className="grid grid-cols-5 gap-2">
