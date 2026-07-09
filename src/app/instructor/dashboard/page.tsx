@@ -218,13 +218,13 @@ const InstructorDashboard: React.FC = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={() => router.push(`/instructor/courses/${selectedCourseId}/assignments/${assignment.assignmentId}/grades`)}
-                      className="px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-700 active:scale-95 transition-transform"
+                      className="px-3 py-1 bg-white border border-gray-200 rounded-full text-[10px] font-medium text-gray-600 active:scale-95 transition-transform"
                     >
                       View
                     </button>
                     <button
                       onClick={() => router.push(`/instructor/grading/bulk?course=${selectedCourseId}&assignment=${assignment.assignmentId}`)}
-                      className="px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-medium active:scale-95 transition-transform"
+                      className="px-3 py-1 bg-[#005587] rounded-full text-[10px] font-medium text-white active:scale-95 transition-transform"
                     >
                       Grade
                     </button>
