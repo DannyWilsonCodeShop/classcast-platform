@@ -77,44 +77,55 @@ const StudentProfilePage: React.FC = () => {
       <div className="h-full flex flex-col bg-white overflow-hidden">
         <DemoModeBanner />
 
-        {/* Scrollable content - everything fits on one screen */}
+        {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto min-h-0">
-          {/* Profile card */}
-          <div className="px-4 py-4 bg-gradient-to-r from-[#005587] to-[#0077aa] flex items-center gap-3">
-            <div className="relative">
-              <Avatar user={isEditing ? { ...user, avatar: editFields.avatar } : user} size="lg" showBorder={true} className="border-white" />
+          {/* Profile Header - Centered Avatar (matches instructor portal) */}
+          <div className="flex flex-col items-center pt-6 pb-4 px-4">
+            <div className="relative mb-3">
+              <Avatar user={isEditing ? { ...user, avatar: editFields.avatar } : user} size="xl" showBorder={true} className="w-24 h-24 border-4 border-[#FFC72C]" />
               {isEditing && (
-                <div className="absolute -bottom-1 -right-1 flex gap-0.5">
-                  <label className="w-6 h-6 bg-[#FFC72C] rounded-full flex items-center justify-center cursor-pointer shadow">
+                <div className="absolute -bottom-1 -right-1 flex gap-1">
+                  <label className="w-7 h-7 bg-[#FFC72C] rounded-full flex items-center justify-center cursor-pointer shadow">
                     <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" disabled={isUploading} />
-                    {isUploading ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> :
-                      <svg className="w-3 h-3 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    {isUploading ? <div className="w-3.5 h-3.5 border-2 border-[#005587] border-t-transparent rounded-full animate-spin" /> :
+                      <svg className="w-3.5 h-3.5 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     }
                   </label>
-                  <button onClick={() => setShowEmojiPicker(true)} className="w-6 h-6 bg-white rounded-full flex items-center justify-center shadow text-xs">😊</button>
+                  <button onClick={() => setShowEmojiPicker(true)} className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow text-sm border border-gray-200">😊</button>
                 </div>
               )}
             </div>
-            <div className="flex-1 min-w-0">
-              {isEditing ? (
-                <div className="flex gap-2">
-                  <input value={editFields.firstName} onChange={e => setEditFields(p => ({ ...p, firstName: e.target.value }))}
-                    className="flex-1 text-white text-sm font-bold bg-white/20 border border-white/30 rounded px-2 py-0.5 placeholder-white/60" placeholder="First" />
-                  <input value={editFields.lastName} onChange={e => setEditFields(p => ({ ...p, lastName: e.target.value }))}
-                    className="flex-1 text-white text-sm font-bold bg-white/20 border border-white/30 rounded px-2 py-0.5 placeholder-white/60" placeholder="Last" />
-                </div>
-              ) : (
-                <>
-                  <h2 className="text-white text-lg font-bold truncate">{user.firstName} {user.lastName}</h2>
-                  <p className="text-white/70 text-xs truncate">{user.email}</p>
-                  {user.schoolName && <p className="text-white/50 text-[10px]">{user.schoolName}</p>}
-                </>
-              )}
-            </div>
+            {isEditing ? (
+              <div className="flex gap-2 w-full max-w-[240px]">
+                <input value={editFields.firstName} onChange={e => setEditFields(p => ({ ...p, firstName: e.target.value }))}
+                  className="flex-1 text-sm font-bold text-center border border-gray-200 rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-[#005587] focus:outline-none" placeholder="First" />
+                <input value={editFields.lastName} onChange={e => setEditFields(p => ({ ...p, lastName: e.target.value }))}
+                  className="flex-1 text-sm font-bold text-center border border-gray-200 rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-[#005587] focus:outline-none" placeholder="Last" />
+              </div>
+            ) : (
+              <>
+                <h2 className="text-lg font-bold text-[#005587]">{user.firstName} {user.lastName}</h2>
+                <p className="text-xs text-gray-500">{user.email}</p>
+                {user.schoolName && <p className="text-[10px] text-gray-400 mt-0.5">{user.schoolName}</p>}
+              </>
+            )}
+            {!isEditing && (
+              <button onClick={() => setIsEditing(true)} className="mt-3 px-4 py-1.5 border border-[#005587] text-[#005587] rounded-full text-xs font-medium">
+                Edit Profile
+              </button>
+            )}
+            {isEditing && (
+              <div className="flex gap-2 mt-3">
+                <button onClick={() => setIsEditing(false)} className="px-4 py-1.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">Cancel</button>
+                <button onClick={handleSave} disabled={isLoading} className="px-4 py-1.5 bg-[#005587] text-white rounded-full text-xs font-bold disabled:opacity-50">
+                  {isLoading ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Quick info fields */}
-          <div className="px-4 py-3 space-y-2.5">
+          {/* Profile Info Card */}
+          <div className="mx-4 bg-gray-50 rounded-2xl p-4 mb-4 space-y-2.5">
             <EditableField label="Bio" value={isEditing ? editFields.bio : user.bio} isEditing={isEditing}
               onChange={v => setEditFields(p => ({ ...p, bio: v }))} placeholder="Tell us about yourself" />
             <EditableField label="Favorite Subject" value={isEditing ? editFields.favoriteSubject : user.favoriteSubject} isEditing={isEditing}
