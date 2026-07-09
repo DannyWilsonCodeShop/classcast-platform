@@ -7,8 +7,13 @@ interface AssessmentSetupWizardProps {
   onBack: () => void;
 }
 
+const DEFAULT_ASSESSMENT_DIRECTIONS = `This is a timed video assessment. Questions will appear on screen one at a time. You must answer each question on camera within the time limit. Keep your full upper body and arms visible at all times. The recording will auto-advance when time expires. Do not leave the screen — your recording will be aborted.`;
+
 export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWizardProps) {
   const [step, setStep] = useState(1);
+  const [directions, setDirections] = useState(DEFAULT_ASSESSMENT_DIRECTIONS);
+  const [deliveryMode, setDeliveryMode] = useState<'all-same' | 'random-from-bank'>('all-same');
+  const [randomCount, setRandomCount] = useState(5);
   const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
 
   const addQuestion = () => {
@@ -41,65 +46,119 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
   };
 
   const totalDuration = questions.reduce((sum, q) => sum + q.timeLimitSeconds, 0);
-  const canProceed =
-    step === 1
-      ? questions.length > 0 && questions.every((q) => q.questionText.trim().length > 0)
-      : true;
+  const canProceed = () => {
+    if (step === 1) return true;
+    if (step === 2) return questions.length > 0 && questions.every((q) => q.questionText.trim().length > 0);
+    return true;
+  };
 
   return (
     <div className="space-y-4">
       {/* Step indicator */}
       <div className="flex items-center justify-center gap-2 mb-4">
-        {[1, 2].map((s) => (
-          <div
-            key={s}
-            className={`w-2 h-2 rounded-full ${s <= step ? 'bg-[#005587]' : 'bg-gray-200'}`}
-          />
+        {[1, 2, 3].map((s) => (
+          <div key={s} className={`w-2 h-2 rounded-full ${s <= step ? 'bg-[#005587]' : 'bg-gray-200'}`} />
         ))}
       </div>
 
+      {/* Step 1: Directions & Delivery Mode */}
       {step === 1 && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-bold text-[#005587]">Assessment Settings</h3>
+
+          <div>
+            <label className="text-xs font-medium text-gray-600 block mb-1">Directions (editable)</label>
+            <textarea
+              value={directions}
+              onChange={(e) => setDirections(e.target.value)}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs resize-none focus:ring-1 focus:ring-[#005587] focus:border-[#005587] focus:outline-none text-gray-600"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-gray-600 block mb-2">Question Delivery</label>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setDeliveryMode('all-same')}
+                className={`w-full p-3 rounded-xl border text-left ${deliveryMode === 'all-same' ? 'border-[#005587] bg-[#005587]/5' : 'border-gray-200'}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📋</span>
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Same questions for all</p>
+                    <p className="text-[10px] text-gray-500">Every student gets the exact same questions in order</p>
+                  </div>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeliveryMode('random-from-bank')}
+                className={`w-full p-3 rounded-xl border text-left ${deliveryMode === 'random-from-bank' ? 'border-[#005587] bg-[#005587]/5' : 'border-gray-200'}`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🎲</span>
+                  <div>
+                    <p className="text-xs font-bold text-gray-900">Random from question bank</p>
+                    <p className="text-[10px] text-gray-500">Each student gets a random selection from your question pool</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          {deliveryMode === 'random-from-bank' && (
+            <div>
+              <label className="text-xs font-medium text-gray-600 block mb-1">
+                Questions per student: {randomCount}
+              </label>
+              <input
+                type="range"
+                min={1}
+                max={20}
+                value={randomCount}
+                onChange={(e) => setRandomCount(Number(e.target.value))}
+                className="w-full accent-[#005587]"
+              />
+              <div className="flex justify-between text-[10px] text-gray-400"><span>1</span><span>20</span></div>
+              <p className="text-[10px] text-gray-400 mt-1">
+                Add more questions than this number to create a pool. Each student will get {randomCount} random questions.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Step 2: Questions */}
+      {step === 2 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[#005587]">Questions</h3>
+            <h3 className="text-sm font-bold text-[#005587]">
+              {deliveryMode === 'random-from-bank' ? 'Question Bank' : 'Questions'}
+            </h3>
             <span className="text-[10px] text-gray-500">
-              Total: {Math.floor(totalDuration / 60)}m {totalDuration % 60}s ({questions.length}{' '}
-              question{questions.length !== 1 ? 's' : ''})
+              {questions.length} question{questions.length !== 1 ? 's' : ''}
+              {deliveryMode === 'random-from-bank' && ` (${randomCount} per student)`}
+              {' • '}{Math.floor(totalDuration / 60)}m {totalDuration % 60}s
             </span>
           </div>
 
-          {/* Question List */}
-          <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+          {deliveryMode === 'random-from-bank' && questions.length > 0 && questions.length < randomCount && (
+            <div className="bg-yellow-50 rounded-lg p-2 text-[10px] text-yellow-700">
+              ⚠️ Add at least {randomCount} questions (you have {questions.length}). Students will get {randomCount} randomly.
+            </div>
+          )}
+
+          <div className="space-y-2 max-h-[45vh] overflow-y-auto">
             {questions.map((q, idx) => (
               <div key={q.questionId} className="bg-gray-50 rounded-xl p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-gray-400 font-medium">Q{idx + 1}</span>
                   <div className="flex items-center gap-1">
-                    {idx > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => moveQuestion(idx, idx - 1)}
-                        className="text-[10px] text-gray-400"
-                      >
-                        ↑
-                      </button>
-                    )}
-                    {idx < questions.length - 1 && (
-                      <button
-                        type="button"
-                        onClick={() => moveQuestion(idx, idx + 1)}
-                        className="text-[10px] text-gray-400"
-                      >
-                        ↓
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => removeQuestion(idx)}
-                      className="text-[10px] text-red-400 ml-2"
-                    >
-                      ✕
-                    </button>
+                    {idx > 0 && <button type="button" onClick={() => moveQuestion(idx, idx - 1)} className="text-[10px] text-gray-400">↑</button>}
+                    {idx < questions.length - 1 && <button type="button" onClick={() => moveQuestion(idx, idx + 1)} className="text-[10px] text-gray-400">↓</button>}
+                    <button type="button" onClick={() => removeQuestion(idx)} className="text-[10px] text-red-400 ml-2">✕</button>
                   </div>
                 </div>
                 <textarea
@@ -116,9 +175,7 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
                     min={15}
                     max={300}
                     value={q.timeLimitSeconds}
-                    onChange={(e) =>
-                      updateQuestion(idx, 'timeLimitSeconds', Number(e.target.value))
-                    }
+                    onChange={(e) => updateQuestion(idx, 'timeLimitSeconds', Number(e.target.value))}
                     className="w-16 px-2 py-1 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587] focus:outline-none"
                   />
                   <span className="text-[10px] text-gray-400">seconds</span>
@@ -127,41 +184,26 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
             ))}
           </div>
 
-          <button
-            type="button"
-            onClick={addQuestion}
-            className="w-full py-2 bg-gray-100 rounded-xl text-xs font-medium text-[#005587]"
-          >
+          <button type="button" onClick={addQuestion} className="w-full py-2 bg-gray-100 rounded-xl text-xs font-medium text-[#005587]">
             + Add Question
           </button>
         </div>
       )}
 
-      {step === 2 && (
+      {/* Step 3: Review */}
+      {step === 3 && (
         <div className="space-y-3">
           <h3 className="text-sm font-bold text-[#005587]">Review Assessment</h3>
           <div className="bg-gray-50 rounded-xl p-3 space-y-2 text-xs">
-            <div>
-              <span className="text-gray-500">Questions:</span>{' '}
-              <span className="font-medium">{questions.length}</span>
-            </div>
-            <div>
-              <span className="text-gray-500">Total Duration:</span>{' '}
-              <span className="font-medium">
-                {Math.floor(totalDuration / 60)}m {totalDuration % 60}s
-              </span>
-            </div>
+            <div><span className="text-gray-500">Delivery:</span> <span className="font-medium">{deliveryMode === 'all-same' ? 'Same for all' : `Random ${randomCount} from ${questions.length} questions`}</span></div>
+            <div><span className="text-gray-500">Questions:</span> <span className="font-medium">{questions.length}</span></div>
+            <div><span className="text-gray-500">Total Duration:</span> <span className="font-medium">{Math.floor(totalDuration / 60)}m {totalDuration % 60}s</span></div>
           </div>
-          <div className="space-y-1 max-h-[40vh] overflow-y-auto">
+          <div className="space-y-1 max-h-[35vh] overflow-y-auto">
             {questions.map((q, idx) => (
               <div key={q.questionId} className="bg-gray-50 rounded-lg p-2 text-xs">
-                <span className="text-gray-400">
-                  Q{idx + 1} ({q.timeLimitSeconds}s):
-                </span>{' '}
-                <span className="text-gray-700">
-                  {q.questionText.substring(0, 60)}
-                  {q.questionText.length > 60 ? '...' : ''}
-                </span>
+                <span className="text-gray-400">Q{idx + 1} ({q.timeLimitSeconds}s):</span>{' '}
+                <span className="text-gray-700">{q.questionText.substring(0, 60)}{q.questionText.length > 60 ? '...' : ''}</span>
               </div>
             ))}
           </div>
@@ -170,27 +212,11 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
 
       {/* Navigation */}
       <div className="flex justify-between pt-2">
-        <button
-          onClick={step === 1 ? onBack : () => setStep(1)}
-          className="px-4 py-2 text-xs text-gray-600 font-medium"
-        >
-          Back
-        </button>
-        {step < 2 ? (
-          <button
-            onClick={() => setStep(2)}
-            disabled={!canProceed}
-            className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium disabled:opacity-50"
-          >
-            Review
-          </button>
+        <button onClick={step === 1 ? onBack : () => setStep(step - 1)} className="px-4 py-2 text-xs text-gray-600 font-medium">Back</button>
+        {step < 3 ? (
+          <button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium disabled:opacity-50">Next</button>
         ) : (
-          <button
-            onClick={() => onComplete(questions)}
-            className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold"
-          >
-            Create Assessment
-          </button>
+          <button onClick={() => onComplete(questions)} className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold">Create Assessment</button>
         )}
       </div>
     </div>

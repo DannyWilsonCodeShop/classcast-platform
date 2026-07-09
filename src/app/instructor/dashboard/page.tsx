@@ -26,6 +26,7 @@ interface Assignment {
   submissionsCount: number;
   gradedCount: number;
   courseId: string;
+  assignmentType?: string;
 }
 
 const InstructorDashboard: React.FC = () => {
@@ -104,6 +105,7 @@ const InstructorDashboard: React.FC = () => {
               submissionsCount: a.submissionsCount || 0,
               gradedCount: a.gradedCount || 0,
               courseId: selectedCourseId,
+              assignmentType: a.assignmentType || 'video',
             }));
             setAssignments(mapped);
           }
@@ -215,22 +217,28 @@ const InstructorDashboard: React.FC = () => {
               {selectedCourse && !assignmentsLoading && assignments.length > 0 && (
                 <h3 className="text-xs font-semibold text-gray-500 tracking-wider mt-2 mb-1 flex items-center gap-1">Assignments <HelpTooltip text="These are the assignments for the selected course. Tap one to view grades and submissions. Use the Create button to add new ones." /></h3>
               )}
-              {assignments.map((assignment) => (
+              {assignments.map((assignment) => {
+                const typeIcon = assignment.assignmentType === 'discussion' ? '💬' : assignment.assignmentType === 'assessment' ? '📋' : assignment.assignmentType === 'module' || assignment.assignmentType === 'group-project' ? '🎬' : assignment.assignmentType === 'study-module' ? '📖' : '🎥';
+                return (
                 <button
                   key={assignment.assignmentId}
                   onClick={() => router.push(`/instructor/courses/${selectedCourseId}/assignments/${assignment.assignmentId}/grades`)}
                   className="w-full bg-gray-50 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform"
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <h3 className="text-sm font-bold text-[#005587] line-clamp-1">{assignment.title}</h3>
-                    <span className="text-xs font-medium text-[#005587]">{assignment.points} pts</span>
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      <span className="text-sm shrink-0">{typeIcon}</span>
+                      <h3 className="text-sm font-bold text-[#005587] line-clamp-1">{assignment.title}</h3>
+                    </div>
+                    <span className="text-xs font-medium text-[#005587] shrink-0 ml-2">{assignment.points} pts</span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-gray-500">
                     <span>Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
                     <span className="text-green-600 font-medium">{assignment.gradedCount}/{assignment.submissionsCount} graded</span>
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
