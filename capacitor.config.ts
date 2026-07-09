@@ -15,23 +15,23 @@ const config: CapacitorConfig = {
     contentInset: 'never',
     preferredContentMode: 'mobile',
     scheme: 'ClassCast',
-    backgroundColor: '#ffffff',
+    backgroundColor: '#005587',
     scrollEnabled: true,
   },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
       launchAutoHide: true,
-      backgroundColor: '#ffffff',
+      backgroundColor: '#005587',
       showSpinner: false,
       androidScaleType: 'CENTER_CROP',
       splashFullScreen: true,
       splashImmersive: true,
     },
     StatusBar: {
-      style: 'DARK',
-      backgroundColor: '#ffffff',
-      overlaysWebView: false,
+      style: 'LIGHT',
+      backgroundColor: '#005587',
+      overlaysWebView: true,
     },
     Keyboard: {
       resize: 'body',
