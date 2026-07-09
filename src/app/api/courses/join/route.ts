@@ -19,16 +19,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Scan for a course matching the class code (case-insensitive)
+    const normalizedInput = classCode.toUpperCase().trim();
+
+    // Scan all courses to find the class code (could be on course or section)
     const scanResult = await docClient.send(new ScanCommand({
       TableName: COURSES_TABLE,
-      FilterExpression: 'attribute_exists(classCode)',
     }));
 
-    const normalizedInput = classCode.toUpperCase().trim();
-    const course = scanResult.Items?.find(
-      (item) => item.classCode && item.classCode.toUpperCase() === normalizedInput
-    );
+    let course: any = null;
+    let matchedSectionId: string | null = null;
+    let matchedSectionName: string | null = null;
+
+    for (const item of scanResult.Items || []) {
+      // Check course-level class code
+      if (item.classCode && item.classCode.toUpperCase() === normalizedInput) {
+        course = item;
+        break;
+      }
+      // Check section-level class codes
+      const sections = item.sections || [];
+      for (const sec of sections) {
+        if (sec.classCode && sec.classCode.toUpperCase() === normalizedInput) {
+          course = item;
+          matchedSectionId = sec.sectionId || null;
+          matchedSectionName = sec.sectionName || null;
+          break;
+        }
+      }
+      if (course) break;
+    }
 
     if (!course) {
       return NextResponse.json(
@@ -52,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     // Check if course is full
     const currentEnrollment = course.currentEnrollment || 0;
-    const maxStudents = course.maxStudents || 30;
+    const maxStudents = course.maxStudents || 200;
 
     if (currentEnrollment >= maxStudents) {
       return NextResponse.json(
@@ -61,8 +80,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Enroll the student
-    const studentEntry = {
+    // Enroll the student (include section info if matched via section code)
+    const studentEntry: any = {
       userId: studentId,
       email: studentEmail || '',
       firstName: studentFirstName || '',
@@ -70,6 +89,11 @@ export async function POST(request: NextRequest) {
       enrolledAt: new Date().toISOString(),
       status: 'active',
     };
+
+    if (matchedSectionId) {
+      studentEntry.sectionId = matchedSectionId;
+      studentEntry.sectionName = matchedSectionName;
+    }
 
     await docClient.send(new UpdateCommand({
       TableName: COURSES_TABLE,
@@ -90,6 +114,7 @@ export async function POST(request: NextRequest) {
         courseId: course.courseId,
         title: course.title,
         code: course.code,
+        sectionName: matchedSectionName,
       },
     });
   } catch (error) {
