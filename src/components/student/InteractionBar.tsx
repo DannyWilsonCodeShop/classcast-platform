@@ -53,13 +53,19 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
     let cancelled = false;
     const load = async () => {
       try {
-        // Load user rating
+        // Load user rating (try localStorage first for instant display)
         if (currentUser?.id && videoId) {
+          try {
+            const cached = localStorage.getItem(`rating_${videoId}_${currentUser.id}`);
+            if (cached && !cancelled) setUserRating(Number(cached));
+          } catch {}
+          
           const r = await fetch(`/api/videos/${videoId}/rating?userId=${currentUser.id}`);
           if (!cancelled && r.ok) {
             const data = await r.json();
             if (data.success && typeof data.rating === 'number') {
               setUserRating(data.rating);
+              try { localStorage.setItem(`rating_${videoId}_${currentUser.id}`, String(data.rating)); } catch {}
             }
             if (data.averageRating) {
               setAverageRating(data.averageRating);
@@ -242,10 +248,13 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
     
     console.log('⭐ Rating video:', { videoId, userId: currentUser.id, rating });
     
-    // Optimistic UI update of user stars
+    // Optimistic UI update + localStorage failsafe
     const prev = userRating;
     setUserRating(rating);
     setLoadingRating(true);
+    
+    // Save to localStorage immediately as failsafe
+    try { localStorage.setItem(`rating_${videoId}_${currentUser.id}`, String(rating)); } catch {}
     
     try {
       const res = await fetch(`/api/videos/${videoId}/interactions`, {
@@ -287,12 +296,19 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
 
   return (
     <div className="flex items-center flex-wrap gap-4 text-gray-600">
-      {/* Star Rating - primary interaction (replaces hearts) */}
+      {/* Star Rating - primary interaction */}
       {!isOwnVideo ? (
-        <div className="flex items-center space-x-1 py-2">
+        <div className="flex items-center space-x-0.5 py-2">
           {[1, 2, 3, 4, 5].map((star) => (
-            <button key={star} onClick={() => handleRating(star)} className="focus:outline-none" type="button" title={`Rate ${star} star${star > 1 ? 's' : ''}`} disabled={loadingRating}>
-              <svg className={`w-6 h-6 transition-all ${star <= userRating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300 hover:text-yellow-400'}`} fill="currentColor" viewBox="0 0 20 20">
+            <button
+              key={star}
+              onClick={() => handleRating(star)}
+              className="focus:outline-none p-1 active:scale-150 transition-transform duration-150"
+              type="button"
+              title={`Rate ${star} star${star > 1 ? 's' : ''}`}
+              disabled={loadingRating}
+            >
+              <svg className={`w-7 h-7 transition-all duration-200 ${star <= userRating ? 'text-[#FFC72C] fill-[#FFC72C] drop-shadow-sm' : 'text-gray-300 hover:text-[#FFC72C]/60'}`} fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
             </button>
