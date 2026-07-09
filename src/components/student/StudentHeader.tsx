@@ -14,13 +14,13 @@ export function StudentHeader() {
   return (
     <div className="flex items-center justify-between px-4 pt-2 pb-1 shrink-0">
       <div className="flex items-center gap-1">
-        <img src="/MyClassCast36.png" alt="ClassCast" className="w-8 h-8 object-contain" />
         <span
           style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }}
-          className="text-2xl"
+          className="text-3xl"
         >
           ClassCast
         </span>
+        <img src="/UpdatedCCLogo.png" alt="" className="w-6 h-6 object-contain" />
       </div>
       <img
         src="/CristoReyLogo.png"
