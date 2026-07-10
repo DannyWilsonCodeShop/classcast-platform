@@ -7,27 +7,32 @@ import { RubricCategory, getCategoryMaxScore } from '@/types/rubric';
 interface TemplateRubricSelectorProps {
   onSelect: (categories: RubricCategory[]) => void;
   hasExistingContent: boolean;
+  activeTemplateKey?: string;
 }
 
 export const TemplateRubricSelector: React.FC<TemplateRubricSelectorProps> = ({
   onSelect,
   hasExistingContent,
+  activeTemplateKey,
 }) => {
   const [pendingTemplateKey, setPendingTemplateKey] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | undefined>(activeTemplateKey || 'video_presentation');
 
   const templates = Object.entries(TEMPLATE_RUBRICS);
 
   const handleTemplateClick = (key: string) => {
-    if (hasExistingContent) {
+    if (hasExistingContent && key !== selectedKey) {
       setPendingTemplateKey(key);
     } else {
       onSelect(TEMPLATE_RUBRICS[key].categories);
+      setSelectedKey(key);
     }
   };
 
   const handleConfirm = () => {
     if (pendingTemplateKey) {
       onSelect(TEMPLATE_RUBRICS[pendingTemplateKey].categories);
+      setSelectedKey(pendingTemplateKey);
       setPendingTemplateKey(null);
     }
   };
@@ -84,7 +89,7 @@ export const TemplateRubricSelector: React.FC<TemplateRubricSelectorProps> = ({
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
         {templates.map(([key, template]) => {
           const maxScore = getTemplateMaxScore(template.categories);
-          const isDefault = key === 'video_presentation';
+          const isActive = key === selectedKey;
 
           return (
             <button
@@ -92,7 +97,7 @@ export const TemplateRubricSelector: React.FC<TemplateRubricSelectorProps> = ({
               type="button"
               onClick={() => handleTemplateClick(key)}
               className={`rounded-xl p-2.5 text-left transition-all border ${
-                isDefault && !hasExistingContent
+                isActive
                   ? 'border-[#005587] bg-[#005587]/5'
                   : 'border-transparent bg-gray-50 hover:bg-gray-100 hover:border-gray-200'
               }`}
