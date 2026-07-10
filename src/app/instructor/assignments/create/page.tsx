@@ -726,9 +726,25 @@ const CreateAssignmentPage: React.FC = () => {
         <h2 className="text-lg font-bold text-[#005587]">Review & Save</h2>
 
         <div className="bg-gray-50 rounded-2xl p-5 space-y-3 text-sm">
-          <div className="flex justify-between">
+          {/* Course - editable if empty */}
+          <div className="flex justify-between items-center">
             <span className="font-medium text-gray-600">Course:</span>
-            <span className="text-gray-900">{selectedCourse?.title || selectedCourse?.courseName || '—'}</span>
+            {formData.courseId ? (
+              <span className="text-gray-900">{selectedCourse?.title || selectedCourse?.courseName || '—'}</span>
+            ) : (
+              <select
+                value={formData.courseId}
+                onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
+                className="px-2 py-1 border border-orange-300 rounded-lg text-xs focus:border-[#005587] focus:outline-none bg-orange-50 max-w-[60%]"
+              >
+                <option value="">Select course...</option>
+                {courses.map((course) => (
+                  <option key={course.courseId} value={course.courseId}>
+                    {course.title || course.courseName}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div className="flex justify-between">
             <span className="font-medium text-gray-600">Title:</span>
@@ -738,11 +754,30 @@ const CreateAssignmentPage: React.FC = () => {
             <span className="font-medium text-gray-600">Type:</span>
             <span className="text-gray-900 capitalize">{formData.assignmentType === 'group-project' ? 'Group Project' : formData.assignmentType === 'study-module' ? 'Study Module' : formData.assignmentType}</span>
           </div>
-          <div className="flex justify-between">
+          {/* Due Date - editable if empty */}
+          <div className="flex justify-between items-center">
             <span className="font-medium text-gray-600">Due Date:</span>
-            <span className="text-gray-900">
-              {formData.dueDate ? new Date(formData.dueDate).toLocaleString() : '—'}
-            </span>
+            {formData.dueDate ? (
+              <span className="text-gray-900">
+                {new Date(formData.dueDate).toLocaleString()}
+              </span>
+            ) : (
+              <input
+                type="datetime-local"
+                value={formData.dueDate}
+                onChange={(e) => {
+                  let val = e.target.value;
+                  if (val && val.includes('T')) {
+                    const timePart = val.split('T')[1];
+                    if (timePart === '00:00' || timePart === '00:00:00') {
+                      val = val.split('T')[0] + 'T23:59';
+                    }
+                  }
+                  setFormData({ ...formData, dueDate: val });
+                }}
+                className="px-2 py-1 border border-orange-300 rounded-lg text-xs focus:border-[#005587] focus:outline-none bg-orange-50 max-w-[60%]"
+              />
+            )}
           </div>
           <div className="flex justify-between items-center">
             <span className="font-medium text-gray-600">Max Points:</span>
@@ -912,7 +947,7 @@ const CreateAssignmentPage: React.FC = () => {
             ) : (
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || success}
+                disabled={isSubmitting || success || !formData.courseId || !formData.dueDate || !formData.title}
                 className="px-5 py-2.5 text-sm font-bold text-[#005587] bg-[#FFC72C] rounded-xl hover:bg-[#e6b225] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isSubmitting ? (
