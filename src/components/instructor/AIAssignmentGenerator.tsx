@@ -30,16 +30,24 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
   const [additionalContext, setAdditionalContext] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
-  const [isSubscribed, setIsSubscribed] = React.useState(userSubscription === 'pro' || userSubscription === 'enterprise');
+  const [isSubscribed, setIsSubscribed] = React.useState(
+    userSubscription === 'pro' || userSubscription === 'enterprise' || userSubscription === 'admin'
+  );
 
-  // Check subscription on mount
+  // Check subscription on mount via profile API
   React.useEffect(() => {
     const checkSub = async () => {
       try {
-        const res = await fetch('/api/profile?userId=' + (window as any).__classcast_user_id);
+        // Try to get userId from auth context stored in localStorage
+        const storedUser = localStorage.getItem('classcast_user');
+        const userId = storedUser ? JSON.parse(storedUser)?.id : null;
+        if (!userId) return;
+        
+        const res = await fetch(`/api/profile?userId=${userId}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.success && (data.data?.subscription === 'pro' || data.data?.subscriptionTier === 'enterprise')) {
+          const profile = data.data || data;
+          if (profile?.subscription === 'pro' || profile?.subscriptionTier === 'enterprise' || profile?.isAdmin || profile?.role === 'admin') {
             setIsSubscribed(true);
           }
         }

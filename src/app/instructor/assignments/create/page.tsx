@@ -348,7 +348,7 @@ const CreateAssignmentPage: React.FC = () => {
         <AIAssignmentGenerator
           onGenerated={handleAIGenerated}
           onCancel={() => setShowAIGenerator(false)}
-          userSubscription={user?.subscription || user?.subscriptionTier}
+          userSubscription={(user as any)?.isAdmin ? 'admin' : (user?.subscription || user?.subscriptionTier || (user as any)?.subscriptionTier)}
           assignmentType={formData.assignmentType}
         />
       );
@@ -383,12 +383,13 @@ const CreateAssignmentPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setShowAIGenerator(true)}
-            className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-[#005587]/5 to-[#FFC72C]/10 border border-[#005587]/20 rounded-xl active:scale-[0.98] transition-transform"
+            disabled={!formData.courseId}
+            className={`w-full flex items-center gap-3 p-3 bg-gradient-to-r from-[#005587]/5 to-[#FFC72C]/10 border border-[#005587]/20 rounded-xl active:scale-[0.98] transition-transform ${!formData.courseId ? 'opacity-40 cursor-not-allowed' : ''}`}
           >
             <span className="text-xl">✨</span>
             <div className="text-left">
               <p className="text-xs font-bold text-[#005587]">Generate with AI</p>
-              <p className="text-[10px] text-gray-500">Enter a topic and AI creates the full assignment</p>
+              <p className="text-[10px] text-gray-500">{!formData.courseId ? 'Select a course first' : 'Enter a topic and AI creates the full assignment'}</p>
             </div>
           </button>
         </div>
