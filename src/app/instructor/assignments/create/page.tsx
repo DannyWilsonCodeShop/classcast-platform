@@ -10,6 +10,7 @@ import { DiscussionSetupWizard } from '@/components/instructor/wizards/Discussio
 import { AssessmentSetupWizard } from '@/components/instructor/wizards/AssessmentSetupWizard';
 import { ModuleSetupWizard } from '@/components/instructor/wizards/ModuleSetupWizard';
 import { StudyModuleSetupWizard } from '@/components/instructor/wizards/StudyModuleSetupWizard';
+import { AIAssignmentGenerator } from '@/components/instructor/AIAssignmentGenerator';
 import { ProblemBankBuilder } from '@/components/instructor/ProblemBankBuilder';
 import { ProblemBank } from '@/types/problemBank';
 import { DiscussionConfig } from '@/types/discussion';
@@ -305,35 +306,77 @@ const CreateAssignmentPage: React.FC = () => {
     </div>
   );
 
-  const renderStep1 = () => (
-    <div className="space-y-4">
-      <h2
-        className="text-lg font-bold text-[#005587]"
-      >
-        Select a Course
-      </h2>
-      {loadingCourses ? (
-        <div className="text-center py-8 text-gray-500">Loading courses...</div>
-      ) : courses.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
-          No courses found. Create a course first.
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
+
+  const handleAIGenerated = (data: any) => {
+    // Pre-fill the form with AI-generated content
+    setFormData(prev => ({
+      ...prev,
+      title: data.title || prev.title,
+      description: data.description || prev.description,
+      assignmentType: data.assignmentType || prev.assignmentType,
+      maxScore: data.maxScore || prev.maxScore,
+      rubric: data.rubric || prev.rubric,
+      discussionConfig: data.discussionPrompt ? { ...prev.discussionConfig, prompt: data.discussionPrompt } as any : prev.discussionConfig,
+      assessmentQuestions: data.assessmentQuestions || prev.assessmentQuestions,
+      moduleConfig: data.groupProjectTopic ? { ...prev.moduleConfig, topic: data.groupProjectTopic } as any : prev.moduleConfig,
+    }));
+    setShowAIGenerator(false);
+    // Skip to step 5 (review) since everything is filled
+    setCurrentStep(5);
+  };
+
+  const renderStep1 = () => {
+    if (showAIGenerator) {
+      return (
+        <AIAssignmentGenerator
+          onGenerated={handleAIGenerated}
+          onCancel={() => setShowAIGenerator(false)}
+        />
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold text-[#005587]">Select a Course</h2>
+        {loadingCourses ? (
+          <div className="text-center py-8 text-gray-500">Loading courses...</div>
+        ) : courses.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No courses found. Create a course first.
+          </div>
+        ) : (
+          <select
+            value={formData.courseId}
+            onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+          >
+            <option value="">-- Select a course --</option>
+            {courses.map((course) => (
+              <option key={course.courseId} value={course.courseId}>
+                {course.title || course.courseName}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* AI Generate Option */}
+        <div className="pt-2 border-t border-gray-100">
+          <button
+            type="button"
+            onClick={() => setShowAIGenerator(true)}
+            className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-[#005587]/5 to-[#FFC72C]/10 border border-[#005587]/20 rounded-xl active:scale-[0.98] transition-transform"
+          >
+            <span className="text-xl">✨</span>
+            <div className="text-left">
+              <p className="text-xs font-bold text-[#005587]">Generate with AI</p>
+              <p className="text-[10px] text-gray-500">Enter a topic and AI creates the full assignment</p>
+            </div>
+          </button>
         </div>
-      ) : (
-        <select
-          value={formData.courseId}
-          onChange={(e) => setFormData({ ...formData, courseId: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
-        >
-          <option value="">-- Select a course --</option>
-          {courses.map((course) => (
-            <option key={course.courseId} value={course.courseId}>
-              {course.title || course.courseName}
-            </option>
-          ))}
-        </select>
-      )}
-    </div>
-  );
+      </div>
+    );
+  };
 
   const renderStep2 = () => (
     <div className="space-y-4">
