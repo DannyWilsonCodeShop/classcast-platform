@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 
 const bedrock = new BedrockRuntimeClient({
   region: process.env.AWS_REGION || 'us-east-1',
@@ -46,6 +46,7 @@ Generate the following as a JSON object:
   "description": "Detailed instructions for students (2-3 paragraphs). Include the prompt/question they need to address, what's expected, and any guidelines.",
   "rubric": [
     {
+      "id": "cat_1",
       "name": "Category Name",
       "levels": [
         { "score": 4, "description": "Excellent - description" },
@@ -55,10 +56,10 @@ Generate the following as a JSON object:
       ]
     }
   ],
-  "maxScore": <total points from rubric>,
+  "maxScore": <total max points from rubric>,
   "discussionPrompt": "If discussion type, the specific discussion question",
   "assessmentQuestions": [
-    { "questionText": "question", "timeLimitSeconds": 60 }
+    { "questionId": "q_1", "questionText": "question", "timeLimitSeconds": 60, "orderIndex": 0 }
   ],
   "groupProjectTopic": "If group project, the specific topic for groups",
   "suggestedDueInDays": 7
@@ -67,33 +68,27 @@ Generate the following as a JSON object:
 Requirements:
 - Title should be engaging and age-appropriate for ${gradeLevel}
 - Description should be detailed enough for students to understand exactly what to do
-- Rubric should have 3-5 categories with 4 scoring levels each
-- For assessments, generate 3-5 timed questions
+- Rubric should have 3-5 categories with 4 scoring levels each (scores 1-4)
+- Each rubric category needs a unique "id" like "cat_1", "cat_2" etc
+- For assessments, generate 3-5 timed questions with unique questionId
 - For discussions, include a thought-provoking prompt
 - Keep language appropriate for the grade level
 - Be specific to the topic/standard provided
 
 Return ONLY valid JSON, no markdown or explanation.`;
 
-    const command = new InvokeModelCommand({
-      modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
-      contentType: 'application/json',
-      accept: 'application/json',
-      body: JSON.stringify({
-        anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 2000,
-        messages: [{ role: 'user', content: prompt }],
-      }),
+    const command = new ConverseCommand({
+      modelId: 'amazon.nova-micro-v1:0',
+      messages: [{ role: 'user', content: [{ text: prompt }] }],
+      inferenceConfig: { maxTokens: 2500 },
     });
 
     const response = await bedrock.send(command);
-    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-    const aiText = responseBody.content?.[0]?.text || '';
+    const aiText = response.output?.message?.content?.[0]?.text || '';
 
     // Parse the JSON from AI response
     let generated;
     try {
-      // Try to extract JSON from the response (in case there's extra text)
       const jsonMatch = aiText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         generated = JSON.parse(jsonMatch[0]);
@@ -101,7 +96,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
         generated = JSON.parse(aiText);
       }
     } catch (parseErr) {
-      console.error('Failed to parse AI response:', aiText);
+      console.error('Failed to parse AI response:', aiText.substring(0, 500));
       return NextResponse.json({ success: false, error: 'AI generated invalid response. Please try again.' }, { status: 500 });
     }
 
@@ -117,7 +112,6 @@ Return ONLY valid JSON, no markdown or explanation.`;
   } catch (error: any) {
     console.error('AI generation error:', error);
     
-    // Handle Bedrock access errors
     if (error.name === 'AccessDeniedException' || error.name === 'UnrecognizedClientException') {
       return NextResponse.json({ success: false, error: 'AI service not configured. Contact administrator.' }, { status: 503 });
     }
