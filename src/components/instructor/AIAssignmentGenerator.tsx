@@ -6,6 +6,7 @@ interface AIAssignmentGeneratorProps {
   onGenerated: (data: any) => void;
   onCancel: () => void;
   userSubscription?: string;
+  assignmentType?: string;
 }
 
 const GRADE_LEVELS = [
@@ -22,10 +23,10 @@ const ASSIGNMENT_TYPES = [
   { value: 'study-module', label: '📖 Study Module', desc: 'Self-paced' },
 ];
 
-export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription }: AIAssignmentGeneratorProps) {
+export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription, assignmentType: propType }: AIAssignmentGeneratorProps) {
   const [topic, setTopic] = useState('');
   const [gradeLevel, setGradeLevel] = useState('9th Grade');
-  const [assignmentType, setAssignmentType] = useState('video');
+  const [assignmentType, setAssignmentType] = useState(propType || 'video');
   const [additionalContext, setAdditionalContext] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
@@ -114,7 +115,8 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription 
         </select>
       </div>
 
-      {/* Assignment Type */}
+      {/* Assignment Type - only show if not already selected via wizard */}
+      {!propType && (
       <div>
         <label className="block text-xs font-medium text-gray-700 mb-1">Assignment Type</label>
         <div className="grid grid-cols-2 gap-1.5">
@@ -133,6 +135,7 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription 
           ))}
         </div>
       </div>
+      )}
 
       {/* Additional Context (optional) */}
       <div>

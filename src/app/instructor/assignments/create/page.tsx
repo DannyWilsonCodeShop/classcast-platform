@@ -333,6 +333,7 @@ const CreateAssignmentPage: React.FC = () => {
           onGenerated={handleAIGenerated}
           onCancel={() => setShowAIGenerator(false)}
           userSubscription={user?.subscription || user?.subscriptionTier}
+          assignmentType={formData.assignmentType}
         />
       );
     }
