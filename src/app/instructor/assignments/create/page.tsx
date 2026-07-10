@@ -802,29 +802,84 @@ const CreateAssignmentPage: React.FC = () => {
                 : 'None'}
             </span>
           </div>
-          {formData.assignmentType === 'discussion' && formData.discussionConfig && (
-            <div className="pt-2 border-t border-gray-200 space-y-1">
-              <span className="font-medium text-gray-600 block mb-1">Discussion:</span>
-              <p className="text-gray-700 text-xs">Format: {formData.discussionConfig.format === 'whole-class' ? 'Whole Class' : `Small Groups (${formData.discussionConfig.groupSize})`}</p>
-              <p className="text-gray-700 text-xs">Min Posts: {formData.discussionConfig.minPosts} | Min Words: {formData.discussionConfig.minWordCount}</p>
-              <p className="text-gray-700 text-xs">Response: {formData.discussionConfig.allowedResponseTypes}</p>
-            </div>
-          )}
-          {formData.assignmentType === 'assessment' && formData.assessmentQuestions && (
-            <div className="pt-2 border-t border-gray-200 space-y-1">
-              <span className="font-medium text-gray-600 block mb-1">Assessment:</span>
-              <p className="text-gray-700 text-xs">{formData.assessmentQuestions.length} question{formData.assessmentQuestions.length !== 1 ? 's' : ''} | Total: {Math.floor(formData.assessmentQuestions.reduce((s, q) => s + q.timeLimitSeconds, 0) / 60)}m</p>
-            </div>
-          )}
-          {formData.assignmentType === 'group-project' && formData.moduleConfig && (
-            <div className="pt-2 border-t border-gray-200 space-y-1">
-              <span className="font-medium text-gray-600 block mb-1">Group Project:</span>
-              <p className="text-gray-700 text-xs">Topic: {formData.moduleConfig.topic}</p>
-              <p className="text-gray-700 text-xs">{formData.moduleConfig.requiredVideos} videos | Groups of {formData.moduleConfig.groupSize} ({formData.moduleConfig.groupFormation})</p>
-              <p className="text-gray-700 text-xs">Grading: {formData.moduleConfig.gradingPolicy}</p>
-            </div>
-          )}
         </div>
+
+        {/* Full Description / Instructions */}
+        {formData.description && (
+          <div className="bg-gray-50 rounded-2xl p-4">
+            <h3 className="text-xs font-bold text-[#005587] uppercase mb-2">Instructions / Prompt</h3>
+            <p className="text-xs text-gray-800 whitespace-pre-wrap leading-relaxed">{formData.description}</p>
+          </div>
+        )}
+
+        {/* Rubric Details */}
+        {formData.rubric.length > 0 && (
+          <div className="bg-gray-50 rounded-2xl p-4">
+            <h3 className="text-xs font-bold text-[#005587] uppercase mb-2">Rubric</h3>
+            <div className="space-y-3">
+              {formData.rubric.map((cat: any, ci: number) => (
+                <div key={cat.id || ci} className="bg-white rounded-xl p-3">
+                  <p className="text-xs font-bold text-gray-900 mb-1">{cat.name}</p>
+                  <div className="space-y-1">
+                    {(cat.levels || []).map((level: any, li: number) => (
+                      <div key={li} className="flex items-start gap-2">
+                        <span className="text-[10px] font-bold text-[#005587] bg-[#005587]/10 px-1.5 py-0.5 rounded shrink-0">{level.score}</span>
+                        <span className="text-[10px] text-gray-600">{level.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Discussion Prompt */}
+        {formData.assignmentType === 'discussion' && formData.discussionConfig && (
+          <div className="bg-gray-50 rounded-2xl p-4">
+            <h3 className="text-xs font-bold text-[#005587] uppercase mb-2">Discussion</h3>
+            {formData.discussionConfig.prompt && (
+              <p className="text-xs text-gray-800 mb-2 whitespace-pre-wrap">{formData.discussionConfig.prompt}</p>
+            )}
+            <div className="flex flex-wrap gap-2 text-[10px] text-gray-500">
+              <span>Format: {formData.discussionConfig.format === 'whole-class' ? 'Whole Class' : `Small Groups (${formData.discussionConfig.groupSize})`}</span>
+              <span>• Min Posts: {formData.discussionConfig.minPosts}</span>
+              <span>• Min Words: {formData.discussionConfig.minWordCount}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Assessment Questions */}
+        {formData.assignmentType === 'assessment' && formData.assessmentQuestions && formData.assessmentQuestions.length > 0 && (
+          <div className="bg-gray-50 rounded-2xl p-4">
+            <h3 className="text-xs font-bold text-[#005587] uppercase mb-2">Assessment Questions ({formData.assessmentQuestions.length})</h3>
+            <div className="space-y-2">
+              {formData.assessmentQuestions.map((q: any, qi: number) => (
+                <div key={q.questionId || qi} className="bg-white rounded-xl p-3">
+                  <div className="flex items-start gap-2">
+                    <span className="text-[10px] font-bold text-[#005587] shrink-0">Q{qi + 1}.</span>
+                    <p className="text-xs text-gray-800">{q.questionText}</p>
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-1 ml-5">⏱ {q.timeLimitSeconds}s</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Group Project Details */}
+        {formData.assignmentType === 'group-project' && formData.moduleConfig && (
+          <div className="bg-gray-50 rounded-2xl p-4">
+            <h3 className="text-xs font-bold text-[#005587] uppercase mb-2">Group Project</h3>
+            <p className="text-xs text-gray-800 mb-2">Topic: {formData.moduleConfig.topic}</p>
+            <div className="flex flex-wrap gap-2 text-[10px] text-gray-500">
+              <span>{formData.moduleConfig.requiredVideos} videos</span>
+              <span>• Groups of {formData.moduleConfig.groupSize}</span>
+              <span>• {formData.moduleConfig.groupFormation}</span>
+              <span>• Grading: {formData.moduleConfig.gradingPolicy}</span>
+            </div>
+          </div>
+        )}
 
         {/* Question Bank toggle */}
         <div className="border border-gray-200 rounded-xl p-3">
