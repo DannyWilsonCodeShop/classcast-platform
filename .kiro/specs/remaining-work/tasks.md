@@ -7,10 +7,7 @@
   - [x] 1.2 Add a `viewCount` field to the submission and update `GET /api/student/feed` to return it
   - [x] 1.3 Display accurate view counts on the Student Detail page
 
-- [ ] 2. Instructor View Modal restyle
-  - [ ] 2.1 Restyle the assignment View modal (opened from Course Details → Assignments tab) to match the new design system
-  - [ ] 2.2 Move "Assignment Settings" and "Important Dates" to the top
-  - [ ] 2.3 Remove duplicate due-date display
+- [~] 2. Instructor View Modal restyle — CANCELLED
 
 - [x] 3. Assignment Edit functionality
   - [x] 3.1 Create `/api/assignments/[assignmentId]` PUT endpoint (already exists, verify it handles all fields)
@@ -20,12 +17,12 @@
 
 ## Priority 2: Android Build Update
 
-- [ ] 4. Android version bump + icon + splash
-  - [ ] 4.1 Bump Android versionCode and versionName to match iOS (1.4.0)
-  - [ ] 4.2 Replace Android app icon with MyClassCast36.png (all mipmap sizes)
-  - [ ] 4.3 Generate Android splash screen (white bg + centered logo)
-  - [ ] 4.4 Run `npx cap sync android`
-  - [ ] 4.5 Build signed AAB for Play Store
+- [x] 4. Android version bump + icon + splash
+  - [x] 4.1 Bump Android versionCode and versionName to match iOS (1.4.0)
+  - [x] 4.2 Replace Android app icon with MyClassCast36.png (all mipmap sizes)
+  - [x] 4.3 Generate Android splash screen (white bg + centered logo)
+  - [x] 4.4 Run `npx cap sync android`
+  - [x] 4.5 Build signed AAB for Play Store
 
 ## Priority 3: Study Module & Group Project Builders
 
