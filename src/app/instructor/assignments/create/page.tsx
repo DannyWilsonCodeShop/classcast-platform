@@ -39,6 +39,14 @@ interface AssignmentFormData {
   moduleConfig?: ModuleConfig;
   problemBankId?: string;
   problemBankTitle?: string;
+  // Peer Response Settings
+  enablePeerResponses?: boolean;
+  responseDueDate?: string;
+  minResponsesRequired?: number;
+  maxResponsesPerVideo?: number;
+  responseMinLength?: number;
+  responseMaxLength?: number;
+  peerResponseRubric?: { name: string; levels: { score: number; description: string }[] }[];
 }
 
 const STEPS = [
@@ -237,6 +245,14 @@ const CreateAssignmentPage: React.FC = () => {
           assessmentQuestions: formData.assessmentQuestions || undefined,
           moduleConfig: formData.moduleConfig || undefined,
           problemBankId: formData.problemBankId || undefined,
+          // Peer Response Settings
+          enablePeerResponses: formData.enablePeerResponses || false,
+          responseDueDate: formData.responseDueDate || undefined,
+          minResponsesRequired: formData.minResponsesRequired || 2,
+          maxResponsesPerVideo: formData.maxResponsesPerVideo || 3,
+          responseWordLimit: formData.responseMinLength || 25,
+          responseCharacterLimit: (formData.responseMaxLength || 200) * 6, // approx chars from words
+          peerResponseRubric: formData.peerResponseRubric || undefined,
         }),
       });
       const data = await res.json();
@@ -661,7 +677,7 @@ const CreateAssignmentPage: React.FC = () => {
         />
       );
     }
-    // Default: Rubric Builder (for video type)
+    // Default: Rubric Builder + Peer Response Settings (for video type)
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -679,6 +695,134 @@ const CreateAssignmentPage: React.FC = () => {
           onChange={(rubric) => setFormData({ ...formData, rubric })}
           autoLoadDefault={formData.rubric.length === 0}
         />
+
+        {/* Peer Video Responses */}
+        <div className="border-t border-gray-200 pt-4 mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-[#005587]">Peer Video Responses</h3>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={formData.enablePeerResponses || false}
+                onChange={(e) => setFormData({ ...formData, enablePeerResponses: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#005587] transition-colors">
+                <div className={`absolute top-[2px] left-[2px] w-4 h-4 rounded-full bg-white transition-transform ${formData.enablePeerResponses ? 'translate-x-4' : ''}`} />
+              </div>
+            </label>
+          </div>
+          <p className="text-[10px] text-gray-500 mb-3">Require students to watch and respond to peers' videos. Responses will be graded.</p>
+
+          {formData.enablePeerResponses && (
+            <div className="space-y-3 bg-gray-50 rounded-xl p-3">
+              {/* Required responses */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-600 mb-1">Required Responses</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={formData.minResponsesRequired || 2}
+                    onChange={(e) => setFormData({ ...formData, minResponsesRequired: Number(e.target.value) || 2 })}
+                    className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-600 mb-1">Max Per Video</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={20}
+                    value={formData.maxResponsesPerVideo || 3}
+                    onChange={(e) => setFormData({ ...formData, maxResponsesPerVideo: Number(e.target.value) || 3 })}
+                    className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Length limits */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-600 mb-1">Min Words</label>
+                  <input
+                    type="number"
+                    min={10}
+                    max={500}
+                    value={formData.responseMinLength || 25}
+                    onChange={(e) => setFormData({ ...formData, responseMinLength: Number(e.target.value) || 25 })}
+                    className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium text-gray-600 mb-1">Max Words</label>
+                  <input
+                    type="number"
+                    min={25}
+                    max={2000}
+                    value={formData.responseMaxLength || 200}
+                    onChange={(e) => setFormData({ ...formData, responseMaxLength: Number(e.target.value) || 200 })}
+                    className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Response Due Date */}
+              <div>
+                <label className="block text-[10px] font-medium text-gray-600 mb-1">Response Due Date</label>
+                <input
+                  type="datetime-local"
+                  value={formData.responseDueDate || ''}
+                  onChange={(e) => {
+                    let val = e.target.value;
+                    if (val && val.includes('T')) {
+                      const timePart = val.split('T')[1];
+                      if (timePart === '00:00' || timePart === '00:00:00') {
+                        val = val.split('T')[0] + 'T23:59';
+                      }
+                    }
+                    setFormData({ ...formData, responseDueDate: val });
+                  }}
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                />
+                <p className="text-[9px] text-gray-400 mt-0.5">When responses are due (after the video submission deadline)</p>
+              </div>
+
+              {/* Response Rubric */}
+              <div>
+                <label className="block text-[10px] font-medium text-gray-600 mb-2">Response Rubric</label>
+                <div className="space-y-2">
+                  {(formData.peerResponseRubric || [
+                    { name: 'Engagement', levels: [{ score: 3, description: 'Thoughtful and specific' }, { score: 2, description: 'Adequate response' }, { score: 1, description: 'Minimal effort' }] },
+                    { name: 'Constructiveness', levels: [{ score: 3, description: 'Helpful feedback given' }, { score: 2, description: 'Some useful points' }, { score: 1, description: 'No actionable feedback' }] },
+                  ]).map((cat, ci) => (
+                    <div key={ci} className="bg-white rounded-lg p-2">
+                      <input
+                        type="text"
+                        value={cat.name}
+                        onChange={(e) => {
+                          const updated = [...(formData.peerResponseRubric || [{ name: 'Engagement', levels: [{ score: 3, description: 'Thoughtful and specific' }, { score: 2, description: 'Adequate response' }, { score: 1, description: 'Minimal effort' }] }, { name: 'Constructiveness', levels: [{ score: 3, description: 'Helpful feedback given' }, { score: 2, description: 'Some useful points' }, { score: 1, description: 'No actionable feedback' }] }])];
+                          updated[ci] = { ...updated[ci], name: e.target.value };
+                          setFormData({ ...formData, peerResponseRubric: updated });
+                        }}
+                        className="text-xs font-bold text-gray-900 bg-transparent border-none focus:outline-none w-full mb-1"
+                      />
+                      <div className="space-y-0.5">
+                        {cat.levels.map((level, li) => (
+                          <div key={li} className="flex items-center gap-1.5 text-[9px]">
+                            <span className="font-bold text-[#005587] w-3">{level.score}</span>
+                            <span className="text-gray-500">{level.description}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -878,6 +1022,27 @@ const CreateAssignmentPage: React.FC = () => {
               <span>• {formData.moduleConfig.groupFormation}</span>
               <span>• Grading: {formData.moduleConfig.gradingPolicy}</span>
             </div>
+          </div>
+        )}
+
+        {/* Peer Response Settings */}
+        {formData.enablePeerResponses && (
+          <div className="bg-gray-50 rounded-2xl p-4">
+            <h3 className="text-xs font-bold text-[#005587] uppercase mb-2">Peer Video Responses</h3>
+            <div className="flex flex-wrap gap-3 text-[10px] text-gray-600">
+              <span>{formData.minResponsesRequired || 2} required</span>
+              <span>• Max {formData.maxResponsesPerVideo || 3} per video</span>
+              <span>• {formData.responseMinLength || 25}–{formData.responseMaxLength || 200} words</span>
+              {formData.responseDueDate && <span>• Due {new Date(formData.responseDueDate).toLocaleDateString()}</span>}
+            </div>
+            {formData.peerResponseRubric && formData.peerResponseRubric.length > 0 && (
+              <div className="mt-2 space-y-1">
+                <p className="text-[10px] font-medium text-gray-500">Response Rubric:</p>
+                {formData.peerResponseRubric.map((cat, ci) => (
+                  <p key={ci} className="text-[10px] text-gray-600">• {cat.name} (max {cat.levels[0]?.score || 3} pts)</p>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
