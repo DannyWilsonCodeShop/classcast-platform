@@ -359,6 +359,25 @@ const InstructorProfilePage: React.FC = () => {
 
         {/* Action Buttons */}
         <div className="space-y-3 mt-6">
+          {/* Admin Tools - only visible to admin users */}
+          {(user as any).isAdmin && (
+            <div className="bg-gray-50 rounded-2xl p-4 mb-3">
+              <h2 className="text-lg font-bold text-[#005587] mb-3">Admin Tools</h2>
+              <button
+                onClick={() => router.push('/instructor/admin/analytics')}
+                className="w-full flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 active:scale-[0.98] transition-transform"
+              >
+                <div className="w-9 h-9 bg-[#005587]/10 rounded-full flex items-center justify-center">
+                  <span className="text-lg">📊</span>
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-bold text-[#005587]">Platform Analytics</p>
+                  <p className="text-[10px] text-gray-500">Submissions, engagement, grades</p>
+                </div>
+              </button>
+            </div>
+          )}
+
           <button
             onClick={() => setIsEditing(true)}
             className="w-full py-3 bg-[#005587] text-white font-semibold rounded-2xl text-sm"

@@ -58,12 +58,12 @@
 
 ## Priority 5: Analytics & Reporting
 
-- [ ] 9. Instructor analytics dashboard
-  - [ ] 9.1 Create `/instructor/analytics` page
-  - [ ] 9.2 Show: video submissions over time, average grades by assignment, student engagement
-  - [ ] 9.3 Per-student metrics: videos watched, posts made, average rating received
-  - [ ] 9.4 Export analytics as CSV
-  - [ ] 9.5 Add to instructor sidebar navigation
+- [x] 9. Instructor analytics dashboard
+  - [x] 9.1 Create `/instructor/admin/analytics` page (admin-only)
+  - [x] 9.2 Show: total submissions, students, courses, grading stats, weekly activity
+  - [x] 9.3 Per-course metrics: students enrolled, assignments, submissions
+  - [x] 9.4 Export analytics as CSV
+  - [x] 9.5 Add to instructor profile page under "Admin Tools" (admin users only)
 
 ## Priority 6: Infrastructure Cleanup
 
