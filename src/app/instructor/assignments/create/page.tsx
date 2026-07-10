@@ -550,7 +550,8 @@ const CreateAssignmentPage: React.FC = () => {
             }
             setFormData({ ...formData, dueDate: val });
           }}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+          className="w-full max-w-full min-w-0 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+          style={{ boxSizing: 'border-box' }}
         />
       </div>
 
@@ -1138,7 +1139,7 @@ const CreateAssignmentPage: React.FC = () => {
           {renderProgressIndicator()}
 
           {/* Step Content */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm overflow-hidden">
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
