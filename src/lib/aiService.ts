@@ -1,6 +1,15 @@
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
+import { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } from '@aws-sdk/client-transcribe';
 
 const bedrock = new BedrockRuntimeClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+  },
+});
+
+const transcribe = new TranscribeClient({
   region: process.env.AWS_REGION || 'us-east-1',
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
@@ -251,11 +260,106 @@ Return ONLY JSON.`;
     }
   }
 
-  // AI Transcription (text summary since Nova can't process audio)
-  public async transcribeVideo(audioUrl: string, language: string = 'en'): Promise<TranscriptionResult> {
-    // Note: For actual audio transcription, use AWS Transcribe service
-    // This is a placeholder that returns an indication to use AWS Transcribe
-    throw new Error('Audio transcription requires AWS Transcribe. Configure separately.');
+  // AI Transcription via AWS Transcribe
+  public async transcribeVideo(audioUrl: string, language: string = 'en-US'): Promise<TranscriptionResult> {
+    try {
+      const jobName = `classcast-transcribe-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+      
+      // Start transcription job
+      await transcribe.send(new StartTranscriptionJobCommand({
+        TranscriptionJobName: jobName,
+        LanguageCode: language as any,
+        MediaFormat: audioUrl.endsWith('.mp4') ? 'mp4' : audioUrl.endsWith('.webm') ? 'webm' : 'mp4',
+        Media: { MediaFileUri: audioUrl },
+        OutputBucketName: process.env.S3_BUCKET || 'classcast-videos-463470937777-us-east-1',
+        OutputKey: `transcriptions/${jobName}.json`,
+      }));
+
+      // Poll for completion (max 5 minutes)
+      let status = 'IN_PROGRESS';
+      let result: any = null;
+      const maxAttempts = 60;
+      let attempts = 0;
+
+      while (status === 'IN_PROGRESS' && attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5s
+        attempts++;
+
+        const jobResult = await transcribe.send(new GetTranscriptionJobCommand({
+          TranscriptionJobName: jobName,
+        }));
+
+        status = jobResult.TranscriptionJob?.TranscriptionJobStatus || 'FAILED';
+
+        if (status === 'COMPLETED') {
+          // Fetch the transcript from the output URL
+          const transcriptUrl = jobResult.TranscriptionJob?.Transcript?.TranscriptFileUri;
+          if (transcriptUrl) {
+            const res = await fetch(transcriptUrl);
+            result = await res.json();
+          }
+        }
+      }
+
+      if (!result || status !== 'COMPLETED') {
+        throw new Error(`Transcription ${status === 'FAILED' ? 'failed' : 'timed out'}`);
+      }
+
+      // Parse AWS Transcribe output format
+      const transcript = result.results;
+      const fullText = transcript.transcripts?.[0]?.transcript || '';
+      const items = transcript.items || [];
+
+      // Build segments from items
+      const segments: Array<{ start: number; end: number; text: string; confidence: number }> = [];
+      let currentSegment = { start: 0, end: 0, text: '', confidence: 0, wordCount: 0 };
+
+      for (const item of items) {
+        if (item.type === 'pronunciation') {
+          const start = parseFloat(item.start_time || '0');
+          const end = parseFloat(item.end_time || '0');
+          const conf = parseFloat(item.alternatives?.[0]?.confidence || '0');
+          const word = item.alternatives?.[0]?.content || '';
+
+          if (currentSegment.text === '') currentSegment.start = start;
+          currentSegment.end = end;
+          currentSegment.text += (currentSegment.text ? ' ' : '') + word;
+          currentSegment.confidence += conf;
+          currentSegment.wordCount++;
+
+          // Split segments roughly every 10 words
+          if (currentSegment.wordCount >= 10) {
+            segments.push({
+              start: currentSegment.start,
+              end: currentSegment.end,
+              text: currentSegment.text,
+              confidence: currentSegment.confidence / currentSegment.wordCount,
+            });
+            currentSegment = { start: 0, end: 0, text: '', confidence: 0, wordCount: 0 };
+          }
+        }
+      }
+      // Push remaining segment
+      if (currentSegment.text) {
+        segments.push({
+          start: currentSegment.start,
+          end: currentSegment.end,
+          text: currentSegment.text,
+          confidence: currentSegment.wordCount > 0 ? currentSegment.confidence / currentSegment.wordCount : 0,
+        });
+      }
+
+      return {
+        text: fullText,
+        confidence: segments.length > 0 ? segments.reduce((s, seg) => s + seg.confidence, 0) / segments.length : 0.9,
+        segments,
+        language,
+        duration: segments.length > 0 ? segments[segments.length - 1].end : 0,
+      };
+    } catch (error) {
+      console.error('Transcription error:', error);
+      throw new Error('Failed to transcribe video: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
   }
 
   // Smart Recommendations
