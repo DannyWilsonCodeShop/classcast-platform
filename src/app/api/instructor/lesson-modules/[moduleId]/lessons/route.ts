@@ -57,11 +57,11 @@ export async function POST(
   try {
     const { moduleId } = params;
     const body = await request.json();
-    const { title, description, videoUrl, duration } = body;
+    const { title, description, videoUrl, duration, type, content, quiz } = body;
 
-    if (!title || !videoUrl) {
+    if (!title) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
+        { success: false, error: 'Title is required' },
         { status: 400 }
       );
     }
@@ -82,15 +82,17 @@ export async function POST(
     const lessonId = `lesson_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     const now = new Date().toISOString();
 
-    const lesson = {
+    const lesson: any = {
       lessonId,
       moduleId,
       title,
       description: description || '',
-      videoUrl,
+      type: type || 'video',
+      videoUrl: videoUrl || '',
+      content: content || '',
       duration: duration || 0,
       order,
-      questions: [],
+      quiz: quiz || null,
       createdAt: now,
     };
 
@@ -105,14 +107,20 @@ export async function POST(
     const updateModuleCommand = new UpdateCommand({
       TableName: LESSON_MODULES_TABLE,
       Key: { moduleId },
-      UpdateExpression: 'SET lessonCount = lessonCount + :inc, updatedAt = :now',
+      UpdateExpression: 'SET lessonCount = if_not_exists(lessonCount, :zero) + :inc, updatedAt = :now',
       ExpressionAttributeValues: {
+        ':zero': 0,
         ':inc': 1,
         ':now': now,
       },
     });
 
-    await docClient.send(updateModuleCommand);
+    try {
+      await docClient.send(updateModuleCommand);
+    } catch (updateErr) {
+      // Module may not exist in LessonModules table if using assignmentId as moduleId
+      console.warn('Could not update module lessonCount:', updateErr);
+    }
 
     return NextResponse.json({
       success: true,

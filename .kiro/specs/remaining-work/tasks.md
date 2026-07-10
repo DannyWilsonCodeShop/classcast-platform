@@ -26,12 +26,12 @@
 
 ## Priority 3: Study Module & Group Project Builders
 
-- [ ] 5. Study Module lesson builder
-  - [ ] 5.1 Create `/instructor/assignments/[assignmentId]/lessons` page
-  - [ ] 5.2 Add lesson CRUD API (POST/PUT/DELETE lessons for a module)
-  - [ ] 5.3 Build lesson editor UI: add video URL, text content, or quiz
-  - [ ] 5.4 Quiz builder within lessons (multiple choice, true/false)
-  - [ ] 5.5 Drag-to-reorder lessons
+- [x] 5. Study Module lesson builder
+  - [x] 5.1 Create `/instructor/assignments/[assignmentId]/lessons` page
+  - [x] 5.2 Add lesson CRUD API (POST/PUT/DELETE lessons for a module)
+  - [x] 5.3 Build lesson editor UI: add video URL, text content, or quiz
+  - [x] 5.4 Quiz builder within lessons (multiple choice, true/false)
+  - [x] 5.5 Drag-to-reorder lessons
   - [ ] 5.6 Student-facing lesson viewer with progress tracking
 
 - [ ] 6. Group Project — teacher-assigned group builder
