@@ -34,12 +34,12 @@
   - [x] 5.5 Drag-to-reorder lessons
   - [ ] 5.6 Student-facing lesson viewer with progress tracking
 
-- [ ] 6. Group Project — teacher-assigned group builder
-  - [ ] 6.1 After creating a group project assignment, show group assignment UI
-  - [ ] 6.2 List enrolled students and allow dragging into group buckets
-  - [ ] 6.3 Mobile-friendly: use dropdown "Assign to Group" per student
-  - [ ] 6.4 Save group assignments to `classcast-module-groups` table
-  - [ ] 6.5 Show group members in student ModuleWorkspace view
+- [x] 6. Group Project — teacher-assigned group builder
+  - [x] 6.1 After creating a group project assignment, show group assignment UI
+  - [x] 6.2 List enrolled students and allow dragging into group buckets
+  - [x] 6.3 Mobile-friendly: use dropdown "Assign to Group" per student
+  - [x] 6.4 Save group assignments to `classcast-module-groups` table
+  - [x] 6.5 Show group members in student ModuleWorkspace view
 
 ## Priority 4: Notifications & Communication
 
