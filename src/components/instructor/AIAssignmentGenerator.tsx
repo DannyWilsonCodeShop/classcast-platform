@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 interface AIAssignmentGeneratorProps {
   onGenerated: (data: any) => void;
   onCancel: () => void;
+  userSubscription?: string;
 }
 
 const GRADE_LEVELS = [
@@ -21,14 +22,30 @@ const ASSIGNMENT_TYPES = [
   { value: 'study-module', label: '📖 Study Module', desc: 'Self-paced' },
 ];
 
-export function AIAssignmentGenerator({ onGenerated, onCancel }: AIAssignmentGeneratorProps) {
+export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription }: AIAssignmentGeneratorProps) {
   const [topic, setTopic] = useState('');
   const [gradeLevel, setGradeLevel] = useState('9th Grade');
   const [assignmentType, setAssignmentType] = useState('video');
   const [additionalContext, setAdditionalContext] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
-  const [isSubscribed] = useState(false); // TODO: Check actual subscription status
+  const [isSubscribed, setIsSubscribed] = React.useState(userSubscription === 'pro' || userSubscription === 'enterprise');
+
+  // Check subscription on mount
+  React.useEffect(() => {
+    const checkSub = async () => {
+      try {
+        const res = await fetch('/api/profile?userId=' + (window as any).__classcast_user_id);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && (data.data?.subscription === 'pro' || data.data?.subscriptionTier === 'enterprise')) {
+            setIsSubscribed(true);
+          }
+        }
+      } catch {}
+    };
+    if (!isSubscribed) checkSub();
+  }, []);
 
   const handleGenerate = async () => {
     if (!topic.trim()) { setError('Please enter a topic or standard'); return; }

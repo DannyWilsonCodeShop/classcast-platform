@@ -332,6 +332,7 @@ const CreateAssignmentPage: React.FC = () => {
         <AIAssignmentGenerator
           onGenerated={handleAIGenerated}
           onCancel={() => setShowAIGenerator(false)}
+          userSubscription={user?.subscription || user?.subscriptionTier}
         />
       );
     }
