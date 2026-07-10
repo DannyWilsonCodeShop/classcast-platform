@@ -72,6 +72,15 @@ const ModuleViewerPage: React.FC<ModuleViewerPageProps> = ({ params }) => {
 
     setModule({ ...module, lessons: updatedLessons });
 
+    // Persist progress to server
+    if (user?.id) {
+      fetch(`/api/study-modules/${params.moduleId}/progress`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, lessonId, action: 'complete' }),
+      }).catch(() => {});
+    }
+
     // Auto-advance to next lesson if available
     const nextLesson = updatedLessons[currentIndex + 1];
     if (nextLesson && !nextLesson.isLocked) {

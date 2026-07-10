@@ -32,7 +32,7 @@
   - [x] 5.3 Build lesson editor UI: add video URL, text content, or quiz
   - [x] 5.4 Quiz builder within lessons (multiple choice, true/false)
   - [x] 5.5 Drag-to-reorder lessons
-  - [ ] 5.6 Student-facing lesson viewer with progress tracking
+  - [x] 5.6 Student-facing lesson viewer with progress tracking
 
 - [x] 6. Group Project — teacher-assigned group builder
   - [x] 6.1 After creating a group project assignment, show group assignment UI
