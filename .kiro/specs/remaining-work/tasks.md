@@ -2,21 +2,21 @@
 
 ## Priority 1: Bug Fixes & Polish
 
-- [ ] 1. Student Detail View — fix view count tracking
-  - [ ] 1.1 When a student's video is watched from the Recent Videos section on the dashboard, increment the view count on their submission record
-  - [ ] 1.2 Add a `viewCount` field to the submission and update `GET /api/student/feed` to return it
-  - [ ] 1.3 Display accurate view counts on the Student Detail page
+- [x] 1. Student Detail View — fix view count tracking
+  - [x] 1.1 When a student's video is watched from the Recent Videos section on the dashboard, increment the view count on their submission record
+  - [x] 1.2 Add a `viewCount` field to the submission and update `GET /api/student/feed` to return it
+  - [x] 1.3 Display accurate view counts on the Student Detail page
 
 - [ ] 2. Instructor View Modal restyle
   - [ ] 2.1 Restyle the assignment View modal (opened from Course Details → Assignments tab) to match the new design system
   - [ ] 2.2 Move "Assignment Settings" and "Important Dates" to the top
   - [ ] 2.3 Remove duplicate due-date display
 
-- [ ] 3. Assignment Edit functionality
-  - [ ] 3.1 Create `/api/assignments/[assignmentId]` PUT endpoint (already exists, verify it handles all fields)
-  - [ ] 3.2 Build edit form/modal that pre-fills current assignment data
-  - [ ] 3.3 Wire "Edit" button on assignment details page to the edit form
-  - [ ] 3.4 Allow editing: title, description, due date, max score, rubric
+- [x] 3. Assignment Edit functionality
+  - [x] 3.1 Create `/api/assignments/[assignmentId]` PUT endpoint (already exists, verify it handles all fields)
+  - [x] 3.2 Build edit form/modal that pre-fills current assignment data
+  - [x] 3.3 Wire "Edit" button on assignment details page to the edit form
+  - [x] 3.4 Allow editing: title, description, due date, max score, rubric
 
 ## Priority 2: Android Build Update
 
@@ -75,8 +75,8 @@
   - [x] 10.2 Remove `OPENAI_API_KEY` from .env.local
   - [x] 10.3 Verify build still passes
 
-- [ ] 11. Amplify environment variables
-  - [ ] 11.1 Add `SNS_ERROR_TOPIC_ARN` to Amplify environment variables
+- [x] 11. Amplify environment variables
+  - [x] 11.1 Add `SNS_ERROR_TOPIC_ARN` to Amplify environment variables
   - [ ] 11.2 Verify error reporting works in production after deploy
 
 - [ ] 12. Production verification

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { AssignmentEditModal, AssignmentEditData } from '@/components/instructor/AssignmentEditModal';
 
 interface Assignment {
   assignmentId: string;
@@ -55,6 +56,7 @@ const AssignmentGradesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   
   // Filter and sort state
   const [selectedSection, setSelectedSection] = useState<string>('all');
@@ -410,7 +412,7 @@ const AssignmentGradesPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => alert('Edit coming soon')}
+                onClick={() => setShowEditModal(true)}
                 className="px-3 py-1 bg-gray-50 rounded-full text-[10px] font-bold text-[#005587]"
               >
                 Edit
@@ -601,6 +603,18 @@ const AssignmentGradesPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Edit Modal */}
+        {assignment && (
+          <AssignmentEditModal
+            isOpen={showEditModal}
+            onClose={() => setShowEditModal(false)}
+            onSave={(data: AssignmentEditData) => {
+              setAssignment(prev => prev ? { ...prev, ...data } : prev);
+            }}
+            assignment={assignment}
+          />
+        )}
       </div>
     </InstructorRoute>
   );

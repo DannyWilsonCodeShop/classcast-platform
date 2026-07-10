@@ -24,6 +24,7 @@ export interface FeedItem {
   rating?: number;
   likes?: number;
   comments?: number;
+  viewCount?: number;
   assignmentId?: string;
 }
 

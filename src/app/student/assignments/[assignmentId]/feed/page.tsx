@@ -77,6 +77,13 @@ const AssignmentFeedPage: React.FC = () => {
     }
   }, [assignmentId]);
 
+  // Track view when video is opened from dashboard (via videoId query param)
+  useEffect(() => {
+    if (highlightVideoId) {
+      fetch(`/api/video-submissions/${highlightVideoId}/view`, { method: 'POST' }).catch(() => {});
+    }
+  }, [highlightVideoId]);
+
   const fetchAssignmentFeed = async () => {
     try {
       // Fetch assignment details

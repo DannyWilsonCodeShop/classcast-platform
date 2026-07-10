@@ -177,6 +177,7 @@ export async function GET(request: NextRequest) {
           likes: sub.likes || 0,
           comments: sub.commentCount || 0,
           rating: sub.averageRating || 0,
+          viewCount: sub.viewCount || 0,
           isLiked,
           isFromEnrolledCourse,
           isPinned: sub.isPinned || false,
