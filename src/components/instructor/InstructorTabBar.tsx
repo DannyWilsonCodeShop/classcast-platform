@@ -86,6 +86,14 @@ export function InstructorTabBar() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
+  // Prefetch tab routes on mount for instant navigation
+  useEffect(() => {
+    router.prefetch('/instructor/dashboard');
+    router.prefetch('/instructor/grading');
+    router.prefetch('/instructor/courses');
+    router.prefetch('/instructor/profile');
+  }, [router]);
+
   // Create button handler
   const handleCreateClick = () => {
     previousActiveRef.current = activeIdx >= 0 ? activeIdx : 0;

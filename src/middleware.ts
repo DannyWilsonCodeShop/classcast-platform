@@ -8,13 +8,24 @@ export function middleware(request: NextRequest) {
   // Cache static assets for 1 year
   if (pathname.startsWith('/_next/static') || 
       pathname.startsWith('/static') ||
-      pathname.match(/\.(jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot)$/)) {
+      pathname.match(/\.(jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot|webp|avif)$/)) {
     response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
   }
   
-  // Cache API GET requests for 5 minutes
+  // Cache API GET requests — vary by endpoint type
   if (pathname.startsWith('/api') && request.method === 'GET') {
-    response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=600');
+    // Frequently changing data (feed, submissions) — short cache with revalidation
+    if (pathname.includes('/feed') || pathname.includes('/submissions') || pathname.includes('/grades')) {
+      response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
+    }
+    // Semi-stable data (courses, assignments, profiles) — longer cache
+    else if (pathname.includes('/courses') || pathname.includes('/assignments') || pathname.includes('/profile')) {
+      response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=600');
+    }
+    // Default API caching
+    else {
+      response.headers.set('Cache-Control', 'public, max-age=120, s-maxage=120, stale-while-revalidate=300');
+    }
   }
   
   // Don't cache API POST/PUT/DELETE

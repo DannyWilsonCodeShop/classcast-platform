@@ -134,6 +134,14 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
+  // Prefetch tab routes on mount for instant navigation
+  useEffect(() => {
+    router.prefetch('/student/dashboard');
+    router.prefetch('/student/assignments');
+    router.prefetch('/student/courses');
+    router.prefetch('/student/profile');
+  }, [router]);
+
   return (
     <>
       {/* Spacer to prevent content from hiding behind fixed nav */}

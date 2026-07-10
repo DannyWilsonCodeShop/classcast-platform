@@ -1,8 +1,12 @@
-import AWS from 'aws-sdk';
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
 
-// Configure SES
-const ses = new AWS.SES({
-  region: process.env.AWS_REGION || 'us-east-1'
+// Configure SES with v3 SDK
+const ses = new SESClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+  },
 });
 
 export interface EmailOptions {
@@ -17,30 +21,30 @@ export class EmailService {
   private static fromEmail = process.env.SES_FROM_EMAIL || 'noreply@classcast.app';
 
   static async sendEmail(options: EmailOptions): Promise<string> {
-    const params = {
+    const command = new SendEmailCommand({
       Source: options.from || this.fromEmail,
       Destination: {
-        ToAddresses: [options.to]
+        ToAddresses: [options.to],
       },
       Message: {
         Subject: {
-          Data: options.subject
+          Data: options.subject,
         },
         Body: {
           Html: {
-            Data: options.htmlBody
+            Data: options.htmlBody,
           },
           Text: {
-            Data: options.textBody
-          }
-        }
-      }
-    };
+            Data: options.textBody,
+          },
+        },
+      },
+    });
 
     try {
-      const result = await ses.sendEmail(params).promise();
+      const result = await ses.send(command);
       console.log(`📧 Email sent successfully to ${options.to}: ${result.MessageId}`);
-      return result.MessageId;
+      return result.MessageId || '';
     } catch (error) {
       console.error(`❌ Failed to send email to ${options.to}:`, error);
       throw error;
@@ -117,7 +121,6 @@ export class EmailService {
 
   static async testEmailConfiguration(): Promise<boolean> {
     try {
-      // Test by sending to the configured from email
       await this.sendEmail({
         to: this.fromEmail,
         subject: 'ClassCast Email Test',

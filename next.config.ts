@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '3gb', // Allow large file uploads
     },
     // Performance optimizations
-    optimizePackageImports: ['@/components', '@/lib', 'lucide-react'],
+    optimizePackageImports: ['@/components', '@/lib', 'lucide-react', '@heroicons/react', '@aws-sdk'],
   },
   
   // Optimize images
@@ -125,6 +125,16 @@ const nextConfig: NextConfig = {
       },
       {
         source: '/static/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        // Cache images and fonts aggressively
+        source: '/:path*.(png|jpg|jpeg|gif|webp|avif|ico|svg|woff|woff2)',
         headers: [
           {
             key: 'Cache-Control',

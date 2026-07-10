@@ -1,12 +1,11 @@
-
 import { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcryptjs';
-import AWS from 'aws-sdk';
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
-// Configure AWS (if available)
-const dynamodb = new AWS.DynamoDB.DocumentClient({
-  region: process.env.AWS_REGION || 'us-east-1'
-});
+// Configure AWS v3 DynamoDB
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const dynamodb = DynamoDBDocumentClient.from(dynamoClient);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -23,15 +22,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('🔍 Looking up user:', email);
 
     // Find user by email
-    const userParams = {
+    const userResult = await dynamodb.send(new ScanCommand({
       TableName: 'classcast-users',
       FilterExpression: 'email = :email',
       ExpressionAttributeValues: {
         ':email': email.toLowerCase()
       }
-    };
-
-    const userResult = await dynamodb.scan(userParams).promise();
+    }));
 
     if (!userResult.Items || userResult.Items.length === 0) {
       return res.status(404).json({ error: 'User not found' });
@@ -45,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
     // Update user's password
-    const updateParams = {
+    await dynamodb.send(new UpdateCommand({
       TableName: 'classcast-users',
       Key: {
         userId: user.userId
@@ -55,9 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ':password': hashedPassword,
         ':updatedAt': new Date().toISOString()
       }
-    };
-
-    await dynamodb.update(updateParams).promise();
+    }));
 
     console.log('✅ Password updated successfully');
 
@@ -70,7 +65,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Password reset error:', error);
     
     return res.status(500).json({

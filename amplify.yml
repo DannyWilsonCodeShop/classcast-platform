@@ -3,10 +3,10 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci
+        - npm ci --prefer-offline
     build:
       commands:
-        - npm run build
+        - NODE_OPTIONS="--max-old-space-size=4096" npm run build
   artifacts:
     baseDirectory: .next
     files:
