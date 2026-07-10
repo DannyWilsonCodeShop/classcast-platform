@@ -340,6 +340,13 @@ export async function POST(request: NextRequest) {
       // Don't fail the assignment creation if emails fail
     });
 
+    // Send push notifications to enrolled students (fire and forget)
+    import('@/lib/pushNotificationService').then(({ notifyNewAssignment }) => {
+      notifyNewAssignment(courseId, assignment.title, assignment.assignmentId).catch(err => {
+        console.error('Error sending push notifications:', err);
+      });
+    }).catch(() => {});
+
     return NextResponse.json({
       success: true,
       data: assignment,

@@ -43,12 +43,12 @@
 
 ## Priority 4: Notifications & Communication
 
-- [ ] 7. Push notification triggers
-  - [ ] 7.1 Send push when instructor posts a new assignment
-  - [ ] 7.2 Send push when a grade is posted
-  - [ ] 7.3 Send push when assignment is due in 24 hours
-  - [ ] 7.4 Send push when someone responds to your discussion post
-  - [ ] 7.5 Configure notification preferences (allow students to opt out per type)
+- [x] 7. Push notification triggers
+  - [x] 7.1 Send push when instructor posts a new assignment
+  - [x] 7.2 Send push when a grade is posted
+  - [x] 7.3 Send push when assignment is due in 24 hours
+  - [x] 7.4 Send push when someone responds to your discussion post
+  - [x] 7.5 Configure notification preferences (allow students to opt out per type)
 
 - [ ] 8. Email notifications
   - [ ] 8.1 Send email when grade is posted (with score + feedback preview)

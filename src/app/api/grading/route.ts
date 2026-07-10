@@ -152,6 +152,11 @@ export async function POST(request: NextRequest) {
         console.error('Failed to send grade notification email:', error);
         // Don't fail the grading if email fails
       });
+
+      // Send push notification (fire and forget)
+      import('@/lib/pushNotificationService').then(({ notifyGradePosted }) => {
+        notifyGradePosted(body.studentId, body.assignmentTitle, Number(grade), maxScore || 100, body.assignmentId).catch(() => {});
+      }).catch(() => {});
     }
 
     return NextResponse.json({
