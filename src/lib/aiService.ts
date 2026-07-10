@@ -1,8 +1,30 @@
-import OpenAI from 'openai';
+import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 
-const openai = process.env.OPENAI_API_KEY ? new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-}) : null;
+const bedrock = new BedrockRuntimeClient({
+  region: process.env.AWS_REGION || 'us-east-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+  },
+});
+
+const MODEL_ID = 'amazon.nova-micro-v1:0';
+
+async function callBedrock(prompt: string, maxTokens = 1500, temperature = 0.5): Promise<string> {
+  const command = new ConverseCommand({
+    modelId: MODEL_ID,
+    messages: [{ role: 'user', content: [{ text: prompt }] }],
+    inferenceConfig: { maxTokens, temperature },
+  });
+  const response = await bedrock.send(command);
+  return response.output?.message?.content?.[0]?.text || '';
+}
+
+function parseJSON(text: string): any {
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) return JSON.parse(jsonMatch[0]);
+  return JSON.parse(text);
+}
 
 export interface TutoringMessage {
   role: 'user' | 'assistant' | 'system';
@@ -102,73 +124,37 @@ export class AIService {
     context?: { assignmentId?: string; courseId?: string }
   ): Promise<{ response: string; session: TutoringSession }> {
     try {
-      const systemPrompt = this.buildTutoringSystemPrompt(session, context);
-      
-      const messages = [
-        { role: 'system' as const, content: systemPrompt },
-        ...session.messages.map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content
-        })),
-        { role: 'user' as const, content: message }
-      ];
+      const systemContext = `You are an AI tutoring assistant for ClassCast, an educational platform.
+Your role: Provide clear explanations, ask guiding questions, offer examples, encourage learning.
+Subject: ${session.context.subject || 'General'}
+Difficulty: ${session.context.difficulty || 'intermediate'}
+Goals: ${session.context.learningGoals?.join(', ') || 'General learning'}
+${context?.assignmentId ? `Assignment: ${context.assignmentId}` : ''}
 
-      if (!openai) {
-        throw new Error('OpenAI API key not configured');
-      }
-      
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages,
-        max_tokens: 1000,
-        temperature: 0.7,
-      });
+Previous conversation:
+${session.messages.slice(-6).map(m => `${m.role}: ${m.content}`).join('\n')}
 
-      const response = completion.choices[0]?.message?.content || 'I apologize, but I could not generate a response.';
+Student says: ${message}
 
-      // Update session
+Respond helpfully, educationally, and encouragingly.`;
+
+      const responseText = await callBedrock(systemContext, 800, 0.7);
+
       const updatedSession: TutoringSession = {
         ...session,
         messages: [
           ...session.messages,
           { role: 'user', content: message, timestamp: new Date().toISOString() },
-          { role: 'assistant', content: response, timestamp: new Date().toISOString() }
+          { role: 'assistant', content: responseText, timestamp: new Date().toISOString() }
         ],
         updatedAt: new Date().toISOString()
       };
 
-      return { response, session: updatedSession };
+      return { response: responseText, session: updatedSession };
     } catch (error) {
       console.error('AI Tutoring error:', error);
       throw new Error('Failed to get tutoring assistance');
     }
-  }
-
-  private buildTutoringSystemPrompt(session: TutoringSession, context?: any): string {
-    let prompt = `You are an AI tutoring assistant for ClassCast, an educational platform. You help students learn and understand concepts.
-
-Your role:
-- Provide clear, educational explanations
-- Ask guiding questions to help students think through problems
-- Offer examples and analogies when helpful
-- Encourage learning and build confidence
-- Stay focused on educational content
-
-Student context:
-- Subject: ${session.context.subject || 'General'}
-- Difficulty level: ${session.context.difficulty || 'intermediate'}
-- Learning goals: ${session.context.learningGoals?.join(', ') || 'General learning'}`;
-
-    if (context?.assignmentId) {
-      prompt += `\n- Current assignment: ${context.assignmentId}`;
-    }
-    if (context?.courseId) {
-      prompt += `\n- Current course: ${context.courseId}`;
-    }
-
-    prompt += `\n\nAlways be encouraging, patient, and educational. If you don't know something, say so and suggest how the student might find the answer.`;
-
-    return prompt;
   }
 
   // Automated Essay Grading
@@ -186,35 +172,48 @@ Student context:
     assignmentContext?: { title: string; instructions: string }
   ): Promise<EssayGradingResult> {
     try {
-      const prompt = this.buildEssayGradingPrompt(essay, rubric, assignmentContext);
-      
-      if (!openai) {
-        throw new Error('OpenAI API key not configured');
-      }
-      
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1500,
-        temperature: 0.3,
-      });
+      const prompt = `Grade this essay according to the rubric. Return ONLY valid JSON:
 
-      const response = completion.choices[0]?.message?.content || '{}';
-      const gradingResult = JSON.parse(response);
+{
+  "criteria": {
+    "content": { "score": [0-${rubric.criteria.content.weight}], "feedback": "detailed feedback" },
+    "structure": { "score": [0-${rubric.criteria.structure.weight}], "feedback": "detailed feedback" },
+    "grammar": { "score": [0-${rubric.criteria.grammar.weight}], "feedback": "detailed feedback" },
+    "style": { "score": [0-${rubric.criteria.style.weight}], "feedback": "detailed feedback" }
+  },
+  "overall": "Overall feedback paragraph",
+  "suggestions": ["improvement suggestions"],
+  "strengths": ["what student did well"],
+  "improvements": ["areas to improve"]
+}
 
-      // Calculate final score
-      const totalScore = Object.values(gradingResult.criteria).reduce(
-        (sum: number, criterion: any) => sum + criterion.score, 0
-      );
+Rubric:
+- Content (${rubric.criteria.content.weight} pts): ${rubric.criteria.content.description}
+- Structure (${rubric.criteria.structure.weight} pts): ${rubric.criteria.structure.description}
+- Grammar (${rubric.criteria.grammar.weight} pts): ${rubric.criteria.grammar.description}
+- Style (${rubric.criteria.style.weight} pts): ${rubric.criteria.style.description}
+
+${assignmentContext ? `Assignment: ${assignmentContext.title} - ${assignmentContext.instructions}` : ''}
+
+Essay: "${essay.substring(0, 3000)}"
+
+Return ONLY JSON.`;
+
+      const responseText = await callBedrock(prompt, 1200, 0.3);
+      const gradingResult = parseJSON(responseText);
+
+      const totalScore = (gradingResult.criteria?.content?.score || 0) +
+        (gradingResult.criteria?.structure?.score || 0) +
+        (gradingResult.criteria?.grammar?.score || 0) +
+        (gradingResult.criteria?.style?.score || 0);
       const percentage = (totalScore / rubric.maxScore) * 100;
-      const letterGrade = this.calculateLetterGrade(percentage);
 
       return {
         score: totalScore,
         maxScore: rubric.maxScore,
         percentage: Math.round(percentage * 100) / 100,
-        letterGrade,
-        feedback: gradingResult,
+        letterGrade: this.calculateLetterGrade(percentage),
+        feedback: { overall: gradingResult.overall || '', criteria: gradingResult.criteria },
         suggestions: gradingResult.suggestions || [],
         strengths: gradingResult.strengths || [],
         improvements: gradingResult.improvements || []
@@ -225,129 +224,38 @@ Student context:
     }
   }
 
-  private buildEssayGradingPrompt(essay: string, rubric: any, context?: any): string {
-    return `Please grade this essay according to the provided rubric. Return your response as a JSON object with the following structure:
-
-{
-  "criteria": {
-    "content": {
-      "score": [0-${rubric.criteria.content.weight}],
-      "feedback": "Detailed feedback on content quality, relevance, and depth"
-    },
-    "structure": {
-      "score": [0-${rubric.criteria.structure.weight}],
-      "feedback": "Feedback on organization, flow, and logical structure"
-    },
-    "grammar": {
-      "score": [0-${rubric.criteria.grammar.weight}],
-      "feedback": "Feedback on grammar, spelling, and language mechanics"
-    },
-    "style": {
-      "score": [0-${rubric.criteria.style.weight}],
-      "feedback": "Feedback on writing style, voice, and clarity"
-    }
-  },
-  "suggestions": ["Specific improvement suggestions"],
-  "strengths": ["What the student did well"],
-  "improvements": ["Areas for improvement"]
-}
-
-Essay to grade:
-"${essay}"
-
-Rubric criteria:
-- Content (${rubric.criteria.content.weight} points): ${rubric.criteria.content.description}
-- Structure (${rubric.criteria.structure.weight} points): ${rubric.criteria.structure.description}
-- Grammar (${rubric.criteria.grammar.weight} points): ${rubric.criteria.grammar.description}
-- Style (${rubric.criteria.style.weight} points): ${rubric.criteria.style.description}
-
-${context ? `Assignment context: ${context.title} - ${context.instructions}` : ''}
-
-Please provide fair, constructive feedback that helps the student improve.`;
-  }
-
   // Plagiarism Detection
   public async detectPlagiarism(text: string): Promise<PlagiarismResult> {
     try {
-      // For now, we'll use a simple similarity check
-      // In production, you'd integrate with services like Turnitin, Copyscape, or build your own
-      const prompt = `Analyze this text for potential plagiarism. Look for:
-1. Exact matches or very similar phrases
-2. Paraphrased content that might be copied
-3. Suspicious patterns
+      const prompt = `Analyze this text for potential plagiarism patterns. Look for overly formal language shifts, inconsistent writing style, or phrases that seem copied. Return ONLY valid JSON:
 
-Text to analyze: "${text}"
-
-Return a JSON response with:
 {
-  "isPlagiarized": boolean,
-  "similarityScore": number (0-100),
-  "sources": [
-    {
-      "text": "suspicious text snippet",
-      "similarity": number,
-      "source": "potential source",
-      "url": "if available"
-    }
-  ],
-  "originalText": "original text",
-  "flaggedText": ["flagged phrases"]
-}`;
+  "isPlagiarized": false,
+  "similarityScore": 0,
+  "sources": [],
+  "originalText": "${text.substring(0, 500).replace(/"/g, '\\"')}",
+  "flaggedText": []
+}
 
-      if (!openai) {
-        throw new Error('OpenAI API key not configured');
-      }
-      
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1000,
-        temperature: 0.1,
-      });
+Note: Without access to external databases, rate based on writing style consistency only. Be conservative - only flag if clearly suspicious.
 
-      const response = completion.choices[0]?.message?.content || '{}';
-      return JSON.parse(response);
+Text: "${text.substring(0, 2000).replace(/"/g, '\\"')}"
+
+Return ONLY JSON.`;
+
+      const responseText = await callBedrock(prompt, 800, 0.1);
+      return parseJSON(responseText);
     } catch (error) {
       console.error('Plagiarism detection error:', error);
       throw new Error('Failed to detect plagiarism');
     }
   }
 
-  // AI Transcription
+  // AI Transcription (text summary since Nova can't process audio)
   public async transcribeVideo(audioUrl: string, language: string = 'en'): Promise<TranscriptionResult> {
-    try {
-      // In production, you'd use AWS Transcribe or similar service
-      // For now, we'll simulate with OpenAI's Whisper API
-      const response = await fetch(audioUrl);
-      const audioBuffer = await response.arrayBuffer();
-      
-      if (!openai) {
-        throw new Error('OpenAI API key not configured');
-      }
-      
-      const transcription = await openai.audio.transcriptions.create({
-        file: new File([audioBuffer], 'audio.mp3'),
-        model: 'whisper-1',
-        language: language,
-        response_format: 'verbose_json',
-      });
-
-      return {
-        text: transcription.text,
-        confidence: 0.95, // Whisper doesn't provide confidence scores
-        segments: (transcription.segments || []).map(segment => ({
-          start: segment.start,
-          end: segment.end,
-          text: segment.text,
-          confidence: 0.95, // Default confidence since Whisper doesn't provide it
-        })),
-        language: transcription.language || language,
-        duration: transcription.duration || 0
-      };
-    } catch (error) {
-      console.error('Transcription error:', error);
-      throw new Error('Failed to transcribe audio');
-    }
+    // Note: For actual audio transcription, use AWS Transcribe service
+    // This is a placeholder that returns an indication to use AWS Transcribe
+    throw new Error('Audio transcription requires AWS Transcribe. Configure separately.');
   }
 
   // Smart Recommendations
@@ -362,49 +270,26 @@ Return a JSON response with:
     }
   ): Promise<RecommendationResult> {
     try {
-      const prompt = this.buildRecommendationPrompt(userId, type, context);
-      
-      if (!openai) {
-        throw new Error('OpenAI API key not configured');
-      }
-      
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1000,
-        temperature: 0.7,
-      });
-
-      const response = completion.choices[0]?.message?.content || '{}';
-      return JSON.parse(response);
-    } catch (error) {
-      console.error('Recommendation error:', error);
-      throw new Error('Failed to get recommendations');
-    }
-  }
-
-  private buildRecommendationPrompt(userId: string, type: string, context: any): string {
-    return `Generate personalized recommendations for a student. Return as JSON:
+      const prompt = `Generate personalized ${type} recommendations for a student. Return ONLY valid JSON:
 
 {
   "type": "${type}",
   "items": [
-    {
-      "id": "unique_id",
-      "title": "Item title",
-      "description": "Item description",
-      "relevanceScore": number (0-100),
-      "reason": "Why this is recommended"
-    }
+    { "id": "rec_1", "title": "Title", "description": "Description", "relevanceScore": 85, "reason": "Why recommended" }
   ],
   "userId": "${userId}",
-  "context": "Recommendation context"
+  "context": "Based on learning history"
 }
 
-User context: ${JSON.stringify(context)}
-Recommendation type: ${type}
+Context: ${JSON.stringify(context).substring(0, 500)}
+Generate 3-5 recommendations. Return ONLY JSON.`;
 
-Generate 3-5 relevant recommendations that would help this student learn and succeed.`;
+      const responseText = await callBedrock(prompt, 800, 0.7);
+      return parseJSON(responseText);
+    } catch (error) {
+      console.error('Recommendation error:', error);
+      throw new Error('Failed to get recommendations');
+    }
   }
 
   // Predictive Analytics
@@ -423,37 +308,22 @@ Generate 3-5 relevant recommendations that would help this student learn and suc
     predictedGrade: string;
   }> {
     try {
-      const prompt = `Analyze this student's data and predict their success. Return JSON:
+      const prompt = `Analyze student data and predict success. Return ONLY valid JSON:
 
 {
-  "successProbability": number (0-100),
-  "riskFactors": ["list of risk factors"],
+  "successProbability": 75,
+  "riskFactors": ["risk factors"],
   "recommendations": ["actionable recommendations"],
-  "predictedGrade": "A/B/C/D/F"
+  "predictedGrade": "B"
 }
 
-Student data: ${JSON.stringify(studentData)}
+Student data: ${JSON.stringify(studentData).substring(0, 1000)}
 
-Consider factors like:
-- Assignment completion rates
-- Grade trends
-- Engagement levels
-- Time management
-- Learning patterns`;
+Consider: completion rates, grade trends, engagement, time management.
+Return ONLY JSON.`;
 
-      if (!openai) {
-        throw new Error('OpenAI API key not configured');
-      }
-      
-      const completion = await openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 800,
-        temperature: 0.3,
-      });
-
-      const response = completion.choices[0]?.message?.content || '{}';
-      return JSON.parse(response);
+      const responseText = await callBedrock(prompt, 600, 0.3);
+      return parseJSON(responseText);
     } catch (error) {
       console.error('Predictive analytics error:', error);
       throw new Error('Failed to predict student success');
