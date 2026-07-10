@@ -388,10 +388,10 @@ const InstructorProfilePage: React.FC = () => {
 
         {/* Edit Profile Modal */}
         {isEditing && editedProfile && (
-          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/40 flex items-start justify-center z-50 p-4 pt-[env(safe-area-inset-top,0px)] overflow-y-auto">
+            <div className="bg-white rounded-2xl max-w-2xl w-full my-4" style={{ marginBottom: '2rem' }}>
               {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white rounded-t-2xl z-10">
                 <h2
                   className="text-xl font-bold text-[#005587]"
                 >
@@ -545,6 +545,7 @@ const InstructorProfilePage: React.FC = () => {
                     <textarea
                       value={editedProfile.careerGoals || ''}
                       onChange={(e) => handleInputChange('careerGoals', e.target.value)}
+                      onFocus={(e) => { setTimeout(() => { e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                       placeholder="Describe your teaching approach and philosophy"
                       rows={3}
@@ -567,6 +568,7 @@ const InstructorProfilePage: React.FC = () => {
                     <textarea
                       value={editedProfile.funFact || ''}
                       onChange={(e) => handleInputChange('funFact', e.target.value)}
+                      onFocus={(e) => { setTimeout(() => { e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                       placeholder="Tell us something interesting about yourself!"
                       rows={2}
@@ -578,6 +580,7 @@ const InstructorProfilePage: React.FC = () => {
                     <textarea
                       value={editedProfile.bio || ''}
                       onChange={(e) => handleInputChange('bio', e.target.value)}
+                      onFocus={(e) => { setTimeout(() => { e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }}
                       rows={3}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                       placeholder="Tell us about yourself..."
