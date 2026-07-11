@@ -2,16 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 
 // Use explicit credentials if provided, otherwise let SDK use default credential chain
-// (works in Amplify where the service role has Bedrock access)
 const bedrockConfig: any = {
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: process.env.AWS_REGION || process.env.CLASSCAST_AWS_REGION || 'us-east-1',
 };
 
-if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-  bedrockConfig.credentials = {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  };
+const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.CLASSCAST_ACCESS_KEY_ID;
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLASSCAST_SECRET_ACCESS_KEY;
+if (accessKeyId && secretAccessKey) {
+  bedrockConfig.credentials = { accessKeyId, secretAccessKey };
 }
 
 const bedrock = new BedrockRuntimeClient(bedrockConfig);

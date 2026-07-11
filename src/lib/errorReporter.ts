@@ -3,14 +3,21 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand } from '@aws-sdk/lib-dynamodb';
 
 const sns = new SNSClient({
-  region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
+  region: process.env.AWS_REGION || process.env.CLASSCAST_AWS_REGION || 'us-east-1',
+  ...((() => {
+    const ak = process.env.AWS_ACCESS_KEY_ID || process.env.CLASSCAST_ACCESS_KEY_ID;
+    const sk = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLASSCAST_SECRET_ACCESS_KEY;
+    return ak && sk ? { credentials: { accessKeyId: ak, secretAccessKey: sk } } : {};
+  })()),
 });
 
-const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
+const dynamoClient = new DynamoDBClient({ region: process.env.AWS_REGION || process.env.CLASSCAST_AWS_REGION || 'us-east-1',
+  ...((() => {
+    const ak = process.env.AWS_ACCESS_KEY_ID || process.env.CLASSCAST_ACCESS_KEY_ID;
+    const sk = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLASSCAST_SECRET_ACCESS_KEY;
+    return ak && sk ? { credentials: { accessKeyId: ak, secretAccessKey: sk } } : {};
+  })()),
+});
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
 const TOPIC_ARN = process.env.SNS_ERROR_TOPIC_ARN || '';
