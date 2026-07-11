@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 
-const bedrock = new BedrockRuntimeClient({
+// Use explicit credentials if provided, otherwise let SDK use default credential chain
+// (works in Amplify where the service role has Bedrock access)
+const bedrockConfig: any = {
   region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
-  },
-});
+};
+
+if (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+  bedrockConfig.credentials = {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  };
+}
+
+const bedrock = new BedrockRuntimeClient(bedrockConfig);
 
 interface GenerateRequest {
   topic: string;
@@ -113,7 +120,7 @@ Return ONLY valid JSON, no markdown or explanation.`;
     console.error('AI generation error:', error);
     
     if (error.name === 'AccessDeniedException' || error.name === 'UnrecognizedClientException') {
-      return NextResponse.json({ success: false, error: 'AI service not configured. Contact administrator.' }, { status: 503 });
+      return NextResponse.json({ success: false, error: 'AI service credentials not configured. Add AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to Amplify environment variables, or attach bedrock:InvokeModel permission to the Amplify service role.' }, { status: 503 });
     }
     
     return NextResponse.json({ success: false, error: error.message || 'Failed to generate assignment' }, { status: 500 });
