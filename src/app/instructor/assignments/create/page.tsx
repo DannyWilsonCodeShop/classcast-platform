@@ -1155,8 +1155,8 @@ const CreateAssignmentPage: React.FC = () => {
             {currentStep === 5 && renderStep5()}
           </div>
 
-          {/* Navigation - hidden when AI generator is active */}
-          {!showAIGenerator && (
+          {/* Navigation - hidden when AI generator or sub-wizard is active */}
+          {!showAIGenerator && !(currentStep === 4 && formData.assignmentType !== 'video') && (
           <div className="flex items-center justify-between mt-6">
             <button
               onClick={handleBack}
