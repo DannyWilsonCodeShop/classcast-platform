@@ -896,38 +896,37 @@ const CreateAssignmentPage: React.FC = () => {
               </select>
             )}
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <span className="font-medium text-gray-600">Title:</span>
-            <span className="text-gray-900">{formData.title || '—'}</span>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              className="text-gray-900 text-sm font-medium text-right bg-transparent border-b border-transparent focus:border-[#005587] focus:outline-none max-w-[65%]"
+            />
           </div>
           <div className="flex justify-between">
             <span className="font-medium text-gray-600">Type:</span>
             <span className="text-gray-900 capitalize">{formData.assignmentType === 'group-project' ? 'Group Project' : formData.assignmentType === 'study-module' ? 'Study Module' : formData.assignmentType}</span>
           </div>
-          {/* Due Date - editable if empty */}
+          {/* Due Date - always editable */}
           <div className="flex justify-between items-center">
             <span className="font-medium text-gray-600">Due Date:</span>
-            {formData.dueDate ? (
-              <span className="text-gray-900">
-                {new Date(formData.dueDate).toLocaleString()}
-              </span>
-            ) : (
-              <input
-                type="datetime-local"
-                value={formData.dueDate}
-                onChange={(e) => {
-                  let val = e.target.value;
-                  if (val && val.includes('T')) {
-                    const timePart = val.split('T')[1];
-                    if (timePart === '00:00' || timePart === '00:00:00') {
-                      val = val.split('T')[0] + 'T23:59';
-                    }
+            <input
+              type="datetime-local"
+              value={formData.dueDate}
+              onChange={(e) => {
+                let val = e.target.value;
+                if (val && val.includes('T')) {
+                  const timePart = val.split('T')[1];
+                  if (timePart === '00:00' || timePart === '00:00:00') {
+                    val = val.split('T')[0] + 'T23:59';
                   }
-                  setFormData({ ...formData, dueDate: val });
-                }}
-                className="px-2 py-1 border border-orange-300 rounded-lg text-xs focus:border-[#005587] focus:outline-none bg-orange-50 max-w-[60%]"
-              />
-            )}
+                }
+                setFormData({ ...formData, dueDate: val });
+              }}
+              className={`px-2 py-1 border rounded-lg text-xs focus:border-[#005587] focus:outline-none max-w-[60%] min-w-0 ${formData.dueDate ? 'border-gray-200' : 'border-orange-300 bg-orange-50'}`}
+            />
           </div>
           <div className="flex justify-between items-center">
             <span className="font-medium text-gray-600">Max Points:</span>
@@ -954,13 +953,17 @@ const CreateAssignmentPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Full Description / Instructions */}
-        {formData.description && (
-          <div className="bg-gray-50 rounded-2xl p-4">
-            <h3 className="text-xs font-bold text-[#005587] uppercase mb-2">Instructions / Prompt</h3>
-            <p className="text-xs text-gray-800 whitespace-pre-wrap leading-relaxed">{formData.description}</p>
-          </div>
-        )}
+        {/* Full Description / Instructions - editable */}
+        <div className="bg-gray-50 rounded-2xl p-4">
+          <h3 className="text-xs font-bold text-[#005587] uppercase mb-2">Instructions / Prompt</h3>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            rows={5}
+            placeholder="Enter assignment instructions..."
+            className="w-full text-xs text-gray-800 leading-relaxed bg-white border border-gray-200 rounded-xl p-3 resize-none focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+          />
+        </div>
 
         {/* Rubric Details */}
         {formData.rubric.length > 0 && (
