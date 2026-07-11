@@ -7,6 +7,7 @@ import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { StudentTabBar } from '@/components/student/StudentTabBar';
 import { useStudentCourses } from '@/hooks/useStudentData';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Course {
   id: string;
@@ -41,6 +42,7 @@ interface Course {
 const StudentCoursesPage: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: courses = [], isLoading: loading, error: fetchError } = useStudentCourses();
   const [searchQuery, setSearchQuery] = useState('');
   const [showJoinInput, setShowJoinInput] = useState(false);
@@ -72,8 +74,9 @@ const StudentCoursesPage: React.FC = () => {
         setJoinSuccess(`Enrolled in ${data.course.title}${data.course.sectionName ? ` (${data.course.sectionName})` : ''}!`);
         setSearchQuery('');
         setJoinCode('');
-        // Refresh courses list
-        setTimeout(() => window.location.reload(), 1500);
+        // Invalidate cached courses so they refetch immediately
+        queryClient.invalidateQueries({ queryKey: ['student-courses'] });
+        queryClient.invalidateQueries({ queryKey: ['student-assignments'] });
       } else {
         setJoinError(data.error || 'Failed to join course');
       }
