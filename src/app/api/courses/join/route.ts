@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
         course = item;
         break;
       }
-      // Check section-level class codes
+      // Check section-level class codes (inline sections array)
       const sections = item.sections || [];
       for (const sec of sections) {
         if (sec.classCode && sec.classCode.toUpperCase() === normalizedInput) {
@@ -47,6 +47,29 @@ export async function POST(request: NextRequest) {
         }
       }
       if (course) break;
+    }
+
+    // If not found in inline sections, check the classcast-sections table
+    if (!course) {
+      try {
+        const sectionsResult = await docClient.send(new ScanCommand({
+          TableName: 'classcast-sections',
+          FilterExpression: 'classCode = :code',
+          ExpressionAttributeValues: { ':code': normalizedInput },
+        }));
+        if (sectionsResult.Items && sectionsResult.Items.length > 0) {
+          const section = sectionsResult.Items[0];
+          matchedSectionId = section.sectionId || null;
+          matchedSectionName = section.sectionName || null;
+          // Find the parent course
+          const parentCourse = (scanResult.Items || []).find(c => c.courseId === section.courseId);
+          if (parentCourse) {
+            course = parentCourse;
+          }
+        }
+      } catch (secErr) {
+        console.warn('Error searching sections table:', secErr);
+      }
     }
 
     if (!course) {
