@@ -132,13 +132,23 @@ function RecordPageInner() {
       setVideoFile(file);
       setVideoPreviewUrl(URL.createObjectURL(blob));
       stopCamera();
-      setShowThumbnailStep(true); // Show cover photo step after recording
+      setShowThumbnailStep(true);
+      // Exit fullscreen when recording stops
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
     };
     mediaRecorderRef.current = recorder;
     recorder.start(1000);
     setIsRecording(true);
     setRecordingTime(0);
     timerRef.current = setInterval(() => setRecordingTime(t => t + 1), 1000);
+
+    // Request fullscreen to cover other windows (anti-cheat)
+    try {
+      document.documentElement.requestFullscreen?.() || 
+      (document.documentElement as any).webkitRequestFullscreen?.();
+    } catch {}
   };
 
   const stopRecording = () => {
@@ -147,6 +157,10 @@ function RecordPageInner() {
     }
     setIsRecording(false);
     if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    // Exit fullscreen
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
   };
 
   // Anti-cheat: abort recording if user leaves the screen
