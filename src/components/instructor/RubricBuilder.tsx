@@ -136,33 +136,33 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
         {value.map((category) => (
           <div
             key={category.id}
-            className="bg-white border border-gray-200 rounded-xl p-4 mb-4"
+            className="bg-white border border-gray-200 rounded-xl p-3 mb-4 overflow-hidden"
           >
             {/* Category header */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 min-w-0">
               <input
                 type="text"
                 value={category.name}
                 onChange={(e) => updateCategoryName(category.id, e.target.value)}
                 placeholder="Category name"
                 disabled={disabled}
-                className="text-lg font-bold text-gray-900 border-b border-gray-200 focus:border-[#005587] focus:outline-none pb-1 flex-1 mr-3"
+                className="text-base font-bold text-gray-900 border-b border-gray-200 focus:border-[#005587] focus:outline-none pb-1 flex-1 min-w-0 mr-2"
                 style={{ fontFamily: "'Oswald', sans-serif" }}
               />
               <button
                 type="button"
                 onClick={() => removeCategory(category.id)}
                 disabled={disabled}
-                className="text-red-500 text-sm hover:text-red-700 transition-colors whitespace-nowrap"
+                className="text-red-500 text-xs hover:text-red-700 transition-colors whitespace-nowrap shrink-0"
               >
-                Remove Category
+                Remove
               </button>
             </div>
 
             {/* Scoring levels */}
             <div className="space-y-2">
               {category.levels.map((level, levelIndex) => (
-                <div key={levelIndex} className="flex items-center gap-2">
+                <div key={levelIndex} className="flex items-center gap-1.5 min-w-0">
                   <input
                     type="number"
                     value={level.score}
@@ -173,7 +173,7 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
                     }
                     min={0}
                     disabled={disabled}
-                    className="w-14 px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm focus:border-[#005587] focus:outline-none"
+                    className="w-11 px-1.5 py-1.5 border border-gray-200 rounded-lg text-center text-xs focus:border-[#005587] focus:outline-none shrink-0"
                     placeholder="0"
                   />
                   <input
@@ -186,13 +186,13 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
                     }
                     placeholder="Level description"
                     disabled={disabled}
-                    className="flex-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-[#005587] focus:outline-none"
+                    className="flex-1 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => removeLevel(category.id, levelIndex)}
                     disabled={disabled}
-                    className="text-red-500 text-sm hover:text-red-700 transition-colors"
+                    className="text-red-500 text-xs hover:text-red-700 transition-colors shrink-0"
                     aria-label="Remove level"
                   >
                     🗑
