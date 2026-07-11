@@ -33,28 +33,22 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     // Check role-based access
     if (requiredRole && user.role !== requiredRole) {
-      // Admin users have instructor access
-      if (user.role === 'admin' && requiredRole === 'instructor') {
-        // Allow admin to access instructor routes
-      } else if (user.role === 'admin' || user.role === 'instructor') {
+      if (user.role === 'instructor' || user.role === 'admin') {
         router.push('/instructor/dashboard');
       } else {
         router.push('/student/dashboard');
       }
-      if (!(user.role === 'admin' && requiredRole === 'instructor')) return;
+      return;
     }
 
     // Check if user has one of the allowed roles
     if (allowedRoles && !allowedRoles.includes(user.role)) {
-      // Admin has access to instructor routes
-      if (user.role === 'admin' && allowedRoles.includes('instructor')) {
-        // Allow
-      } else if (user.role === 'admin' || user.role === 'instructor') {
+      if (user.role === 'instructor' || user.role === 'admin') {
         router.push('/instructor/dashboard');
       } else {
         router.push('/student/dashboard');
       }
-      if (!(user.role === 'admin' && allowedRoles.includes('instructor'))) return;
+      return;
     }
   }, [isAuthenticated, user, isLoading, requiredRole, allowedRoles, redirectTo, router]);
 
@@ -114,7 +108,7 @@ export const StudentRoute: React.FC<Omit<ProtectedRouteProps, 'requiredRole' | '
 );
 
 export const InstructorRoute: React.FC<Omit<ProtectedRouteProps, 'requiredRole' | 'allowedRoles'>> = (props) => (
-  <ProtectedRoute {...props} requiredRole="instructor" />
+  <ProtectedRoute {...props} allowedRoles={['instructor', 'admin']} />
 );
 
 export const AdminRoute: React.FC<Omit<ProtectedRouteProps, 'requiredRole' | 'allowedRoles'>> = (props) => (
