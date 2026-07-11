@@ -14,6 +14,8 @@ interface AssessmentRecordingViewProps {
 export function AssessmentRecordingView({
   sessionId, assessmentId, studentId, questions, onComplete
 }: AssessmentRecordingViewProps) {
+  // Pre-assessment integrity steps: 'room-scan' → 'affirmation' → 'questions'
+  const [phase, setPhase] = useState<'room-scan' | 'affirmation' | 'questions'>('room-scan');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [remainingSeconds, setRemainingSeconds] = useState(questions[0]?.timeLimitSeconds || 60);
   const [isUploading, setIsUploading] = useState(false);
@@ -111,8 +113,10 @@ export function AssessmentRecordingView({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Timer countdown
+  // Timer countdown — only active during questions phase
   useEffect(() => {
+    if (phase !== 'questions') return;
+
     timerRef.current = setInterval(() => {
       setRemainingSeconds(prev => {
         if (prev <= 1) {
@@ -136,7 +140,7 @@ export function AssessmentRecordingView({
 
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex, phase]);
 
   const handleAssessmentComplete = async () => {
     setIsUploading(true);
@@ -238,21 +242,73 @@ export function AssessmentRecordingView({
 
       {/* Question + Timer Overlay (bottom) */}
       <div className="bg-black/80 px-4 py-4 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-white/60 text-xs">Question {currentQuestionIndex + 1} of {questions.length}</span>
-          <span className={`text-lg font-bold font-mono ${remainingSeconds <= 10 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
-            {formatTime(remainingSeconds)}
-          </span>
-        </div>
-        <p className="text-white text-sm font-medium leading-relaxed">
-          {currentQuestion?.questionText || ''}
-        </p>
-        {/* Progress dots */}
-        <div className="flex gap-1 justify-center pt-1">
-          {questions.map((_, idx) => (
-            <div key={idx} className={`w-2 h-2 rounded-full ${idx < currentQuestionIndex ? 'bg-green-400' : idx === currentQuestionIndex ? 'bg-white' : 'bg-white/30'}`} />
-          ))}
-        </div>
+        {/* Phase: Room Scan */}
+        {phase === 'room-scan' && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-white/60 text-xs">Step 1 of 2 — Room Scan</span>
+              <span className="text-xs text-green-400 font-medium">📹 Recording</span>
+            </div>
+            <p className="text-white text-sm font-medium leading-relaxed">
+              Please do a slow 360° scan of your room to show there are no notes, devices, or other materials visible. Turn your camera to show your entire workspace.
+            </p>
+            <button
+              onClick={() => {
+                const ts = (Date.now() - sessionStartRef.current) / 1000;
+                integrityEventsRef.current.push({ type: 'room-scan-complete', timestampSeconds: ts, description: 'Student completed room scan' });
+                setPhase('affirmation');
+              }}
+              className="w-full mt-2 py-3 bg-[#005587] text-white rounded-xl text-sm font-bold active:scale-[0.98] transition-transform"
+            >
+              ✓ Room Scan Complete
+            </button>
+          </>
+        )}
+
+        {/* Phase: Affirmation */}
+        {phase === 'affirmation' && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-white/60 text-xs">Step 2 of 2 — Agreement</span>
+              <span className="text-xs text-green-400 font-medium">📹 Recording</span>
+            </div>
+            <p className="text-white text-sm font-medium leading-relaxed">
+              I understand that I must show my complete upper body and hands at all times during this assessment. I have <span className="text-[#FFC72C] font-bold">1 attempt only</span>. Leaving the screen will invalidate my recording.
+            </p>
+            <button
+              onClick={() => {
+                const ts = (Date.now() - sessionStartRef.current) / 1000;
+                integrityEventsRef.current.push({ type: 'affirmation-accepted', timestampSeconds: ts, description: 'Student affirmed assessment rules' });
+                timestampsRef.current.push({ questionId: questions[0].questionId, timestampSeconds: ts });
+                setPhase('questions');
+              }}
+              className="w-full mt-2 py-3 bg-[#FFC72C] text-[#005587] rounded-xl text-sm font-bold active:scale-[0.98] transition-transform"
+            >
+              I Understand — Begin Assessment
+            </button>
+          </>
+        )}
+
+        {/* Phase: Questions */}
+        {phase === 'questions' && (
+          <>
+            <div className="flex items-center justify-between">
+              <span className="text-white/60 text-xs">Question {currentQuestionIndex + 1} of {questions.length}</span>
+              <span className={`text-lg font-bold font-mono ${remainingSeconds <= 10 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
+                {formatTime(remainingSeconds)}
+              </span>
+            </div>
+            <p className="text-white text-sm font-medium leading-relaxed">
+              {currentQuestion?.questionText || ''}
+            </p>
+            {/* Progress dots */}
+            <div className="flex gap-1 justify-center pt-1">
+              {questions.map((_, idx) => (
+                <div key={idx} className={`w-2 h-2 rounded-full ${idx < currentQuestionIndex ? 'bg-green-400' : idx === currentQuestionIndex ? 'bg-white' : 'bg-white/30'}`} />
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
