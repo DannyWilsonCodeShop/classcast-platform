@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, QueryCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, QueryCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
 const dynamoClient = new DynamoDBClient({
-  region: process.env.REGION || 'us-east-1',
+  region: process.env.AWS_REGION || process.env.CLASSCAST_AWS_REGION || 'us-east-1',
 });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
@@ -27,7 +27,29 @@ export async function GET(
       );
     }
 
-    // Try to find the user's rating for this video using GSI
+    // First try to get the average from the submission record (fast path)
+    let averageRating = 0;
+    try {
+      const subResult = await docClient.send(new GetCommand({
+        TableName: SUBMISSIONS_TABLE,
+        Key: { submissionId: videoId },
+        ProjectionExpression: 'averageRating, ratings',
+      }));
+      if (subResult.Item) {
+        averageRating = subResult.Item.averageRating || 0;
+        // Check if this user's rating is stored in the ratings map
+        const ratings = subResult.Item.ratings || {};
+        if (ratings[userId]) {
+          return NextResponse.json({
+            success: true,
+            rating: ratings[userId],
+            averageRating: Math.round(averageRating * 10) / 10,
+          }, { headers: { 'Cache-Control': 'no-store' } });
+        }
+      }
+    } catch {}
+
+    // Fallback: check interactions table via GSI
     try {
       const result = await docClient.send(new QueryCommand({
         TableName: INTERACTIONS_TABLE,
@@ -39,51 +61,101 @@ export async function GET(
           ':userId': userId,
           ':type': 'rating'
         },
-        ExpressionAttributeNames: {
-          '#type': 'type'
-        }
+        ExpressionAttributeNames: { '#type': 'type' }
       }));
 
       if (result.Items && result.Items.length > 0) {
-        const rating = result.Items[0].rating || 0;
-        // Also compute average rating
-        const allRatingsResult = await docClient.send(new QueryCommand({
-          TableName: INTERACTIONS_TABLE,
-          IndexName: 'videoId-index',
-          KeyConditionExpression: 'videoId = :videoId',
-          FilterExpression: '#type = :type',
-          ExpressionAttributeValues: { ':videoId': videoId, ':type': 'rating' },
-          ExpressionAttributeNames: { '#type': 'type' }
-        }));
-        const allRatings = (allRatingsResult.Items || []).filter(i => i.rating > 0);
-        const avgRating = allRatings.length > 0 ? allRatings.reduce((s, i) => s + i.rating, 0) / allRatings.length : 0;
-        
         return NextResponse.json({
           success: true,
-          rating: rating,
-          averageRating: Math.round(avgRating * 10) / 10,
-          totalRatings: allRatings.length,
-        }, {
-          headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
-        });
+          rating: result.Items[0].rating || 0,
+          averageRating: Math.round(averageRating * 10) / 10,
+        }, { headers: { 'Cache-Control': 'no-store' } });
       }
     } catch (error) {
-      console.log('Error fetching rating:', error);
+      console.warn('GSI query failed, returning 0:', error);
     }
 
     return NextResponse.json({
       success: true,
-      rating: 0
-    }, {
-      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
-    });
+      rating: 0,
+      averageRating: Math.round(averageRating * 10) / 10,
+    }, { headers: { 'Cache-Control': 'no-store' } });
 
   } catch (error) {
     console.error('Error fetching user rating:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch rating' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to fetch rating' }, { status: 500 });
   }
 }
 
+// POST /api/videos/[videoId]/rating - Save/update user's rating (simple direct path)
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ videoId: string }> }
+) {
+  try {
+    const { videoId } = await params;
+    const { userId, rating } = await request.json();
+
+    if (!userId || !rating || rating < 1 || rating > 5) {
+      return NextResponse.json({ success: false, error: 'userId and rating (1-5) required' }, { status: 400 });
+    }
+
+    // Store rating directly on the submission record in a ratings map
+    // This is fast, atomic, and doesn't depend on GSI queries
+    await docClient.send(new UpdateCommand({
+      TableName: SUBMISSIONS_TABLE,
+      Key: { submissionId: videoId },
+      UpdateExpression: 'SET ratings.#uid = :rating',
+      ExpressionAttributeNames: { '#uid': userId },
+      ExpressionAttributeValues: { ':rating': rating },
+    }));
+
+    // Recalculate average from the ratings map
+    const subResult = await docClient.send(new GetCommand({
+      TableName: SUBMISSIONS_TABLE,
+      Key: { submissionId: videoId },
+      ProjectionExpression: 'ratings',
+    }));
+    const ratings = subResult.Item?.ratings || {};
+    const ratingValues = Object.values(ratings).filter(v => typeof v === 'number' && v > 0) as number[];
+    const avg = ratingValues.length > 0 ? ratingValues.reduce((s, r) => s + r, 0) / ratingValues.length : 0;
+
+    // Save the average back
+    await docClient.send(new UpdateCommand({
+      TableName: SUBMISSIONS_TABLE,
+      Key: { submissionId: videoId },
+      UpdateExpression: 'SET averageRating = :avg, totalRatings = :total',
+      ExpressionAttributeValues: { ':avg': Math.round(avg * 10) / 10, ':total': ratingValues.length },
+    }));
+
+    return NextResponse.json({
+      success: true,
+      rating,
+      averageRating: Math.round(avg * 10) / 10,
+      totalRatings: ratingValues.length,
+    });
+  } catch (error: any) {
+    // If the ratings map doesn't exist yet, initialize it
+    if (error.name === 'ValidationException' && error.message?.includes('document path')) {
+      try {
+        const { videoId } = await params;
+        const { userId, rating } = await request.json();
+        await docClient.send(new UpdateCommand({
+          TableName: SUBMISSIONS_TABLE,
+          Key: { submissionId: videoId },
+          UpdateExpression: 'SET ratings = :ratingsMap, averageRating = :avg, totalRatings = :one',
+          ExpressionAttributeValues: {
+            ':ratingsMap': { [userId]: rating },
+            ':avg': rating,
+            ':one': 1,
+          },
+        }));
+        return NextResponse.json({ success: true, rating, averageRating: rating, totalRatings: 1 });
+      } catch (initErr) {
+        console.error('Error initializing ratings map:', initErr);
+      }
+    }
+    console.error('Error saving rating:', error);
+    return NextResponse.json({ success: false, error: 'Failed to save rating' }, { status: 500 });
+  }
+}

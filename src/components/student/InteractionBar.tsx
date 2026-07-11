@@ -246,8 +246,6 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   const handleRating = async (rating: number) => {
     if (!currentUser?.id) return;
     
-    console.log('⭐ Rating video:', { videoId, userId: currentUser.id, rating });
-    
     // Optimistic UI update + localStorage failsafe
     const prev = userRating;
     setUserRating(rating);
@@ -257,22 +255,15 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
     try { localStorage.setItem(`rating_${videoId}_${currentUser.id}`, String(rating)); } catch {}
     
     try {
-      const res = await fetch(`/api/videos/${videoId}/interactions`, {
+      // Use the simple direct rating endpoint (stores on submission record)
+      const res = await fetch(`/api/videos/${videoId}/rating`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'rating',
-          userId: currentUser.id,
-          userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email,
-          userAvatar: currentUser.avatar || '/api/placeholder/40/40',
-          rating,
-          contentCreatorId: contentCreatorId,
-        }),
+        body: JSON.stringify({ userId: currentUser.id, rating }),
       });
       
       if (res.ok) {
         const data = await res.json();
-        console.log('✅ Rating posted:', data);
         if (data.success) {
           if (typeof data.averageRating === 'number') {
             setAverageRating(data.averageRating);
@@ -284,12 +275,32 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
           setUserRating(prev);
         }
       } else {
-        console.error('❌ Rating post failed:', res.status, await res.text().catch(() => 'Unknown error'));
-        setUserRating(prev);
+        // Fallback to interactions endpoint
+        const fallbackRes = await fetch(`/api/videos/${videoId}/interactions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'rating',
+            userId: currentUser.id,
+            userName: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email,
+            userAvatar: currentUser.avatar || '',
+            rating,
+            contentCreatorId: contentCreatorId,
+          }),
+        });
+        if (fallbackRes.ok) {
+          const data = await fallbackRes.json();
+          if (data.success && typeof data.averageRating === 'number') {
+            setAverageRating(data.averageRating);
+            onCountsChange?.({ userRating: rating, averageRating: data.averageRating });
+          }
+        } else {
+          setUserRating(prev);
+        }
       }
     } catch (error) {
-      console.error('❌ Rating post error:', error);
-      setUserRating(prev);
+      console.error('Rating error:', error);
+      // Rating still saved in localStorage as failsafe
     }
     setLoadingRating(false);
   };
