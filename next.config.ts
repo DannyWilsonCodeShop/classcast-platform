@@ -154,6 +154,14 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+
+  // Pass server-side env vars explicitly (Amplify SSR)
+  env: {
+    CLASSCAST_ACCESS_KEY_ID: process.env.CLASSCAST_ACCESS_KEY_ID || '',
+    CLASSCAST_SECRET_ACCESS_KEY: process.env.CLASSCAST_SECRET_ACCESS_KEY || '',
+    CLASSCAST_AWS_REGION: process.env.CLASSCAST_AWS_REGION || 'us-east-1',
+    SNS_ERROR_TOPIC_ARN: process.env.SNS_ERROR_TOPIC_ARN || '',
+  },
 };
 
 export default nextConfig;
