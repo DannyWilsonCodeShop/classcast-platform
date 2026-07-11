@@ -64,6 +64,10 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
     if (!isSubscribed) checkSub();
   }, [user]);
 
+  const [generateQuestionBank, setGenerateQuestionBank] = useState(false);
+  const [questionCount, setQuestionCount] = useState(10);
+  const [questionType, setQuestionType] = useState<'mixed' | 'multiple-choice' | 'true-false' | 'short-answer'>('mixed');
+
   const handleGenerate = async () => {
     if (!topic.trim()) { setError('Please enter a topic or standard'); return; }
 
@@ -71,17 +75,36 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
     setError('');
 
     try {
+      // Generate assignment
       const res = await fetch('/api/ai/generate-assignment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic: topic.trim(), gradeLevel, assignmentType, additionalContext: additionalContext.trim() || undefined }),
       });
       const data = await res.json();
-      if (data.success) {
-        onGenerated(data.data);
-      } else {
+      if (!data.success) {
         setError(data.error || 'Generation failed. Please try again.');
+        setIsGenerating(false);
+        return;
       }
+
+      // Optionally generate question bank
+      let questionBankData = null;
+      if (generateQuestionBank) {
+        try {
+          const qRes = await fetch('/api/ai/generate-questions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ topic: topic.trim(), gradeLevel, questionCount, questionType, additionalContext: additionalContext.trim() || undefined }),
+          });
+          const qData = await qRes.json();
+          if (qData.success) {
+            questionBankData = qData.data;
+          }
+        } catch {}
+      }
+
+      onGenerated({ ...data.data, questionBank: questionBankData });
     } catch (err) {
       setError('Network error. Please try again.');
     } finally {
@@ -157,6 +180,60 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
           rows={2}
           className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs resize-none focus:border-[#005587] focus:outline-none"
         />
+      </div>
+
+      {/* Generate Question Bank toggle */}
+      <div className="border border-gray-200 rounded-xl p-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-bold text-gray-900">Also generate a Question Bank</p>
+            <p className="text-[10px] text-gray-500">AI creates individual questions for assessments or practice</p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={generateQuestionBank}
+              onChange={(e) => setGenerateQuestionBank(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#005587] transition-colors">
+              <div className={`absolute top-[2px] left-[2px] w-4 h-4 rounded-full bg-white transition-transform ${generateQuestionBank ? 'translate-x-4' : ''}`} />
+            </div>
+          </label>
+        </div>
+
+        {generateQuestionBank && (
+          <div className="mt-3 space-y-2 pt-2 border-t border-gray-100">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[10px] font-medium text-gray-600 mb-1">Questions</label>
+                <select
+                  value={questionCount}
+                  onChange={(e) => setQuestionCount(Number(e.target.value))}
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                >
+                  <option value={5}>5 questions</option>
+                  <option value={10}>10 questions</option>
+                  <option value={15}>15 questions</option>
+                  <option value={20}>20 questions</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-medium text-gray-600 mb-1">Type</label>
+                <select
+                  value={questionType}
+                  onChange={(e) => setQuestionType(e.target.value as any)}
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                >
+                  <option value="mixed">Mixed</option>
+                  <option value="multiple-choice">Multiple Choice</option>
+                  <option value="true-false">True/False</option>
+                  <option value="short-answer">Short Answer</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Error */}

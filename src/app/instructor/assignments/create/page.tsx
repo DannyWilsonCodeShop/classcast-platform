@@ -337,6 +337,39 @@ const CreateAssignmentPage: React.FC = () => {
       assessmentQuestions: data.assessmentQuestions || prev.assessmentQuestions,
       moduleConfig: data.groupProjectTopic ? { ...prev.moduleConfig, topic: data.groupProjectTopic } as any : prev.moduleConfig,
     }));
+
+    // If AI generated a question bank, save it
+    if (data.questionBank && data.questionBank.questions?.length > 0 && user?.id) {
+      fetch('/api/problem-banks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: data.questionBank.bankTitle || `${data.title || data.topic} - Question Bank`,
+          description: data.questionBank.bankDescription || '',
+          instructorId: user.id,
+          courseId: formData.courseId,
+          problems: data.questionBank.questions.map((q: any, i: number) => ({
+            problemId: q.id || `q_${i}`,
+            questionText: q.question,
+            questionType: q.type || 'multiple-choice',
+            options: q.options || [],
+            correctAnswer: q.correctAnswer || '',
+            explanation: q.explanation || '',
+            difficulty: q.difficulty || 'medium',
+            points: q.points || 1,
+          })),
+        }),
+      }).then(res => res.json()).then(bankData => {
+        if (bankData.success && bankData.data?.bank?.bankId) {
+          setFormData(prev => ({
+            ...prev,
+            problemBankId: bankData.data.bank.bankId,
+            problemBankTitle: bankData.data.bank.title,
+          }));
+        }
+      }).catch(() => {});
+    }
+
     setShowAIGenerator(false);
     // Skip to step 5 (review) since everything is filled
     setCurrentStep(5);
