@@ -649,8 +649,12 @@ const CreateAssignmentPage: React.FC = () => {
     if (formData.assignmentType === 'assessment') {
       return (
         <AssessmentSetupWizard
-          onComplete={(questions) => {
-            setFormData({ ...formData, assessmentQuestions: questions });
+          onComplete={(questions, directions) => {
+            // Append assessment directions to existing description if user already wrote something
+            const desc = formData.description
+              ? `${formData.description}\n\n${directions || ''}`
+              : (directions || formData.description);
+            setFormData({ ...formData, assessmentQuestions: questions, description: desc });
             setCurrentStep(5);
           }}
           onBack={() => setCurrentStep(3)}

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { AssessmentQuestion } from '@/types/assessment';
 
 interface AssessmentSetupWizardProps {
-  onComplete: (questions: AssessmentQuestion[]) => void;
+  onComplete: (questions: AssessmentQuestion[], directions?: string) => void;
   onBack: () => void;
 }
 
@@ -216,7 +216,7 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
         {step < 3 ? (
           <button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium disabled:opacity-50">Next</button>
         ) : (
-          <button onClick={() => onComplete(questions)} className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold">Create Assessment</button>
+          <button onClick={() => onComplete(questions, directions)} className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold">Create Assessment</button>
         )}
       </div>
     </div>
