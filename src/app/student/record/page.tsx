@@ -227,36 +227,103 @@ function RecordPageInner() {
         else { submissionMethod = 'link'; }
         setUploadProgress(50);
       } else if (videoFile) {
-        // File upload via presigned URL
+        // File upload - use multipart for large files (>100MB), presigned PUT for small
         submissionMethod = videoFile.name.includes('recording') ? 'record' : 'upload';
         setUploadProgress(5);
 
-        const presignRes = await fetch('/api/upload/video-presign', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ fileName: videoFile.name, fileType: videoFile.type, userId: user.id }),
-        });
-        if (!presignRes.ok) {
-          const errText = await presignRes.text();
-          throw new Error(`Presign failed (${presignRes.status}): ${errText}`);
-        }
-        const { uploadUrl, videoUrl } = await presignRes.json();
-        finalVideoUrl = videoUrl;
-        setUploadProgress(10);
+        const MULTIPART_THRESHOLD = 100 * 1024 * 1024; // 100MB
 
-        // Upload to S3 with progress via XMLHttpRequest
-        await new Promise<void>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open('PUT', uploadUrl);
-          xhr.setRequestHeader('Content-Type', videoFile!.type);
-          xhr.upload.onprogress = (e) => {
-            if (e.lengthComputable) setUploadProgress(10 + Math.round((e.loaded / e.total) * 80));
-          };
-          xhr.onload = () => { if (xhr.status >= 200 && xhr.status < 300) resolve(); else reject(new Error(`S3 upload failed: ${xhr.status} ${xhr.responseText?.substring(0, 200)}`)); };
-          xhr.onerror = () => reject(new Error(`S3 network error: ${xhr.statusText}`));
-          xhr.send(videoFile);
-        });
-        setUploadProgress(90);
+        if (videoFile.size > MULTIPART_THRESHOLD) {
+          // --- MULTIPART UPLOAD for large files ---
+          const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB per part
+          const totalParts = Math.ceil(videoFile.size / CHUNK_SIZE);
+
+          // 1. Initialize multipart upload
+          const initRes = await fetch('/api/upload/multipart/init', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileName: videoFile.name,
+              fileSize: videoFile.size,
+              contentType: videoFile.type,
+              folder: 'videos',
+              userId: user.id,
+            }),
+          });
+          if (!initRes.ok) throw new Error('Failed to initialize upload');
+          const { data: initData } = await initRes.json();
+          const { uploadId, fileKey, fileUrl } = initData;
+          finalVideoUrl = fileUrl;
+          setUploadProgress(8);
+
+          // 2. Upload each part
+          const uploadedParts: { ETag: string; PartNumber: number }[] = [];
+          for (let partNum = 1; partNum <= totalParts; partNum++) {
+            const start = (partNum - 1) * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, videoFile.size);
+            const chunk = videoFile.slice(start, end);
+
+            // Get presigned URL for this part
+            const partUrlRes = await fetch('/api/upload/multipart/part-url', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fileKey, uploadId, partNumber: partNum }),
+            });
+            if (!partUrlRes.ok) throw new Error(`Failed to get URL for part ${partNum}`);
+            const { data: partData } = await partUrlRes.json();
+
+            // Upload the chunk
+            const partRes = await fetch(partData.presignedUrl, {
+              method: 'PUT',
+              body: chunk,
+            });
+            if (!partRes.ok) throw new Error(`Part ${partNum} upload failed`);
+
+            const etag = partRes.headers.get('ETag') || `"part${partNum}"`;
+            uploadedParts.push({ ETag: etag, PartNumber: partNum });
+
+            // Update progress (8% to 88%)
+            setUploadProgress(8 + Math.round((partNum / totalParts) * 80));
+          }
+
+          // 3. Complete multipart upload
+          const completeRes = await fetch('/api/upload/multipart/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileKey, uploadId, parts: uploadedParts }),
+          });
+          if (!completeRes.ok) throw new Error('Failed to complete upload');
+          setUploadProgress(90);
+
+        } else {
+          // --- SINGLE PRESIGNED PUT for small files ---
+          const presignRes = await fetch('/api/upload/video-presign', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fileName: videoFile.name, fileType: videoFile.type, userId: user.id }),
+          });
+          if (!presignRes.ok) {
+            const errText = await presignRes.text();
+            throw new Error(`Presign failed (${presignRes.status}): ${errText}`);
+          }
+          const { uploadUrl, videoUrl } = await presignRes.json();
+          finalVideoUrl = videoUrl;
+          setUploadProgress(10);
+
+          // Upload to S3 with progress via XMLHttpRequest
+          await new Promise<void>((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('PUT', uploadUrl);
+            xhr.setRequestHeader('Content-Type', videoFile!.type);
+            xhr.upload.onprogress = (e) => {
+              if (e.lengthComputable) setUploadProgress(10 + Math.round((e.loaded / e.total) * 80));
+            };
+            xhr.onload = () => { if (xhr.status >= 200 && xhr.status < 300) resolve(); else reject(new Error(`S3 upload failed: ${xhr.status} ${xhr.responseText?.substring(0, 200)}`)); };
+            xhr.onerror = () => reject(new Error('Upload failed. Check your connection and try again.'));
+            xhr.send(videoFile);
+          });
+          setUploadProgress(90);
+        }
       }
 
       // Upload thumbnail to S3 if it's a base64 image
