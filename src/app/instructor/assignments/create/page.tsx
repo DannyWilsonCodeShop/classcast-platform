@@ -538,16 +538,10 @@ const CreateAssignmentPage: React.FC = () => {
           value={formData.dueDate}
           onChange={(e) => {
             let val = e.target.value;
-            // If user just picked a date (time defaults to 00:00), set to 11:59 PM
-            if (val && val.includes('T')) {
-              const timePart = val.split('T')[1];
-              // If time is midnight (default when picking date), change to 11:59 PM
-              if (timePart === '00:00' || timePart === '00:00:00') {
-                val = val.split('T')[0] + 'T23:59';
-              }
-            } else if (val && !val.includes('T')) {
-              // Date-only input, append 11:59 PM
-              val = val + 'T23:59';
+            if (!val) { setFormData({ ...formData, dueDate: '' }); return; }
+            // If this is the first time setting a date (was empty), force 11:59 PM
+            if (!formData.dueDate && val.includes('T')) {
+              val = val.split('T')[0] + 'T23:59';
             }
             setFormData({ ...formData, dueDate: val });
           }}
@@ -917,11 +911,10 @@ const CreateAssignmentPage: React.FC = () => {
               value={formData.dueDate}
               onChange={(e) => {
                 let val = e.target.value;
-                if (val && val.includes('T')) {
-                  const timePart = val.split('T')[1];
-                  if (timePart === '00:00' || timePart === '00:00:00') {
-                    val = val.split('T')[0] + 'T23:59';
-                  }
+                if (!val) { setFormData({ ...formData, dueDate: '' }); return; }
+                // First time setting date → force 11:59 PM
+                if (!formData.dueDate && val.includes('T')) {
+                  val = val.split('T')[0] + 'T23:59';
                 }
                 setFormData({ ...formData, dueDate: val });
               }}
