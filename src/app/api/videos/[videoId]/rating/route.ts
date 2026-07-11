@@ -4,6 +4,11 @@ import { DynamoDBDocumentClient, QueryCommand, GetCommand, UpdateCommand } from 
 
 const dynamoClient = new DynamoDBClient({
   region: process.env.AWS_REGION || process.env.CLASSCAST_AWS_REGION || 'us-east-1',
+  ...((() => {
+    const ak = process.env.AWS_ACCESS_KEY_ID || process.env.CLASSCAST_ACCESS_KEY_ID;
+    const sk = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLASSCAST_SECRET_ACCESS_KEY;
+    return ak && sk ? { credentials: { accessKeyId: ak, secretAccessKey: sk } } : {};
+  })()),
 });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
 
@@ -94,21 +99,41 @@ export async function POST(
 ) {
   try {
     const { videoId } = await params;
-    const { userId, rating } = await request.json();
+    const body = await request.json();
+    const { userId, rating } = body;
 
     if (!userId || !rating || rating < 1 || rating > 5) {
       return NextResponse.json({ success: false, error: 'userId and rating (1-5) required' }, { status: 400 });
     }
 
-    // Store rating directly on the submission record in a ratings map
-    // This is fast, atomic, and doesn't depend on GSI queries
-    await docClient.send(new UpdateCommand({
-      TableName: SUBMISSIONS_TABLE,
-      Key: { submissionId: videoId },
-      UpdateExpression: 'SET ratings.#uid = :rating',
-      ExpressionAttributeNames: { '#uid': userId },
-      ExpressionAttributeValues: { ':rating': rating },
-    }));
+    // First, ensure the ratings map exists on the submission, then set the user's rating
+    try {
+      // Try to set the rating in existing map
+      await docClient.send(new UpdateCommand({
+        TableName: SUBMISSIONS_TABLE,
+        Key: { submissionId: videoId },
+        UpdateExpression: 'SET ratings.#uid = :rating',
+        ExpressionAttributeNames: { '#uid': userId },
+        ExpressionAttributeValues: { ':rating': rating },
+        ConditionExpression: 'attribute_exists(ratings)',
+      }));
+    } catch (condErr: any) {
+      // ratings map doesn't exist yet — create it
+      await docClient.send(new UpdateCommand({
+        TableName: SUBMISSIONS_TABLE,
+        Key: { submissionId: videoId },
+        UpdateExpression: 'SET ratings = if_not_exists(ratings, :emptyMap)',
+        ExpressionAttributeValues: { ':emptyMap': {} },
+      }));
+      // Now set the rating
+      await docClient.send(new UpdateCommand({
+        TableName: SUBMISSIONS_TABLE,
+        Key: { submissionId: videoId },
+        UpdateExpression: 'SET ratings.#uid = :rating',
+        ExpressionAttributeNames: { '#uid': userId },
+        ExpressionAttributeValues: { ':rating': rating },
+      }));
+    }
 
     // Recalculate average from the ratings map
     const subResult = await docClient.send(new GetCommand({
@@ -117,7 +142,7 @@ export async function POST(
       ProjectionExpression: 'ratings',
     }));
     const ratings = subResult.Item?.ratings || {};
-    const ratingValues = Object.values(ratings).filter(v => typeof v === 'number' && v > 0) as number[];
+    const ratingValues = Object.values(ratings).filter(v => typeof v === 'number' && (v as number) > 0) as number[];
     const avg = ratingValues.length > 0 ? ratingValues.reduce((s, r) => s + r, 0) / ratingValues.length : 0;
 
     // Save the average back
@@ -135,27 +160,7 @@ export async function POST(
       totalRatings: ratingValues.length,
     });
   } catch (error: any) {
-    // If the ratings map doesn't exist yet, initialize it
-    if (error.name === 'ValidationException' && error.message?.includes('document path')) {
-      try {
-        const { videoId } = await params;
-        const { userId, rating } = await request.json();
-        await docClient.send(new UpdateCommand({
-          TableName: SUBMISSIONS_TABLE,
-          Key: { submissionId: videoId },
-          UpdateExpression: 'SET ratings = :ratingsMap, averageRating = :avg, totalRatings = :one',
-          ExpressionAttributeValues: {
-            ':ratingsMap': { [userId]: rating },
-            ':avg': rating,
-            ':one': 1,
-          },
-        }));
-        return NextResponse.json({ success: true, rating, averageRating: rating, totalRatings: 1 });
-      } catch (initErr) {
-        console.error('Error initializing ratings map:', initErr);
-      }
-    }
     console.error('Error saving rating:', error);
-    return NextResponse.json({ success: false, error: 'Failed to save rating' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Failed to save rating' }, { status: 500 });
   }
 }
