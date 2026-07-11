@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AIAssignmentGeneratorProps {
   onGenerated: (data: any) => void;
@@ -24,6 +25,7 @@ const ASSIGNMENT_TYPES = [
 ];
 
 export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription, assignmentType: propType }: AIAssignmentGeneratorProps) {
+  const { user } = useAuth();
   const [topic, setTopic] = useState('');
   const [gradeLevel, setGradeLevel] = useState('9th Grade');
   const [assignmentType, setAssignmentType] = useState(propType || 'video');
@@ -34,16 +36,22 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
     userSubscription === 'pro' || userSubscription === 'enterprise' || userSubscription === 'admin'
   );
 
-  // Check subscription on mount via profile API
+  // Check subscription on mount via user context and profile API fallback
   React.useEffect(() => {
+    // First check user context directly
+    if (user) {
+      const u = user as any;
+      if (u.isAdmin || u.role === 'admin' || u.subscription === 'pro' || u.subscriptionTier === 'enterprise') {
+        setIsSubscribed(true);
+        return;
+      }
+    }
+
+    // Fallback: fetch profile from API
     const checkSub = async () => {
+      if (!user?.id) return;
       try {
-        // Try to get userId from auth context stored in localStorage
-        const storedUser = localStorage.getItem('classcast_user');
-        const userId = storedUser ? JSON.parse(storedUser)?.id : null;
-        if (!userId) return;
-        
-        const res = await fetch(`/api/profile?userId=${userId}`);
+        const res = await fetch(`/api/profile?userId=${user.id}`);
         if (res.ok) {
           const data = await res.json();
           const profile = data.data || data;
@@ -54,16 +62,10 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
       } catch {}
     };
     if (!isSubscribed) checkSub();
-  }, []);
+  }, [user]);
 
   const handleGenerate = async () => {
     if (!topic.trim()) { setError('Please enter a topic or standard'); return; }
-    
-    // Subscription gate
-    if (!isSubscribed) {
-      setError('');
-      return; // Gate will show upgrade message
-    }
 
     setIsGenerating(true);
     setError('');

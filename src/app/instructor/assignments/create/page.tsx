@@ -1148,7 +1148,8 @@ const CreateAssignmentPage: React.FC = () => {
             {currentStep === 5 && renderStep5()}
           </div>
 
-          {/* Navigation */}
+          {/* Navigation - hidden when AI generator is active */}
+          {!showAIGenerator && (
           <div className="flex items-center justify-between mt-6">
             <button
               onClick={handleBack}
@@ -1186,6 +1187,7 @@ const CreateAssignmentPage: React.FC = () => {
               </button>
             )}
           </div>
+          )}
         </div>
       </div>
     </InstructorRoute>
