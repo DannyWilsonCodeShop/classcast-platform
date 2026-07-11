@@ -180,10 +180,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Redirect based on user role
       if (response.user.role === 'student') {
         router.push('/student/dashboard');
-      } else if (response.user.role === 'instructor') {
+      } else if (response.user.role === 'instructor' || response.user.role === 'admin') {
         router.push('/instructor/dashboard');
-      } else if (response.user.role === 'admin') {
-        router.push('/admin/dashboard');
       } else {
         router.push('/');
       }

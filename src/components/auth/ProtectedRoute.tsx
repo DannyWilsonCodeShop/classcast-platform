@@ -33,28 +33,28 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
     // Check role-based access
     if (requiredRole && user.role !== requiredRole) {
-      // Redirect to appropriate dashboard based on user's actual role
-      if (user.role === 'admin') {
-        router.push('/admin/dashboard');
-      } else if (user.role === 'instructor') {
+      // Admin users have instructor access
+      if (user.role === 'admin' && requiredRole === 'instructor') {
+        // Allow admin to access instructor routes
+      } else if (user.role === 'admin' || user.role === 'instructor') {
         router.push('/instructor/dashboard');
       } else {
         router.push('/student/dashboard');
       }
-      return;
+      if (!(user.role === 'admin' && requiredRole === 'instructor')) return;
     }
 
     // Check if user has one of the allowed roles
     if (allowedRoles && !allowedRoles.includes(user.role)) {
-      // Redirect to appropriate dashboard based on user's actual role
-      if (user.role === 'admin') {
-        router.push('/admin/dashboard');
-      } else if (user.role === 'instructor') {
+      // Admin has access to instructor routes
+      if (user.role === 'admin' && allowedRoles.includes('instructor')) {
+        // Allow
+      } else if (user.role === 'admin' || user.role === 'instructor') {
         router.push('/instructor/dashboard');
       } else {
         router.push('/student/dashboard');
       }
-      return;
+      if (!(user.role === 'admin' && allowedRoles.includes('instructor'))) return;
     }
   }, [isAuthenticated, user, isLoading, requiredRole, allowedRoles, redirectTo, router]);
 

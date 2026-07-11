@@ -176,7 +176,7 @@ export const useAuthGuard = (options: UseAuthGuardOptions = {}): UseAuthGuardRet
       } else {
         // Redirect to appropriate dashboard
         if (user!.role === 'admin') {
-          router.push('/admin/dashboard');
+          router.push('/instructor/dashboard');
         } else if (user!.role === 'instructor') {
           router.push('/instructor/dashboard');
         } else {
@@ -209,7 +209,7 @@ export const useAuthGuard = (options: UseAuthGuardOptions = {}): UseAuthGuardRet
       } else {
         // Redirect to appropriate dashboard
         if (user.role === 'admin') {
-          router.push('/admin/dashboard');
+          router.push('/instructor/dashboard');
         } else if (user.role === 'instructor') {
           router.push('/instructor/dashboard');
         } else {
@@ -225,7 +225,7 @@ export const useAuthGuard = (options: UseAuthGuardOptions = {}): UseAuthGuardRet
       } else {
         // Redirect to appropriate dashboard
         if (user.role === 'admin') {
-          router.push('/admin/dashboard');
+          router.push('/instructor/dashboard');
         } else if (user.role === 'instructor') {
           router.push('/instructor/dashboard');
         } else {

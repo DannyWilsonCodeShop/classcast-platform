@@ -13,10 +13,8 @@ export default function HomePage() {
     if (isLoading) return;
 
     if (isAuthenticated && user) {
-      if (user.role === 'instructor') {
+      if (user.role === 'instructor' || user.role === 'admin') {
         router.replace('/instructor/dashboard');
-      } else if (user.role === 'admin') {
-        router.replace('/admin/dashboard');
       } else {
         router.replace('/student/dashboard');
       }
