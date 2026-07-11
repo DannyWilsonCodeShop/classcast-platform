@@ -330,8 +330,13 @@ const AssignmentGradesPage: React.FC = () => {
         return <span className="px-1.5 py-0.5 bg-green-100 text-green-800 text-[10px] font-medium rounded-full">✓</span>;
       case 'submitted':
         return <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-800 text-[10px] font-medium rounded-full">Pending</span>;
-      case 'not_submitted':
-        return <span className="px-1.5 py-0.5 bg-red-100 text-red-800 text-[10px] font-medium rounded-full">Missing</span>;
+      case 'not_submitted': {
+        const isPastDue = assignment?.dueDate && new Date(assignment.dueDate) < new Date();
+        if (isPastDue) {
+          return <span className="px-1.5 py-0.5 bg-red-100 text-red-800 text-[10px] font-medium rounded-full">Missing</span>;
+        }
+        return <span className="px-1.5 py-0.5 bg-gray-100 text-gray-600 text-[10px] font-medium rounded-full">Pending</span>;
+      }
       default:
         return <span className="px-1.5 py-0.5 bg-gray-100 text-gray-800 text-[10px] font-medium rounded-full">—</span>;
     }
