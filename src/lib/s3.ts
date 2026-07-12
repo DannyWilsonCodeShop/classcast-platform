@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, ListObjectsV2Command, HeadObjectCommand, CreateMultipartUploadCommand, UploadPartCommand, CompleteMultipartUploadCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { awsConfig } from './aws-config';
 
@@ -300,6 +300,43 @@ export class S3Service {
       console.error('S3 health check failed:', error);
       return false;
     }
+  }
+
+  // Multipart Upload: Initialize
+  async initiateMultipartUpload(key: string, contentType: string, metadata?: Record<string, string>): Promise<string> {
+    const command = new CreateMultipartUploadCommand({
+      Bucket: this.bucketName,
+      Key: key,
+      ContentType: contentType,
+      Metadata: metadata,
+      ServerSideEncryption: 'AES256',
+    });
+    const response = await this.client.send(command);
+    if (!response.UploadId) throw new Error('Failed to get UploadId');
+    return response.UploadId;
+  }
+
+  // Multipart Upload: Get presigned URL for a part
+  async getMultipartUploadPartUrl(key: string, uploadId: string, partNumber: number, expiresIn: number = 3600): Promise<string> {
+    const command = new UploadPartCommand({
+      Bucket: this.bucketName,
+      Key: key,
+      UploadId: uploadId,
+      PartNumber: partNumber,
+    });
+    return await getSignedUrl(this.client, command, { expiresIn });
+  }
+
+  // Multipart Upload: Complete
+  async completeMultipartUpload(key: string, uploadId: string, parts: { ETag: string; PartNumber: number }[]): Promise<string> {
+    const command = new CompleteMultipartUploadCommand({
+      Bucket: this.bucketName,
+      Key: key,
+      UploadId: uploadId,
+      MultipartUpload: { Parts: parts },
+    });
+    await this.client.send(command);
+    return this.getFileUrl(key);
   }
 }
 
