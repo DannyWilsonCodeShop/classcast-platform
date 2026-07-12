@@ -2,21 +2,16 @@ import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, List
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { awsConfig } from './aws-config';
 
-// S3 client configuration
-const s3Client = new S3Client({
+// S3 client configuration with proper credentials
+const s3Config: any = {
   region: awsConfig.region,
-  // Use IAM role instead of explicit credentials
-  // This will use the Amplify service role
-});
-
-// Debug AWS configuration
-console.log('S3 Client Configuration:', {
-  region: awsConfig.region,
-  bucketName: awsConfig.s3.buckets.assets,
-  hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
-  hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY,
-  nodeEnv: process.env.NODE_ENV
-});
+};
+const ak = process.env.AWS_ACCESS_KEY_ID || process.env.CLASSCAST_ACCESS_KEY_ID;
+const sk = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLASSCAST_SECRET_ACCESS_KEY;
+if (ak && sk) {
+  s3Config.credentials = { accessKeyId: ak, secretAccessKey: sk };
+}
+const s3Client = new S3Client(s3Config);
 
 // Bucket name from unified configuration
 const BUCKET_NAME = awsConfig.s3.buckets.assets;
