@@ -188,16 +188,21 @@ function RecordPageInner() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024 * 1024) {
-      setError('File must be under 2 GB');
+    if (file.size > 5 * 1024 * 1024 * 1024) {
+      setError('File must be under 5 GB');
       return;
     }
     setVideoFile(file);
-    setVideoPreviewUrl(URL.createObjectURL(file));
+    // Only create preview URL for files under 500MB (large files can cause memory issues)
+    if (file.size < 500 * 1024 * 1024) {
+      setVideoPreviewUrl(URL.createObjectURL(file));
+    } else {
+      setVideoPreviewUrl('large-file'); // Flag that we have a file but no preview
+    }
     setLinkUrl('');
     setLinkType(null);
     setError('');
-    setShowThumbnailStep(true); // Show cover photo step after file upload
+    setShowThumbnailStep(true);
   };
 
   // Delete video
@@ -500,7 +505,14 @@ function RecordPageInner() {
           {/* VIDEO PREVIEW (top half when video exists) */}
           {videoPreviewUrl && !showThumbnailStep && !isSubmitting && !success && (
             <div className="relative rounded-xl overflow-hidden bg-black" style={{ height: '45%', minHeight: '200px' }}>
-              <video src={videoPreviewUrl} className="w-full h-full object-contain" controls playsInline />
+              {videoPreviewUrl === 'large-file' ? (
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                  <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                  <p className="text-xs">{videoFile ? `${(videoFile.size / (1024*1024)).toFixed(0)} MB video ready` : 'Video ready'}</p>
+                </div>
+              ) : (
+                <video src={videoPreviewUrl} className="w-full h-full object-contain" controls playsInline />
+              )}
               <button onClick={deleteVideo} className="absolute top-3 right-3 bg-red-600 text-white p-2 rounded-full shadow-lg active:scale-95">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </button>
