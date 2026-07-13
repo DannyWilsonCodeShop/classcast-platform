@@ -186,23 +186,33 @@ function RecordPageInner() {
 
   // File selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('📁 handleFileSelect triggered');
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('❌ No file selected (user cancelled?)');
+      return;
+    }
+    console.log('📁 File selected:', { name: file.name, size: `${(file.size / (1024*1024)).toFixed(1)} MB`, type: file.type });
     if (file.size > 5 * 1024 * 1024 * 1024) {
+      console.log('❌ File too large:', file.size);
       setError('File must be under 5 GB');
       return;
     }
+    console.log('✅ Setting videoFile and showing thumbnail step');
     setVideoFile(file);
     // Only create preview URL for files under 500MB (large files can cause memory issues)
     if (file.size < 500 * 1024 * 1024) {
       setVideoPreviewUrl(URL.createObjectURL(file));
+      console.log('✅ Preview URL created');
     } else {
-      setVideoPreviewUrl('large-file'); // Flag that we have a file but no preview
+      setVideoPreviewUrl('large-file');
+      console.log('⚠️ Large file - skipping preview URL');
     }
     setLinkUrl('');
     setLinkType(null);
     setError('');
     setShowThumbnailStep(true);
+    console.log('✅ showThumbnailStep set to true');
   };
 
   // Delete video
@@ -222,6 +232,7 @@ function RecordPageInner() {
 
   // Submit
   const handleSubmit = async () => {
+    console.log('🚀 handleSubmit called', { hasFile: !!videoFile, hasLink: !!linkUrl.trim(), userId: user?.id });
     if (!user?.id) { setError('Not logged in'); return; }
     if (!videoFile && !linkUrl.trim()) { setError('No video or link to submit'); return; }
     if (assignmentId && assignmentLoading) { setError('Still loading assignment data...'); return; }
@@ -249,6 +260,7 @@ function RecordPageInner() {
         // File upload - use multipart for large files (>100MB), presigned PUT for small
         submissionMethod = videoFile.name.includes('recording') ? 'record' : 'upload';
         setUploadProgress(5);
+        console.log('📤 Starting upload:', { name: videoFile.name, size: `${(videoFile.size / (1024*1024)).toFixed(1)} MB`, type: videoFile.type });
 
         const MULTIPART_THRESHOLD = 100 * 1024 * 1024; // 100MB
 
@@ -256,8 +268,10 @@ function RecordPageInner() {
           // --- MULTIPART UPLOAD for large files ---
           const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB per part
           const totalParts = Math.ceil(videoFile.size / CHUNK_SIZE);
+          console.log(`📤 Using multipart upload: ${totalParts} parts of 10MB`);
 
           // 1. Initialize multipart upload
+          console.log('📤 Step 1: Initializing multipart upload...');
           const initRes = await fetch('/api/upload/multipart/init', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -269,13 +283,20 @@ function RecordPageInner() {
               userId: user.id,
             }),
           });
-          if (!initRes.ok) throw new Error('Failed to initialize upload');
-          const { data: initData } = await initRes.json();
+          if (!initRes.ok) {
+            const errBody = await initRes.text().catch(() => '');
+            console.error('❌ Init failed:', initRes.status, errBody);
+            throw new Error(`Failed to initialize upload (${initRes.status}): ${errBody}`);
+          }
+          const initJson = await initRes.json();
+          console.log('✅ Init response:', initJson);
+          const { data: initData } = initJson;
           const { uploadId, fileKey, fileUrl } = initData;
           finalVideoUrl = fileUrl;
           setUploadProgress(8);
 
           // 2. Upload each part
+          console.log('📤 Step 2: Uploading parts...');
           const uploadedParts: { ETag: string; PartNumber: number }[] = [];
           for (let partNum = 1; partNum <= totalParts; partNum++) {
             const start = (partNum - 1) * CHUNK_SIZE;
@@ -288,7 +309,11 @@ function RecordPageInner() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ fileKey, uploadId, partNumber: partNum }),
             });
-            if (!partUrlRes.ok) throw new Error(`Failed to get URL for part ${partNum}`);
+            if (!partUrlRes.ok) {
+              const errBody = await partUrlRes.text().catch(() => '');
+              console.error(`❌ Part URL failed for part ${partNum}:`, partUrlRes.status, errBody);
+              throw new Error(`Failed to get URL for part ${partNum} (${partUrlRes.status})`);
+            }
             const { data: partData } = await partUrlRes.json();
 
             // Upload the chunk
@@ -296,22 +321,36 @@ function RecordPageInner() {
               method: 'PUT',
               body: chunk,
             });
-            if (!partRes.ok) throw new Error(`Part ${partNum} upload failed`);
+            if (!partRes.ok) {
+              const errBody = await partRes.text().catch(() => '');
+              console.error(`❌ Part ${partNum} PUT failed:`, partRes.status, errBody.substring(0, 200));
+              throw new Error(`Part ${partNum}/${totalParts} upload failed (${partRes.status})`);
+            }
 
             const etag = partRes.headers.get('ETag') || `"part${partNum}"`;
             uploadedParts.push({ ETag: etag, PartNumber: partNum });
 
             // Update progress (8% to 88%)
-            setUploadProgress(8 + Math.round((partNum / totalParts) * 80));
+            const pct = 8 + Math.round((partNum / totalParts) * 80);
+            setUploadProgress(pct);
+            if (partNum % 10 === 0 || partNum === totalParts) {
+              console.log(`📤 Part ${partNum}/${totalParts} done (${pct}%)`);
+            }
           }
 
           // 3. Complete multipart upload
+          console.log('📤 Step 3: Completing multipart upload...');
           const completeRes = await fetch('/api/upload/multipart/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fileKey, uploadId, parts: uploadedParts }),
           });
-          if (!completeRes.ok) throw new Error('Failed to complete upload');
+          if (!completeRes.ok) {
+            const errBody = await completeRes.text().catch(() => '');
+            console.error('❌ Complete failed:', completeRes.status, errBody);
+            throw new Error(`Failed to complete upload (${completeRes.status})`);
+          }
+          console.log('✅ Multipart upload complete!');
           setUploadProgress(90);
 
         } else {
@@ -394,6 +433,7 @@ function RecordPageInner() {
       setSuccess(true);
       setTimeout(() => router.push(assignmentId ? `/student/assignments/${assignmentId}` : '/student/dashboard'), 1500);
     } catch (err: any) {
+      console.error('❌ Upload/Submit error:', err);
       setError(err?.message || err?.toString() || 'Unknown error');
       setIsSubmitting(false);
     }
@@ -533,7 +573,7 @@ function RecordPageInner() {
           {!videoFile && !linkUrl && !isSubmitting && !success && !cameraActive && (
             <div className="space-y-3">
               {/* Upload button - prominent when mode=upload */}
-              <button onClick={() => fileInputRef.current?.click()} className={`w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${mode === 'upload' ? 'bg-[#005587] text-white' : 'bg-gray-800 border border-gray-600'}`}>
+              <button onClick={() => { console.log('🖱️ Upload button clicked, opening file picker'); fileInputRef.current?.click(); }} className={`w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${mode === 'upload' ? 'bg-[#005587] text-white' : 'bg-gray-800 border border-gray-600'}`}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                 {mode === 'upload' ? 'Choose Video File (up to 5 GB)' : 'Upload from Device (up to 5 GB)'}
               </button>
