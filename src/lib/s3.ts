@@ -5,6 +5,9 @@ import { awsConfig } from './aws-config';
 // S3 client configuration with proper credentials
 const s3Config: any = {
   region: awsConfig.region,
+  // Disable request checksums - they add headers that cause CORS 403 on browser uploads
+  requestChecksumCalculation: 'WHEN_REQUIRED',
+  responseChecksumValidation: 'WHEN_REQUIRED',
 };
 const ak = process.env.AWS_ACCESS_KEY_ID || process.env.CLASSCAST_ACCESS_KEY_ID;
 const sk = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLASSCAST_SECRET_ACCESS_KEY;
@@ -324,7 +327,11 @@ export class S3Service {
       UploadId: uploadId,
       PartNumber: partNumber,
     });
-    return await getSignedUrl(this.client, command, { expiresIn });
+    // Disable checksum headers that cause CORS 403 on some S3 configurations
+    return await getSignedUrl(this.client, command, { 
+      expiresIn,
+      unhoistableHeaders: new Set(['x-amz-checksum-crc32']),
+    });
   }
 
   // Multipart Upload: Complete
