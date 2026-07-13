@@ -79,12 +79,12 @@ function RecordPageInner() {
 
   // Auto-trigger based on mode param
   useEffect(() => {
-    if (mode === 'upload') {
-      setTimeout(() => fileInputRef.current?.click(), 300);
-    } else if (mode === 'record') {
+    if (mode === 'record') {
       // Delay to ensure video element is rendered
       setTimeout(() => startCamera(), 100);
     }
+    // Note: mode=upload no longer auto-opens file picker
+    // Browsers block programmatic .click() without user gesture
   }, [mode]);
 
   // Attach stream to video element when camera becomes active
@@ -523,7 +523,7 @@ function RecordPageInner() {
           )}
 
           {/* Open Camera button (when camera not active and no video yet) */}
-          {!videoFile && !linkUrl && !isSubmitting && !success && !cameraActive && (
+          {!videoFile && !linkUrl && !isSubmitting && !success && !cameraActive && mode !== 'upload' && (
             <div className="py-4 flex flex-col items-center">
               <button onClick={startCamera} className="w-full max-w-xs py-3 bg-[#005587] rounded-full font-bold text-center">📹 Open Camera</button>
             </div>
@@ -532,10 +532,19 @@ function RecordPageInner() {
           {/* ACTION BUTTONS (when no video yet) */}
           {!videoFile && !linkUrl && !isSubmitting && !success && !cameraActive && (
             <div className="space-y-3">
-              <button onClick={() => fileInputRef.current?.click()} className="w-full py-3 bg-gray-800 border border-gray-600 rounded-xl font-medium flex items-center justify-center gap-2">
+              {/* Upload button - prominent when mode=upload */}
+              <button onClick={() => fileInputRef.current?.click()} className={`w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${mode === 'upload' ? 'bg-[#005587] text-white' : 'bg-gray-800 border border-gray-600'}`}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                Upload from Device (up to 2 GB)
+                {mode === 'upload' ? 'Choose Video File (up to 5 GB)' : 'Upload from Device (up to 5 GB)'}
               </button>
+              {mode === 'upload' && (
+                <p className="text-xs text-gray-500 text-center">Tap the button above to select your video file</p>
+              )}
+              {mode !== 'upload' && (
+                <button onClick={startCamera} className="w-full py-3 bg-gray-800 border border-gray-600 rounded-xl font-medium flex items-center justify-center gap-2">
+                  📹 Record Live
+                </button>
+              )}
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-gray-700" /><span className="text-xs text-gray-500">OR PASTE A LINK</span><div className="flex-1 h-px bg-gray-700" />
               </div>
