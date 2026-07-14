@@ -7,12 +7,13 @@ interface AssessmentRecordingViewProps {
   sessionId: string;
   assessmentId: string;
   studentId: string;
+  courseId?: string;
   questions: AssessmentQuestion[];
   onComplete: () => void;
 }
 
 export function AssessmentRecordingView({
-  sessionId, assessmentId, studentId, questions, onComplete
+  sessionId, assessmentId, studentId, courseId, questions, onComplete
 }: AssessmentRecordingViewProps) {
   // Pre-assessment integrity steps: 'room-scan' → 'affirmation' → 'questions'
   const [phase, setPhase] = useState<'room-scan' | 'affirmation' | 'questions'>('room-scan');
@@ -101,11 +102,27 @@ export function AssessmentRecordingView({
         integrityEventsRef.current.push({ type: 'tab-navigation', timestampSeconds: ts, description: 'Left assessment tab — recording aborted' });
         setIntegrityWarning('⚠️ Recording aborted — you left the screen. Your assessment has been invalidated.');
         // Stop recording immediately
-        if (recorderRef.current && recorderRef.current.state !== 'inactive') {
-          recorderRef.current.stop();
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+          mediaRecorderRef.current.stop();
         }
         streamRef.current?.getTracks().forEach(t => t.stop());
         if (timerRef.current) clearInterval(timerRef.current);
+
+        // Save invalidated submission record
+        fetch('/api/video-submissions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentId,
+            assignmentId: assessmentId,
+            courseId: courseId || '',
+            status: 'invalidated',
+            videoUrl: '',
+            videoTitle: 'Invalidated Assessment',
+            submittedAt: new Date().toISOString(),
+            invalidReason: 'Left screen during recording',
+          }),
+        }).catch(() => {});
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);

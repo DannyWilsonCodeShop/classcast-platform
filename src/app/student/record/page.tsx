@@ -454,6 +454,7 @@ function RecordPageInner() {
             sessionId={sessionId}
             assessmentId={assignmentId}
             studentId={user.id}
+            courseId={assignment?.courseId}
             questions={assignment.assessmentQuestions}
             onComplete={() => router.push(`/student/assignments/${assignmentId}`)}
           />

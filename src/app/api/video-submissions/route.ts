@@ -155,6 +155,8 @@ export async function POST(request: NextRequest) {
       isRecorded = false,
       isUploaded = false,
       isLocalStorage = false,
+      status: submissionStatus,
+      invalidReason,
       // YouTube-specific fields
       youtubeUrl,
       thumbnailUrl,
@@ -167,7 +169,8 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // For YouTube submissions, we don't need videoUrl, just youtubeUrl
-    if (!assignmentId || !studentId || !courseId || (!videoUrl && !youtubeUrl && !googleDriveUrl)) {
+    // For invalidated submissions, videoUrl is not required
+    if (!assignmentId || !studentId || !courseId || (submissionStatus !== 'invalidated' && !videoUrl && !youtubeUrl && !googleDriveUrl)) {
       return NextResponse.json({
         success: false,
         error: 'Missing required fields: assignmentId, studentId, courseId, and a videoUrl, youtubeUrl, or googleDriveUrl'
@@ -216,7 +219,8 @@ export async function POST(request: NextRequest) {
       isYouTube, // Flag for YouTube submissions
       isGoogleDrive,
       submissionMethod: finalSubmissionMethod,
-      status: 'submitted', // submitted, graded, returned
+      status: submissionStatus || 'submitted', // submitted, graded, returned, invalidated
+      invalidReason: invalidReason || null,
       grade: null,
       instructorFeedback: null,
       submittedAt: now,
@@ -232,6 +236,15 @@ export async function POST(request: NextRequest) {
     });
 
     await docClient.send(putCommand);
+
+    // Skip email notification and community video creation for invalidated submissions
+    if (submissionStatus === 'invalidated') {
+      return NextResponse.json({
+        success: true,
+        submission,
+        message: 'Invalidated submission recorded'
+      });
+    }
 
     // Send email notification to admin about new video submission
     try {

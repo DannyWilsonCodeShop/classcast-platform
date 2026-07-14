@@ -31,6 +31,7 @@ interface Assignment {
   grade?: number;
   assignmentType?: string;
   assessmentQuestions?: any[];
+  maxAttempts?: number;
 }
 
 interface Submission {
@@ -110,6 +111,7 @@ export default function StudentAssignmentDetailPage() {
 
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [submission, setSubmission] = useState<Submission | null>(null);
+  const [allSubmissions, setAllSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -181,8 +183,15 @@ export default function StudentAssignmentDetailPage() {
 
       if (subRes.ok) {
         const subData = await subRes.json();
-        if (subData.success && subData.submissions?.length > 0) setSubmission(subData.submissions[0]);
-        else setSubmission(null);
+        if (subData.success && subData.submissions?.length > 0) {
+          setAllSubmissions(subData.submissions);
+          // Set primary submission (most recent submitted/graded one)
+          const validSub = subData.submissions.find((s: Submission) => s.status === 'submitted' || s.status === 'graded');
+          setSubmission(validSub || null);
+        } else {
+          setAllSubmissions([]);
+          setSubmission(null);
+        }
       }
     } catch { setError(true); } 
     finally { setLoading(false); }
@@ -384,6 +393,12 @@ export default function StudentAssignmentDetailPage() {
   const isGraded = submission?.grade !== undefined && submission?.grade !== null;
   const isSubmitted = !!submission;
   const resourceCount = (assignment?.resources || []).length;
+
+  // Assessment attempt tracking
+  const maxAttempts = (assignment as any)?.maxAttempts || 1;
+  const validSubmissionCount = allSubmissions.filter(s => s.status === 'submitted' || s.status === 'graded').length;
+  const attemptsRemaining = Math.max(0, maxAttempts - validSubmissionCount);
+  const hasInvalidatedSubmission = allSubmissions.some(s => s.status === 'invalidated');
 
   if (loading) {
     return (
@@ -604,13 +619,22 @@ export default function StudentAssignmentDetailPage() {
               <div className="flex flex-col items-center w-1/5 py-1 z-10">
                 <span className="text-[9px] font-medium text-orange-600">
                   {assignment?.assignmentType === 'assessment' 
-                    ? `${(assignment as any)?.maxAttempts || 1} attempt${((assignment as any)?.maxAttempts || 1) > 1 ? 's' : ''} left`
+                    ? (hasInvalidatedSubmission && attemptsRemaining > 0
+                        ? <span className="text-red-600">Invalidated</span>
+                        : attemptsRemaining <= 0
+                          ? <span className="text-red-600">No attempts left</span>
+                          : `${attemptsRemaining} attempt${attemptsRemaining > 1 ? 's' : ''} left`)
                     : 'Unsubmitted'}
                 </span>
                 {dueBadge && <span className={`text-[8px] mt-0.5 ${dueBadge.color} px-1.5 py-0.5 rounded-full`}>{dueBadge.label}</span>}
               </div>
               <button onClick={() => {
                 if (assignment?.assignmentType === 'assessment') {
+                  // Check attempts before navigating
+                  if (attemptsRemaining <= 0) {
+                    alert('No attempts remaining');
+                    return;
+                  }
                   // For assessments, go directly to the assessment recording
                   router.push(`/student/record?assignmentId=${currentAssignmentId}&mode=record&assessment=true`);
                 } else {

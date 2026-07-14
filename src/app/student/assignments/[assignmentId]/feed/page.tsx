@@ -40,6 +40,8 @@ interface AssignmentDetails {
   courseInitials?: string;
   groupAssignment?: boolean;
   maxGroupSize?: number;
+  assignmentType?: string;
+  releaseScores?: boolean;
 }
 
 interface Group {
@@ -386,7 +388,7 @@ const AssignmentFeedPage: React.FC = () => {
           )}
 
           {/* Student Submissions Header */}
-          {!loading && videos.length > 0 && (
+          {!loading && videos.length > 0 && !(assignment?.assignmentType === 'assessment' && (assignment as any)?.releaseScores === false) && (
             <div className="bg-gradient-to-r from-[#005587] to-[#0077aa] px-4 py-3">
               <h3 className="text-base font-bold text-white uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>
                 {assignment?.groupAssignment 
@@ -407,6 +409,13 @@ const AssignmentFeedPage: React.FC = () => {
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (assignment?.assignmentType === 'assessment' && (assignment as any)?.releaseScores === false) ? (
+            <div className="text-center py-12 px-6 bg-white">
+              <svg className="w-12 h-12 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <p className="text-sm text-gray-600 font-medium">Videos will be available after your instructor releases scores.</p>
             </div>
           ) : videos.length === 0 ? (
             <div className="text-center py-8 px-4 bg-white">
