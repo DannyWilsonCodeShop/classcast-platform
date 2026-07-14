@@ -37,6 +37,11 @@ export function AssessmentRecordingView({
   useEffect(() => {
     const init = async () => {
       try {
+        // Request fullscreen to cover entire desktop
+        try {
+          await document.documentElement.requestFullscreen?.();
+        } catch {}
+
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'user', width: 1280, height: 720 },
           audio: true,
@@ -145,6 +150,11 @@ export function AssessmentRecordingView({
   const handleAssessmentComplete = async () => {
     setIsUploading(true);
     setUploadProgress('Stopping recording...');
+
+    // Exit fullscreen
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
 
     // Stop recorder
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -298,14 +308,39 @@ export function AssessmentRecordingView({
                 {formatTime(remainingSeconds)}
               </span>
             </div>
+            {/* Question image */}
+            {currentQuestion?.imageUrl && (
+              <div className="rounded-lg overflow-hidden bg-white/10 max-h-40">
+                <img src={currentQuestion.imageUrl} alt="Question" className="w-full max-h-40 object-contain" />
+              </div>
+            )}
             <p className="text-white text-sm font-medium leading-relaxed">
               {currentQuestion?.questionText || ''}
             </p>
-            {/* Progress dots */}
-            <div className="flex gap-1 justify-center pt-1">
-              {questions.map((_, idx) => (
-                <div key={idx} className={`w-2 h-2 rounded-full ${idx < currentQuestionIndex ? 'bg-green-400' : idx === currentQuestionIndex ? 'bg-white' : 'bg-white/30'}`} />
-              ))}
+            {/* Next button + Progress dots */}
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex gap-1">
+                {questions.map((_, idx) => (
+                  <div key={idx} className={`w-2 h-2 rounded-full ${idx < currentQuestionIndex ? 'bg-green-400' : idx === currentQuestionIndex ? 'bg-white' : 'bg-white/30'}`} />
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  const nextIndex = currentQuestionIndex + 1;
+                  if (nextIndex >= questions.length) {
+                    if (timerRef.current) clearInterval(timerRef.current);
+                    handleAssessmentComplete();
+                  } else {
+                    const ts = (Date.now() - sessionStartRef.current) / 1000;
+                    timestampsRef.current.push({ questionId: questions[nextIndex].questionId, timestampSeconds: ts });
+                    setCurrentQuestionIndex(nextIndex);
+                    setRemainingSeconds(questions[nextIndex].timeLimitSeconds);
+                  }
+                }}
+                className="px-3 py-1.5 bg-white/20 text-white rounded-lg text-xs font-medium active:scale-95 transition-transform"
+              >
+                {currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next →'}
+              </button>
             </div>
           </>
         )}
