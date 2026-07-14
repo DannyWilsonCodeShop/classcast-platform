@@ -423,6 +423,24 @@ const AssignmentGradesPage: React.FC = () => {
                 Edit
               </button>
               <button
+                onClick={async () => {
+                  if (!confirm('Delete this assignment? This cannot be undone.')) return;
+                  try {
+                    const res = await fetch(`/api/assignments/${assignmentId}`, { method: 'DELETE' });
+                    if (res.ok) {
+                      router.push(`/instructor/courses/${courseId}`);
+                    } else {
+                      alert('Failed to delete assignment');
+                    }
+                  } catch {
+                    alert('Error deleting assignment');
+                  }
+                }}
+                className="px-3 py-1 bg-red-50 rounded-full text-[10px] font-bold text-red-600"
+              >
+                Delete
+              </button>
+              <button
                 onClick={handleExportGrades}
                 disabled={isExporting || studentGrades.length === 0}
                 className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center disabled:opacity-50 shrink-0"
