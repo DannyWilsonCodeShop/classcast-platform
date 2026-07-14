@@ -105,7 +105,13 @@ const InstructorDashboard: React.FC = () => {
               gradedCount: a.gradedCount || 0,
               courseId: selectedCourseId,
               assignmentType: a.assignmentType || 'video',
-            }));
+              createdAt: a.createdAt || '',
+            })).sort((a: any, b: any) => {
+              // Most recently created first
+              const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              return bTime - aTime;
+            });
             setAssignments(mapped);
           }
         }

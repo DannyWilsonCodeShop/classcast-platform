@@ -689,6 +689,9 @@ const CreateAssignmentPage: React.FC = () => {
           onBack={() => setCurrentStep(3)}
           initialQuestions={formData.assessmentQuestions}
           initialDirections={formData.description}
+          linkedBankTitle={formData.problemBankTitle}
+          onLinkQuestionBank={() => { setShowProblemBankSection(true); fetchProblemBanks(); }}
+          onRemoveBank={() => setFormData({ ...formData, problemBankId: undefined, problemBankTitle: undefined })}
         />
       );
     }
@@ -1085,7 +1088,8 @@ const CreateAssignmentPage: React.FC = () => {
           </div>
         )}
 
-        {/* Question Bank toggle */}
+        {/* Question Bank toggle - not shown for assessments (handled in wizard) */}
+        {formData.assignmentType !== 'assessment' && (
         <div className="border border-gray-200 rounded-xl p-3">
           {formData.problemBankId ? (
             <div className="flex items-center justify-between">
@@ -1135,6 +1139,7 @@ const CreateAssignmentPage: React.FC = () => {
             </div>
           )}
         </div>
+        )}
 
         {error && (
           <div className="bg-red-50 text-red-700 text-sm p-3 rounded-xl">{error}</div>

@@ -7,11 +7,14 @@ interface AssessmentSetupWizardProps {
   onBack: () => void;
   initialQuestions?: AssessmentQuestion[];
   initialDirections?: string;
+  onLinkQuestionBank?: () => void;
+  linkedBankTitle?: string;
+  onRemoveBank?: () => void;
 }
 
 const DEFAULT_ASSESSMENT_DIRECTIONS = `This is a timed video assessment. Questions will appear on screen one at a time. You must answer each question on camera within the time limit. Keep your full upper body and arms visible at all times. The recording will auto-advance when time expires. Do not leave the screen — your recording will be aborted.`;
 
-export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, initialDirections }: AssessmentSetupWizardProps) {
+export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, initialDirections, onLinkQuestionBank, linkedBankTitle, onRemoveBank }: AssessmentSetupWizardProps) {
   const [step, setStep] = useState(initialQuestions && initialQuestions.length > 0 ? 2 : 1);
   const [directions, setDirections] = useState(initialDirections || DEFAULT_ASSESSMENT_DIRECTIONS);
   const [deliveryMode, setDeliveryMode] = useState<'all-same' | 'random-from-bank'>('all-same');
@@ -268,6 +271,29 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
           <button type="button" onClick={addQuestion} className="w-full py-2 bg-gray-100 rounded-xl text-xs font-medium text-[#005587]">
             + Add Question
           </button>
+
+          {/* Question Bank link */}
+          {onLinkQuestionBank && (
+            <div className="border border-gray-200 rounded-xl p-3 mt-3">
+              {linkedBankTitle ? (
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-green-700">✓ {linkedBankTitle}</p>
+                    <p className="text-[10px] text-gray-500">Each student gets unique questions</p>
+                  </div>
+                  {onRemoveBank && <button onClick={onRemoveBank} className="text-[10px] text-red-500 font-medium">Remove</button>}
+                </div>
+              ) : (
+                <button type="button" onClick={onLinkQuestionBank} className="w-full text-left flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-gray-700">Need individualized problems?</p>
+                    <p className="text-[10px] text-gray-400">Assign each student unique questions from a bank</p>
+                  </div>
+                  <span className="text-xs text-[#005587] font-medium">Add →</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
