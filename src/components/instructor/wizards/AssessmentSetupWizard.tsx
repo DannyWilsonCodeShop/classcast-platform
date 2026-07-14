@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { AssessmentQuestion } from '@/types/assessment';
 
 interface AssessmentSetupWizardProps {
-  onComplete: (questions: AssessmentQuestion[], directions?: string) => void;
+  onComplete: (questions: AssessmentQuestion[], directions?: string, settings?: { maxAttempts: number; releaseScores: boolean }) => void;
   onBack: () => void;
   initialQuestions?: AssessmentQuestion[];
   initialDirections?: string;
@@ -20,6 +20,8 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
   const [deliveryMode, setDeliveryMode] = useState<'all-same' | 'random-from-bank'>('all-same');
   const [randomCount, setRandomCount] = useState(5);
   const [questions, setQuestions] = useState<AssessmentQuestion[]>(initialQuestions || []);
+  const [maxAttempts, setMaxAttempts] = useState(1);
+  const [releaseScores, setReleaseScores] = useState(false);
 
   const addQuestion = () => {
     const newQ: AssessmentQuestion = {
@@ -133,6 +135,38 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
               </p>
             </div>
           )}
+
+          {/* Attempts & Score Release */}
+          <div className="space-y-3 pt-2 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-700">Max Attempts</p>
+                <p className="text-[10px] text-gray-400">How many tries per student</p>
+              </div>
+              <select
+                value={maxAttempts}
+                onChange={(e) => setMaxAttempts(Number(e.target.value))}
+                className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+              >
+                <option value={1}>1 attempt</option>
+                <option value={2}>2 attempts</option>
+                <option value={3}>3 attempts</option>
+                <option value={5}>5 attempts</option>
+              </select>
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-700">Hide videos until graded</p>
+                <p className="text-[10px] text-gray-400">Students can't see their own or peers' recordings</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" checked={!releaseScores} onChange={(e) => setReleaseScores(!e.target.checked)} className="sr-only peer" />
+                <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#005587] transition-colors">
+                  <div className={`absolute top-[2px] left-[2px] w-4 h-4 rounded-full bg-white transition-transform ${!releaseScores ? 'translate-x-4' : ''}`} />
+                </div>
+              </label>
+            </div>
+          </div>
         </div>
       )}
 
@@ -303,7 +337,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
         {step === 1 ? (
           <button onClick={() => setStep(2)} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium">Next</button>
         ) : (
-          <button onClick={() => onComplete(questions, directions)} disabled={!canProceed()} className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold disabled:opacity-50">Done</button>
+          <button onClick={() => onComplete(questions, directions, { maxAttempts, releaseScores })} disabled={!canProceed()} className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold disabled:opacity-50">Done</button>
         )}
       </div>
     </div>

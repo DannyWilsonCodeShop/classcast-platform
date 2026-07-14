@@ -602,7 +602,11 @@ export default function StudentAssignmentDetailPage() {
               <LiquidGlassIndicator activeIndex={detailActiveIdx} indicatorRef={indicatorRef} />
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center w-1/5 py-1 z-10"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[9px] text-gray-400">Home</span></button>
               <div className="flex flex-col items-center w-1/5 py-1 z-10">
-                <span className="text-[9px] font-medium text-orange-600">Unsubmitted</span>
+                <span className="text-[9px] font-medium text-orange-600">
+                  {assignment?.assignmentType === 'assessment' 
+                    ? `${(assignment as any)?.maxAttempts || 1} attempt${((assignment as any)?.maxAttempts || 1) > 1 ? 's' : ''} left`
+                    : 'Unsubmitted'}
+                </span>
                 {dueBadge && <span className={`text-[8px] mt-0.5 ${dueBadge.color} px-1.5 py-0.5 rounded-full`}>{dueBadge.label}</span>}
               </div>
               <button onClick={() => {

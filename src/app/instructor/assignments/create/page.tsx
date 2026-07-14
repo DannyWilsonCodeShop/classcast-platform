@@ -47,6 +47,9 @@ interface AssignmentFormData {
   responseMinLength?: number;
   responseMaxLength?: number;
   peerResponseRubric?: { name: string; levels: { score: number; description: string }[] }[];
+  // Assessment Settings
+  maxAttempts?: number;
+  releaseScores?: boolean;
 }
 
 const STEPS = [
@@ -253,6 +256,9 @@ const CreateAssignmentPage: React.FC = () => {
           responseWordLimit: formData.responseMinLength || 25,
           responseCharacterLimit: (formData.responseMaxLength || 200) * 6, // approx chars from words
           peerResponseRubric: formData.peerResponseRubric || undefined,
+          // Assessment settings
+          maxAttempts: formData.maxAttempts || 1,
+          releaseScores: formData.releaseScores ?? false,
         }),
       });
       const data = await res.json();
@@ -679,11 +685,11 @@ const CreateAssignmentPage: React.FC = () => {
     if (formData.assignmentType === 'assessment') {
       return (
         <AssessmentSetupWizard
-          onComplete={(questions, directions) => {
+          onComplete={(questions, directions, settings) => {
             const desc = formData.description
               ? `${formData.description}\n\n${directions || ''}`
               : (directions || formData.description);
-            setFormData({ ...formData, assessmentQuestions: questions, description: desc });
+            setFormData({ ...formData, assessmentQuestions: questions, description: desc, maxAttempts: settings?.maxAttempts || 1, releaseScores: settings?.releaseScores ?? false });
             setCurrentStep(5);
           }}
           onBack={() => setCurrentStep(3)}
