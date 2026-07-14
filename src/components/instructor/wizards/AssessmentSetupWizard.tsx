@@ -166,21 +166,39 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
                   value={q.questionText}
                   onChange={(e) => updateQuestion(idx, 'questionText', e.target.value)}
                   onPaste={(e) => {
-                    // Handle image paste
+                    // Handle image paste from clipboard
                     const items = e.clipboardData?.items;
                     if (!items) return;
                     for (const item of Array.from(items)) {
                       if (item.type.startsWith('image/')) {
                         e.preventDefault();
                         const file = item.getAsFile();
-                        if (!file) return;
+                        if (!file || file.size === 0) continue;
                         const reader = new FileReader();
                         reader.onload = (ev) => {
                           const base64 = ev.target?.result as string;
-                          updateQuestion(idx, 'imageUrl', base64);
+                          if (base64 && base64.startsWith('data:image/')) {
+                            updateQuestion(idx, 'imageUrl', base64);
+                          }
                         };
                         reader.readAsDataURL(file);
-                        break;
+                        return; // Stop after first image found
+                      }
+                    }
+                    // If clipboard has files (e.g. screenshot file reference)
+                    const files = e.clipboardData?.files;
+                    if (files && files.length > 0) {
+                      const file = files[0];
+                      if (file.type.startsWith('image/') && file.size > 0) {
+                        e.preventDefault();
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const base64 = ev.target?.result as string;
+                          if (base64 && base64.startsWith('data:image/')) {
+                            updateQuestion(idx, 'imageUrl', base64);
+                          }
+                        };
+                        reader.readAsDataURL(file);
                       }
                     }
                   }}
