@@ -553,6 +553,8 @@ const CreateAssignmentPage: React.FC = () => {
         />
       </div>
 
+      {/* Description - hidden for assessment type since directions are in the setup wizard */}
+      {formData.assignmentType !== 'assessment' && (
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Description / Instructions</label>
         <textarea
@@ -563,6 +565,7 @@ const CreateAssignmentPage: React.FC = () => {
           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587] resize-none"
         />
       </div>
+      )}
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
