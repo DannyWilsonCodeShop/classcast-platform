@@ -153,7 +153,55 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
 
           <div className="space-y-2 max-h-[45vh] overflow-y-auto">
             {questions.map((q, idx) => (
-              <div key={q.questionId} className="bg-gray-50 rounded-xl p-3 space-y-2">
+              <div
+                key={q.questionId}
+                className="bg-gray-50 rounded-xl p-3 space-y-2"
+                onPaste={(e) => {
+                  // Capture paste at the card level to prevent browser default (opening image in new tab)
+                  const items = e.clipboardData?.items;
+                  const files = e.clipboardData?.files;
+                  let hasImage = false;
+
+                  // Check items
+                  if (items) {
+                    for (const item of Array.from(items)) {
+                      if (item.type.startsWith('image/')) {
+                        hasImage = true;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const file = item.getAsFile();
+                        if (!file || file.size === 0) continue;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const base64 = ev.target?.result as string;
+                          if (base64?.startsWith('data:image/')) {
+                            updateQuestion(idx, 'imageUrl', base64);
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                        return;
+                      }
+                    }
+                  }
+
+                  // Check files (macOS screenshot fallback)
+                  if (!hasImage && files && files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/') && file.size > 0) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        const base64 = ev.target?.result as string;
+                        if (base64?.startsWith('data:image/')) {
+                          updateQuestion(idx, 'imageUrl', base64);
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }
+                }}
+              >
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] text-gray-400 font-medium">Q{idx + 1}</span>
                   <div className="flex items-center gap-1">
@@ -165,44 +213,7 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
                 <textarea
                   value={q.questionText}
                   onChange={(e) => updateQuestion(idx, 'questionText', e.target.value)}
-                  onPaste={(e) => {
-                    // Handle image paste from clipboard
-                    const items = e.clipboardData?.items;
-                    if (!items) return;
-                    for (const item of Array.from(items)) {
-                      if (item.type.startsWith('image/')) {
-                        e.preventDefault();
-                        const file = item.getAsFile();
-                        if (!file || file.size === 0) continue;
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                          const base64 = ev.target?.result as string;
-                          if (base64 && base64.startsWith('data:image/')) {
-                            updateQuestion(idx, 'imageUrl', base64);
-                          }
-                        };
-                        reader.readAsDataURL(file);
-                        return; // Stop after first image found
-                      }
-                    }
-                    // If clipboard has files (e.g. screenshot file reference)
-                    const files = e.clipboardData?.files;
-                    if (files && files.length > 0) {
-                      const file = files[0];
-                      if (file.type.startsWith('image/') && file.size > 0) {
-                        e.preventDefault();
-                        const reader = new FileReader();
-                        reader.onload = (ev) => {
-                          const base64 = ev.target?.result as string;
-                          if (base64 && base64.startsWith('data:image/')) {
-                            updateQuestion(idx, 'imageUrl', base64);
-                          }
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }
-                  }}
-                  placeholder="Enter question text... (paste an image here)"
+                  placeholder="Enter question text... (Cmd+V to paste an image)"
                   rows={2}
                   className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs resize-none focus:ring-1 focus:ring-[#005587] focus:outline-none"
                 />
