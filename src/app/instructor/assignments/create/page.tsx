@@ -680,7 +680,6 @@ const CreateAssignmentPage: React.FC = () => {
       return (
         <AssessmentSetupWizard
           onComplete={(questions, directions) => {
-            // Append assessment directions to existing description if user already wrote something
             const desc = formData.description
               ? `${formData.description}\n\n${directions || ''}`
               : (directions || formData.description);
@@ -688,6 +687,8 @@ const CreateAssignmentPage: React.FC = () => {
             setCurrentStep(5);
           }}
           onBack={() => setCurrentStep(3)}
+          initialQuestions={formData.assessmentQuestions}
+          initialDirections={formData.description}
         />
       );
     }

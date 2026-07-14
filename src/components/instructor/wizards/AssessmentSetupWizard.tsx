@@ -5,16 +5,18 @@ import { AssessmentQuestion } from '@/types/assessment';
 interface AssessmentSetupWizardProps {
   onComplete: (questions: AssessmentQuestion[], directions?: string) => void;
   onBack: () => void;
+  initialQuestions?: AssessmentQuestion[];
+  initialDirections?: string;
 }
 
 const DEFAULT_ASSESSMENT_DIRECTIONS = `This is a timed video assessment. Questions will appear on screen one at a time. You must answer each question on camera within the time limit. Keep your full upper body and arms visible at all times. The recording will auto-advance when time expires. Do not leave the screen — your recording will be aborted.`;
 
-export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWizardProps) {
-  const [step, setStep] = useState(1);
-  const [directions, setDirections] = useState(DEFAULT_ASSESSMENT_DIRECTIONS);
+export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, initialDirections }: AssessmentSetupWizardProps) {
+  const [step, setStep] = useState(initialQuestions && initialQuestions.length > 0 ? 2 : 1);
+  const [directions, setDirections] = useState(initialDirections || DEFAULT_ASSESSMENT_DIRECTIONS);
   const [deliveryMode, setDeliveryMode] = useState<'all-same' | 'random-from-bank'>('all-same');
   const [randomCount, setRandomCount] = useState(5);
-  const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
+  const [questions, setQuestions] = useState<AssessmentQuestion[]>(initialQuestions || []);
 
   const addQuestion = () => {
     const newQ: AssessmentQuestion = {
@@ -56,7 +58,7 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
     <div className="space-y-4">
       {/* Step indicator */}
       <div className="flex items-center justify-center gap-2 mb-4">
-        {[1, 2, 3].map((s) => (
+        {[1, 2].map((s) => (
           <div key={s} className={`w-2 h-2 rounded-full ${s <= step ? 'bg-[#005587]' : 'bg-gray-200'}`} />
         ))}
       </div>
@@ -269,33 +271,13 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
         </div>
       )}
 
-      {/* Step 3: Review */}
-      {step === 3 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-bold text-[#005587]">Review Assessment</h3>
-          <div className="bg-gray-50 rounded-xl p-3 space-y-2 text-xs">
-            <div><span className="text-gray-500">Delivery:</span> <span className="font-medium">{deliveryMode === 'all-same' ? 'Same for all' : `Random ${randomCount} from ${questions.length} questions`}</span></div>
-            <div><span className="text-gray-500">Questions:</span> <span className="font-medium">{questions.length}</span></div>
-            <div><span className="text-gray-500">Total Duration:</span> <span className="font-medium">{Math.floor(totalDuration / 60)}m {totalDuration % 60}s</span></div>
-          </div>
-          <div className="space-y-1 max-h-[35vh] overflow-y-auto">
-            {questions.map((q, idx) => (
-              <div key={q.questionId} className="bg-gray-50 rounded-lg p-2 text-xs">
-                <span className="text-gray-400">Q{idx + 1} ({q.timeLimitSeconds}s):</span>{' '}
-                <span className="text-gray-700">{q.questionText.substring(0, 60)}{q.questionText.length > 60 ? '...' : ''}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Navigation */}
       <div className="flex justify-between pt-2">
         <button onClick={step === 1 ? onBack : () => setStep(step - 1)} className="px-4 py-2 text-xs text-gray-600 font-medium">Back</button>
-        {step < 3 ? (
-          <button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium disabled:opacity-50">Next</button>
+        {step === 1 ? (
+          <button onClick={() => setStep(2)} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium">Next</button>
         ) : (
-          <button onClick={() => onComplete(questions, directions)} className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold">Create Assessment</button>
+          <button onClick={() => onComplete(questions, directions)} disabled={!canProceed()} className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold disabled:opacity-50">Done</button>
         )}
       </div>
     </div>
