@@ -39,23 +39,23 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/ClassCastLogo.png",
+        url: "/StudentFiles/MyClassCast40.png",
         sizes: "any",
         type: "image/png",
       },
       {
-        url: "/ClassCastLogo.png",
+        url: "/StudentFiles/MyClassCast40.png",
         sizes: "16x16",
         type: "image/png",
       },
       {
-        url: "/ClassCastLogo.png",
+        url: "/StudentFiles/MyClassCast40.png",
         sizes: "32x32",
         type: "image/png",
       },
     ],
-    shortcut: "/ClassCastLogo.png",
-    apple: "/ClassCastLogo.png",
+    shortcut: "/StudentFiles/MyClassCast40.png",
+    apple: "/StudentFiles/MyClassCast40.png",
   },
 };
 
