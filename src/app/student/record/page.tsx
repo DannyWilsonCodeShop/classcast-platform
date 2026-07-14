@@ -443,8 +443,72 @@ function RecordPageInner() {
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
   const hasVideo = !!videoFile || !!linkUrl.trim();
 
+  // Assessment pre-start state
+  const [assessmentStarted, setAssessmentStarted] = useState(false);
+
+  // ASSESSMENT MODE: show instructions modal before starting
+  if (isAssessment && !assignmentLoading && assignment?.assessmentQuestions?.length > 0 && user?.id && assignmentId && !assessmentStarted) {
+    return (
+      <StudentRoute>
+        <div className="h-full h-dvh bg-[#005587] flex flex-col overflow-y-auto">
+          <div className="flex-1 px-5 py-8 flex flex-col">
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h1 className="text-xl font-bold text-white mb-1">{assignment.title || 'Assessment'}</h1>
+              <p className="text-white/60 text-xs">{assignment.assessmentQuestions.length} questions</p>
+            </div>
+
+            {/* Directions */}
+            {assignment.description && (
+              <div className="bg-white/10 rounded-2xl p-4 mb-4">
+                <h3 className="text-xs font-bold text-[#FFC72C] uppercase mb-2">Directions</h3>
+                <p className="text-white/90 text-xs leading-relaxed whitespace-pre-wrap">{assignment.description}</p>
+              </div>
+            )}
+
+            {/* Rules that invalidate */}
+            <div className="bg-red-500/20 border border-red-400/30 rounded-2xl p-4 mb-4">
+              <h3 className="text-xs font-bold text-red-300 uppercase mb-2">⚠️ Your test will be invalidated if you:</h3>
+              <ul className="space-y-1.5 text-white/90 text-xs">
+                <li className="flex items-start gap-2"><span className="text-red-400">•</span> Leave the screen or switch apps/tabs</li>
+                <li className="flex items-start gap-2"><span className="text-red-400">•</span> Exit fullscreen mode</li>
+                <li className="flex items-start gap-2"><span className="text-red-400">•</span> Cover or disconnect your camera</li>
+                <li className="flex items-start gap-2"><span className="text-red-400">•</span> Have your hands or upper body out of frame</li>
+              </ul>
+            </div>
+
+            {/* 360 Room Scan instructions */}
+            <div className="bg-white/10 rounded-2xl p-4 mb-6">
+              <h3 className="text-xs font-bold text-[#FFC72C] uppercase mb-2">📹 Room Scan Required</h3>
+              <p className="text-white/90 text-xs mb-3">Recording will begin immediately. Your first task is to do a slow 360° scan of your surroundings to show there are no notes or devices.</p>
+              <div className="rounded-xl overflow-hidden">
+                <img src="/StudentFiles/assessment-360-guide.png" alt="360 room scan guide" className="w-full object-contain max-h-48" />
+              </div>
+            </div>
+
+            {/* Start button */}
+            <div className="mt-auto">
+              <button
+                onClick={() => setAssessmentStarted(true)}
+                className="w-full py-4 bg-[#FFC72C] text-[#005587] rounded-xl text-base font-bold active:scale-[0.98] transition-transform"
+              >
+                I'm Ready — Start Recording
+              </button>
+              <button
+                onClick={() => router.back()}
+                className="w-full py-3 text-white/50 text-xs mt-2"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </StudentRoute>
+    );
+  }
+
   // ASSESSMENT MODE: render full-screen assessment recording view
-  if (isAssessment && assignment?.assessmentQuestions?.length > 0 && user?.id && assignmentId) {
+  if (isAssessment && assessmentStarted && assignment?.assessmentQuestions?.length > 0 && user?.id && assignmentId) {
     const { AssessmentRecordingView } = require('@/components/assessments/AssessmentRecordingView');
     const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     return (
