@@ -29,6 +29,8 @@ interface Assignment {
   resources?: any[];
   isSubmitted: boolean;
   grade?: number;
+  assignmentType?: string;
+  assessmentQuestions?: any[];
 }
 
 interface Submission {
@@ -603,9 +605,16 @@ export default function StudentAssignmentDetailPage() {
                 <span className="text-[9px] font-medium text-orange-600">Unsubmitted</span>
                 {dueBadge && <span className={`text-[8px] mt-0.5 ${dueBadge.color} px-1.5 py-0.5 rounded-full`}>{dueBadge.label}</span>}
               </div>
-              <button onClick={() => { animateToTab(2); setTimeout(() => setShowPostModal(true), 450); }} className="flex flex-col items-center w-1/5 py-1 z-10">
+              <button onClick={() => {
+                if (assignment?.assignmentType === 'assessment') {
+                  // For assessments, go directly to the assessment recording
+                  router.push(`/student/record?assignmentId=${currentAssignmentId}&mode=record&assessment=true`);
+                } else {
+                  animateToTab(2); setTimeout(() => setShowPostModal(true), 450);
+                }
+              }} className="flex flex-col items-center w-1/5 py-1 z-10">
                 <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                <span className="text-[9px] text-gray-400">Post</span>
+                <span className="text-[9px] text-gray-400">{assignment?.assignmentType === 'assessment' ? 'Take Test' : 'Post'}</span>
               </button>
               <button onClick={() => { animateToTab(3); setTimeout(() => setShowRubricModal(true), 450); }} className="flex flex-col items-center w-1/5 py-1 z-10"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[9px] text-gray-400">Rubric</span></button>
               <button className="flex flex-col items-center w-1/5 py-1 relative z-10" onClick={() => { if (resourceCount > 0) { animateToTab(4); setTimeout(() => setShowResourcesModal(true), 450); } }}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[9px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>

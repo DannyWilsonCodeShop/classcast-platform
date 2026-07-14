@@ -18,6 +18,7 @@ function RecordPageInner() {
   const searchParams = useSearchParams();
   const assignmentId = searchParams.get('assignmentId');
   const mode = searchParams.get('mode'); // 'record', 'upload', or null
+  const isAssessment = searchParams.get('assessment') === 'true';
   const { user } = useAuth();
 
   // Assignment data
@@ -441,6 +442,55 @@ function RecordPageInner() {
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
   const hasVideo = !!videoFile || !!linkUrl.trim();
+
+  // ASSESSMENT MODE: render full-screen assessment recording view
+  if (isAssessment && assignment?.assessmentQuestions?.length > 0 && user?.id && assignmentId) {
+    const { AssessmentRecordingView } = require('@/components/assessments/AssessmentRecordingView');
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    return (
+      <StudentRoute>
+        <div className="h-full h-dvh">
+          <AssessmentRecordingView
+            sessionId={sessionId}
+            assessmentId={assignmentId}
+            studentId={user.id}
+            questions={assignment.assessmentQuestions}
+            onComplete={() => router.push(`/student/assignments/${assignmentId}`)}
+          />
+        </div>
+      </StudentRoute>
+    );
+  }
+
+  // ASSESSMENT MODE: loading state
+  if (isAssessment && assignmentLoading) {
+    return (
+      <StudentRoute>
+        <div className="h-full flex items-center justify-center bg-black">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-white border-t-transparent mx-auto mb-3" />
+            <p className="text-white text-sm">Loading assessment...</p>
+          </div>
+        </div>
+      </StudentRoute>
+    );
+  }
+
+  // ASSESSMENT MODE: no questions found
+  if (isAssessment && !assignmentLoading && (!assignment?.assessmentQuestions || assignment.assessmentQuestions.length === 0)) {
+    return (
+      <StudentRoute>
+        <div className="h-full flex items-center justify-center bg-black px-6">
+          <div className="text-center">
+            <div className="text-4xl mb-3">📋</div>
+            <h2 className="text-white text-lg font-bold mb-2">No Questions Available</h2>
+            <p className="text-gray-400 text-sm mb-4">This assessment doesn't have questions set up yet.</p>
+            <button onClick={() => router.back()} className="px-5 py-2 bg-[#005587] text-white rounded-xl text-sm font-bold">Go Back</button>
+          </div>
+        </div>
+      </StudentRoute>
+    );
+  }
 
   return (
     <StudentRoute>
