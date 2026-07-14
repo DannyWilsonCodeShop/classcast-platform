@@ -7,6 +7,7 @@ export interface AssessmentQuestion {
   questionText: string;
   timeLimitSeconds: number;              // 15–300
   orderIndex: number;
+  imageUrl?: string;                     // Optional image for the question
 }
 
 export interface QuestionTimestamp {

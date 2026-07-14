@@ -67,7 +67,8 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
           <h3 className="text-sm font-bold text-[#005587]">Assessment Settings</h3>
 
           <div>
-            <label className="text-xs font-medium text-gray-600 block mb-1">Directions (editable)</label>
+            <label className="text-xs font-medium text-gray-600 block mb-1">Student Directions</label>
+            <p className="text-[10px] text-gray-400 mb-1.5">These instructions will be shown to students before the assessment begins. Edit as needed.</p>
             <textarea
               value={directions}
               onChange={(e) => setDirections(e.target.value)}
@@ -164,10 +165,59 @@ export function AssessmentSetupWizard({ onComplete, onBack }: AssessmentSetupWiz
                 <textarea
                   value={q.questionText}
                   onChange={(e) => updateQuestion(idx, 'questionText', e.target.value)}
-                  placeholder="Enter question text..."
+                  onPaste={(e) => {
+                    // Handle image paste
+                    const items = e.clipboardData?.items;
+                    if (!items) return;
+                    for (const item of Array.from(items)) {
+                      if (item.type.startsWith('image/')) {
+                        e.preventDefault();
+                        const file = item.getAsFile();
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const base64 = ev.target?.result as string;
+                          updateQuestion(idx, 'imageUrl', base64);
+                        };
+                        reader.readAsDataURL(file);
+                        break;
+                      }
+                    }
+                  }}
+                  placeholder="Enter question text... (paste an image here)"
                   rows={2}
                   className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs resize-none focus:ring-1 focus:ring-[#005587] focus:outline-none"
                 />
+                {/* Image preview / upload */}
+                {q.imageUrl ? (
+                  <div className="relative">
+                    <img src={q.imageUrl} alt="Question image" className="w-full max-h-32 object-contain rounded-lg border border-gray-200" />
+                    <button
+                      type="button"
+                      onClick={() => updateQuestion(idx, 'imageUrl', '')}
+                      className="absolute top-1 right-1 bg-red-500 text-white w-5 h-5 rounded-full text-[10px] flex items-center justify-center"
+                    >✕</button>
+                  </div>
+                ) : (
+                  <label className="flex items-center gap-1.5 text-[10px] text-[#005587] font-medium cursor-pointer">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    <span>Add image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          updateQuestion(idx, 'imageUrl', ev.target?.result as string);
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                )}
                 <div className="flex items-center gap-2">
                   <label className="text-[10px] text-gray-500">Time:</label>
                   <input
