@@ -14,11 +14,19 @@ interface ClassFormData {
   maxStudents: number;
 }
 
+interface SectionItem {
+  name: string;
+  classCode: string;
+}
+
 const CreateClassPage: React.FC = () => {
   const { user } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [sections, setSections] = useState<SectionItem[]>([
+    { name: 'Section 1', classCode: '' }
+  ]);
   const [formData, setFormData] = useState<ClassFormData>({
     title: '',
     description: '',
@@ -28,7 +36,7 @@ const CreateClassPage: React.FC = () => {
     maxStudents: 30,
   });
 
-  const generateClassCode = (title: string) => {
+  const generateClassCode = (title: string, index: number) => {
     const courseCode = (title || 'COURSE')
       .split(' ')
       .map(word => word.charAt(0).toUpperCase())
@@ -38,8 +46,46 @@ const CreateClassPage: React.FC = () => {
     return `${courseCode}${randomNum}`;
   };
 
+  // Generate codes for sections whenever title changes or sections are added
+  useEffect(() => {
+    setSections(prev => prev.map((s, i) => ({
+      ...s,
+      classCode: s.classCode || generateClassCode(formData.title, i)
+    })));
+  }, []);
+
   const handleInputChange = (field: keyof ClassFormData, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSectionCountChange = (count: number) => {
+    const clamped = Math.max(1, Math.min(10, count));
+    setSections(prev => {
+      if (clamped > prev.length) {
+        // Add new sections
+        const newSections = [...prev];
+        for (let i = prev.length; i < clamped; i++) {
+          newSections.push({
+            name: `Section ${i + 1}`,
+            classCode: generateClassCode(formData.title, i)
+          });
+        }
+        return newSections;
+      } else {
+        // Remove sections from the end
+        return prev.slice(0, clamped);
+      }
+    });
+  };
+
+  const handleSectionNameChange = (index: number, name: string) => {
+    setSections(prev => prev.map((s, i) => i === index ? { ...s, name } : s));
+  };
+
+  const regenerateCode = (index: number) => {
+    setSections(prev => prev.map((s, i) =>
+      i === index ? { ...s, classCode: generateClassCode(formData.title, i) } : s
+    ));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,7 +106,8 @@ const CreateClassPage: React.FC = () => {
     }
 
     try {
-      const classCode = generateClassCode(formData.title);
+      // Use the first section's class code as the course-level code
+      const courseClassCode = sections[0]?.classCode || generateClassCode(formData.title, 0);
 
       const response = await fetch('/api/courses', {
         method: 'POST',
@@ -68,8 +115,8 @@ const CreateClassPage: React.FC = () => {
         body: JSON.stringify({
           title: formData.title,
           description: formData.description,
-          code: classCode,
-          classCode: classCode,
+          code: courseClassCode,
+          classCode: courseClassCode,
           department: formData.department,
           credits: 3,
           semester: formData.semester,
@@ -97,21 +144,23 @@ const CreateClassPage: React.FC = () => {
       if (response.ok) {
         const result = await response.json();
 
-        // Auto-create a default section with the class code
-        try {
-          await fetch('/api/sections', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              courseId: result.data.courseId,
-              sectionName: 'Section 1',
-              classCode: classCode,
-              maxEnrollment: formData.maxStudents,
-              instructorId: user?.id
-            })
-          });
-        } catch (sectionError) {
-          console.error('Error creating default section:', sectionError);
+        // Create all sections
+        for (const section of sections) {
+          try {
+            await fetch('/api/sections', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                courseId: result.data.courseId,
+                sectionName: section.name,
+                classCode: section.classCode,
+                maxEnrollment: formData.maxStudents,
+                instructorId: user?.id
+              })
+            });
+          } catch (sectionError) {
+            console.error('Error creating section:', sectionError);
+          }
         }
 
         router.push('/instructor/dashboard');
@@ -220,7 +269,7 @@ const CreateClassPage: React.FC = () => {
             {/* Max Students */}
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
-                Max Students
+                Max Students per Section
               </label>
               <input
                 type="number"
@@ -230,6 +279,68 @@ const CreateClassPage: React.FC = () => {
                 min="1"
                 max="500"
               />
+            </div>
+
+            {/* Sections */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-medium text-gray-600">Sections</label>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleSectionCountChange(sections.length - 1)}
+                    disabled={sections.length <= 1}
+                    className="w-6 h-6 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 text-sm font-bold hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="number"
+                    value={sections.length}
+                    onChange={(e) => handleSectionCountChange(parseInt(e.target.value) || 1)}
+                    min={1}
+                    max={10}
+                    className="w-10 text-center text-sm font-bold border border-gray-200 rounded-md py-0.5 focus:ring-1 focus:ring-[#005587] focus:border-[#005587]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleSectionCountChange(sections.length + 1)}
+                    disabled={sections.length >= 10}
+                    className="w-6 h-6 flex items-center justify-center rounded-md border border-gray-200 text-gray-500 text-sm font-bold hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {sections.map((section, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
+                    <input
+                      type="text"
+                      value={section.name}
+                      onChange={(e) => handleSectionNameChange(index, e.target.value)}
+                      className="flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587] focus:border-[#005587] bg-white"
+                      placeholder={`Section ${index + 1}`}
+                    />
+                    <div className="flex items-center gap-1">
+                      <span className="px-2 py-1 bg-[#005587]/10 text-[#005587] text-[10px] font-mono font-bold rounded-md">
+                        {section.classCode}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => regenerateCode(index)}
+                        className="p-1 text-gray-400 hover:text-[#005587] transition-colors"
+                        title="Regenerate code"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Description */}
@@ -244,14 +355,6 @@ const CreateClassPage: React.FC = () => {
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] resize-none"
                 placeholder="Brief description of your course..."
               />
-            </div>
-
-            {/* Info note */}
-            <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-xl">
-              <span className="text-sm">💡</span>
-              <p className="text-xs text-gray-500">
-                A class code will be auto-generated for students to join. You can add more sections later from your course settings.
-              </p>
             </div>
 
             {/* Actions */}
