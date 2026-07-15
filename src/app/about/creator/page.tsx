@@ -6,11 +6,14 @@ import Link from 'next/link';
 export default function AboutCreatorPage() {
   return (
     <div className="min-h-screen bg-white">
+      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
+
       {/* Header */}
       <div className="bg-[#005587] text-white px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img src="/UpdatedCCLogo.png" alt="" className="w-8 h-8 object-contain" />
-          <span className="text-xl font-bold">ClassCast</span>
+          <span className="text-xl" style={{ fontFamily: "'Grand Hotel', cursive" }}>ClassCast</span>
         </div>
         <Link href="/auth/login" className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-full text-sm font-bold">
           Sign In

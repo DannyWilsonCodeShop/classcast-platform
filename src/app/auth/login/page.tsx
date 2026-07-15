@@ -96,12 +96,6 @@ export default function LoginPage() {
               About Us
             </button>
             <button
-              onClick={() => { router.push('/about/creator'); setMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-[#005587] font-medium hover:bg-gray-100 rounded-lg"
-            >
-              About the Creator
-            </button>
-            <button
               onClick={() => { router.push('/auth/signup'); setMenuOpen(false); }}
               className="block w-full text-left px-3 py-2 text-[#005587] font-medium hover:bg-gray-100 rounded-lg"
             >
