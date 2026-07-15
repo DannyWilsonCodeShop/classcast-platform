@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { RubricCategory, getRubricMaxScore } from '@/types/rubric';
+import { RubricCategory, getRubricMaxScore, generateCategoryId } from '@/types/rubric';
 
 interface CourseOption {
   courseId: string;
@@ -22,6 +22,39 @@ const ASSIGNMENT_TYPES: { id: AssignmentType; label: string; icon: string }[] = 
   { id: 'study-module', label: 'Study Module', icon: '📖' },
 ];
 
+const DEFAULT_RUBRIC: RubricCategory[] = [
+  {
+    id: 'cat_content',
+    name: 'Content & Understanding',
+    levels: [
+      { score: 4, description: 'Excellent — thorough, accurate, insightful' },
+      { score: 3, description: 'Good — solid understanding shown' },
+      { score: 2, description: 'Developing — partially addresses the topic' },
+      { score: 1, description: 'Beginning — minimal understanding shown' },
+    ]
+  },
+  {
+    id: 'cat_delivery',
+    name: 'Delivery & Communication',
+    levels: [
+      { score: 4, description: 'Clear, confident, well-organized' },
+      { score: 3, description: 'Mostly clear with minor issues' },
+      { score: 2, description: 'Somewhat unclear or disorganized' },
+      { score: 1, description: 'Difficult to follow' },
+    ]
+  },
+  {
+    id: 'cat_effort',
+    name: 'Effort & Completeness',
+    levels: [
+      { score: 4, description: 'Exceeds expectations, polished work' },
+      { score: 3, description: 'Meets all requirements' },
+      { score: 2, description: 'Missing some requirements' },
+      { score: 1, description: 'Incomplete or minimal effort' },
+    ]
+  },
+];
+
 const CreateAssignmentPage: React.FC = () => {
   const router = useRouter();
   const { user } = useAuth();
@@ -31,13 +64,25 @@ const CreateAssignmentPage: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Core fields
   const [courseId, setCourseId] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [assignmentType, setAssignmentType] = useState<AssignmentType>('video');
   const [dueDate, setDueDate] = useState('');
-  const [maxScore, setMaxScore] = useState(100);
-  const [rubric, setRubric] = useState<RubricCategory[]>([]);
+
+  // Rubric (default ON)
+  const [rubric, setRubric] = useState<RubricCategory[]>(DEFAULT_RUBRIC);
+  const [showRubricDetails, setShowRubricDetails] = useState(false);
+
+  // Peer Responses (default ON)
+  const [peerResponsesEnabled, setPeerResponsesEnabled] = useState(true);
+  const [responsesRequired, setResponsesRequired] = useState(2);
+  const [responseDueDays, setResponseDueDays] = useState(3);
+
+  // Visibility settings
+  const [visibility, setVisibility] = useState<'section' | 'all'>('section');
+  const [videoVisibility, setVideoVisibility] = useState<'after-submit' | 'immediately'>('after-submit');
 
   // Fetch courses and auto-select the most recent one
   useEffect(() => {
@@ -54,7 +99,6 @@ const CreateAssignmentPage: React.FC = () => {
       if (data.success && data.data?.courses?.length > 0) {
         const courseList = data.data.courses;
         setCourses(courseList);
-        // Auto-select the first (most recent) course
         setCourseId(courseList[0].courseId);
       }
     } catch (err) {
@@ -64,7 +108,7 @@ const CreateAssignmentPage: React.FC = () => {
     }
   };
 
-  // AI fill: takes the title and fills description, rubric, due date, etc.
+  // AI fill
   const handleAIFill = async () => {
     if (!title.trim()) {
       setError('Enter an assignment title first so AI knows what to generate.');
@@ -89,16 +133,11 @@ const CreateAssignmentPage: React.FC = () => {
         if (gen.description) setDescription(gen.description);
         if (gen.rubric && gen.rubric.length > 0) {
           setRubric(gen.rubric);
-          setMaxScore(getRubricMaxScore(gen.rubric));
         }
-        if (gen.maxScore && !gen.rubric?.length) setMaxScore(gen.maxScore);
         if (gen.suggestedDueInDays && !dueDate) {
           const due = new Date();
           due.setDate(due.getDate() + gen.suggestedDueInDays);
-          const year = due.getFullYear();
-          const month = String(due.getMonth() + 1).padStart(2, '0');
-          const day = String(due.getDate()).padStart(2, '0');
-          setDueDate(`${year}-${month}-${day}T23:59`);
+          setDueDate(`${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, '0')}-${String(due.getDate()).padStart(2, '0')}T23:59`);
         }
       } else {
         setError(data.error || 'AI generation failed. Try again.');
@@ -108,6 +147,14 @@ const CreateAssignmentPage: React.FC = () => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Calculate response due date from assignment due date
+  const getResponseDueDate = () => {
+    if (!dueDate) return '';
+    const due = new Date(dueDate);
+    due.setDate(due.getDate() + responseDueDays);
+    return due.toISOString();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -128,10 +175,18 @@ const CreateAssignmentPage: React.FC = () => {
           courseId,
           assignmentType: assignmentType === 'group-project' ? 'module' : assignmentType === 'study-module' ? 'study-module' : assignmentType,
           dueDate,
-          maxScore: rubric.length > 0 ? getRubricMaxScore(rubric) : maxScore,
+          maxScore: getRubricMaxScore(rubric),
           rubric: rubric.length > 0 ? rubric : null,
           instructorId: user?.id,
           status: 'published',
+          // Peer response settings
+          enablePeerResponses: peerResponsesEnabled,
+          minResponsesRequired: peerResponsesEnabled ? responsesRequired : 0,
+          maxResponsesPerVideo: 5,
+          responseDueDate: peerResponsesEnabled ? getResponseDueDate() : undefined,
+          // Visibility settings
+          peerReviewScope: visibility,
+          hidePeerVideosUntilSubmitted: videoVisibility === 'after-submit',
         }),
       });
       const data = await res.json();
@@ -145,6 +200,27 @@ const CreateAssignmentPage: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRemoveRubricCategory = (id: string) => {
+    setRubric(prev => prev.filter(c => c.id !== id));
+  };
+
+  const handleAddRubricCategory = () => {
+    setRubric(prev => [...prev, {
+      id: generateCategoryId(),
+      name: '',
+      levels: [
+        { score: 4, description: 'Excellent' },
+        { score: 3, description: 'Good' },
+        { score: 2, description: 'Developing' },
+        { score: 1, description: 'Beginning' },
+      ]
+    }]);
+  };
+
+  const handleRubricNameChange = (id: string, name: string) => {
+    setRubric(prev => prev.map(c => c.id === id ? { ...c, name } : c));
   };
 
   return (
@@ -229,9 +305,7 @@ const CreateAssignmentPage: React.FC = () => {
             {/* Description with AI button */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-medium text-gray-600">
-                  Description / Instructions
-                </label>
+                <label className="text-xs font-medium text-gray-600">Instructions</label>
                 <button
                   type="button"
                   onClick={handleAIFill}
@@ -256,7 +330,7 @@ const CreateAssignmentPage: React.FC = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] resize-none"
-                placeholder="Describe the assignment or click AI Fill to generate from the title..."
+                placeholder="Describe the assignment or click AI Fill..."
               />
             </div>
 
@@ -278,51 +352,144 @@ const CreateAssignmentPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">Points</label>
-                <input
-                  type="number"
-                  value={rubric.length > 0 ? getRubricMaxScore(rubric) : maxScore}
-                  onChange={(e) => setMaxScore(parseInt(e.target.value) || 100)}
-                  disabled={rubric.length > 0}
-                  min={1}
-                  max={1000}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] disabled:bg-gray-50 disabled:text-gray-500"
-                />
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Points <span className="text-gray-400 font-normal">({getRubricMaxScore(rubric)})</span>
+                </label>
+                <div className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-gray-50 text-gray-600">
+                  {getRubricMaxScore(rubric)} from rubric
+                </div>
               </div>
             </div>
 
-            {/* AI-generated rubric preview */}
-            {rubric.length > 0 && (
-              <div className="bg-gray-50 rounded-xl p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-[#005587]">Rubric ({rubric.length} categories)</span>
-                  <button
-                    type="button"
-                    onClick={() => { setRubric([]); setMaxScore(100); }}
-                    className="text-[10px] text-red-500 font-medium"
-                  >
-                    Remove
-                  </button>
-                </div>
-                <div className="space-y-1.5">
-                  {rubric.map((cat, i) => (
-                    <div key={cat.id || i} className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-[#005587] bg-[#005587]/10 px-1.5 py-0.5 rounded">
-                        {cat.levels?.[0]?.score || 4}
-                      </span>
-                      <span className="text-xs text-gray-700">{cat.name}</span>
-                    </div>
+            {/* Rubric */}
+            <div className="bg-gray-50 rounded-xl p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-[#005587]">Rubric ({rubric.length} categories, {getRubricMaxScore(rubric)} pts)</span>
+                <button
+                  type="button"
+                  onClick={() => setShowRubricDetails(!showRubricDetails)}
+                  className="text-[10px] text-[#005587] font-medium"
+                >
+                  {showRubricDetails ? 'Collapse' : 'Edit'}
+                </button>
+              </div>
+
+              {!showRubricDetails ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {rubric.map((cat) => (
+                    <span key={cat.id} className="px-2 py-0.5 bg-white border border-gray-200 rounded-md text-[10px] text-gray-700">
+                      {cat.name || 'Untitled'}
+                    </span>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="space-y-2">
+                  {rubric.map((cat) => (
+                    <div key={cat.id} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={cat.name}
+                        onChange={(e) => handleRubricNameChange(cat.id, e.target.value)}
+                        className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:ring-1 focus:ring-[#005587]"
+                        placeholder="Category name"
+                      />
+                      <span className="text-[10px] text-gray-400 whitespace-nowrap">{cat.levels[0]?.score} pts</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRubricCategory(cat.id)}
+                        className="text-gray-300 hover:text-red-500 p-0.5"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={handleAddRubricCategory}
+                    className="text-[10px] text-[#005587] font-medium"
+                  >
+                    + Add category
+                  </button>
+                </div>
+              )}
+            </div>
 
-            {/* Info note */}
-            <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-xl">
-              <span className="text-sm">💡</span>
-              <p className="text-xs text-gray-500">
-                Type a title and hit <span className="font-medium text-[#005587]">AI Fill</span> to auto-generate instructions, rubric, and due date. You can edit everything before creating.
-              </p>
+            {/* Peer Responses */}
+            <div className="bg-gray-50 rounded-xl p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-[#005587]">Peer Responses</span>
+                <button
+                  type="button"
+                  onClick={() => setPeerResponsesEnabled(!peerResponsesEnabled)}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${peerResponsesEnabled ? 'bg-[#005587]' : 'bg-gray-300'}`}
+                >
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${peerResponsesEnabled ? 'left-[18px]' : 'left-0.5'}`} />
+                </button>
+              </div>
+
+              {peerResponsesEnabled && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-0.5">Required responses</label>
+                    <select
+                      value={responsesRequired}
+                      onChange={(e) => setResponsesRequired(parseInt(e.target.value))}
+                      className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]"
+                    >
+                      <option value={1}>1 response</option>
+                      <option value={2}>2 responses</option>
+                      <option value={3}>3 responses</option>
+                      <option value={4}>4 responses</option>
+                      <option value={5}>5 responses</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-gray-500 mb-0.5">Due after assignment</label>
+                    <select
+                      value={responseDueDays}
+                      onChange={(e) => setResponseDueDays(parseInt(e.target.value))}
+                      className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]"
+                    >
+                      <option value={1}>+1 day</option>
+                      <option value={2}>+2 days</option>
+                      <option value={3}>+3 days</option>
+                      <option value={5}>+5 days</option>
+                      <option value={7}>+7 days</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Visibility */}
+            <div className="bg-gray-50 rounded-xl p-3">
+              <span className="block text-xs font-bold text-[#005587] mb-2">Visibility</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-0.5">Who sees videos</label>
+                  <select
+                    value={visibility}
+                    onChange={(e) => setVisibility(e.target.value as 'section' | 'all')}
+                    className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]"
+                  >
+                    <option value="section">Their section only</option>
+                    <option value="all">All sections</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] text-gray-500 mb-0.5">When visible</label>
+                  <select
+                    value={videoVisibility}
+                    onChange={(e) => setVideoVisibility(e.target.value as 'after-submit' | 'immediately')}
+                    className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]"
+                  >
+                    <option value="after-submit">After they submit</option>
+                    <option value="immediately">Immediately</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             {/* Actions */}
