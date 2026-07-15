@@ -51,7 +51,7 @@ const StudentProfilePage: React.FC = () => {
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
-    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) return;
+    if (!file.type.startsWith('image/') || file.size > 20 * 1024 * 1024) return;
     setIsUploading(true);
     try {
       const res = await fetch('/api/upload/presigned', {

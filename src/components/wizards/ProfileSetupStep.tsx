@@ -64,10 +64,10 @@ const ProfileSetupStep: React.FC<ProfileSetupStepProps> = ({
       return;
     }
 
-    // Validate file size (max 5MB for profile pictures)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // Validate file size (max 20MB for profile pictures)
+    const maxSize = 20 * 1024 * 1024; // 20MB
     if (file.size > maxSize) {
-      alert('Image size must be less than 5MB');
+      alert('Image size must be less than 20MB');
       return;
     }
 

@@ -122,9 +122,9 @@ export default function EditProfilePage() {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+    // Validate file size (max 20MB)
+    if (file.size > 20 * 1024 * 1024) {
+      alert('File size must be less than 20MB');
       return;
     }
 

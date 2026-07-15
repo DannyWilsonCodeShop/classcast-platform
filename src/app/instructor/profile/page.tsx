@@ -81,8 +81,8 @@ const InstructorProfilePage: React.FC = () => {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors(prev => ({ ...prev, avatar: 'Image size must be less than 5MB' }));
+    if (file.size > 20 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, avatar: 'Image size must be less than 20MB' }));
       return;
     }
 
@@ -468,7 +468,7 @@ const InstructorProfilePage: React.FC = () => {
                       <p className="text-sm text-red-600 mt-1">{errors.avatar}</p>
                     )}
                     <p className="text-xs text-gray-500 mt-1">
-                      Supported: JPG, PNG, GIF, WebP (max 5MB)
+                      Supported: JPG, PNG, GIF, WebP (max 20MB)
                     </p>
                   </div>
                 </div>
