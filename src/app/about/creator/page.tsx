@@ -12,7 +12,7 @@ export default function AboutCreatorPage() {
       {/* Header */}
       <div className="bg-[#005587] text-white px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <img src="/UpdatedCCLogo.png" alt="" className="w-8 h-8 object-contain" />
+          <img src="/UpdatedCCLogo.png" alt="" className="w-8 h-8 object-contain brightness-200" />
           <span className="text-xl" style={{ fontFamily: "'Grand Hotel', cursive" }}>ClassCast</span>
         </div>
         <Link href="/auth/login" className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-full text-sm font-bold">
