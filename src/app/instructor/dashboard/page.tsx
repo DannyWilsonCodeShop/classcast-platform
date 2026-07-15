@@ -37,6 +37,8 @@ const InstructorDashboard: React.FC = () => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [assignmentsLoading, setAssignmentsLoading] = useState(false);
+  const [showCourseMenu, setShowCourseMenu] = useState(false);
+  const [courseActionLoading, setCourseActionLoading] = useState(false);
 
   // Fetch courses for the dropdown
   useEffect(() => {
@@ -131,6 +133,57 @@ const InstructorDashboard: React.FC = () => {
 
   const selectedCourse = courses.find(course => course.courseId === selectedCourseId);
 
+  const handleDeleteCourse = async () => {
+    if (!selectedCourseId) return;
+    const courseName = selectedCourse?.title || 'this course';
+    if (!confirm(`Are you sure you want to delete "${courseName}"? This will permanently remove all assignments, submissions, and videos. This cannot be undone.`)) return;
+    
+    setCourseActionLoading(true);
+    setShowCourseMenu(false);
+    try {
+      const response = await fetch(`/api/instructor/courses/${selectedCourseId}/delete`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data.success) {
+        setCourses(prev => prev.filter(c => c.courseId !== selectedCourseId));
+        setSelectedCourseId('');
+        setAssignments([]);
+      } else {
+        alert(`Failed to delete course: ${data.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      alert('Failed to delete course. Please try again.');
+    } finally {
+      setCourseActionLoading(false);
+    }
+  };
+
+  const handleArchiveCourse = async () => {
+    if (!selectedCourseId) return;
+    setShowCourseMenu(false);
+    setCourseActionLoading(true);
+    try {
+      const response = await fetch('/api/courses', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ courseId: selectedCourseId, status: 'archived' }),
+        credentials: 'include',
+      });
+      const data = await response.json();
+      if (data.success) {
+        setCourses(prev => prev.map(c => c.courseId === selectedCourseId ? { ...c, status: 'archived' } : c));
+      } else {
+        alert(`Failed to archive course: ${data.error || 'Unknown error'}`);
+      }
+    } catch (error) {
+      alert('Failed to archive course. Please try again.');
+    } finally {
+      setCourseActionLoading(false);
+    }
+  };
+
   return (
     <InstructorRoute>
       <div className={`min-h-full overflow-y-auto pb-24 ${isWide ? 'bg-transparent' : 'bg-white'}`}>
@@ -139,22 +192,67 @@ const InstructorDashboard: React.FC = () => {
         {/* Course Selector */}
         <div className={`px-4 ${isWide ? 'pt-4 pb-2' : 'py-2'}`}>
           {courses.length > 0 && (
-            <div className={isWide ? 'flex items-center gap-3' : ''}>
+            <div className={`${isWide ? 'flex items-center gap-3' : 'flex items-center gap-2'}`}>
               {isWide && (
                 <label className="text-sm font-medium text-gray-600 whitespace-nowrap">Course:</label>
               )}
               <select
                 value={selectedCourseId}
                 onChange={(e) => handleCourseChange(e.target.value)}
-                className={`px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-bold text-[#005587] focus:outline-none focus:ring-2 focus:ring-[#005587] ${isWide ? 'max-w-[280px]' : 'w-full'}`}
+                className={`px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-bold text-[#005587] focus:outline-none focus:ring-2 focus:ring-[#005587] ${isWide ? 'max-w-[280px]' : 'flex-1'}`}
               >
                 <option value="" className="font-normal text-gray-500">Select a course...</option>
                 {courses.map((course) => (
                   <option key={course.courseId} value={course.courseId} className="font-bold">
-                    {course.title}
+                    {course.title}{course.status === 'archived' ? ' (Archived)' : ''}
                   </option>
                 ))}
               </select>
+
+              {/* Course actions menu */}
+              {selectedCourseId && (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowCourseMenu(!showCourseMenu)}
+                    disabled={courseActionLoading}
+                    className="p-2 text-gray-400 hover:text-[#005587] hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                    aria-label="Course actions"
+                  >
+                    {courseActionLoading ? (
+                      <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                      </svg>
+                    )}
+                  </button>
+
+                  {showCourseMenu && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowCourseMenu(false)} />
+                      <div className="absolute right-0 top-full mt-1 z-50 bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-[160px]">
+                        {selectedCourse?.status !== 'archived' && (
+                          <button
+                            onClick={handleArchiveCourse}
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <span>📦</span> Archive Course
+                          </button>
+                        )}
+                        <button
+                          onClick={handleDeleteCourse}
+                          className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <span>🗑️</span> Delete Course
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
