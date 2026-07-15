@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     console.log('=== SIMPLE SIGNUP API CALLED ===');
     
     const body = await request.json();
-    const { email, firstName, lastName, password, role, studentId, department, instructorCode } = body;
+    const { email, firstName, lastName, password, role, studentId, department, instructorCode, schoolName, schoolLogo } = body;
 
     console.log('Signup request:', { email, firstName, lastName, role });
 
@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
 
     // Validate instructor code for instructor role
     if (role === 'instructor') {
-      if (!instructorCode || instructorCode !== '5555') {
+      const validCodes = ['5555', 'CRAJ1', 'DEMO1', 'DREW1'];
+      if (!instructorCode || !validCodes.includes(instructorCode.toUpperCase())) {
         return NextResponse.json(
           { success: false, error: 'Invalid instructor code' },
           { status: 400 }
@@ -93,7 +94,9 @@ export async function POST(request: NextRequest) {
       ...(role === 'student' && studentId && { studentId }),
       ...(role === 'instructor' && { 
         department,
-        instructorCode: instructorCode || `INS-${Date.now()}`
+        instructorCode: instructorCode || `INS-${Date.now()}`,
+        ...(schoolName && { schoolName }),
+        ...(schoolLogo && { schoolLogo }),
       }),
     };
 

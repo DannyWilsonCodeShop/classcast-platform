@@ -4,6 +4,16 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
+// School codes map — code -> school info
+const SCHOOL_CODES: Record<string, { name: string; logo: string; bgColor?: string }> = {
+  'CRAJ1': { name: 'Cristo Rey Atlanta Jesuit', logo: '/CristoReyLogo.png' },
+  'DEMO1': { name: 'Demo School', logo: '/Demo1Logo.png' },
+  'DREW1': { name: 'Drew Charter School', logo: '/StudentFiles/Drew_WhiteYellow_Horz_tag.png', bgColor: '#005741' },
+  '5555': { name: 'ClassCast', logo: '/UpdatedCCLogo.png' },
+};
+
+const VALID_CODES = Object.keys(SCHOOL_CODES);
+
 export default function SignupPage() {
   const router = useRouter();
   const { signup } = useAuth();
@@ -15,8 +25,13 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [department, setDepartment] = useState('');
   const [instructorCode, setInstructorCode] = useState('');
+
+  const getSchoolForCode = (code: string) => {
+    return SCHOOL_CODES[code.toUpperCase()] || null;
+  };
+
+  const matchedSchool = role === 'instructor' && instructorCode ? getSchoolForCode(instructorCode) : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,12 +49,15 @@ export default function SignupPage() {
       setError('Passwords do not match.');
       return;
     }
-    if (role === 'instructor' && instructorCode !== '5555') {
-      setError('Invalid instructor code.');
-      return;
+    if (role === 'instructor') {
+      if (!VALID_CODES.includes(instructorCode.toUpperCase())) {
+        setError('Invalid instructor code.');
+        return;
+      }
     }
 
     setIsLoading(true);
+    const school = getSchoolForCode(instructorCode);
     try {
       await signup({
         email,
@@ -47,7 +65,12 @@ export default function SignupPage() {
         lastName,
         password,
         role,
-        ...(role === 'instructor' && { department, instructorCode }),
+        ...(role === 'instructor' && {
+          department: school?.name || 'General',
+          instructorCode: instructorCode.toUpperCase(),
+          schoolName: school?.name,
+          schoolLogo: school?.logo,
+        }),
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed. Please try again.');
@@ -173,25 +196,34 @@ export default function SignupPage() {
               disabled={isLoading}
             />
 
-            {/* Instructor-only fields */}
+            {/* Instructor code field */}
             {role === 'instructor' && (
-              <div className="space-y-3 pt-1">
-                <input
-                  type="text"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  placeholder="Department"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
-                  disabled={isLoading}
-                />
+              <div className="pt-1">
                 <input
                   type="text"
                   value={instructorCode}
                   onChange={(e) => setInstructorCode(e.target.value)}
-                  placeholder="Instructor code"
+                  placeholder="School instructor code"
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                   disabled={isLoading}
                 />
+
+                {/* School match preview */}
+                {matchedSchool && (
+                  <div
+                    className="mt-2 flex items-center gap-2 p-2.5 rounded-xl"
+                    style={{ backgroundColor: matchedSchool.bgColor || '#f3f4f6' }}
+                  >
+                    <img
+                      src={matchedSchool.logo}
+                      alt={matchedSchool.name}
+                      className="h-6 object-contain"
+                    />
+                    <span className={`text-xs font-medium ${matchedSchool.bgColor ? 'text-white' : 'text-gray-700'}`}>
+                      {matchedSchool.name}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
 
