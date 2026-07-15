@@ -64,7 +64,6 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
   const [description, setDescription] = useState('');
   const [semester, setSemester] = useState('');
   const [year, setYear] = useState(2025);
-  const [maxStudents, setMaxStudents] = useState(30);
   const [sections, setSections] = useState<Section[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSections, setIsLoadingSections] = useState(false);
@@ -83,7 +82,6 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
       setDescription(course.description || '');
       setSemester(course.semester || '');
       setYear(course.year || 2025);
-      setMaxStudents(course.maxStudents || 30);
       setError(null);
       setShowDeleteConfirm(false);
       loadSections();
@@ -118,7 +116,6 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
         description,
         semester,
         year,
-        maxStudents,
       });
       if (result.success) {
         onClose();
@@ -145,7 +142,6 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
         body: JSON.stringify({
           courseId: course.courseId,
           sectionName: addingSectionName.trim(),
-          maxEnrollment: maxStudents,
           instructorId: finalInstructorId
         })
       });
@@ -251,30 +247,17 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
             </div>
           </div>
 
-          {/* Year + Max Students row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Year</label>
-              <input
-                type="number"
-                value={year}
-                onChange={(e) => setYear(parseInt(e.target.value) || 2025)}
-                min={2020}
-                max={2030}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Max Students</label>
-              <input
-                type="number"
-                value={maxStudents}
-                onChange={(e) => setMaxStudents(parseInt(e.target.value) || 30)}
-                min={1}
-                max={500}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
-              />
-            </div>
+          {/* Year */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Year</label>
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(parseInt(e.target.value) || 2025)}
+              min={2020}
+              max={2030}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+            />
           </div>
 
           {/* Description */}

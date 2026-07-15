@@ -11,7 +11,6 @@ interface ClassFormData {
   department: string;
   semester: string;
   year: string;
-  maxStudents: number;
 }
 
 interface SectionItem {
@@ -33,7 +32,6 @@ const CreateClassPage: React.FC = () => {
     department: '',
     semester: 'Fall+Spring',
     year: new Date().getFullYear().toString(),
-    maxStudents: 30,
   });
 
   const generateClassCode = (title: string, index: number) => {
@@ -122,7 +120,6 @@ const CreateClassPage: React.FC = () => {
           semester: formData.semester,
           year: parseInt(formData.year),
           instructorId: user?.id,
-          maxStudents: formData.maxStudents,
           startDate: new Date().toISOString(),
           endDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
           prerequisites: [],
@@ -154,7 +151,6 @@ const CreateClassPage: React.FC = () => {
                 courseId: result.data.courseId,
                 sectionName: section.name,
                 classCode: section.classCode,
-                maxEnrollment: formData.maxStudents,
                 instructorId: user?.id
               })
             });
