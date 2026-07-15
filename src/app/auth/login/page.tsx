@@ -96,6 +96,12 @@ export default function LoginPage() {
               About Us
             </button>
             <button
+              onClick={() => { router.push('/about/creator'); setMenuOpen(false); }}
+              className="block w-full text-left px-3 py-2 text-[#005587] font-medium hover:bg-gray-100 rounded-lg"
+            >
+              About the Creator
+            </button>
+            <button
               onClick={() => { router.push('/auth/signup'); setMenuOpen(false); }}
               className="block w-full text-left px-3 py-2 text-[#005587] font-medium hover:bg-gray-100 rounded-lg"
             >
@@ -106,7 +112,7 @@ export default function LoginPage() {
 
         {/* ClassCast header with blue banner - full width with white border */}
         <div className="w-full relative mb-0 -mx-6" style={{ width: 'calc(100% + 3rem)' }}>
-          <div className="bg-[#b3d9f2]/70 border-y-4 border-white" style={{ paddingTop: '0', paddingBottom: '0', marginTop: '-0.25rem', marginBottom: '-0.25rem' }}>
+          <div className="bg-[#b3d9f2]/70 border-4 border-white" style={{ paddingTop: '0', paddingBottom: '0', marginTop: '-0.25rem', marginBottom: '-0.25rem' }}>
             <h1
               className="text-center"
               style={{
