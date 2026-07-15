@@ -279,9 +279,12 @@ export default function AboutPage() {
           <Link href="/auth/signup" className="px-6 py-3 bg-[#FFC72C] text-[#005587] rounded-xl font-bold">
             Get Started Free
           </Link>
-          <a href="mailto:dwilson1919@gmail.com" className="px-6 py-3 border-2 border-white text-white rounded-xl font-bold">
+          <button
+            onClick={() => window.location.href = 'mailto:dwilson1919@gmail.com?subject=ClassCast%20Sales%20Inquiry'}
+            className="px-6 py-3 border-2 border-white text-white rounded-xl font-bold"
+          >
             Contact Sales
-          </a>
+          </button>
         </div>
       </div>
 
