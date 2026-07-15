@@ -6,6 +6,7 @@ import { awsConfig } from '@/lib/aws-config';
 const client = new DynamoDBClient({ region: awsConfig.region });
 const docClient = DynamoDBDocumentClient.from(client);
 const COURSES_TABLE = awsConfig.dynamodb.tables.courses;
+const USERS_TABLE = 'classcast-users';
 
 export async function POST(request: NextRequest) {
   try {
@@ -130,6 +131,31 @@ export async function POST(request: NextRequest) {
         ':now': new Date().toISOString(),
       },
     }));
+
+    // Assign school branding to student from the course instructor
+    try {
+      if (course.instructorId) {
+        const instructorResult = await docClient.send(new ScanCommand({
+          TableName: USERS_TABLE,
+          FilterExpression: 'userId = :userId',
+          ExpressionAttributeValues: { ':userId': course.instructorId }
+        }));
+        const instructor = instructorResult.Items?.[0];
+        if (instructor && (instructor.schoolName || instructor.schoolLogo)) {
+          await docClient.send(new UpdateCommand({
+            TableName: USERS_TABLE,
+            Key: { userId: studentId },
+            UpdateExpression: 'SET schoolName = :schoolName, schoolLogo = :schoolLogo',
+            ExpressionAttributeValues: {
+              ':schoolName': instructor.schoolName || '',
+              ':schoolLogo': instructor.schoolLogo || ''
+            }
+          }));
+        }
+      }
+    } catch (schoolError) {
+      console.error('Error assigning school branding:', schoolError);
+    }
 
     return NextResponse.json({
       success: true,

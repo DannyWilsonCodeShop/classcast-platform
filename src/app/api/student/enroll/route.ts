@@ -203,6 +203,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Assign school branding to the student from the course instructor
+    try {
+      if (course.instructorId) {
+        const instructorResult = await docClient.send(new ScanCommand({
+          TableName: USERS_TABLE,
+          FilterExpression: 'userId = :userId',
+          ExpressionAttributeValues: { ':userId': course.instructorId }
+        }));
+        const instructor = instructorResult.Items?.[0];
+        if (instructor && (instructor.schoolName || instructor.schoolLogo)) {
+          await docClient.send(new UpdateCommand({
+            TableName: USERS_TABLE,
+            Key: { userId },
+            UpdateExpression: 'SET schoolName = :schoolName, schoolLogo = :schoolLogo',
+            ExpressionAttributeValues: {
+              ':schoolName': instructor.schoolName || '',
+              ':schoolLogo': instructor.schoolLogo || ''
+            }
+          }));
+          console.log('Assigned school branding to student:', { schoolName: instructor.schoolName });
+        }
+      }
+    } catch (schoolError) {
+      console.error('Error assigning school branding to student:', schoolError);
+      // Don't fail enrollment if school branding update fails
+    }
+
     return NextResponse.json({
       success: true,
       message: `Successfully enrolled in ${normalizedClassCode}${finalSectionId ? ' and assigned to section' : ''}`,
