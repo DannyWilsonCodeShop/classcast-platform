@@ -19,6 +19,13 @@ export default function AboutPage() {
         </Link>
       </div>
 
+      {/* Mission Statement */}
+      <div className="px-6 py-6 bg-white border-b border-gray-100 text-center">
+        <p className="text-sm italic text-gray-600 max-w-2xl mx-auto leading-relaxed">
+          &ldquo;Bridging the gap between teaching and understanding so every student is seen, every educator is empowered, and every learning experience matters.&rdquo;
+        </p>
+      </div>
+
       {/* Hero with stock image */}
       <div className="relative">
         <div className="absolute inset-0 z-0">
