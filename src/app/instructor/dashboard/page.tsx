@@ -264,24 +264,34 @@ const InstructorDashboard: React.FC = () => {
               <LoadingSpinner size="lg" />
             </div>
           ) : !selectedCourse ? (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-3">📚</div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                {courses.length === 0 ? 'No Courses Yet' : 'Select a Course'}
-              </h3>
-              <p className="text-sm text-gray-600 mb-6">
-                {courses.length === 0 
-                  ? 'Create your first course to get started.'
-                  : 'Choose a course above to view assignments.'
-                }
-              </p>
-              {courses.length === 0 && (
-                <button
-                  onClick={() => router.push('/instructor/classes/create')}
-                  className="px-5 py-3 bg-[#FFC72C] text-[#005587] rounded-xl font-bold"
-                >
-                  + Create Course
-                </button>
+            <div className="flex flex-col items-center justify-center py-16 px-6">
+              {courses.length === 0 ? (
+                <>
+                  <div className="w-20 h-20 bg-[#005587]/10 rounded-full flex items-center justify-center mb-5">
+                    <svg className="w-10 h-10 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-[#005587] mb-2">Welcome to ClassCast</h3>
+                  <p className="text-sm text-gray-500 text-center mb-6 max-w-[260px]">
+                    Create your first course to start assigning video work and engaging students.
+                  </p>
+                  <button
+                    onClick={() => router.push('/instructor/classes/create')}
+                    className="px-6 py-3 bg-[#005587] text-white rounded-xl font-bold text-sm hover:bg-[#004470] transition-colors"
+                  >
+                    + Create Your First Course
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7l4-4m0 0l4 4m-4-4v18" />
+                    </svg>
+                  </div>
+                  <p className="text-sm text-gray-500">Select a course above to view assignments</p>
+                </>
               )}
             </div>
           ) : assignmentsLoading ? (
