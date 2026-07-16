@@ -87,12 +87,8 @@ function RecordPageInner() {
 
   // Auto-trigger based on mode param
   useEffect(() => {
-    if (mode === 'record') {
-      // Delay to ensure video element is rendered
-      setTimeout(() => startCamera(), 100);
-    }
-    // Note: mode=upload no longer auto-opens file picker
-    // Browsers block programmatic .click() without user gesture
+    // Don't auto-start camera — let users choose recording mode
+    // (Record Video, Screen + Camera, or Virtual Background)
   }, [mode]);
 
   // Attach stream to video element when camera becomes active
