@@ -11,6 +11,7 @@ interface CourseOption {
   courseId: string;
   title: string;
   courseName?: string;
+  gradeLevel?: string;
 }
 
 type AssignmentType = 'video' | 'discussion' | 'assessment' | 'group-project' | 'study-module';
@@ -156,7 +157,7 @@ const CreateAssignmentPage: React.FC = () => {
     try {
       const res = await fetch('/api/ai/generate-assignment', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic: title, gradeLevel: 'College', assignmentType, additionalContext: description || undefined }),
+        body: JSON.stringify({ topic: title, gradeLevel: courses.find(c => c.courseId === courseId)?.gradeLevel || '9-12', assignmentType, additionalContext: description || undefined }),
       });
       const data = await res.json();
       if (data.success && data.data) {

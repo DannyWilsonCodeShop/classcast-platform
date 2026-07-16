@@ -11,6 +11,7 @@ interface ClassFormData {
   department: string;
   semester: string;
   year: string;
+  gradeLevel: string;
 }
 
 interface SectionItem {
@@ -33,6 +34,7 @@ const CreateClassPage: React.FC = () => {
     department: '',
     semester: 'Fall+Spring',
     year: new Date().getFullYear().toString(),
+    gradeLevel: '9-12',
   });
 
   const generateClassCode = (title: string, index: number) => {
@@ -120,6 +122,7 @@ const CreateClassPage: React.FC = () => {
           credits: 3,
           semester: formData.semester,
           year: parseInt(formData.year),
+          gradeLevel: formData.gradeLevel,
           instructorId: user?.id,
           startDate: new Date().toISOString(),
           endDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString(),
@@ -244,8 +247,26 @@ const CreateClassPage: React.FC = () => {
               />
             </div>
 
-            {/* Semester + Year row */}
+            {/* Grade Level + Semester row */}
             <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Grade Level
+                </label>
+                <select
+                  value={formData.gradeLevel}
+                  onChange={(e) => handleInputChange('gradeLevel', e.target.value)}
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                >
+                  <option value="K-2">K-2</option>
+                  <option value="3-5">3-5</option>
+                  <option value="6-8">6-8</option>
+                  <option value="9-12">9-12</option>
+                  <option value="College">College</option>
+                  <option value="Graduate">Graduate</option>
+                  <option value="Professional">Professional</option>
+                </select>
+              </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Semester
@@ -262,34 +283,6 @@ const CreateClassPage: React.FC = () => {
                   <option value="Winter">Winter</option>
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Year
-                </label>
-                <input
-                  type="number"
-                  value={formData.year}
-                  onChange={(e) => handleInputChange('year', e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
-                  min="2020"
-                  max="2030"
-                />
-              </div>
-            </div>
-
-            {/* Max Students */}
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Max Students per Section
-              </label>
-              <input
-                type="number"
-                value={formData.maxStudents}
-                onChange={(e) => handleInputChange('maxStudents', parseInt(e.target.value) || 30)}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
-                min="1"
-                max="500"
-              />
             </div>
 
             {/* Sections */}
