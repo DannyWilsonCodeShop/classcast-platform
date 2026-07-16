@@ -77,6 +77,7 @@ const StudentCoursesPage: React.FC = () => {
         // Invalidate cached courses so they refetch immediately
         queryClient.invalidateQueries({ queryKey: ['student-courses'] });
         queryClient.invalidateQueries({ queryKey: ['student-assignments'] });
+        queryClient.invalidateQueries({ queryKey: ['student-feed'] });
       } else {
         setJoinError(data.error || 'Failed to join course');
       }

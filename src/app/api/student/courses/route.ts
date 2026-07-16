@@ -208,7 +208,9 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    return NextResponse.json({ courses: enrichedCourses });
+    return NextResponse.json({ courses: enrichedCourses }, {
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+    });
   } catch (error) {
     console.error('Error fetching student courses:', error);
     return NextResponse.json(
