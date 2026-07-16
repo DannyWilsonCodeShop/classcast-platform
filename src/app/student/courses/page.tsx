@@ -75,8 +75,9 @@ const StudentCoursesPage: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['student-courses'] });
         queryClient.invalidateQueries({ queryKey: ['student-assignments'] });
         queryClient.invalidateQueries({ queryKey: ['student-feed'] });
-        // Navigate to assignments page
-        router.push('/student/assignments');
+        // Navigate to the course detail page after a brief delay for consistency
+        const joinedCourseId = data.course?.courseId;
+        setTimeout(() => router.push(joinedCourseId ? `/student/courses/${joinedCourseId}` : '/student/assignments'), 1500);
       } else {
         setJoinError(data.error || 'Failed to join course');
       }

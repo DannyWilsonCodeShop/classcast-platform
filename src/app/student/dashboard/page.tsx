@@ -67,7 +67,9 @@ export default function StudentDashboardPage() {
         queryClient.invalidateQueries({ queryKey: ['student-courses'] });
         queryClient.invalidateQueries({ queryKey: ['student-assignments'] });
         queryClient.invalidateQueries({ queryKey: ['student-feed'] });
-        router.push('/student/assignments');
+        // Navigate to the course detail page
+        const joinedCourseId = data.course?.courseId;
+        setTimeout(() => router.push(joinedCourseId ? `/student/courses/${joinedCourseId}` : '/student/assignments'), 1500);
       } else {
         setWelcomeError(data.error || 'Invalid code. Try again.');
       }

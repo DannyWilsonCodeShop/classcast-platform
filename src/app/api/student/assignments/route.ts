@@ -30,8 +30,9 @@ export async function GET(request: NextRequest) {
             TableName: COURSES_TABLE,
             FilterExpression: 'courseId = :courseId',
             ExpressionAttributeValues: { ':courseId': courseId },
+            ConsistentRead: true,
           }))
-        : docClient.send(new ScanCommand({ TableName: COURSES_TABLE })),
+        : docClient.send(new ScanCommand({ TableName: COURSES_TABLE, ConsistentRead: true })),
       // Fetch all assignments in one scan (filter in memory)
       docClient.send(new ScanCommand({ TableName: ASSIGNMENTS_TABLE })),
       // Fetch user's submissions
@@ -164,7 +165,9 @@ export async function GET(request: NextRequest) {
     enrichedAssignments.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
     // Let middleware handle caching (5-min stale-while-revalidate)
-    return NextResponse.json({ assignments: enrichedAssignments });
+    return NextResponse.json({ assignments: enrichedAssignments }, {
+      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+    });
   } catch (error) {
     console.error('Error fetching student assignments:', error);
     return NextResponse.json(
