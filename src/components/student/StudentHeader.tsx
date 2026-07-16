@@ -5,11 +5,12 @@ import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Shared header for the student mobile layout.
- * Renders ClassCast branding + school logo.
+ * Renders ClassCast branding + school logo from user profile.
  * Lives in layout.tsx so it stays fixed during page transitions.
  */
 export function StudentHeader() {
   const { user } = useAuth();
+  const schoolLogo = user?.schoolLogo;
 
   return (
     <div className="flex items-center justify-between px-4 pt-2 pb-1 shrink-0">
@@ -22,11 +23,13 @@ export function StudentHeader() {
         </span>
         <img src="/UpdatedCCLogo.png" alt="" className="w-6 h-6 object-contain" />
       </div>
-      <img
-        src="/CristoReyLogo.png"
-        alt=""
-        className="w-14 h-14 object-contain"
-      />
+      {schoolLogo && (
+        <img
+          src={schoolLogo}
+          alt=""
+          className="w-14 h-14 object-contain"
+        />
+      )}
     </div>
   );
 }
