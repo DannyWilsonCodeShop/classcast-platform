@@ -239,7 +239,8 @@ export async function PUT(
       rubric: 'rubric',
       discussionConfig: 'discussionConfig',
       assessmentQuestions: 'assessmentQuestions',
-      moduleConfig: 'moduleConfig'
+      moduleConfig: 'moduleConfig',
+      problemBankId: 'problemBankId'
     };
     
     // Process each field in the body

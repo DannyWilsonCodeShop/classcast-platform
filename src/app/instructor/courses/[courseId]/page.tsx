@@ -383,6 +383,9 @@ const InstructorCourseDetailPage: React.FC = () => {
   const [expandedPeerResponses, setExpandedPeerResponses] = useState<Set<string>>(new Set());
   const [collapsedVideos, setCollapsedVideos] = useState<Set<string>>(new Set());
   const [draggedStudent, setDraggedStudent] = useState<Student | null>(null);
+  const [linkingBankAssignmentId, setLinkingBankAssignmentId] = useState<string | null>(null);
+  const [availableBanks, setAvailableBanks] = useState<Array<{bankId: string; title: string; problemCount: number}>>([]);
+  const [loadingBanks, setLoadingBanks] = useState(false);
 
   const courseId = params.courseId as string;
 
@@ -845,6 +848,41 @@ const InstructorCourseDetailPage: React.FC = () => {
 
 
 
+  const fetchAvailableBanks = async () => {
+    if (!user?.id) return;
+    setLoadingBanks(true);
+    try {
+      const res = await fetch(`/api/problem-banks?instructorId=${user.id}`);
+      const data = await res.json();
+      if (data.success) setAvailableBanks(data.data.banks || []);
+    } catch (err) { console.error('Failed to fetch banks:', err); }
+    finally { setLoadingBanks(false); }
+  };
+
+  const handleLinkBank = async (assignmentId: string, bankId: string, bankTitle: string) => {
+    try {
+      const res = await fetch(`/api/assignments/${assignmentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ problemBankId: bankId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLinkingBankAssignmentId(null);
+        alert(`Question bank "${bankTitle}" linked successfully!`);
+      } else {
+        alert('Failed to link question bank.');
+      }
+    } catch (err) {
+      alert('Failed to link question bank.');
+    }
+  };
+
+  // Fetch banks when the link modal opens
+  useEffect(() => {
+    if (linkingBankAssignmentId) fetchAvailableBanks();
+  }, [linkingBankAssignmentId]);
+
   const handleGradeSubmission = async (submissionId: string) => {
     try {
       const gradeData = grades[submissionId];
@@ -1176,6 +1214,12 @@ const InstructorCourseDetailPage: React.FC = () => {
                         className="px-3 py-1 bg-[#005587] rounded-full text-[10px] font-medium text-white active:scale-95 transition-transform"
                       >
                         Grade
+                      </button>
+                      <button
+                        onClick={() => setLinkingBankAssignmentId(assignment.assignmentId)}
+                        className="px-3 py-1 bg-white border border-gray-200 rounded-full text-[10px] font-medium text-gray-600 active:scale-95 transition-transform"
+                      >
+                        📋 Questions
                       </button>
                     </div>
                   </div>
@@ -1558,6 +1602,49 @@ const InstructorCourseDetailPage: React.FC = () => {
           onUpdate={handleCourseUpdate}
           instructorId={user?.id}
         />
+
+        {/* Link Question Bank Modal */}
+        {linkingBankAssignmentId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40" onClick={() => setLinkingBankAssignmentId(null)}>
+            <div className="bg-white w-full max-w-[360px] rounded-2xl p-5" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold text-[#005587]">Link Question Bank</h3>
+                <button onClick={() => setLinkingBankAssignmentId(null)} className="text-gray-400 p-1">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-500 mb-3">Each student will receive a unique question from this bank.</p>
+              {loadingBanks ? (
+                <p className="text-xs text-gray-400 text-center py-4">Loading...</p>
+              ) : availableBanks.length === 0 ? (
+                <div className="text-center py-4">
+                  <p className="text-xs text-gray-500 mb-2">No question banks yet.</p>
+                  <button
+                    onClick={() => { setLinkingBankAssignmentId(null); router.push('/instructor/problem-banks'); }}
+                    className="text-xs text-[#005587] font-medium"
+                  >
+                    Create one →
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {availableBanks.map(bank => (
+                    <button
+                      key={bank.bankId}
+                      onClick={() => handleLinkBank(linkingBankAssignmentId, bank.bankId, bank.title)}
+                      className="w-full text-left p-3 bg-gray-50 rounded-xl hover:bg-[#005587]/5 hover:border-[#005587] border border-gray-200 transition-colors"
+                    >
+                      <p className="text-xs font-medium text-gray-800">{bank.title}</p>
+                      <p className="text-[9px] text-gray-500">{bank.problemCount} question{bank.problemCount !== 1 ? 's' : ''}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Assignment Editing Modal */}
         {editingAssignment && (
