@@ -20,18 +20,18 @@ interface CreateOption {
 
 const CREATE_OPTIONS: CreateOption[] = [
   {
-    id: 'course',
-    label: 'New Course',
-    description: 'Create a new class for your students',
-    icon: '📚',
-    route: '/instructor/classes/create',
-  },
-  {
     id: 'assignment',
     label: 'New Assignment',
     description: 'Video, discussion, assessment, group project, or study module',
     icon: '📝',
     route: '/instructor/assignments/create',
+  },
+  {
+    id: 'course',
+    label: 'New Course',
+    description: 'Create a new class for your students',
+    icon: '📚',
+    route: '/instructor/classes/create',
   },
 ];
 
