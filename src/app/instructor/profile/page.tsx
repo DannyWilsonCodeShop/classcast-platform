@@ -266,6 +266,16 @@ const InstructorProfilePage: React.FC = () => {
           </span>
         </div>
 
+        {/* School Badge */}
+        {profile.schoolLogo && (
+          <div className="flex items-center justify-center gap-3 mb-6 px-4 py-3 bg-gray-50 rounded-2xl">
+            <img src={profile.schoolLogo} alt={profile.schoolName || 'School'} className="h-10 object-contain" />
+            {profile.schoolName && (
+              <span className="text-sm font-medium text-gray-700">{profile.schoolName}</span>
+            )}
+          </div>
+        )}
+
         {/* Profile Info Card */}
         <div className="bg-gray-50 rounded-2xl p-4 mb-4">
           <h2
