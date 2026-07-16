@@ -47,7 +47,7 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
   const [cutRegions, setCutRegions] = useState<{ start: number; end: number }[]>([]);
   const [isEncoding, setIsEncoding] = useState(false);
   const [encodingProgress, setEncodingProgress] = useState(0);
-  const [activeTab, setActiveTab] = useState<'trim' | 'cut' | 'speed' | 'filter' | 'text' | 'captions'>('trim');
+  const [activeTab, setActiveTab] = useState<'trim' | 'cut' | 'speed' | 'filter' | 'text' | 'captions' | 'music' | 'stickers'>('trim');
   const [speed, setSpeed] = useState(1.0);
   const [markingCut, setMarkingCut] = useState<number | null>(null);
 
@@ -64,6 +64,22 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
   const [captions, setCaptions] = useState<CaptionWord[]>([]);
   const [captionsLoading, setCaptionsLoading] = useState(false);
   const [captionsError, setCaptionsError] = useState('');
+
+  // Phase 3: Background music
+  const [selectedMusic, setSelectedMusic] = useState<string | null>(null);
+  const [musicVolume, setMusicVolume] = useState(0.3);
+  const musicRef = useRef<HTMLAudioElement | null>(null);
+
+  // Phase 3: Stickers
+  const [stickers, setStickers] = useState<Array<{
+    id: string;
+    emoji: string;
+    x: number; // percentage 0-100
+    y: number;
+    size: number; // px
+    startTime: number;
+    endTime: number;
+  }>>([]);
 
   // Load video metadata
   useEffect(() => {
@@ -125,6 +141,8 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
   const handleReset = () => {
     setTrimStart(0); setTrimEnd(duration); setCutRegions([]); setSpeed(1.0);
     setActiveFilter('none'); setTextOverlays([]); setCaptions([]);
+    setSelectedMusic(null); setStickers([]);
+    if (musicRef.current) { musicRef.current.pause(); musicRef.current = null; }
   };
 
   // Add text overlay
@@ -171,7 +189,58 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
   // Get filter CSS for canvas
   const getFilterCSS = () => FILTERS.find(f => f.id === activeFilter)?.css || '';
 
-  // Draw text overlays on canvas
+  // Music tracks (royalty-free, stored in public)
+  const MUSIC_TRACKS = [
+    { id: 'upbeat', label: 'Upbeat', file: '/music/upbeat.mp3' },
+    { id: 'calm', label: 'Calm', file: '/music/calm.mp3' },
+    { id: 'focus', label: 'Focus', file: '/music/focus.mp3' },
+    { id: 'energetic', label: 'Energetic', file: '/music/energetic.mp3' },
+    { id: 'ambient', label: 'Ambient', file: '/music/ambient.mp3' },
+  ];
+
+  // Toggle music
+  const handleSelectMusic = (trackFile: string) => {
+    if (selectedMusic === trackFile) {
+      setSelectedMusic(null);
+      if (musicRef.current) { musicRef.current.pause(); musicRef.current = null; }
+    } else {
+      setSelectedMusic(trackFile);
+      if (musicRef.current) musicRef.current.pause();
+      const audio = new Audio(trackFile);
+      audio.volume = musicVolume;
+      audio.loop = true;
+      musicRef.current = audio;
+    }
+  };
+
+  // Update music volume
+  useEffect(() => {
+    if (musicRef.current) musicRef.current.volume = musicVolume;
+  }, [musicVolume]);
+
+  // Play/pause music with video
+  useEffect(() => {
+    if (!musicRef.current) return;
+    if (isPlaying) musicRef.current.play();
+    else musicRef.current.pause();
+  }, [isPlaying]);
+
+  // Add sticker
+  const handleAddSticker = (emoji: string) => {
+    setStickers(prev => [...prev, {
+      id: `stk_${Date.now()}`,
+      emoji,
+      x: 50,
+      y: 50,
+      size: 48,
+      startTime: currentTime,
+      endTime: Math.min(currentTime + 5, trimEnd),
+    }]);
+  };
+
+  const removeSticker = (id: string) => setStickers(prev => prev.filter(s => s.id !== id));
+
+  // Draw text overlays and stickers on canvas
   const drawTextOnCanvas = (ctx: CanvasRenderingContext2D, width: number, height: number, time: number) => {
     // Draw text overlays
     for (const overlay of textOverlays) {
@@ -186,11 +255,19 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
         ctx.fillText(overlay.text, width / 2, y);
       }
     }
+    // Draw stickers
+    for (const sticker of stickers) {
+      if (time >= sticker.startTime && time <= sticker.endTime) {
+        ctx.font = `${sticker.size}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(sticker.emoji, (sticker.x / 100) * width, (sticker.y / 100) * height);
+      }
+    }
     // Draw captions
     for (let i = 0; i < captions.length; i++) {
       const word = captions[i];
       if (time >= word.startTime && time <= word.endTime + 0.5) {
-        // Gather words in the same time window (show 3-5 words at a time)
         let phrase = word.text;
         for (let j = i + 1; j < Math.min(i + 5, captions.length); j++) {
           if (captions[j].startTime <= time + 1) phrase += ' ' + captions[j].text;
@@ -324,6 +401,12 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
             <span className="text-white text-2xl font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{t.text}</span>
           </div>
         ))}
+        {/* Live sticker preview */}
+        {stickers.filter(s => currentTime >= s.startTime && currentTime <= s.endTime).map(s => (
+          <div key={s.id} className="absolute pointer-events-none" style={{ left: `${s.x}%`, top: `${s.y}%`, transform: 'translate(-50%, -50%)', fontSize: `${s.size}px` }}>
+            {s.emoji}
+          </div>
+        ))}
         {/* Live caption preview */}
         {captions.length > 0 && (() => {
           const active = captions.find(w => currentTime >= w.startTime && currentTime <= w.endTime + 0.5);
@@ -348,7 +431,7 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
       <div className="shrink-0 bg-gray-900 border-t border-white/10">
         {/* Scrollable tool tabs */}
         <div className="flex overflow-x-auto border-b border-white/10 no-scrollbar">
-          {(['trim', 'cut', 'speed', 'filter', 'text', 'captions'] as const).map(tab => (
+          {(['trim', 'cut', 'speed', 'filter', 'text', 'captions', 'music', 'stickers'] as const).map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -360,6 +443,8 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
               {tab === 'filter' && '🎨 Filter'}
               {tab === 'text' && '✏️ Text'}
               {tab === 'captions' && '💬 Captions'}
+              {tab === 'music' && '🎵 Music'}
+              {tab === 'stickers' && '😀 Stickers'}
             </button>
           ))}
           <button onClick={handleReset} className="shrink-0 px-3 py-2 text-xs text-red-400 font-medium">Reset</button>
@@ -465,6 +550,66 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
                 </div>
               )}
               {captionsError && <p className="text-[10px] text-orange-400">{captionsError}</p>}
+            </div>
+          )}
+
+          {activeTab === 'music' && (
+            <div className="space-y-2">
+              <div className="flex gap-1.5 flex-wrap">
+                {MUSIC_TRACKS.map(track => (
+                  <button
+                    key={track.id}
+                    onClick={() => handleSelectMusic(track.file)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium ${selectedMusic === track.file ? 'bg-[#FFC72C] text-[#005587]' : 'bg-white/10 text-white/70'}`}
+                  >
+                    🎵 {track.label}
+                  </button>
+                ))}
+                {selectedMusic && (
+                  <button onClick={() => handleSelectMusic(selectedMusic)} className="px-2.5 py-1.5 rounded-lg text-xs text-red-400 bg-white/5">Off</button>
+                )}
+              </div>
+              {selectedMusic && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-white/50">Volume:</span>
+                  <input
+                    type="range"
+                    min="0" max="1" step="0.05"
+                    value={musicVolume}
+                    onChange={(e) => setMusicVolume(parseFloat(e.target.value))}
+                    className="flex-1 h-1 bg-white/20 rounded-full appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[#FFC72C] [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:appearance-none"
+                  />
+                  <span className="text-[10px] text-white/50 w-8">{Math.round(musicVolume * 100)}%</span>
+                </div>
+              )}
+              <p className="text-[9px] text-white/30">Music plays alongside your original audio during the video.</p>
+            </div>
+          )}
+
+          {activeTab === 'stickers' && (
+            <div className="space-y-2">
+              <div className="flex gap-2 flex-wrap">
+                {['😀', '🎉', '👏', '🔥', '💯', '❤️', '⭐', '✨', '👍', '🤔', '😂', '🎓', '📚', '💡', '🏆'].map(emoji => (
+                  <button
+                    key={emoji}
+                    onClick={() => handleAddSticker(emoji)}
+                    className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-lg hover:bg-white/20 active:scale-90 transition-transform"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+              {stickers.length > 0 && (
+                <div className="flex gap-1.5 flex-wrap">
+                  {stickers.map(s => (
+                    <span key={s.id} className="flex items-center gap-1 px-2 py-0.5 bg-white/10 text-white text-[10px] rounded-full">
+                      {s.emoji} @ {Math.floor(s.startTime)}s
+                      <button onClick={() => removeSticker(s.id)} className="text-white/50 hover:text-red-400">×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <p className="text-[9px] text-white/30">Stickers appear for 5 seconds at the current playhead position.</p>
             </div>
           )}
         </div>

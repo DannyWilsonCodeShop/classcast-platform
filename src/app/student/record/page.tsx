@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { VideoEditor } from '@/components/video-editor/VideoEditor';
+import { PictureInPictureRecorder } from '@/components/video-editor/PictureInPictureRecorder';
+import { GreenScreenRecorder } from '@/components/video-editor/GreenScreenRecorder';
 
 export default function RecordPage() {
   return (
@@ -49,6 +51,8 @@ function RecordPageInner() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [showEditor, setShowEditor] = useState(false);
+  const [showPiP, setShowPiP] = useState(false);
+  const [showGreenScreen, setShowGreenScreen] = useState(false);
 
   // Refs
   const liveVideoRef = useRef<HTMLVideoElement>(null);
@@ -691,10 +695,12 @@ function RecordPageInner() {
             </div>
           )}
 
-          {/* Open Camera button (when camera not active and no video yet) */}
+          {/* Recording mode buttons (when camera not active and no video yet) */}
           {!videoFile && !linkUrl && !isSubmitting && !success && !cameraActive && mode !== 'upload' && (
-            <div className="py-4 flex flex-col items-center">
-              <button onClick={startCamera} className="w-full max-w-xs py-3 bg-[#005587] rounded-full font-bold text-center">📹 Open Camera</button>
+            <div className="py-4 space-y-2 max-w-xs mx-auto w-full">
+              <button onClick={startCamera} className="w-full py-3 bg-[#005587] rounded-full font-bold text-center">📹 Record Video</button>
+              <button onClick={() => setShowPiP(true)} className="w-full py-2.5 bg-gray-800 border border-gray-600 rounded-full font-medium text-center text-sm">🖥️ Screen + Camera (PiP)</button>
+              <button onClick={() => setShowGreenScreen(true)} className="w-full py-2.5 bg-gray-800 border border-gray-600 rounded-full font-medium text-center text-sm">🎭 Virtual Background</button>
             </div>
           )}
 
@@ -799,7 +805,6 @@ function RecordPageInner() {
         <VideoEditor
           videoUrl={videoPreviewUrl}
           onSave={(editedBlob) => {
-            // Replace the current video with the edited version
             const editedFile = new File([editedBlob], videoFile?.name || 'edited-video.webm', { type: editedBlob.type });
             const editedUrl = URL.createObjectURL(editedBlob);
             if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
@@ -808,6 +813,34 @@ function RecordPageInner() {
             setShowEditor(false);
           }}
           onCancel={() => setShowEditor(false)}
+        />
+      )}
+
+      {/* Picture-in-Picture Recorder */}
+      {showPiP && (
+        <PictureInPictureRecorder
+          onRecordingComplete={(blob) => {
+            const file = new File([blob], `pip-recording-${Date.now()}.webm`, { type: blob.type });
+            setVideoFile(file);
+            setVideoPreviewUrl(URL.createObjectURL(blob));
+            setShowPiP(false);
+            setShowThumbnailStep(true);
+          }}
+          onCancel={() => setShowPiP(false)}
+        />
+      )}
+
+      {/* Green Screen / Virtual Background Recorder */}
+      {showGreenScreen && (
+        <GreenScreenRecorder
+          onRecordingComplete={(blob) => {
+            const file = new File([blob], `vbg-recording-${Date.now()}.webm`, { type: blob.type });
+            setVideoFile(file);
+            setVideoPreviewUrl(URL.createObjectURL(blob));
+            setShowGreenScreen(false);
+            setShowThumbnailStep(true);
+          }}
+          onCancel={() => setShowGreenScreen(false)}
         />
       )}
     </StudentRoute>
