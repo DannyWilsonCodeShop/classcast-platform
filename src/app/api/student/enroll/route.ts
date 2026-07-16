@@ -118,6 +118,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if enrollment is open
+    if (course.settings?.enrollmentOpen === false) {
+      return NextResponse.json(
+        { success: false, error: 'Enrollment is currently closed for this course. Please contact your instructor.' },
+        { status: 403 }
+      );
+    }
+
     // Check if course is full
     if (course.maxStudents && course.currentEnrollment >= course.maxStudents) {
       return NextResponse.json(

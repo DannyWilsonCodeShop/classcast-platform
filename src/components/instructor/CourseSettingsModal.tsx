@@ -36,6 +36,7 @@ interface Course {
     allowResubmissions?: boolean;
     enableDiscussions?: boolean;
     enableAnnouncements?: boolean;
+    enrollmentOpen?: boolean;
   };
   sections?: Section[];
   createdAt: string;
@@ -64,6 +65,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
   const [description, setDescription] = useState('');
   const [semester, setSemester] = useState('');
   const [year, setYear] = useState(2025);
+  const [enrollmentOpen, setEnrollmentOpen] = useState(true);
   const [sections, setSections] = useState<Section[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingSections, setIsLoadingSections] = useState(false);
@@ -82,6 +84,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
       setDescription(course.description || '');
       setSemester(course.semester || '');
       setYear(course.year || 2025);
+      setEnrollmentOpen(course.settings?.enrollmentOpen !== false);
       setError(null);
       setShowDeleteConfirm(false);
       loadSections();
@@ -116,6 +119,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
         description,
         semester,
         year,
+        settings: { ...course.settings, enrollmentOpen },
       });
       if (result.success) {
         onClose();
@@ -269,6 +273,24 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
               rows={2}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] resize-none"
             />
+          </div>
+
+          {/* Enrollment Toggle */}
+          <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+            <div>
+              <span className="text-xs font-bold text-[#005587]">Enrollment</span>
+              <p className="text-[10px] text-gray-500 mt-0.5">
+                {enrollmentOpen ? 'Students can join with the class code' : 'New students cannot join this course'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEnrollmentOpen(!enrollmentOpen)}
+              className={`relative w-10 h-5.5 rounded-full transition-colors ${enrollmentOpen ? 'bg-green-500' : 'bg-gray-300'}`}
+              style={{ width: '40px', height: '22px' }}
+            >
+              <div className={`absolute top-[3px] w-4 h-4 rounded-full bg-white transition-transform ${enrollmentOpen ? 'left-[20px]' : 'left-[3px]'}`} />
+            </button>
           </div>
 
           {/* Sections */}
