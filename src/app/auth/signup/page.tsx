@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const SCHOOL_CODES: Record<string, { name: string; logo: string; bgColor?: string }> = {
   'CRAJ1': { name: 'Cristo Rey Atlanta Jesuit', logo: '/CristoReyLogo.png' },
   'DEMO1': { name: 'Demo School', logo: '/Demo1Logo.png' },
-  'DREW1': { name: 'Drew Charter School', logo: '/StudentFiles/Drew_WhiteYellow_Horz_tag.png', bgColor: '#005741' },
+  'DREW1': { name: 'Drew Charter School', logo: '/DrewCharterLogo.png', bgColor: '#005741' },
   '5555': { name: 'ClassCast', logo: '/UpdatedCCLogo.png' },
 };
 
