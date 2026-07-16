@@ -71,13 +71,12 @@ const StudentCoursesPage: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
-        setJoinSuccess(`Enrolled in ${data.course.title}${data.course.sectionName ? ` (${data.course.sectionName})` : ''}!`);
-        setSearchQuery('');
-        setJoinCode('');
-        // Invalidate cached courses so they refetch immediately
+        // Invalidate cached data so it refetches immediately
         queryClient.invalidateQueries({ queryKey: ['student-courses'] });
         queryClient.invalidateQueries({ queryKey: ['student-assignments'] });
         queryClient.invalidateQueries({ queryKey: ['student-feed'] });
+        // Navigate to assignments page
+        router.push('/student/assignments');
       } else {
         setJoinError(data.error || 'Failed to join course');
       }
