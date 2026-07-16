@@ -133,8 +133,22 @@ const CreateAssignmentPage: React.FC = () => {
   const [showQuestionBuilder, setShowQuestionBuilder] = useState(false);
   const [linkedBankId, setLinkedBankId] = useState<string | null>(null);
   const [linkedBankTitle, setLinkedBankTitle] = useState<string | null>(null);
+  const [existingBanks, setExistingBanks] = useState<Array<{bankId: string; title: string; problemCount: number}>>([]);
+  const [showExistingBanks, setShowExistingBanks] = useState(false);
+  const [loadingBanks, setLoadingBanks] = useState(false);
 
   const selectedTypeInfo = ASSIGNMENT_TYPES.find(t => t.id === assignmentType)!;
+
+  const fetchExistingBanks = async () => {
+    if (!user?.id) return;
+    setLoadingBanks(true);
+    try {
+      const res = await fetch(`/api/problem-banks?instructorId=${user.id}`);
+      const data = await res.json();
+      if (data.success) setExistingBanks(data.data.banks || []);
+    } catch (err) { console.error('Failed to fetch banks:', err); }
+    finally { setLoadingBanks(false); }
+  };
 
   useEffect(() => { if (user?.id) fetchCourses(); }, [user?.id]);
 
@@ -503,20 +517,7 @@ const CreateAssignmentPage: React.FC = () => {
                         Remove
                       </button>
                     </div>
-                  ) : !showQuestionBuilder ? (
-                    <div className="space-y-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowQuestionBuilder(true)}
-                        className="w-full py-2.5 border-2 border-dashed border-[#005587]/30 rounded-lg text-xs font-medium text-[#005587] hover:border-[#005587] hover:bg-[#005587]/5 transition-colors"
-                      >
-                        + Create Questions
-                      </button>
-                      <p className="text-[9px] text-gray-400 text-center">
-                        Paste text, upload images, take photos, or import a spreadsheet
-                      </p>
-                    </div>
-                  ) : (
+                  ) : showQuestionBuilder ? (
                     <div className="bg-white rounded-xl border border-gray-200 p-3">
                       <ProblemBankBuilder
                         courseId={courseId}
@@ -539,6 +540,52 @@ const CreateAssignmentPage: React.FC = () => {
                         }}
                         onCancel={() => setShowQuestionBuilder(false)}
                       />
+                    </div>
+                  ) : showExistingBanks ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-medium text-gray-600">Select a question bank</span>
+                        <button type="button" onClick={() => setShowExistingBanks(false)} className="text-[10px] text-gray-400">Cancel</button>
+                      </div>
+                      {loadingBanks ? (
+                        <p className="text-[10px] text-gray-400 text-center py-3">Loading...</p>
+                      ) : existingBanks.length === 0 ? (
+                        <p className="text-[10px] text-gray-400 text-center py-3">No question banks yet. Create one first.</p>
+                      ) : (
+                        <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                          {existingBanks.map(bank => (
+                            <button
+                              key={bank.bankId}
+                              type="button"
+                              onClick={() => { setLinkedBankId(bank.bankId); setLinkedBankTitle(bank.title); setShowExistingBanks(false); }}
+                              className="w-full text-left p-2.5 bg-white border border-gray-200 rounded-lg hover:border-[#005587] transition-colors"
+                            >
+                              <p className="text-xs font-medium text-gray-800">{bank.title}</p>
+                              <p className="text-[9px] text-gray-500">{bank.problemCount} question{bank.problemCount !== 1 ? 's' : ''}</p>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowQuestionBuilder(true)}
+                        className="w-full py-2.5 border-2 border-dashed border-[#005587]/30 rounded-lg text-xs font-medium text-[#005587] hover:border-[#005587] hover:bg-[#005587]/5 transition-colors"
+                      >
+                        + Create New Questions
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setShowExistingBanks(true); fetchExistingBanks(); }}
+                        className="w-full py-2.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        📋 Use Existing Question Bank
+                      </button>
+                      <p className="text-[9px] text-gray-400 text-center">
+                        Paste text, upload images, take photos, or import a spreadsheet
+                      </p>
                     </div>
                   )}
                 </div>
