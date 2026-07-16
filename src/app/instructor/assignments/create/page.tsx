@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { RubricCategory, getRubricMaxScore, generateCategoryId } from '@/types/rubric';
+import { ProblemBankBuilder } from '@/components/instructor/ProblemBankBuilder';
 
 interface CourseOption {
   courseId: string;
@@ -126,6 +127,12 @@ const CreateAssignmentPage: React.FC = () => {
   const [timePerQuestion, setTimePerQuestion] = useState(60);
   const [questionCount, setQuestionCount] = useState(5);
 
+  // Individual questions
+  const [individualQuestionsEnabled, setIndividualQuestionsEnabled] = useState(false);
+  const [showQuestionBuilder, setShowQuestionBuilder] = useState(false);
+  const [linkedBankId, setLinkedBankId] = useState<string | null>(null);
+  const [linkedBankTitle, setLinkedBankTitle] = useState<string | null>(null);
+
   const selectedTypeInfo = ASSIGNMENT_TYPES.find(t => t.id === assignmentType)!;
 
   useEffect(() => { if (user?.id) fetchCourses(); }, [user?.id]);
@@ -194,6 +201,7 @@ const CreateAssignmentPage: React.FC = () => {
           hidePeerVideosUntilSubmitted: videoVisibility === 'after-submit',
           ...(assignmentType === 'group-project' && { groupSize, videosRequired }),
           ...(assignmentType === 'assessment' && { timePerQuestion, questionCount }),
+          ...(linkedBankId && { problemBankId: linkedBankId }),
         }),
       });
       const data = await res.json();
@@ -460,6 +468,80 @@ const CreateAssignmentPage: React.FC = () => {
                   </select>
                 </div>
               </div>
+            </div>
+
+            {/* Individual Questions */}
+            <div className="bg-gray-50 rounded-xl p-3">
+              <div className="flex items-center justify-between mb-1">
+                <div>
+                  <span className="text-xs font-bold text-[#005587]">Individual Questions</span>
+                  <p className="text-[9px] text-gray-500">Each student gets a unique problem from a question bank</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIndividualQuestionsEnabled(!individualQuestionsEnabled)}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${individualQuestionsEnabled ? 'bg-[#005587]' : 'bg-gray-300'}`}
+                >
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${individualQuestionsEnabled ? 'left-[18px]' : 'left-0.5'}`} />
+                </button>
+              </div>
+
+              {individualQuestionsEnabled && (
+                <div className="mt-3 space-y-2">
+                  {linkedBankId ? (
+                    <div className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-green-200">
+                      <div>
+                        <p className="text-xs font-medium text-green-700">✓ {linkedBankTitle}</p>
+                        <p className="text-[9px] text-gray-500">Each student gets a unique question</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setLinkedBankId(null); setLinkedBankTitle(null); }}
+                        className="text-[10px] text-red-500 font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : !showQuestionBuilder ? (
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowQuestionBuilder(true)}
+                        className="w-full py-2.5 border-2 border-dashed border-[#005587]/30 rounded-lg text-xs font-medium text-[#005587] hover:border-[#005587] hover:bg-[#005587]/5 transition-colors"
+                      >
+                        + Create Questions
+                      </button>
+                      <p className="text-[9px] text-gray-400 text-center">
+                        Paste text, upload images, take photos, or import a spreadsheet
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-xl border border-gray-200 p-3">
+                      <ProblemBankBuilder
+                        courseId={courseId}
+                        onSave={async (bankData) => {
+                          try {
+                            const res = await fetch('/api/problem-banks', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ ...bankData, instructorId: user?.id, courseId }),
+                            });
+                            const data = await res.json();
+                            if (data.success && data.data?.bank) {
+                              setLinkedBankId(data.data.bank.bankId);
+                              setLinkedBankTitle(data.data.bank.title);
+                              setShowQuestionBuilder(false);
+                            }
+                          } catch (err) {
+                            console.error('Failed to create bank:', err);
+                          }
+                        }}
+                        onCancel={() => setShowQuestionBuilder(false)}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Actions */}
