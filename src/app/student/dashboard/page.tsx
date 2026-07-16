@@ -29,6 +29,60 @@ export default function StudentDashboardPage() {
   const [demoMode, setDemoMode] = useState(false);
   const { isWide } = useIsWideScreen();
 
+  // Welcome modal for first-time students
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [welcomeCode, setWelcomeCode] = useState('');
+  const [welcomeJoining, setWelcomeJoining] = useState(false);
+  const [welcomeError, setWelcomeError] = useState('');
+
+  useEffect(() => {
+    if (user?.id && user?.role === 'student') {
+      const welcomed = localStorage.getItem(`classcast_welcomed_${user.id}`);
+      if (!welcomed) {
+        setShowWelcome(true);
+      }
+    }
+  }, [user?.id, user?.role]);
+
+  const handleWelcomeJoin = async () => {
+    if (!welcomeCode.trim() || !user?.id) return;
+    setWelcomeJoining(true);
+    setWelcomeError('');
+    try {
+      const res = await fetch('/api/courses/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          classCode: welcomeCode.trim(),
+          studentId: user.id,
+          studentEmail: user.email || '',
+          studentFirstName: user.firstName || '',
+          studentLastName: user.lastName || '',
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        localStorage.setItem(`classcast_welcomed_${user.id}`, 'true');
+        setShowWelcome(false);
+        queryClient.invalidateQueries({ queryKey: ['student-courses'] });
+        queryClient.invalidateQueries({ queryKey: ['student-assignments'] });
+        queryClient.invalidateQueries({ queryKey: ['student-feed'] });
+        router.push('/student/assignments');
+      } else {
+        setWelcomeError(data.error || 'Invalid code. Try again.');
+      }
+    } catch {
+      setWelcomeError('Network error. Try again.');
+    } finally {
+      setWelcomeJoining(false);
+    }
+  };
+
+  const dismissWelcome = () => {
+    if (user?.id) localStorage.setItem(`classcast_welcomed_${user.id}`, 'true');
+    setShowWelcome(false);
+  };
+
   // Listen for Record button click from sidebar
   useEffect(() => {
     const handleRecordClick = () => setShowAssignmentPicker(true);
@@ -411,6 +465,47 @@ export default function StudentDashboardPage() {
           setSelectedPostAssignment(null);
         }}
       />
+    {/* Welcome Modal for first-time students */}
+    {showWelcome && (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/50">
+        <div className="bg-white w-full max-w-[380px] rounded-2xl p-6 text-center">
+          <div className="w-16 h-16 bg-[#005587]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">🎉</span>
+          </div>
+          <h2 className="text-lg font-bold text-[#005587] mb-1">Welcome to ClassCast!</h2>
+          <p className="text-xs text-gray-500 mb-5">Enter your class code to join your first course.</p>
+
+          {welcomeError && (
+            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">{welcomeError}</div>
+          )}
+
+          <input
+            type="text"
+            value={welcomeCode}
+            onChange={(e) => { setWelcomeCode(e.target.value.toUpperCase()); setWelcomeError(''); }}
+            placeholder="Class code (e.g., ABC1234)"
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm text-center font-mono font-bold tracking-wider focus:border-[#005587] focus:outline-none focus:ring-2 focus:ring-[#005587]/20 mb-4"
+            autoFocus
+            onKeyDown={(e) => e.key === 'Enter' && handleWelcomeJoin()}
+          />
+
+          <button
+            onClick={handleWelcomeJoin}
+            disabled={welcomeJoining || !welcomeCode.trim()}
+            className="w-full py-3 bg-[#005587] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 mb-3"
+          >
+            {welcomeJoining ? 'Joining...' : 'Join Course'}
+          </button>
+
+          <button
+            onClick={dismissWelcome}
+            className="text-xs text-gray-400 hover:text-gray-600"
+          >
+            Skip for now
+          </button>
+        </div>
+      </div>
+    )}
     </StudentRoute>
   );
 }

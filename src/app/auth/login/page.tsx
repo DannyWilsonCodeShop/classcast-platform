@@ -206,6 +206,17 @@ export default function LoginPage() {
               )}
             </button>
           </div>
+
+          {/* Sign Up link */}
+          <div className="text-center pt-1">
+            <button
+              type="button"
+              onClick={() => router.push('/auth/signup')}
+              className="text-sm text-white font-medium hover:text-white/80 transition-colors"
+            >
+              Don&apos;t have an account? <span className="underline">Sign Up</span>
+            </button>
+          </div>
         </form>
 
         {/* Student profile photos at bottom */}
