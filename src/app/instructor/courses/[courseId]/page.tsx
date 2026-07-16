@@ -1606,7 +1606,7 @@ const InstructorCourseDetailPage: React.FC = () => {
         {/* Link Question Bank Modal */}
         {linkingBankAssignmentId && (
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40" onClick={() => setLinkingBankAssignmentId(null)}>
-            <div className="bg-white w-full max-w-[360px] rounded-2xl p-5" onClick={e => e.stopPropagation()}>
+            <div className="bg-white w-full max-w-[360px] rounded-2xl p-5 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-bold text-[#005587]">Link Question Bank</h3>
                 <button onClick={() => setLinkingBankAssignmentId(null)} className="text-gray-400 p-1">
@@ -1615,21 +1615,24 @@ const InstructorCourseDetailPage: React.FC = () => {
                   </svg>
                 </button>
               </div>
-              <p className="text-[10px] text-gray-500 mb-3">Each student will receive a unique question from this bank.</p>
+              <p className="text-[10px] text-gray-500 mb-3">Each student will receive a unique question from this bank. Paste text or upload images.</p>
+
+              {/* Option to create new inline */}
+              <button
+                onClick={() => { setLinkingBankAssignmentId(null); router.push('/instructor/problem-banks'); }}
+                className="w-full mb-3 py-2.5 border-2 border-dashed border-[#005587]/30 rounded-lg text-xs font-medium text-[#005587] hover:border-[#005587] hover:bg-[#005587]/5 transition-colors"
+              >
+                + Create New Question Bank
+              </button>
+
+              {/* Existing banks */}
+              <p className="text-[10px] font-medium text-gray-600 mb-2">Or use an existing bank:</p>
               {loadingBanks ? (
                 <p className="text-xs text-gray-400 text-center py-4">Loading...</p>
               ) : availableBanks.length === 0 ? (
-                <div className="text-center py-4">
-                  <p className="text-xs text-gray-500 mb-2">No question banks yet.</p>
-                  <button
-                    onClick={() => { setLinkingBankAssignmentId(null); router.push('/instructor/problem-banks'); }}
-                    className="text-xs text-[#005587] font-medium"
-                  >
-                    Create one →
-                  </button>
-                </div>
+                <p className="text-xs text-gray-400 text-center py-4">No question banks yet.</p>
               ) : (
-                <div className="space-y-2 max-h-60 overflow-y-auto">
+                <div className="space-y-2 max-h-48 overflow-y-auto">
                   {availableBanks.map(bank => (
                     <button
                       key={bank.bankId}
