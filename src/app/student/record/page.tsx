@@ -699,8 +699,8 @@ function RecordPageInner() {
           {!videoFile && !linkUrl && !isSubmitting && !success && !cameraActive && mode !== 'upload' && (
             <div className="py-4 space-y-2 max-w-xs mx-auto w-full">
               <button onClick={startCamera} className="w-full py-3 bg-[#005587] rounded-full font-bold text-center">📹 Record Video</button>
-              <button onClick={() => setShowPiP(true)} className="w-full py-2.5 bg-gray-800 border border-gray-600 rounded-full font-medium text-center text-sm">🖥️ Screen + Camera (PiP)</button>
-              <button onClick={() => setShowGreenScreen(true)} className="w-full py-2.5 bg-gray-800 border border-gray-600 rounded-full font-medium text-center text-sm">🎭 Virtual Background</button>
+              <button onClick={() => setShowPiP(true)} className="w-full py-2.5 bg-gray-800 border border-gray-600 rounded-full font-medium text-center text-sm">🖥️ Screen + Camera <span className="text-[9px] text-yellow-400 ml-1">BETA</span></button>
+              <button onClick={() => setShowGreenScreen(true)} className="w-full py-2.5 bg-gray-800 border border-gray-600 rounded-full font-medium text-center text-sm">🎭 Virtual Background <span className="text-[9px] text-yellow-400 ml-1">BETA</span></button>
             </div>
           )}
 

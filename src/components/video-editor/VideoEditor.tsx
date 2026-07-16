@@ -438,12 +438,12 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
               className={`shrink-0 px-3 py-2 text-xs font-medium whitespace-nowrap ${activeTab === tab ? 'text-[#FFC72C] border-b-2 border-[#FFC72C]' : 'text-white/50'}`}
             >
               {tab === 'trim' && '✂️ Trim'}
-              {tab === 'cut' && '🔪 Cut'}
+              {tab === 'cut' && '🔪 Cut ᵝ'}
               {tab === 'speed' && '⚡ Speed'}
               {tab === 'filter' && '🎨 Filter'}
               {tab === 'text' && '✏️ Text'}
-              {tab === 'captions' && '💬 Captions'}
-              {tab === 'music' && '🎵 Music'}
+              {tab === 'captions' && '💬 Captions ᵝ'}
+              {tab === 'music' && '🎵 Music ᵝ'}
               {tab === 'stickers' && '😀 Stickers'}
             </button>
           ))}
