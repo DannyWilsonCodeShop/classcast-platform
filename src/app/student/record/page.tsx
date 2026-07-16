@@ -40,6 +40,7 @@ function RecordPageInner() {
   const [cameraActive, setCameraActive] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(1.0);
 
   // Upload state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -563,12 +564,18 @@ function RecordPageInner() {
 
         {/* FULL SCREEN CAMERA MODE */}
         {cameraActive && !videoFile && (
-          <div className="absolute inset-0 z-50 bg-black flex flex-col">
-            <video ref={liveVideoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+          <div className="absolute inset-0 z-50 bg-black flex flex-col overflow-hidden">
+            <video ref={liveVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" style={{ transform: `scaleX(-1) scale(${zoomLevel})` }} />
             {/* Back button */}
             <button onClick={() => { stopCamera(); router.back(); }} className="absolute top-12 left-4 z-10 bg-black/50 text-white p-2.5 rounded-full">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             </button>
+            {/* Zoom control */}
+            <div className="absolute top-12 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
+              <button onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.1))} className="text-white text-lg font-bold w-6 h-6 flex items-center justify-center">−</button>
+              <span className="text-white text-[10px] font-mono w-8 text-center">{Math.round(zoomLevel * 100)}%</span>
+              <button onClick={() => setZoomLevel(z => Math.min(2.0, z + 0.1))} className="text-white text-lg font-bold w-6 h-6 flex items-center justify-center">+</button>
+            </div>
             {/* Security notice */}
             {!isRecording && (
               <div className="absolute top-12 right-4 z-10 bg-black/60 backdrop-blur-sm text-white/80 text-[10px] px-2.5 py-1.5 rounded-lg max-w-[140px] text-center">
