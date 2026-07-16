@@ -392,6 +392,7 @@ export async function POST(request: NextRequest) {
           favoriteSubject: userData.favoriteSubject || userData.favorite_subject || '',
           hobbies: userData.hobbies || '',
           schoolName: userData.schoolName || userData.school_name || '',
+          schoolLogo: userData.schoolLogo || '',
           studentId: userData.studentId || userData.student_id,
           instructorId: userData.instructorCode || userData.instructor_code,
           department: userData.department || '',
