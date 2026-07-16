@@ -8,6 +8,7 @@ import { LiquidGlassIndicator } from '@/components/student/LiquidGlassIndicator'
 import { useLiquidGlass } from '@/hooks/useLiquidGlass';
 import { useSwipeNavigationContext } from '@/components/transitions/SwipeNavigationProvider';
 import { CreateModal } from '@/components/instructor/CreateModal';
+import { useSchoolTheme } from '@/hooks/useSchoolTheme';
 
 /**
  * Floating glass bottom navigation bar for instructor mobile pages.
@@ -18,6 +19,7 @@ export function InstructorTabBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
+  const theme = useSchoolTheme();
 
   // Create modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -33,8 +35,8 @@ export function InstructorTabBar() {
     return false;
   };
 
-  const activeColor = 'text-[#005587]';
   const inactiveColor = 'text-gray-400';
+  const activeColor = 'text-[color:var(--theme-primary)]';
   const avatarUrl = user?.avatar || user?.profileImage || null;
   const userInitial = (user?.firstName || user?.email || '?')[0]?.toUpperCase();
 

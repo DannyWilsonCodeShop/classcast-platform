@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import { CreateModal } from './CreateModal';
+import { useSchoolTheme } from '@/hooks/useSchoolTheme';
 
 interface NavItem {
   label: string;
@@ -46,6 +47,7 @@ export function InstructorSidebar() {
   const { user } = useAuth();
   const { isDesktop } = useIsWideScreen();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const theme = useSchoolTheme();
 
   const isActive = (path: string) => {
     if (path === '/instructor/dashboard') return pathname === path;
@@ -99,9 +101,10 @@ export function InstructorSidebar() {
         <div className="pt-3">
           <button
             onClick={() => setShowCreateModal(true)}
-            className={`w-full flex items-center gap-2 bg-[#FFC72C] hover:bg-[#e6b225] text-[#005587] font-bold rounded-xl transition-colors min-h-[44px] ${
+            className={`w-full flex items-center gap-2 font-bold rounded-xl transition-colors min-h-[44px] ${
               isDesktop ? 'px-3 py-3 justify-start' : 'justify-center py-3'
             }`}
+            style={{ backgroundColor: theme.accent, color: theme.accentText }}
             title={!isDesktop ? 'Create' : undefined}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,11 +119,11 @@ export function InstructorSidebar() {
       <div className={`border-t border-gray-50 p-3 ${isDesktop ? '' : 'flex justify-center'}`}>
         {isDesktop ? (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full border-2 border-[#FFC72C] overflow-hidden bg-gray-200 shrink-0">
+            <div className="w-8 h-8 rounded-full border-2 overflow-hidden bg-gray-200 shrink-0" style={{ borderColor: theme.accent }}>
               {user?.avatar ? (
                 <img src={user.avatar} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-[#005587] flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: theme.primary }}>
                   {(user?.firstName || '?')[0]}
                 </div>
               )}

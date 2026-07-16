@@ -10,6 +10,8 @@ import TransitionContainer from '@/components/transitions/TransitionContainer';
 import { InstructorHeader } from '@/components/instructor/InstructorHeader';
 import { InstructorTabBar } from '@/components/instructor/InstructorTabBar';
 import { SwipeTabConfig } from '@/hooks/useSwipeNavigation';
+import { useSchoolTheme } from '@/hooks/useSchoolTheme';
+import { getThemeCSSVars } from '@/lib/school-theme';
 
 // Pages that show the shared ClassCast header (main tab pages only, not sub-routes)
 const INSTRUCTOR_TAB_PATHS = ['/instructor/dashboard', '/instructor/grading', '/instructor/grading/bulk', '/instructor/courses', '/instructor/profile'];
@@ -37,9 +39,12 @@ export default function InstructorLayout({
   const wasDrillingFromTab = direction === 'drill-in' && isAnimating && prevPath && INSTRUCTOR_TAB_PATHS.includes(prevPath);
   const showSharedHeader = isOnTabPage || wasDrillingFromTab;
 
+  const theme = useSchoolTheme();
+  const themeVars = getThemeCSSVars(theme) as React.CSSProperties;
+
   if (isWide) {
     return (
-      <div className="flex h-screen h-dvh overflow-hidden" data-wide-layout="">
+      <div className="flex h-screen h-dvh overflow-hidden" data-wide-layout="" style={themeVars}>
         <InstructorSidebar />
         <main className="flex-1 overflow-y-auto bg-white">
           {children}
@@ -49,7 +54,7 @@ export default function InstructorLayout({
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+    <div className="h-full flex flex-col overflow-hidden" style={{ paddingTop: 'env(safe-area-inset-top, 0px)', ...themeVars }}>
       {showSharedHeader && (
         <>
           {/* eslint-disable-next-line @next/next/no-page-custom-font */}

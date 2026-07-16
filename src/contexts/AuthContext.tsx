@@ -240,6 +240,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         lastName: userData.lastName,
         role: userData.role,
         emailVerified: true,
+        schoolName: (userData as any).schoolName || result.user?.schoolName,
+        schoolLogo: (userData as any).schoolLogo || result.user?.schoolLogo,
       };
 
       setUser(newUser);

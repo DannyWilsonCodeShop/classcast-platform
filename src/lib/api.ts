@@ -30,6 +30,7 @@ export interface User {
   favoriteSubject?: string;
   hobbies?: string;
   schoolName?: string;
+  schoolLogo?: string;
   isDemoUser?: boolean;
   demoViewingUserId?: string;
 }
