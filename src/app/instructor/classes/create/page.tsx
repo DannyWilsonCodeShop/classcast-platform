@@ -23,6 +23,7 @@ const CreateClassPage: React.FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showSuccess, setShowSuccess] = useState(false);
   const [sections, setSections] = useState<SectionItem[]>([
     { name: 'Section 1', classCode: '' }
   ]);
@@ -159,7 +160,9 @@ const CreateClassPage: React.FC = () => {
           }
         }
 
-        router.push('/instructor/dashboard');
+        // Show success message before redirecting
+        setShowSuccess(true);
+        setTimeout(() => router.push('/instructor/dashboard'), 3000);
       } else {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create course');
@@ -194,6 +197,18 @@ const CreateClassPage: React.FC = () => {
               {errors.general}
             </div>
           )}
+
+          {showSuccess ? (
+            <div className="text-center py-8">
+              <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-sm font-bold text-gray-900 mb-1">Course Created!</h3>
+              <p className="text-xs text-gray-500">It may take a moment to appear in your dashboard.</p>
+            </div>
+          ) : (
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Title */}
@@ -371,6 +386,7 @@ const CreateClassPage: React.FC = () => {
               </button>
             </div>
           </form>
+          )}
         </div>
       </div>
     </InstructorRoute>

@@ -80,6 +80,7 @@ const CreateAssignmentPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [hoveredType, setHoveredType] = useState<AssignmentType | null>(null);
 
   const [courseId, setCourseId] = useState('');
@@ -196,7 +197,7 @@ const CreateAssignmentPage: React.FC = () => {
         }),
       });
       const data = await res.json();
-      if (data.success) { router.push('/instructor/dashboard'); }
+      if (data.success) { setShowSuccess(true); setTimeout(() => router.push('/instructor/dashboard'), 3000); }
       else { setError(data.error || 'Failed to create assignment'); }
     } catch { setError('Network error.'); }
     finally { setIsSubmitting(false); }
@@ -224,6 +225,17 @@ const CreateAssignmentPage: React.FC = () => {
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">{error}</div>
           )}
 
+          {showSuccess ? (
+            <div className="text-center py-8">
+              <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-sm font-bold text-gray-900 mb-1">Assignment Created!</h3>
+              <p className="text-xs text-gray-500">It may take a moment to appear in your dashboard.</p>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Course */}
             <div>
@@ -459,6 +471,7 @@ const CreateAssignmentPage: React.FC = () => {
               </button>
             </div>
           </form>
+          )}
         </div>
       </div>
     </InstructorRoute>
