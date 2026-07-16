@@ -119,7 +119,7 @@ const CreateAssignmentPage: React.FC = () => {
       setRubric(prev => prev.filter(c => c.id !== PEER_RUBRIC_ID));
     }
   }, [peerResponsesEnabled]);
-  const [visibility, setVisibility] = useState<'section' | 'all'>('section');
+  const [visibility, setVisibility] = useState<'section' | 'all' | 'teacher-only'>('section');
   const [videoVisibility, setVideoVisibility] = useState<'after-submit' | 'immediately'>('after-submit');
 
   // Type-specific fields
@@ -472,8 +472,8 @@ const CreateAssignmentPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-0.5">Who sees videos</label>
-                  <select value={visibility} onChange={(e) => setVisibility(e.target.value as 'section' | 'all')} className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]">
-                    <option value="section">Their section only</option><option value="all">All sections</option>
+                  <select value={visibility} onChange={(e) => setVisibility(e.target.value as 'section' | 'all' | 'teacher-only')} className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]">
+                    <option value="section">Their section only</option><option value="all">All sections</option><option value="teacher-only">Teacher only</option>
                   </select>
                 </div>
                 <div>
