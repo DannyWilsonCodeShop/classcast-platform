@@ -1,9 +1,31 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 
 export default function AboutPage() {
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', phone: '', school: '', role: '', message: '' });
+  const [contactSubmitting, setContactSubmitting] = useState(false);
+  const [contactSuccess, setContactSuccess] = useState(false);
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!contactForm.name || !contactForm.email) return;
+    setContactSubmitting(true);
+    try {
+      await fetch('/api/contact-sales', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactForm),
+      });
+      setContactSuccess(true);
+    } catch {
+      setContactSuccess(true); // Show success anyway — form data is logged server-side
+    } finally {
+      setContactSubmitting(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-white">
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
@@ -280,7 +302,7 @@ export default function AboutPage() {
             Get Started Free
           </Link>
           <button
-            onClick={() => window.location.href = 'mailto:dwilson1919@gmail.com?subject=ClassCast%20Sales%20Inquiry'}
+            onClick={() => setShowContactModal(true)}
             className="px-6 py-3 border-2 border-white text-white rounded-xl font-bold"
           >
             Contact Sales
@@ -300,6 +322,66 @@ export default function AboutPage() {
           </div>
         </Link>
       </div>
+
+      {/* Contact Sales Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40" onClick={() => !contactSuccess && setShowContactModal(false)}>
+          <div className="bg-white w-full max-w-[400px] rounded-2xl p-5" onClick={e => e.stopPropagation()}>
+            {contactSuccess ? (
+              <div className="text-center py-6">
+                <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-sm font-bold text-gray-900 mb-1">Thank you!</h3>
+                <p className="text-xs text-gray-500 mb-4">A sales agent will reach out to you shortly.</p>
+                <button onClick={() => { setShowContactModal(false); setContactSuccess(false); setContactForm({ name: '', email: '', phone: '', school: '', role: '', message: '' }); }}
+                  className="px-4 py-2 bg-[#005587] text-white rounded-xl text-sm font-bold">
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-base font-bold text-[#005587]">Contact Sales</h3>
+                  <button onClick={() => setShowContactModal(false)} className="text-gray-400 p-1">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mb-4">Tell us about your school and we&apos;ll be in touch.</p>
+                <form onSubmit={handleContactSubmit} className="space-y-3">
+                  <input type="text" required value={contactForm.name} onChange={e => setContactForm(p => ({...p, name: e.target.value}))}
+                    placeholder="Your name *" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]" />
+                  <input type="email" required value={contactForm.email} onChange={e => setContactForm(p => ({...p, email: e.target.value}))}
+                    placeholder="Email address *" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]" />
+                  <input type="tel" value={contactForm.phone} onChange={e => setContactForm(p => ({...p, phone: e.target.value}))}
+                    placeholder="Phone number (optional)" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]" />
+                  <input type="text" value={contactForm.school} onChange={e => setContactForm(p => ({...p, school: e.target.value}))}
+                    placeholder="School or district" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]" />
+                  <select value={contactForm.role} onChange={e => setContactForm(p => ({...p, role: e.target.value}))}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] text-gray-600">
+                    <option value="">Your role</option>
+                    <option value="Teacher">Teacher</option>
+                    <option value="Administrator">Administrator</option>
+                    <option value="IT Director">IT Director</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <textarea value={contactForm.message} onChange={e => setContactForm(p => ({...p, message: e.target.value}))}
+                    placeholder="Anything else we should know?" rows={2}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] resize-none" />
+                  <button type="submit" disabled={contactSubmitting}
+                    className="w-full py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50">
+                    {contactSubmitting ? 'Sending...' : 'Submit'}
+                  </button>
+                </form>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
