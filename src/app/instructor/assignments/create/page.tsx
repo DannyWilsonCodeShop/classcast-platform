@@ -92,6 +92,30 @@ const CreateAssignmentPage: React.FC = () => {
   const [peerResponsesEnabled, setPeerResponsesEnabled] = useState(true);
   const [responsesRequired, setResponsesRequired] = useState(2);
   const [responseDueDays, setResponseDueDays] = useState(3);
+
+  // Auto-add/remove "Peer Response Quality" rubric category when peer responses toggle changes
+  const PEER_RUBRIC_ID = 'cat_peer_response';
+  useEffect(() => {
+    if (peerResponsesEnabled) {
+      // Add peer response category if not already present
+      setRubric(prev => {
+        if (prev.some(c => c.id === PEER_RUBRIC_ID)) return prev;
+        return [...prev, {
+          id: PEER_RUBRIC_ID,
+          name: 'Peer Response Quality',
+          levels: [
+            { score: 4, description: 'Thoughtful, specific, constructive feedback' },
+            { score: 3, description: 'Adequate engagement with peer\'s work' },
+            { score: 2, description: 'Surface-level or generic response' },
+            { score: 1, description: 'Minimal effort or off-topic' },
+          ]
+        }];
+      });
+    } else {
+      // Remove peer response category
+      setRubric(prev => prev.filter(c => c.id !== PEER_RUBRIC_ID));
+    }
+  }, [peerResponsesEnabled]);
   const [visibility, setVisibility] = useState<'section' | 'all'>('section');
   const [videoVisibility, setVideoVisibility] = useState<'after-submit' | 'immediately'>('after-submit');
 
@@ -135,7 +159,7 @@ const CreateAssignmentPage: React.FC = () => {
           const due = new Date(); due.setDate(due.getDate() + gen.suggestedDueInDays);
           setDueDate(`${due.getFullYear()}-${String(due.getMonth()+1).padStart(2,'0')}-${String(due.getDate()).padStart(2,'0')}T23:59`);
         }
-      } else { setError(data.error || 'AI generation failed.'); }
+      } else { setError(data.error?.includes('credentials') ? 'AI feature is temporarily unavailable. You can fill in the fields manually.' : (data.error || 'AI generation failed.')); }
     } catch { setError('Network error. Try again.'); }
     finally { setIsGenerating(false); }
   };
