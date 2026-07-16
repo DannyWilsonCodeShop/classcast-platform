@@ -40,7 +40,7 @@ interface Course {
 }
 
 const StudentCoursesPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { data: courses = [], isLoading: loading, error: fetchError } = useStudentCourses();
@@ -71,6 +71,10 @@ const StudentCoursesPage: React.FC = () => {
       });
       const data = await res.json();
       if (data.success) {
+        // Update user context with school branding if returned
+        if (data.school?.schoolLogo) {
+          updateUser({ schoolName: data.school.schoolName, schoolLogo: data.school.schoolLogo });
+        }
         // Invalidate cached data so it refetches immediately
         queryClient.invalidateQueries({ queryKey: ['student-courses'] });
         queryClient.invalidateQueries({ queryKey: ['student-assignments'] });

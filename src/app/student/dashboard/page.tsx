@@ -15,7 +15,7 @@ import ModalTransition from '@/components/transitions/ModalTransition';
 
 export default function StudentDashboardPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const queryClient = useQueryClient();
   const { data: assignments = [], isLoading: loading } = useStudentAssignments();
   const { data: feed = [] } = useStudentFeed();
@@ -64,6 +64,10 @@ export default function StudentDashboardPage() {
       if (data.success) {
         localStorage.setItem(`classcast_welcomed_${user.id}`, 'true');
         setShowWelcome(false);
+        // Update user context with school branding
+        if (data.school?.schoolLogo) {
+          updateUser({ schoolName: data.school.schoolName, schoolLogo: data.school.schoolLogo });
+        }
         queryClient.invalidateQueries({ queryKey: ['student-courses'] });
         queryClient.invalidateQueries({ queryKey: ['student-assignments'] });
         queryClient.invalidateQueries({ queryKey: ['student-feed'] });

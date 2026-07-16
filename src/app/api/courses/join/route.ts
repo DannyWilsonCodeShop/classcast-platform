@@ -141,6 +141,7 @@ export async function POST(request: NextRequest) {
     }));
 
     // Assign school branding to student from the course instructor
+    let instructor: any = null;
     try {
       if (course.instructorId) {
         const instructorResult = await docClient.send(new ScanCommand({
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
           FilterExpression: 'userId = :userId',
           ExpressionAttributeValues: { ':userId': course.instructorId }
         }));
-        const instructor = instructorResult.Items?.[0];
+        instructor = instructorResult.Items?.[0];
         if (instructor && (instructor.schoolName || instructor.schoolLogo)) {
           await docClient.send(new UpdateCommand({
             TableName: USERS_TABLE,
@@ -173,6 +174,7 @@ export async function POST(request: NextRequest) {
         code: course.code,
         sectionName: matchedSectionName,
       },
+      school: instructor ? { schoolName: instructor.schoolName || '', schoolLogo: instructor.schoolLogo || '' } : undefined,
     });
   } catch (error) {
     console.error('Error joining course:', error);

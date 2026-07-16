@@ -176,7 +176,7 @@ export default function StudentCourseDetailPage() {
           <div className="flex-1 mx-2 min-w-0">
             <h1 className="text-sm font-bold text-gray-900 truncate">{course?.courseName || 'Course'}</h1>
           </div>
-          <img src="/UpdatedCCLogo.png" alt="ClassCast" className="w-6 h-6 object-contain" />
+          <img src={user?.schoolLogo || '/UpdatedCCLogo.png'} alt="" className="w-6 h-6 object-contain" />
         </div>
 
         {/* Course Info Card - Detailed */}
