@@ -91,7 +91,7 @@ export async function DELETE(
     videosFailed: number;
     errors: string[];
   } = {
-    courseId: params.courseId,
+    courseId: '',
     assignments: 0,
     submissions: 0,
     peerResponses: 0,
@@ -102,6 +102,7 @@ export async function DELETE(
 
   try {
     const { courseId } = await params;
+    deletionReport.courseId = courseId;
 
     if (!courseId) {
       return NextResponse.json(
@@ -221,41 +222,49 @@ export async function DELETE(
       }
     }
 
-    // STEP 5: Delete submissions from DynamoDB
-    console.log('📝 Step 5: Deleting submission records...');
-    if (allSubmissions.length > 0) {
-      const deleteSubmissionPromises = allSubmissions.map(submission => 
-        docClient.send(new DeleteCommand({
-          TableName: SUBMISSIONS_TABLE,
-          Key: { submissionId: submission.submissionId }
-        }))
-      );
-
-      await Promise.all(deleteSubmissionPromises);
-      console.log(`✅ Deleted ${allSubmissions.length} submission records`);
-    }
-
-    // STEP 6: Delete assignments from DynamoDB
-    console.log('📋 Step 6: Deleting assignment records...');
-    if (assignments.length > 0) {
-      const deleteAssignmentPromises = assignments.map(assignment => 
-        docClient.send(new DeleteCommand({
-          TableName: ASSIGNMENTS_TABLE,
-          Key: { assignmentId: assignment.assignmentId }
-        }))
-      );
-
-      await Promise.all(deleteAssignmentPromises);
-      console.log(`✅ Deleted ${assignments.length} assignment records`);
-    }
-
-    // STEP 7: Delete the course itself
+    // STEP 7: Delete the course itself FIRST (most important)
     console.log('🎓 Step 7: Deleting course record...');
     await docClient.send(new DeleteCommand({
       TableName: COURSES_TABLE,
       Key: { courseId: courseId }
     }));
     console.log('✅ Course deleted');
+
+    // STEP 5: Delete submissions from DynamoDB
+    console.log('📝 Step 5: Deleting submission records...');
+    if (allSubmissions.length > 0) {
+      try {
+        const deleteSubmissionPromises = allSubmissions.map(submission => 
+          docClient.send(new DeleteCommand({
+            TableName: SUBMISSIONS_TABLE,
+            Key: { submissionId: submission.submissionId }
+          }))
+        );
+        await Promise.all(deleteSubmissionPromises);
+        console.log(`✅ Deleted ${allSubmissions.length} submission records`);
+      } catch (subErr) {
+        console.error('Error deleting submissions (non-fatal):', subErr);
+        deletionReport.errors.push('Some submissions failed to delete');
+      }
+    }
+
+    // STEP 6: Delete assignments from DynamoDB
+    console.log('📋 Step 6: Deleting assignment records...');
+    if (assignments.length > 0) {
+      try {
+        const deleteAssignmentPromises = assignments.map(assignment => 
+          docClient.send(new DeleteCommand({
+            TableName: ASSIGNMENTS_TABLE,
+            Key: { assignmentId: assignment.assignmentId }
+          }))
+        );
+        await Promise.all(deleteAssignmentPromises);
+        console.log(`✅ Deleted ${assignments.length} assignment records`);
+      } catch (assignErr) {
+        console.error('Error deleting assignments (non-fatal):', assignErr);
+        deletionReport.errors.push('Some assignments failed to delete');
+      }
+    }
 
     console.log('🎉 Course deletion completed successfully!');
     console.log('📊 Deletion Report:', JSON.stringify(deletionReport, null, 2));
