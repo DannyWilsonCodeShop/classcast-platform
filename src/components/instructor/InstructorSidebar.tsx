@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
@@ -11,6 +11,7 @@ interface NavItem {
   label: string;
   path: string;
   icon: React.ReactNode;
+  requiresTeam?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -38,6 +39,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Study Hall',
     path: '/instructor/study-hall',
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+    requiresTeam: true,
   },
   {
     label: 'Profile',
@@ -52,7 +54,20 @@ export function InstructorSidebar() {
   const { user } = useAuth();
   const { isDesktop } = useIsWideScreen();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [hasTeam, setHasTeam] = useState(false);
   const theme = useSchoolTheme();
+
+  // Check if user is on a team (for Study Hall visibility)
+  useEffect(() => {
+    if (user?.id) {
+      fetch(`/api/teams?memberId=${user.id}`)
+        .then(r => r.json())
+        .then(data => { if (data.success && data.teams?.length > 0) setHasTeam(true); })
+        .catch(() => {});
+    }
+  }, [user?.id]);
+
+  const visibleNavItems = NAV_ITEMS.filter(item => !item.requiresTeam || hasTeam);
 
   const isActive = (path: string) => {
     if (path === '/instructor/dashboard') return pathname === path;
@@ -77,7 +92,7 @@ export function InstructorSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 py-2 px-2 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map((item) => {
+        {visibleNavItems.map((item) => {
           const active = isActive(item.path);
           return (
             <button
