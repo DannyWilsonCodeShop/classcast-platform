@@ -32,13 +32,19 @@ export default function StudyHallAdminPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [activeTab, setActiveTab] = useState<'pullouts' | 'roster'>('pullouts');
+  const [activeTab, setActiveTab] = useState<'pullouts' | 'roster' | 'team'>('pullouts');
   const [pullouts, setPullouts] = useState<PulloutRequest[]>([]);
   const [roster, setRoster] = useState<RosterEntry[]>([]);
   const [loadingPullouts, setLoadingPullouts] = useState(true);
   const [loadingRoster, setLoadingRoster] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState('');
+
+  // Team state
+  const [myTeam, setMyTeam] = useState<any>(null);
+  const [teamName, setTeamName] = useState('');
+  const [newMemberEmail, setNewMemberEmail] = useState('');
+  const [addingMember, setAddingMember] = useState(false);
 
   // Date filter - default to tomorrow
   const [filterDate, setFilterDate] = useState(() => {
@@ -47,15 +53,31 @@ export default function StudyHallAdminPage() {
     return tomorrow.toISOString().split('T')[0];
   });
 
-  // Fetch pullouts for the selected date
+  // Fetch pullouts for the selected date (filtered by team)
   useEffect(() => {
     fetchPullouts();
-  }, [filterDate]);
+  }, [filterDate, myTeam]);
+
+  // Fetch my team
+  useEffect(() => {
+    if (user?.id) {
+      fetch(`/api/teams?leadId=${user.id}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.teams?.length > 0) {
+            setMyTeam(data.teams[0]);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user?.id]);
 
   const fetchPullouts = async () => {
     setLoadingPullouts(true);
     try {
-      const res = await fetch(`/api/study-hall?date=${filterDate}`);
+      let url = `/api/study-hall?date=${filterDate}`;
+      if (myTeam?.teamId) url += `&teamId=${myTeam.teamId}`;
+      const res = await fetch(url);
       const data = await res.json();
       if (data.success) setPullouts(data.pullouts || []);
     } catch (err) {
@@ -138,6 +160,57 @@ export default function StudyHallAdminPage() {
     }
   };
 
+  // Team management
+  const handleCreateTeam = async () => {
+    if (!teamName.trim() || !user?.id) return;
+    try {
+      const res = await fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: teamName, leadId: user.id, leadName: `${user.firstName} ${user.lastName}` }),
+      });
+      const data = await res.json();
+      if (data.success) { setMyTeam(data.team); setTeamName(''); }
+    } catch (err) { console.error('Failed to create team:', err); }
+  };
+
+  const handleAddMember = async () => {
+    if (!newMemberEmail.trim() || !myTeam) return;
+    setAddingMember(true);
+    try {
+      // Search for instructor by email
+      const searchRes = await fetch(`/api/users/search?email=${encodeURIComponent(newMemberEmail)}&role=instructor`);
+      const searchData = await searchRes.json();
+      const found = searchData.users?.[0];
+      if (!found) { alert('No instructor found with that email.'); setAddingMember(false); return; }
+
+      const updatedMembers = [...(myTeam.members || []), { userId: found.id, name: found.name, email: found.email }];
+      const res = await fetch('/api/teams', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId: myTeam.teamId, members: updatedMembers }),
+      });
+      if ((await res.json()).success) {
+        setMyTeam({ ...myTeam, members: updatedMembers });
+        setNewMemberEmail('');
+      }
+    } catch (err) { console.error('Failed to add member:', err); }
+    finally { setAddingMember(false); }
+  };
+
+  const handleRemoveMember = async (userId: string) => {
+    if (!myTeam) return;
+    const updatedMembers = (myTeam.members || []).filter((m: any) => m.userId !== userId);
+    try {
+      await fetch('/api/teams', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId: myTeam.teamId, members: updatedMembers }),
+      });
+      setMyTeam({ ...myTeam, members: updatedMembers });
+    } catch (err) { console.error('Failed to remove member:', err); }
+  };
+
   // Group pullouts by homeroom
   const pulloutsByHomeroom = pullouts.reduce((acc, p) => {
     const hr = p.homeroom || 'Unassigned';
@@ -182,7 +255,15 @@ export default function StudyHallAdminPage() {
                 activeTab === 'roster' ? 'bg-[#005587] text-white' : 'text-gray-600'
               }`}
             >
-              Roster Upload
+              Roster
+            </button>
+            <button
+              onClick={() => setActiveTab('team')}
+              className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
+                activeTab === 'team' ? 'bg-[#005587] text-white' : 'text-gray-600'
+              }`}
+            >
+              My Team
             </button>
           </div>
 
@@ -306,6 +387,77 @@ Jane Doe,Mr. Williams,Ms. Brown,10`}
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* TEAM TAB */}
+          {activeTab === 'team' && (
+            <div>
+              {!myTeam ? (
+                <div className="bg-gray-50 rounded-2xl p-4">
+                  <h3 className="text-sm font-bold text-[#005587] mb-2">Create Your Team</h3>
+                  <p className="text-[10px] text-gray-500 mb-3">Teachers on your team will have their pullout requests routed to you.</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={teamName}
+                      onChange={(e) => setTeamName(e.target.value)}
+                      placeholder="Team name (e.g., 9th Grade Team)"
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
+                    />
+                    <button onClick={handleCreateTeam} disabled={!teamName.trim()} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-bold disabled:opacity-50">
+                      Create
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-2xl p-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="text-sm font-bold text-[#005587]">{myTeam.name}</h3>
+                      <span className="text-[10px] text-gray-400">{(myTeam.members || []).length} members</span>
+                    </div>
+                    <p className="text-[10px] text-gray-500">Lead: {myTeam.leadName || 'You'}</p>
+                  </div>
+
+                  {/* Members list */}
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-700 mb-2">Team Members</h4>
+                    {(myTeam.members || []).length === 0 ? (
+                      <p className="text-xs text-gray-400 py-4 text-center">No members yet. Add teachers below.</p>
+                    ) : (
+                      <div className="space-y-1.5 mb-3">
+                        {(myTeam.members || []).map((m: any) => (
+                          <div key={m.userId} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-gray-800">{m.name}</p>
+                              <p className="text-[10px] text-gray-500">{m.email}</p>
+                            </div>
+                            <button onClick={() => handleRemoveMember(m.userId)} className="text-gray-300 hover:text-red-500 p-1">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add member */}
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={newMemberEmail}
+                        onChange={(e) => setNewMemberEmail(e.target.value)}
+                        placeholder="Teacher email..."
+                        className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddMember()}
+                      />
+                      <button onClick={handleAddMember} disabled={!newMemberEmail.trim() || addingMember} className="px-3 py-2 bg-[#005587] text-white rounded-xl text-xs font-bold disabled:opacity-50">
+                        {addingMember ? '...' : 'Add'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

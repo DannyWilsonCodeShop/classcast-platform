@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const date = searchParams.get('date'); // YYYY-MM-DD
     const requestedBy = searchParams.get('requestedBy'); // instructor userId
+    const teamId = searchParams.get('teamId'); // filter by team
 
     let filterExpression = '';
     const expressionValues: any = {};
@@ -26,6 +27,10 @@ export async function GET(request: NextRequest) {
     if (requestedBy) {
       filterExpression = filterExpression ? `${filterExpression} AND requestedBy = :requestedBy` : 'requestedBy = :requestedBy';
       expressionValues[':requestedBy'] = requestedBy;
+    }
+    if (teamId) {
+      filterExpression = filterExpression ? `${filterExpression} AND teamId = :teamId` : 'teamId = :teamId';
+      expressionValues[':teamId'] = teamId;
     }
 
     const params: any = { TableName: PULLOUTS_TABLE };
@@ -61,7 +66,7 @@ export async function GET(request: NextRequest) {
 // POST: Create a pullout request
 export async function POST(request: NextRequest) {
   try {
-    const { studentName, studentId, pulloutDate, requestedBy, requestedByName, reason } = await request.json();
+    const { studentName, studentId, pulloutDate, requestedBy, requestedByName, reason, teamId } = await request.json();
 
     if (!studentName || !pulloutDate || !requestedBy) {
       return NextResponse.json({ success: false, error: 'studentName, pulloutDate, and requestedBy are required' }, { status: 400 });
@@ -75,6 +80,7 @@ export async function POST(request: NextRequest) {
       requestedBy,
       requestedByName: requestedByName || '',
       reason: reason || '',
+      teamId: teamId || '',
       status: 'pending',
       createdAt: new Date().toISOString(),
     };

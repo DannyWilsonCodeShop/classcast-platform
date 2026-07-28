@@ -45,6 +45,21 @@ export default function StudyHallPage() {
   // My requests
   const [myRequests, setMyRequests] = useState<PulloutRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
+  const [myTeamId, setMyTeamId] = useState<string>('');
+
+  // Fetch my team
+  useEffect(() => {
+    if (user?.id) {
+      fetch(`/api/teams?memberId=${user.id}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.teams?.length > 0) {
+            setMyTeamId(data.teams[0].teamId);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user?.id]);
 
   // Fetch my requests
   useEffect(() => {
@@ -102,6 +117,7 @@ export default function StudyHallPage() {
           requestedBy: user.id,
           requestedByName: `${user.firstName} ${user.lastName}`,
           reason,
+          teamId: myTeamId,
         }),
       });
       const data = await res.json();
