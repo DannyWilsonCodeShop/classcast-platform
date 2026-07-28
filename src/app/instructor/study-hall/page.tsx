@@ -46,18 +46,34 @@ export default function StudyHallPage() {
   const [myRequests, setMyRequests] = useState<PulloutRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [myTeamId, setMyTeamId] = useState<string>('');
+  const [myTeam, setMyTeam] = useState<any>(null);
+  const [loadingTeam, setLoadingTeam] = useState(true);
+
+  // Wizard state
+  const [showWizard, setShowWizard] = useState(false);
+  const [wizardStep, setWizardStep] = useState(1); // 1: name, 2: teachers, 3: roster
+  const [wizardTeamName, setWizardTeamName] = useState('');
+  const [wizardMembers, setWizardMembers] = useState<Array<{email: string; name?: string; userId?: string}>>([]);
+  const [wizardMemberEmail, setWizardMemberEmail] = useState('');
+  const [wizardUploading, setWizardUploading] = useState(false);
+  const [wizardRosterCount, setWizardRosterCount] = useState(0);
+  const [wizardCreating, setWizardCreating] = useState(false);
+  const wizardFileRef = React.useRef<HTMLInputElement>(null);
 
   // Fetch my team
   useEffect(() => {
     if (user?.id) {
+      setLoadingTeam(true);
       fetch(`/api/teams?memberId=${user.id}`)
         .then(r => r.json())
         .then(data => {
           if (data.success && data.teams?.length > 0) {
+            setMyTeam(data.teams[0]);
             setMyTeamId(data.teams[0].teamId);
           }
         })
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => setLoadingTeam(false));
     }
   }, [user?.id]);
 
@@ -79,6 +95,85 @@ export default function StudyHallPage() {
     } finally {
       setLoadingRequests(false);
     }
+  };
+
+  // Wizard functions
+  const handleWizardAddMember = () => {
+    if (!wizardMemberEmail.trim()) return;
+    if (wizardMembers.some(m => m.email === wizardMemberEmail.trim())) return;
+    setWizardMembers(prev => [...prev, { email: wizardMemberEmail.trim() }]);
+    setWizardMemberEmail('');
+  };
+
+  const handleWizardRemoveMember = (email: string) => {
+    setWizardMembers(prev => prev.filter(m => m.email !== email));
+  };
+
+  const handleWizardRosterUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setWizardUploading(true);
+    try {
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      const header = lines[0].toLowerCase();
+      const hasHeader = header.includes('name') || header.includes('student') || header.includes('homeroom');
+      const dataLines = hasHeader ? lines.slice(1) : lines;
+      const entries = dataLines.map(line => {
+        const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+        return { studentName: parts[0] || '', homeroom: parts[1] || '', studyHallTeacher: parts[2] || '', grade: parts[3] || '' };
+      }).filter(e => e.studentName);
+
+      if (entries.length > 0) {
+        const res = await fetch('/api/study-hall/roster', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entries }),
+        });
+        const data = await res.json();
+        if (data.success) setWizardRosterCount(data.count);
+      }
+    } catch (err) { console.error('Roster upload failed:', err); }
+    finally { setWizardUploading(false); if (wizardFileRef.current) wizardFileRef.current.value = ''; }
+  };
+
+  const handleWizardFinish = async () => {
+    if (!wizardTeamName.trim() || !user?.id) return;
+    setWizardCreating(true);
+    try {
+      // Resolve member emails to user records
+      const resolvedMembers = [];
+      for (const member of wizardMembers) {
+        try {
+          const res = await fetch(`/api/users/search?email=${encodeURIComponent(member.email)}&role=instructor`);
+          const data = await res.json();
+          if (data.users?.[0]) {
+            resolvedMembers.push({ userId: data.users[0].id, name: data.users[0].name, email: member.email });
+          } else {
+            resolvedMembers.push({ userId: '', name: member.email, email: member.email });
+          }
+        } catch { resolvedMembers.push({ userId: '', name: member.email, email: member.email }); }
+      }
+
+      const res = await fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: wizardTeamName,
+          leadId: user.id,
+          leadName: `${user.firstName} ${user.lastName}`,
+          members: resolvedMembers,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMyTeam(data.team);
+        setMyTeamId(data.team.teamId);
+        setShowWizard(false);
+        setWizardStep(1);
+      }
+    } catch (err) { console.error('Failed to create team:', err); }
+    finally { setWizardCreating(false); }
   };
 
   // Search students
@@ -162,16 +257,28 @@ export default function StudyHallPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-xl font-bold text-[#005587]">Study Hall Pullouts</h1>
-              <p className="text-xs text-gray-500">Request students for study hall</p>
+              <p className="text-xs text-gray-500">
+                {myTeam ? `Team: ${myTeam.name}` : 'Request students for study hall'}
+              </p>
             </div>
-            {(user as any)?.isAdmin && (
-              <button
-                onClick={() => router.push('/instructor/study-hall/admin')}
-                className="px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-bold"
-              >
-                Admin View
-              </button>
-            )}
+            <div className="flex gap-2">
+              {!myTeam && !loadingTeam && (
+                <button
+                  onClick={() => setShowWizard(true)}
+                  className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-lg text-xs font-bold"
+                >
+                  + Make a Team
+                </button>
+              )}
+              {(user as any)?.isAdmin && (
+                <button
+                  onClick={() => router.push('/instructor/study-hall/admin')}
+                  className="px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-bold"
+                >
+                  Admin View
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Add Pullout Request */}
@@ -296,6 +403,139 @@ export default function StudyHallPage() {
           </div>
         </div>
       </div>
+
+      {/* Team Setup Wizard */}
+      {showWizard && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40">
+          <div className="bg-white w-full max-w-[400px] rounded-2xl p-5 max-h-[85vh] overflow-y-auto">
+            {/* Wizard Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-bold text-[#005587]">Set Up Your Team</h2>
+              <button onClick={() => { setShowWizard(false); setWizardStep(1); }} className="text-gray-400 p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Progress */}
+            <div className="flex gap-1 mb-5">
+              {[1, 2, 3].map(s => (
+                <div key={s} className={`flex-1 h-1 rounded-full ${wizardStep >= s ? 'bg-[#005587]' : 'bg-gray-200'}`} />
+              ))}
+            </div>
+
+            {/* Step 1: Team Name */}
+            {wizardStep === 1 && (
+              <div className="space-y-4">
+                <div className="text-center mb-4">
+                  <span className="text-3xl block mb-2">👥</span>
+                  <h3 className="text-sm font-bold text-gray-900">Name your team</h3>
+                  <p className="text-xs text-gray-500">This groups your teachers together for study hall coordination.</p>
+                </div>
+                <input
+                  type="text"
+                  value={wizardTeamName}
+                  onChange={(e) => setWizardTeamName(e.target.value)}
+                  placeholder="e.g., 9th Grade Team, Wilson Pod"
+                  className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] text-center"
+                  autoFocus
+                />
+                <button
+                  onClick={() => setWizardStep(2)}
+                  disabled={!wizardTeamName.trim()}
+                  className="w-full py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+
+            {/* Step 2: Add Teachers */}
+            {wizardStep === 2 && (
+              <div className="space-y-4">
+                <div className="text-center mb-2">
+                  <span className="text-3xl block mb-2">📧</span>
+                  <h3 className="text-sm font-bold text-gray-900">Add teachers to your team</h3>
+                  <p className="text-xs text-gray-500">These teachers can submit pullout requests to you.</p>
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    value={wizardMemberEmail}
+                    onChange={(e) => setWizardMemberEmail(e.target.value)}
+                    placeholder="teacher@school.edu"
+                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
+                    onKeyDown={(e) => e.key === 'Enter' && handleWizardAddMember()}
+                  />
+                  <button onClick={handleWizardAddMember} disabled={!wizardMemberEmail.trim()} className="px-3 py-2.5 bg-[#005587] text-white rounded-xl text-xs font-bold disabled:opacity-50">
+                    Add
+                  </button>
+                </div>
+
+                {wizardMembers.length > 0 && (
+                  <div className="space-y-1.5">
+                    {wizardMembers.map(m => (
+                      <div key={m.email} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                        <span className="flex-1 text-xs text-gray-700">{m.email}</span>
+                        <button onClick={() => handleWizardRemoveMember(m.email)} className="text-gray-300 hover:text-red-500">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => setWizardStep(1)} className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium">Back</button>
+                  <button onClick={() => setWizardStep(3)} className="flex-1 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold">
+                    {wizardMembers.length === 0 ? 'Skip' : 'Next'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Upload Roster */}
+            {wizardStep === 3 && (
+              <div className="space-y-4">
+                <div className="text-center mb-2">
+                  <span className="text-3xl block mb-2">📄</span>
+                  <h3 className="text-sm font-bold text-gray-900">Upload homeroom roster</h3>
+                  <p className="text-xs text-gray-500">CSV with: Student Name, Homeroom Teacher, Study Hall Teacher, Grade</p>
+                </div>
+
+                <button
+                  onClick={() => wizardFileRef.current?.click()}
+                  disabled={wizardUploading}
+                  className="w-full py-3 border-2 border-dashed border-[#005587]/30 rounded-xl text-xs font-medium text-[#005587] hover:border-[#005587] hover:bg-[#005587]/5"
+                >
+                  {wizardUploading ? 'Uploading...' : wizardRosterCount > 0 ? `✓ ${wizardRosterCount} students uploaded` : '📄 Choose CSV File'}
+                </button>
+                <input ref={wizardFileRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleWizardRosterUpload} />
+
+                <div className="p-2.5 bg-gray-50 rounded-lg">
+                  <p className="text-[9px] font-mono text-gray-500">
+                    Student Name,Homeroom,Study Hall Teacher,Grade{'\n'}
+                    John Smith,Ms. Johnson,Mr. Davis,9
+                  </p>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button onClick={() => setWizardStep(2)} className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium">Back</button>
+                  <button
+                    onClick={handleWizardFinish}
+                    disabled={wizardCreating}
+                    className="flex-1 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50"
+                  >
+                    {wizardCreating ? 'Creating...' : wizardRosterCount > 0 ? 'Finish' : 'Skip & Finish'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </InstructorRoute>
   );
 }
