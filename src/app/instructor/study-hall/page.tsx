@@ -262,15 +262,7 @@ export default function StudyHallPage() {
               </p>
             </div>
             <div className="flex gap-2">
-              {!myTeam && !loadingTeam && (
-                <button
-                  onClick={() => setShowWizard(true)}
-                  className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-lg text-xs font-bold"
-                >
-                  + Make a Team
-                </button>
-              )}
-              {(user as any)?.isAdmin && (
+              {myTeam?.leadId === user?.id && (
                 <button
                   onClick={() => router.push('/instructor/study-hall/admin')}
                   className="px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-bold"
