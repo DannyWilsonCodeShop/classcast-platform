@@ -39,6 +39,8 @@ export default function StudyHallAdminPage() {
   const [loadingRoster, setLoadingRoster] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState('');
+  const [homeroomTeacher, setHomeroomTeacher] = useState('');
+  const bulkFileRef = useRef<HTMLInputElement>(null);
 
   // Team state
   const [myTeam, setMyTeam] = useState<any>(null);
@@ -105,40 +107,58 @@ export default function StudyHallAdminPage() {
     if (activeTab === 'roster') fetchRoster();
   }, [activeTab]);
 
-  // Upload spreadsheet
+  // Upload a single homeroom's class list
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || !homeroomTeacher.trim()) return;
 
     setUploading(true);
     setUploadResult('');
 
     try {
-      // Parse CSV client-side
-      const text = await file.text();
-      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      let studentNames: string[] = [];
+      const fileName = file.name.toLowerCase();
 
-      // Skip header row
-      const header = lines[0].toLowerCase();
-      const hasHeader = header.includes('name') || header.includes('student') || header.includes('homeroom');
-      const dataLines = hasHeader ? lines.slice(1) : lines;
+      if (fileName.endsWith('.csv') || fileName.endsWith('.txt')) {
+        // Parse CSV
+        const text = await file.text();
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        // Skip header if it looks like one
+        const firstLine = lines[0]?.toLowerCase() || '';
+        const startIdx = (firstLine.includes('name') || firstLine.includes('student') || firstLine.includes('#')) ? 1 : 0;
+        studentNames = lines.slice(startIdx).map(line => {
+          const parts = line.split(',');
+          return parts[0]?.trim().replace(/^"|"$/g, '') || '';
+        }).filter(n => n && n.length > 1);
+      } else {
+        // For .xls/.xlsx — read as text and extract names (basic approach)
+        // Send to server for proper parsing, or try text extraction
+        const text = await file.text();
+        // Try to extract readable names from binary
+        const namePattern = /[A-Z][a-z]+(?:\s[A-Z][a-z]+)+/g;
+        const matches = text.match(namePattern) || [];
+        studentNames = [...new Set(matches)].filter(n => n.length > 3 && n.length < 40);
 
-      const entries = dataLines.map(line => {
-        // Handle CSV with commas inside quotes
-        const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
-        return {
-          studentName: parts[0] || '',
-          homeroom: parts[1] || '',
-          studyHallTeacher: parts[2] || '',
-          grade: parts[3] || '',
-        };
-      }).filter(e => e.studentName);
+        if (studentNames.length === 0) {
+          setUploadResult('Could not read names from Excel file. Please save as CSV first.');
+          setUploading(false);
+          return;
+        }
+      }
 
-      if (entries.length === 0) {
-        setUploadResult('No valid entries found. Check your file format.');
+      if (studentNames.length === 0) {
+        setUploadResult('No student names found in file.');
         setUploading(false);
         return;
       }
+
+      // Upload all students with this homeroom teacher
+      const entries = studentNames.map(name => ({
+        studentName: name,
+        homeroom: homeroomTeacher.trim(),
+        studyHallTeacher: '',
+        grade: '',
+      }));
 
       const res = await fetch('/api/study-hall/roster', {
         method: 'POST',
@@ -147,17 +167,43 @@ export default function StudyHallAdminPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setUploadResult(`Uploaded ${data.count} students successfully.`);
+        setUploadResult(`Added ${data.count} students to ${homeroomTeacher.trim()}'s homeroom.`);
+        setHomeroomTeacher('');
         fetchRoster();
       } else {
         setUploadResult(data.error || 'Upload failed.');
       }
     } catch (err) {
-      setUploadResult('Failed to parse file.');
+      setUploadResult('Failed to parse file. Try saving as CSV.');
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  // Bulk CSV upload (old method — all classes at once)
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadResult('');
+    try {
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      const header = lines[0].toLowerCase();
+      const hasHeader = header.includes('name') || header.includes('student') || header.includes('homeroom');
+      const dataLines = hasHeader ? lines.slice(1) : lines;
+      const entries = dataLines.map(line => {
+        const parts = line.split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+        return { studentName: parts[0] || '', homeroom: parts[1] || '', studyHallTeacher: parts[2] || '', grade: parts[3] || '' };
+      }).filter(e => e.studentName);
+      if (entries.length === 0) { setUploadResult('No valid entries found.'); setUploading(false); return; }
+      const res = await fetch('/api/study-hall/roster', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ entries }) });
+      const data = await res.json();
+      if (data.success) { setUploadResult(`Uploaded ${data.count} students.`); fetchRoster(); }
+      else { setUploadResult(data.error || 'Upload failed.'); }
+    } catch { setUploadResult('Failed to parse file.'); }
+    finally { setUploading(false); if (bulkFileRef.current) bulkFileRef.current.value = ''; }
   };
 
   // Team management
@@ -326,41 +372,61 @@ export default function StudyHallAdminPage() {
             <div>
               {/* Upload section */}
               <div className="bg-gray-50 rounded-2xl p-4 mb-4">
-                <h3 className="text-sm font-bold text-[#005587] mb-2">Upload Student Roster</h3>
+                <h3 className="text-sm font-bold text-[#005587] mb-2">Add a Homeroom Class</h3>
                 <p className="text-[10px] text-gray-500 mb-3">
-                  Upload a CSV with columns: Student Name, Homeroom Teacher, Study Hall Teacher, Grade
+                  Upload one teacher's spreadsheet at a time. Student names are pulled from the first column.
                 </p>
+
+                {/* Homeroom teacher name */}
+                <input
+                  type="text"
+                  value={homeroomTeacher}
+                  onChange={(e) => setHomeroomTeacher(e.target.value)}
+                  placeholder="Homeroom teacher name (e.g., Ms. Johnson)"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587] mb-3"
+                />
 
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
+                  disabled={uploading || !homeroomTeacher.trim()}
                   className="w-full py-3 border-2 border-dashed border-[#005587]/30 rounded-xl text-xs font-medium text-[#005587] hover:border-[#005587] hover:bg-[#005587]/5 transition-colors disabled:opacity-50"
                 >
-                  {uploading ? 'Uploading...' : '📄 Choose CSV File'}
+                  {uploading ? 'Uploading...' : '📄 Upload Class Roster (CSV or Excel)'}
                 </button>
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".csv,.txt"
+                  accept=".csv,.txt,.xls,.xlsx"
                   className="hidden"
                   onChange={handleFileUpload}
                 />
 
                 {uploadResult && (
-                  <p className={`text-xs mt-2 ${uploadResult.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+                  <p className={`text-xs mt-2 ${uploadResult.includes('success') || uploadResult.includes('Added') ? 'text-green-600' : 'text-red-600'}`}>
                     {uploadResult}
                   </p>
                 )}
 
-                <div className="mt-3 p-2.5 bg-white rounded-lg border border-gray-200">
-                  <p className="text-[10px] font-medium text-gray-600 mb-1">Example format:</p>
-                  <pre className="text-[9px] text-gray-500 font-mono">
-{`Student Name,Homeroom,Study Hall Teacher,Grade
-John Smith,Ms. Johnson,Mr. Davis,9
-Jane Doe,Mr. Williams,Ms. Brown,10`}
-                  </pre>
-                </div>
+                <p className="text-[9px] text-gray-400 mt-2">Supports .csv, .xls, .xlsx — reads student names from the first column.</p>
               </div>
+
+              {/* Bulk CSV upload (old method) */}
+              <details className="bg-gray-50 rounded-2xl p-4 mb-4">
+                <summary className="text-xs font-medium text-gray-600 cursor-pointer">Advanced: Bulk CSV Upload (all classes at once)</summary>
+                <div className="mt-3">
+                  <p className="text-[10px] text-gray-500 mb-2">
+                    CSV with columns: Student Name, Homeroom Teacher, Study Hall Teacher, Grade
+                  </p>
+                  <button
+                    onClick={() => bulkFileRef.current?.click()}
+                    disabled={uploading}
+                    className="w-full py-2.5 border-2 border-dashed border-gray-300 rounded-xl text-xs font-medium text-gray-500 hover:border-gray-400"
+                  >
+                    📄 Choose Bulk CSV
+                  </button>
+                  <input ref={bulkFileRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleBulkUpload} />
+                </div>
+              </details>
 
               {/* Current roster */}
               <div>
