@@ -68,6 +68,18 @@ const InstructorDashboard: React.FC = () => {
             if (mappedCourses.length > 0 && !selectedCourseId) {
               setSelectedCourseId(mappedCourses[0].courseId);
             }
+
+            // If no courses, check if user is team-only → redirect to Study Hall
+            if (mappedCourses.length === 0) {
+              try {
+                const teamRes = await fetch(`/api/teams?memberId=${user?.id}`);
+                const teamData = await teamRes.json();
+                if (teamData.success && teamData.teams?.length > 0) {
+                  router.push('/instructor/study-hall');
+                  return;
+                }
+              } catch {}
+            }
           }
         }
       } catch (error) {

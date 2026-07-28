@@ -55,19 +55,34 @@ export function InstructorSidebar() {
   const { isDesktop } = useIsWideScreen();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [hasTeam, setHasTeam] = useState(false);
+  const [hasCourses, setHasCourses] = useState(true); // default true to avoid flash
   const theme = useSchoolTheme();
 
-  // Check if user is on a team (for Study Hall visibility)
+  // Check if user is on a team and has courses
   useEffect(() => {
     if (user?.id) {
+      // Check team membership
       fetch(`/api/teams?memberId=${user.id}`)
         .then(r => r.json())
         .then(data => { if (data.success && data.teams?.length > 0) setHasTeam(true); })
         .catch(() => {});
+      // Check if they have courses
+      fetch(`/api/instructor/courses?instructorId=${user.id}`)
+        .then(r => r.json())
+        .then(data => { setHasCourses(data.success && data.data?.courses?.length > 0); })
+        .catch(() => {});
     }
   }, [user?.id]);
 
-  const visibleNavItems = NAV_ITEMS.filter(item => !item.requiresTeam || hasTeam);
+  // If team-only (has team but no courses), show only Study Hall + Profile
+  const visibleNavItems = NAV_ITEMS.filter(item => {
+    if (item.requiresTeam && !hasTeam) return false;
+    if (hasTeam && !hasCourses) {
+      // Team-only mode: only show Study Hall and Profile
+      return item.path === '/instructor/study-hall' || item.path === '/instructor/profile';
+    }
+    return true;
+  });
 
   const isActive = (path: string) => {
     if (path === '/instructor/dashboard') return pathname === path;
