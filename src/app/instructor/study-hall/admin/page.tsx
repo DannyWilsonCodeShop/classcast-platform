@@ -46,7 +46,11 @@ export default function StudyHallAdminPage() {
   const [myTeam, setMyTeam] = useState<any>(null);
   const [teamName, setTeamName] = useState('');
   const [newMemberEmail, setNewMemberEmail] = useState('');
+  const [newMemberFirst, setNewMemberFirst] = useState('');
+  const [newMemberLast, setNewMemberLast] = useState('');
+  const [newMemberPassword, setNewMemberPassword] = useState('ClassCast2026!');
   const [addingMember, setAddingMember] = useState(false);
+  const [addMemberResult, setAddMemberResult] = useState('');
 
   // Date filter - default to tomorrow
   const [filterDate, setFilterDate] = useState(() => {
@@ -223,24 +227,33 @@ export default function StudyHallAdminPage() {
   const handleAddMember = async () => {
     if (!newMemberEmail.trim() || !myTeam) return;
     setAddingMember(true);
+    setAddMemberResult('');
     try {
-      // Search for instructor by email
-      const searchRes = await fetch(`/api/users/search?email=${encodeURIComponent(newMemberEmail)}&role=instructor`);
-      const searchData = await searchRes.json();
-      const found = searchData.users?.[0];
-      if (!found) { alert('No instructor found with that email.'); setAddingMember(false); return; }
-
-      const updatedMembers = [...(myTeam.members || []), { userId: found.id, name: found.name, email: found.email }];
-      const res = await fetch('/api/teams', {
-        method: 'PUT',
+      const res = await fetch('/api/teams/add-member', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamId: myTeam.teamId, members: updatedMembers }),
+        body: JSON.stringify({
+          teamId: myTeam.teamId,
+          email: newMemberEmail.trim(),
+          firstName: newMemberFirst.trim() || undefined,
+          lastName: newMemberLast.trim() || undefined,
+          password: newMemberPassword.trim() || undefined,
+          schoolName: user?.schoolName || '',
+          schoolLogo: user?.schoolLogo || '',
+        }),
       });
-      if ((await res.json()).success) {
-        setMyTeam({ ...myTeam, members: updatedMembers });
+      const data = await res.json();
+      if (data.success) {
+        setMyTeam({ ...myTeam, members: [...(myTeam.members || []), data.member] });
         setNewMemberEmail('');
+        setNewMemberFirst('');
+        setNewMemberLast('');
+        setAddMemberResult(data.accountCreated ? `✓ Account created for ${data.member.name}` : `✓ Added ${data.member.name}`);
+        setTimeout(() => setAddMemberResult(''), 3000);
+      } else {
+        setAddMemberResult(data.error || 'Failed to add');
       }
-    } catch (err) { console.error('Failed to add member:', err); }
+    } catch (err) { setAddMemberResult('Network error'); }
     finally { setAddingMember(false); }
   };
 
@@ -508,18 +521,48 @@ export default function StudyHallAdminPage() {
                     )}
 
                     {/* Add member */}
-                    <div className="flex gap-2">
+                    <div className="space-y-2 pt-2 border-t border-gray-100">
+                      <p className="text-[10px] font-medium text-gray-600">Add a teacher (creates account if needed)</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          value={newMemberFirst}
+                          onChange={(e) => setNewMemberFirst(e.target.value)}
+                          placeholder="First name"
+                          className="px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#005587]"
+                        />
+                        <input
+                          type="text"
+                          value={newMemberLast}
+                          onChange={(e) => setNewMemberLast(e.target.value)}
+                          placeholder="Last name"
+                          className="px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#005587]"
+                        />
+                      </div>
                       <input
                         type="email"
                         value={newMemberEmail}
                         onChange={(e) => setNewMemberEmail(e.target.value)}
-                        placeholder="Teacher email..."
-                        className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
+                        placeholder="Email address *"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#005587]"
                         onKeyDown={(e) => e.key === 'Enter' && handleAddMember()}
                       />
-                      <button onClick={handleAddMember} disabled={!newMemberEmail.trim() || addingMember} className="px-3 py-2 bg-[#005587] text-white rounded-xl text-xs font-bold disabled:opacity-50">
-                        {addingMember ? '...' : 'Add'}
-                      </button>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newMemberPassword}
+                          onChange={(e) => setNewMemberPassword(e.target.value)}
+                          placeholder="Initial password"
+                          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#005587]"
+                        />
+                        <button onClick={handleAddMember} disabled={!newMemberEmail.trim() || addingMember} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-bold disabled:opacity-50">
+                          {addingMember ? '...' : 'Add'}
+                        </button>
+                      </div>
+                      {addMemberResult && (
+                        <p className={`text-[10px] ${addMemberResult.startsWith('✓') ? 'text-green-600' : 'text-red-500'}`}>{addMemberResult}</p>
+                      )}
+                      <p className="text-[9px] text-gray-400">Default password: ClassCast2026! — teacher can change on first login.</p>
                     </div>
                   </div>
                 </div>
