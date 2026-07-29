@@ -120,10 +120,9 @@ const AssignmentDetailsModal: React.FC<AssignmentDetailsModalProps> = ({
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">📋 Assignment Description</h3>
             <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <RichTextRenderer 
-                content={assignment.description}
-                className="text-gray-700 leading-relaxed"
-              />
+              <div className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                {assignment.description}
+              </div>
             </div>
           </div>
 
