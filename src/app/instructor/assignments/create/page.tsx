@@ -182,7 +182,7 @@ const CreateAssignmentPage: React.FC = () => {
           const due = new Date(); due.setDate(due.getDate() + gen.suggestedDueInDays);
           setDueDate(`${due.getFullYear()}-${String(due.getMonth()+1).padStart(2,'0')}-${String(due.getDate()).padStart(2,'0')}T23:59`);
         }
-      } else { setError(data.error?.includes('credentials') ? 'AI feature is temporarily unavailable. You can fill in the fields manually.' : (data.error || 'AI generation failed.')); }
+      } else { setError(data.error || 'AI generation failed.'); }
     } catch { setError('Network error. Try again.'); }
     finally { setIsGenerating(false); }
   };
