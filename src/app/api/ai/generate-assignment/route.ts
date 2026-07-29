@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 
-// Use explicit credentials if provided, otherwise let SDK use default credential chain
+// Use explicit credentials if provided, otherwise fall back to default credential chain (Amplify service role)
 const bedrockConfig: any = {
   region: process.env.AWS_REGION || process.env.CLASSCAST_AWS_REGION || 'us-east-1',
 };
 
-const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.CLASSCAST_ACCESS_KEY_ID;
-const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLASSCAST_SECRET_ACCESS_KEY;
+const accessKeyId = process.env.CLASSCAST_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID;
+const secretAccessKey = process.env.CLASSCAST_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY;
 if (accessKeyId && secretAccessKey) {
   bedrockConfig.credentials = { accessKeyId, secretAccessKey };
 }
+// If no explicit credentials, SDK uses the default provider chain (IAM role)
 
 const bedrock = new BedrockRuntimeClient(bedrockConfig);
 
