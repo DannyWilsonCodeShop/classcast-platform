@@ -598,8 +598,9 @@ export default function StudentAssignmentDetailPage() {
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-normal mb-2">Instructions</h3>
           {assignment.description ? (
             <div 
-              className="text-sm text-gray-700 leading-relaxed [&_h2]:text-base [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:mt-3 [&_h2]:mb-1 [&_p]:mb-2 [&_ul]:pl-4 [&_ul]:mb-2 [&_li]:mb-1 [&_li]:list-disc [&_strong]:font-semibold [&_br]:hidden"
-              dangerouslySetInnerHTML={{ __html: assignment.description }}
+              className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap [&_strong]:font-semibold"
+              dangerouslySetInnerHTML={{ __html: assignment.description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
+            />
             />
           ) : (
             <p className="text-sm text-gray-400 italic">No instructions provided.</p>
