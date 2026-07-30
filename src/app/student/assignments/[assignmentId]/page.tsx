@@ -601,7 +601,6 @@ export default function StudentAssignmentDetailPage() {
               className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap [&_strong]:font-semibold"
               dangerouslySetInnerHTML={{ __html: assignment.description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
             />
-            />
           ) : (
             <p className="text-sm text-gray-400 italic">No instructions provided.</p>
           )}
