@@ -457,7 +457,7 @@ const AssignmentGradesPage: React.FC = () => {
             <h2 className="text-sm font-bold text-[#005587]">{assignment.title}</h2>
             <p className="text-xs text-gray-500">{assignment.courseName} · {assignment.courseCode}</p>
             {assignment.description && (
-              <p className="text-xs text-gray-700 leading-relaxed">{assignment.description}</p>
+              <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{assignment.description}</p>
             )}
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <span className="text-xs text-gray-600">
