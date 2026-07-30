@@ -457,7 +457,7 @@ const AssignmentGradesPage: React.FC = () => {
             <h2 className="text-sm font-bold text-[#005587]">{assignment.title}</h2>
             <p className="text-xs text-gray-500">{assignment.courseName} · {assignment.courseCode}</p>
             {assignment.description && (
-              <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{assignment.description}</p>
+              <div className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap [&_strong]:font-semibold [&_em]:italic" dangerouslySetInnerHTML={{ __html: assignment.description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^## (.+)$/gm, '<h3 class="font-bold text-sm text-gray-900 mt-2 mb-1">$1</h3>').replace(/^---$/gm, '<hr class="my-2 border-gray-200">') }} />
             )}
             <div className="flex flex-wrap items-center gap-2 pt-1">
               <span className="text-xs text-gray-600">

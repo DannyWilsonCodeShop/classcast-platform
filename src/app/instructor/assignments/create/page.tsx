@@ -6,6 +6,7 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { RubricCategory, getRubricMaxScore, generateCategoryId } from '@/types/rubric';
 import { ProblemBankBuilder } from '@/components/instructor/ProblemBankBuilder';
+import { FormattingTextarea } from '@/components/common/FormattingTextarea';
 
 interface CourseOption {
   courseId: string;
@@ -325,9 +326,12 @@ const CreateAssignmentPage: React.FC = () => {
                   {isGenerating ? (<><svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Generating...</>) : (<>✨ AI Fill</>)}
                 </button>
               </div>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] resize-none"
-                placeholder={selectedTypeInfo.instructionsPlaceholder} />
+              <FormattingTextarea
+                value={description}
+                onChange={(val) => setDescription(val)}
+                rows={5}
+                placeholder={selectedTypeInfo.instructionsPlaceholder}
+              />
             </div>
 
             {/* Type-specific settings */}
