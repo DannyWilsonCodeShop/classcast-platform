@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface StudentResult {
   name: string;
@@ -10,6 +10,7 @@ interface StudentResult {
 }
 
 export default function PublicStudyHallPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<StudentResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -23,27 +24,18 @@ export default function PublicStudyHallPage() {
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-
-  // My requests for this session
-  const [myRequests, setMyRequests] = useState<Array<{ studentName: string; pulloutDate: string; reason: string }>>([]);
+  const [myRequests, setMyRequests] = useState<Array<{ studentName: string; pulloutDate: string }>>([]);
 
   // Search students
   useEffect(() => {
-    if (searchQuery.length < 2) {
-      setSearchResults([]);
-      return;
-    }
+    if (searchQuery.length < 2) { setSearchResults([]); return; }
     const timer = setTimeout(async () => {
       setSearching(true);
       try {
         const res = await fetch(`/api/study-hall/search?q=${encodeURIComponent(searchQuery)}`);
         const data = await res.json();
         if (data.success) setSearchResults(data.students || []);
-      } catch (err) {
-        console.error('Search failed:', err);
-      } finally {
-        setSearching(false);
-      }
+      } catch {} finally { setSearching(false); }
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
@@ -66,48 +58,44 @@ export default function PublicStudyHallPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setMyRequests(prev => [...prev, { studentName: selectedStudent.name, pulloutDate, reason }]);
+        setMyRequests(prev => [...prev, { studentName: selectedStudent.name, pulloutDate }]);
         setSelectedStudent(null);
         setSearchQuery('');
         setReason('');
         setSuccess(true);
         setTimeout(() => setSuccess(false), 2000);
       }
-    } catch (err) {
-      console.error('Failed to submit:', err);
-    } finally {
-      setSubmitting(false);
-    }
+    } catch {} finally { setSubmitting(false); }
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
+
+      {/* Header — tapping logo goes to About page */}
       <div className="bg-[#005587] text-white px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <button onClick={() => router.push('/about')} className="flex items-center gap-2">
           <img src="/UpdatedCCLogo.png" alt="" className="w-7 h-7 object-contain brightness-200" />
           <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-xl">ClassCast</span>
-        </div>
-        <span className="text-[10px] text-white/60">Study Hall Pullouts</span>
+        </button>
+        <button onClick={() => router.push('/about')} className="text-[10px] text-white/70 hover:text-white">
+          Learn More →
+        </button>
       </div>
 
       <div className="max-w-md mx-auto px-4 py-6">
-        {/* Title */}
         <div className="text-center mb-6">
           <h1 className="text-xl font-bold text-[#005587]">Study Hall Pullout Request</h1>
           <p className="text-xs text-gray-500 mt-1">Search for a student and add them to the pullout list</p>
         </div>
 
-        {/* Success flash */}
         {success && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700 text-center font-medium">
             ✓ Student added to pullout list
           </div>
         )}
 
-        {/* Form */}
         <div className="bg-gray-50 rounded-2xl p-4 mb-6">
           {/* Teacher name */}
           <div className="mb-3">
@@ -136,8 +124,6 @@ export default function PublicStudyHallPage() {
                 <div className="w-4 h-4 border-2 border-[#005587] border-t-transparent rounded-full animate-spin" />
               </div>
             )}
-
-            {/* Dropdown */}
             {searchResults.length > 0 && !selectedStudent && (
               <div className="absolute z-10 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                 {searchResults.map((student, i) => (
@@ -147,60 +133,41 @@ export default function PublicStudyHallPage() {
                     className="w-full text-left px-3 py-2.5 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                   >
                     <p className="text-sm font-medium text-gray-800">{student.name}</p>
-                    {student.homeroom && (
-                      <p className="text-[10px] text-gray-500">Homeroom: {student.homeroom}</p>
-                    )}
+                    {student.homeroom && <p className="text-[10px] text-gray-500">Homeroom: {student.homeroom}</p>}
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Selected badge */}
           {selectedStudent && (
             <div className="flex items-center gap-2 mb-3 p-2 bg-[#005587]/10 rounded-lg">
               <span className="text-xs font-medium text-[#005587]">{selectedStudent.name}</span>
-              {selectedStudent.homeroom && (
-                <span className="text-[10px] text-gray-500">({selectedStudent.homeroom})</span>
-              )}
+              {selectedStudent.homeroom && <span className="text-[10px] text-gray-500">({selectedStudent.homeroom})</span>}
               <button onClick={() => { setSelectedStudent(null); setSearchQuery(''); }} className="ml-auto text-gray-400 text-xs">✕</button>
             </div>
           )}
 
-          {/* Date + Reason */}
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
               <label className="block text-[10px] font-medium text-gray-600 mb-1">Date</label>
-              <input
-                type="date"
-                value={pulloutDate}
-                onChange={(e) => setPulloutDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
-              />
+              <input type="date" value={pulloutDate} onChange={(e) => setPulloutDate(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]" />
             </div>
             <div>
               <label className="block text-[10px] font-medium text-gray-600 mb-1">Reason (optional)</label>
-              <input
-                type="text"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="e.g., Tutoring"
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
-              />
+              <input type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g., Tutoring"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]" />
             </div>
           </div>
 
-          {/* Submit */}
-          <button
-            onClick={handleSubmit}
-            disabled={!selectedStudent || !teacherName.trim() || submitting}
-            className="w-full py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <button onClick={handleSubmit} disabled={!selectedStudent || !teacherName.trim() || submitting}
+            className="w-full py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50">
             {submitting ? 'Adding...' : 'Add to Pullout List'}
           </button>
         </div>
 
-        {/* Session requests */}
+        {/* Session list */}
         {myRequests.length > 0 && (
           <div className="mb-6">
             <h2 className="text-sm font-bold text-[#005587] mb-2">Added This Session</h2>
@@ -215,13 +182,13 @@ export default function PublicStudyHallPage() {
           </div>
         )}
 
-        {/* Join ClassCast CTA */}
+        {/* Join CTA */}
         <div className="text-center bg-[#005587]/5 rounded-2xl p-5">
           <h3 className="text-sm font-bold text-[#005587] mb-1">Want the full experience?</h3>
-          <p className="text-xs text-gray-500 mb-3">Create assignments, grade videos, manage courses, and more.</p>
-          <Link href="/auth/signup" className="inline-block px-5 py-2.5 bg-[#FFC72C] text-[#005587] rounded-xl text-sm font-bold">
-            Join ClassCast — Sign Up Free
-          </Link>
+          <p className="text-xs text-gray-500 mb-3">Video assignments, AI grading, peer responses, and more.</p>
+          <button onClick={() => router.push('/about')} className="inline-block px-5 py-2.5 bg-[#FFC72C] text-[#005587] rounded-xl text-sm font-bold">
+            Join ClassCast — Learn More
+          </button>
         </div>
       </div>
     </div>
