@@ -21,7 +21,12 @@ export async function GET(request: NextRequest) {
     // Search roster table first (has homeroom info)
     const rosterResult = await docClient.send(new ScanCommand({ TableName: ROSTER_TABLE }));
     const rosterStudents = (rosterResult.Items || [])
-      .filter((r: any) => r.studentName?.toLowerCase().includes(query))
+      .filter((r: any) => {
+        const name = (r.studentName || '').toLowerCase();
+        // Match against full name, first name, or last name
+        return name.includes(query) || 
+          name.split(' ').some((part: string) => part.startsWith(query));
+      })
       .map((r: any) => ({
         name: r.studentName,
         homeroom: r.homeroom,
