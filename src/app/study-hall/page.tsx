@@ -9,22 +9,53 @@ interface StudentResult {
   studyHallTeacher?: string;
 }
 
+const TEACHERS = [
+  'Dr. Diaz',
+  'Ms. Marlar',
+  'Ms. Tate',
+  'Ms. Alvarado',
+  'Mr. Wilson',
+  'Mr. Barrow',
+  'Mr. Gordon',
+  'Ms. King',
+  'Ms. Brown',
+  'Dean Stevens',
+  'Mr. Johnson (CWS)',
+  'IT Service Desk',
+  'Other',
+];
+
 export default function PublicStudyHallPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<StudentResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<StudentResult | null>(null);
+  const [customStudentName, setCustomStudentName] = useState('');
   const [pulloutDate, setPulloutDate] = useState(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().split('T')[0];
   });
   const [teacherName, setTeacherName] = useState('');
+  const [customTeacher, setCustomTeacher] = useState('');
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [myRequests, setMyRequests] = useState<Array<{ studentName: string; pulloutDate: string }>>([]);
+
+  // Load last selected teacher from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('classcast_studyhall_teacher');
+    if (saved) setTeacherName(saved);
+  }, []);
+
+  // Save teacher selection to localStorage
+  useEffect(() => {
+    if (teacherName && teacherName !== 'Other') {
+      localStorage.setItem('classcast_studyhall_teacher', teacherName);
+    }
+  }, [teacherName]);
 
   // Search students
   useEffect(() => {
@@ -40,27 +71,33 @@ export default function PublicStudyHallPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  const getEffectiveTeacher = () => teacherName === 'Other' ? customTeacher.trim() : teacherName;
+  const getEffectiveStudent = () => selectedStudent?.name || customStudentName.trim();
+
   const handleSubmit = async () => {
-    if (!selectedStudent || !pulloutDate || !teacherName.trim()) return;
+    const studentName = getEffectiveStudent();
+    const teacher = getEffectiveTeacher();
+    if (!studentName || !pulloutDate || !teacher) return;
     setSubmitting(true);
     try {
       const res = await fetch('/api/study-hall', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          studentName: selectedStudent.name,
+          studentName,
           pulloutDate,
-          requestedBy: 'public_' + teacherName.trim().toLowerCase().replace(/\s+/g, '_'),
-          requestedByName: teacherName.trim(),
+          requestedBy: 'public_' + teacher.toLowerCase().replace(/\s+/g, '_'),
+          requestedByName: teacher,
           reason,
           teamId: '',
         }),
       });
       const data = await res.json();
       if (data.success) {
-        setMyRequests(prev => [...prev, { studentName: selectedStudent.name, pulloutDate }]);
+        setMyRequests(prev => [...prev, { studentName, pulloutDate }]);
         setSelectedStudent(null);
         setSearchQuery('');
+        setCustomStudentName('');
         setReason('');
         setSuccess(true);
         setTimeout(() => setSuccess(false), 2000);
@@ -73,7 +110,7 @@ export default function PublicStudyHallPage() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
 
-      {/* Header — tapping logo goes to About page */}
+      {/* Header */}
       <div className="bg-[#005587] text-white px-4 py-3 flex items-center justify-between">
         <button onClick={() => router.push('/about')} className="flex items-center gap-2">
           <img src="/UpdatedCCLogo.png" alt="" className="w-7 h-7 object-contain brightness-200" />
@@ -97,16 +134,28 @@ export default function PublicStudyHallPage() {
         )}
 
         <div className="bg-gray-50 rounded-2xl p-4 mb-6">
-          {/* Teacher name */}
+          {/* Teacher dropdown */}
           <div className="mb-3">
             <label className="block text-[10px] font-medium text-gray-600 mb-1">Your Name</label>
-            <input
-              type="text"
+            <select
               value={teacherName}
               onChange={(e) => setTeacherName(e.target.value)}
-              placeholder="e.g., Mr. Wilson"
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
-            />
+            >
+              <option value="">Select your name...</option>
+              {TEACHERS.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            {teacherName === 'Other' && (
+              <input
+                type="text"
+                value={customTeacher}
+                onChange={(e) => setCustomTeacher(e.target.value)}
+                placeholder="Enter your name..."
+                className="w-full mt-2 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+              />
+            )}
           </div>
 
           {/* Student Search */}
@@ -115,7 +164,7 @@ export default function PublicStudyHallPage() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => { setSearchQuery(e.target.value); setSelectedStudent(null); }}
+              onChange={(e) => { setSearchQuery(e.target.value); setSelectedStudent(null); setCustomStudentName(e.target.value); }}
               placeholder="Search by first or last name..."
               className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
             />
@@ -129,7 +178,7 @@ export default function PublicStudyHallPage() {
                 {searchResults.map((student, i) => (
                   <button
                     key={i}
-                    onClick={() => { setSelectedStudent(student); setSearchQuery(student.name); setSearchResults([]); }}
+                    onClick={() => { setSelectedStudent(student); setSearchQuery(student.name); setCustomStudentName(''); setSearchResults([]); }}
                     className="w-full text-left px-3 py-2.5 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
                   >
                     <p className="text-sm font-medium text-gray-800">{student.name}</p>
@@ -137,6 +186,10 @@ export default function PublicStudyHallPage() {
                   </button>
                 ))}
               </div>
+            )}
+            {/* Hint for unlisted students */}
+            {searchQuery.length >= 2 && searchResults.length === 0 && !searching && !selectedStudent && (
+              <p className="text-[9px] text-gray-400 mt-1">Not found? You can still submit — just type the full name above.</p>
             )}
           </div>
 
@@ -161,7 +214,7 @@ export default function PublicStudyHallPage() {
             </div>
           </div>
 
-          <button onClick={handleSubmit} disabled={!selectedStudent || !teacherName.trim() || submitting}
+          <button onClick={handleSubmit} disabled={!getEffectiveStudent() || !getEffectiveTeacher() || submitting}
             className="w-full py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50">
             {submitting ? 'Adding...' : 'Add to Pullout List'}
           </button>
