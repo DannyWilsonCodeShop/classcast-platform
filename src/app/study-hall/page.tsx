@@ -35,6 +35,10 @@ export default function PublicStudyHallPage() {
   const [pulloutDate, setPulloutDate] = useState(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
+    // Skip weekends
+    while (tomorrow.getDay() === 0 || tomorrow.getDay() === 6) {
+      tomorrow.setDate(tomorrow.getDate() + 1);
+    }
     return tomorrow.toISOString().split('T')[0];
   });
   const [teacherName, setTeacherName] = useState('');
@@ -44,6 +48,7 @@ export default function PublicStudyHallPage() {
   const [success, setSuccess] = useState(false);
   const [bulkAdding, setBulkAdding] = useState(false);
   const [bulkCount, setBulkCount] = useState(0);
+  const [bumpedMessage, setBumpedMessage] = useState('');
   const [myRequests, setMyRequests] = useState<Array<{ studentName: string; pulloutDate: string }>>([]);
 
   // Load last selected teacher from localStorage
@@ -78,9 +83,9 @@ export default function PublicStudyHallPage() {
   const getEffectiveTeacher = () => teacherName === 'Other' ? customTeacher.trim() : teacherName;
   const getEffectiveStudent = () => selectedStudent?.name || customStudentName.trim();
 
-  const submitSingleStudent = useCallback(async (studentName: string) => {
+  const submitSingleStudent = useCallback(async (studentName: string): Promise<{ success: boolean; bumped?: boolean; message?: string; effectiveDate?: string }> => {
     const teacher = getEffectiveTeacher();
-    if (!studentName || !pulloutDate || !teacher) return false;
+    if (!studentName || !pulloutDate || !teacher) return { success: false };
     try {
       const res = await fetch('/api/study-hall', {
         method: 'POST',
@@ -95,8 +100,13 @@ export default function PublicStudyHallPage() {
         }),
       });
       const data = await res.json();
-      return data.success;
-    } catch { return false; }
+      return {
+        success: data.success,
+        bumped: data.bumped,
+        message: data.message,
+        effectiveDate: data.pullout?.pulloutDate,
+      };
+    } catch { return { success: false }; }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pulloutDate, teacherName, customTeacher, reason]);
 
@@ -110,14 +120,19 @@ export default function PublicStudyHallPage() {
 
     setBulkAdding(true);
     setBulkCount(0);
+    setBumpedMessage('');
     let added = 0;
+    const bumpedNames: string[] = [];
 
     for (const name of names) {
-      const ok = await submitSingleStudent(name);
-      if (ok) {
+      const result = await submitSingleStudent(name);
+      if (result.success) {
         added++;
         setBulkCount(added);
-        setMyRequests(prev => [...prev, { studentName: name, pulloutDate }]);
+        setMyRequests(prev => [...prev, { studentName: name, pulloutDate: result.effectiveDate || pulloutDate }]);
+        if (result.bumped && result.message) {
+          bumpedNames.push(name);
+        }
       }
     }
 
@@ -125,6 +140,9 @@ export default function PublicStudyHallPage() {
     setSearchQuery('');
     setCustomStudentName('');
     setSuccess(true);
+    if (bumpedNames.length > 0) {
+      setBumpedMessage(`${bumpedNames.join(', ')} already requested — moved to next school day.`);
+    }
     setTimeout(() => setSuccess(false), 3000);
     return true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,15 +159,19 @@ export default function PublicStudyHallPage() {
     const teacher = getEffectiveTeacher();
     if (!studentName || !pulloutDate || !teacher) return;
     setSubmitting(true);
+    setBumpedMessage('');
     try {
-      const ok = await submitSingleStudent(studentName);
-      if (ok) {
-        setMyRequests(prev => [...prev, { studentName, pulloutDate }]);
+      const result = await submitSingleStudent(studentName);
+      if (result.success) {
+        setMyRequests(prev => [...prev, { studentName, pulloutDate: result.effectiveDate || pulloutDate }]);
         setSelectedStudent(null);
         setSearchQuery('');
         setCustomStudentName('');
         setReason('');
         setSuccess(true);
+        if (result.bumped && result.message) {
+          setBumpedMessage(result.message);
+        }
         setTimeout(() => setSuccess(false), 2000);
       }
     } finally { setSubmitting(false); }
@@ -204,6 +226,12 @@ export default function PublicStudyHallPage() {
           {success && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700 text-center font-medium animate-pulse">
               {bulkCount > 1 ? `✓ ${bulkCount} students added` : '✓ Student added to pullout list'}
+            </div>
+          )}
+
+          {bumpedMessage && (
+            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 text-center font-medium">
+              ⚠️ {bumpedMessage}
             </div>
           )}
 
