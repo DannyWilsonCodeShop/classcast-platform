@@ -227,6 +227,19 @@ const SectionDashboard: React.FC<SectionDashboardProps> = ({
                         <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded font-mono font-semibold">
                           {section.classCode}
                         </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const link = `${window.location.origin}/join/${section.classCode}`;
+                            navigator.clipboard.writeText(link);
+                            const btn = e.currentTarget;
+                            btn.textContent = '✓ Copied!';
+                            setTimeout(() => { btn.textContent = '🔗 Copy Link'; }, 2000);
+                          }}
+                          className="px-2 py-1 bg-[#005587]/10 text-[#005587] text-[10px] rounded font-medium hover:bg-[#005587]/20 transition-colors"
+                        >
+                          🔗 Copy Link
+                        </button>
                       </div>
                     )}
                   </div>
