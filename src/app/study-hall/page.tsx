@@ -74,6 +74,8 @@ export default function PublicStudyHallPage() {
   useEffect(() => {
     const saved = localStorage.getItem('classcast_studyhall_teacher');
     if (saved) setTeacherName(saved);
+    const savedReason = localStorage.getItem('classcast_studyhall_reason');
+    if (savedReason) setReason(savedReason);
   }, []);
 
   // Save teacher selection to localStorage
@@ -82,6 +84,13 @@ export default function PublicStudyHallPage() {
       localStorage.setItem('classcast_studyhall_teacher', teacherName);
     }
   }, [teacherName]);
+
+  // Save reason to localStorage
+  useEffect(() => {
+    if (reason) {
+      localStorage.setItem('classcast_studyhall_reason', reason);
+    }
+  }, [reason]);
 
   // Fetch today's pickup list when tab is active
   useEffect(() => {
@@ -198,7 +207,6 @@ export default function PublicStudyHallPage() {
         setSelectedStudent(null);
         setSearchQuery('');
         setCustomStudentName('');
-        setReason('');
         setSuccess(true);
         if (result.bumped && result.message) {
           setBumpedMessage(result.message);
