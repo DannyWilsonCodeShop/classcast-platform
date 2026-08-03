@@ -445,7 +445,6 @@ export default function StudyHallPage() {
           </div>
 
           {/* End of My Requests */}
-          </div>
             </>
           ) : (
             /* ===== TODAY'S LIST TAB ===== */
