@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, ScanCommand, UpdateCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { CognitoIdentityProviderClient, AdminLinkProviderForUserCommand, ListUsersCommand } from '@aws-sdk/client-cognito-identity-provider';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
@@ -53,7 +53,7 @@ async function linkGoogleToExistingUser(email: string, googleSub: string) {
 // Exchange Google/Cognito auth code for tokens and find/create user
 export async function POST(request: NextRequest) {
   try {
-    const { authCode, redirectUri } = await request.json();
+    const { authCode, redirectUri, classCode } = await request.json();
 
     if (!authCode) {
       return NextResponse.json({ success: false, error: 'Missing auth code' }, { status: 400 });
@@ -148,14 +148,92 @@ export async function POST(request: NextRequest) {
       success: true,
       userId,
       role,
+      courseName: undefined as string | undefined,
+      alreadyEnrolled: false,
       tokens: {
         idToken: tokens.id_token,
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
       },
+      ...(classCode ? await enrollInCourse(userId, classCode) : {}),
     });
   } catch (error) {
     console.error('Google token exchange error:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// Enroll a user in a course by class code
+async function enrollInCourse(userId: string, classCode: string) {
+  try {
+    const COURSES_TABLE = 'classcast-courses';
+
+    // Find course by class code
+    const coursesResult = await docClient.send(new ScanCommand({
+      TableName: COURSES_TABLE,
+    }));
+
+    let targetCourse: any = null;
+    let targetSection: any = null;
+
+    for (const course of coursesResult.Items || []) {
+      const sections = course.sections || [];
+      for (const section of sections) {
+        if (section.classCode === classCode || section.sectionCode === classCode) {
+          targetCourse = course;
+          targetSection = section;
+          break;
+        }
+      }
+      if (!targetCourse && course.classCode === classCode) {
+        targetCourse = course;
+        targetSection = sections[0] || null;
+      }
+      if (targetCourse) break;
+    }
+
+    if (!targetCourse) return { courseName: undefined, alreadyEnrolled: false };
+
+    const courseId = targetCourse.courseId;
+    const sectionId = targetSection?.sectionId || 'default';
+
+    // Check if already enrolled
+    const userDoc = await docClient.send(new GetCommand({
+      TableName: USERS_TABLE,
+      Key: { userId },
+    }));
+
+    const enrolledCourses = userDoc.Item?.enrolledCourses || [];
+    const alreadyEnrolled = enrolledCourses.some((c: any) => c.courseId === courseId || c === courseId);
+
+    if (!alreadyEnrolled) {
+      const enrollment = {
+        courseId,
+        sectionId,
+        courseName: targetCourse.title || targetCourse.courseName,
+        enrolledAt: new Date().toISOString(),
+        instructorId: targetCourse.instructorId,
+      };
+
+      await docClient.send(new UpdateCommand({
+        TableName: USERS_TABLE,
+        Key: { userId },
+        UpdateExpression: 'SET enrolledCourses = list_append(if_not_exists(enrolledCourses, :empty), :enrollment), schoolLogo = if_not_exists(schoolLogo, :logo), schoolName = if_not_exists(schoolName, :schoolName)',
+        ExpressionAttributeValues: {
+          ':enrollment': [enrollment],
+          ':empty': [],
+          ':logo': targetCourse.schoolLogo || '',
+          ':schoolName': targetCourse.schoolName || '',
+        },
+      }));
+    }
+
+    return {
+      courseName: targetCourse.title || targetCourse.courseName,
+      alreadyEnrolled,
+    };
+  } catch (e) {
+    console.error('Enrollment failed:', e);
+    return { courseName: undefined, alreadyEnrolled: false };
   }
 }

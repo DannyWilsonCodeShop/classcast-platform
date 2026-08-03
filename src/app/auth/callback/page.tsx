@@ -38,7 +38,7 @@ export default function AuthCallbackPage() {
     setStatus('enrolling');
     try {
       const redirectUri = window.location.origin + '/auth/callback';
-      const res = await fetch('/api/auth/google-enroll', {
+      const res = await fetch('/api/auth/google-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ authCode, classCode, redirectUri }),
