@@ -167,34 +167,56 @@ export async function POST(request: NextRequest) {
 async function enrollInCourse(userId: string, classCode: string) {
   try {
     const COURSES_TABLE = 'classcast-courses';
-
-    // Find course by class code
-    const coursesResult = await docClient.send(new ScanCommand({
-      TableName: COURSES_TABLE,
-    }));
+    const SECTIONS_TABLE = 'classcast-sections';
 
     let targetCourse: any = null;
     let targetSection: any = null;
+    let courseId: string = '';
 
-    for (const course of coursesResult.Items || []) {
-      const sections = course.sections || [];
-      for (const section of sections) {
-        if (section.classCode === classCode || section.sectionCode === classCode) {
-          targetCourse = course;
-          targetSection = section;
-          break;
+    // First check the sections table (separate table)
+    const sectionsResult = await docClient.send(new ScanCommand({
+      TableName: SECTIONS_TABLE,
+      FilterExpression: 'classCode = :code',
+      ExpressionAttributeValues: { ':code': classCode },
+    }));
+
+    if (sectionsResult.Items && sectionsResult.Items.length > 0) {
+      targetSection = sectionsResult.Items[0];
+      courseId = targetSection.courseId;
+      // Fetch the course
+      const courseResult = await docClient.send(new GetCommand({
+        TableName: COURSES_TABLE,
+        Key: { courseId },
+      }));
+      targetCourse = courseResult.Item;
+    }
+
+    // If not found in sections table, check embedded sections in courses
+    if (!targetCourse) {
+      const coursesResult = await docClient.send(new ScanCommand({
+        TableName: COURSES_TABLE,
+      }));
+
+      for (const course of coursesResult.Items || []) {
+        const sections = course.sections || [];
+        for (const section of sections) {
+          if (section.classCode === classCode || section.sectionCode === classCode) {
+            targetCourse = course;
+            targetSection = section;
+            break;
+          }
         }
+        if (!targetCourse && course.classCode === classCode) {
+          targetCourse = course;
+          targetSection = sections[0] || null;
+        }
+        if (targetCourse) break;
       }
-      if (!targetCourse && course.classCode === classCode) {
-        targetCourse = course;
-        targetSection = sections[0] || null;
-      }
-      if (targetCourse) break;
     }
 
     if (!targetCourse) return { courseName: undefined, alreadyEnrolled: false };
 
-    const courseId = targetCourse.courseId;
+    courseId = targetCourse.courseId || courseId;
     const sectionId = targetSection?.sectionId || 'default';
 
     // Check if already enrolled
