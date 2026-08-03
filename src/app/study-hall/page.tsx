@@ -237,6 +237,17 @@ export default function PublicStudyHallPage() {
     return a.localeCompare(b);
   });
 
+  const handleDeletePullout = async (pulloutId: string) => {
+    try {
+      const res = await fetch(`/api/study-hall?pulloutId=${pulloutId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setTodayList(prev => prev.filter(p => p.pulloutId !== pulloutId));
+        setMyRequests(prev => prev.filter((_, i) => i !== prev.findIndex(r => (r as any).pulloutId === pulloutId)));
+      }
+    } catch {}
+  };
+
   return (
     <div className="min-h-[100dvh] bg-white flex flex-col overflow-hidden">
       <style jsx global>{`
@@ -427,14 +438,7 @@ export default function PublicStudyHallPage() {
               </div>
             )}
 
-            {/* Join CTA */}
-            <div className="text-center bg-[#005587]/5 rounded-2xl p-5">
-              <h3 className="text-sm font-bold text-[#005587] mb-1">Want the full experience?</h3>
-              <p className="text-xs text-gray-500 mb-3">Video assignments, AI grading, peer responses, and more.</p>
-              <button onClick={() => router.push('/about')} className="inline-block px-5 py-3 bg-[#FFC72C] text-[#005587] rounded-xl text-sm font-bold active:scale-[0.98] transition-transform">
-                Join ClassCast — Learn More
-              </button>
-            </div>
+            {/* Join CTA removed */}
           </div>
         ) : (
           /* ===== TODAY'S LIST TAB ===== */
@@ -487,9 +491,13 @@ export default function PublicStudyHallPage() {
                                 {entry.requestedByName}{entry.reason ? ` · ${entry.reason}` : ''}
                               </p>
                             </div>
-                            <div className={`px-2 py-0.5 rounded-full text-[9px] font-medium ${entry.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                              {entry.status === 'pending' ? 'Pending' : 'Confirmed'}
-                            </div>
+                            <button
+                              onClick={() => handleDeletePullout(entry.pulloutId)}
+                              className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
+                              title="Remove student"
+                            >
+                              <span className="text-sm">✕</span>
+                            </button>
                           </div>
                         ))}
                       </div>

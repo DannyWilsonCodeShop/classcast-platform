@@ -281,7 +281,7 @@ export default function StudyHallPage() {
       <div className="min-h-full overflow-y-auto pb-24 bg-white px-4 py-6">
         <div className="max-w-lg mx-auto">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl font-bold text-[#005587]">Study Hall Pullouts</h1>
               <p className="text-xs text-gray-500">
@@ -300,8 +300,31 @@ export default function StudyHallPage() {
             </div>
           </div>
 
-          {/* Add Pullout Request */}
-          <div className="bg-gray-50 rounded-2xl p-4 mb-6">
+          {/* Tab bar */}
+          <div className="flex border-b border-gray-200 mb-4">
+            <button
+              onClick={() => setShowPickupRoster(false)}
+              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors ${!showPickupRoster ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+            >
+              Request Pullout
+            </button>
+            <button
+              onClick={() => setShowPickupRoster(true)}
+              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors relative ${showPickupRoster ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+            >
+              Today&apos;s List
+              {pickupPullouts.length > 0 && (
+                <span className="absolute top-1.5 right-[calc(50%-35px)] bg-[#005587] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center">
+                  {pickupPullouts.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {!showPickupRoster ? (
+            <>
+              {/* Add Pullout Request */}
+              <div className="bg-gray-50 rounded-2xl p-4 mb-6">
             <h2 className="text-sm font-bold text-[#005587] mb-3">Request a Student</h2>
 
             {/* Student Search */}
@@ -421,67 +444,86 @@ export default function StudyHallPage() {
             )}
           </div>
 
-          {/* Pickup Roster View */}
-          <div className="mt-6">
-            <button
-              onClick={() => setShowPickupRoster(!showPickupRoster)}
-              className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl"
-            >
-              <span className="text-sm font-bold text-[#005587]">📋 View Pickup Roster</span>
-              <svg className={`w-4 h-4 text-gray-400 transition-transform ${showPickupRoster ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+          {/* End of My Requests */}
+          </div>
+            </>
+          ) : (
+            /* ===== TODAY'S LIST TAB ===== */
+            <div>
+              <div className="text-center mb-4">
+                <h2 className="text-lg font-bold text-[#005587]">Today&apos;s Pickup List</h2>
+                <p className="text-[11px] text-gray-500 mt-0.5">
+                  {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                </p>
+              </div>
 
-            {showPickupRoster && (
-              <div className="mt-3 space-y-3">
-                {/* Date filter */}
-                <div className="flex items-center gap-2">
-                  <label className="text-[10px] font-medium text-gray-600">Date:</label>
-                  <input
-                    type="date"
-                    value={pickupDate}
-                    onChange={(e) => setPickupDate(e.target.value)}
-                    className="px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]"
-                  />
-                  <span className="text-[10px] text-gray-400">{pickupPullouts.length} students</span>
+              {/* Date filter */}
+              <div className="flex items-center gap-2 mb-4">
+                <label className="text-[10px] font-medium text-gray-600">Date:</label>
+                <input
+                  type="date"
+                  value={pickupDate}
+                  onChange={(e) => setPickupDate(e.target.value)}
+                  className="px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]"
+                />
+                <span className="text-[10px] text-gray-400">{pickupPullouts.length} students</span>
+              </div>
+
+              {pickupLoading ? (
+                <p className="text-xs text-gray-400 text-center py-4">Loading...</p>
+              ) : pickupPullouts.length === 0 ? (
+                <div className="text-center py-10">
+                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span className="text-xl">📋</span>
+                  </div>
+                  <p className="text-sm text-gray-500">No students on the pullout list for this date</p>
+                  <button onClick={() => setShowPickupRoster(false)} className="mt-3 text-xs text-[#005587] font-medium">
+                    + Add a student
+                  </button>
                 </div>
-
-                {pickupLoading ? (
-                  <p className="text-xs text-gray-400 text-center py-4">Loading...</p>
-                ) : pickupPullouts.length === 0 ? (
-                  <p className="text-xs text-gray-400 text-center py-4">No pullouts for this date.</p>
-                ) : (
-                  <div className="space-y-3">
-                    {/* Group by study hall teacher */}
-                    {Object.entries(
-                      pickupPullouts.reduce((acc: Record<string, any[]>, p: any) => {
-                        const sh = p.studyHallTeacher || 'Unassigned';
-                        if (!acc[sh]) acc[sh] = [];
-                        acc[sh].push(p);
-                        return acc;
-                      }, {})
-                    ).sort(([a], [b]) => a.localeCompare(b)).map(([studyHall, students]) => (
-                      <div key={studyHall} className="bg-white border border-gray-200 rounded-xl p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="text-xs font-bold text-[#005587]">{studyHall}</h4>
-                          <span className="text-[9px] text-gray-400">{(students as any[]).length} student{(students as any[]).length !== 1 ? 's' : ''}</span>
-                        </div>
-                        <div className="space-y-1">
-                          {(students as any[]).map((p: any) => (
-                            <div key={p.pulloutId} className="flex items-center justify-between py-1 border-b border-gray-50 last:border-b-0">
-                              <span className="text-xs text-gray-700">{p.studentName}</span>
-                              <span className="text-[9px] text-gray-400">{p.requestedByName}</span>
-                            </div>
-                          ))}
+              ) : (
+                <div className="space-y-3">
+                  {/* Group by study hall teacher */}
+                  {Object.entries(
+                    pickupPullouts.reduce((acc: Record<string, any[]>, p: any) => {
+                      const sh = p.homeroom || p.studyHallTeacher || 'Unassigned';
+                      if (!acc[sh]) acc[sh] = [];
+                      acc[sh].push(p);
+                      return acc;
+                    }, {})
+                  ).sort(([a], [b]) => a.localeCompare(b)).map(([studyHall, students]) => (
+                    <div key={studyHall} className="bg-gray-50 border border-gray-200 rounded-xl p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 bg-[#005587] rounded-full flex items-center justify-center">
+                            <span className="text-[8px] text-white font-bold">{(students as any[]).length}</span>
+                          </div>
+                          <h4 className="text-xs font-bold text-gray-700">{studyHall}</h4>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                      <div className="space-y-1.5 ml-7">
+                        {(students as any[]).map((p: any) => (
+                          <div key={p.pulloutId} className="flex items-center gap-2 p-2 bg-white rounded-lg">
+                            <div className="flex-1 min-w-0">
+                              <span className="text-xs font-medium text-gray-800">{p.studentName}</span>
+                              <p className="text-[10px] text-gray-400">{p.requestedByName}{p.reason ? ` · ${p.reason}` : ''}</p>
+                            </div>
+                            <button
+                              onClick={() => handleDelete(p.pulloutId)}
+                              className="shrink-0 w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors"
+                              title="Remove"
+                            >
+                              <span className="text-sm">✕</span>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
