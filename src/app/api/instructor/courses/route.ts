@@ -7,6 +7,7 @@ const client = new DynamoDBClient({ region: awsConfig.region });
 const docClient = DynamoDBDocumentClient.from(client);
 
 const COURSES_TABLE = awsConfig.dynamodb.tables.courses;
+const USERS_TABLE = awsConfig.dynamodb.tables.users;
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,19 +21,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.log('📚 Fetching courses for instructor:', instructorId);
-    console.log('📚 Using table:', COURSES_TABLE);
-    
-    // Log all unique instructorIds in the database for debugging
-    const allCoursesResult = await docClient.send(new ScanCommand({
-      TableName: COURSES_TABLE
-    }));
-    
-    const uniqueInstructorIds = [...new Set((allCoursesResult.Items || []).map(c => c.instructorId))];
-    console.log(`📚 Total courses in table: ${(allCoursesResult.Items || []).length}`);
-    console.log(`📚 Unique instructorIds in database:`, uniqueInstructorIds);
-    console.log(`📚 Looking for instructorId: "${instructorId}"`);
-
     // Get all courses for this instructor
     const coursesResult = await docClient.send(new ScanCommand({
       TableName: COURSES_TABLE,
@@ -42,10 +30,30 @@ export async function GET(request: NextRequest) {
       }
     }));
 
+    // Get all students to count enrollments per course
+    const studentsResult = await docClient.send(new ScanCommand({
+      TableName: USERS_TABLE,
+      FilterExpression: '#role = :role',
+      ExpressionAttributeNames: { '#role': 'role' },
+      ExpressionAttributeValues: { ':role': 'student' },
+    }));
+
+    // Build enrollment counts per course
+    const enrollmentCounts: Record<string, number> = {};
+    for (const student of studentsResult.Items || []) {
+      const enrolled = student.enrolledCourses || [];
+      for (const enrollment of enrolled) {
+        const cId = typeof enrollment === 'string' ? enrollment : enrollment.courseId;
+        if (cId) {
+          enrollmentCounts[cId] = (enrollmentCounts[cId] || 0) + 1;
+        }
+      }
+    }
+
     const courses = (coursesResult.Items || []).map(course => ({
-      id: course.courseId, // Dashboard expects 'id'
+      id: course.courseId,
       courseId: course.courseId,
-      title: course.title, // Dashboard expects 'title'
+      title: course.title,
       courseName: course.courseName || course.title,
       courseCode: course.courseCode || course.code,
       code: course.code || course.courseCode,
@@ -54,20 +62,17 @@ export async function GET(request: NextRequest) {
       semester: course.semester,
       year: course.year,
       status: course.status,
-      studentCount: course.currentEnrollment || course.enrollmentCount || 0, // Dashboard expects 'studentCount'
-      enrollmentCount: course.currentEnrollment || course.enrollmentCount || 0,
+      studentCount: enrollmentCounts[course.courseId] || 0,
+      enrollmentCount: enrollmentCounts[course.courseId] || 0,
       maxEnrollment: course.maxEnrollment || course.maxStudents,
-      assignmentsDue: 0, // Dashboard expects this field
+      assignmentsDue: 0,
       backgroundColor: course.backgroundColor || course.settings?.backgroundColor || '#4A90E2',
-      // Co-instructor info
       coInstructorEmail: course.coInstructorEmail,
       coInstructorName: course.coInstructorName,
-      userRole: course.coInstructorEmail ? 'primary' : 'primary', // Could be enhanced to detect co-instructor role
+      userRole: course.coInstructorEmail ? 'primary' : 'primary',
       createdAt: course.createdAt,
       updatedAt: course.updatedAt
     }));
-
-    console.log(`📊 Found ${courses.length} courses for instructor`);
 
     return NextResponse.json({
       success: true,

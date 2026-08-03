@@ -1134,21 +1134,48 @@ const InstructorCourseDetailPage: React.FC = () => {
           {/* Section Cards - horizontal row */}
           {sections.length > 0 && (
             <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-              {sections.map((section: any) => (
-                <button
-                  key={section.sectionId}
-                  onClick={() => router.push(`/instructor/courses/${courseId}/sections/${section.sectionId}`)}
-                  className="shrink-0 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100 active:scale-[0.98] transition-transform"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#005587]">{section.sectionName}</span>
+              {sections.map((section: any) => {
+                // Count students actually in this section
+                const sectionStudentCount = students.filter(s => 
+                  s.sectionName === section.sectionName || 
+                  (s as any).sectionId === section.sectionId
+                ).length;
+                return (
+                  <div
+                    key={section.sectionId}
+                    className="shrink-0 bg-gray-50 rounded-xl px-3 py-2 border border-gray-100"
+                  >
+                    <button
+                      onClick={() => router.push(`/instructor/courses/${courseId}/sections/${section.sectionId}`)}
+                      className="text-left active:scale-[0.98] transition-transform"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-[#005587]">{section.sectionName}</span>
+                        {section.classCode && (
+                          <span className="text-[9px] font-mono bg-[#005587]/10 text-[#005587] px-1.5 py-0.5 rounded-full">{section.classCode}</span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-0.5">{sectionStudentCount || section.currentEnrollment || 0} students</p>
+                    </button>
                     {section.classCode && (
-                      <span className="text-[9px] font-mono bg-[#005587]/10 text-[#005587] px-1.5 py-0.5 rounded-full">{section.classCode}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const link = `${window.location.origin}/join/${section.classCode}`;
+                          navigator.clipboard.writeText(link);
+                          const btn = e.currentTarget;
+                          const original = btn.innerHTML;
+                          btn.innerHTML = '<span class="text-green-600">✓ Copied</span>';
+                          setTimeout(() => { btn.innerHTML = original; }, 2000);
+                        }}
+                        className="mt-1 text-[9px] text-[#005587] font-medium hover:underline"
+                      >
+                        🔗 Copy Join Link
+                      </button>
                     )}
                   </div>
-                  <p className="text-[10px] text-gray-500 mt-0.5">{section.currentEnrollment || 0}/{section.maxEnrollment || '∞'} students</p>
-                </button>
-              ))}
+                );
+              })}
             </div>
           )}
 
