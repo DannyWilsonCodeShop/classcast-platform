@@ -1,15 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { CognitoIdentityProviderClient, AdminLinkProviderForUserCommand, ListUsersCommand } from '@aws-sdk/client-cognito-identity-provider';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
+const cognitoClient = new CognitoIdentityProviderClient({ region: 'us-east-1' });
 
 const USERS_TABLE = 'classcast-users';
 const COURSES_TABLE = 'classcast-courses';
 
 const COGNITO_DOMAIN = 'classcast-verification.auth.us-east-1.amazoncognito.com';
 const CLIENT_ID = '7tbaq74itv3gdda1bt25iqafvh';
+const USER_POOL_ID = 'us-east-1_uK50qBrap';
+
+// Link Google identity to existing Cognito user
+async function linkGoogleToExistingUser(email: string, googleSub: string) {
+  try {
+    const listResult = await cognitoClient.send(new ListUsersCommand({
+      UserPoolId: USER_POOL_ID,
+      Filter: `email = "${email}"`,
+    }));
+
+    const nativeUser = listResult.Users?.find(u =>
+      u.UserStatus !== 'EXTERNAL_PROVIDER' &&
+      !u.Username?.startsWith('google_')
+    );
+
+    if (nativeUser && nativeUser.Username) {
+      await cognitoClient.send(new AdminLinkProviderForUserCommand({
+        UserPoolId: USER_POOL_ID,
+        DestinationUser: {
+          ProviderName: 'Cognito',
+          ProviderAttributeValue: nativeUser.Username,
+        },
+        SourceUser: {
+          ProviderName: 'Google',
+          ProviderAttributeName: 'Cognito_Subject',
+          ProviderAttributeValue: googleSub,
+        },
+      }));
+      console.log(`Linked Google identity to existing user: ${email}`);
+      return true;
+    }
+  } catch (error) {
+    console.log('Link attempt (may already be linked):', (error as Error).message);
+  }
+  return false;
+}
 
 // Exchange Cognito auth code for tokens, create/find user, and enroll in class
 export async function POST(request: NextRequest) {
@@ -57,6 +95,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Find or create user in DynamoDB
     let userId: string;
+    const googleSub = sub.startsWith('google_') ? sub.replace('google_', '') : sub;
 
     // Check if user already exists by email
     const existingUserResult = await docClient.send(new ScanCommand({
@@ -67,6 +106,20 @@ export async function POST(request: NextRequest) {
 
     if (existingUserResult.Items && existingUserResult.Items.length > 0) {
       userId = existingUserResult.Items[0].userId;
+
+      // Update existing user with Google auth info
+      await docClient.send(new UpdateCommand({
+        TableName: USERS_TABLE,
+        Key: { userId },
+        UpdateExpression: 'SET googleSub = :gsub, authProvider = if_not_exists(authProvider, :provider)',
+        ExpressionAttributeValues: {
+          ':gsub': googleSub,
+          ':provider': 'google',
+        },
+      }));
+
+      // Link Google identity to existing Cognito user
+      await linkGoogleToExistingUser(email, googleSub);
     } else {
       // Create new student user
       userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -79,6 +132,7 @@ export async function POST(request: NextRequest) {
           lastName,
           role: 'student',
           cognitoSub: sub,
+          googleSub,
           authProvider: 'google',
           createdAt: new Date().toISOString(),
           enrolledCourses: [],
