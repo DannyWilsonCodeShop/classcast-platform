@@ -47,14 +47,36 @@ export default function AuthCallbackPage() {
       if (data.success) {
         localStorage.removeItem('classcast_pending_join_code');
         localStorage.removeItem('classcast_google_return_path');
-        // Store tokens for the session
-        if (data.tokens?.idToken) {
-          localStorage.setItem('classcast_id_token', data.tokens.idToken);
-          localStorage.setItem('classcast_access_token', data.tokens.accessToken);
+        // Store tokens in the format the app expects
+        if (data.tokens?.accessToken) {
+          localStorage.setItem('accessToken', data.tokens.accessToken);
+          localStorage.setItem('idToken', data.tokens.idToken);
           if (data.tokens.refreshToken) {
-            localStorage.setItem('classcast_refresh_token', data.tokens.refreshToken);
+            localStorage.setItem('refreshToken', data.tokens.refreshToken);
           }
-          localStorage.setItem('classcast_user_id', data.userId);
+        }
+        // Fetch and store user data
+        if (data.userId) {
+          try {
+            const userRes = await fetch(`/api/users/${data.userId}`);
+            const userData = await userRes.json();
+            if (userData.success && userData.data) {
+              const userObj = {
+                id: userData.data.userId,
+                userId: userData.data.userId,
+                email: userData.data.email,
+                firstName: userData.data.firstName,
+                lastName: userData.data.lastName,
+                role: userData.data.role || 'student',
+                schoolLogo: userData.data.schoolLogo,
+                schoolName: userData.data.schoolName,
+                enrolledCourses: userData.data.enrolledCourses,
+              };
+              localStorage.setItem('user', JSON.stringify(userObj));
+            }
+          } catch {
+            localStorage.setItem('user', JSON.stringify({ id: data.userId, userId: data.userId, role: 'student' }));
+          }
         }
         // Redirect to student dashboard
         router.replace('/student/dashboard');
@@ -79,15 +101,43 @@ export default function AuthCallbackPage() {
       });
       const data = await res.json();
       if (data.success && data.tokens) {
-        localStorage.setItem('classcast_id_token', data.tokens.idToken);
-        localStorage.setItem('classcast_access_token', data.tokens.accessToken);
+        // Store tokens in the format the app expects
+        localStorage.setItem('accessToken', data.tokens.accessToken);
+        localStorage.setItem('idToken', data.tokens.idToken);
         if (data.tokens.refreshToken) {
-          localStorage.setItem('classcast_refresh_token', data.tokens.refreshToken);
+          localStorage.setItem('refreshToken', data.tokens.refreshToken);
         }
+        // Store user data
         if (data.userId) {
-          localStorage.setItem('classcast_user_id', data.userId);
+          // Fetch user details to populate the user object
+          try {
+            const userRes = await fetch(`/api/users/${data.userId}`);
+            const userData = await userRes.json();
+            if (userData.success && userData.data) {
+              const userObj = {
+                id: userData.data.userId,
+                userId: userData.data.userId,
+                email: userData.data.email,
+                firstName: userData.data.firstName,
+                lastName: userData.data.lastName,
+                role: userData.data.role || data.role,
+                schoolLogo: userData.data.schoolLogo,
+                schoolName: userData.data.schoolName,
+                enrolledCourses: userData.data.enrolledCourses,
+              };
+              localStorage.setItem('user', JSON.stringify(userObj));
+            }
+          } catch {
+            // Fallback: store minimal user
+            localStorage.setItem('user', JSON.stringify({ id: data.userId, userId: data.userId, role: data.role }));
+          }
         }
-        router.replace('/');
+        // Redirect based on role
+        if (data.role === 'instructor' || data.role === 'admin') {
+          router.replace('/instructor/dashboard');
+        } else {
+          router.replace('/student/dashboard');
+        }
       } else {
         setStatus('error');
         setError(data.error || 'Sign-in failed');
