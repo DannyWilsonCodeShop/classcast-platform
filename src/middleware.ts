@@ -31,6 +31,13 @@ export function middleware(request: NextRequest) {
   // Don't cache API POST/PUT/DELETE
   if (pathname.startsWith('/api') && request.method !== 'GET') {
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+  }
+
+  // Never cache auth API routes (GET or POST)
+  if (pathname.startsWith('/api/auth')) {
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    response.headers.set('Pragma', 'no-cache');
   }
   
   // Add security headers
