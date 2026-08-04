@@ -1458,7 +1458,7 @@ Make sure your video is:
 
                 {/* Video Preview */}
                 <div className="relative bg-black rounded-xl overflow-hidden mb-6">
-                  <div className="aspect-video w-full max-w-2xl mx-auto">
+                  <div className="aspect-video w-full max-w-2xl mx-auto max-h-[50vh]">
                     {externalVideoUrl ? (
                       externalIsYouTube ? (
                         <iframe
@@ -1516,7 +1516,7 @@ Make sure your video is:
                         controls
                         playsInline
                         webkit-playsinline="true"
-                        className="w-full h-full object-cover rounded-xl"
+                        className="w-full h-full object-contain rounded-xl"
                       />
                     )}
                   </div>
