@@ -1,27 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 
-// Use explicit credentials if provided, otherwise fall back to default credential chain
+// Use Amplify service role - default credential provider chain
 const bedrockConfig: any = {
   region: process.env.AWS_REGION || process.env.CLASSCAST_AWS_REGION || 'us-east-1',
 };
-
-// Check multiple env var names (Amplify may prefix differently)
-const accessKeyId = process.env.CLASSCAST_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || process.env.BEDROCK_ACCESS_KEY_ID;
-const secretAccessKey = process.env.CLASSCAST_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || process.env.BEDROCK_SECRET_ACCESS_KEY;
-
-console.log('Bedrock credentials check:', {
-  hasClasscastKey: !!process.env.CLASSCAST_ACCESS_KEY_ID,
-  hasAwsKey: !!process.env.AWS_ACCESS_KEY_ID,
-  hasBedrock: !!process.env.BEDROCK_ACCESS_KEY_ID,
-  accessKeyFound: !!accessKeyId,
-  region: bedrockConfig.region,
-});
-
-if (accessKeyId && secretAccessKey) {
-  bedrockConfig.credentials = { accessKeyId, secretAccessKey };
-}
-// If no explicit credentials, SDK uses default provider chain (Amplify service role)
 
 const bedrock = new BedrockRuntimeClient(bedrockConfig);
 

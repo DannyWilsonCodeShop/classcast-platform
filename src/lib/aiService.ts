@@ -1,13 +1,8 @@
 import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-runtime';
 import { TranscribeClient, StartTranscriptionJobCommand, GetTranscriptionJobCommand } from '@aws-sdk/client-transcribe';
 
-// Use explicit credentials if provided, otherwise default credential chain (Amplify service role)
+// AI service - uses Amplify service role (default credential provider chain)
 const awsConfig: any = { region: process.env.AWS_REGION || process.env.CLASSCAST_AWS_REGION || 'us-east-1' };
-const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.CLASSCAST_ACCESS_KEY_ID;
-const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLASSCAST_SECRET_ACCESS_KEY;
-if (accessKeyId && secretAccessKey) {
-  awsConfig.credentials = { accessKeyId, secretAccessKey };
-}
 
 const bedrock = new BedrockRuntimeClient(awsConfig);
 const transcribe = new TranscribeClient(awsConfig);

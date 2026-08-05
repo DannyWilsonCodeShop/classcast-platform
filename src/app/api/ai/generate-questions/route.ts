@@ -4,11 +4,6 @@ import { BedrockRuntimeClient, ConverseCommand } from '@aws-sdk/client-bedrock-r
 const bedrockConfig: any = {
   region: process.env.AWS_REGION || process.env.CLASSCAST_AWS_REGION || 'us-east-1',
 };
-const accessKeyId = process.env.AWS_ACCESS_KEY_ID || process.env.CLASSCAST_ACCESS_KEY_ID;
-const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLASSCAST_SECRET_ACCESS_KEY;
-if (accessKeyId && secretAccessKey) {
-  bedrockConfig.credentials = { accessKeyId, secretAccessKey };
-}
 const bedrock = new BedrockRuntimeClient(bedrockConfig);
 
 /**

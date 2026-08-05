@@ -2,18 +2,14 @@ import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, List
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { awsConfig } from './aws-config';
 
-// S3 client configuration with proper credentials
+// S3 client configuration - uses Amplify service role (default credential provider chain)
+// Do NOT use explicit CLASSCAST_ACCESS_KEY_ID - it may be stale
 const s3Config: any = {
   region: awsConfig.region,
   // Disable request checksums - they add headers that cause CORS 403 on browser uploads
   requestChecksumCalculation: 'WHEN_REQUIRED',
   responseChecksumValidation: 'WHEN_REQUIRED',
 };
-const ak = process.env.AWS_ACCESS_KEY_ID || process.env.CLASSCAST_ACCESS_KEY_ID;
-const sk = process.env.AWS_SECRET_ACCESS_KEY || process.env.CLASSCAST_SECRET_ACCESS_KEY;
-if (ak && sk) {
-  s3Config.credentials = { accessKeyId: ak, secretAccessKey: sk };
-}
 const s3Client = new S3Client(s3Config);
 
 // Bucket name from unified configuration
