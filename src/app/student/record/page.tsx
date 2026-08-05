@@ -37,7 +37,8 @@ function RecordPageInner() {
   // Thumbnail state
   const [showThumbnailStep, setShowThumbnailStep] = useState(false);
   const [thumbnailUrl, setThumbnailUrl] = useState('');
-  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailCameraRef = useRef<HTMLInputElement>(null);
+  const thumbnailFileRef = useRef<HTMLInputElement>(null);
 
   // Recording state
   const [cameraActive, setCameraActive] = useState(false);
@@ -634,10 +635,16 @@ function RecordPageInner() {
               )}
               <div className="w-full max-w-xs space-y-3">
                 <button
-                  onClick={() => thumbnailInputRef.current?.click()}
+                  onClick={() => thumbnailCameraRef.current?.click()}
                   className="w-full py-3 bg-[#FFC72C] text-[#005587] rounded-full font-bold text-lg"
                 >
                   📸 {thumbnailUrl ? 'Retake Photo' : 'Take Photo'}
+                </button>
+                <button
+                  onClick={() => thumbnailFileRef.current?.click()}
+                  className="w-full py-3 bg-white/10 text-white rounded-full font-medium border border-white/20"
+                >
+                  🖼️ Choose from Files
                 </button>
                 <button
                   onClick={() => setShowThumbnailStep(false)}
@@ -646,11 +653,29 @@ function RecordPageInner() {
                   {thumbnailUrl ? 'Use This Photo →' : 'Skip — use default'}
                 </button>
               </div>
+              {/* Camera input - opens camera directly on mobile */}
               <input
-                ref={thumbnailInputRef}
+                ref={thumbnailCameraRef}
                 type="file"
                 accept="image/*"
                 capture="user"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                      setThumbnailUrl(ev.target?.result as string);
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+              {/* File picker input - opens file browser */}
+              <input
+                ref={thumbnailFileRef}
+                type="file"
+                accept="image/*"
                 className="hidden"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
