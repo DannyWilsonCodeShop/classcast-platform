@@ -6,12 +6,12 @@ export async function GET(request: NextRequest) {
       success: true,
       env: {
         region: process.env.REGION,
-        accessKeyId: process.env.ACCESS_KEY_ID ? 'SET' : 'NOT_SET',
-        secretAccessKey: process.env.SECRET_ACCESS_KEY ? 'SET' : 'NOT_SET',
+        AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID ? `SET (${process.env.AWS_ACCESS_KEY_ID.substring(0, 8)}...)` : 'NOT_SET',
+        AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY ? 'SET' : 'NOT_SET',
+        CLASSCAST_ACCESS_KEY_ID: process.env.CLASSCAST_ACCESS_KEY_ID ? `SET (${process.env.CLASSCAST_ACCESS_KEY_ID.substring(0, 8)}...)` : 'NOT_SET',
+        CLASSCAST_SECRET_ACCESS_KEY: process.env.CLASSCAST_SECRET_ACCESS_KEY ? 'SET' : 'NOT_SET',
         submissionsTable: process.env.SUBMISSIONS_TABLE_NAME,
         usersTable: process.env.USERS_TABLE_NAME,
-        assignmentsTable: process.env.ASSIGNMENTS_TABLE_NAME,
-        coursesTable: process.env.COURSES_TABLE_NAME,
         s3Bucket: process.env.S3_VIDEOS_BUCKET
       }
     });
