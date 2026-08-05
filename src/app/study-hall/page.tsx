@@ -223,15 +223,15 @@ export default function PublicStudyHallPage() {
     setCustomStudentName(val);
   };
 
-  // Group today's list by homeroom
-  const groupedByHomeroom = todayList.reduce((acc, entry) => {
-    const hr = entry.homeroom || 'Unassigned';
-    if (!acc[hr]) acc[hr] = [];
-    acc[hr].push(entry);
+  // Group today's list by Study Hall (studyHallTeacher field)
+  const groupedByStudyHall = todayList.reduce((acc, entry) => {
+    const sh = entry.studyHallTeacher || entry.homeroom || 'Unassigned';
+    if (!acc[sh]) acc[sh] = [];
+    acc[sh].push(entry);
     return acc;
   }, {} as Record<string, PulloutEntry[]>);
 
-  const sortedHomerooms = Object.keys(groupedByHomeroom).sort((a, b) => {
+  const sortedStudyHalls = Object.keys(groupedByStudyHall).sort((a, b) => {
     if (a === 'Unassigned') return 1;
     if (b === 'Unassigned') return -1;
     return a.localeCompare(b);
@@ -375,7 +375,7 @@ export default function PublicStudyHallPage() {
                         className="w-full text-left px-3 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 active:bg-gray-100"
                       >
                         <p className="text-sm font-medium text-gray-800">{student.name}</p>
-                        {student.homeroom && <p className="text-[10px] text-gray-500">Homeroom: {student.homeroom}</p>}
+                        {student.homeroom && <p className="text-[10px] text-gray-500">Study Hall: {student.homeroom}</p>}
                       </button>
                     ))}
                   </div>
@@ -472,18 +472,18 @@ export default function PublicStudyHallPage() {
                   <span className="text-sm font-bold text-[#005587]">{todayList.length}</span>
                 </div>
 
-                {/* Grouped by homeroom */}
+                {/* Grouped by Study Hall */}
                 <div className="space-y-4">
-                  {sortedHomerooms.map(homeroom => (
-                    <div key={homeroom}>
+                  {sortedStudyHalls.map(studyHall => (
+                    <div key={studyHall}>
                       <div className="flex items-center gap-2 mb-2">
                         <div className="w-5 h-5 bg-[#005587] rounded-full flex items-center justify-center shrink-0">
-                          <span className="text-[8px] text-white font-bold">{groupedByHomeroom[homeroom].length}</span>
+                          <span className="text-[8px] text-white font-bold">{groupedByStudyHall[studyHall].length}</span>
                         </div>
-                        <h3 className="text-xs font-bold text-gray-700">{homeroom}</h3>
+                        <h3 className="text-xs font-bold text-gray-700">{studyHall} Study Hall</h3>
                       </div>
                       <div className="space-y-1.5 ml-7">
-                        {groupedByHomeroom[homeroom].map((entry) => (
+                        {groupedByStudyHall[studyHall].map((entry) => (
                           <div key={entry.pulloutId} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-medium text-gray-800 truncate">{entry.studentName}</p>

@@ -353,7 +353,7 @@ export default function StudyHallPage() {
                     >
                       <p className="text-sm font-medium text-gray-800">{student.name}</p>
                       {student.homeroom && (
-                        <p className="text-[10px] text-gray-500">Homeroom: {student.homeroom}</p>
+                        <p className="text-[10px] text-gray-500">Study Hall: {student.homeroom}</p>
                       )}
                     </button>
                   ))}
@@ -485,7 +485,7 @@ export default function StudyHallPage() {
                   {/* Group by study hall teacher */}
                   {Object.entries(
                     pickupPullouts.reduce((acc: Record<string, any[]>, p: any) => {
-                      const sh = p.homeroom || p.studyHallTeacher || 'Unassigned';
+                      const sh = p.studyHallTeacher || p.homeroom || 'Unassigned';
                       if (!acc[sh]) acc[sh] = [];
                       acc[sh].push(p);
                       return acc;
@@ -497,7 +497,7 @@ export default function StudyHallPage() {
                           <div className="w-5 h-5 bg-[#005587] rounded-full flex items-center justify-center">
                             <span className="text-[8px] text-white font-bold">{(students as any[]).length}</span>
                           </div>
-                          <h4 className="text-xs font-bold text-gray-700">{studyHall}</h4>
+                          <h4 className="text-xs font-bold text-gray-700">{studyHall} Study Hall</h4>
                         </div>
                       </div>
                       <div className="space-y-1.5 ml-7">
