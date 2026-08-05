@@ -49,17 +49,39 @@ export async function GET(request: NextRequest) {
 
     // =========================================================================
     // FILTER: Determine which courses this user is enrolled in
+    // Check both: course.enrollment.students AND user.enrolledCourses
     // =========================================================================
+    
+    // First, get user's enrolledCourses from user record
+    let userEnrolledCourseIds = new Set<string>();
+    try {
+      const userResult = await docClient.send(new ScanCommand({
+        TableName: USERS_TABLE,
+        FilterExpression: 'userId = :uid',
+        ExpressionAttributeValues: { ':uid': userId },
+      }));
+      const userRecord = userResult.Items?.[0];
+      if (userRecord?.enrolledCourses) {
+        for (const ec of userRecord.enrolledCourses) {
+          const cid = typeof ec === 'string' ? ec : ec.courseId;
+          if (cid) userEnrolledCourseIds.add(cid);
+        }
+      }
+    } catch {}
+
     let userCourses: any[];
     if (courseId) {
       userCourses = allCourses;
     } else {
       userCourses = allCourses.filter(course => {
-        if (!course.enrollment || !course.enrollment.students) return false;
-        return course.enrollment.students.some((student: any) => {
+        // Check if user is in course.enrollment.students
+        const inCourseEnrollment = course.enrollment?.students?.some((student: any) => {
           if (typeof student === 'string') return student === userId;
           return student?.userId === userId;
         });
+        // Check if course is in user.enrolledCourses
+        const inUserEnrollment = userEnrolledCourseIds.has(course.courseId);
+        return inCourseEnrollment || inUserEnrollment;
       });
     }
 
