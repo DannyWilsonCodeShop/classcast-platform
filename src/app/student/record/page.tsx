@@ -22,6 +22,7 @@ function RecordPageInner() {
   const assignmentId = searchParams.get('assignmentId');
   const mode = searchParams.get('mode'); // 'record', 'upload', or null
   const isAssessment = searchParams.get('assessment') === 'true';
+  const isModuleAssignment = searchParams.get('module') === 'true';
   const { user } = useAuth();
 
   // Assignment data
@@ -137,7 +138,7 @@ function RecordPageInner() {
       setVideoFile(file);
       setVideoPreviewUrl(URL.createObjectURL(blob));
       stopCamera();
-      setShowThumbnailStep(true);
+      setShowThumbnailStep(isModuleAssignment);
       // Exit fullscreen when recording stops
       if (document.fullscreenElement) {
         document.exitFullscreen().catch(() => {});
@@ -216,8 +217,8 @@ function RecordPageInner() {
     setLinkUrl('');
     setLinkType(null);
     setError('');
-    setShowThumbnailStep(true);
-    console.log('✅ showThumbnailStep set to true');
+    setShowThumbnailStep(isModuleAssignment);
+    console.log('✅ showThumbnailStep set to', isModuleAssignment);
   };
 
   // Delete video
@@ -845,7 +846,7 @@ function RecordPageInner() {
             setVideoFile(file);
             setVideoPreviewUrl(URL.createObjectURL(blob));
             setShowPiP(false);
-            setShowThumbnailStep(true);
+            setShowThumbnailStep(isModuleAssignment);
           }}
           onCancel={() => setShowPiP(false)}
         />
@@ -859,7 +860,7 @@ function RecordPageInner() {
             setVideoFile(file);
             setVideoPreviewUrl(URL.createObjectURL(blob));
             setShowGreenScreen(false);
-            setShowThumbnailStep(true);
+            setShowThumbnailStep(isModuleAssignment);
           }}
           onCancel={() => setShowGreenScreen(false)}
         />
