@@ -6,8 +6,6 @@ frontend:
         - npm ci --prefer-offline
         # Write runtime env vars into .env.production so Next.js SSR can access them
         - |
-          echo "CLASSCAST_ACCESS_KEY_ID=$CLASSCAST_ACCESS_KEY_ID" >> .env.production
-          echo "CLASSCAST_SECRET_ACCESS_KEY=$CLASSCAST_SECRET_ACCESS_KEY" >> .env.production
           echo "CLASSCAST_AWS_REGION=$CLASSCAST_AWS_REGION" >> .env.production
           echo "SNS_ERROR_TOPIC_ARN=$SNS_ERROR_TOPIC_ARN" >> .env.production
     build:
