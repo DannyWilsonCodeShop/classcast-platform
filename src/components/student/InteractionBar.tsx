@@ -350,25 +350,29 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         <span className="text-sm font-medium">{comments}</span>
       </button>
 
-      {/* Respond (inline toggle) - hidden for own videos */}
+      {/* Respond (inline toggle) - hidden for own videos - PRIMARY ACTION FOR GRADING */}
       {!isOwnVideo && (
       <details>
-        <summary className={`list-none cursor-pointer flex items-center space-x-1.5 transition-colors py-2 ${responsePosted ? 'text-green-500' : 'hover:text-green-500'}`}>
+        <summary className={`list-none cursor-pointer flex items-center space-x-1.5 transition-colors py-2 ${responsePosted ? 'text-green-500' : 'text-green-600 hover:text-green-700 font-semibold'}`}>
           <svg className="w-6 h-6" fill={responsePosted ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <span className="text-sm font-medium">{responsePosted ? 'Response Submitted ✓' : 'Respond to this Video'}</span>
+          <span className="text-sm font-medium">{responsePosted ? 'Response Submitted ✓' : '📝 Respond (for grade)'}</span>
         </summary>
-        <div className="mt-2">
+        <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">FOR GRADING</span>
+            <span className="text-[10px] text-green-600">This counts toward your peer review requirement</span>
+          </div>
           {responsePosted && (
-            <div className="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+            <div className="mb-3 p-3 bg-green-100 border border-green-300 rounded-lg flex items-center gap-2">
               <svg className="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
               <span className="text-sm text-green-700 font-medium">Response submitted successfully!</span>
             </div>
           )}
           <textarea
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            placeholder="Write your response for grading..."
+            className="w-full px-3 py-2 border border-green-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+            placeholder="Write a thoughtful response to this video..."
             rows={3}
             ref={responseInputRef}
             onFocus={() => { setTimeout(() => responseInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
@@ -379,14 +383,11 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
             <button
               onClick={handlePostResponse}
               disabled={!responseText.trim() || postingResponse}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {postingResponse ? 'Submitting...' : 'Submit Response'}
+              {postingResponse ? 'Submitting...' : '✓ Submit Response'}
             </button>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            This response will be submitted for grading and assessment.
-          </p>
         </div>
       </details>
       )}
@@ -405,18 +406,21 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
         <span className="text-sm font-medium">Responses ({responsesList.length})</span>
       </button>
 
-      {/* Inline comments panel */}
+      {/* Inline comments panel - NOT FOR GRADING */}
       {showComments && (
         <div className="w-full mt-2">
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="text-[10px] text-gray-400">Comments are casual — they do NOT count for your grade</span>
+          </div>
           <div className="flex space-x-2 mb-3">
             <input
               type="text"
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              placeholder="Add a casual comment..."
+              placeholder="Leave a comment (not for grade)..."
               ref={commentInputRef}
               onFocus={() => { setTimeout(() => commentInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300); }}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               onKeyDown={(e) => e.key === 'Enter' && handlePostComment()}
             />
             <button
