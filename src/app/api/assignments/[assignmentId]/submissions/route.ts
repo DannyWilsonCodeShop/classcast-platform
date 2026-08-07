@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -51,33 +51,24 @@ export async function GET(
       );
     }
 
-    // Build filter expression
-    let filterExpression = 'assignmentId = :assignmentId';
-    const expressionAttributeValues: any = {
-      ':assignmentId': assignmentId
-    };
-
-    // If studentId is provided, filter by student
-    if (studentId) {
-      filterExpression += ' AND studentId = :studentId';
-      expressionAttributeValues[':studentId'] = studentId;
-    }
-
-    // Filter out deleted/hidden submissions
-    filterExpression += ' AND (attribute_not_exists(#status) OR #status <> :deletedStatus)';
-    filterExpression += ' AND (attribute_not_exists(#hidden) OR #hidden <> :hiddenValue)';
-    expressionAttributeValues[':deletedStatus'] = 'deleted';
-    expressionAttributeValues[':hiddenValue'] = true;
-
-    // Get submissions for this assignment
-    const submissionsResult = await docClient.send(new ScanCommand({
+    // Get submissions for this assignment via GSI (fast query by assignmentId)
+    const submissionsResult = await docClient.send(new QueryCommand({
       TableName: SUBMISSIONS_TABLE,
-      FilterExpression: filterExpression,
+      IndexName: 'assignmentId-index',
+      KeyConditionExpression: 'assignmentId = :assignmentId',
+      FilterExpression: studentId
+        ? 'studentId = :studentId AND (attribute_not_exists(#status) OR #status <> :deletedStatus) AND (attribute_not_exists(#hidden) OR #hidden <> :hiddenValue)'
+        : '(attribute_not_exists(#status) OR #status <> :deletedStatus) AND (attribute_not_exists(#hidden) OR #hidden <> :hiddenValue)',
       ExpressionAttributeNames: {
         '#status': 'status',
         '#hidden': 'hidden'
       },
-      ExpressionAttributeValues: expressionAttributeValues
+      ExpressionAttributeValues: {
+        ':assignmentId': assignmentId,
+        ...(studentId ? { ':studentId': studentId } : {}),
+        ':deletedStatus': 'deleted',
+        ':hiddenValue': true,
+      }
     }));
 
     const submissions = submissionsResult.Items || [];
