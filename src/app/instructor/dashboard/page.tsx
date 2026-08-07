@@ -33,7 +33,12 @@ const InstructorDashboard: React.FC = () => {
   const router = useRouter();
   const { isWide } = useIsWideScreen();
   const [courses, setCourses] = useState<Course[]>([]);
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('classcast_instructor_selected_course') || '';
+    }
+    return '';
+  });
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [assignmentsLoading, setAssignmentsLoading] = useState(false);
@@ -66,7 +71,13 @@ const InstructorDashboard: React.FC = () => {
             setCourses(mappedCourses);
             
             if (mappedCourses.length > 0 && !selectedCourseId) {
-              setSelectedCourseId(mappedCourses[0].courseId);
+              // Check if saved course still exists in the list
+              const saved = localStorage.getItem('classcast_instructor_selected_course');
+              if (saved && mappedCourses.some((c: Course) => c.courseId === saved)) {
+                setSelectedCourseId(saved);
+              } else {
+                setSelectedCourseId(mappedCourses[0].courseId);
+              }
             }
 
             // If no courses, check if user is team-only → redirect to Study Hall
@@ -93,6 +104,13 @@ const InstructorDashboard: React.FC = () => {
       fetchCourses();
     }
   }, [user?.id]);
+
+  // Persist selected course to localStorage
+  useEffect(() => {
+    if (selectedCourseId) {
+      localStorage.setItem('classcast_instructor_selected_course', selectedCourseId);
+    }
+  }, [selectedCourseId]);
 
   // Fetch assignments when course changes
   useEffect(() => {
