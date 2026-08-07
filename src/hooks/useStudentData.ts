@@ -1,7 +1,8 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCallback } from 'react';
 
 export interface Assignment {
   assignmentId: string;
@@ -88,4 +89,42 @@ export function useStudentCourses() {
     queryFn: () => fetchCourses(user!.id),
     enabled: !!user?.id,
   });
+}
+
+/**
+ * Prefetch student data on demand (e.g., on hover).
+ * Useful for preloading data before navigation.
+ */
+export function usePrefetchStudentData() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  const prefetchAssignments = useCallback(() => {
+    if (!user?.id) return;
+    queryClient.prefetchQuery({
+      queryKey: ['student-assignments', user.id],
+      queryFn: () => fetchAssignments(user.id),
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [user?.id, queryClient]);
+
+  const prefetchFeed = useCallback(() => {
+    if (!user?.id) return;
+    queryClient.prefetchQuery({
+      queryKey: ['student-feed', user.id],
+      queryFn: () => fetchFeed(user.id),
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [user?.id, queryClient]);
+
+  const prefetchCourses = useCallback(() => {
+    if (!user?.id) return;
+    queryClient.prefetchQuery({
+      queryKey: ['student-courses', user.id],
+      queryFn: () => fetchCourses(user.id),
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [user?.id, queryClient]);
+
+  return { prefetchAssignments, prefetchFeed, prefetchCourses };
 }

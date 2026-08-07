@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, QueryCommand, BatchGetCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { serverCache, CACHE_TTL } from '@/lib/cache';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -106,7 +107,7 @@ export async function GET(request: NextRequest) {
     userCourses.forEach(course => courseMap.set(course.courseId, course));
 
     // =========================================================================
-    // BATCH INSTRUCTOR LOOKUP: Collect unique IDs, fetch all at once
+    // BATCH INSTRUCTOR LOOKUP: Use cache for instructor names (rarely change)
     // =========================================================================
     const instructorIds = new Set<string>();
     userCourses.forEach(course => {
@@ -114,9 +115,21 @@ export async function GET(request: NextRequest) {
     });
 
     const instructorMap = new Map<string, any>();
-    if (instructorIds.size > 0) {
-      // BatchGetCommand supports up to 100 keys per request
-      const keys = [...instructorIds].map(id => ({ userId: id }));
+    const uncachedInstructorIds: string[] = [];
+    
+    // Check cache first
+    for (const id of instructorIds) {
+      const cached = serverCache.get<any>(`instructor_${id}`);
+      if (cached) {
+        instructorMap.set(id, cached);
+      } else {
+        uncachedInstructorIds.push(id);
+      }
+    }
+
+    // Only fetch uncached instructors from DB
+    if (uncachedInstructorIds.length > 0) {
+      const keys = uncachedInstructorIds.map(id => ({ userId: id }));
       const batches = [];
       for (let i = 0; i < keys.length; i += 100) {
         batches.push(keys.slice(i, i + 100));
@@ -136,6 +149,8 @@ export async function GET(request: NextRequest) {
         const items = result.Responses?.[USERS_TABLE] || [];
         items.forEach(item => {
           instructorMap.set(item.userId, item);
+          // Cache instructor info for 5 minutes
+          serverCache.set(`instructor_${item.userId}`, item, CACHE_TTL.INSTRUCTOR_INFO);
         });
       });
     }
