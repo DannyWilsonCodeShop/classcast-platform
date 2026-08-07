@@ -18,6 +18,19 @@ interface Assignment {
   courseCode: string;
   assignmentType?: string;
   instructionalVideoUrl?: string;
+  responseDueDate?: string;
+  allowLateSubmission?: boolean;
+  latePenalty?: number;
+  maxSubmissions?: number;
+  enablePeerResponses?: boolean;
+  minResponsesRequired?: number;
+  maxResponsesPerVideo?: number;
+  responseWordLimit?: number;
+  peerReviewScope?: string;
+  requireLiveRecording?: boolean;
+  allowYouTubeUrl?: boolean;
+  groupAssignment?: boolean;
+  maxGroupSize?: number;
 }
 
 interface StudentGrade {
