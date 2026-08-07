@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { awsConfig } from '@/lib/aws-config';
 
 const client = new DynamoDBClient({ region: awsConfig.region });
@@ -21,13 +21,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get all courses for this instructor
-    const coursesResult = await docClient.send(new ScanCommand({
+    // Use GSI to query courses by instructorId (fast) instead of scanning all courses
+    const coursesResult = await docClient.send(new QueryCommand({
       TableName: COURSES_TABLE,
-      FilterExpression: 'instructorId = :instructorId',
-      ExpressionAttributeValues: {
-        ':instructorId': instructorId
-      }
+      IndexName: 'instructorId-index',
+      KeyConditionExpression: 'instructorId = :instructorId',
+      ExpressionAttributeValues: { ':instructorId': instructorId },
     }));
 
     // Get all students to count enrollments per course
@@ -36,6 +35,7 @@ export async function GET(request: NextRequest) {
       FilterExpression: '#role = :role',
       ExpressionAttributeNames: { '#role': 'role' },
       ExpressionAttributeValues: { ':role': 'student' },
+      ProjectionExpression: 'userId, enrolledCourses',
     }));
 
     // Build enrollment counts per course

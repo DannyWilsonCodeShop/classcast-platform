@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, BatchGetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, QueryCommand, BatchGetCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -21,65 +21,55 @@ export async function GET(request: NextRequest) {
     }
 
     // =========================================================================
-    // PARALLEL FETCH: Run all table scans concurrently instead of sequentially
     // =========================================================================
-    const [coursesResult, assignmentsResult, submissionsResult] = await Promise.all([
-      // Fetch courses (filtered by specific courseId if provided)
+    // PARALLEL FETCH: Use GSI queries where possible for speed
+    // =========================================================================
+    
+    // Get user's enrolledCourses first (fast — single GetItem)
+    const userResult = await docClient.send(new GetCommand({
+      TableName: USERS_TABLE,
+      Key: { userId },
+      ProjectionExpression: 'userId, enrolledCourses',
+    }));
+    const userEnrolledCourseIds = new Set<string>();
+    if (userResult.Item?.enrolledCourses) {
+      for (const ec of userResult.Item.enrolledCourses) {
+        const cid = typeof ec === 'string' ? ec : ec.courseId;
+        if (cid) userEnrolledCourseIds.add(cid);
+      }
+    }
+
+    // Fetch courses and submissions in parallel
+    const [coursesResult, submissionsResult] = await Promise.all([
+      // Fetch courses (if specific courseId, use GetItem; otherwise scan)
       courseId
-        ? docClient.send(new ScanCommand({
-            TableName: COURSES_TABLE,
-            FilterExpression: 'courseId = :courseId',
-            ExpressionAttributeValues: { ':courseId': courseId },
-            ConsistentRead: true,
-          }))
-        : docClient.send(new ScanCommand({ TableName: COURSES_TABLE, ConsistentRead: true })),
-      // Fetch all assignments in one scan (filter in memory)
-      docClient.send(new ScanCommand({ TableName: ASSIGNMENTS_TABLE })),
-      // Fetch user's submissions
-      docClient.send(new ScanCommand({
+        ? docClient.send(new GetCommand({ TableName: COURSES_TABLE, Key: { courseId } })).then(r => ({ Items: r.Item ? [r.Item] : [] }))
+        : docClient.send(new ScanCommand({ TableName: COURSES_TABLE })),
+      // Fetch user's submissions via GSI (fast query by studentId)
+      docClient.send(new QueryCommand({
         TableName: SUBMISSIONS_TABLE,
-        FilterExpression: 'studentId = :userId',
+        IndexName: 'studentId-index',
+        KeyConditionExpression: 'studentId = :userId',
         ExpressionAttributeValues: { ':userId': userId },
       })),
     ]);
 
     const allCourses = coursesResult.Items || [];
-    const allAssignments = assignmentsResult.Items || [];
     const userSubmissions = submissionsResult.Items || [];
 
     // =========================================================================
     // FILTER: Determine which courses this user is enrolled in
     // Check both: course.enrollment.students AND user.enrolledCourses
     // =========================================================================
-    
-    // First, get user's enrolledCourses from user record
-    let userEnrolledCourseIds = new Set<string>();
-    try {
-      const userResult = await docClient.send(new ScanCommand({
-        TableName: USERS_TABLE,
-        FilterExpression: 'userId = :uid',
-        ExpressionAttributeValues: { ':uid': userId },
-      }));
-      const userRecord = userResult.Items?.[0];
-      if (userRecord?.enrolledCourses) {
-        for (const ec of userRecord.enrolledCourses) {
-          const cid = typeof ec === 'string' ? ec : ec.courseId;
-          if (cid) userEnrolledCourseIds.add(cid);
-        }
-      }
-    } catch {}
-
     let userCourses: any[];
     if (courseId) {
       userCourses = allCourses;
     } else {
       userCourses = allCourses.filter(course => {
-        // Check if user is in course.enrollment.students
         const inCourseEnrollment = course.enrollment?.students?.some((student: any) => {
           if (typeof student === 'string') return student === userId;
           return student?.userId === userId;
         });
-        // Check if course is in user.enrolledCourses
         const inUserEnrollment = userEnrolledCourseIds.has(course.courseId);
         return inCourseEnrollment || inUserEnrollment;
       });
@@ -87,8 +77,26 @@ export async function GET(request: NextRequest) {
 
     const courseIds = new Set(userCourses.map(c => c.courseId));
 
-    // Filter assignments to only those in enrolled courses
-    const assignments = allAssignments.filter(a => courseIds.has(a.courseId));
+    // Fetch assignments for enrolled courses via GSI (query per course)
+    let assignments: any[] = [];
+    if (courseIds.size <= 5) {
+      // For small number of courses, query each via GSI (faster than full scan)
+      const assignmentResults = await Promise.all(
+        [...courseIds].map(cid =>
+          docClient.send(new QueryCommand({
+            TableName: ASSIGNMENTS_TABLE,
+            IndexName: 'courseId-index',
+            KeyConditionExpression: 'courseId = :cid',
+            ExpressionAttributeValues: { ':cid': cid },
+          }))
+        )
+      );
+      assignments = assignmentResults.flatMap(r => r.Items || []);
+    } else {
+      // For many courses, a single scan + filter is more efficient
+      const allAssignments = await docClient.send(new ScanCommand({ TableName: ASSIGNMENTS_TABLE }));
+      assignments = (allAssignments.Items || []).filter(a => courseIds.has(a.courseId));
+    }
 
     // Build lookup maps
     const submissionMap = new Map<string, any>();
