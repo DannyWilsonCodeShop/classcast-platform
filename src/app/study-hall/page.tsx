@@ -249,13 +249,8 @@ export default function PublicStudyHallPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-white flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-white flex flex-col">
       <style jsx global>{`
-        html, body { 
-          overflow: hidden; 
-          height: 100dvh;
-          -webkit-overflow-scrolling: touch;
-        }
         .scroll-area::-webkit-scrollbar { display: none; }
         .scroll-area { -ms-overflow-style: none; scrollbar-width: none; }
         .safe-top { padding-top: env(safe-area-inset-top, 0px); }
