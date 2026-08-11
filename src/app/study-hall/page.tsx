@@ -92,7 +92,8 @@ export default function PublicStudyHallPage() {
     }
   }, [reason]);
 
-  // Fetch today's pickup list when tab is active
+  // Fetch today's pickup list when tab is active or after adding
+  const [todayRefreshKey, setTodayRefreshKey] = useState(0);
   useEffect(() => {
     if (activeTab !== 'today') return;
     const fetchToday = async () => {
@@ -105,7 +106,7 @@ export default function PublicStudyHallPage() {
       } catch {} finally { setLoadingToday(false); }
     };
     fetchToday();
-  }, [activeTab, success]); // re-fetch after a successful add
+  }, [activeTab, todayRefreshKey]); // re-fetch after a successful add
 
   // Search students
   useEffect(() => {
@@ -185,6 +186,7 @@ export default function PublicStudyHallPage() {
       setBumpedMessage(`${bumpedNames.join(', ')} already requested — moved to next school day.`);
     }
     setTimeout(() => setSuccess(false), 3000);
+    setTodayRefreshKey(k => k + 1);
     return true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pulloutDate, teacherName, customTeacher, reason, submitSingleStudent]);
@@ -212,6 +214,7 @@ export default function PublicStudyHallPage() {
           setBumpedMessage(result.message);
         }
         setTimeout(() => setSuccess(false), 2000);
+        setTodayRefreshKey(k => k + 1);
       }
     } finally { setSubmitting(false); }
   };
@@ -280,7 +283,7 @@ export default function PublicStudyHallPage() {
           Request Pullout
         </button>
         <button
-          onClick={() => setActiveTab('today')}
+          onClick={() => { setActiveTab('today'); setTodayRefreshKey(k => k + 1); }}
           className={`flex-1 py-3 text-xs font-bold text-center transition-colors relative ${activeTab === 'today' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
         >
           Today&apos;s List
