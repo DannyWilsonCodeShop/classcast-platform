@@ -69,6 +69,7 @@ export default function PublicStudyHallPage() {
   // Today's list state
   const [todayList, setTodayList] = useState<PulloutEntry[]>([]);
   const [loadingToday, setLoadingToday] = useState(false);
+  const [viewDate, setViewDate] = useState(getTodayStr());
 
   // Load last selected teacher from localStorage
   useEffect(() => {
@@ -92,21 +93,20 @@ export default function PublicStudyHallPage() {
     }
   }, [reason]);
 
-  // Fetch today's pickup list when tab is active or after adding
+  // Fetch pickup list when tab is active, date changes, or after adding
   const [todayRefreshKey, setTodayRefreshKey] = useState(0);
   useEffect(() => {
     if (activeTab !== 'today') return;
-    const fetchToday = async () => {
+    const fetchList = async () => {
       setLoadingToday(true);
       try {
-        const today = getTodayStr();
-        const res = await fetch(`/api/study-hall?date=${today}`);
+        const res = await fetch(`/api/study-hall?date=${viewDate}`);
         const data = await res.json();
         if (data.success) setTodayList(data.pullouts || []);
       } catch {} finally { setLoadingToday(false); }
     };
-    fetchToday();
-  }, [activeTab, todayRefreshKey]); // re-fetch after a successful add
+    fetchList();
+  }, [activeTab, todayRefreshKey, viewDate]); // re-fetch after a successful add
 
   // Search students
   useEffect(() => {
@@ -442,10 +442,44 @@ export default function PublicStudyHallPage() {
           /* ===== TODAY'S LIST TAB ===== */
           <div className="max-w-md mx-auto px-4 py-5">
             <div className="text-center mb-4">
-              <h1 className="text-lg font-bold text-[#005587]">Today&apos;s Pickup List</h1>
-              <p className="text-[11px] text-gray-500 mt-0.5">
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
-              </p>
+              <h1 className="text-lg font-bold text-[#005587]">Pickup List</h1>
+              {/* Date navigation */}
+              <div className="flex items-center justify-center gap-3 mt-2">
+                <button
+                  onClick={() => {
+                    const d = new Date(viewDate + 'T12:00:00');
+                    d.setDate(d.getDate() - 1);
+                    // Skip weekends going backward
+                    while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() - 1);
+                    setViewDate(d.toISOString().split('T')[0]);
+                  }}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:bg-gray-200"
+                >
+                  ‹
+                </button>
+                <div className="text-center min-w-[140px]">
+                  <p className="text-xs font-medium text-gray-700">
+                    {viewDate === getTodayStr() ? 'Today' : new Date(viewDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  </p>
+                  {viewDate !== getTodayStr() && (
+                    <button onClick={() => setViewDate(getTodayStr())} className="text-[9px] text-[#005587] font-medium mt-0.5">
+                      Back to Today
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={() => {
+                    const d = new Date(viewDate + 'T12:00:00');
+                    d.setDate(d.getDate() + 1);
+                    // Skip weekends going forward
+                    while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
+                    setViewDate(d.toISOString().split('T')[0]);
+                  }}
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:bg-gray-200"
+                >
+                  ›
+                </button>
+              </div>
             </div>
 
             {loadingToday ? (
@@ -457,7 +491,7 @@ export default function PublicStudyHallPage() {
                 <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <span className="text-xl">📋</span>
                 </div>
-                <p className="text-sm text-gray-500">No students on the pullout list for today</p>
+                <p className="text-sm text-gray-500">No students on the pullout list for {viewDate === getTodayStr() ? 'today' : new Date(viewDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
                 <button onClick={() => setActiveTab('request')} className="mt-3 text-xs text-[#005587] font-medium">
                   + Add a student
                 </button>
