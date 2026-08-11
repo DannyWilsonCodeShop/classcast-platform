@@ -43,14 +43,31 @@ export async function GET(request: NextRequest) {
 
     // Enrich with roster data (homeroom, study hall teacher)
     const rosterResult = await docClient.send(new ScanCommand({ TableName: ROSTER_TABLE }));
-    const rosterMap = new Map((rosterResult.Items || []).map((r: any) => [r.studentName?.toLowerCase(), r]));
+    const rosterItems = rosterResult.Items || [];
+    
+    // Build exact match map
+    const rosterMap = new Map(rosterItems.map((r: any) => [r.studentName?.toLowerCase().trim(), r]));
 
     const enrichedPullouts = (result.Items || []).map((pullout: any) => {
-      const rosterEntry = rosterMap.get(pullout.studentName?.toLowerCase());
+      const name = pullout.studentName?.toLowerCase().trim();
+      
+      // Try exact match first
+      let rosterEntry = rosterMap.get(name);
+      
+      // If no exact match, try partial match (e.g., "Iker" matches "Iker Soto Perez")
+      if (!rosterEntry && name) {
+        rosterEntry = rosterItems.find((r: any) => {
+          const rosterName = r.studentName?.toLowerCase().trim() || '';
+          return rosterName.includes(name) || name.includes(rosterName) ||
+                 rosterName.split(' ').some((part: string) => part === name) ||
+                 name.split(' ').some((part: string) => rosterName.includes(part) && part.length > 2);
+        });
+      }
+
       return {
         ...pullout,
         homeroom: rosterEntry?.homeroom || 'Unassigned',
-        studyHallTeacher: rosterEntry?.studyHallTeacher || 'Unknown',
+        studyHallTeacher: rosterEntry?.studyHallTeacher || 'Unassigned',
       };
     });
 
