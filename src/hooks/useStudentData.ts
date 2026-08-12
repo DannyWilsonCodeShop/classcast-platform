@@ -62,6 +62,7 @@ export function useStudentAssignments() {
     queryKey: ['student-assignments', user?.id],
     queryFn: () => fetchAssignments(user!.id),
     enabled: !!user?.id,
+    refetchOnMount: 'always', // Always refetch when component mounts (assignments are critical)
   });
 }
 
