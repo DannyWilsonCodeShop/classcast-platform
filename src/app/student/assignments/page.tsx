@@ -153,7 +153,7 @@ export default function StudentAssignmentsPage() {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
-      <div className="h-full flex flex-col bg-white overflow-hidden">
+      <div className="h-full flex flex-col bg-[#faf9f7] overflow-hidden">
         {/* Calendar section */}
         <div className="px-4 pt-1 pb-2 flex-shrink-0">
           <div className="flex items-center justify-between mb-3">
@@ -208,7 +208,7 @@ export default function StudentAssignmentsPage() {
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gray-200 mx-4" />
+        <div className="h-px bg-stone-200/60 mx-4" />
 
         {/* Assignment sections - scrollable */}
         <div className="flex-1 overflow-y-auto px-4 py-3">
