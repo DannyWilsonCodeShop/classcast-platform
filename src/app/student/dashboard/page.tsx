@@ -129,49 +129,49 @@ export default function StudentDashboardPage() {
   return (
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
 
       {/* ===== WIDE SCREEN LAYOUT (iPad/Desktop) ===== */}
       {isWide ? (
-        <div className="h-full flex flex-col overflow-hidden bg-white">
+        <div className="h-full flex flex-col overflow-hidden bg-[#faf9f7]">
           {/* Quick Stats Row */}
-          <div className="flex items-center gap-4 px-6 py-3 shrink-0 border-b border-gray-100">
-            <h1 className="text-lg font-bold uppercase text-[#005587]" style={{ fontFamily: "'Oswald', sans-serif" }}>Dashboard</h1>
+          <div className="flex items-center gap-4 px-6 py-4 shrink-0 border-b border-stone-200/60">
+            <h1 className="text-xl font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Dashboard</h1>
             <div className="flex items-center gap-3 text-sm">
-              <span className="bg-blue-50 text-[#005587] px-3 py-1 rounded-full font-medium">📋 {dueThisWeek} due this week</span>
-              <span className="bg-green-50 text-green-700 px-3 py-1 rounded-full font-medium">✅ {submitted} submitted</span>
+              <span className="bg-white text-[#005587] px-3 py-1 rounded-full font-medium border border-stone-200/60">📋 {dueThisWeek} due this week</span>
+              <span className="bg-white text-green-700 px-3 py-1 rounded-full font-medium border border-stone-200/60">✅ {submitted} submitted</span>
             </div>
           </div>
 
           {/* Two Column Grid */}
-          <div className="flex-1 grid grid-cols-[55fr_45fr] gap-5 p-5 min-h-0 overflow-hidden">
+          <div className="flex-1 grid grid-cols-[55fr_45fr] gap-6 p-6 min-h-0 overflow-hidden">
             {/* Left Column — Assignments */}
-            <div className="flex flex-col min-h-0 bg-gray-50 rounded-2xl overflow-hidden">
-              <div className="px-4 pt-3 pb-2 shrink-0 flex items-center justify-between">
-                <h2 className="text-base font-bold uppercase text-[#005587]" style={{ fontFamily: "'Oswald', sans-serif" }}>Assignments</h2>
-                <button onClick={() => router.push('/student/assignments')} className="text-xs text-[#005587] font-medium">View All →</button>
+            <div className="flex flex-col min-h-0 bg-white rounded-2xl overflow-hidden border border-stone-200/60 shadow-sm">
+              <div className="px-6 pt-5 pb-3 shrink-0 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Assignments</h2>
+                <button onClick={() => router.push('/student/assignments')} className="text-xs text-[#005587] font-medium hover:underline">View All →</button>
               </div>
-              <div className="flex-1 overflow-y-auto px-4 pb-3 space-y-2">
+              <div className="flex-1 overflow-y-auto px-6 pb-4 space-y-3">
                 {displayAssignments.length > 0 ? displayAssignments.map((a) => (
-                  <div key={a.assignmentId} onClick={() => router.push(`/student/assignments/${a.assignmentId}`)} className="rounded-xl p-4 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform" style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}>
+                  <div key={a.assignmentId} onClick={() => router.push(`/student/assignments/${a.assignmentId}`)} className="bg-white rounded-xl p-4 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform border border-stone-200/60 shadow-sm" style={{ borderLeft: `3px solid #005587` }}>
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h3>
-                        <p className="text-xs mt-0.5 opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''} {a.maxScore ? `• ${a.maxScore} pts` : ''}</p>
+                        <h3 className="text-base font-semibold text-stone-900 truncate">{a.title}</h3>
+                        <p className="text-xs mt-0.5 text-stone-500">{a.courseName || ''} {a.maxScore ? `• ${a.maxScore} pts` : ''}</p>
                       </div>
                       <span className={`text-[11px] font-semibold px-3 py-1 rounded-full ml-3 shrink-0 ${getBadgeStyle(a.dueDate)}`}>{getDueBadge(a.dueDate)}</span>
                     </div>
                   </div>
-                )) : <div className="flex items-center justify-center h-full text-gray-400 text-sm">No assignments 🎉</div>}
+                )) : <div className="flex items-center justify-center h-full text-stone-400 text-sm">No assignments yet</div>}
               </div>
             </div>
 
             {/* Right Column — Recent Videos */}
-            <div className="flex flex-col min-h-0 bg-gray-50 rounded-2xl overflow-hidden">
-              <div className="px-4 pt-3 pb-2 shrink-0">
-                <h2 className="text-base font-bold uppercase text-[#005587]" style={{ fontFamily: "'Oswald', sans-serif" }}>Recent Videos</h2>
+            <div className="flex flex-col min-h-0 bg-white rounded-2xl overflow-hidden border border-stone-200/60 shadow-sm">
+              <div className="px-6 pt-5 pb-3 shrink-0">
+                <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Recent Videos</h2>
               </div>
-              <div className="flex-1 overflow-y-auto px-4 pb-3">
+              <div className="flex-1 overflow-y-auto px-6 pb-4">
                 {feed.length > 0 ? (
                   <div className="grid grid-cols-2 gap-3">
                     {feed.slice(0, 8).map(item => (
@@ -202,61 +202,59 @@ export default function StudentDashboardPage() {
                       </div>
                     ))}
                   </div>
-                ) : <div className="flex items-center justify-center h-full text-gray-400 text-sm">No videos yet</div>}
+                ) : <div className="flex items-center justify-center h-full text-stone-400 text-sm">No videos yet</div>}
               </div>
             </div>
           </div>
         </div>
       ) : (
       /* ===== MOBILE LAYOUT (existing) ===== */
-      <div className="h-full flex flex-col overflow-hidden bg-white" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
+      <div className="h-full flex flex-col overflow-hidden bg-[#faf9f7]" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
         {loading ? (
-          <div className="flex-1 bg-white" />
+          <div className="flex-1 bg-[#faf9f7]" />
         ) : (
         <>
         {/* Quick Stats Row - replaces greeting */}
-        <div className="flex items-center gap-3 px-4 py-1.5 shrink-0">
+        <div className="flex items-center gap-3 px-4 py-3 shrink-0">
           <div className="flex-1 flex items-center gap-2 text-[11px]">
-            <span className="bg-blue-50 text-[#005587] px-2 py-0.5 rounded-full font-medium">📋 {dueThisWeek} due this week</span>
-            <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-medium">✅ {submitted} submitted</span>
+            <span className="bg-white text-[#005587] px-2.5 py-1 rounded-full font-medium border border-stone-200/60">📋 {dueThisWeek} due this week</span>
+            <span className="bg-white text-green-700 px-2.5 py-1 rounded-full font-medium border border-stone-200/60">✅ {submitted} submitted</span>
           </div>
         </div>
 
         {/* TOP HALF - Assignments (40% of space) */}
         <div className="flex-[2] flex flex-col min-h-0 overflow-hidden">
-          {/* Divider line above section */}
-          <div className="h-px bg-gray-200 mx-4 shrink-0" />
           {/* Grey rounded container */}
-          <div className="mx-3 mt-2 flex-1 flex flex-col min-h-0 bg-gray-100 rounded-2xl overflow-hidden">
-            <div className="px-3 pt-2.5 pb-1 shrink-0">
-              <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Assignments</h2>
+          <div className="mx-3 mt-2 flex-1 flex flex-col min-h-0 bg-white rounded-2xl overflow-hidden border border-stone-200/60 shadow-sm">
+            <div className="px-4 pt-4 pb-2 shrink-0">
+              <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Assignments</h2>
             </div>
-            <div className="flex-1 overflow-y-auto px-3 space-y-1.5 min-h-0 pb-1.5">
+            <div className="flex-1 overflow-y-auto px-4 space-y-2.5 min-h-0 pb-3">
               {displayAssignments.length > 0 ? displayAssignments.map((a, i) => (
-                <div key={a.assignmentId} onClick={() => { const id = a.assignmentId || (a as any).id; if (id) router.push(`/student/assignments/${id}`); }} className="rounded-xl p-3.5 cursor-pointer active:scale-[0.98] transition-transform" style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}>
+                <div key={a.assignmentId} onClick={() => { const id = a.assignmentId || (a as any).id; if (id) router.push(`/student/assignments/${id}`); }} className="bg-white rounded-xl p-3.5 cursor-pointer active:scale-[0.98] transition-transform border border-stone-200/60 shadow-sm" style={{ borderLeft: `3px solid #005587` }}>
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h3>
-                      <p className="text-xs mt-0.5 opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''} {a.maxScore ? `• ${a.maxScore} pts` : ''}</p>
+                      <h3 className="text-base font-semibold text-stone-900 truncate">{a.title}</h3>
+                      <p className="text-xs mt-0.5 text-stone-500">{a.courseName || ''} {a.maxScore ? `• ${a.maxScore} pts` : ''}</p>
                     </div>
                     <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ml-2 shrink-0 ${getBadgeStyle(a.dueDate)}`}>{getDueBadge(a.dueDate)}</span>
                   </div>
                 </div>
-              )) : <div className="flex items-center justify-center h-full text-gray-400 text-xs">No assignments 🎉</div>}
+              )) : <div className="flex items-center justify-center h-full text-stone-400 text-xs">No assignments yet</div>}
             </div>
-            <div className="px-3 py-0.5 shrink-0">
-              <button onClick={() => router.push('/student/assignments')} className="w-full text-center text-[11px] text-[#005587] font-medium py-0.5">View All →</button>
+            <div className="px-4 py-1.5 shrink-0 border-t border-stone-100">
+              <button onClick={() => router.push('/student/assignments')} className="w-full text-center text-[11px] text-[#005587] font-medium py-1">View All →</button>
             </div>
           </div>
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gray-200 mx-4 shrink-0 mt-2" />
+        <div className="h-px bg-stone-200/60 mx-4 shrink-0 mt-3" />
 
         {/* BOTTOM HALF - Recent Videos */}
         <div className="flex-[3] flex flex-col min-h-0 overflow-hidden">
-          <div className="px-4 pt-2 pb-1 shrink-0">
-            <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Recent Videos</h2>
+          <div className="px-4 pt-4 pb-2 shrink-0">
+            <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Recent Videos</h2>
           </div>
           <div className="flex-1 overflow-hidden px-4 min-h-0">
             {feed.length > 0 ? (
@@ -300,7 +298,7 @@ export default function StudentDashboardPage() {
                   );
                 })}
               </div>
-            ) : <div className="flex items-center justify-center h-full text-gray-400 text-sm">No videos yet</div>}
+            ) : <div className="flex items-center justify-center h-full text-stone-400 text-sm">No videos yet</div>}
           </div>
         </div>
 
