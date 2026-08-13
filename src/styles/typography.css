@@ -1,24 +1,25 @@
-/* Premium Typography System for ClassCast */
+/* Premium Typography System for ClassCast — v2 */
+/* Inspired by clean documentation UIs: generous spacing, bold serif headings, readable body */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;0,8..60,800;1,8..60,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   /* Font Families */
   --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 
-  /* Font Sizes - Harmonious Scale */
+  /* Font Sizes - Larger, more generous scale */
   --text-xs: 0.75rem;      /* 12px */
-  --text-sm: 0.875rem;     /* 14px */
-  --text-base: 1rem;       /* 16px */
-  --text-lg: 1.125rem;     /* 18px */
+  --text-sm: 0.8125rem;    /* 13px */
+  --text-base: 0.9375rem;  /* 15px */
+  --text-lg: 1.0625rem;    /* 17px */
   --text-xl: 1.25rem;      /* 20px */
   --text-2xl: 1.5rem;      /* 24px */
-  --text-3xl: 1.875rem;    /* 30px */
-  --text-4xl: 2.25rem;     /* 36px */
-  --text-5xl: 3rem;        /* 48px */
-  --text-6xl: 3.75rem;     /* 60px */
+  --text-3xl: 2rem;        /* 32px */
+  --text-4xl: 2.5rem;      /* 40px */
+  --text-5xl: 3.25rem;     /* 52px */
+  --text-6xl: 4rem;        /* 64px */
 
   /* Font Weights */
   --font-light: 300;
@@ -26,42 +27,58 @@
   --font-medium: 500;
   --font-semibold: 600;
   --font-bold: 700;
+  --font-extrabold: 800;
 
-  /* Line Heights */
-  --leading-tight: 1.25;
-  --leading-snug: 1.375;
-  --leading-normal: 1.5;
-  --leading-relaxed: 1.625;
+  /* Line Heights - More breathing room */
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.55;
+  --leading-relaxed: 1.7;
   --leading-loose: 2;
 
   /* Letter Spacing */
-  --tracking-tighter: -0.05em;
-  --tracking-tight: -0.025em;
+  --tracking-tighter: -0.04em;
+  --tracking-tight: -0.02em;
   --tracking-normal: 0;
   --tracking-wide: 0.025em;
-  --tracking-wider: 0.05em;
+  --tracking-wider: 0.06em;
   --tracking-widest: 0.1em;
 }
 
 /* Typography Classes */
 .text-display {
   font-family: var(--font-display);
-  font-weight: var(--font-semibold);
-  letter-spacing: var(--tracking-tight);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-tighter);
   line-height: var(--leading-tight);
 }
 
 .text-heading {
+  font-family: var(--font-display);
+  font-weight: var(--font-semibold);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-snug);
+}
+
+.text-subheading {
   font-family: var(--font-primary);
   font-weight: var(--font-semibold);
   letter-spacing: var(--tracking-tight);
-  line-height: var(--leading-tight);
+  line-height: var(--leading-snug);
 }
 
 .text-body {
   font-family: var(--font-primary);
   font-weight: var(--font-normal);
   line-height: var(--leading-relaxed);
+  font-size: var(--text-base);
+}
+
+.text-body-lg {
+  font-family: var(--font-primary);
+  font-weight: var(--font-normal);
+  line-height: var(--leading-relaxed);
+  font-size: var(--text-lg);
 }
 
 .text-caption {
@@ -69,38 +86,38 @@
   font-weight: var(--font-normal);
   font-size: var(--text-sm);
   line-height: var(--leading-normal);
-  color: var(--text-tertiary);
+  color: var(--text-tertiary, #6b7280);
 }
 
 .text-overline {
   font-family: var(--font-primary);
-  font-weight: var(--font-medium);
-  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  font-size: 0.6875rem; /* 11px */
   letter-spacing: var(--tracking-wider);
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-muted, #9ca3af);
 }
 
 /* Component-specific typography */
 .btn-text {
   font-family: var(--font-primary);
   font-weight: var(--font-medium);
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: var(--tracking-normal);
 }
 
 .card-title {
-  font-family: var(--font-primary);
+  font-family: var(--font-display);
   font-weight: var(--font-semibold);
-  font-size: var(--text-lg);
-  line-height: var(--leading-tight);
-  color: var(--text-primary);
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
+  color: var(--text-primary, #1a202c);
 }
 
 .card-subtitle {
   font-family: var(--font-primary);
   font-weight: var(--font-normal);
   font-size: var(--text-sm);
-  color: var(--text-secondary);
+  color: var(--text-secondary, #6b7280);
   line-height: var(--leading-normal);
 }
 
@@ -108,7 +125,26 @@
   font-family: var(--font-primary);
   font-weight: var(--font-medium);
   font-size: var(--text-sm);
+  letter-spacing: var(--tracking-normal);
+}
+
+/* Page headings — serif, large, commanding */
+.page-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-bold);
+  font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tighter);
+  color: var(--foreground);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-xl);
+  line-height: var(--leading-snug);
   letter-spacing: var(--tracking-tight);
+  color: var(--foreground);
 }
 
 /* Responsive typography */
@@ -118,16 +154,24 @@
   }
   
   .text-heading {
-    font-size: var(--text-xl);
+    font-size: var(--text-2xl);
+  }
+
+  .page-title {
+    font-size: var(--text-2xl);
   }
 }
 
 @media (min-width: 641px) {
   .text-display {
-    font-size: var(--text-4xl);
+    font-size: var(--text-5xl);
   }
   
   .text-heading {
-    font-size: var(--text-2xl);
+    font-size: var(--text-3xl);
+  }
+
+  .page-title {
+    font-size: var(--text-4xl);
   }
 }
