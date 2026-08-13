@@ -221,7 +221,7 @@ const AssignmentFeedPage: React.FC = () => {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
-      <div className="h-[100dvh] flex flex-col bg-white overflow-hidden">
+      <div className="min-h-[100dvh] h-[100dvh] flex flex-col bg-white">
         {/* Top Bar */}
         <div className="shrink-0 sticky top-0 z-10 bg-white">
           <div className="flex items-center justify-between px-4 pt-2 pb-1">
