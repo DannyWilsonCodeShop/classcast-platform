@@ -216,20 +216,20 @@ const InstructorDashboard: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className={`min-h-full overflow-y-auto pb-24 ${isWide ? 'bg-transparent' : 'bg-white'}`}>
+      <div className={`min-h-full overflow-y-auto pb-24 ${isWide ? 'bg-[#faf9f7]' : 'bg-[#faf9f7]'}`}>
         {/* NOTE: Mobile header is handled by instructor layout — do NOT add one here */}
 
         {/* Course Selector */}
-        <div className={`px-4 ${isWide ? 'pt-4 pb-2' : 'py-2'}`}>
+        <div className={`px-4 ${isWide ? 'pt-6 pb-3' : 'py-3'}`}>
           {courses.length > 0 && (
             <div className={`${isWide ? 'flex items-center gap-3' : 'flex items-center gap-2'}`}>
               {isWide && (
-                <label className="text-sm font-medium text-gray-600 whitespace-nowrap">Course:</label>
+                <label className="text-sm font-medium text-stone-500 whitespace-nowrap">Course:</label>
               )}
               <select
                 value={selectedCourseId}
                 onChange={(e) => handleCourseChange(e.target.value)}
-                className={`px-3 py-2 bg-gray-100 border border-gray-200 rounded-xl text-sm font-bold text-[#005587] focus:outline-none focus:ring-2 focus:ring-[#005587] ${isWide ? 'max-w-[280px]' : 'flex-1'}`}
+                className={`px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-semibold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#005587] ${isWide ? 'max-w-[300px]' : 'flex-1'}`}
               >
                 <option value="" className="font-normal text-gray-500">Select a course...</option>
                 {courses.map((course) => (
@@ -302,8 +302,8 @@ const InstructorDashboard: React.FC = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                   </div>
-                  <h3 className="text-xl font-bold text-[#005587] mb-2">Welcome to ClassCast</h3>
-                  <p className="text-sm text-gray-500 text-center mb-6 max-w-[260px]">
+                  <h3 className="text-xl font-bold text-stone-900 mb-2" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Welcome to ClassCast</h3>
+                  <p className="text-sm text-stone-500 text-center mb-6 max-w-[260px]">
                     Create your first course to start assigning video work and engaging students.
                   </p>
                   <button
@@ -346,29 +346,30 @@ const InstructorDashboard: React.FC = () => {
                 return (
                 <div
                   key={assignment.assignmentId}
-                  className="bg-gray-50 rounded-2xl p-4"
+                  className="bg-white rounded-2xl p-5 border border-stone-200/60 shadow-sm"
+                  style={{ borderLeft: '3px solid #005587' }}
                 >
-                  <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      <h3 className="text-sm font-bold text-[#005587] line-clamp-1">{assignment.title}</h3>
-                      {typeLabel && <span className="text-[9px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full shrink-0">{typeLabel}</span>}
+                      <h3 className="text-sm font-semibold text-stone-900 line-clamp-1">{assignment.title}</h3>
+                      {typeLabel && <span className="text-[9px] bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full shrink-0">{typeLabel}</span>}
                     </div>
-                    <span className="text-xs font-medium text-[#005587] shrink-0 ml-2">{assignment.points} pts</span>
+                    <span className="text-xs font-medium text-stone-500 shrink-0 ml-2">{assignment.points} pts</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
+                  <div className="flex items-center gap-3 text-xs text-stone-400 mb-3">
                     <span>Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
                     <span className="text-green-600 font-medium">{assignment.gradedCount}/{assignment.submissionsCount} graded</span>
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => router.push(`/instructor/courses/${selectedCourseId}/assignments/${assignment.assignmentId}/grades`)}
-                      className="px-3 py-1 bg-white border border-gray-200 rounded-full text-[10px] font-medium text-gray-600 active:scale-95 transition-transform"
+                      className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-full text-[11px] font-medium text-stone-600 active:scale-95 transition-transform"
                     >
                       View
                     </button>
                     <button
                       onClick={() => router.push(`/instructor/grading/bulk?course=${selectedCourseId}&assignment=${assignment.assignmentId}`)}
-                      className="px-3 py-1 bg-[#005587] rounded-full text-[10px] font-medium text-white active:scale-95 transition-transform"
+                      className="px-3 py-1.5 bg-[#005587] rounded-full text-[11px] font-medium text-white active:scale-95 transition-transform"
                     >
                       Grade
                     </button>
