@@ -165,7 +165,7 @@ export default function StudentCourseDetailPage() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
 
-      <div className="h-full flex flex-col bg-white overflow-hidden">
+      <div className="h-full flex flex-col bg-[#faf9f7] overflow-hidden">
         {/* Header */}
         <div className="flex items-center px-3 py-2.5 border-b border-gray-100 shrink-0">
           <button onClick={() => router.push('/student/dashboard')} className="p-1.5 -ml-1 text-gray-600">
@@ -220,7 +220,7 @@ export default function StudentCourseDetailPage() {
 
         {/* Assignments Label */}
         <div className="px-4 pt-3 pb-1 flex items-center justify-between shrink-0">
-          <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Assignments</h2>
+          <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Assignments</h2>
           <span className="text-xs text-gray-400">{assignments.length} total</span>
         </div>
 

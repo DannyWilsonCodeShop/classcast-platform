@@ -115,7 +115,7 @@ const StudentCoursesPage: React.FC = () => {
   if (loading) {
     return (
       <StudentRoute>
-        <div className="h-full flex flex-col bg-white overflow-hidden">
+        <div className="h-full flex flex-col bg-[#faf9f7] overflow-hidden">
           <div className="px-4 pt-3 pb-2 shrink-0">
             <div className="h-5 w-24 bg-gray-200 rounded animate-pulse mb-3" />
             <div className="h-9 w-full bg-gray-100 rounded-xl animate-pulse" />
@@ -138,10 +138,10 @@ const StudentCoursesPage: React.FC = () => {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
-      <div className="h-full overflow-hidden flex flex-col bg-white">
+      <div className="h-full overflow-hidden flex flex-col bg-[#faf9f7]">
         {/* Search / Join unified input */}
-        <div className="px-4 pt-1 pb-2 shrink-0">
-          <h1 className="text-base font-bold uppercase text-[#005587] tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>My Courses</h1>
+        <div className="px-4 pt-3 pb-2 shrink-0">
+          <h1 className="text-lg font-semibold text-stone-900 mb-2" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>My Courses</h1>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,20 +207,20 @@ const StudentCoursesPage: React.FC = () => {
                 <div
                   key={course.id}
                   onClick={() => router.push(`/student/courses/${course.id}`)}
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 p-5 hover:shadow-2xl cursor-pointer transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                  style={{ borderLeftColor: course.backgroundColor, borderLeftWidth: '4px' }}
+                  className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-5 hover:shadow-md cursor-pointer transition-all duration-200 active:scale-[0.98]"
+                  style={{ borderLeftColor: course.backgroundColor || '#005587', borderLeftWidth: '3px' }}
                 >
                   {/* Course Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-bold uppercase text-[#005587] truncate tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>{course.name}</h3>
-                      <p className="text-xs text-gray-500 mt-0.5">{course.code}</p>
-                      <p className="text-xs text-[#6cc3d3] font-medium mt-0.5">{course.instructor.name}</p>
+                      <h3 className="text-base font-semibold text-stone-900 truncate">{course.name}</h3>
+                      <p className="text-xs text-stone-400 mt-0.5">{course.code}</p>
+                      <p className="text-xs text-[#005587] font-medium mt-0.5">{course.instructor.name}</p>
                     </div>
                   </div>
 
                   {/* Course Details */}
-                  <div className="space-y-1.5 text-xs text-gray-500">
+                  <div className="space-y-1.5 text-xs text-stone-500">
                     <div className="flex items-center justify-between">
                       <span>{course.semester} {course.year}</span>
                       <span>{course.credits} credits</span>

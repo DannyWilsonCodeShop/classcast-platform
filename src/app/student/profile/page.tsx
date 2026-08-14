@@ -74,7 +74,7 @@ const StudentProfilePage: React.FC = () => {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
-      <div className="h-full flex flex-col bg-white overflow-hidden">
+      <div className="h-full flex flex-col bg-[#faf9f7] overflow-hidden">
         <DemoModeBanner />
 
         {/* Scrollable content */}
