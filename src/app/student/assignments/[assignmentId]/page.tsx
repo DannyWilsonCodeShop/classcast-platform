@@ -403,7 +403,7 @@ export default function StudentAssignmentDetailPage() {
   if (loading) {
     return (
       <StudentRoute>
-        <div className="h-full flex flex-col bg-white overflow-hidden">
+        <div className="h-full flex flex-col bg-[#faf9f7] overflow-hidden">
           {/* Header skeleton */}
           <div className="flex items-center px-3 py-2 border-b border-gray-100 shrink-0 bg-gray-100">
             <div className="w-5 h-5 bg-gray-200 rounded animate-pulse" />
@@ -477,7 +477,7 @@ export default function StudentAssignmentDetailPage() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
 
-      <div className="h-full flex flex-col bg-white overflow-hidden">
+      <div className="h-full flex flex-col bg-[#faf9f7] overflow-hidden">
       {/* ClassCast branded header */}
       <StudentHeader />
 

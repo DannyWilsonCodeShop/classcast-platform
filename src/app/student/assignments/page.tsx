@@ -97,53 +97,41 @@ export default function StudentAssignmentsPage() {
   };
 
   const AssignmentCard = ({ assignment }: { assignment: Assignment }) => (
-    <div className="rounded-xl p-4 mb-3" style={{ backgroundColor: getAssignmentColor(assignment.assignmentId) }}>
+    <div className="bg-white rounded-xl p-4 mb-3 border border-stone-200/60 shadow-sm" style={{ borderLeft: '3px solid #005587' }}>
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          {/* Title - first and foremost */}
-          <p className="font-bold text-base mb-0.5 uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(assignment.assignmentId) }}>
+          {/* Title */}
+          <p className="font-semibold text-base text-stone-900 mb-0.5">
             {assignment.title}
           </p>
           {/* Description */}
           {assignment.description && (
-            <p className="text-xs line-clamp-2 mb-1 opacity-70" style={{ color: getAssignmentTitleColor(assignment.assignmentId) }}>
+            <p className="text-xs line-clamp-2 mb-1.5 text-stone-500">
               {assignment.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 100)}
             </p>
           )}
           {/* Due date */}
-          <p className="text-xs opacity-60" style={{ color: getAssignmentTitleColor(assignment.assignmentId) }}>
+          <p className="text-xs text-stone-400">
             {new Date(assignment.dueDate).toLocaleDateString('en-US', { 
-              weekday: 'long', month: 'short', day: 'numeric', year: 'numeric',
+              weekday: 'long', month: 'short', day: 'numeric',
               hour: 'numeric', minute: '2-digit'
             })}
           </p>
-          {/* Points */}
-          {assignment.maxScore && (
-            <p className="text-xs font-medium mt-0.5 opacity-80" style={{ color: getAssignmentTitleColor(assignment.assignmentId) }}>
-              {assignment.maxScore} points
-            </p>
-          )}
-          {/* Course name - at the bottom */}
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <span className="text-xs">📖</span>
-            <span className="text-[11px] italic opacity-60" style={{ color: getAssignmentTitleColor(assignment.assignmentId) }}>
+          {/* Points + Course */}
+          <div className="flex items-center gap-3 mt-1.5">
+            {assignment.maxScore && (
+              <span className="text-xs font-medium text-stone-500">{assignment.maxScore} pts</span>
+            )}
+            <span className="text-[11px] text-stone-400">
               {assignment.courseName || assignment.courseInitials || 'Course'}
             </span>
           </div>
         </div>
-        {/* Right side: badge + action button */}
+        {/* Right side: badge */}
         <div className="flex flex-col items-end gap-2 ml-3">
-          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${getBadgeColor(assignment.dueDate)}`}>
+          <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${getBadgeColor(assignment.dueDate)}`}>
             {getDaysUntilDue(assignment.dueDate)}
           </span>
-          <button
-            onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
-            className="w-10 h-10 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-sm"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: getAssignmentTitleColor(assignment.assignmentId) }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
         </div>
       </div>
     </div>
@@ -238,35 +226,35 @@ export default function StudentAssignmentsPage() {
             <>
               {/* Overdue */}
               {overdue.length > 0 && (
-                <div className="mb-4">
-                  <h2 className="text-base font-bold uppercase text-red-600 tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>Overdue</h2>
+                <div className="mb-5">
+                  <h2 className="text-xs font-semibold uppercase text-red-600 tracking-wider mb-2">Overdue</h2>
                   {overdue.map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)}
                 </div>
               )}
 
               {/* Today */}
               {todayAssignments.length > 0 && (
-                <div className="mb-4">
-                  <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>Today</h2>
+                <div className="mb-5">
+                  <h2 className="text-xs font-semibold uppercase text-stone-500 tracking-wider mb-2">Due Today</h2>
                   {todayAssignments.map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)}
                 </div>
               )}
 
               {/* This Week */}
               {thisWeek.length > 0 && (
-                <div className="mb-4">
-                  <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>This Week</h2>
+                <div className="mb-5">
+                  <h2 className="text-xs font-semibold uppercase text-stone-500 tracking-wider mb-2">This Week</h2>
                   {thisWeek.map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)}
                 </div>
               )}
 
               {/* All upcoming (if no categorized ones show) */}
               {overdue.length === 0 && todayAssignments.length === 0 && thisWeek.length === 0 && assignments.filter(a => !a.isSubmitted).length === 0 && (
-                <div className="mb-4">
-                  <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>All Assignments</h2>
+                <div className="mb-5">
+                  <h2 className="text-xs font-semibold uppercase text-stone-500 tracking-wider mb-2">All Assignments</h2>
                   {assignments.length === 0 ? (
                     <div className="text-center py-8">
-                      <p className="text-gray-500">No assignments yet</p>
+                      <p className="text-stone-400">No assignments yet</p>
                     </div>
                   ) : (
                     assignments.map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)
@@ -276,8 +264,8 @@ export default function StudentAssignmentsPage() {
 
               {/* Submitted */}
               {assignments.filter(a => a.isSubmitted).length > 0 && (
-                <div className="mb-4">
-                  <h2 className="text-base font-bold uppercase text-green-600 tracking-normal mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>✓ Submitted</h2>
+                <div className="mb-5">
+                  <h2 className="text-xs font-semibold uppercase text-green-600 tracking-wider mb-2">Submitted</h2>
                   {assignments.filter(a => a.isSubmitted).map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)}
                 </div>
               )}
