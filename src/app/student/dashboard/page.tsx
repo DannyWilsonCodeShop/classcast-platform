@@ -38,11 +38,14 @@ export default function StudentDashboardPage() {
   useEffect(() => {
     if (user?.id && user?.role === 'student') {
       const welcomed = localStorage.getItem(`classcast_welcomed_${user.id}`);
-      if (!welcomed) {
+      // Only show welcome if never welcomed AND no assignments (means no courses)
+      if (!welcomed && assignments.length === 0 && !loading) {
         setShowWelcome(true);
+      } else if (welcomed || assignments.length > 0) {
+        setShowWelcome(false);
       }
     }
-  }, [user?.id, user?.role]);
+  }, [user?.id, user?.role, assignments.length, loading]);
 
   const handleWelcomeJoin = async () => {
     if (!welcomeCode.trim() || !user?.id) return;
