@@ -654,8 +654,9 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
         </div>
       )}
 
-      {/* Video Player - Mobile Optimized */}
-      <div className="relative w-full bg-black" style={{ aspectRatio: '16/9', maxHeight: '45vh' }}>
+      {/* Video Player - Contained width for zoom */}
+      <div className="relative w-full bg-black flex justify-center" style={{ maxHeight: '45vh' }}>
+        <div className="w-full max-w-2xl" style={{ aspectRatio: '16/9' }}>
         {isYouTube ? (
           <div className="relative w-full h-full">
             <img
@@ -693,6 +694,7 @@ const VideoSubmissionCard: React.FC<{ video: VideoSubmission; formatTimestamp: (
             onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 2; }}
           />
         )}
+        </div>
       </div>
 
       {/* Title & Interactions */}
