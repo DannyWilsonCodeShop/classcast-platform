@@ -246,9 +246,9 @@ export default function StudentCourseDetailPage() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h3>
+                        <h3 className="text-base font-semibold text-stone-900 truncate">{a.title}</h3>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <p className="text-[10px] opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>
+                          <p className="text-[10px] text-stone-400">
                             {a.maxScore ? `${a.maxScore} pts` : ''} {a.isSubmitted ? '• ✓ Submitted' : ''}
                           </p>
                           {grade && (
@@ -316,7 +316,7 @@ export default function StudentCourseDetailPage() {
                   className="w-full text-left rounded-xl p-3 active:scale-[0.98] transition-transform"
                   style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}
                 >
-                  <h4 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h4>
+                  <h4 className="text-base font-semibold text-stone-900 truncate">{a.title}</h4>
                   <p className="text-xs opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || course?.courseName || ''} • Due {getDueBadge(a.dueDate).label}</p>
                 </button>
               )) : (

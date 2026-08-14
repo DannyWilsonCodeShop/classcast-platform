@@ -501,11 +501,8 @@ export default function StudentAssignmentDetailPage() {
                 </svg>
               </button>
               <h1
-                className="flex-1 text-base font-bold uppercase mx-2 break-words leading-tight"
+                className="flex-1 text-base font-semibold mx-2 break-words leading-tight text-stone-900"
                 style={{
-                  fontFamily: "'Oswald', sans-serif",
-                  letterSpacing: '0.02em',
-                  color: getAssignmentTitleColor(currentAssignmentId),
                   opacity: isTitleTransitioning ? 0 : 1,
                   transition: 'opacity 200ms ease-out',
                 }}
