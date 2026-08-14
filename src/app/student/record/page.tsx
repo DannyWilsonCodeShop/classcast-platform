@@ -236,6 +236,47 @@ function RecordPageInner() {
     return null;
   };
 
+  // Auto-generate thumbnail from video at 2 seconds
+  const generateThumbnailFromVideo = (videoSrc: string): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.crossOrigin = 'anonymous';
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'auto';
+      video.src = videoSrc;
+
+      video.onloadeddata = () => {
+        // Seek to 2 seconds (or 10% of duration if shorter)
+        video.currentTime = Math.min(2, video.duration * 0.1);
+      };
+
+      video.onseeked = () => {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.min(video.videoWidth, 640);
+          canvas.height = Math.round(canvas.width * (video.videoHeight / video.videoWidth));
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            resolve(dataUrl);
+          } else {
+            resolve(null);
+          }
+        } catch {
+          resolve(null);
+        }
+        video.src = '';
+      };
+
+      video.onerror = () => resolve(null);
+
+      // Timeout after 5 seconds
+      setTimeout(() => resolve(null), 5000);
+    });
+  };
+
   // Submit
   const handleSubmit = async () => {
     console.log('🚀 handleSubmit called', { hasFile: !!videoFile, hasLink: !!linkUrl.trim(), userId: user?.id });
@@ -406,6 +447,24 @@ function RecordPageInner() {
         } catch { /* skip thumbnail if upload fails */ }
       } else if (thumbnailUrl) {
         finalThumbnailUrl = thumbnailUrl;
+      }
+
+      // Auto-generate thumbnail from video if none was captured
+      if (!finalThumbnailUrl && videoFile && videoPreviewUrl && !isYouTube && !isGoogleDrive) {
+        try {
+          const thumbDataUrl = await generateThumbnailFromVideo(videoPreviewUrl);
+          if (thumbDataUrl) {
+            const thumbRes = await fetch('/api/upload/thumbnail', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ image: thumbDataUrl, userId: user.id }),
+            });
+            if (thumbRes.ok) {
+              const thumbData = await thumbRes.json();
+              finalThumbnailUrl = thumbData.url || thumbData.thumbnailUrl;
+            }
+          }
+        } catch { /* skip auto-thumbnail if generation fails */ }
       }
 
       // Save submission
