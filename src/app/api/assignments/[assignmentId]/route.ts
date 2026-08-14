@@ -240,7 +240,8 @@ export async function PUT(
       discussionConfig: 'discussionConfig',
       assessmentQuestions: 'assessmentQuestions',
       moduleConfig: 'moduleConfig',
-      problemBankId: 'problemBankId'
+      problemBankId: 'problemBankId',
+      sectionDueDates: 'sectionDueDates'
     };
     
     // Process each field in the body

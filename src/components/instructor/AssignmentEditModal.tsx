@@ -6,6 +6,7 @@ interface AssignmentEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: AssignmentEditData) => void;
+  courseId?: string;
   assignment: {
     assignmentId: string;
     title: string;
@@ -26,6 +27,7 @@ interface AssignmentEditModalProps {
     allowYouTubeUrl?: boolean;
     groupAssignment?: boolean;
     maxGroupSize?: number;
+    sectionDueDates?: Record<string, string>;
   };
 }
 
@@ -47,9 +49,10 @@ export interface AssignmentEditData {
   allowYouTubeUrl?: boolean;
   groupAssignment?: boolean;
   maxGroupSize?: number;
+  sectionDueDates?: Record<string, string>;
 }
 
-export function AssignmentEditModal({ isOpen, onClose, onSave, assignment }: AssignmentEditModalProps) {
+export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignment }: AssignmentEditModalProps) {
   const [title, setTitle] = useState(assignment.title);
   const [description, setDescription] = useState(assignment.description);
   const [dueDate, setDueDate] = useState('');
@@ -67,9 +70,23 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, assignment }: Ass
   const [allowYouTubeUrl, setAllowYouTubeUrl] = useState(assignment.allowYouTubeUrl || false);
   const [groupAssignment, setGroupAssignment] = useState(assignment.groupAssignment || false);
   const [maxGroupSize, setMaxGroupSize] = useState(assignment.maxGroupSize || 4);
+  const [sectionDueDates, setSectionDueDates] = useState<Record<string, string>>(assignment.sectionDueDates || {});
+  const [sections, setSections] = useState<Array<{ sectionId: string; sectionName: string }>>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [activeSection, setActiveSection] = useState<'basic' | 'submissions' | 'peer' | 'video'>('basic');
+
+  // Fetch sections for this course
+  useEffect(() => {
+    if (isOpen && courseId) {
+      fetch(`/api/sections?courseId=${courseId}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) setSections(data.data || []);
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, courseId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -88,6 +105,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, assignment }: Ass
       setAllowYouTubeUrl(assignment.allowYouTubeUrl || false);
       setGroupAssignment(assignment.groupAssignment || false);
       setMaxGroupSize(assignment.maxGroupSize || 4);
+      setSectionDueDates(assignment.sectionDueDates || {});
       try {
         const d = new Date(assignment.dueDate);
         const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
@@ -135,6 +153,15 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, assignment }: Ass
         payload.peerReviewScope = peerReviewScope;
       }
       if (groupAssignment) payload.maxGroupSize = maxGroupSize;
+
+      // Add section-specific due dates (only non-empty ones)
+      const filteredSectionDueDates: Record<string, string> = {};
+      for (const [secId, secDate] of Object.entries(sectionDueDates)) {
+        if (secDate) filteredSectionDueDates[secId] = new Date(secDate).toISOString();
+      }
+      if (Object.keys(filteredSectionDueDates).length > 0) {
+        payload.sectionDueDates = filteredSectionDueDates;
+      }
 
       const res = await fetch(`/api/assignments/${assignment.assignmentId}`, {
         method: 'PUT',
@@ -219,6 +246,51 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, assignment }: Ass
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
                 </div>
               </div>
+
+              {/* Section-specific due dates */}
+              {sections.length > 1 && (
+                <div className="mt-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-medium text-gray-700">Due dates by section</label>
+                    <span className="text-[9px] text-gray-400">Leave blank to use default</span>
+                  </div>
+                  <div className="space-y-2 bg-gray-50 rounded-xl p-3">
+                    {sections.map(sec => {
+                      const secDateVal = sectionDueDates[sec.sectionId] || '';
+                      let formattedSecDate = '';
+                      if (secDateVal) {
+                        try {
+                          const d = new Date(secDateVal);
+                          const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+                          formattedSecDate = local.toISOString().slice(0, 16);
+                        } catch { formattedSecDate = ''; }
+                      }
+                      return (
+                        <div key={sec.sectionId} className="flex items-center gap-2">
+                          <span className="text-[11px] font-medium text-gray-600 w-20 truncate shrink-0">{sec.sectionName}</span>
+                          <input
+                            type="datetime-local"
+                            value={formattedSecDate}
+                            onChange={(e) => {
+                              setSectionDueDates(prev => ({
+                                ...prev,
+                                [sec.sectionId]: e.target.value ? new Date(e.target.value).toISOString() : '',
+                              }));
+                            }}
+                            className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                          />
+                          {formattedSecDate && (
+                            <button
+                              onClick={() => setSectionDueDates(prev => { const n = {...prev}; delete n[sec.sectionId]; return n; })}
+                              className="text-gray-300 hover:text-red-400 text-sm"
+                            >✕</button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </>
           )}
 

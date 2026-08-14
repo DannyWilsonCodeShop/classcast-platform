@@ -158,12 +158,42 @@ export async function GET(request: NextRequest) {
     // =========================================================================
     // ENRICH: Build final assignment list (no more async per-item)
     // =========================================================================
+    
+    // Determine student's section per course (for section-specific due dates)
+    const studentSectionMap = new Map<string, string>(); // courseId → sectionId
+    const userRecord = userResult.Item;
+    if (userRecord?.enrolledCourses) {
+      for (const ec of userRecord.enrolledCourses) {
+        if (typeof ec !== 'string' && ec.courseId && ec.sectionId) {
+          studentSectionMap.set(ec.courseId, ec.sectionId);
+        }
+      }
+    }
+    // Also check course enrollment records for section info
+    for (const course of userCourses) {
+      if (course.enrollment?.students) {
+        const studentEntry = course.enrollment.students.find((s: any) => 
+          (typeof s === 'object' && s.userId === userId)
+        );
+        if (studentEntry?.sectionId && !studentSectionMap.has(course.courseId)) {
+          studentSectionMap.set(course.courseId, studentEntry.sectionId);
+        }
+      }
+    }
+
     const enrichedAssignments = assignments.map(assignment => {
       const course = courseMap.get(assignment.courseId);
       const submission = submissionMap.get(assignment.assignmentId);
 
+      // Resolve section-specific due date
+      const studentSectionId = studentSectionMap.get(assignment.courseId);
+      const sectionDueDates = assignment.sectionDueDates || {};
+      const effectiveDueDate = (studentSectionId && sectionDueDates[studentSectionId])
+        ? sectionDueDates[studentSectionId]
+        : assignment.dueDate;
+
       const now = new Date();
-      const dueDate = new Date(assignment.dueDate);
+      const dueDate = new Date(effectiveDueDate);
       let status = 'upcoming';
       if (submission) status = 'completed';
       else if (dueDate < now) status = 'past_due';
@@ -186,7 +216,7 @@ export async function GET(request: NextRequest) {
         courseCode: course?.courseCode || course?.code || 'N/A',
         title: assignment.title || 'Untitled Assignment',
         description: assignment.description || 'No description available',
-        dueDate: assignment.dueDate,
+        dueDate: effectiveDueDate,
         status,
         points: assignment.maxScore ?? 100,
         submissionType: assignment.assignmentType === 'video' ? 'video' : 'file',
