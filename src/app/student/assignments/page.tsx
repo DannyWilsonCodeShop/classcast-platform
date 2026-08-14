@@ -97,8 +97,11 @@ export default function StudentAssignmentsPage() {
   };
 
   const AssignmentCard = ({ assignment }: { assignment: Assignment }) => (
-    <div className="rounded-xl p-4 mb-3" style={{ backgroundColor: getAssignmentColor(assignment.assignmentId) }}>
-      <div className="flex items-start justify-between">
+    <div
+      className="rounded-xl p-4 mb-3 cursor-pointer active:scale-[0.98] transition-transform"
+      style={{ backgroundColor: getAssignmentColor(assignment.assignmentId) }}
+      onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
+    >      <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           {/* Title - first and foremost */}
           <p className="font-bold text-base mb-0.5 uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(assignment.assignmentId) }}>
