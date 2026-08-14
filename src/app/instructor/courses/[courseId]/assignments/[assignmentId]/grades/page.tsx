@@ -648,6 +648,7 @@ const AssignmentGradesPage: React.FC = () => {
             onSave={(data: AssignmentEditData) => {
               setAssignment(prev => prev ? { ...prev, ...data } : prev);
             }}
+            courseId={courseId}
             assignment={assignment}
           />
         )}
