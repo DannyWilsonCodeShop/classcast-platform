@@ -133,7 +133,7 @@ export default function StudentDashboardPage() {
   return (
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet" />
 
       {/* ===== WIDE SCREEN LAYOUT (iPad/Desktop) ===== */}
       {isWide ? (
@@ -197,7 +197,7 @@ export default function StudentDashboardPage() {
                           <div className="absolute inset-0 flex items-center justify-center"><div className="w-9 h-9 bg-white/80 rounded-full flex items-center justify-center shadow"><svg className="w-4 h-4 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
                         </div>
                         {/* Title */}
-                        <p className="text-xs text-gray-900 truncate font-medium uppercase mt-1.5" style={{ fontFamily: "'Oswald', sans-serif" }}>{item.title || 'Video'}</p>
+                        <p className="text-xs text-stone-800 truncate font-medium mt-1.5">{item.title || 'Video'}</p>
                         <div className="flex items-center gap-2 text-[10px] text-gray-500 mt-0.5">
                           <span>⭐ {item.likes || 0}</span>
                           <span>👁 {item.viewCount || 0}</span>
@@ -290,7 +290,7 @@ export default function StudentDashboardPage() {
                             <span className="text-[11px] text-white font-medium truncate">{item.author?.name || 'Student'}</span>
                           </div>
                           {/* Title + stars */}
-                          <p className="text-xs text-white truncate font-medium mt-1 uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.03em' }}>{item.title || 'Video'}</p>
+                          <p className="text-xs text-white truncate font-medium mt-1">{item.title || 'Video'}</p>
                           <div className="flex items-center gap-2 text-[10px] text-white/70 mt-0.5">
                             <span>⭐ {item.likes || 0}</span>
                             <span>👁 {item.viewCount || 0}</span>
@@ -337,8 +337,8 @@ export default function StudentDashboardPage() {
                     className="w-full text-left rounded-xl p-3 active:scale-[0.98] transition-transform"
                     style={{ backgroundColor: getAssignmentColor(a.assignmentId) }}
                   >
-                    <h4 className="text-base font-bold uppercase truncate" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.02em', color: getAssignmentTitleColor(a.assignmentId) }}>{a.title}</h4>
-                    <p className="text-xs opacity-70" style={{ color: getAssignmentTitleColor(a.assignmentId) }}>{a.courseName || ''} • Due {getDueBadge(a.dueDate)}</p>
+                    <h4 className="text-base font-semibold text-stone-900 truncate">{a.title}</h4>
+                    <p className="text-xs text-stone-500">{a.courseName || ''} • Due {getDueBadge(a.dueDate)}</p>
                   </button>
                 )) : (
                   <p className="text-center text-gray-400 text-sm py-4">No unsubmitted assignments</p>
