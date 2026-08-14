@@ -57,13 +57,14 @@ export function AutoThumbnail({ videoUrl, submissionId, existingThumbnail, class
   const captureFrame = (src: string): Promise<string | null> => {
     return new Promise((resolve) => {
       const video = document.createElement('video');
+      video.crossOrigin = 'anonymous';
       video.muted = true;
       video.playsInline = true;
       video.preload = 'auto';
       video.src = src;
 
       video.onloadeddata = () => {
-        video.currentTime = Math.min(2, video.duration * 0.1);
+        video.currentTime = Math.min(2, video.duration * 0.1 || 0.5);
       };
 
       video.onseeked = () => {
