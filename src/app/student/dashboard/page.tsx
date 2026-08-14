@@ -123,7 +123,13 @@ export default function StudentDashboardPage() {
   const getDueBadge = (d: string) => { const diff = Math.ceil((new Date(d).getTime() - now.getTime()) / 86400000); if (diff < 0) return `${Math.abs(diff)}d late`; if (diff === 0) return 'Today'; if (diff === 1) return 'Tomorrow'; return `${diff}d`; };
   const getBadgeStyle = (d: string) => { const diff = Math.ceil((new Date(d).getTime() - now.getTime()) / 86400000); if (diff < 0) return 'bg-red-100 text-red-700'; if (diff <= 1) return 'bg-orange-100 text-orange-700'; return 'bg-white/90 text-gray-700'; };
 
-  const getVideoThumbnail = (url?: string, thumbnailUrl?: string) => { if (thumbnailUrl) return thumbnailUrl; if (!url) return null; const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/); return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : null; };
+  const getVideoThumbnail = (url?: string, thumbnailUrl?: string) => {
+    if (thumbnailUrl && !thumbnailUrl.includes('placeholder') && !thumbnailUrl.endsWith('.mp4') && !thumbnailUrl.endsWith('.webm') && !thumbnailUrl.endsWith('.mov') && !thumbnailUrl.includes('/videos/')) return thumbnailUrl;
+    if (!url) return null;
+    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/);
+    return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : null;
+  };
+  const isVideoUrl = (url?: string) => !!(url && (url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.mov') || url.includes('/videos/')));
 
   // Quick stats
   const dueThisWeek = assignments.filter(a => { const d = new Date(a.dueDate); return d >= now && d <= new Date(now.getTime() + 7 * 86400000) && !a.isSubmitted; }).length;
