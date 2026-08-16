@@ -172,10 +172,11 @@ const AssignmentGradesPage: React.FC = () => {
         });
       }
       
-      // Fetch enrolled students
-      const studentsResponse = await fetch(`/api/courses/enrollment?courseId=${courseId}`, {
-        credentials: 'include',
-      });
+      // Fetch enrolled students AND sections for filtering
+      const [studentsResponse, sectionsResponse] = await Promise.all([
+        fetch(`/api/courses/enrollment?courseId=${courseId}`, { credentials: 'include' }),
+        fetch(`/api/sections?courseId=${courseId}`, { credentials: 'include' }),
+      ]);
       
       if (!studentsResponse.ok) {
         throw new Error('Failed to fetch students');
@@ -184,6 +185,13 @@ const AssignmentGradesPage: React.FC = () => {
       const studentsData = await studentsResponse.json();
       console.log('Students API response:', studentsData); // Debug log
       const enrolledStudents = studentsData.success ? studentsData.data?.students || [] : [];
+      
+      // Get sections from sections table (these have proper names like "Section A", "Section B")
+      const sectionsData = sectionsResponse.ok ? await sectionsResponse.json() : { data: [] };
+      const courseSections = (sectionsData.data || []).map((s: any) => ({
+        sectionId: s.sectionId,
+        sectionName: s.sectionName,
+      }));
       
       // Fetch submissions for this assignment
       const submissionsResponse = await fetch(`/api/instructor/video-submissions?assignmentId=${assignmentId}`, {
@@ -244,12 +252,19 @@ const AssignmentGradesPage: React.FC = () => {
           
           const submission = submissionMap.get(student.userId);
           
+          // Resolve section name from sections table if not on student record
+          let resolvedSectionName = student.sectionName || 'No Section';
+          if (student.sectionId && (!student.sectionName || student.sectionName === 'No Section')) {
+            const matchedSection = courseSections.find((s: any) => s.sectionId === student.sectionId);
+            if (matchedSection) resolvedSectionName = matchedSection.sectionName;
+          }
+          
           return {
             studentId: student.userId,
             studentName: userName,
             studentEmail: student.email || '',
             sectionId: student.sectionId,
-            sectionName: student.sectionName || 'No Section',
+            sectionName: resolvedSectionName,
             submissionId: submission?.submissionId,
             grade: submission?.grade,
             feedback: submission?.feedback,
@@ -262,20 +277,29 @@ const AssignmentGradesPage: React.FC = () => {
       console.log('Final grades data:', gradesData.length);
       setStudentGrades(gradesData);
       
-      // Extract unique sections
-      const uniqueSections = Array.from(new Set(
-        gradesData
-          .filter(grade => grade.sectionId && grade.sectionName)
-          .map(grade => JSON.stringify({ sectionId: grade.sectionId, sectionName: grade.sectionName }))
-      )).map(str => JSON.parse(str));
-      
-      const sectionsWithCounts = uniqueSections.map(section => ({
-        sectionId: section.sectionId,
-        sectionName: section.sectionName,
-        studentCount: gradesData.filter(grade => grade.sectionId === section.sectionId).length
-      }));
-      
-      setSections(sectionsWithCounts);
+      // Use sections from sections table (more reliable than deriving from student data)
+      if (courseSections.length > 0) {
+        const sectionsWithCounts = courseSections.map((section: any) => ({
+          sectionId: section.sectionId,
+          sectionName: section.sectionName,
+          studentCount: gradesData.filter(grade => grade.sectionId === section.sectionId).length
+        }));
+        setSections(sectionsWithCounts);
+      } else {
+        // Fallback: derive from student data
+        const uniqueSections = Array.from(new Set(
+          gradesData
+            .filter(grade => grade.sectionId && grade.sectionName && grade.sectionName !== 'No Section')
+            .map(grade => JSON.stringify({ sectionId: grade.sectionId, sectionName: grade.sectionName }))
+        )).map(str => JSON.parse(str));
+        
+        const sectionsWithCounts = uniqueSections.map(section => ({
+          sectionId: section.sectionId,
+          sectionName: section.sectionName,
+          studentCount: gradesData.filter(grade => grade.sectionId === section.sectionId).length
+        }));
+        setSections(sectionsWithCounts);
+      }
       
     } catch (err) {
       console.error('Error fetching grades data:', err);
