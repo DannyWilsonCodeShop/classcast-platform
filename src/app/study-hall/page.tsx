@@ -253,7 +253,7 @@ export default function PublicStudyHallPage() {
   };
 
   return (
-    <div className="h-[100dvh] bg-white flex flex-col">
+    <div className="h-[100dvh] bg-[#faf9f7] flex flex-col">
       <style jsx global>{`
         .scroll-area::-webkit-scrollbar { display: none; }
         .scroll-area { -ms-overflow-style: none; scrollbar-width: none; }
@@ -276,7 +276,7 @@ export default function PublicStudyHallPage() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex border-b border-gray-200 shrink-0 bg-white">
+      <div className="flex border-b border-stone-200/60 shrink-0 bg-white">
         <button
           onClick={() => setActiveTab('request')}
           className={`flex-1 py-3 text-xs font-bold text-center transition-colors ${activeTab === 'request' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
@@ -308,8 +308,8 @@ export default function PublicStudyHallPage() {
           /* ===== REQUEST TAB ===== */
           <div className="max-w-md mx-auto px-4 py-5">
             <div className="text-center mb-5">
-              <h1 className="text-lg font-bold text-[#005587]">Study Hall Pullout</h1>
-              <p className="text-[11px] text-gray-500 mt-0.5">Add students to the pullout list</p>
+              <h1 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Study Hall Pullout</h1>
+              <p className="text-[11px] text-stone-500 mt-0.5">Add students to the pullout list</p>
             </div>
 
             {success && (
@@ -330,7 +330,7 @@ export default function PublicStudyHallPage() {
               </div>
             )}
 
-            <div className="bg-gray-50 rounded-2xl p-4 mb-4">
+            <div className="bg-white rounded-2xl p-4 mb-4 border border-stone-200/60 shadow-sm">
               {/* Teacher dropdown */}
               <div className="mb-3">
                 <label className="block text-[10px] font-medium text-gray-600 mb-1">Your Name</label>
@@ -449,7 +449,7 @@ export default function PublicStudyHallPage() {
           /* ===== TODAY'S LIST TAB ===== */
           <div className="max-w-md mx-auto px-4 py-5">
             <div className="text-center mb-4">
-              <h1 className="text-lg font-bold text-[#005587]">Pickup List</h1>
+              <h1 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Pickup List</h1>
               {/* Date navigation */}
               <div className="flex items-center justify-center gap-3 mt-2">
                 <button

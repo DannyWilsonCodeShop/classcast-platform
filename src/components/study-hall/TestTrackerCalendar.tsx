@@ -169,7 +169,7 @@ export function TestTrackerCalendar() {
       {/* Month header */}
       <div className="flex items-center justify-between mb-4">
         <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:bg-gray-200">‹</button>
-        <h2 className="text-lg font-bold text-[#005587]">{monthNames[currentMonth.month]} {currentMonth.year}</h2>
+        <h2 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>{monthNames[currentMonth.month]} {currentMonth.year}</h2>
         <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:bg-gray-200">›</button>
       </div>
 
@@ -231,10 +231,10 @@ export function TestTrackerCalendar() {
       {/* Upcoming tests list for this month */}
       {tests.length > 0 && (
         <div className="mt-5">
-          <h3 className="text-xs font-bold text-gray-700 mb-2">This Month&apos;s Assessments</h3>
+          <h3 className="text-xs font-bold text-stone-700 mb-2">This Month&apos;s Assessments</h3>
           <div className="space-y-1.5">
             {tests.sort((a, b) => a.testDate.localeCompare(b.testDate)).map(test => (
-              <div key={test.entryId} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
+              <div key={test.entryId} className="flex items-center gap-2 p-2.5 bg-white rounded-xl border border-stone-200/60 shadow-sm">
                 <div className={`w-2 h-full min-h-[32px] rounded-full shrink-0 ${test.testType === 'summative' ? 'bg-red-400' : 'bg-blue-400'}`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-gray-800 truncate">{test.subject}</p>
