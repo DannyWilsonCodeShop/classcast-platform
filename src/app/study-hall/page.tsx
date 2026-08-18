@@ -324,7 +324,7 @@ export default function PublicStudyHallPage() {
               </div>
             )}
 
-            <div className="bg-white rounded-2xl p-4 mb-4 border border-stone-200/60 shadow-sm">
+            <div className="bg-white rounded-2xl p-4 mb-4 border border-stone-200/60 shadow-sm overflow-hidden">
               {/* Teacher dropdown */}
               <div className="mb-3">
                 <label className="block text-[10px] font-medium text-gray-600 mb-1">Your Name</label>
@@ -401,7 +401,7 @@ export default function PublicStudyHallPage() {
                 <div>
                   <label className="block text-[10px] font-medium text-gray-600 mb-1">Date</label>
                   <input type="date" value={pulloutDate} onChange={(e) => setPulloutDate(e.target.value)}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587] bg-white" />
+                    className="w-full max-w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587] bg-white box-border" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-medium text-gray-600 mb-1">Reason (optional)</label>
