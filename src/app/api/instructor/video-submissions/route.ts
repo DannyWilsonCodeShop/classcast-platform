@@ -390,8 +390,8 @@ export async function GET(request: NextRequest) {
       count: enrichedSubmissions.length
     }, {
       headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'Pragma': 'no-cache',
+        
+        
       }
     });
 

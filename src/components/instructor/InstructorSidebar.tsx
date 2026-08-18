@@ -58,6 +58,15 @@ export function InstructorSidebar() {
   const [hasCourses, setHasCourses] = useState(true); // default true to avoid flash
   const theme = useSchoolTheme();
 
+  // Prefetch all instructor routes on mount for instant navigation
+  useEffect(() => {
+    router.prefetch('/instructor/dashboard');
+    router.prefetch('/instructor/grading');
+    router.prefetch('/instructor/courses');
+    router.prefetch('/instructor/profile');
+    router.prefetch('/instructor/study-hall');
+  }, [router]);
+
   // Check if user is on a team and has courses
   useEffect(() => {
     if (user?.id) {

@@ -71,8 +71,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({ success: true, pullouts: enrichedPullouts }, {
-      headers: { 'Cache-Control': 'no-store' }
+    return NextResponse.json({ success: true, pullouts: enrichedPullouts }
     });
   } catch (error) {
     console.error('Error fetching pullouts:', error);

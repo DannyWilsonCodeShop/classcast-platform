@@ -19,6 +19,14 @@ export function InstructorTabBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
+
+  // Prefetch routes on mount
+  useEffect(() => {
+    router.prefetch('/instructor/dashboard');
+    router.prefetch('/instructor/grading');
+    router.prefetch('/instructor/courses');
+    router.prefetch('/instructor/profile');
+  }, [router]);
   const theme = useSchoolTheme();
 
   // Create modal state
