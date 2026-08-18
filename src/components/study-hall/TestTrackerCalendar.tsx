@@ -124,13 +124,17 @@ export function TestTrackerCalendar() {
       const data = await res.json();
 
       if (data.success) {
+        // Optimistically add to local state immediately (no waiting for refetch)
+        const newEntry: TestEntry = {
+          entryId: data.entry?.entryId || `temp_${Date.now()}`,
+          teacherName,
+          subject,
+          testType,
+          testDate: selectedDate!,
+        };
+        setTests(prev => [...prev, newEntry]);
         setShowAddModal(false);
         setSubject('');
-        // Force re-fetch to update calendar dots
-        const monthStr = `${currentMonth.year}-${String(currentMonth.month + 1).padStart(2, '0')}`;
-        const refreshRes = await fetch(`/api/test-calendar?month=${monthStr}`);
-        const refreshData = await refreshRes.json();
-        if (refreshData.success) setTests(refreshData.tests || []);
       } else if (data.blocked) {
         setAddError(data.error);
         if (data.suggestedDate) setSuggestedDate(data.suggestedDate);
@@ -143,9 +147,10 @@ export function TestTrackerCalendar() {
   };
 
   const handleDelete = async (entryId: string) => {
+    // Optimistically remove from local state
+    setTests(prev => prev.filter(t => t.entryId !== entryId));
     try {
       await fetch(`/api/test-calendar?entryId=${entryId}`, { method: 'DELETE' });
-      fetchTests();
     } catch {}
   };
 
