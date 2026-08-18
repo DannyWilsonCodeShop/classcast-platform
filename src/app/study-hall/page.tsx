@@ -265,12 +265,12 @@ export default function PublicStudyHallPage() {
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
 
       {/* Header */}
-      <div className="bg-[#005587] text-white px-4 py-3 flex items-center justify-between safe-top shrink-0">
+      <div className="bg-white text-[#005587] px-4 py-3 flex items-center justify-between safe-top shrink-0 border-b border-stone-200/60">
         <button onClick={() => router.push('/about')} className="flex items-center gap-2">
-          <img src="/UpdatedCCLogo.png" alt="" className="w-7 h-7 object-contain brightness-200" />
-          <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-xl">ClassCast</span>
+          <img src="/UpdatedCCLogo.png" alt="" className="w-7 h-7 object-contain" />
+          <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-xl text-[#005587]">ClassCast</span>
         </button>
-        <button onClick={() => router.push('/about')} className="text-[10px] text-white/70 hover:text-white">
+        <button onClick={() => router.push('/about')} className="text-[10px] text-stone-400 hover:text-[#005587]">
           Learn More →
         </button>
       </div>
