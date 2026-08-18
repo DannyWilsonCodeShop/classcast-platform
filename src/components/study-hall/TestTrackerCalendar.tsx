@@ -126,7 +126,11 @@ export function TestTrackerCalendar() {
       if (data.success) {
         setShowAddModal(false);
         setSubject('');
-        fetchTests();
+        // Force re-fetch to update calendar dots
+        const monthStr = `${currentMonth.year}-${String(currentMonth.month + 1).padStart(2, '0')}`;
+        const refreshRes = await fetch(`/api/test-calendar?month=${monthStr}`);
+        const refreshData = await refreshRes.json();
+        if (refreshData.success) setTests(refreshData.tests || []);
       } else if (data.blocked) {
         setAddError(data.error);
         if (data.suggestedDate) setSuggestedDate(data.suggestedDate);
