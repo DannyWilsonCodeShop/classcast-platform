@@ -268,12 +268,10 @@ export default function PublicStudyHallPage() {
       {/* Header */}
       <div className="bg-white text-[#005587] px-4 py-3 flex items-center justify-between safe-top shrink-0 border-b border-stone-200/60">
         <button onClick={() => router.push('/about')} className="flex items-center gap-2">
-          <img src="/UpdatedCCLogo.png" alt="" className="w-5 h-5 object-contain" />
+          <img src="/UpdatedCCLogo.png" alt="" className="w-4 h-4 object-contain" />
           <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-xl text-[#005587]">ClassCast</span>
         </button>
-        <button onClick={() => router.push('/about')} className="text-[10px] text-stone-400 hover:text-[#005587]">
-          Learn More →
-        </button>
+        <img src="/CristoReyLogo.png" alt="Cristo Rey" className="h-8 object-contain" />
       </div>
 
       {/* Tab bar */}
