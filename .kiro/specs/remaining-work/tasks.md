@@ -7,7 +7,7 @@
   - [x] 1.2 Add a `viewCount` field to the submission and update `GET /api/student/feed` to return it
   - [x] 1.3 Display accurate view counts on the Student Detail page
 
-- [~] 2. Instructor View Modal restyle — CANCELLED
+- [ ] 2. Instructor View Modal restyle — CANCELLED
 
 - [x] 3. Assignment Edit functionality
   - [x] 3.1 Create `/api/assignments/[assignmentId]` PUT endpoint (already exists, verify it handles all fields)

@@ -64,7 +64,7 @@ export function AutoThumbnail({ videoUrl, submissionId, existingThumbnail, class
       video.src = src;
 
       video.onloadeddata = () => {
-        video.currentTime = Math.min(2, video.duration * 0.1);
+        video.currentTime = Math.min(2, video.duration * 0.1 || 0.5);
       };
 
       video.onseeked = () => {

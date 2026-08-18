@@ -77,7 +77,7 @@ export default function StudentGradesPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="flex-1 text-base font-bold uppercase text-[#005587] mx-2 tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Grades</h1>
+          <h1 className="flex-1 text-lg font-semibold text-stone-900 mx-2" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Grades</h1>
           <img src="/CristoReyLogo.png" alt="" className="w-14 h-14 object-contain" />
         </div>
 
@@ -155,7 +155,7 @@ export default function StudentGradesPage() {
                 <div key={grade.id} className="border border-gray-100 rounded-xl p-3 active:bg-gray-50 transition-colors">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-bold text-[#005587] truncate uppercase" style={{ fontFamily: "'Oswald', sans-serif", letterSpacing: '0.03em' }}>{grade.assignmentTitle}</h3>
+                      <h3 className="text-base font-semibold text-stone-900 truncate">{grade.assignmentTitle}</h3>
                       <p className="text-xs text-gray-500 mt-0.5 truncate">{grade.courseName}</p>
                     </div>
                     {/* Grade badge */}

@@ -1,0 +1,87 @@
+2026-08-03T13:29:23.669Z [INFO]: # Build environment configured with Standard build compute type: 8GiB Memory, 4vCPUs, 128GB Disk Space
+2026-08-03T13:29:24.108Z [INFO]: # Cloning repository: git@github.com:DannyWilsonCodeShop/classcast-platform.git
+2026-08-03T13:29:27.044Z [INFO]: 
+2026-08-03T13:29:27.138Z [INFO]: Cloning into 'classcast-platform'...
+2026-08-03T13:29:27.138Z [INFO]: # Switching to commit: a62d8cab8d971cee38ad3b6cb908db97982b6fca
+2026-08-03T13:29:27.174Z [INFO]: Note: switching to 'a62d8cab8d971cee38ad3b6cb908db97982b6fca'.
+                                 You are in 'detached HEAD' state. You can look around, make experimental
+                                 changes and commit them, and you can discard any commits you make in this
+                                 state without impacting any branches by switching back to a branch.
+                                 If you want to create a new branch to retain commits you create, you may
+                                 do so (now or later) by using -c with the switch command. Example:
+                                 git switch -c <new-branch-name>
+                                 Or undo this operation with:
+                                 git switch -
+                                 Turn off this advice by setting config variable advice.detachedHead to false
+                                 HEAD is now at a62d8cab Study hall: remove CTA box, add delete button, add tabs to instructor portal
+2026-08-03T13:29:27.267Z [INFO]: Successfully cleaned up Git credentials
+2026-08-03T13:29:27.267Z [INFO]: # Checking for Git submodules at: /codebuild/output/src404612599/src/classcast-platform/.gitmodules
+2026-08-03T13:29:27.276Z [INFO]: # Retrieving environment cache...
+2026-08-03T13:29:27.317Z [WARNING]: ! Unable to write cache: {"code":"ERR_BAD_REQUEST","message":"Request failed with status code 404"})}
+2026-08-03T13:29:27.317Z [INFO]: ---- Setting Up SSM Secrets ----
+2026-08-03T13:29:27.317Z [INFO]: SSM params {"Path":"/amplify/d166bugwfgjggz/main/","WithDecryption":true}
+2026-08-03T13:29:28.695Z [INFO]: # No package override configuration found.
+2026-08-03T13:29:28.700Z [INFO]: # Retrieving cache...
+2026-08-03T13:29:48.906Z [INFO]: # Extracting cache...
+2026-08-03T13:30:09.793Z [INFO]: # Extraction completed
+2026-08-03T13:30:10.056Z [INFO]: # Retrieved cache
+2026-08-03T13:30:16.898Z [INFO]: ## Starting Backend Build
+                                 ## Checking for associated backend environment...
+                                 ## No backend environment association found, continuing...
+2026-08-03T13:30:16.904Z [INFO]: ## Completed Backend Build
+                                 {"backendDuration": 0}
+                                 ## Starting Frontend Build
+                                 # Starting phase: preBuild
+                                 # Executing command: npm ci --prefer-offline
+2026-08-03T13:30:24.870Z [WARNING]: npm warn config production Use `--omit=dev` instead.
+2026-08-03T13:30:56.877Z [WARNING]: npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+2026-08-03T13:30:57.655Z [WARNING]: npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+2026-08-03T13:31:32.589Z [INFO]: added 1515 packages, and audited 1516 packages in 1m
+                                 230 packages are looking for funding
+                                 run `npm fund` for details
+2026-08-03T13:31:33.093Z [INFO]: 61 vulnerabilities (1 low, 41 moderate, 16 high, 3 critical)
+                                 To address issues that do not require attention, run:
+                                 npm audit fix
+                                 To address all issues (including breaking changes), run:
+                                 npm audit fix --force
+                                 Run `npm audit` for details.
+2026-08-03T13:31:33.152Z [INFO]: # Executing command: echo "CLASSCAST_ACCESS_KEY_ID=$CLASSCAST_ACCESS_KEY_ID" >> .env.production
+                                 echo "CLASSCAST_SECRET_ACCESS_KEY=$CLASSCAST_SECRET_ACCESS_KEY" >> .env.production
+                                 echo "CLASSCAST_AWS_REGION=$CLASSCAST_AWS_REGION" >> .env.production
+                                 echo "SNS_ERROR_TOPIC_ARN=$SNS_ERROR_TOPIC_ARN" >> .env.production
+2026-08-03T13:31:33.153Z [INFO]: # Completed phase: preBuild
+                                 # Starting phase: build
+                                 # Executing command: NODE_OPTIONS="--max-old-space-size=4096" npm run build
+2026-08-03T13:31:33.254Z [WARNING]: npm warn config production Use `--omit=dev` instead.
+2026-08-03T13:31:33.281Z [INFO]: > demo-project@0.1.0 build
+                                 > next build
+2026-08-03T13:31:34.318Z [INFO]: ▲ Next.js 15.4.6
+2026-08-03T13:31:34.319Z [INFO]: - Environments: .env.production
+                                 - Experiments (use with caution):
+                                 · serverActions
+                                 · optimizePackageImports
+2026-08-03T13:31:34.375Z [INFO]: Creating an optimized production build ...
+2026-08-03T13:32:20.909Z [WARNING]: Failed to compile.
+2026-08-03T13:32:20.915Z [WARNING]: ./src/app/instructor/study-hall/page.tsx
+                                    Error:   [31mx[0m Expected '</', got 'div'
+                                    ,-[[36;1;4m/codebuild/output/src404612599/src/classcast-platform/src/app/instructor/study-hall/page.tsx[0m:448:1]
+                                    [2m445[0m |           </div>
+                                    [2m446[0m |
+                                    [2m447[0m |           {/* End of My Requests */}
+                                    [2m448[0m |           </div>
+                                    : [35;1m            ^^^[0m
+                                    [2m449[0m |             </>
+                                    [2m450[0m |           ) : (
+                                    [2m451[0m |             /* ===== TODAY'S LIST TAB ===== */
+                                    `----
+                                    Caused by:
+                                    Syntax Error
+                                    Import trace for requested module:
+                                    ./src/app/instructor/study-hall/page.tsx
+                                    > Build failed because of webpack errors
+2026-08-03T13:32:21.030Z [ERROR]: !!! Build failed
+2026-08-03T13:32:21.031Z [INFO]: Please read more about Amplify Hosting's support for SSR frameworks to find if your build failure is related to an unsupported feature: https://docs.aws.amazon.com/amplify/latest/userguide/amplify-ssr-framework-support.html. You may also find this troubleshooting guide useful: https://docs.aws.amazon.com/amplify/latest/userguide/troubleshooting-ssr-deployment.html
+2026-08-03T13:32:21.031Z [ERROR]: !!! Error: Command failed with exit code 1
+2026-08-03T13:32:21.031Z [INFO]: # Starting environment caching...
+2026-08-03T13:32:21.031Z [INFO]: # Environment caching completed
+
