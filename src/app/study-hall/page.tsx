@@ -287,12 +287,7 @@ export default function PublicStudyHallPage() {
           onClick={() => { setActiveTab('today'); setTodayRefreshKey(k => k + 1); }}
           className={`flex-1 py-3 text-xs font-bold text-center transition-colors relative ${activeTab === 'today' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
         >
-          Pickup List
-          {todayList.length > 0 && (
-            <span className="absolute top-2 right-[calc(50%-40px)] bg-[#005587] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center">
-              {todayList.length}
-            </span>
-          )}
+          Pickup{todayList.length > 0 && <span className="ml-1 bg-[#005587] text-white text-[9px] px-1.5 py-0.5 rounded-full">{todayList.length}</span>}
         </button>
         <button
           onClick={() => setActiveTab('tests')}
