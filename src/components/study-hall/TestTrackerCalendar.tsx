@@ -12,8 +12,8 @@ interface TestEntry {
 
 const TEACHERS = [
   'Dr. Diaz', 'Ms. Marlar', 'Ms. Tate', 'Ms. Alvarado', 'Mr. Wilson',
-  'Mr. Barrow', 'Mr. Gordon', 'Ms. King', 'Ms. Brown', 'Dean Stevens',
-  'Mr. Johnson (CWS)', 'IT Service Desk', 'Other',
+  'Mr. Barrow', 'Mr. Gordon', 'Ms. King', 'Ms. Brown', 'Ms. Pollitzer',
+  'Dean Stevens', 'Mr. Johnson (CWS)', 'IT Service Desk', 'Other',
 ];
 
 export function TestTrackerCalendar() {

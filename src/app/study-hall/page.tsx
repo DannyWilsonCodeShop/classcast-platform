@@ -31,6 +31,7 @@ const TEACHERS = [
   'Mr. Gordon',
   'Ms. King',
   'Ms. Brown',
+  'Ms. Pollitzer',
   'Dean Stevens',
   'Mr. Johnson (CWS)',
   'IT Service Desk',
