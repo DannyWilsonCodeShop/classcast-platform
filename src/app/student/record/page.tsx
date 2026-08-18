@@ -4,9 +4,12 @@ import React, { useState, useRef, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
-import { VideoEditor } from '@/components/video-editor/VideoEditor';
-import { PictureInPictureRecorder } from '@/components/video-editor/PictureInPictureRecorder';
-import { GreenScreenRecorder } from '@/components/video-editor/GreenScreenRecorder';
+import dynamic from 'next/dynamic';
+
+// Heavy components — loaded only when needed (saves ~200KB from initial bundle)
+const VideoEditor = dynamic(() => import('@/components/video-editor/VideoEditor').then(m => ({ default: m.VideoEditor })), { ssr: false });
+const PictureInPictureRecorder = dynamic(() => import('@/components/video-editor/PictureInPictureRecorder').then(m => ({ default: m.PictureInPictureRecorder })), { ssr: false });
+const GreenScreenRecorder = dynamic(() => import('@/components/video-editor/GreenScreenRecorder').then(m => ({ default: m.GreenScreenRecorder })), { ssr: false });
 
 export default function RecordPage() {
   return (

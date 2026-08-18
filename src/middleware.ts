@@ -5,42 +5,62 @@ export function middleware(request: NextRequest) {
   
   const pathname = request.nextUrl.pathname;
   
-  // Cache static assets for 1 year
+  // Cache static assets for 1 year (immutable — hash in filename)
   if (pathname.startsWith('/_next/static') || 
       pathname.startsWith('/static') ||
       pathname.match(/\.(jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot|webp|avif)$/)) {
     response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
   }
   
-  // Cache API GET requests — vary by endpoint type
+  // API GET routes — aggressive stale-while-revalidate for instant perceived speed
+  // s-maxage = CDN cache time, stale-while-revalidate = serve stale while refreshing in background
   if (pathname.startsWith('/api') && request.method === 'GET') {
-    // Frequently changing data (feed, submissions) — short cache with revalidation
-    if (pathname.includes('/feed') || pathname.includes('/submissions') || pathname.includes('/grades')) {
-      response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=300');
+    // Auth routes — never cache
+    if (pathname.startsWith('/api/auth')) {
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+      response.headers.set('Pragma', 'no-cache');
     }
-    // Semi-stable data (courses, assignments, profiles) — longer cache
-    else if (pathname.includes('/courses') || pathname.includes('/assignments') || pathname.includes('/profile')) {
-      response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=600');
+    // Real-time data (feed, study-hall) — very short CDN cache, long stale window
+    else if (pathname.includes('/feed') || pathname.includes('/study-hall')) {
+      response.headers.set('Cache-Control', 'public, max-age=10, s-maxage=15, stale-while-revalidate=60');
     }
-    // Default API caching
+    // Submissions, grades — moderate cache
+    else if (pathname.includes('/submissions') || pathname.includes('/grades') || pathname.includes('/enrollment')) {
+      response.headers.set('Cache-Control', 'public, max-age=30, s-maxage=30, stale-while-revalidate=120');
+    }
+    // Course data, assignment lists, sections — stable, cache longer
+    else if (pathname.includes('/courses') || pathname.includes('/assignments') || pathname.includes('/sections')) {
+      response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=600');
+    }
+    // Profile, user data — stable
+    else if (pathname.includes('/profile') || pathname.includes('/users')) {
+      response.headers.set('Cache-Control', 'public, max-age=120, s-maxage=300, stale-while-revalidate=600');
+    }
+    // Default API
     else {
-      response.headers.set('Cache-Control', 'public, max-age=120, s-maxage=120, stale-while-revalidate=300');
+      response.headers.set('Cache-Control', 'public, max-age=30, s-maxage=60, stale-while-revalidate=300');
     }
   }
   
-  // Don't cache API POST/PUT/DELETE
+  // POST/PUT/DELETE — never cache
   if (pathname.startsWith('/api') && request.method !== 'GET') {
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
     response.headers.set('Pragma', 'no-cache');
   }
 
-  // Never cache auth API routes (GET or POST)
-  if (pathname.startsWith('/api/auth')) {
-    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate');
-    response.headers.set('Pragma', 'no-cache');
+  // Page routes — cache HTML at CDN edge for instant navigation
+  if (!pathname.startsWith('/api') && !pathname.startsWith('/_next') && !pathname.includes('.')) {
+    // Student/instructor pages — short CDN cache, long stale window
+    if (pathname.startsWith('/student') || pathname.startsWith('/instructor')) {
+      response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=300');
+    }
+    // Public pages (about, study-hall, join) — longer cache
+    else if (pathname.startsWith('/about') || pathname.startsWith('/study-hall') || pathname.startsWith('/join')) {
+      response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    }
   }
   
-  // Add security headers
+  // Security headers
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-XSS-Protection', '1; mode=block');

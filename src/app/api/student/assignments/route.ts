@@ -241,7 +241,7 @@ export async function GET(request: NextRequest) {
 
     // Let middleware handle caching (5-min stale-while-revalidate)
     return NextResponse.json({ assignments: enrichedAssignments }, {
-      headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' }
+      
     });
   } catch (error) {
     console.error('Error fetching student assignments:', error);
