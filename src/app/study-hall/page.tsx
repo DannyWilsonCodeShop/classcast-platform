@@ -398,7 +398,7 @@ export default function PublicStudyHallPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="space-y-3 mb-3">
                 <div>
                   <label className="block text-[10px] font-medium text-gray-600 mb-1">Date</label>
                   <input type="date" value={pulloutDate} onChange={(e) => setPulloutDate(e.target.value)}
