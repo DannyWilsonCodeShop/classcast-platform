@@ -445,7 +445,7 @@ export default function PublicStudyHallPage() {
 
             {/* Join CTA removed */}
           </div>
-        ) : (
+        ) : activeTab === 'today' ? (
           /* ===== TODAY'S LIST TAB ===== */
           <div className="max-w-md mx-auto px-4 py-5">
             <div className="text-center mb-4">
