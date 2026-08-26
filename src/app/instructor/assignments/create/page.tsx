@@ -15,7 +15,7 @@ interface CourseOption {
   gradeLevel?: string;
 }
 
-type AssignmentType = 'video' | 'discussion' | 'assessment' | 'group-project' | 'study-module';
+type AssignmentType = 'video' | 'discussion' | 'assessment' | 'group-project' | 'study-module' | 'choice-board';
 
 interface TypeInfo {
   id: AssignmentType;
@@ -67,6 +67,14 @@ const ASSIGNMENT_TYPES: TypeInfo[] = [
     description: 'Self-paced lesson with your instructional content, embedded quizzes, and progress tracking. Students earn completion-based grades.',
     instructionsPlaceholder: 'Overview of what students will learn in this module. e.g., "In this module you will learn about..."',
   },
+  {
+    id: 'choice-board',
+    label: 'Choice Board',
+    icon: '🎯',
+    tooltip: 'Students pick from 3-4 options and record a video about their chosen topic. Slots limit how many can pick each choice.',
+    description: 'Give students 3-4 topic options to choose from. Each choice has a slot limit per section to ensure variety in responses.',
+    instructionsPlaceholder: 'General instructions for all choices. e.g., "Pick one of the topics below and record a 2-3 minute video..."',
+  },
 ];
 
 const DEFAULT_RUBRIC: RubricCategory[] = [
@@ -90,6 +98,11 @@ const CreateAssignmentPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [assignmentType, setAssignmentType] = useState<AssignmentType>('video');
+  const [choices, setChoices] = useState([
+    { choiceId: 'c1', title: '', description: '', color: '#4A90E2', maxSlotsPerSection: 10 },
+    { choiceId: 'c2', title: '', description: '', color: '#7B61FF', maxSlotsPerSection: 10 },
+    { choiceId: 'c3', title: '', description: '', color: '#38A169', maxSlotsPerSection: 10 },
+  ]);
   const [dueDate, setDueDate] = useState('');
   const [rubric, setRubric] = useState<RubricCategory[]>(DEFAULT_RUBRIC);
   const [showRubricDetails, setShowRubricDetails] = useState(false);
@@ -217,6 +230,7 @@ const CreateAssignmentPage: React.FC = () => {
           hidePeerVideosUntilSubmitted: videoVisibility === 'after-submit',
           ...(assignmentType === 'group-project' && { groupSize, videosRequired }),
           ...(assignmentType === 'assessment' && { timePerQuestion, questionCount }),
+          ...(assignmentType === 'choice-board' && { choices: choices.filter(c => c.title.trim()) }),
           ...(linkedBankId && { problemBankId: linkedBankId }),
         }),
       });
@@ -233,11 +247,11 @@ const CreateAssignmentPage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40">
-        <div className="bg-white w-full max-w-[480px] rounded-2xl p-5 max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/30 backdrop-blur-sm">
+        <div className="bg-[#faf9f7] w-full max-w-[480px] rounded-2xl p-5 max-h-[92vh] overflow-y-auto border border-stone-200/60 shadow-xl">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-bold text-[#005587]">Create Assignment</h2>
+            <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Create Assignment</h2>
             <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600 p-1">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -395,6 +409,59 @@ const CreateAssignmentPage: React.FC = () => {
                 <p className="text-[10px] text-blue-700 leading-relaxed">
                   Students will post their initial response, then respond to classmates. You can require a minimum number of replies and word count in the peer responses section below.
                 </p>
+              </div>
+            )}
+
+            {assignmentType === 'choice-board' && (
+              <div className="bg-indigo-50 rounded-xl p-3">
+                <span className="block text-xs font-bold text-indigo-800 mb-2">🎯 Choice Board Options</span>
+                <div className="space-y-2 mt-2">
+                  {choices.map((choice, index) => (
+                    <div key={choice.choiceId} className="flex items-start gap-2 bg-white rounded-lg p-2 border border-indigo-100">
+                      <div className="w-3 h-3 rounded-full shrink-0 mt-1" style={{ backgroundColor: choice.color }} />
+                      <div className="flex-1 space-y-1">
+                        <input
+                          type="text"
+                          value={choice.title}
+                          onChange={(e) => { const u = [...choices]; u[index] = { ...u[index], title: e.target.value }; setChoices(u); }}
+                          placeholder={`Choice ${index + 1} title`}
+                          className="w-full px-2 py-1 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-indigo-400"
+                        />
+                        <input
+                          type="text"
+                          value={choice.description}
+                          onChange={(e) => { const u = [...choices]; u[index] = { ...u[index], description: e.target.value }; setChoices(u); }}
+                          placeholder="Short description..."
+                          className="w-full px-2 py-1 border border-gray-200 rounded text-[10px] focus:ring-1 focus:ring-indigo-400"
+                        />
+                      </div>
+                      <input
+                        type="number"
+                        value={choice.maxSlotsPerSection}
+                        onChange={(e) => { const u = [...choices]; u[index] = { ...u[index], maxSlotsPerSection: Number(e.target.value) }; setChoices(u); }}
+                        min={1}
+                        className="w-12 px-1 py-1 border border-gray-200 rounded text-[10px] text-center"
+                        title="Max per section"
+                      />
+                      {choices.length > 2 && (
+                        <button onClick={() => setChoices(prev => prev.filter((_, i) => i !== index))} className="text-gray-300 hover:text-red-400 text-xs mt-1">✕</button>
+                      )}
+                    </div>
+                  ))}
+                  {choices.length < 4 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const colors = ['#4A90E2', '#7B61FF', '#38A169', '#E53E3E'];
+                        setChoices(prev => [...prev, { choiceId: `c${prev.length + 1}`, title: '', description: '', color: colors[prev.length] || '#4A90E2', maxSlotsPerSection: 10 }]);
+                      }}
+                      className="w-full py-1.5 border border-dashed border-indigo-300 rounded-lg text-[10px] text-indigo-600 hover:bg-indigo-50"
+                    >
+                      + Add Choice
+                    </button>
+                  )}
+                  <p className="text-[9px] text-indigo-500">Number = max students per section who can pick this choice</p>
+                </div>
               </div>
             )}
 

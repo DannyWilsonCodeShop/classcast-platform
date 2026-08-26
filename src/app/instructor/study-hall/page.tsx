@@ -278,7 +278,7 @@ export default function StudyHallPage() {
 
   return (
     <InstructorRoute>
-      <div className="min-h-full overflow-y-auto pb-24 bg-white px-4 py-6">
+      <div className="min-h-full overflow-y-auto pb-24 bg-[#faf9f7] px-4 py-6">
         <div className="max-w-lg mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">

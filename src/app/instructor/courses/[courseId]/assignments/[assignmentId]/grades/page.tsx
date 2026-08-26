@@ -444,7 +444,7 @@ const AssignmentGradesPage: React.FC = () => {
 
   return (
     <InstructorRoute>
-      <div className="min-h-full overflow-y-auto pb-24 bg-white">
+      <div className="min-h-full overflow-y-auto pb-24 bg-[#faf9f7]">
         {/* Header */}
         <div className="bg-white border-b border-gray-100 px-4 py-3">
           <div className="flex items-center justify-between">

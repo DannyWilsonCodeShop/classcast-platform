@@ -46,7 +46,7 @@ export default function InstructorLayout({
     return (
       <div className="flex h-screen h-dvh overflow-hidden" data-wide-layout="" style={themeVars}>
         <InstructorSidebar />
-        <main className="flex-1 overflow-y-auto bg-white">
+        <main className="flex-1 overflow-y-auto bg-[#faf9f7]">
           {children}
         </main>
       </div>
