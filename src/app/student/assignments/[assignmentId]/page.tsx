@@ -12,6 +12,7 @@ import { LiquidGlassIndicator } from '@/components/student/LiquidGlassIndicator'
 import { useLiquidGlass } from '@/hooks/useLiquidGlass';
 import { computeCommitDecision, computeTranslation, checkDirectionLock, computeRubberBand } from '@/hooks/useSwipeNavigation';
 import { StudentHeader } from '@/components/student/StudentHeader';
+import { ChoiceBoard } from '@/components/student/ChoiceBoard';
 
 interface Assignment {
   assignmentId: string;
@@ -590,16 +591,30 @@ export default function StudentAssignmentDetailPage() {
           </div>
         )}
 
-        {/* Scrollable Instructions */}
+        {/* Scrollable Instructions or Choice Board */}
         <div className="flex-1 overflow-y-auto px-4 py-3 bg-white min-h-0">
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-normal mb-2">Instructions</h3>
-          {assignment.description ? (
-            <div 
-              className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap [&_strong]:font-semibold"
-              dangerouslySetInnerHTML={{ __html: assignment.description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
+          {(assignment as any).assignmentType === 'choice-board' && (assignment as any).choices?.length > 0 ? (
+            <ChoiceBoard
+              assignmentId={currentAssignmentId}
+              choices={(assignment as any).choices}
+              sectionId={(assignment as any).sectionId}
+              assignmentDescription={assignment.description}
+              assignmentTitle={assignment.title}
+              dueDate={assignment.dueDate}
+              maxScore={(assignment as any).maxScore}
             />
           ) : (
-            <p className="text-sm text-gray-400 italic">No instructions provided.</p>
+            <>
+              <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-normal mb-2">Instructions</h3>
+              {assignment.description ? (
+                <div 
+                  className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap [&_strong]:font-semibold"
+                  dangerouslySetInnerHTML={{ __html: assignment.description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
+                />
+              ) : (
+                <p className="text-sm text-gray-400 italic">No instructions provided.</p>
+              )}
+            </>
           )}
         </div>
 

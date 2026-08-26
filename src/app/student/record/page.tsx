@@ -26,6 +26,7 @@ function RecordPageInner() {
   const mode = searchParams.get('mode'); // 'record', 'upload', or null
   const isAssessment = searchParams.get('assessment') === 'true';
   const isModuleAssignment = searchParams.get('module') === 'true';
+  const choiceId = searchParams.get('choiceId');
   const { user } = useAuth();
 
   // Assignment data
@@ -483,6 +484,7 @@ function RecordPageInner() {
         isGoogleDrive,
         isRecorded: submissionMethod === 'record',
         isUploaded: submissionMethod === 'upload',
+        choiceId: choiceId || undefined,
       };
       if (isYouTube) body.youtubeUrl = finalVideoUrl;
       if (isGoogleDrive) body.googleDriveUrl = finalVideoUrl;

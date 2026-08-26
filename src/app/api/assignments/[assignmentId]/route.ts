@@ -241,7 +241,8 @@ export async function PUT(
       assessmentQuestions: 'assessmentQuestions',
       moduleConfig: 'moduleConfig',
       problemBankId: 'problemBankId',
-      sectionDueDates: 'sectionDueDates'
+      sectionDueDates: 'sectionDueDates',
+      choices: 'choices'
     };
     
     // Process each field in the body

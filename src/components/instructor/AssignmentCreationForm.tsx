@@ -70,6 +70,7 @@ interface FormData {
   peerReviewScope: 'section' | 'course';
   resources: AssignmentResource[];
   instructionalVideoUrl: string; // Instructor's explanation video
+  choices: Array<{ choiceId: string; title: string; description: string; color: string; maxSlotsPerSection: number }>;
 }
 
 const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
@@ -124,6 +125,11 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
     peerReviewScope: initialData?.peerReviewScope || 'section',
     resources: initialData?.resources || [],
     instructionalVideoUrl: initialData?.instructionalVideoUrl || '',
+    choices: initialData?.choices || [
+      { choiceId: 'c1', title: '', description: '', color: '#4A90E2', maxSlotsPerSection: 10 },
+      { choiceId: 'c2', title: '', description: '', color: '#7B61FF', maxSlotsPerSection: 10 },
+      { choiceId: 'c3', title: '', description: '', color: '#38A169', maxSlotsPerSection: 10 },
+    ],
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
@@ -282,6 +288,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
         allowYouTubeUrl: formData.allowYouTubeUrl,
         resources: formData.resources,
         instructionalVideoUrl: formData.instructionalVideoUrl || '',
+        choices: formData.assignmentType === AssignmentType.CHOICE_BOARD ? formData.choices.filter(c => c.title.trim()) : undefined,
         rubric: formData.rubricType === 'ai_generated' ? formData.aiGeneratedRubric : 
                 formData.rubricType === 'upload' ? { type: 'uploaded', file: formData.rubricFile } : 
                 formData.rubricType === 'custom' ? { type: 'custom', categories: formData.customRubricCategories } :
@@ -568,6 +575,7 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
               <option value={AssignmentType.VIDEO_ASSIGNMENT}>🎥 Video Assignment</option>
               <option value={AssignmentType.VIDEO_DISCUSSION}>💬 Video Discussion</option>
               <option value={AssignmentType.VIDEO_ASSESSMENT}>📝 Video Assessment</option>
+              <option value={AssignmentType.CHOICE_BOARD}>🎯 Choice Board</option>
             </select>
           </div>
         </div>
@@ -1173,6 +1181,79 @@ const AssignmentCreationForm: React.FC<AssignmentCreationFormProps> = ({
                   <li>Students record their responses to questions</li>
                   <li>Formal assessment with structured grading</li>
                 </ul>
+              </div>
+            )}
+
+            {formData.assignmentType === AssignmentType.CHOICE_BOARD && (
+              <div>
+                <p className="text-sm text-gray-600 mb-4">Students choose from 3-4 options. Each choice has a slot limit per section to ensure variety.</p>
+                <div className="space-y-3">
+                  {formData.choices.map((choice, index) => (
+                    <div key={choice.choiceId} className="border-2 rounded-xl p-4" style={{ borderColor: choice.color + '40', backgroundColor: choice.color + '08' }}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: choice.color }} />
+                        <input
+                          type="text"
+                          value={choice.title}
+                          onChange={(e) => {
+                            const updated = [...formData.choices];
+                            updated[index] = { ...updated[index], title: e.target.value };
+                            setFormData(prev => ({ ...prev, choices: updated }));
+                          }}
+                          placeholder={`Choice ${index + 1} title`}
+                          className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                          type="number"
+                          value={choice.maxSlotsPerSection}
+                          onChange={(e) => {
+                            const updated = [...formData.choices];
+                            updated[index] = { ...updated[index], maxSlotsPerSection: Number(e.target.value) };
+                            setFormData(prev => ({ ...prev, choices: updated }));
+                          }}
+                          min={1}
+                          className="w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-sm text-center"
+                          title="Max slots per section"
+                        />
+                        {formData.choices.length > 2 && (
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({ ...prev, choices: prev.choices.filter((_, i) => i !== index) }))}
+                            className="text-red-400 hover:text-red-600 text-sm"
+                          >✕</button>
+                        )}
+                      </div>
+                      <textarea
+                        value={choice.description}
+                        onChange={(e) => {
+                          const updated = [...formData.choices];
+                          updated[index] = { ...updated[index], description: e.target.value };
+                          setFormData(prev => ({ ...prev, choices: updated }));
+                        }}
+                        placeholder="Short description of this choice..."
+                        rows={2}
+                        className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-sm resize-none"
+                      />
+                    </div>
+                  ))}
+                  {formData.choices.length < 4 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const colors = ['#4A90E2', '#7B61FF', '#38A169', '#E53E3E'];
+                        const newId = `c${formData.choices.length + 1}`;
+                        setFormData(prev => ({
+                          ...prev,
+                          choices: [...prev.choices, { choiceId: newId, title: '', description: '', color: colors[prev.choices.length] || '#4A90E2', maxSlotsPerSection: 10 }]
+                        }));
+                      }}
+                      className="w-full py-2 border-2 border-dashed border-gray-300 rounded-xl text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600"
+                    >
+                      + Add Choice (max 4)
+                    </button>
+                  )}
+                  <p className="text-xs text-gray-400">Slot number = max students per section who can pick this choice</p>
+                </div>
               </div>
             )}
             

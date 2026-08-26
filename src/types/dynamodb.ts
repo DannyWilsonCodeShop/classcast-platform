@@ -74,6 +74,9 @@ export interface Assignment {
   // Recording Settings
   requireLiveRecording?: boolean; // Force students to record live instead of uploading files
   
+  // Choice Board
+  choices?: ChoiceBoardOption[]; // For choice-board assignment type
+  
   // Timestamps
   createdAt: string;
   updatedAt: string;
@@ -201,6 +204,15 @@ export enum AssignmentType {
   VIDEO_ASSIGNMENT = 'video_assignment',
   VIDEO_DISCUSSION = 'video_discussion',
   VIDEO_ASSESSMENT = 'video_assessment',
+  CHOICE_BOARD = 'choice-board',
+}
+
+export interface ChoiceBoardOption {
+  choiceId: string;
+  title: string;
+  description: string;
+  color: string;
+  maxSlotsPerSection: number; // per-section limit
 }
 
 export enum AssignmentStatus {
