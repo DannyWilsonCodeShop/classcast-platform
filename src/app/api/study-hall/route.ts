@@ -71,8 +71,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({ success: true, pullouts: enrichedPullouts }
-    });
+    return NextResponse.json({ success: true, pullouts: enrichedPullouts });
   } catch (error) {
     console.error('Error fetching pullouts:', error);
     return NextResponse.json({ success: false, error: 'Failed to fetch pullouts' }, { status: 500 });
