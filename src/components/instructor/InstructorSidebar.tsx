@@ -99,7 +99,7 @@ export function InstructorSidebar() {
   };
 
   return (
-    <aside className={`h-full bg-[#f0f4f8] border-r border-[#e2e8f0] flex flex-col shrink-0 transition-all duration-200 ${isDesktop ? 'w-[220px]' : 'w-16'}`}>
+    <aside className={`h-full bg-[#eef2f6] border-r border-[#dce3eb] flex flex-col shrink-0 transition-all duration-200 ${isDesktop ? 'w-[220px]' : 'w-16'}`}>
       {/* Logo */}
       <div className={`px-3 pt-4 pb-3 border-b border-gray-50 ${isDesktop ? '' : 'flex justify-center'}`}>
         {isDesktop ? (
