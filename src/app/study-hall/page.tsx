@@ -266,7 +266,7 @@ export default function PublicStudyHallPage() {
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
 
       {/* Header */}
-      <div className="bg-[#eef2f6] text-[#005587] px-4 py-3 flex items-center justify-between safe-top shrink-0 border-b border-[#dce3eb]">
+      <div className="bg-[#f7f3ef] text-[#005587] px-4 py-3 flex items-center justify-between safe-top shrink-0 border-b border-[#e8e0d8]">
         <button onClick={() => router.push('/about')} className="flex items-center gap-2">
           <img src="/UpdatedCCLogo.png" alt="" className="w-4 h-4 object-contain" />
           <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-xl text-[#005587]">ClassCast</span>
@@ -275,7 +275,7 @@ export default function PublicStudyHallPage() {
       </div>
 
       {/* Tab bar */}
-      <div className="flex border-b border-[#dce3eb] shrink-0 bg-[#eef2f6]">
+      <div className="flex border-b border-[#e8e0d8] shrink-0 bg-[#f7f3ef]">
         <button
           onClick={() => setActiveTab('request')}
           className={`flex-1 py-3 text-xs font-bold text-center transition-colors ${activeTab === 'request' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
