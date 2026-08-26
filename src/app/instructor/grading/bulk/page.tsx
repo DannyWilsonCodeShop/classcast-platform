@@ -1065,7 +1065,7 @@ const BulkGradingContent: React.FC = () => {
                                       body: JSON.stringify({ grade: max, feedback: feedback[submission.submissionId] || '', status: 'graded' }),
                                     });
                                     if (res.ok) {
-                                      setAllSubmissions(prev => prev.map(sub => sub.submissionId === submission.submissionId ? { ...sub, grade: max, feedback: feedback[submission.submissionId] || '' } : sub));
+                                      setAllSubmissions(prev => prev.map(sub => sub.submissionId === submission.submissionId ? { ...sub, grade: max, feedback: feedback[submission.submissionId] || '', status: 'graded' } : sub));
                                     }
                                   } catch {} finally {
                                     setSavingGrades(prev => { const n = new Set(prev); n.delete(submission.submissionId); return n; });
