@@ -1051,6 +1051,31 @@ const BulkGradingContent: React.FC = () => {
                                 placeholder="0"
                               />
                               <span className="text-xs text-gray-500">/ {submission.maxScore || 100}</span>
+                              <button
+                                onClick={async () => {
+                                  const max = submission.maxScore || 100;
+                                  setGrades(prev => ({ ...prev, [submission.submissionId]: max }));
+                                  // Auto-save immediately with max value
+                                  setSavingGrades(prev => new Set([...prev, submission.submissionId]));
+                                  try {
+                                    const res = await fetch(`/api/submissions/${submission.submissionId}/grade`, {
+                                      method: 'PUT',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      credentials: 'include',
+                                      body: JSON.stringify({ grade: max, feedback: feedback[submission.submissionId] || '', status: 'graded' }),
+                                    });
+                                    if (res.ok) {
+                                      setAllSubmissions(prev => prev.map(sub => sub.submissionId === submission.submissionId ? { ...sub, grade: max, feedback: feedback[submission.submissionId] || '' } : sub));
+                                    }
+                                  } catch {} finally {
+                                    setSavingGrades(prev => { const n = new Set(prev); n.delete(submission.submissionId); return n; });
+                                  }
+                                }}
+                                className="px-2 py-1 bg-green-50 border border-green-200 rounded text-[10px] font-medium text-green-700 hover:bg-green-100 active:scale-95"
+                                title="Set to max score and save"
+                              >
+                                Max
+                              </button>
                               {savingGrades.has(submission.submissionId) && <span className="text-xs text-blue-600 animate-pulse">Saving...</span>}
                             </div>
                           )}
