@@ -107,7 +107,7 @@ export default function StudentGradesPage() {
                 const totalEarned = graded.reduce((sum, g) => sum + g.grade, 0);
                 const totalMax = graded.reduce((sum, g) => sum + g.maxPoints, 0);
                 const overallPct = totalMax > 0 ? Math.round((totalEarned / totalMax) * 100) : 0;
-                const getLetterGrade = (pct: number) => { if (pct >= 93) return 'A'; if (pct >= 90) return 'A-'; if (pct >= 87) return 'B+'; if (pct >= 83) return 'B'; if (pct >= 80) return 'B-'; if (pct >= 77) return 'C+'; if (pct >= 73) return 'C'; if (pct >= 70) return 'C-'; if (pct >= 67) return 'D+'; if (pct >= 60) return 'D'; return 'F'; };
+                const getLetterGrade = (pct: number) => { if (pct >= 93) return 'A'; if (pct >= 90) return 'A-'; if (pct >= 87) return 'B+'; if (pct >= 83) return 'B'; if (pct >= 80) return 'B-'; if (pct >= 77) return 'C+'; if (pct >= 73) return 'C'; if (pct >= 70) return 'C-'; if (pct >= 67) return 'Needs Improvement'; if (pct >= 60) return 'Needs Improvement'; return 'Not Yet Passing'; };
                 
                 // Group by course
                 const byCourse = new Map<string, { earned: number; max: number; count: number }>();
@@ -125,7 +125,7 @@ export default function StudentGradesPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <p className="text-xs text-white/60 uppercase tracking-wide">Overall Grade</p>
-                        <p className="text-3xl font-bold">{getLetterGrade(overallPct)}</p>
+                        <p className={`font-bold ${getLetterGrade(overallPct).length > 3 ? 'text-base' : 'text-3xl'}`}>{getLetterGrade(overallPct)}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-2xl font-bold">{overallPct}%</p>
