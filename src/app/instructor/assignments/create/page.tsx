@@ -13,6 +13,8 @@ interface CourseOption {
   title: string;
   courseName?: string;
   gradeLevel?: string;
+  studentCount?: number;
+  enrollmentCount?: number;
 }
 
 type AssignmentType = 'video' | 'discussion' | 'assessment' | 'group-project' | 'study-module' | 'choice-board';
@@ -103,6 +105,8 @@ const CreateAssignmentPage: React.FC = () => {
     { choiceId: 'c2', title: '', description: '', color: '#7B61FF', maxSlotsPerSection: 10 },
     { choiceId: 'c3', title: '', description: '', color: '#38A169', maxSlotsPerSection: 10 },
   ]);
+  // Track whether the instructor manually overrode slot counts; if not, keep auto-distributing evenly
+  const [slotsManuallyEdited, setSlotsManuallyEdited] = useState(false);
   const [dueDate, setDueDate] = useState('');
   const [rubric, setRubric] = useState<RubricCategory[]>(DEFAULT_RUBRIC);
   const [showRubricDetails, setShowRubricDetails] = useState(false);
@@ -152,6 +156,28 @@ const CreateAssignmentPage: React.FC = () => {
   const [loadingBanks, setLoadingBanks] = useState(false);
 
   const selectedTypeInfo = ASSIGNMENT_TYPES.find(t => t.id === assignmentType)!;
+
+  // Number of students currently enrolled in the selected course
+  const enrolledCount = (() => {
+    const c = courses.find(c => c.courseId === courseId);
+    return c?.enrollmentCount ?? c?.studentCount ?? 0;
+  })();
+
+  // Auto-distribute slots evenly across choices based on current enrollment,
+  // unless the instructor has manually overridden the slot counts.
+  useEffect(() => {
+    if (assignmentType !== 'choice-board') return;
+    if (slotsManuallyEdited) return;
+    if (choices.length === 0) return;
+    // If we don't know enrollment yet, leave the current defaults alone
+    if (!enrolledCount || enrolledCount <= 0) return;
+    const perChoice = Math.max(1, Math.ceil(enrolledCount / choices.length));
+    setChoices(prev => {
+      if (prev.every(c => c.maxSlotsPerSection === perChoice)) return prev;
+      return prev.map(c => ({ ...c, maxSlotsPerSection: perChoice }));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assignmentType, courseId, enrolledCount, choices.length, slotsManuallyEdited]);
 
   const fetchExistingBanks = async () => {
     if (!user?.id) return;
@@ -437,10 +463,10 @@ const CreateAssignmentPage: React.FC = () => {
                       <input
                         type="number"
                         value={choice.maxSlotsPerSection}
-                        onChange={(e) => { const u = [...choices]; u[index] = { ...u[index], maxSlotsPerSection: Number(e.target.value) }; setChoices(u); }}
+                        onChange={(e) => { setSlotsManuallyEdited(true); const u = [...choices]; u[index] = { ...u[index], maxSlotsPerSection: Number(e.target.value) }; setChoices(u); }}
                         min={1}
                         className="w-12 px-1 py-1 border border-gray-200 rounded text-[10px] text-center"
-                        title="Max per section"
+                        title="Max students who can pick this choice"
                       />
                       {choices.length > 2 && (
                         <button onClick={() => setChoices(prev => prev.filter((_, i) => i !== index))} className="text-gray-300 hover:text-red-400 text-xs mt-1">✕</button>
@@ -452,14 +478,21 @@ const CreateAssignmentPage: React.FC = () => {
                       type="button"
                       onClick={() => {
                         const colors = ['#4A90E2', '#7B61FF', '#38A169', '#E53E3E'];
-                        setChoices(prev => [...prev, { choiceId: `c${prev.length + 1}`, title: '', description: '', color: colors[prev.length] || '#4A90E2', maxSlotsPerSection: 10 }]);
+                        const nextCount = choices.length + 1;
+                        const perChoice = enrolledCount > 0 ? Math.max(1, Math.ceil(enrolledCount / nextCount)) : 10;
+                        setChoices(prev => [...prev, { choiceId: `c${prev.length + 1}`, title: '', description: '', color: colors[prev.length] || '#4A90E2', maxSlotsPerSection: perChoice }]);
                       }}
                       className="w-full py-1.5 border border-dashed border-indigo-300 rounded-lg text-[10px] text-indigo-600 hover:bg-indigo-50"
                     >
                       + Add Choice
                     </button>
                   )}
-                  <p className="text-[9px] text-indigo-500">Number = max students per section who can pick this choice</p>
+                  <p className="text-[9px] text-indigo-500">
+                    Number = max students who can pick this choice.
+                    {enrolledCount > 0
+                      ? ` Auto-split evenly across ${choices.length} choices for ${enrolledCount} enrolled student${enrolledCount === 1 ? '' : 's'}${slotsManuallyEdited ? ' (you\u2019ve customized these)' : ''}.`
+                      : ' Select a course to auto-split by current enrollment.'}
+                  </p>
                 </div>
               </div>
             )}
