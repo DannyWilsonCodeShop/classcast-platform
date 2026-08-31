@@ -427,12 +427,11 @@ const CreateAssignmentPage: React.FC = () => {
                           placeholder={`Choice ${index + 1} title`}
                           className="w-full px-2 py-1 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-indigo-400"
                         />
-                        <input
-                          type="text"
+                        <FormattingTextarea
                           value={choice.description}
-                          onChange={(e) => { const u = [...choices]; u[index] = { ...u[index], description: e.target.value }; setChoices(u); }}
-                          placeholder="Short description..."
-                          className="w-full px-2 py-1 border border-gray-200 rounded text-[10px] focus:ring-1 focus:ring-indigo-400"
+                          onChange={(val) => { const u = [...choices]; u[index] = { ...u[index], description: val }; setChoices(u); }}
+                          placeholder="Description & directions for this choice. Use the toolbar for bold, headings, lists, and paragraphs..."
+                          rows={4}
                         />
                       </div>
                       <input

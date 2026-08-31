@@ -31,6 +31,15 @@ interface Assignment {
   allowYouTubeUrl?: boolean;
   groupAssignment?: boolean;
   maxGroupSize?: number;
+  choices?: ChoiceBoardOption[];
+}
+
+interface ChoiceBoardOption {
+  choiceId: string;
+  title: string;
+  description: string;
+  color?: string;
+  maxSlotsPerSection?: number;
 }
 
 interface StudentGrade {
@@ -169,6 +178,7 @@ const AssignmentGradesPage: React.FC = () => {
           courseCode: assignment.courseCode || assignment.course?.code || 'N/A',
           assignmentType: assignment.assignmentType || assignment.type,
           instructionalVideoUrl: assignment.instructionalVideoUrl || assignment.videoUrl,
+          choices: assignment.choices,
         });
       }
       
@@ -524,6 +534,37 @@ const AssignmentGradesPage: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Choice Board Options */}
+          {assignment.choices && assignment.choices.length > 0 && (
+            <div className="bg-gray-50 rounded-2xl p-3 space-y-2">
+              <p className="text-sm font-bold text-[#005587]">Choice Board Options</p>
+              <div className="space-y-2">
+                {assignment.choices.map((choice, idx) => (
+                  <div
+                    key={choice.choiceId || idx}
+                    className="bg-white border rounded-xl p-3"
+                    style={{ borderColor: choice.color || '#e5e7eb', borderLeftWidth: 4, borderLeftColor: choice.color || '#005587' }}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <h3 className="text-sm font-bold text-gray-900">{choice.title || `Choice ${idx + 1}`}</h3>
+                      {typeof choice.maxSlotsPerSection === 'number' && (
+                        <span className="px-2 py-0.5 bg-gray-100 rounded-full text-[10px] font-medium text-gray-600 whitespace-nowrap">
+                          {choice.maxSlotsPerSection} slot{choice.maxSlotsPerSection === 1 ? '' : 's'} / section
+                        </span>
+                      )}
+                    </div>
+                    {choice.description && (
+                      <div
+                        className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap [&_strong]:font-semibold [&_em]:italic"
+                        dangerouslySetInnerHTML={{ __html: choice.description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^## (.+)$/gm, '<h4 class="font-bold text-xs text-gray-900 mt-2 mb-1">$1</h4>').replace(/^---$/gm, '<hr class="my-2 border-gray-200">') }}
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Video Submissions Grid */}
           {studentGrades.filter(g => (g.status === 'submitted' || g.status === 'graded') && g.submissionId).length > 0 && (

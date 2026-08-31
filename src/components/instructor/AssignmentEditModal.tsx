@@ -1,6 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { FormattingTextarea } from '@/components/common/FormattingTextarea';
+
+interface ChoiceBoardOption {
+  choiceId: string;
+  title: string;
+  description: string;
+  color?: string;
+  maxSlotsPerSection?: number;
+}
 
 interface AssignmentEditModalProps {
   isOpen: boolean;
@@ -28,6 +37,7 @@ interface AssignmentEditModalProps {
     groupAssignment?: boolean;
     maxGroupSize?: number;
     sectionDueDates?: Record<string, string>;
+    choices?: ChoiceBoardOption[];
   };
 }
 
@@ -50,6 +60,7 @@ export interface AssignmentEditData {
   groupAssignment?: boolean;
   maxGroupSize?: number;
   sectionDueDates?: Record<string, string>;
+  choices?: ChoiceBoardOption[];
 }
 
 export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignment }: AssignmentEditModalProps) {
@@ -71,10 +82,14 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
   const [groupAssignment, setGroupAssignment] = useState(assignment.groupAssignment || false);
   const [maxGroupSize, setMaxGroupSize] = useState(assignment.maxGroupSize || 4);
   const [sectionDueDates, setSectionDueDates] = useState<Record<string, string>>(assignment.sectionDueDates || {});
+  const [choices, setChoices] = useState<ChoiceBoardOption[]>(assignment.choices || []);
   const [sections, setSections] = useState<Array<{ sectionId: string; sectionName: string }>>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [activeSection, setActiveSection] = useState<'basic' | 'submissions' | 'peer' | 'video'>('basic');
+  const [activeSection, setActiveSection] = useState<'basic' | 'choices' | 'submissions' | 'peer' | 'video'>('basic');
+
+  const isChoiceBoard = assignment.assignmentType === 'choice-board';
+  const choiceColors = ['#4A90E2', '#7B61FF', '#38A169', '#E53E3E'];
 
   // Fetch sections for this course
   useEffect(() => {
@@ -106,6 +121,8 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
       setGroupAssignment(assignment.groupAssignment || false);
       setMaxGroupSize(assignment.maxGroupSize || 4);
       setSectionDueDates(assignment.sectionDueDates || {});
+      setChoices(assignment.choices || []);
+      setActiveSection('basic');
       try {
         const d = new Date(assignment.dueDate);
         const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
@@ -163,6 +180,11 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
         payload.sectionDueDates = filteredSectionDueDates;
       }
 
+      // Choice board options
+      if (isChoiceBoard) {
+        payload.choices = choices.filter(c => c.title.trim());
+      }
+
       const res = await fetch(`/api/assignments/${assignment.assignmentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -187,6 +209,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
 
   const tabs = [
     { id: 'basic' as const, label: 'Basic', icon: '📝' },
+    ...(isChoiceBoard ? [{ id: 'choices' as const, label: 'Choices', icon: '🎯' }] : []),
     { id: 'submissions' as const, label: 'Submissions', icon: '📤' },
     { id: 'peer' as const, label: 'Peer Review', icon: '👥' },
     { id: 'video' as const, label: 'Video', icon: '🎬' },
@@ -230,9 +253,11 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                   className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm resize-none focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {isChoiceBoard ? 'General Instructions' : 'Description'}
+                </label>
+                <FormattingTextarea value={description} onChange={setDescription} rows={4}
+                  placeholder={isChoiceBoard ? 'General instructions shown above all choices...' : 'Assignment description & directions...'} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -290,6 +315,71 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                     })}
                   </div>
                 </div>
+              )}
+            </>
+          )}
+
+          {/* CHOICES TAB */}
+          {activeSection === 'choices' && (
+            <>
+              <p className="text-[11px] text-gray-500">
+                Edit each choice students can pick. Use the toolbar for bold, headings, lists, and paragraphs. The number sets how many students per section may pick that choice.
+              </p>
+              <div className="space-y-3">
+                {choices.map((choice, index) => (
+                  <div key={choice.choiceId || index} className="bg-gray-50 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: choice.color || choiceColors[index] || '#4A90E2' }} />
+                      <input
+                        type="text"
+                        value={choice.title}
+                        onChange={(e) => { const u = [...choices]; u[index] = { ...u[index], title: e.target.value }; setChoices(u); }}
+                        placeholder={`Choice ${index + 1} title`}
+                        className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                      />
+                      <div className="flex items-center gap-1 shrink-0">
+                        <input
+                          type="number"
+                          value={choice.maxSlotsPerSection ?? 10}
+                          onChange={(e) => { const u = [...choices]; u[index] = { ...u[index], maxSlotsPerSection: Number(e.target.value) }; setChoices(u); }}
+                          min={1}
+                          className="w-12 px-1 py-1.5 border border-gray-200 rounded-lg text-xs text-center focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                          title="Max students per section"
+                        />
+                        {choices.length > 2 && (
+                          <button onClick={() => setChoices(prev => prev.filter((_, i) => i !== index))} className="text-gray-300 hover:text-red-400 text-sm px-1">✕</button>
+                        )}
+                      </div>
+                    </div>
+                    <FormattingTextarea
+                      value={choice.description}
+                      onChange={(val) => { const u = [...choices]; u[index] = { ...u[index], description: val }; setChoices(u); }}
+                      placeholder="Description & directions for this choice..."
+                      rows={4}
+                    />
+                  </div>
+                ))}
+              </div>
+              {choices.length < 4 && (
+                <button
+                  type="button"
+                  onClick={() => setChoices(prev => [...prev, { choiceId: `c${prev.length + 1}_${Date.now()}`, title: '', description: '', color: choiceColors[prev.length] || '#4A90E2', maxSlotsPerSection: 10 }])}
+                  className="w-full py-2 border border-dashed border-[#005587]/40 rounded-xl text-xs text-[#005587] hover:bg-[#005587]/5"
+                >
+                  + Add Choice
+                </button>
+              )}
+              {choices.length === 0 && (
+                <button
+                  type="button"
+                  onClick={() => setChoices([
+                    { choiceId: `c1_${Date.now()}`, title: '', description: '', color: '#4A90E2', maxSlotsPerSection: 10 },
+                    { choiceId: `c2_${Date.now()}`, title: '', description: '', color: '#7B61FF', maxSlotsPerSection: 10 },
+                  ])}
+                  className="w-full py-2 border border-dashed border-[#005587]/40 rounded-xl text-xs text-[#005587] hover:bg-[#005587]/5"
+                >
+                  + Add Choices
+                </button>
               )}
             </>
           )}
