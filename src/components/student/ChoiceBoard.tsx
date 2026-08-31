@@ -12,13 +12,28 @@ interface Choice {
 }
 
 function renderChoiceMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/^## (.+)$/gm, '<h4>$1</h4>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-    .replace(/^---$/gm, '<hr class="my-2 border-stone-200">');
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  const html: string[] = [];
+  let inList = false;
+  const closeList = () => { if (inList) { html.push('</ul>'); inList = false; } };
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (line === '') { continue; } // drop blank lines so bullets sit close together
+    const inline = (s: string) => s
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+    if (line === '---') { closeList(); html.push('<hr class="my-2 border-stone-200">'); continue; }
+    const h = line.match(/^##\s+(.+)$/);
+    if (h) { closeList(); html.push(`<h4>${inline(h[1])}</h4>`); continue; }
+    const li = line.match(/^[-*]\s+(.+)$/);
+    if (li) { if (!inList) { html.push('<ul>'); inList = true; } html.push(`<li>${inline(li[1])}</li>`); continue; }
+    closeList();
+    html.push(`<p>${inline(line)}</p>`);
+  }
+  closeList();
+  return html.join('');
 }
 
 interface ChoiceBoardProps {
@@ -82,8 +97,8 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
               style={{ perspective: '1000px' }}
             >
               <div
-                className={`relative w-full transition-transform duration-500 ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`}
-                style={{ transformStyle: 'preserve-3d', minHeight: '220px' }}
+                className={`relative w-full transition-transform duration-500 min-h-[280px] sm:min-h-[440px] ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`}
+                style={{ transformStyle: 'preserve-3d' }}
               >
                 {/* FRONT of card */}
                 <div
@@ -97,15 +112,13 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
                   onClick={() => !full && setFlippedCard(choice.choiceId)}
                 >
                   {/* Color accent bar */}
-                  <div className="w-10 h-1.5 rounded-full mb-3" style={{ backgroundColor: choice.color }} />
+                  <div className="w-10 h-1.5 rounded-full" style={{ backgroundColor: choice.color }} />
 
-                  <div className="flex-1">
-                    <h3 className="text-base font-bold text-stone-900 mb-2">{choice.title}</h3>
-                    <p className="text-xs text-stone-600 leading-relaxed line-clamp-4">
-                      {choice.description
-                        ? choice.description.replace(/\*\*/g, '').replace(/\*/g, '').replace(/^##\s*/gm, '').replace(/^---$/gm, '').replace(/^-\s*/gm, '• ').trim()
-                        : 'Tap to view directions'}
-                    </p>
+                  {/* Title only on the cover */}
+                  <div className="flex-1 flex items-center justify-center text-center px-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-stone-900 leading-snug" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>
+                      {choice.title}
+                    </h3>
                   </div>
 
                   {/* Slot counter */}
@@ -121,7 +134,7 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
 
                 {/* BACK of card (flipped) */}
                 <div
-                  className="absolute inset-0 rounded-2xl p-5 flex flex-col bg-white border-2 overflow-y-auto"
+                  className="absolute inset-0 rounded-2xl p-5 flex flex-col bg-white border-2"
                   style={{
                     borderColor: choice.color,
                     backfaceVisibility: 'hidden',
@@ -143,7 +156,7 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
                   {/* Choice-specific directions */}
                   {choice.description ? (
                     <div
-                      className="flex-1 text-xs text-stone-600 leading-relaxed whitespace-pre-wrap mb-3 overflow-y-auto [&_strong]:font-semibold [&_em]:italic [&_h4]:font-bold [&_h4]:text-stone-900 [&_h4]:mt-2 [&_h4]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4"
+                      className="flex-1 text-xs sm:text-[13px] text-stone-700 leading-relaxed mb-3 min-h-0 overflow-y-auto [&_p]:mb-1.5 [&_strong]:font-semibold [&_em]:italic [&_h4]:font-bold [&_h4]:text-stone-900 [&_h4]:mt-2 [&_h4]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-1 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:space-y-1 [&_li]:leading-snug"
                       dangerouslySetInnerHTML={{ __html: renderChoiceMarkdown(choice.description) }}
                     />
                   ) : (
