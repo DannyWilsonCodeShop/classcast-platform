@@ -9,6 +9,7 @@ interface Choice {
   description: string;
   color: string;
   maxSlotsPerSection: number;
+  slotsBySection?: Record<string, number>;
 }
 
 function renderChoiceMarkdown(text: string): string {
@@ -72,8 +73,15 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
     router.push(url);
   };
 
-  const isFull = (choice: Choice) => (slotCounts[choice.choiceId] || 0) >= choice.maxSlotsPerSection;
-  const getSlotsRemaining = (choice: Choice) => Math.max(0, choice.maxSlotsPerSection - (slotCounts[choice.choiceId] || 0));
+  // Resolve the limit for THIS student's section (falls back to the shared per-section number)
+  const getLimit = (choice: Choice) => {
+    if (sectionId && choice.slotsBySection && typeof choice.slotsBySection[sectionId] === 'number') {
+      return choice.slotsBySection[sectionId];
+    }
+    return choice.maxSlotsPerSection;
+  };
+  const isFull = (choice: Choice) => (slotCounts[choice.choiceId] || 0) >= getLimit(choice);
+  const getSlotsRemaining = (choice: Choice) => Math.max(0, getLimit(choice) - (slotCounts[choice.choiceId] || 0));
 
   return (
     <div className="px-4 py-6">

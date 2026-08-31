@@ -100,13 +100,15 @@ const CreateAssignmentPage: React.FC = () => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [assignmentType, setAssignmentType] = useState<AssignmentType>('video');
-  const [choices, setChoices] = useState([
+  const [choices, setChoices] = useState<Array<{ choiceId: string; title: string; description: string; color: string; maxSlotsPerSection: number; slotsBySection?: Record<string, number> }>>([
     { choiceId: 'c1', title: '', description: '', color: '#4A90E2', maxSlotsPerSection: 10 },
     { choiceId: 'c2', title: '', description: '', color: '#7B61FF', maxSlotsPerSection: 10 },
     { choiceId: 'c3', title: '', description: '', color: '#38A169', maxSlotsPerSection: 10 },
   ]);
   // Track whether the instructor manually overrode slot counts; if not, keep auto-distributing evenly
   const [slotsManuallyEdited, setSlotsManuallyEdited] = useState(false);
+  // Per-section enrollment for the selected course (for per-section slot defaults)
+  const [sectionEnrollment, setSectionEnrollment] = useState<Array<{ sectionId: string; sectionName: string; enrolledCount: number }>>([]);
   const [dueDate, setDueDate] = useState('');
   const [rubric, setRubric] = useState<RubricCategory[]>(DEFAULT_RUBRIC);
   const [showRubricDetails, setShowRubricDetails] = useState(false);
@@ -163,21 +165,41 @@ const CreateAssignmentPage: React.FC = () => {
     return c?.enrollmentCount ?? c?.studentCount ?? 0;
   })();
 
-  // Auto-distribute slots evenly across choices based on current enrollment,
+  // Fetch per-section enrollment when a course is selected (for choice boards)
+  useEffect(() => {
+    if (assignmentType !== 'choice-board' || !courseId) { setSectionEnrollment([]); return; }
+    let cancelled = false;
+    fetch(`/api/courses/${courseId}/section-enrollment`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (!cancelled && d?.success) setSectionEnrollment(d.sections || []); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [assignmentType, courseId]);
+
+  // Auto-distribute slots evenly PER SECTION based on each section's enrollment,
   // unless the instructor has manually overridden the slot counts.
   useEffect(() => {
     if (assignmentType !== 'choice-board') return;
     if (slotsManuallyEdited) return;
     if (choices.length === 0) return;
-    // If we don't know enrollment yet, leave the current defaults alone
-    if (!enrolledCount || enrolledCount <= 0) return;
-    const perChoice = Math.max(1, Math.ceil(enrolledCount / choices.length));
-    setChoices(prev => {
-      if (prev.every(c => c.maxSlotsPerSection === perChoice)) return prev;
-      return prev.map(c => ({ ...c, maxSlotsPerSection: perChoice }));
-    });
+
+    const n = choices.length;
+    setChoices(prev => prev.map(c => {
+      if (sectionEnrollment.length > 0) {
+        const sbs: Record<string, number> = {};
+        for (const sec of sectionEnrollment) {
+          sbs[sec.sectionId] = Math.max(1, Math.ceil((sec.enrolledCount || 0) / n)) || 1;
+        }
+        return { ...c, slotsBySection: sbs };
+      }
+      // Fallback: no section data yet, use whole-course split if available
+      if (enrolledCount > 0) {
+        return { ...c, maxSlotsPerSection: Math.max(1, Math.ceil(enrolledCount / n)) };
+      }
+      return c;
+    }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assignmentType, courseId, enrolledCount, choices.length, slotsManuallyEdited]);
+  }, [assignmentType, courseId, enrolledCount, choices.length, slotsManuallyEdited, sectionEnrollment]);
 
   const fetchExistingBanks = async () => {
     if (!user?.id) return;
@@ -443,33 +465,66 @@ const CreateAssignmentPage: React.FC = () => {
                 <span className="block text-xs font-bold text-indigo-800 mb-2">🎯 Choice Board Options</span>
                 <div className="space-y-2 mt-2">
                   {choices.map((choice, index) => (
-                    <div key={choice.choiceId} className="flex items-start gap-2 bg-white rounded-lg p-2 border border-indigo-100">
-                      <div className="w-3 h-3 rounded-full shrink-0 mt-1" style={{ backgroundColor: choice.color }} />
-                      <div className="flex-1 space-y-1">
+                    <div key={choice.choiceId} className="bg-white rounded-lg p-2 border border-indigo-100 space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: choice.color }} />
                         <input
                           type="text"
                           value={choice.title}
                           onChange={(e) => { const u = [...choices]; u[index] = { ...u[index], title: e.target.value }; setChoices(u); }}
                           placeholder={`Choice ${index + 1} title`}
-                          className="w-full px-2 py-1 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-indigo-400"
+                          className="flex-1 px-2 py-1 border border-gray-200 rounded text-xs focus:ring-1 focus:ring-indigo-400"
                         />
-                        <FormattingTextarea
-                          value={choice.description}
-                          onChange={(val) => { const u = [...choices]; u[index] = { ...u[index], description: val }; setChoices(u); }}
-                          placeholder="Description & directions for this choice. Use the toolbar for bold, headings, lists, and paragraphs..."
-                          rows={4}
-                        />
+                        {choices.length > 2 && (
+                          <button onClick={() => setChoices(prev => prev.filter((_, i) => i !== index))} className="text-gray-300 hover:text-red-400 text-xs shrink-0">✕</button>
+                        )}
                       </div>
-                      <input
-                        type="number"
-                        value={choice.maxSlotsPerSection}
-                        onChange={(e) => { setSlotsManuallyEdited(true); const u = [...choices]; u[index] = { ...u[index], maxSlotsPerSection: Number(e.target.value) }; setChoices(u); }}
-                        min={1}
-                        className="w-12 px-1 py-1 border border-gray-200 rounded text-[10px] text-center"
-                        title="Max students who can pick this choice"
+                      <FormattingTextarea
+                        value={choice.description}
+                        onChange={(val) => { const u = [...choices]; u[index] = { ...u[index], description: val }; setChoices(u); }}
+                        placeholder="Description & directions for this choice. Use the toolbar for bold, headings, lists, and paragraphs..."
+                        rows={4}
                       />
-                      {choices.length > 2 && (
-                        <button onClick={() => setChoices(prev => prev.filter((_, i) => i !== index))} className="text-gray-300 hover:text-red-400 text-xs mt-1">✕</button>
+                      {/* Per-section slot limits */}
+                      {sectionEnrollment.length > 0 ? (
+                        <div className="bg-indigo-50/60 rounded-lg p-2">
+                          <p className="text-[9px] font-medium text-indigo-700 mb-1">Max students per section who can pick this</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                            {sectionEnrollment.map(sec => (
+                              <div key={sec.sectionId} className="flex items-center justify-between gap-1 bg-white border border-indigo-100 rounded px-1.5 py-1">
+                                <span className="text-[9px] text-gray-600 truncate" title={`${sec.sectionName} (${sec.enrolledCount} enrolled)`}>
+                                  {sec.sectionName}<span className="text-gray-300"> /{sec.enrolledCount}</span>
+                                </span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  value={choice.slotsBySection?.[sec.sectionId] ?? ''}
+                                  onChange={(e) => {
+                                    setSlotsManuallyEdited(true);
+                                    const v = e.target.value === '' ? undefined : Number(e.target.value);
+                                    const u = [...choices];
+                                    const sbs = { ...(u[index].slotsBySection || {}) };
+                                    if (v === undefined) delete sbs[sec.sectionId]; else sbs[sec.sectionId] = v;
+                                    u[index] = { ...u[index], slotsBySection: sbs };
+                                    setChoices(u);
+                                  }}
+                                  className="w-9 px-1 py-0.5 border border-gray-200 rounded text-[10px] text-center"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <label className="text-[9px] text-gray-500">Max per section</label>
+                          <input
+                            type="number"
+                            value={choice.maxSlotsPerSection}
+                            onChange={(e) => { setSlotsManuallyEdited(true); const u = [...choices]; u[index] = { ...u[index], maxSlotsPerSection: Number(e.target.value) }; setChoices(u); }}
+                            min={1}
+                            className="w-12 px-1 py-1 border border-gray-200 rounded text-[10px] text-center"
+                          />
+                        </div>
                       )}
                     </div>
                   ))}
@@ -480,7 +535,9 @@ const CreateAssignmentPage: React.FC = () => {
                         const colors = ['#4A90E2', '#7B61FF', '#38A169', '#E53E3E'];
                         const nextCount = choices.length + 1;
                         const perChoice = enrolledCount > 0 ? Math.max(1, Math.ceil(enrolledCount / nextCount)) : 10;
-                        setChoices(prev => [...prev, { choiceId: `c${prev.length + 1}`, title: '', description: '', color: colors[prev.length] || '#4A90E2', maxSlotsPerSection: perChoice }]);
+                        const sbs: Record<string, number> = {};
+                        for (const sec of sectionEnrollment) sbs[sec.sectionId] = Math.max(1, Math.ceil((sec.enrolledCount || 0) / nextCount)) || 1;
+                        setChoices(prev => [...prev, { choiceId: `c${prev.length + 1}`, title: '', description: '', color: colors[prev.length] || '#4A90E2', maxSlotsPerSection: perChoice, ...(sectionEnrollment.length > 0 ? { slotsBySection: sbs } : {}) }]);
                       }}
                       className="w-full py-1.5 border border-dashed border-indigo-300 rounded-lg text-[10px] text-indigo-600 hover:bg-indigo-50"
                     >
@@ -488,10 +545,11 @@ const CreateAssignmentPage: React.FC = () => {
                     </button>
                   )}
                   <p className="text-[9px] text-indigo-500">
-                    Number = max students who can pick this choice.
-                    {enrolledCount > 0
-                      ? ` Auto-split evenly across ${choices.length} choices for ${enrolledCount} enrolled student${enrolledCount === 1 ? '' : 's'}${slotsManuallyEdited ? ' (you\u2019ve customized these)' : ''}.`
-                      : ' Select a course to auto-split by current enrollment.'}
+                    {sectionEnrollment.length > 0
+                      ? `Each number caps how many students in that section may pick the choice. Defaults split each section's enrollment evenly across ${choices.length} choices${slotsManuallyEdited ? ' (customized)' : ''}.`
+                      : enrolledCount > 0
+                        ? `Number = max students per section. Auto-split evenly across ${choices.length} choices${slotsManuallyEdited ? ' (customized)' : ''}.`
+                        : 'Select a course to auto-split slots by each section\u2019s enrollment.'}
                   </p>
                 </div>
               </div>

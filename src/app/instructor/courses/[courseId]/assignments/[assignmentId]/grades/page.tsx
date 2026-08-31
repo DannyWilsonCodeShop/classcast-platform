@@ -41,6 +41,14 @@ interface ChoiceBoardOption {
   description: string;
   color?: string;
   maxSlotsPerSection?: number;
+  slotsBySection?: Record<string, number>;
+}
+
+interface SectionEnrollment {
+  sectionId: string;
+  sectionName: string;
+  classCode?: string | null;
+  enrolledCount: number;
 }
 
 interface StudentGrade {
@@ -85,10 +93,24 @@ const AssignmentGradesPage: React.FC = () => {
   const [editingChoices, setEditingChoices] = useState(false);
   const [choicesDraft, setChoicesDraft] = useState<ChoiceBoardOption[]>([]);
   const [savingChoices, setSavingChoices] = useState(false);
+  const [sectionEnrollment, setSectionEnrollment] = useState<SectionEnrollment[]>([]);
   const choiceColors = ['#4A90E2', '#7B61FF', '#38A169', '#E53E3E'];
 
   const startEditingChoices = () => {
-    setChoicesDraft((assignment?.choices || []).map(c => ({ ...c })));
+    const existing = assignment?.choices || [];
+    const numChoices = Math.max(1, existing.length);
+    // Seed slotsBySection for any section that doesn't already have an explicit value,
+    // defaulting to an even split of that section's enrollment across the choices.
+    const draft = existing.map(c => {
+      const sbs: Record<string, number> = { ...(c.slotsBySection || {}) };
+      for (const sec of sectionEnrollment) {
+        if (typeof sbs[sec.sectionId] !== 'number') {
+          sbs[sec.sectionId] = Math.max(1, Math.ceil((sec.enrolledCount || 0) / numChoices)) || (c.maxSlotsPerSection ?? 5);
+        }
+      }
+      return { ...c, slotsBySection: sbs };
+    });
+    setChoicesDraft(draft);
     setEditingChoices(true);
   };
 
@@ -96,7 +118,14 @@ const AssignmentGradesPage: React.FC = () => {
     if (!assignment) return;
     setSavingChoices(true);
     try {
-      const cleaned = choicesDraft.filter(c => c.title.trim());
+      const cleaned = choicesDraft.filter(c => c.title.trim()).map(c => {
+        const sbs = c.slotsBySection || {};
+        const vals = Object.values(sbs).filter(v => typeof v === 'number');
+        // Keep maxSlotsPerSection as a fallback (largest per-section value) for students
+        // whose section isn't explicitly listed.
+        const fallback = vals.length ? Math.max(...vals) : (c.maxSlotsPerSection ?? 5);
+        return { ...c, maxSlotsPerSection: fallback };
+      });
       const res = await fetch(`/api/assignments/${assignment.assignmentId}?t=${Date.now()}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -225,6 +254,12 @@ const AssignmentGradesPage: React.FC = () => {
         fetch(`/api/courses/enrollment?courseId=${courseId}`, { credentials: 'include' }),
         fetch(`/api/sections?courseId=${courseId}`, { credentials: 'include' }),
       ]);
+
+      // Per-section enrollment counts (for choice-board slot defaults)
+      fetch(`/api/courses/${courseId}/section-enrollment`, { credentials: 'include' })
+        .then(r => r.ok ? r.json() : null)
+        .then(d => { if (d?.success) setSectionEnrollment(d.sections || []); })
+        .catch(() => {});
       
       if (!studentsResponse.ok) {
         throw new Error('Failed to fetch students');
@@ -616,11 +651,6 @@ const AssignmentGradesPage: React.FC = () => {
                       >
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <h3 className="text-sm font-bold text-gray-900">{choice.title || `Choice ${idx + 1}`}</h3>
-                          {typeof choice.maxSlotsPerSection === 'number' && (
-                            <span className="px-2 py-0.5 bg-gray-100 rounded-full text-[10px] font-medium text-gray-600 whitespace-nowrap">
-                              {choice.maxSlotsPerSection} slot{choice.maxSlotsPerSection === 1 ? '' : 's'} / section
-                            </span>
-                          )}
                         </div>
                         {choice.description ? (
                           <div
@@ -630,6 +660,26 @@ const AssignmentGradesPage: React.FC = () => {
                         ) : (
                           <p className="text-xs text-gray-400 italic">No directions yet. Click Edit Choices to add.</p>
                         )}
+                        {/* Per-section slot limits */}
+                        {choice.slotsBySection && Object.keys(choice.slotsBySection).length > 0 ? (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {sectionEnrollment.map(sec => {
+                              const v = choice.slotsBySection?.[sec.sectionId];
+                              if (typeof v !== 'number') return null;
+                              return (
+                                <span key={sec.sectionId} className="px-2 py-0.5 bg-gray-100 rounded-full text-[10px] font-medium text-gray-600 whitespace-nowrap">
+                                  {sec.sectionName}: {v}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : typeof choice.maxSlotsPerSection === 'number' ? (
+                          <div className="mt-2">
+                            <span className="px-2 py-0.5 bg-gray-100 rounded-full text-[10px] font-medium text-gray-600 whitespace-nowrap">
+                              {choice.maxSlotsPerSection} slot{choice.maxSlotsPerSection === 1 ? '' : 's'} / section
+                            </span>
+                          </div>
+                        ) : null}
                       </div>
                     ))
                   ) : (
@@ -652,19 +702,9 @@ const AssignmentGradesPage: React.FC = () => {
                           placeholder={`Choice ${index + 1} title`}
                           className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
                         />
-                        <div className="flex items-center gap-1 shrink-0">
-                          <input
-                            type="number"
-                            value={choice.maxSlotsPerSection ?? 10}
-                            onChange={(e) => setChoicesDraft(prev => prev.map((c, i) => i === index ? { ...c, maxSlotsPerSection: Number(e.target.value) } : c))}
-                            min={1}
-                            className="w-12 px-1 py-1.5 border border-gray-200 rounded-lg text-xs text-center focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
-                            title="Max students per section"
-                          />
-                          {choicesDraft.length > 2 && (
-                            <button onClick={() => setChoicesDraft(prev => prev.filter((_, i) => i !== index))} className="text-gray-300 hover:text-red-400 text-sm px-1">✕</button>
-                          )}
-                        </div>
+                        {choicesDraft.length > 2 && (
+                          <button onClick={() => setChoicesDraft(prev => prev.filter((_, i) => i !== index))} className="text-gray-300 hover:text-red-400 text-sm px-1 shrink-0">✕</button>
+                        )}
                       </div>
                       <FormattingTextarea
                         value={choice.description}
@@ -672,12 +712,59 @@ const AssignmentGradesPage: React.FC = () => {
                         placeholder="Directions for this choice. Use the toolbar for bold, headings, lists, and paragraphs..."
                         rows={4}
                       />
+                      {/* Per-section slot limits */}
+                      {sectionEnrollment.length > 0 ? (
+                        <div className="bg-gray-50 rounded-lg p-2">
+                          <p className="text-[10px] font-medium text-gray-600 mb-1.5">Max students per section who can pick this choice</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {sectionEnrollment.map(sec => (
+                              <div key={sec.sectionId} className="flex items-center justify-between gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1">
+                                <span className="text-[10px] text-gray-600 truncate" title={`${sec.sectionName} (${sec.enrolledCount} enrolled)`}>
+                                  {sec.sectionName}
+                                  <span className="text-gray-300"> /{sec.enrolledCount}</span>
+                                </span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  value={choice.slotsBySection?.[sec.sectionId] ?? ''}
+                                  onChange={(e) => {
+                                    const v = e.target.value === '' ? undefined : Number(e.target.value);
+                                    setChoicesDraft(prev => prev.map((c, i) => {
+                                      if (i !== index) return c;
+                                      const sbs = { ...(c.slotsBySection || {}) };
+                                      if (v === undefined) delete sbs[sec.sectionId]; else sbs[sec.sectionId] = v;
+                                      return { ...c, slotsBySection: sbs };
+                                    }));
+                                  }}
+                                  className="w-10 px-1 py-0.5 border border-gray-200 rounded text-[11px] text-center focus:border-[#005587] focus:outline-none"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <label className="text-[10px] text-gray-500">Max per section</label>
+                          <input
+                            type="number"
+                            value={choice.maxSlotsPerSection ?? 10}
+                            onChange={(e) => setChoicesDraft(prev => prev.map((c, i) => i === index ? { ...c, maxSlotsPerSection: Number(e.target.value) } : c))}
+                            min={1}
+                            className="w-14 px-1 py-1 border border-gray-200 rounded-lg text-xs text-center focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                   {choicesDraft.length < 4 && (
                     <button
                       type="button"
-                      onClick={() => setChoicesDraft(prev => [...prev, { choiceId: `c${prev.length + 1}_${Date.now()}`, title: '', description: '', color: choiceColors[prev.length] || '#4A90E2', maxSlotsPerSection: 10 }])}
+                      onClick={() => setChoicesDraft(prev => {
+                        const n = prev.length + 1;
+                        const sbs: Record<string, number> = {};
+                        for (const sec of sectionEnrollment) sbs[sec.sectionId] = Math.max(1, Math.ceil((sec.enrolledCount || 0) / n)) || 5;
+                        return [...prev, { choiceId: `c${prev.length + 1}_${Date.now()}`, title: '', description: '', color: choiceColors[prev.length] || '#4A90E2', maxSlotsPerSection: 10, slotsBySection: sbs }];
+                      })}
                       className="w-full py-2 border border-dashed border-[#005587]/40 rounded-xl text-xs text-[#005587] hover:bg-[#005587]/5"
                     >
                       + Add Choice
@@ -686,17 +773,22 @@ const AssignmentGradesPage: React.FC = () => {
                   {choicesDraft.length === 0 && (
                     <button
                       type="button"
-                      onClick={() => setChoicesDraft([
-                        { choiceId: `c1_${Date.now()}`, title: '', description: '', color: '#4A90E2', maxSlotsPerSection: 10 },
-                        { choiceId: `c2_${Date.now()}`, title: '', description: '', color: '#7B61FF', maxSlotsPerSection: 10 },
-                        { choiceId: `c3_${Date.now()}`, title: '', description: '', color: '#38A169', maxSlotsPerSection: 10 },
-                      ])}
+                      onClick={() => {
+                        const mk = (id: string, color: string) => {
+                          const sbs: Record<string, number> = {};
+                          for (const sec of sectionEnrollment) sbs[sec.sectionId] = Math.max(1, Math.ceil((sec.enrolledCount || 0) / 3)) || 5;
+                          return { choiceId: `${id}_${Date.now()}`, title: '', description: '', color, maxSlotsPerSection: 10, slotsBySection: sbs };
+                        };
+                        setChoicesDraft([mk('c1', '#4A90E2'), mk('c2', '#7B61FF'), mk('c3', '#38A169')]);
+                      }}
                       className="w-full py-2 border border-dashed border-[#005587]/40 rounded-xl text-xs text-[#005587] hover:bg-[#005587]/5"
                     >
                       + Add Choices
                     </button>
                   )}
-                  <p className="text-[10px] text-gray-400">The number sets how many students per section may pick that choice.</p>
+                  <p className="text-[10px] text-gray-400">
+                    Each number is how many students in that section may pick the choice. Defaults split each section&apos;s enrollment evenly across the choices; adjust any as needed.
+                  </p>
                 </div>
               )}
             </div>
