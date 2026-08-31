@@ -8,6 +8,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import Avatar from '@/components/common/Avatar';
 import CourseSettingsModal from '@/components/instructor/CourseSettingsModal';
 import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
+import { AssignmentEditModal } from '@/components/instructor/AssignmentEditModal';
 import AssignmentDetailsModal from '@/components/instructor/AssignmentDetailsModal';
 import SectionList from '@/components/instructor/SectionList';
 import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
@@ -67,6 +68,9 @@ interface Assignment {
   maxFileSize?: number;
   resources?: any[];
   instructionalVideoUrl?: string; // NEW: Instructor's explanation video
+  assignmentType?: string;
+  choices?: Array<{ choiceId: string; title: string; description: string; color?: string; maxSlotsPerSection?: number }>;
+  sectionDueDates?: Record<string, string>;
 }
 
 interface Student {
@@ -550,7 +554,10 @@ const InstructorCourseDetailPage: React.FC = () => {
             allowedFileTypes: assignment.allowedFileTypes || [],
             maxFileSize: assignment.maxFileSize || 10 * 1024 * 1024,
             resources: assignment.resources || [],
-            instructionalVideoUrl: assignment.instructionalVideoUrl || ''
+            instructionalVideoUrl: assignment.instructionalVideoUrl || '',
+            assignmentType: assignment.assignmentType || assignment.type,
+            choices: assignment.choices || [],
+            sectionDueDates: assignment.sectionDueDates || {},
           }));
           
           // Sort assignments by creation date (most recent first)
@@ -1676,8 +1683,44 @@ const InstructorCourseDetailPage: React.FC = () => {
           </div>
         )}
 
+        {/* Choice Board Editing Modal (has Choices tab) */}
+        {editingAssignment && editingAssignment.assignmentType === 'choice-board' && (
+          <AssignmentEditModal
+            isOpen={true}
+            onClose={() => setEditingAssignment(null)}
+            onSave={async () => {
+              setEditingAssignment(null);
+              await fetchCourseDetails();
+            }}
+            courseId={courseId}
+            assignment={{
+              assignmentId: editingAssignment.assignmentId,
+              title: editingAssignment.title,
+              description: editingAssignment.description,
+              dueDate: editingAssignment.dueDate,
+              maxScore: editingAssignment.points,
+              assignmentType: editingAssignment.assignmentType,
+              responseDueDate: editingAssignment.responseDueDate,
+              allowLateSubmission: editingAssignment.allowLateSubmission,
+              latePenalty: editingAssignment.latePenalty,
+              maxSubmissions: editingAssignment.maxSubmissions,
+              enablePeerResponses: editingAssignment.enablePeerResponses,
+              minResponsesRequired: editingAssignment.minResponsesRequired,
+              maxResponsesPerVideo: editingAssignment.maxResponsesPerVideo,
+              responseWordLimit: editingAssignment.responseWordLimit,
+              peerReviewScope: editingAssignment.peerReviewScope,
+              requireLiveRecording: editingAssignment.requireLiveRecording,
+              allowYouTubeUrl: editingAssignment.allowYouTubeUrl,
+              groupAssignment: editingAssignment.groupAssignment,
+              maxGroupSize: editingAssignment.maxGroupSize,
+              sectionDueDates: editingAssignment.sectionDueDates,
+              choices: editingAssignment.choices,
+            }}
+          />
+        )}
+
         {/* Assignment Editing Modal */}
-        {editingAssignment && (
+        {editingAssignment && editingAssignment.assignmentType !== 'choice-board' && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="p-6">
