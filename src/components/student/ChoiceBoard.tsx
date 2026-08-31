@@ -67,7 +67,9 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
   };
 
   const handleChoiceSelect = (choiceId: string) => {
-    router.push(`/student/record?assignmentId=${assignmentId}&choiceId=${choiceId}`);
+    let url = `/student/record?assignmentId=${assignmentId}&choiceId=${choiceId}`;
+    if (sectionId) url += `&sectionId=${encodeURIComponent(sectionId)}`;
+    router.push(url);
   };
 
   const isFull = (choice: Choice) => (slotCounts[choice.choiceId] || 0) >= choice.maxSlotsPerSection;

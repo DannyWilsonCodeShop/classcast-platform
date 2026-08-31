@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
       studentId,
       courseId,
       sectionId, // Add sectionId
+      choiceId, // Choice Board: which choice this submission is for
       videoUrl,
       videoId,
       videoTitle,
@@ -199,6 +200,7 @@ export async function POST(request: NextRequest) {
       studentId,
       courseId,
       sectionId: sectionId || null, // Add sectionId to submission
+      choiceId: choiceId || null, // Choice Board: track which choice was picked
       // Store external video URLs for consistent playback
       videoUrl: finalVideoUrl,
       youtubeUrl: youtubeUrl || null, // Store YouTube URL separately

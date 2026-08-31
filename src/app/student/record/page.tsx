@@ -27,6 +27,7 @@ function RecordPageInner() {
   const isAssessment = searchParams.get('assessment') === 'true';
   const isModuleAssignment = searchParams.get('module') === 'true';
   const choiceId = searchParams.get('choiceId');
+  const sectionId = searchParams.get('sectionId');
   const { user } = useAuth();
 
   // Assignment data
@@ -485,6 +486,7 @@ function RecordPageInner() {
         isRecorded: submissionMethod === 'record',
         isUploaded: submissionMethod === 'upload',
         choiceId: choiceId || undefined,
+        sectionId: sectionId || undefined,
       };
       if (isYouTube) body.youtubeUrl = finalVideoUrl;
       if (isGoogleDrive) body.googleDriveUrl = finalVideoUrl;
