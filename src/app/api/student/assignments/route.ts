@@ -233,6 +233,9 @@ export async function GET(request: NextRequest) {
         minResponsesRequired: assignment.minResponsesRequired || 0,
         maxResponsesPerVideo: assignment.maxResponsesPerVideo || 0,
         hidePeerVideosUntilInstructorPosts: assignment.hidePeerVideosUntilInstructorPosts || false,
+        maxScore: assignment.maxScore ?? 100,
+        sectionId: studentSectionId || null,
+        choices: assignment.choices || [],
       };
     });
 
