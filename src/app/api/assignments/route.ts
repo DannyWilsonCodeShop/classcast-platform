@@ -323,6 +323,8 @@ export async function POST(request: NextRequest) {
       assessmentQuestions: body.assessmentQuestions || null,
       // Module config
       moduleConfig: body.moduleConfig || null,
+      // Choice Board options
+      choices: Array.isArray(body.choices) ? body.choices : null,
       createdAt: now,
       updatedAt: now,
       isActive: true
