@@ -11,6 +11,16 @@ interface Choice {
   maxSlotsPerSection: number;
 }
 
+function renderChoiceMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^## (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+    .replace(/^---$/gm, '<hr class="my-2 border-stone-200">');
+}
+
 interface ChoiceBoardProps {
   assignmentId: string;
   choices: Choice[];
@@ -91,7 +101,11 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
 
                   <div className="flex-1">
                     <h3 className="text-base font-bold text-stone-900 mb-2">{choice.title}</h3>
-                    <p className="text-xs text-stone-600 leading-relaxed">{choice.description}</p>
+                    <p className="text-xs text-stone-600 leading-relaxed line-clamp-4">
+                      {choice.description
+                        ? choice.description.replace(/\*\*/g, '').replace(/\*/g, '').replace(/^##\s*/gm, '').replace(/^---$/gm, '').replace(/^-\s*/gm, '• ').trim()
+                        : 'Tap to view directions'}
+                    </p>
                   </div>
 
                   {/* Slot counter */}
@@ -126,10 +140,17 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
                   <div className="w-8 h-1 rounded-full mb-2" style={{ backgroundColor: choice.color }} />
                   <h3 className="text-sm font-bold text-stone-900 mb-1">{choice.title}</h3>
 
-                  {/* Assignment description */}
-                  <div className="flex-1 text-xs text-stone-600 leading-relaxed whitespace-pre-wrap mb-3 overflow-y-auto">
-                    {assignmentDescription || choice.description}
-                  </div>
+                  {/* Choice-specific directions */}
+                  {choice.description ? (
+                    <div
+                      className="flex-1 text-xs text-stone-600 leading-relaxed whitespace-pre-wrap mb-3 overflow-y-auto [&_strong]:font-semibold [&_em]:italic [&_h4]:font-bold [&_h4]:text-stone-900 [&_h4]:mt-2 [&_h4]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4"
+                      dangerouslySetInnerHTML={{ __html: renderChoiceMarkdown(choice.description) }}
+                    />
+                  ) : (
+                    <div className="flex-1 text-xs text-stone-400 italic leading-relaxed mb-3">
+                      {assignmentDescription || 'No specific directions for this choice.'}
+                    </div>
+                  )}
 
                   {/* Meta info */}
                   <div className="text-[10px] text-stone-400 space-y-0.5 mb-3">

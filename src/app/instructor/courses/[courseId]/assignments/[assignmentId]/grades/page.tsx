@@ -6,6 +6,7 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { AssignmentEditModal, AssignmentEditData } from '@/components/instructor/AssignmentEditModal';
+import { FormattingTextarea } from '@/components/common/FormattingTextarea';
 
 interface Assignment {
   assignmentId: string;
@@ -79,6 +80,43 @@ const AssignmentGradesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+
+  // Choice board inline editing
+  const [editingChoices, setEditingChoices] = useState(false);
+  const [choicesDraft, setChoicesDraft] = useState<ChoiceBoardOption[]>([]);
+  const [savingChoices, setSavingChoices] = useState(false);
+  const choiceColors = ['#4A90E2', '#7B61FF', '#38A169', '#E53E3E'];
+
+  const startEditingChoices = () => {
+    setChoicesDraft((assignment?.choices || []).map(c => ({ ...c })));
+    setEditingChoices(true);
+  };
+
+  const saveChoices = async () => {
+    if (!assignment) return;
+    setSavingChoices(true);
+    try {
+      const cleaned = choicesDraft.filter(c => c.title.trim());
+      const res = await fetch(`/api/assignments/${assignment.assignmentId}?t=${Date.now()}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        cache: 'no-store',
+        body: JSON.stringify({ choices: cleaned }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAssignment(prev => prev ? { ...prev, choices: cleaned } : prev);
+        setEditingChoices(false);
+      } else {
+        alert(data.error || 'Failed to save choices');
+      }
+    } catch (e: any) {
+      alert(e?.message || 'Network error saving choices');
+    } finally {
+      setSavingChoices(false);
+    }
+  };
   
   // Filter and sort state
   const [selectedSection, setSelectedSection] = useState<string>('all');
@@ -536,33 +574,131 @@ const AssignmentGradesPage: React.FC = () => {
           </div>
 
           {/* Choice Board Options */}
-          {assignment.choices && assignment.choices.length > 0 && (
-            <div className="bg-gray-50 rounded-2xl p-3 space-y-2">
-              <p className="text-sm font-bold text-[#005587]">Choice Board Options</p>
-              <div className="space-y-2">
-                {assignment.choices.map((choice, idx) => (
-                  <div
-                    key={choice.choiceId || idx}
-                    className="bg-white border rounded-xl p-3"
-                    style={{ borderColor: choice.color || '#e5e7eb', borderLeftWidth: 4, borderLeftColor: choice.color || '#005587' }}
+          {assignment.assignmentType === 'choice-board' && (
+            <div className="bg-gray-50 rounded-2xl p-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-bold text-[#005587]">Choice Board Options</p>
+                {!editingChoices ? (
+                  <button
+                    onClick={startEditingChoices}
+                    className="text-xs font-medium text-[#005587] bg-white border border-[#005587]/30 rounded-full px-3 py-1 hover:bg-[#005587]/5"
                   >
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <h3 className="text-sm font-bold text-gray-900">{choice.title || `Choice ${idx + 1}`}</h3>
-                      {typeof choice.maxSlotsPerSection === 'number' && (
-                        <span className="px-2 py-0.5 bg-gray-100 rounded-full text-[10px] font-medium text-gray-600 whitespace-nowrap">
-                          {choice.maxSlotsPerSection} slot{choice.maxSlotsPerSection === 1 ? '' : 's'} / section
-                        </span>
-                      )}
-                    </div>
-                    {choice.description && (
-                      <div
-                        className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap [&_strong]:font-semibold [&_em]:italic"
-                        dangerouslySetInnerHTML={{ __html: choice.description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^## (.+)$/gm, '<h4 class="font-bold text-xs text-gray-900 mt-2 mb-1">$1</h4>').replace(/^---$/gm, '<hr class="my-2 border-gray-200">') }}
-                      />
-                    )}
+                    Edit Choices
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setEditingChoices(false)}
+                      className="text-xs font-medium text-gray-500 bg-white border border-gray-200 rounded-full px-3 py-1"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={saveChoices}
+                      disabled={savingChoices}
+                      className="text-xs font-bold text-white bg-[#005587] rounded-full px-3 py-1 disabled:opacity-50"
+                    >
+                      {savingChoices ? 'Saving...' : 'Save'}
+                    </button>
                   </div>
-                ))}
+                )}
               </div>
+
+              {/* READ-ONLY VIEW */}
+              {!editingChoices && (
+                <div className="space-y-2">
+                  {(assignment.choices && assignment.choices.length > 0) ? (
+                    assignment.choices.map((choice, idx) => (
+                      <div
+                        key={choice.choiceId || idx}
+                        className="bg-white border rounded-xl p-3"
+                        style={{ borderColor: (choice.color || '#e5e7eb') + '55', borderLeftWidth: 4, borderLeftColor: choice.color || '#005587' }}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <h3 className="text-sm font-bold text-gray-900">{choice.title || `Choice ${idx + 1}`}</h3>
+                          {typeof choice.maxSlotsPerSection === 'number' && (
+                            <span className="px-2 py-0.5 bg-gray-100 rounded-full text-[10px] font-medium text-gray-600 whitespace-nowrap">
+                              {choice.maxSlotsPerSection} slot{choice.maxSlotsPerSection === 1 ? '' : 's'} / section
+                            </span>
+                          )}
+                        </div>
+                        {choice.description ? (
+                          <div
+                            className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap [&_strong]:font-semibold [&_em]:italic"
+                            dangerouslySetInnerHTML={{ __html: choice.description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^## (.+)$/gm, '<h4 class="font-bold text-xs text-gray-900 mt-2 mb-1">$1</h4>').replace(/^---$/gm, '<hr class="my-2 border-gray-200">') }}
+                          />
+                        ) : (
+                          <p className="text-xs text-gray-400 italic">No directions yet. Click Edit Choices to add.</p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400 italic">No choices set up yet. Click Edit Choices to add them.</p>
+                  )}
+                </div>
+              )}
+
+              {/* EDIT VIEW */}
+              {editingChoices && (
+                <div className="space-y-3">
+                  {choicesDraft.map((choice, index) => (
+                    <div key={choice.choiceId || index} className="bg-white border border-gray-200 rounded-xl p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: choice.color || choiceColors[index] || '#4A90E2' }} />
+                        <input
+                          type="text"
+                          value={choice.title}
+                          onChange={(e) => setChoicesDraft(prev => prev.map((c, i) => i === index ? { ...c, title: e.target.value } : c))}
+                          placeholder={`Choice ${index + 1} title`}
+                          className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                        />
+                        <div className="flex items-center gap-1 shrink-0">
+                          <input
+                            type="number"
+                            value={choice.maxSlotsPerSection ?? 10}
+                            onChange={(e) => setChoicesDraft(prev => prev.map((c, i) => i === index ? { ...c, maxSlotsPerSection: Number(e.target.value) } : c))}
+                            min={1}
+                            className="w-12 px-1 py-1.5 border border-gray-200 rounded-lg text-xs text-center focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                            title="Max students per section"
+                          />
+                          {choicesDraft.length > 2 && (
+                            <button onClick={() => setChoicesDraft(prev => prev.filter((_, i) => i !== index))} className="text-gray-300 hover:text-red-400 text-sm px-1">✕</button>
+                          )}
+                        </div>
+                      </div>
+                      <FormattingTextarea
+                        value={choice.description}
+                        onChange={(val) => setChoicesDraft(prev => prev.map((c, i) => i === index ? { ...c, description: val } : c))}
+                        placeholder="Directions for this choice. Use the toolbar for bold, headings, lists, and paragraphs..."
+                        rows={4}
+                      />
+                    </div>
+                  ))}
+                  {choicesDraft.length < 4 && (
+                    <button
+                      type="button"
+                      onClick={() => setChoicesDraft(prev => [...prev, { choiceId: `c${prev.length + 1}_${Date.now()}`, title: '', description: '', color: choiceColors[prev.length] || '#4A90E2', maxSlotsPerSection: 10 }])}
+                      className="w-full py-2 border border-dashed border-[#005587]/40 rounded-xl text-xs text-[#005587] hover:bg-[#005587]/5"
+                    >
+                      + Add Choice
+                    </button>
+                  )}
+                  {choicesDraft.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setChoicesDraft([
+                        { choiceId: `c1_${Date.now()}`, title: '', description: '', color: '#4A90E2', maxSlotsPerSection: 10 },
+                        { choiceId: `c2_${Date.now()}`, title: '', description: '', color: '#7B61FF', maxSlotsPerSection: 10 },
+                        { choiceId: `c3_${Date.now()}`, title: '', description: '', color: '#38A169', maxSlotsPerSection: 10 },
+                      ])}
+                      className="w-full py-2 border border-dashed border-[#005587]/40 rounded-xl text-xs text-[#005587] hover:bg-[#005587]/5"
+                    >
+                      + Add Choices
+                    </button>
+                  )}
+                  <p className="text-[10px] text-gray-400">The number sets how many students per section may pick that choice.</p>
+                </div>
+              )}
             </div>
           )}
 
