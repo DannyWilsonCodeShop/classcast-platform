@@ -108,6 +108,20 @@ export async function GET(
       discussionConfig: assignment.discussionConfig || null,
       assessmentQuestions: assignment.assessmentQuestions || null,
       moduleConfig: assignment.moduleConfig || null,
+      assignmentType: assignment.assignmentType || 'video',
+      maxScore: assignment.maxScore || 100,
+      choices: assignment.choices || [],
+      sectionDueDates: assignment.sectionDueDates || {},
+      allowLateSubmission: assignment.allowLateSubmission || false,
+      latePenalty: assignment.latePenalty || 0,
+      maxSubmissions: assignment.maxSubmissions || 1,
+      responseDueDate: assignment.responseDueDate || null,
+      responseWordLimit: assignment.responseWordLimit || 0,
+      peerReviewScope: assignment.peerReviewScope || 'section',
+      requireLiveRecording: assignment.requireLiveRecording || false,
+      allowYouTubeUrl: assignment.allowYouTubeUrl || false,
+      groupAssignment: assignment.groupAssignment || false,
+      maxGroupSize: assignment.maxGroupSize || 4,
     };
     
     return NextResponse.json({
