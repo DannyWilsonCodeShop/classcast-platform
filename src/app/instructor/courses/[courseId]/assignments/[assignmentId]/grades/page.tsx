@@ -163,9 +163,15 @@ const AssignmentGradesPage: React.FC = () => {
     // Apply filters and sorting
     let filtered = [...studentGrades];
     
-    // Apply section filter
+    // Apply section filter (match by sectionId, or by name as a fallback for
+    // records where sectionId is missing/inconsistent but sectionName is set)
     if (selectedSection !== 'all') {
-      filtered = filtered.filter(grade => grade.sectionId === selectedSection);
+      const selected = sections.find(s => s.sectionId === selectedSection);
+      const selectedName = selected?.sectionName;
+      filtered = filtered.filter(grade =>
+        grade.sectionId === selectedSection ||
+        (!!selectedName && grade.sectionName === selectedName)
+      );
     }
     
     // Apply status filter
@@ -213,7 +219,7 @@ const AssignmentGradesPage: React.FC = () => {
     });
     
     setFilteredGrades(filtered);
-  }, [studentGrades, selectedSection, sortBy, searchTerm, statusFilter]);
+  }, [studentGrades, selectedSection, sortBy, searchTerm, statusFilter, sections]);
 
   const fetchData = async () => {
     try {
