@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Choice {
@@ -52,6 +52,55 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
   const [slotCounts, setSlotCounts] = useState<Record<string, number>>({});
   const [flippedCard, setFlippedCard] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Dynamic per-card heights so each card grows to fit the taller of its two faces,
+  // on any viewport width — no clipping, no need to zoom out.
+  const frontRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const backRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const [rowHeight, setRowHeight] = useState<number>(0);
+
+  const measureHeights = useCallback(() => {
+    // Find the tallest content across all faces so every card in the row is uniform
+    // and the tallest card's directions + Record button always fit.
+    let tallest = 200;
+    for (const choice of choices) {
+      const f = frontRefs.current[choice.choiceId]?.scrollHeight || 0;
+      const b = backRefs.current[choice.choiceId]?.scrollHeight || 0;
+      tallest = Math.max(tallest, f, b);
+    }
+    setRowHeight(prev => (prev !== tallest ? tallest : prev));
+  }, [choices]);
+
+  // Re-measure on mount, on content/slot changes, and on window resize.
+  useEffect(() => {
+    measureHeights();
+    const onResize = () => measureHeights();
+    window.addEventListener('resize', onResize);
+    // Observe each face for size changes (fonts loading, reflow, etc.)
+    const observers: ResizeObserver[] = [];
+    if (typeof ResizeObserver !== 'undefined') {
+      for (const choice of choices) {
+        for (const map of [frontRefs.current, backRefs.current]) {
+          const el = map[choice.choiceId];
+          if (el) {
+            const ro = new ResizeObserver(() => measureHeights());
+            ro.observe(el);
+            observers.push(ro);
+          }
+        }
+      }
+    }
+    // A couple of delayed passes catch late layout (web fonts, markdown render)
+    const t1 = setTimeout(measureHeights, 100);
+    const t2 = setTimeout(measureHeights, 500);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      observers.forEach(o => o.disconnect());
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [choices, slotCounts, measureHeights]);
 
   useEffect(() => {
     fetchSlots();
@@ -107,12 +156,13 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
               style={{ perspective: '1000px' }}
             >
               <div
-                className={`relative w-full transition-transform duration-500 min-h-[280px] sm:min-h-[440px] ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`}
-                style={{ transformStyle: 'preserve-3d' }}
+                className={`relative w-full transition-transform duration-500 ${isFlipped ? '[transform:rotateY(180deg)]' : ''}`}
+                style={{ transformStyle: 'preserve-3d', height: rowHeight ? `${rowHeight}px` : 'auto', minHeight: '200px' }}
               >
                 {/* FRONT of card */}
                 <div
-                  className={`absolute inset-0 rounded-2xl p-5 flex flex-col justify-between cursor-pointer active:scale-[0.97] transition-transform ${full ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  ref={(el) => { frontRefs.current[choice.choiceId] = el; }}
+                  className={`absolute inset-0 rounded-2xl p-5 flex flex-col cursor-pointer active:scale-[0.97] transition-transform ${full ? 'opacity-50 cursor-not-allowed' : ''}`}
                   style={{
                     backgroundColor: choice.color + '15',
                     borderColor: choice.color + '40',
@@ -125,7 +175,7 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
                   <div className="w-10 h-1.5 rounded-full" style={{ backgroundColor: choice.color }} />
 
                   {/* Title only on the cover */}
-                  <div className="flex-1 flex items-center justify-center text-center px-2">
+                  <div className="flex-1 flex items-center justify-center text-center px-2 py-8 min-h-[120px]">
                     <h3 className="text-lg sm:text-xl font-bold text-stone-900 leading-snug" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>
                       {choice.title}
                     </h3>
@@ -144,6 +194,7 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
 
                 {/* BACK of card (flipped) */}
                 <div
+                  ref={(el) => { backRefs.current[choice.choiceId] = el; }}
                   className="absolute inset-0 rounded-2xl p-5 flex flex-col bg-white border-2"
                   style={{
                     borderColor: choice.color,
@@ -166,14 +217,17 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
                   {/* Choice-specific directions */}
                   {choice.description ? (
                     <div
-                      className="flex-1 text-xs sm:text-[13px] text-stone-700 leading-relaxed mb-3 min-h-0 overflow-y-auto [&_p]:mb-1.5 [&_strong]:font-semibold [&_em]:italic [&_h4]:font-bold [&_h4]:text-stone-900 [&_h4]:mt-2 [&_h4]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-1 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:space-y-1 [&_li]:leading-snug"
+                      className="text-xs sm:text-[13px] text-stone-700 leading-relaxed mb-3 [&_p]:mb-1.5 [&_strong]:font-semibold [&_em]:italic [&_h4]:font-bold [&_h4]:text-stone-900 [&_h4]:mt-2 [&_h4]:mb-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:space-y-1 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:space-y-1 [&_li]:leading-snug"
                       dangerouslySetInnerHTML={{ __html: renderChoiceMarkdown(choice.description) }}
                     />
                   ) : (
-                    <div className="flex-1 text-xs text-stone-400 italic leading-relaxed mb-3">
+                    <div className="text-xs text-stone-400 italic leading-relaxed mb-3">
                       {assignmentDescription || 'No specific directions for this choice.'}
                     </div>
                   )}
+
+                  {/* Spacer pushes meta + button to the bottom when there's extra room */}
+                  <div className="flex-1 min-h-0" />
 
                   {/* Meta info */}
                   <div className="text-[10px] text-stone-400 space-y-0.5 mb-3">
