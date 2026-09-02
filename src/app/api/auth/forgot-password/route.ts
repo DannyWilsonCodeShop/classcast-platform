@@ -37,17 +37,20 @@ export async function POST(request: NextRequest) {
 
     const sanitizedEmail = email.toLowerCase().trim();
 
-    // Find user by email in DynamoDB
+    // Find user by email in DynamoDB.
+    // Some accounts were stored with mixed-case emails, so match case-insensitively:
+    // scan all users and compare lowercased emails in code (DynamoDB filters can't lowercase).
     const userResponse = await docClient.send(new ScanCommand({
       TableName: USERS_TABLE,
-      FilterExpression: 'email = :email',
-      ExpressionAttributeValues: {
-        ':email': sanitizedEmail
-      }
+      ProjectionExpression: 'email',
     }));
 
+    const matchedUser = (userResponse.Items || []).find(
+      (u) => typeof u.email === 'string' && u.email.toLowerCase().trim() === sanitizedEmail
+    );
+
     // Always return success to prevent email enumeration
-    if (!userResponse.Items || userResponse.Items.length === 0) {
+    if (!matchedUser) {
       console.log('User not found:', sanitizedEmail);
       return NextResponse.json({
         message: 'If an account with that email exists, a password reset link has been sent.'

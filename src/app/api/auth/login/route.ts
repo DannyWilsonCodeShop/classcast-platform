@@ -290,21 +290,22 @@ export async function POST(request: NextRequest) {
     
     let userData;
     try {
+        // Case-insensitive lookup: some accounts were stored with mixed-case emails,
+        // so scan and compare lowercased values (DynamoDB filters can't lowercase).
         const userResult = await docClient.send(new ScanCommand({
           TableName: USERS_TABLE,
-          FilterExpression: 'email = :email',
-          ExpressionAttributeValues: {
-            ':email': sanitizedEmail
-          }
         }));
 
+      const matchedUser = (userResult.Items || []).find(
+        (u) => typeof u.email === 'string' && u.email.toLowerCase().trim() === sanitizedEmail
+      );
+
       console.log('DynamoDB scan result:', {
-        count: userResult.Count,
         scannedCount: userResult.ScannedCount,
-        items: userResult.Items?.length || 0
+        matched: !!matchedUser
       });
 
-      if (!userResult.Items || userResult.Items.length === 0) {
+      if (!matchedUser) {
         console.log('User not found in DynamoDB:', email);
         return NextResponse.json(
           { error: { message: 'No account found with this email address' } },
@@ -312,7 +313,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      userData = userResult.Items[0];
+      userData = matchedUser;
       console.log('Found user data:', {
         userId: userData.userId,
         email: userData.email,

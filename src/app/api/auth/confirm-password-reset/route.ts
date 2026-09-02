@@ -84,23 +84,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user by email
+    // Find user by email (case-insensitive: some accounts stored mixed-case emails)
     const userResponse = await docClient.send(new ScanCommand({
       TableName: USERS_TABLE,
-      FilterExpression: 'email = :email',
-      ExpressionAttributeValues: {
-        ':email': sanitizedEmail
-      }
     }));
 
-    if (!userResponse.Items || userResponse.Items.length === 0) {
+    const user = (userResponse.Items || []).find(
+      (u) => typeof u.email === 'string' && u.email.toLowerCase().trim() === sanitizedEmail
+    );
+
+    if (!user) {
       return NextResponse.json(
         { error: { message: 'User not found' } },
         { status: 404 }
       );
     }
-
-    const user = userResponse.Items[0];
 
     // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
