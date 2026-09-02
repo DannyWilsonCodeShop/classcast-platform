@@ -97,6 +97,9 @@ const NewAssignmentGradingPage: React.FC = () => {
   const [savingGrades, setSavingGrades] = useState<Set<string>>(new Set());
   const [saveTimeouts, setSaveTimeouts] = useState<Record<string, NodeJS.Timeout>>({});
 
+  // Authoritative section list for this course (from sections + enrollment, not from submissions)
+  const [courseSections, setCourseSections] = useState<Array<{ id: string; name: string; count: number }>>([]);
+
   // Fetch assignment and submissions
   useEffect(() => {
     const fetchData = async () => {
@@ -194,6 +197,55 @@ const NewAssignmentGradingPage: React.FC = () => {
           
           console.log('🎯 NEW GRADING PAGE: Filtered submissions for assignment:', transformedSubmissions.length);
           setAllSubmissions(transformedSubmissions);
+
+          // Enrich submissions + build the authoritative section list from the course's
+          // sections table + enrollment roster (submissions alone often lack section info,
+          // which is why the section dropdown only showed "All / No Section").
+          const resolvedCourseId = assignmentInfo?.courseId
+            || submissionsData.submissions.find((s: any) => s.assignmentId === assignmentId)?.assignment?.courseId
+            || '';
+          if (resolvedCourseId) {
+            try {
+              const [enrollRes, sectionsRes] = await Promise.all([
+                fetch(`/api/courses/enrollment?courseId=${resolvedCourseId}`, { credentials: 'include' }),
+                fetch(`/api/sections?courseId=${resolvedCourseId}`, { credentials: 'include' }),
+              ]);
+              const enrollData = enrollRes.ok ? await enrollRes.json() : null;
+              const sectionsData2 = sectionsRes.ok ? await sectionsRes.json() : null;
+
+              const sectionNameById: Record<string, string> = {};
+              const allSections: Array<{ id: string; name: string }> = (sectionsData2?.data || []).map((s: any) => {
+                if (s.sectionId) sectionNameById[s.sectionId] = s.sectionName;
+                return { id: s.sectionId, name: s.sectionName };
+              });
+
+              // studentId -> sectionId from the enrollment roster
+              const studentSection: Record<string, string> = {};
+              for (const st of (enrollData?.data?.students || [])) {
+                if (st.userId && st.sectionId) studentSection[st.userId] = st.sectionId;
+              }
+
+              // Enrich each submission with the student's real section
+              const enriched = transformedSubmissions.map(sub => {
+                const sid = sub.sectionId || studentSection[sub.studentId] || null;
+                const sname = (sid && sectionNameById[sid]) || sub.sectionName || null;
+                return { ...sub, sectionId: sid, sectionName: sname };
+              });
+              setAllSubmissions(enriched);
+
+              // Build the section dropdown list from ALL course sections (with live counts),
+              // so every section appears even if no one in it has submitted yet.
+              const counts: Record<string, number> = {};
+              for (const e of enriched) if (e.sectionId) counts[e.sectionId] = (counts[e.sectionId] || 0) + 1;
+              const list = allSections
+                .filter(s => s.id)
+                .map(s => ({ id: s.id, name: s.name, count: counts[s.id] || 0 }))
+                .sort((a, b) => a.name.localeCompare(b.name));
+              setCourseSections(list);
+            } catch (e) {
+              console.warn('Section enrichment failed:', e);
+            }
+          }
           
           // If assignment data wasn't fetched successfully, try to extract it from submissions
           if (!assignmentInfo && transformedSubmissions.length > 0) {
@@ -371,8 +423,9 @@ const NewAssignmentGradingPage: React.FC = () => {
     fetchPeerResponses();
   }, [allSubmissions.length, assignmentId]);
 
-  // Get unique sections for filtering using utility
-  const sections = extractSections(allSubmissions);
+  // Prefer the authoritative course section list; fall back to deriving from submissions
+  const derivedSections = extractSections(allSubmissions);
+  const sections = courseSections.length > 0 ? courseSections : derivedSections;
   const sectionStats = getSectionStats(allSubmissions, selectedSection);
 
   // Helper functions for peer responses
