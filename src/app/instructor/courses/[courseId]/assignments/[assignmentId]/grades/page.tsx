@@ -58,6 +58,8 @@ interface StudentGrade {
   sectionId?: string;
   sectionName?: string;
   submissionId?: string;
+  thumbnailUrl?: string;
+  videoUrl?: string;
   grade?: number;
   feedback?: string;
   submittedAt?: string;
@@ -296,6 +298,8 @@ const AssignmentGradesPage: React.FC = () => {
       submissions.forEach((sub: any) => {
         submissionMap.set(sub.studentId, {
           submissionId: sub.submissionId,
+          thumbnailUrl: sub.thumbnailUrl,
+          videoUrl: sub.videoUrl,
           grade: sub.grade,
           feedback: sub.instructorFeedback || sub.feedback,
           submittedAt: sub.submittedAt,
@@ -355,6 +359,8 @@ const AssignmentGradesPage: React.FC = () => {
             sectionId: student.sectionId,
             sectionName: resolvedSectionName,
             submissionId: submission?.submissionId,
+            thumbnailUrl: submission?.thumbnailUrl,
+            videoUrl: submission?.videoUrl,
             grade: submission?.grade,
             feedback: submission?.feedback,
             submittedAt: submission?.submittedAt,
@@ -813,8 +819,25 @@ const AssignmentGradesPage: React.FC = () => {
                       onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}?submissionId=${grade.submissionId}&student=${grade.studentId}`)}
                       className="flex-shrink-0 w-[120px] bg-gray-50 rounded-2xl p-2 text-center"
                     >
-                      <div className="w-full h-16 bg-white border border-gray-200 rounded-xl flex items-center justify-center mb-1.5">
-                        <div className="text-xl">🎥</div>
+                      <div className="relative w-full h-16 bg-gray-900 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center mb-1.5">
+                        {grade.thumbnailUrl && !grade.thumbnailUrl.includes('placeholder') ? (
+                          <>
+                            <img
+                              src={grade.thumbnailUrl}
+                              alt=""
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <div className="w-6 h-6 rounded-full bg-black/40 flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-xl">🎥</div>
+                        )}
                       </div>
                       <p className="text-[10px] text-gray-700 font-medium truncate">{grade.studentName}</p>
                       <p className="text-[9px] text-gray-400">

@@ -329,8 +329,31 @@ export async function GET(request: NextRequest) {
             }
           }
 
+          // Sign the thumbnail URL too (S3 thumbnails need presigned access, otherwise
+          // they 403 and render blank). Leave public/non-S3 thumbnails (e.g. YouTube) as-is.
+          let signedThumbnailUrl = submission.thumbnailUrl;
+          if (
+            submission.thumbnailUrl &&
+            !submission.thumbnailUrl.includes('placeholder') &&
+            submission.thumbnailUrl.includes('amazonaws.com')
+          ) {
+            try {
+              const thumbKey = extractS3KeyFromUrl(submission.thumbnailUrl);
+              if (thumbKey) {
+                const thumbCommand = new GetObjectCommand({
+                  Bucket: VIDEO_BUCKET,
+                  Key: thumbKey,
+                });
+                signedThumbnailUrl = await getSignedUrl(s3Client, thumbCommand, { expiresIn: SIGNED_URL_EXPIRY });
+              }
+            } catch (error) {
+              console.warn('Could not generate signed URL for thumbnail:', error);
+            }
+          }
+
           return {
             ...submission,
+            thumbnailUrl: signedThumbnailUrl,
             videoUrl: signedVideoUrl,
             youtubeUrl: submission.youtubeUrl || null,
             googleDriveUrl: submission.googleDriveUrl || submission.googleDriveOriginalUrl || null,
