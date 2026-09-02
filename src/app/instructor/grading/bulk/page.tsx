@@ -11,6 +11,7 @@ import { parseVideoUrl, getEmbedUrl } from '@/lib/urlUtils';
 import { extractYouTubeVideoId, getYouTubeEmbedUrl, getYouTubeThumbnail } from '@/lib/youtube';
 import { RubricGradingPanel } from '@/components/instructor/RubricGradingPanel';
 import { PeerResponseIndicator } from '@/components/instructor/PeerResponseIndicator';
+import { addRecentStudent } from '@/components/instructor/GlobalStudentSearch';
 import { ProblemReferenceModal } from '@/components/instructor/ProblemReferenceModal';
 import { HelpTooltip } from '@/components/common/HelpTooltip';
 import { RubricCategory } from '@/types/rubric';
@@ -238,6 +239,16 @@ const BulkGradingContent: React.FC = () => {
           setFilter('all'); // Show all assignments when viewing a specific student
           if (studentNameParam) {
             setSelectedStudentName(decodeURIComponent(studentNameParam));
+          }
+          // Record this student in "Recent" so they can be jumped to again quickly
+          if (courseParam) {
+            addRecentStudent({
+              studentId: studentParam,
+              studentName: studentNameParam ? decodeURIComponent(studentNameParam) : 'Student',
+              courseId: courseParam,
+              courseName: '',
+              sectionName: null,
+            });
           }
         }
         

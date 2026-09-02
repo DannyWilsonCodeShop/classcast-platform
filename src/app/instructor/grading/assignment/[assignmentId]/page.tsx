@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -70,9 +70,16 @@ type SortType = 'name' | 'date' | 'grade' | 'section';
 const NewAssignmentGradingPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   
   const assignmentId = params.assignmentId as string;
+
+  // Deep-link focus: when arriving from a "Grade" link, focus a single submission
+  const focusSubmissionIdParam = searchParams.get('submissionId');
+  const focusStudentIdParam = searchParams.get('student');
+  const [focusSubmissionId, setFocusSubmissionId] = useState<string | null>(focusSubmissionIdParam);
+  const [focusStudentId, setFocusStudentId] = useState<string | null>(focusStudentIdParam);
   
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [allSubmissions, setAllSubmissions] = useState<VideoSubmission[]>([]);
@@ -323,6 +330,20 @@ const NewAssignmentGradingPage: React.FC = () => {
   useEffect(() => {
     let filtered = [...orderedSubmissions];
     
+    // Deep-link focus: if we arrived targeting one submission/student, show only that
+    // one until the instructor clears focus. This works with virtualization (no scroll hack).
+    if (focusSubmissionId || focusStudentId) {
+      const focused = filtered.filter(sub =>
+        (focusSubmissionId && sub.submissionId === focusSubmissionId) ||
+        (focusStudentId && sub.studentId === focusStudentId)
+      );
+      // Only apply focus if we actually found the target (otherwise fall through to normal view)
+      if (focused.length > 0) {
+        setFilteredSubmissions(focused);
+        return;
+      }
+    }
+
     // Apply status filter
     if (filter === 'graded') {
       filtered = filtered.filter(sub => sub.status === 'graded');
@@ -345,7 +366,7 @@ const NewAssignmentGradingPage: React.FC = () => {
     }
     
     setFilteredSubmissions(filtered);
-  }, [orderedSubmissions, filter, searchTerm, sortBy, selectedSection]);
+  }, [orderedSubmissions, filter, searchTerm, sortBy, selectedSection, focusSubmissionId, focusStudentId]);
 
   // Fetch peer responses for all students
   useEffect(() => {
@@ -856,6 +877,23 @@ const NewAssignmentGradingPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Focused-submission banner (from a deep-link "Grade" click) */}
+        {(focusSubmissionId || focusStudentId) && filteredSubmissions.length > 0 && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
+            <div className="flex items-center justify-between bg-[#005587]/5 border border-[#005587]/20 rounded-xl px-4 py-2">
+              <span className="text-sm text-[#005587] font-medium">
+                Showing {filteredSubmissions[0]?.studentName || 'one student'}&apos;s submission
+              </span>
+              <button
+                onClick={() => { setFocusSubmissionId(null); setFocusStudentId(null); }}
+                className="text-xs font-bold text-[#005587] bg-white border border-[#005587]/30 rounded-full px-3 py-1 hover:bg-[#005587]/10"
+              >
+                Show all submissions
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Main Content - Scrollable Feed */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
