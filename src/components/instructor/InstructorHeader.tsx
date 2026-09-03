@@ -34,7 +34,7 @@ export function InstructorHeader() {
         <span className="text-base font-bold truncate" style={{ color: theme.primary }}>{getPageTitle()}</span>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <GlobalStudentSearch />
+        <GlobalStudentSearch align="right" />
         {schoolLogo && (
           <img src={schoolLogo} alt="" className="w-10 h-10 object-contain" />
         )}

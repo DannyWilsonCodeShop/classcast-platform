@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import { CreateModal } from './CreateModal';
 import { useSchoolTheme } from '@/hooks/useSchoolTheme';
+import { GlobalStudentSearch } from './GlobalStudentSearch';
 
 interface NavItem {
   label: string;
@@ -113,6 +114,13 @@ export function InstructorSidebar() {
           <img src="/UpdatedCCLogo.png" alt="" className="w-8 h-8 object-contain" />
         )}
       </div>
+
+      {/* Global student search (desktop sidebar) */}
+      {isDesktop && (
+        <div className="px-2 pt-2">
+          <GlobalStudentSearch />
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 py-2 px-2 space-y-1 overflow-y-auto">

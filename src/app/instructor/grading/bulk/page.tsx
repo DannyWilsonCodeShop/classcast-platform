@@ -1015,7 +1015,16 @@ const BulkGradingContent: React.FC = () => {
                           ) : isGoogleDrive && embedUrl ? (
                             <iframe src={embedUrl} className="w-full h-full" allow="autoplay" allowFullScreen title={`${submission.studentName}'s video`} />
                           ) : (
-                            <video key={submission.submissionId} src={getVideoUrl(submission.videoUrl)} className="w-full h-full object-contain" controls playsInline preload="none" crossOrigin="anonymous" />
+                            <video
+                              key={submission.submissionId}
+                              src={getVideoUrl(submission.videoUrl)}
+                              poster={submission.thumbnailUrl && !submission.thumbnailUrl.includes('placeholder') ? submission.thumbnailUrl : undefined}
+                              className="w-full h-full object-contain"
+                              controls
+                              playsInline
+                              preload="metadata"
+                              crossOrigin="anonymous"
+                            />
                           )}
                         </div>
                         <div className="mt-2 text-xs text-gray-500 flex items-center gap-3">

@@ -49,7 +49,7 @@ export function addRecentStudent(item: Omit<RecentItem, 'at'>) {
   } catch {}
 }
 
-export function GlobalStudentSearch() {
+export function GlobalStudentSearch({ align = 'left' }: { align?: 'left' | 'right' } = {}) {
   const router = useRouter();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -119,21 +119,21 @@ export function GlobalStudentSearch() {
   );
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative w-full">
       {/* Trigger / input */}
       <button
         onClick={() => setOpen(true)}
-        className={`flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-stone-400 hover:border-stone-300 transition-colors ${open ? 'hidden' : ''}`}
+        className={`w-full flex items-center gap-1.5 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-stone-400 hover:border-stone-300 transition-colors ${open ? 'hidden' : ''}`}
         aria-label="Search students"
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
-        <span className="text-xs">Search students</span>
+        <span className="text-xs truncate">Search students</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-0 z-50 w-[min(88vw,320px)]">
+        <div className={`absolute top-0 z-50 w-[min(88vw,320px)] ${align === 'right' ? 'right-0' : 'left-0'}`}>
           <div className="rounded-2xl border border-stone-200 bg-white shadow-lg overflow-hidden">
             <div className="flex items-center gap-2 px-3 py-2 border-b border-stone-100">
               <svg className="w-4 h-4 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
