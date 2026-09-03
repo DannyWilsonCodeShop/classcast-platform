@@ -241,45 +241,72 @@ function RecordPageInner() {
     return null;
   };
 
-  // Auto-generate thumbnail from video at 2 seconds
+  // Auto-generate thumbnail from a video URL. Waits for metadata, seeks to ~1s,
+  // and captures a frame. Robust to slow-decoding .mov/.webm files.
   const generateThumbnailFromVideo = (videoSrc: string): Promise<string | null> => {
     return new Promise((resolve) => {
       const video = document.createElement('video');
       video.crossOrigin = 'anonymous';
       video.muted = true;
-      video.playsInline = true;
+      (video as any).playsInline = true;
       video.preload = 'auto';
+
+      let done = false;
+      const finish = (result: string | null) => {
+        if (done) return;
+        done = true;
+        try { video.removeAttribute('src'); video.load(); } catch {}
+        resolve(result);
+      };
+
+      const capture = () => {
+        try {
+          const w = video.videoWidth;
+          const h = video.videoHeight;
+          if (!w || !h) { finish(null); return; }
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.min(w, 640);
+          canvas.height = Math.round(canvas.width * (h / w));
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { finish(null); return; }
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          finish(canvas.toDataURL('image/jpeg', 0.7));
+        } catch {
+          finish(null);
+        }
+      };
+
+      // Seek once we know the duration (metadata), targeting ~1s in.
+      const seek = () => {
+        const target = Number.isFinite(video.duration) && video.duration > 0
+          ? Math.min(1, video.duration * 0.1)
+          : 0.1;
+        try { video.currentTime = target; } catch { capture(); }
+      };
+
+      video.onloadedmetadata = seek;
+      video.onseeked = capture;
+      video.onerror = () => finish(null);
+
       video.src = videoSrc;
 
-      video.onloadeddata = () => {
-        // Seek to 2 seconds (or 10% of duration if shorter)
-        video.currentTime = Math.min(2, video.duration * 0.1);
-      };
-
-      video.onseeked = () => {
-        try {
-          const canvas = document.createElement('canvas');
-          canvas.width = Math.min(video.videoWidth, 640);
-          canvas.height = Math.round(canvas.width * (video.videoHeight / video.videoWidth));
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            resolve(dataUrl);
-          } else {
-            resolve(null);
-          }
-        } catch {
-          resolve(null);
-        }
-        video.src = '';
-      };
-
-      video.onerror = () => resolve(null);
-
-      // Timeout after 5 seconds
-      setTimeout(() => resolve(null), 5000);
+      // Longer timeout: large phone videos can take a while to decode the first frame
+      setTimeout(() => finish(null), 15000);
     });
+  };
+
+  // Generate a thumbnail directly from a File (works even for large uploads where we
+  // don't keep a preview object URL around). Creates and revokes its own object URL.
+  const generateThumbnailFromFile = async (file: File): Promise<string | null> => {
+    let url: string | null = null;
+    try {
+      url = URL.createObjectURL(file);
+      return await generateThumbnailFromVideo(url);
+    } catch {
+      return null;
+    } finally {
+      if (url) { try { URL.revokeObjectURL(url); } catch {} }
+    }
   };
 
   // Submit
@@ -454,10 +481,15 @@ function RecordPageInner() {
         finalThumbnailUrl = thumbnailUrl;
       }
 
-      // Auto-generate thumbnail from video if none was captured
-      if (!finalThumbnailUrl && videoFile && videoPreviewUrl && !isYouTube && !isGoogleDrive) {
+      // Auto-generate thumbnail from the video if none was captured.
+      // Generate straight from the File so it works for uploads AND large files
+      // (which don't keep a preview object URL around).
+      if (!finalThumbnailUrl && videoFile && !isYouTube && !isGoogleDrive) {
         try {
-          const thumbDataUrl = await generateThumbnailFromVideo(videoPreviewUrl);
+          const thumbDataUrl =
+            (videoPreviewUrl && videoPreviewUrl !== 'large-file'
+              ? await generateThumbnailFromVideo(videoPreviewUrl)
+              : null) || (await generateThumbnailFromFile(videoFile));
           if (thumbDataUrl) {
             const thumbRes = await fetch('/api/upload/thumbnail', {
               method: 'POST',
