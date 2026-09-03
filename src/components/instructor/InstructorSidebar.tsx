@@ -7,7 +7,6 @@ import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import { CreateModal } from './CreateModal';
 import { useSchoolTheme } from '@/hooks/useSchoolTheme';
 import { GlobalStudentSearch } from './GlobalStudentSearch';
-import { isFullSiteEnabled, setFullSite } from '@/lib/studyHallMode';
 
 interface NavItem {
   label: string;
@@ -53,24 +52,22 @@ const NAV_ITEMS: NavItem[] = [
 export function InstructorSidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { isDesktop } = useIsWideScreen();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [hasTeam, setHasTeam] = useState(false);
   const [hasCourses, setHasCourses] = useState(true); // default true to avoid flash
-  const [fullSite, setFullSiteState] = useState(false);
   const theme = useSchoolTheme();
 
   const studyHallOnly = (user as any)?.studyHallOnly === true;
-  const studyHallLocked = studyHallOnly && !fullSite;
+  // Study-hall-only accounts always show the collapsed nav; "Full site" logs out
+  // so a full instructor account can sign in instead.
+  const studyHallLocked = studyHallOnly;
 
-  // Track full-site session toggle
-  useEffect(() => {
-    setFullSiteState(isFullSiteEnabled());
-    const onChange = () => setFullSiteState(isFullSiteEnabled());
-    window.addEventListener('classcast-full-site-change', onChange);
-    return () => window.removeEventListener('classcast-full-site-change', onChange);
-  }, []);
+  const handleFullSite = async () => {
+    try { await logout(); } catch {}
+    router.push('/auth/login');
+  };
 
   // Prefetch all instructor routes on mount for instant navigation
   useEffect(() => {
@@ -187,32 +184,20 @@ export function InstructorSidebar() {
           </div>
         )}
 
-        {/* Full site / Study Hall toggle (only for study-hall-only accounts) */}
+        {/* Full site button (study-hall-only accounts): logs out to the login page
+            so an instructor can sign in with their own full account. */}
         {studyHallOnly && (
           <div className="pt-3">
-            {studyHallLocked ? (
-              <button
-                onClick={() => setFullSite(true)}
-                className={`w-full flex items-center gap-2 rounded-xl border border-[#005587]/30 text-[#005587] min-h-[44px] hover:bg-[#005587]/5 ${
-                  isDesktop ? 'px-3 py-2.5 justify-start' : 'justify-center py-2.5'
-                }`}
-                title={!isDesktop ? 'Full site' : undefined}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
-                {isDesktop && <span className="text-sm font-medium">Full site</span>}
-              </button>
-            ) : (
-              <button
-                onClick={() => { setFullSite(false); router.push('/instructor/study-hall'); }}
-                className={`w-full flex items-center gap-2 rounded-xl border border-gray-200 text-gray-500 min-h-[44px] hover:bg-gray-50 ${
-                  isDesktop ? 'px-3 py-2.5 justify-start' : 'justify-center py-2.5'
-                }`}
-                title={!isDesktop ? 'Study Hall only' : undefined}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                {isDesktop && <span className="text-sm font-medium">Study Hall only</span>}
-              </button>
-            )}
+            <button
+              onClick={handleFullSite}
+              className={`w-full flex items-center gap-2 rounded-xl border border-[#005587]/30 text-[#005587] min-h-[44px] hover:bg-[#005587]/5 ${
+                isDesktop ? 'px-3 py-2.5 justify-start' : 'justify-center py-2.5'
+              }`}
+              title={!isDesktop ? 'Full site' : undefined}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14M3 12a9 9 0 1118 0 9 9 0 01-18 0z" /></svg>
+              {isDesktop && <span className="text-sm font-medium">Full site (log in)</span>}
+            </button>
           </div>
         )}
       </nav>

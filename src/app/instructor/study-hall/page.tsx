@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { TestTrackerCalendar } from '@/components/study-hall/TestTrackerCalendar';
 
 interface StudentResult {
   name: string;
@@ -50,7 +51,9 @@ export default function StudyHallPage() {
   const [loadingTeam, setLoadingTeam] = useState(true);
 
   // Pickup roster view
-  const [showPickupRoster, setShowPickupRoster] = useState(false);
+  const [activeTab, setActiveTab] = useState<'request' | 'pickup' | 'tests'>('request');
+  const showPickupRoster = activeTab === 'pickup';
+  const setShowPickupRoster = (v: boolean) => setActiveTab(v ? 'pickup' : 'request');
   const [pickupPullouts, setPickupPullouts] = useState<any[]>([]);
   const [pickupLoading, setPickupLoading] = useState(false);
   const [pickupDate, setPickupDate] = useState(() => {
@@ -303,25 +306,33 @@ export default function StudyHallPage() {
           {/* Tab bar */}
           <div className="flex border-b border-gray-200 mb-4">
             <button
-              onClick={() => setShowPickupRoster(false)}
-              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors ${!showPickupRoster ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+              onClick={() => setActiveTab('request')}
+              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors ${activeTab === 'request' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
             >
               Request Pullout
             </button>
             <button
-              onClick={() => setShowPickupRoster(true)}
-              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors relative ${showPickupRoster ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+              onClick={() => setActiveTab('pickup')}
+              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors relative ${activeTab === 'pickup' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
             >
               Today&apos;s List
               {pickupPullouts.length > 0 && (
-                <span className="absolute top-1.5 right-[calc(50%-35px)] bg-[#005587] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute top-1.5 right-[calc(50%-45px)] bg-[#005587] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center">
                   {pickupPullouts.length}
                 </span>
               )}
             </button>
+            <button
+              onClick={() => setActiveTab('tests')}
+              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors ${activeTab === 'tests' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+            >
+              Test Tracker
+            </button>
           </div>
 
-          {!showPickupRoster ? (
+          {activeTab === 'tests' ? (
+            <TestTrackerCalendar />
+          ) : !showPickupRoster ? (
             <>
               {/* Add Pullout Request */}
               <div className="bg-gray-50 rounded-2xl p-4 mb-6">

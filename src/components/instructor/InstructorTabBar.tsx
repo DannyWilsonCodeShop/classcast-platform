@@ -9,7 +9,6 @@ import { useLiquidGlass } from '@/hooks/useLiquidGlass';
 import { useSwipeNavigationContext } from '@/components/transitions/SwipeNavigationProvider';
 import { CreateModal } from '@/components/instructor/CreateModal';
 import { useSchoolTheme } from '@/hooks/useSchoolTheme';
-import { isFullSiteEnabled, setFullSite } from '@/lib/studyHallMode';
 
 /**
  * Floating glass bottom navigation bar for instructor mobile pages.
@@ -19,7 +18,12 @@ import { isFullSiteEnabled, setFullSite } from '@/lib/studyHallMode';
 export function InstructorTabBar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+
+  const handleFullSite = async () => {
+    try { await logout(); } catch {}
+    router.push('/auth/login');
+  };
 
   // Prefetch routes on mount
   useEffect(() => {
@@ -97,16 +101,9 @@ export function InstructorTabBar() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
-  // Study-hall-only lock state (with full-site session toggle)
-  const [fullSite, setFullSiteState] = useState(false);
-  useEffect(() => {
-    setFullSiteState(isFullSiteEnabled());
-    const onChange = () => setFullSiteState(isFullSiteEnabled());
-    window.addEventListener('classcast-full-site-change', onChange);
-    return () => window.removeEventListener('classcast-full-site-change', onChange);
-  }, []);
+  // Study-hall-only accounts always show the minimal bar; "Full site" logs out.
   const studyHallOnly = (user as any)?.studyHallOnly === true;
-  const studyHallLocked = studyHallOnly && !fullSite;
+  const studyHallLocked = studyHallOnly;
 
   // Prefetch tab routes on mount for instant navigation
   useEffect(() => {
@@ -156,8 +153,8 @@ export function InstructorTabBar() {
               <svg className={`w-6 h-6 ${pathname?.startsWith('/instructor/study-hall') ? activeColor : inactiveColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
               <span className={`text-[9px] ${pathname?.startsWith('/instructor/study-hall') ? activeColor + ' font-medium' : inactiveColor}`}>Study Hall</span>
             </button>
-            <button onClick={() => setFullSite(true)} className="flex flex-col items-center w-1/3 py-1">
-              <svg className={`w-6 h-6 ${inactiveColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            <button onClick={handleFullSite} className="flex flex-col items-center w-1/3 py-1">
+              <svg className={`w-6 h-6 ${inactiveColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14M3 12a9 9 0 1118 0 9 9 0 01-18 0z" /></svg>
               <span className={`text-[9px] ${inactiveColor}`}>Full site</span>
             </button>
             <button onClick={() => router.push('/instructor/profile')} className="flex flex-col items-center w-1/3 py-1">
