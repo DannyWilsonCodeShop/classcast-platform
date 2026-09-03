@@ -9,6 +9,7 @@ import { useLiquidGlass } from '@/hooks/useLiquidGlass';
 import { useSwipeNavigationContext } from '@/components/transitions/SwipeNavigationProvider';
 import { CreateModal } from '@/components/instructor/CreateModal';
 import { useSchoolTheme } from '@/hooks/useSchoolTheme';
+import { isFullSiteEnabled, setFullSite } from '@/lib/studyHallMode';
 
 /**
  * Floating glass bottom navigation bar for instructor mobile pages.
@@ -96,12 +97,24 @@ export function InstructorTabBar() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
 
+  // Study-hall-only lock state (with full-site session toggle)
+  const [fullSite, setFullSiteState] = useState(false);
+  useEffect(() => {
+    setFullSiteState(isFullSiteEnabled());
+    const onChange = () => setFullSiteState(isFullSiteEnabled());
+    window.addEventListener('classcast-full-site-change', onChange);
+    return () => window.removeEventListener('classcast-full-site-change', onChange);
+  }, []);
+  const studyHallOnly = (user as any)?.studyHallOnly === true;
+  const studyHallLocked = studyHallOnly && !fullSite;
+
   // Prefetch tab routes on mount for instant navigation
   useEffect(() => {
     router.prefetch('/instructor/dashboard');
     router.prefetch('/instructor/grading');
     router.prefetch('/instructor/courses');
     router.prefetch('/instructor/profile');
+    router.prefetch('/instructor/study-hall');
   }, [router]);
 
   // Create button handler
@@ -126,7 +139,37 @@ export function InstructorTabBar() {
       {/* Spacer to prevent content from hiding behind fixed nav */}
       <div className="shrink-0 h-[80px] native-bottom-nav" />
 
-      {mounted && createPortal(
+      {/* Minimal bottom bar for study-hall-only accounts: Study Hall | Full site | Profile */}
+      {mounted && studyHallLocked && createPortal(
+        <nav
+          className="fixed bottom-4 left-4 right-4 z-40 px-2 py-2 rounded-2xl native-bottom-nav"
+          style={{
+            background: 'rgba(255,255,255,0.15)',
+            backdropFilter: 'blur(24px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.3)',
+          }}
+        >
+          <div className="relative flex items-center justify-around">
+            <button onClick={() => router.push('/instructor/study-hall')} className="flex flex-col items-center w-1/3 py-1">
+              <svg className={`w-6 h-6 ${pathname?.startsWith('/instructor/study-hall') ? activeColor : inactiveColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+              <span className={`text-[9px] ${pathname?.startsWith('/instructor/study-hall') ? activeColor + ' font-medium' : inactiveColor}`}>Study Hall</span>
+            </button>
+            <button onClick={() => setFullSite(true)} className="flex flex-col items-center w-1/3 py-1">
+              <svg className={`w-6 h-6 ${inactiveColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+              <span className={`text-[9px] ${inactiveColor}`}>Full site</span>
+            </button>
+            <button onClick={() => router.push('/instructor/profile')} className="flex flex-col items-center w-1/3 py-1">
+              <svg className={`w-6 h-6 ${pathname?.startsWith('/instructor/profile') ? activeColor : inactiveColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+              <span className={`text-[9px] ${pathname?.startsWith('/instructor/profile') ? activeColor + ' font-medium' : inactiveColor}`}>Profile</span>
+            </button>
+          </div>
+        </nav>,
+        document.body
+      )}
+
+      {mounted && !studyHallLocked && createPortal(
         <nav
           className="fixed bottom-4 left-4 right-4 z-40 px-2 py-2 rounded-2xl native-bottom-nav"
           style={{

@@ -61,6 +61,8 @@ export async function GET(request: NextRequest) {
       favoriteSubject: result.Item.favoriteSubject,
       hobbies: result.Item.hobbies,
       schoolName: result.Item.schoolName,
+      schoolLogo: result.Item.schoolLogo,
+      studyHallOnly: result.Item.studyHallOnly === true,
       yearsExperience: result.Item.yearsExperience,
       emailVerified: result.Item.emailVerified || false,
       createdAt: result.Item.createdAt,

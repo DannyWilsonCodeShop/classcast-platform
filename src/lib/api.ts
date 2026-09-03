@@ -31,6 +31,7 @@ export interface User {
   hobbies?: string;
   schoolName?: string;
   schoolLogo?: string;
+  studyHallOnly?: boolean;
   isDemoUser?: boolean;
   demoViewingUserId?: string;
 }

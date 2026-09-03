@@ -181,7 +181,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (response.user.role === 'student') {
         router.push('/student/dashboard');
       } else if (response.user.role === 'instructor' || response.user.role === 'admin') {
-        router.push('/instructor/dashboard');
+        // Study-hall-only accounts land directly on the Study Hall page
+        if ((response.user as any).studyHallOnly === true) {
+          try { sessionStorage.removeItem('classcast_full_site'); } catch {}
+          router.push('/instructor/study-hall');
+        } else {
+          router.push('/instructor/dashboard');
+        }
       } else {
         router.push('/');
       }

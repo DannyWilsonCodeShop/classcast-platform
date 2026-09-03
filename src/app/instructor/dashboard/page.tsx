@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
+import { isStudyHallLocked } from '@/lib/studyHallMode';
 
 interface Course {
   courseId: string;
@@ -44,6 +45,14 @@ const InstructorDashboard: React.FC = () => {
   const [assignmentsLoading, setAssignmentsLoading] = useState(false);
   const [showCourseMenu, setShowCourseMenu] = useState(false);
   const [courseActionLoading, setCourseActionLoading] = useState(false);
+
+  // Study-hall-only accounts don't use the dashboard — send them to Study Hall
+  // unless they've explicitly toggled "Full site".
+  useEffect(() => {
+    if ((user as any)?.studyHallOnly === true && isStudyHallLocked(user as any)) {
+      router.replace('/instructor/study-hall');
+    }
+  }, [user, router]);
 
   // Fetch courses for the dropdown
   useEffect(() => {

@@ -7,6 +7,7 @@ import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import { CreateModal } from './CreateModal';
 import { useSchoolTheme } from '@/hooks/useSchoolTheme';
 import { GlobalStudentSearch } from './GlobalStudentSearch';
+import { isFullSiteEnabled, setFullSite } from '@/lib/studyHallMode';
 
 interface NavItem {
   label: string;
@@ -57,7 +58,19 @@ export function InstructorSidebar() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [hasTeam, setHasTeam] = useState(false);
   const [hasCourses, setHasCourses] = useState(true); // default true to avoid flash
+  const [fullSite, setFullSiteState] = useState(false);
   const theme = useSchoolTheme();
+
+  const studyHallOnly = (user as any)?.studyHallOnly === true;
+  const studyHallLocked = studyHallOnly && !fullSite;
+
+  // Track full-site session toggle
+  useEffect(() => {
+    setFullSiteState(isFullSiteEnabled());
+    const onChange = () => setFullSiteState(isFullSiteEnabled());
+    window.addEventListener('classcast-full-site-change', onChange);
+    return () => window.removeEventListener('classcast-full-site-change', onChange);
+  }, []);
 
   // Prefetch all instructor routes on mount for instant navigation
   useEffect(() => {
@@ -84,11 +97,17 @@ export function InstructorSidebar() {
     }
   }, [user?.id]);
 
-  // If team-only (has team but no courses), show only Study Hall + Profile
+  // Nav visibility:
+  // - study-hall-only (locked): just Study Hall + Profile
+  // - team-only (team, no courses): just Study Hall + Profile
+  // - otherwise: full nav (Study Hall still gated behind team membership)
   const visibleNavItems = NAV_ITEMS.filter(item => {
-    if (item.requiresTeam && !hasTeam) return false;
+    if (studyHallLocked) {
+      return item.path === '/instructor/study-hall' || item.path === '/instructor/profile';
+    }
+    // Study-hall-only accounts in full-site mode can still reach Study Hall
+    if (item.requiresTeam && !hasTeam && !studyHallOnly) return false;
     if (hasTeam && !hasCourses) {
-      // Team-only mode: only show Study Hall and Profile
       return item.path === '/instructor/study-hall' || item.path === '/instructor/profile';
     }
     return true;
@@ -149,22 +168,53 @@ export function InstructorSidebar() {
           );
         })}
 
-        {/* Create Assignment Button */}
-        <div className="pt-3">
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className={`w-full flex items-center gap-2 font-bold rounded-xl transition-colors min-h-[44px] ${
-              isDesktop ? 'px-3 py-3 justify-start' : 'justify-center py-3'
-            }`}
-            style={{ backgroundColor: theme.accent, color: theme.accentText }}
-            title={!isDesktop ? 'Create' : undefined}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-            </svg>
-            {isDesktop && <span className="text-sm">Create</span>}
-          </button>
-        </div>
+        {/* Create Assignment Button (hidden for study-hall-locked accounts) */}
+        {!studyHallLocked && (
+          <div className="pt-3">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className={`w-full flex items-center gap-2 font-bold rounded-xl transition-colors min-h-[44px] ${
+                isDesktop ? 'px-3 py-3 justify-start' : 'justify-center py-3'
+              }`}
+              style={{ backgroundColor: theme.accent, color: theme.accentText }}
+              title={!isDesktop ? 'Create' : undefined}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+              {isDesktop && <span className="text-sm">Create</span>}
+            </button>
+          </div>
+        )}
+
+        {/* Full site / Study Hall toggle (only for study-hall-only accounts) */}
+        {studyHallOnly && (
+          <div className="pt-3">
+            {studyHallLocked ? (
+              <button
+                onClick={() => setFullSite(true)}
+                className={`w-full flex items-center gap-2 rounded-xl border border-[#005587]/30 text-[#005587] min-h-[44px] hover:bg-[#005587]/5 ${
+                  isDesktop ? 'px-3 py-2.5 justify-start' : 'justify-center py-2.5'
+                }`}
+                title={!isDesktop ? 'Full site' : undefined}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+                {isDesktop && <span className="text-sm font-medium">Full site</span>}
+              </button>
+            ) : (
+              <button
+                onClick={() => { setFullSite(false); router.push('/instructor/study-hall'); }}
+                className={`w-full flex items-center gap-2 rounded-xl border border-gray-200 text-gray-500 min-h-[44px] hover:bg-gray-50 ${
+                  isDesktop ? 'px-3 py-2.5 justify-start' : 'justify-center py-2.5'
+                }`}
+                title={!isDesktop ? 'Study Hall only' : undefined}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                {isDesktop && <span className="text-sm font-medium">Study Hall only</span>}
+              </button>
+            )}
+          </div>
+        )}
       </nav>
 
       {/* User section */}
