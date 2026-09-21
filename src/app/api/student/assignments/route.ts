@@ -103,6 +103,14 @@ export async function GET(request: NextRequest) {
     const submissionMap = new Map<string, any>();
     userSubmissions.forEach(sub => submissionMap.set(sub.assignmentId, sub));
 
+    // Count valid (non-deleted) submissions per assignment for this student,
+    // so assignments that require multiple videos complete only when the count is met.
+    const submissionCountMap = new Map<string, number>();
+    userSubmissions.forEach(sub => {
+      if (sub.status === 'deleted' || sub.isHidden || sub.isDeleted) return;
+      submissionCountMap.set(sub.assignmentId, (submissionCountMap.get(sub.assignmentId) || 0) + 1);
+    });
+
     const courseMap = new Map<string, any>();
     userCourses.forEach(course => courseMap.set(course.courseId, course));
 
@@ -194,8 +202,15 @@ export async function GET(request: NextRequest) {
 
       const now = new Date();
       const dueDate = new Date(effectiveDueDate);
+      const requiredVideoCount = assignment.requiredVideoCount && assignment.requiredVideoCount > 1
+        ? assignment.requiredVideoCount
+        : 1;
+      const submittedCount = submissionCountMap.get(assignment.assignmentId) || 0;
+      const meetsRequirement = submittedCount >= requiredVideoCount;
+
       let status = 'upcoming';
-      if (submission) status = 'completed';
+      if (submission && meetsRequirement) status = 'completed';
+      else if (submission) status = 'in_progress'; // some but not all required videos submitted
       else if (dueDate < now) status = 'past_due';
 
       // Instructor name from batch-fetched map
@@ -221,7 +236,9 @@ export async function GET(request: NextRequest) {
         points: assignment.maxScore ?? 100,
         submissionType: assignment.assignmentType === 'video' ? 'video' : 'file',
         assignmentType: assignment.assignmentType || 'Assignment',
-        isSubmitted: !!submission,
+        requiredVideoCount,
+        submittedVideoCount: submittedCount,
+        isSubmitted: !!submission && meetsRequirement,
         submittedAt: submission?.submittedAt || null,
         grade: submission?.grade || null,
         feedback: submission?.feedback || null,

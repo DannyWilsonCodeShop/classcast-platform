@@ -392,7 +392,6 @@ export default function StudentAssignmentDetailPage() {
 
   const dueBadge = useMemo(() => assignment ? getDueBadge(assignment.dueDate, !!submission) : null, [assignment?.dueDate, submission]);
   const isGraded = submission?.grade !== undefined && submission?.grade !== null;
-  const isSubmitted = !!submission;
   const resourceCount = (assignment?.resources || []).length;
 
   // Assessment attempt tracking
@@ -400,6 +399,16 @@ export default function StudentAssignmentDetailPage() {
   const validSubmissionCount = allSubmissions.filter(s => s.status === 'submitted' || s.status === 'graded').length;
   const attemptsRemaining = Math.max(0, maxAttempts - validSubmissionCount);
   const hasInvalidatedSubmission = allSubmissions.some(s => s.status === 'invalidated');
+
+  // Multi-video requirement: an assignment can require N separate videos.
+  const requiredVideoCount = (assignment as any)?.requiredVideoCount && (assignment as any).requiredVideoCount > 1
+    ? (assignment as any).requiredVideoCount
+    : 1;
+  const hasAnySubmission = !!submission;
+  const videosSubmitted = validSubmissionCount;
+  const videosRemaining = Math.max(0, requiredVideoCount - videosSubmitted);
+  // "Submitted" (complete) only once the required number of videos is met.
+  const isSubmitted = hasAnySubmission && videosSubmitted >= requiredVideoCount;
 
   if (loading) {
     return (
@@ -524,7 +533,7 @@ export default function StudentAssignmentDetailPage() {
       <div ref={swipeContainerRef} className="flex-1 flex flex-col overflow-hidden" style={{ touchAction: 'pan-y' }}>
 
         {/* Video Area - Show student's submission if exists, otherwise instructional video */}
-        {isSubmitted && (submission?.videoUrl || submission?.youtubeUrl || submission?.googleDriveUrl) ? (
+        {hasAnySubmission && (submission?.videoUrl || submission?.youtubeUrl || submission?.googleDriveUrl) ? (
           <div className="relative w-full shrink-0" style={{ height: '42%', minHeight: '180px' }}>
             <VideoPlayer url={submission.videoUrl || submission.youtubeUrl || submission.googleDriveUrl || ''} poster={(submission as any).thumbnailUrl || undefined} />
             {/* Your Video label */}
@@ -565,6 +574,9 @@ export default function StudentAssignmentDetailPage() {
           )}
           {isSubmitted && !isGraded && (
             <span className="ml-auto text-xs text-[#005587] font-medium">✓ Submitted</span>
+          )}
+          {!isSubmitted && requiredVideoCount > 1 && hasAnySubmission && (
+            <span className="ml-auto text-xs text-orange-600 font-medium">{videosSubmitted} of {requiredVideoCount} videos</span>
           )}
         </div>
 
@@ -636,7 +648,9 @@ export default function StudentAssignmentDetailPage() {
                         : attemptsRemaining <= 0
                           ? <span className="text-red-600">No attempts left</span>
                           : `${attemptsRemaining} attempt${attemptsRemaining > 1 ? 's' : ''} left`)
-                    : 'Unsubmitted'}
+                    : requiredVideoCount > 1
+                      ? `${videosSubmitted} of ${requiredVideoCount} videos`
+                      : 'Unsubmitted'}
                 </span>
                 {dueBadge && <span className={`text-[8px] mt-0.5 ${dueBadge.color} px-1.5 py-0.5 rounded-full`}>{dueBadge.label}</span>}
               </div>
@@ -654,7 +668,7 @@ export default function StudentAssignmentDetailPage() {
                 }
               }} className="flex flex-col items-center w-1/5 py-1 z-10">
                 <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                <span className="text-[9px] text-gray-400">{assignment?.assignmentType === 'assessment' ? 'Take Test' : 'Post'}</span>
+                <span className="text-[9px] text-gray-400">{assignment?.assignmentType === 'assessment' ? 'Take Test' : (requiredVideoCount > 1 && hasAnySubmission ? 'Add video' : 'Post')}</span>
               </button>
               <button onClick={() => { animateToTab(3); setTimeout(() => setShowRubricModal(true), 450); }} className="flex flex-col items-center w-1/5 py-1 z-10"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[9px] text-gray-400">Rubric</span></button>
               <button className="flex flex-col items-center w-1/5 py-1 relative z-10" onClick={() => { if (resourceCount > 0) { animateToTab(4); setTimeout(() => setShowResourcesModal(true), 450); } }}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[9px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>

@@ -148,6 +148,7 @@ const CreateAssignmentPage: React.FC = () => {
   // Type-specific fields
   const [groupSize, setGroupSize] = useState(3);
   const [videosRequired, setVideosRequired] = useState(2);
+  const [requiredVideoCount, setRequiredVideoCount] = useState(1); // standard video assignments
   const [timePerQuestion, setTimePerQuestion] = useState(60);
   const [questionCount, setQuestionCount] = useState(5);
 
@@ -280,6 +281,7 @@ const CreateAssignmentPage: React.FC = () => {
           peerReviewScope: visibility,
           hidePeerVideosUntilSubmitted: videoVisibility === 'after-submit',
           ...(assignmentType === 'group-project' && { groupSize, videosRequired }),
+          ...(assignmentType === 'video' && requiredVideoCount > 1 && { requiredVideoCount }),
           ...(assignmentType === 'assessment' && { timePerQuestion, questionCount }),
           ...(assignmentType === 'choice-board' && { choices: choices.filter(c => c.title.trim()) }),
           ...(resources.length > 0 && { resources }),
@@ -401,6 +403,28 @@ const CreateAssignmentPage: React.FC = () => {
             </div>
 
             {/* Type-specific settings */}
+            {assignmentType === 'video' && (
+              <div className="bg-sky-50 rounded-xl p-3">
+                <span className="block text-xs font-bold text-sky-800 mb-2">🎥 Video Settings</span>
+                <div className="flex items-center gap-3">
+                  <label className="text-[11px] text-sky-700">Videos required</label>
+                  <input
+                    type="number"
+                    value={requiredVideoCount}
+                    onChange={(e) => setRequiredVideoCount(Math.max(1, parseInt(e.target.value) || 1))}
+                    min={1}
+                    max={10}
+                    className="w-16 px-2 py-1.5 border border-sky-200 rounded-lg text-xs bg-white text-center focus:ring-1 focus:ring-sky-500"
+                  />
+                </div>
+                <p className="text-[9px] text-sky-600 mt-2">
+                  {requiredVideoCount > 1
+                    ? `Students must submit ${requiredVideoCount} separate videos before the assignment is marked complete.`
+                    : 'Students submit one video. Increase this to require multiple videos (e.g. 2).'}
+                </p>
+              </div>
+            )}
+
             {assignmentType === 'assessment' && (
               <div className="bg-amber-50 rounded-xl p-3">
                 <span className="block text-xs font-bold text-amber-800 mb-2">📋 Assessment Settings</span>

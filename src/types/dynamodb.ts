@@ -100,6 +100,7 @@ export interface Assignment {
   allowLateSubmission?: boolean;
   latePenalty?: number; // Percentage penalty
   maxSubmissions?: number;
+  requiredVideoCount?: number; // Number of separate videos a student must submit to complete
   groupAssignment?: boolean;
   maxGroupSize?: number;
   
