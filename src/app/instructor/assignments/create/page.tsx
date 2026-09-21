@@ -7,6 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { RubricCategory, getRubricMaxScore, generateCategoryId } from '@/types/rubric';
 import { ProblemBankBuilder } from '@/components/instructor/ProblemBankBuilder';
 import { FormattingTextarea } from '@/components/common/FormattingTextarea';
+import AssignmentResourcesManager from '@/components/instructor/AssignmentResourcesManager';
+import { AssignmentResource } from '@/types/dynamodb';
 
 interface CourseOption {
   courseId: string;
@@ -111,6 +113,7 @@ const CreateAssignmentPage: React.FC = () => {
   const [sectionEnrollment, setSectionEnrollment] = useState<Array<{ sectionId: string; sectionName: string; enrolledCount: number }>>([]);
   const [dueDate, setDueDate] = useState('');
   const [rubric, setRubric] = useState<RubricCategory[]>(DEFAULT_RUBRIC);
+  const [resources, setResources] = useState<AssignmentResource[]>([]);
   const [showRubricDetails, setShowRubricDetails] = useState(false);
   const [peerResponsesEnabled, setPeerResponsesEnabled] = useState(true);
   const [responsesRequired, setResponsesRequired] = useState(2);
@@ -279,6 +282,7 @@ const CreateAssignmentPage: React.FC = () => {
           ...(assignmentType === 'group-project' && { groupSize, videosRequired }),
           ...(assignmentType === 'assessment' && { timePerQuestion, questionCount }),
           ...(assignmentType === 'choice-board' && { choices: choices.filter(c => c.title.trim()) }),
+          ...(resources.length > 0 && { resources }),
           ...(linkedBankId && { problemBankId: linkedBankId }),
         }),
       });
@@ -598,6 +602,17 @@ const CreateAssignmentPage: React.FC = () => {
                   <button type="button" onClick={handleAddRubricCategory} className="text-[10px] text-[#005587] font-medium">+ Add category</button>
                 </div>
               )}
+            </div>
+
+            {/* Resources (documents & links) */}
+            <div className="bg-gray-50 rounded-xl p-3">
+              <AssignmentResourcesManager
+                resources={resources}
+                onResourcesChange={setResources}
+              />
+              <p className="text-[10px] text-gray-400 mt-2">
+                Add reference links or documents students can open from the assignment. Links are recommended; large document uploads may not save.
+              </p>
             </div>
 
             {/* Peer Responses */}
