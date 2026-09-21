@@ -1715,6 +1715,7 @@ const InstructorCourseDetailPage: React.FC = () => {
               maxGroupSize: editingAssignment.maxGroupSize,
               sectionDueDates: editingAssignment.sectionDueDates,
               choices: editingAssignment.choices,
+              resources: editingAssignment.resources,
             }}
           />
         )}

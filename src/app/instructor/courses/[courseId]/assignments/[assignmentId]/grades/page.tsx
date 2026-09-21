@@ -24,6 +24,7 @@ interface Assignment {
   latePenalty?: number;
   maxSubmissions?: number;
   requiredVideoCount?: number;
+  resources?: any[];
   enablePeerResponses?: boolean;
   minResponsesRequired?: number;
   maxResponsesPerVideo?: number;
@@ -265,6 +266,7 @@ const AssignmentGradesPage: React.FC = () => {
           instructionalVideoUrl: assignment.instructionalVideoUrl || assignment.videoUrl,
           choices: assignment.choices,
           requiredVideoCount: assignment.requiredVideoCount || 1,
+          resources: assignment.resources || [],
         });
       }
       

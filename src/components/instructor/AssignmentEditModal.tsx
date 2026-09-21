@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { FormattingTextarea } from '@/components/common/FormattingTextarea';
+import AssignmentResourcesManager from '@/components/instructor/AssignmentResourcesManager';
+import { AssignmentResource } from '@/types/dynamodb';
 
 interface ChoiceBoardOption {
   choiceId: string;
@@ -38,6 +40,7 @@ interface AssignmentEditModalProps {
     maxGroupSize?: number;
     sectionDueDates?: Record<string, string>;
     choices?: ChoiceBoardOption[];
+    resources?: AssignmentResource[];
   };
 }
 
@@ -61,6 +64,7 @@ export interface AssignmentEditData {
   maxGroupSize?: number;
   sectionDueDates?: Record<string, string>;
   choices?: ChoiceBoardOption[];
+  resources?: AssignmentResource[];
 }
 
 export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignment }: AssignmentEditModalProps) {
@@ -83,10 +87,11 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
   const [maxGroupSize, setMaxGroupSize] = useState(assignment.maxGroupSize || 4);
   const [sectionDueDates, setSectionDueDates] = useState<Record<string, string>>(assignment.sectionDueDates || {});
   const [choices, setChoices] = useState<ChoiceBoardOption[]>(assignment.choices || []);
+  const [resources, setResources] = useState<AssignmentResource[]>(assignment.resources || []);
   const [sections, setSections] = useState<Array<{ sectionId: string; sectionName: string }>>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [activeSection, setActiveSection] = useState<'basic' | 'choices' | 'submissions' | 'peer' | 'video'>('basic');
+  const [activeSection, setActiveSection] = useState<'basic' | 'choices' | 'submissions' | 'peer' | 'video' | 'resources'>('basic');
 
   const isChoiceBoard = assignment.assignmentType === 'choice-board';
   const choiceColors = ['#4A90E2', '#7B61FF', '#38A169', '#E53E3E'];
@@ -122,6 +127,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
       setMaxGroupSize(assignment.maxGroupSize || 4);
       setSectionDueDates(assignment.sectionDueDates || {});
       setChoices(assignment.choices || []);
+      setResources(assignment.resources || []);
       setActiveSection('basic');
       try {
         const d = new Date(assignment.dueDate);
@@ -185,6 +191,9 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
         payload.choices = choices.filter(c => c.title.trim());
       }
 
+      // Resources (documents & links) — always send so removals persist too
+      payload.resources = resources;
+
       const res = await fetch(`/api/assignments/${assignment.assignmentId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -211,6 +220,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
     { id: 'basic' as const, label: 'Basic', icon: '📝' },
     ...(isChoiceBoard ? [{ id: 'choices' as const, label: 'Choices', icon: '🎯' }] : []),
     { id: 'submissions' as const, label: 'Submissions', icon: '📤' },
+    { id: 'resources' as const, label: 'Resources', icon: '📎' },
     { id: 'peer' as const, label: 'Peer Review', icon: '👥' },
     { id: 'video' as const, label: 'Video', icon: '🎬' },
   ];
@@ -428,6 +438,19 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                 </div>
               )}
             </>
+          )}
+
+          {/* RESOURCES TAB */}
+          {activeSection === 'resources' && (
+            <div>
+              <AssignmentResourcesManager
+                resources={resources}
+                onResourcesChange={setResources}
+              />
+              <p className="text-[11px] text-gray-400 mt-2">
+                Add or remove reference links and documents for this assignment. Links are recommended; very large document uploads may not save.
+              </p>
+            </div>
           )}
 
           {/* PEER REVIEW TAB */}
