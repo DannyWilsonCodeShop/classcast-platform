@@ -23,6 +23,7 @@ interface Assignment {
   allowLateSubmission?: boolean;
   latePenalty?: number;
   maxSubmissions?: number;
+  requiredVideoCount?: number;
   enablePeerResponses?: boolean;
   minResponsesRequired?: number;
   maxResponsesPerVideo?: number;
@@ -64,6 +65,15 @@ interface StudentGrade {
   feedback?: string;
   submittedAt?: string;
   status: 'not_submitted' | 'submitted' | 'graded';
+  // All of this student's video submissions for the assignment (for multi-video assignments)
+  submissions?: Array<{
+    submissionId: string;
+    thumbnailUrl?: string;
+    videoUrl?: string;
+    grade?: number;
+    submittedAt?: string;
+    status: 'submitted' | 'graded';
+  }>;
 }
 
 interface Section {
@@ -254,6 +264,7 @@ const AssignmentGradesPage: React.FC = () => {
           assignmentType: assignment.assignmentType || assignment.type,
           instructionalVideoUrl: assignment.instructionalVideoUrl || assignment.videoUrl,
           choices: assignment.choices,
+          requiredVideoCount: assignment.requiredVideoCount || 1,
         });
       }
       
@@ -294,9 +305,11 @@ const AssignmentGradesPage: React.FC = () => {
       const submissions = submissionsData.success ? submissionsData.submissions || [] : [];
       
       // Create a map of submissions by student ID
-      const submissionMap = new Map();
+      // Group ALL submissions per student (a student may submit multiple videos)
+      const submissionsByStudent = new Map<string, any[]>();
       submissions.forEach((sub: any) => {
-        submissionMap.set(sub.studentId, {
+        if (sub.status === 'deleted' || sub.isHidden || sub.isDeleted) return;
+        const entry = {
           submissionId: sub.submissionId,
           thumbnailUrl: sub.thumbnailUrl,
           videoUrl: sub.videoUrl,
@@ -304,7 +317,16 @@ const AssignmentGradesPage: React.FC = () => {
           feedback: sub.instructorFeedback || sub.feedback,
           submittedAt: sub.submittedAt,
           status: sub.grade !== null && sub.grade !== undefined ? 'graded' : 'submitted'
-        });
+        };
+        const arr = submissionsByStudent.get(sub.studentId) || [];
+        arr.push(entry);
+        submissionsByStudent.set(sub.studentId, arr);
+      });
+      // Keep a single-submission map (most recent) for the existing per-student summary fields
+      const submissionMap = new Map();
+      submissionsByStudent.forEach((arr, studentId) => {
+        const sorted = [...arr].sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
+        submissionMap.set(studentId, sorted[0]);
       });
       
       console.log('Enrolled students:', enrolledStudents.length);
@@ -364,7 +386,9 @@ const AssignmentGradesPage: React.FC = () => {
             grade: submission?.grade,
             feedback: submission?.feedback,
             submittedAt: submission?.submittedAt,
-            status: submission ? submission.status : 'not_submitted'
+            status: submission ? submission.status : 'not_submitted',
+            submissions: (submissionsByStudent.get(student.userId) || [])
+              .sort((a, b) => new Date(a.submittedAt || 0).getTime() - new Date(b.submittedAt || 0).getTime()),
           };
         })
       )) as StudentGrade[];
@@ -806,45 +830,56 @@ const AssignmentGradesPage: React.FC = () => {
             </div>
           )}
 
-          {/* Video Submissions Grid */}
-          {studentGrades.filter(g => (g.status === 'submitted' || g.status === 'graded') && g.submissionId).length > 0 && (
+          {/* Video Submissions Grid — one tile per video (students may submit multiple) */}
+          {studentGrades.some(g => (g.submissions?.length || 0) > 0) && (
             <div>
               <p className="text-sm font-bold text-[#005587] mb-2">Video Submissions</p>
               <div className="flex overflow-x-auto gap-2 pb-2 -mx-1 px-1">
                 {studentGrades
-                  .filter(g => (g.status === 'submitted' || g.status === 'graded') && g.submissionId)
-                  .map((grade) => (
-                    <button
-                      key={grade.studentId}
-                      onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}?submissionId=${grade.submissionId}&student=${grade.studentId}`)}
-                      className="flex-shrink-0 w-[120px] bg-gray-50 rounded-2xl p-2 text-center"
-                    >
-                      <div className="relative w-full h-16 bg-gray-900 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center mb-1.5">
-                        {grade.thumbnailUrl && !grade.thumbnailUrl.includes('placeholder') ? (
-                          <>
-                            <img
-                              src={grade.thumbnailUrl}
-                              alt=""
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <div className="w-6 h-6 rounded-full bg-black/40 flex items-center justify-center">
-                                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="text-xl">🎥</div>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-gray-700 font-medium truncate">{grade.studentName}</p>
-                      <p className="text-[9px] text-gray-400">
-                        {grade.status === 'graded' ? `${grade.grade}/${assignment.maxScore}` : 'Pending'}
-                      </p>
-                    </button>
-                  ))}
+                  .filter(g => (g.submissions?.length || 0) > 0)
+                  .flatMap((grade) =>
+                    (grade.submissions || []).map((sub, idx) => {
+                      const total = grade.submissions!.length;
+                      const requiredN = (assignment as any)?.requiredVideoCount || 1;
+                      return (
+                        <button
+                          key={sub.submissionId}
+                          onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}?submissionId=${sub.submissionId}&student=${grade.studentId}`)}
+                          className="flex-shrink-0 w-[120px] bg-gray-50 rounded-2xl p-2 text-center"
+                        >
+                          <div className="relative w-full h-16 bg-gray-900 border border-gray-200 rounded-xl overflow-hidden flex items-center justify-center mb-1.5">
+                            {sub.thumbnailUrl && !sub.thumbnailUrl.includes('placeholder') ? (
+                              <>
+                                <img
+                                  src={sub.thumbnailUrl}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                  <div className="w-6 h-6 rounded-full bg-black/40 flex items-center justify-center">
+                                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-xl">🎥</div>
+                            )}
+                            {(total > 1 || requiredN > 1) && (
+                              <span className="absolute top-1 right-1 bg-black/60 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full">
+                                {idx + 1}{requiredN > 1 ? `/${requiredN}` : ''}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-gray-700 font-medium truncate">{grade.studentName}</p>
+                          <p className="text-[9px] text-gray-400">
+                            {sub.status === 'graded' ? `${sub.grade}/${assignment.maxScore}` : 'Pending'}
+                          </p>
+                        </button>
+                      );
+                    })
+                  )}
               </div>
             </div>
           )}
@@ -932,7 +967,12 @@ const AssignmentGradesPage: React.FC = () => {
               <div key={grade.studentId} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
                 <div className="flex-1 min-w-0 mr-2">
                   <div className="text-xs font-medium text-gray-900 truncate">{grade.studentName}</div>
-                  <div className="text-[10px] text-gray-400">{grade.sectionName}</div>
+                  <div className="text-[10px] text-gray-400">
+                    {grade.sectionName}
+                    {(assignment?.requiredVideoCount || 1) > 1 && (
+                      <span className="ml-1 text-gray-500">· {(grade.submissions?.length || 0)}/{assignment.requiredVideoCount} videos</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {getStatusBadge(grade.status)}
