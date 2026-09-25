@@ -45,6 +45,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error generating video presign URL:', error);
+    import('@/lib/errorReporter').then(({ reportError }) => reportError({
+      message: `video-presign failed: ${error instanceof Error ? error.message : String(error)}`,
+      stack: error instanceof Error ? error.stack : '',
+      severity: 'error',
+      context: { route: 'POST /api/upload/video-presign' },
+    })).catch(() => {});
     return NextResponse.json(
       { error: 'Failed to generate upload URL', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

@@ -79,6 +79,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error completing multipart upload:', error);
+    import('@/lib/errorReporter').then(({ reportError }) => reportError({
+      message: `multipart/complete failed: ${error instanceof Error ? error.message : String(error)}`,
+      stack: error instanceof Error ? error.stack : '',
+      severity: 'error',
+      context: { route: 'POST /api/upload/multipart/complete' },
+    })).catch(() => {});
     return NextResponse.json(
       {
         success: false,

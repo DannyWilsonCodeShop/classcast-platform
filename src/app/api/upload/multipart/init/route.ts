@@ -82,6 +82,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error initializing multipart upload:', error);
+    import('@/lib/errorReporter').then(({ reportError }) => reportError({
+      message: `multipart/init failed: ${error instanceof Error ? error.message : String(error)}`,
+      stack: error instanceof Error ? error.stack : '',
+      severity: 'error',
+      context: { route: 'POST /api/upload/multipart/init' },
+    })).catch(() => {});
     return NextResponse.json(
       {
         success: false,

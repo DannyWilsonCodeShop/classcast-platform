@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import dynamic from 'next/dynamic';
+import { reportClientError } from '@/lib/reportClientError';
 
 // Heavy components — loaded only when needed (saves ~200KB from initial bundle)
 const VideoEditor = dynamic(() => import('@/components/video-editor/VideoEditor').then(m => ({ default: m.VideoEditor })), { ssr: false });
@@ -116,6 +117,7 @@ function RecordPageInner() {
       if (liveVideoRef.current) liveVideoRef.current.srcObject = stream;
       setCameraActive(true);
     } catch (err: any) {
+      reportClientError({ step: 'record-camera', error: err, severity: 'warning', context: { studentId: user?.id, assignmentId, errorName: err?.name } });
       setError(`Camera access denied: ${err?.message || err}`);
       setCameraActive(false);
     }
@@ -321,12 +323,13 @@ function RecordPageInner() {
     setError('');
     setUploadProgress(0);
 
-    try {
-      let finalVideoUrl = '';
-      let submissionMethod = 'unknown';
-      let isYouTube = false;
-      let isGoogleDrive = false;
+    // Hoisted so the catch block can include them in error reports
+    let finalVideoUrl = '';
+    let submissionMethod = 'unknown';
+    let isYouTube = false;
+    let isGoogleDrive = false;
 
+    try {
       if (linkUrl.trim()) {
         // Link submission
         const type = detectLinkType(linkUrl.trim());
@@ -365,6 +368,7 @@ function RecordPageInner() {
           if (!initRes.ok) {
             const errBody = await initRes.text().catch(() => '');
             console.error('❌ Init failed:', initRes.status, errBody);
+            reportClientError({ step: 'multipart-init', error: `${initRes.status}: ${errBody}`, context: { studentId: user.id, assignmentId, fileSizeMB: Math.round(videoFile.size / (1024*1024)), fileType: videoFile.type } });
             throw new Error(`Failed to initialize upload (${initRes.status}): ${errBody}`);
           }
           const initJson = await initRes.json();
@@ -391,6 +395,7 @@ function RecordPageInner() {
             if (!partUrlRes.ok) {
               const errBody = await partUrlRes.text().catch(() => '');
               console.error(`❌ Part URL failed for part ${partNum}:`, partUrlRes.status, errBody);
+              reportClientError({ step: 'multipart-part-url', error: `${partUrlRes.status}: ${errBody}`, context: { studentId: user.id, assignmentId, partNum, totalParts } });
               throw new Error(`Failed to get URL for part ${partNum} (${partUrlRes.status})`);
             }
             const { data: partData } = await partUrlRes.json();
@@ -403,6 +408,7 @@ function RecordPageInner() {
             if (!partRes.ok) {
               const errBody = await partRes.text().catch(() => '');
               console.error(`❌ Part ${partNum} PUT failed:`, partRes.status, errBody.substring(0, 200));
+              reportClientError({ step: 's3-part-put', error: `${partRes.status}: ${errBody.substring(0, 200)}`, context: { studentId: user.id, assignmentId, partNum, totalParts, fileSizeMB: Math.round(videoFile.size / (1024*1024)) } });
               throw new Error(`Part ${partNum}/${totalParts} upload failed (${partRes.status})`);
             }
 
@@ -427,6 +433,7 @@ function RecordPageInner() {
           if (!completeRes.ok) {
             const errBody = await completeRes.text().catch(() => '');
             console.error('❌ Complete failed:', completeRes.status, errBody);
+            reportClientError({ step: 'multipart-complete', error: `${completeRes.status}: ${errBody}`, context: { studentId: user.id, assignmentId, totalParts } });
             throw new Error(`Failed to complete upload (${completeRes.status})`);
           }
           console.log('✅ Multipart upload complete!');
@@ -441,6 +448,7 @@ function RecordPageInner() {
           });
           if (!presignRes.ok) {
             const errText = await presignRes.text();
+            reportClientError({ step: 'presign', error: `${presignRes.status}: ${errText}`, context: { studentId: user.id, assignmentId, fileType: videoFile.type, fileSizeMB: Math.round(videoFile.size / (1024*1024)) } });
             throw new Error(`Presign failed (${presignRes.status}): ${errText}`);
           }
           const { uploadUrl, videoUrl } = await presignRes.json();
@@ -455,8 +463,17 @@ function RecordPageInner() {
             xhr.upload.onprogress = (e) => {
               if (e.lengthComputable) setUploadProgress(10 + Math.round((e.loaded / e.total) * 80));
             };
-            xhr.onload = () => { if (xhr.status >= 200 && xhr.status < 300) resolve(); else reject(new Error(`S3 upload failed: ${xhr.status} ${xhr.responseText?.substring(0, 200)}`)); };
-            xhr.onerror = () => reject(new Error('Upload failed. Check your connection and try again.'));
+            xhr.onload = () => {
+              if (xhr.status >= 200 && xhr.status < 300) resolve();
+              else {
+                reportClientError({ step: 's3-put', error: `${xhr.status}: ${xhr.responseText?.substring(0, 200)}`, context: { studentId: user.id, assignmentId, fileType: videoFile!.type, fileSizeMB: Math.round(videoFile!.size / (1024*1024)) } });
+                reject(new Error(`S3 upload failed: ${xhr.status} ${xhr.responseText?.substring(0, 200)}`));
+              }
+            };
+            xhr.onerror = () => {
+              reportClientError({ step: 's3-put-network', error: 'XHR network error during S3 upload', context: { studentId: user.id, assignmentId, fileSizeMB: Math.round(videoFile!.size / (1024*1024)) } });
+              reject(new Error('Upload failed. Check your connection and try again.'));
+            };
             xhr.send(videoFile);
           });
           setUploadProgress(90);
@@ -530,14 +547,39 @@ function RecordPageInner() {
       });
       const submitData = await submitRes.json().catch(() => null);
       if (!submitRes.ok || !submitData?.success) {
+        reportClientError({
+          step: 'submission-save',
+          error: `${submitRes.status}: ${JSON.stringify(submitData)}`,
+          severity: 'error',
+          context: { studentId: user.id, assignmentId, courseId: assignment?.courseId, submissionMethod, isYouTube, isGoogleDrive },
+        });
         throw new Error(`Submission save failed (${submitRes.status}): ${JSON.stringify(submitData)}`);
       }
 
       setUploadProgress(100);
       setSuccess(true);
-      setTimeout(() => router.push(assignmentId ? `/student/assignments/${assignmentId}` : '/student/dashboard'), 1500);
+      // Give students a clear, readable confirmation before redirecting
+      setTimeout(() => router.push(assignmentId ? `/student/assignments/${assignmentId}` : '/student/dashboard'), 3500);
     } catch (err: any) {
       console.error('❌ Upload/Submit error:', err);
+      reportClientError({
+        step: 'submit',
+        error: err,
+        severity: 'error',
+        context: {
+          studentId: user?.id,
+          assignmentId: assignmentId || null,
+          courseId: assignment?.courseId || null,
+          submissionMethod,
+          isYouTube,
+          isGoogleDrive,
+          fileName: videoFile?.name || null,
+          fileSizeMB: videoFile ? Math.round(videoFile.size / (1024 * 1024)) : null,
+          fileType: videoFile?.type || null,
+          uploadProgress,
+          finalVideoUrl: finalVideoUrl || null,
+        },
+      });
       setError(err?.message || err?.toString() || 'Unknown error');
       setIsSubmitting(false);
     }
@@ -835,11 +877,6 @@ function RecordPageInner() {
               {mode === 'upload' && (
                 <p className="text-xs text-gray-500 text-center">Tap the button above to select your video file</p>
               )}
-              {mode !== 'upload' && (
-                <button onClick={startCamera} className="w-full py-3 bg-gray-800 border border-gray-600 rounded-xl font-medium flex items-center justify-center gap-2">
-                  📹 Record Live
-                </button>
-              )}
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-gray-700" /><span className="text-xs text-gray-500">OR PASTE A LINK</span><div className="flex-1 h-px bg-gray-700" />
               </div>
@@ -874,11 +911,14 @@ function RecordPageInner() {
             </div>
           )}
 
-          {/* SUBMIT BUTTON */}
+          {/* SUBMIT BUTTON — sticky at the bottom so it's always visible on any screen size */}
           {hasVideo && !showThumbnailStep && !isSubmitting && !success && (
-            <button onClick={handleSubmit} disabled={assignmentLoading} className="w-full py-4 bg-gradient-to-r from-[#005587] to-[#0088cc] rounded-xl font-bold text-lg active:scale-[0.98] transition-transform disabled:opacity-50">
-              {assignmentLoading ? '⏳ Loading assignment...' : '🚀 Post Video'}
-            </button>
+            <div className="sticky bottom-0 -mx-4 px-4 pt-3 pb-4 bg-gradient-to-t from-black via-black/95 to-transparent z-20">
+              <button onClick={handleSubmit} disabled={assignmentLoading} className="w-full py-4 bg-gradient-to-r from-[#005587] to-[#0088cc] rounded-xl font-bold text-lg active:scale-[0.98] transition-transform disabled:opacity-50 shadow-lg">
+                {assignmentLoading ? '⏳ Loading assignment...' : '🚀 Post Video'}
+              </button>
+              <p className="text-center text-[11px] text-gray-400 mt-1.5">Tap to submit your video to this assignment</p>
+            </div>
           )}
 
           {/* UPLOADING STATE */}
@@ -901,8 +941,17 @@ function RecordPageInner() {
               <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center">
                 <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
               </div>
-              <h2 className="text-xl font-bold">Posted!</h2>
-              <p className="text-gray-400 text-sm">Redirecting...</p>
+              <h2 className="text-2xl font-bold text-green-400">✓ Video Posted!</h2>
+              <p className="text-gray-200 text-sm text-center max-w-xs">
+                Your video was submitted successfully{assignment?.title ? ` to "${assignment.title}"` : ''}. Your teacher can now see it.
+              </p>
+              <button
+                onClick={() => router.push(assignmentId ? `/student/assignments/${assignmentId}` : '/student/dashboard')}
+                className="mt-2 px-6 py-2.5 bg-white/10 border border-white/20 rounded-full text-white text-sm font-medium"
+              >
+                Done
+              </button>
+              <p className="text-gray-500 text-xs">Taking you back automatically…</p>
             </div>
           )}
 

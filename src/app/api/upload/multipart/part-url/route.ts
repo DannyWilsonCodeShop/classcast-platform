@@ -65,6 +65,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error generating multipart part URL:', error);
+    import('@/lib/errorReporter').then(({ reportError }) => reportError({
+      message: `multipart/part-url failed: ${error instanceof Error ? error.message : String(error)}`,
+      stack: error instanceof Error ? error.stack : '',
+      severity: 'error',
+      context: { route: 'POST /api/upload/multipart/part-url' },
+    })).catch(() => {});
     return NextResponse.json(
       {
         success: false,

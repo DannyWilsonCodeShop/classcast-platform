@@ -13,19 +13,26 @@ export async function POST(request: NextRequest) {
       stack,
       component,
       action,
+      severity,
+      context,
       additionalContext
     } = errorData;
+
+    const allowedSeverity = severity === 'critical' || severity === 'warning' ? severity : 'error';
+    const mergedContext = { component, action, ...(additionalContext || {}), ...(context || {}) };
+    // Prefer an explicit userId, otherwise try to recover it from context.
+    const resolvedUserId = userId || context?.userId || context?.studentId || 'unknown';
 
     // Report via SNS (SMS) + DynamoDB (persistent log)
     await reportError({
       message: error || 'Unknown error',
       stack: stack || '',
       url: url || '',
-      userId: userId || 'unknown',
+      userId: resolvedUserId,
       userAgent: userAgent || '',
-      severity: 'error',
+      severity: allowedSeverity,
       timestamp: timestamp || new Date().toISOString(),
-      context: { component, action, ...additionalContext },
+      context: mergedContext,
     });
 
     console.log('✅ Error reported:', error?.substring(0, 80));

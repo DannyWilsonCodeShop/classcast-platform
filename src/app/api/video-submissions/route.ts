@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, ScanCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { reportError } from '@/lib/errorReporter';
 
 const dynamoClient = new DynamoDBClient({
   region: process.env.REGION || process.env.AWS_REGION || 'us-east-1',
@@ -481,6 +482,13 @@ Generated at ${new Date().toISOString()}
 
   } catch (error) {
     console.error('Error creating video submission:', error);
+    // Persist to the error log so we can diagnose failed submissions
+    reportError({
+      message: `video-submissions POST failed: ${error instanceof Error ? error.message : String(error)}`,
+      stack: error instanceof Error ? error.stack : '',
+      severity: 'error',
+      context: { route: 'POST /api/video-submissions' },
+    }).catch(() => {});
     return NextResponse.json({
       success: false,
       error: 'Failed to create video submission',
