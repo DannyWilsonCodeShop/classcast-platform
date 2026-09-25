@@ -559,6 +559,37 @@ export default function StudentAssignmentDetailPage() {
           </div>
         ) : null}
 
+        {/* Multi-video progress — shows each required video slot (filled or still needed).
+            This makes a partially-complete assignment read like a saved draft. */}
+        {requiredVideoCount > 1 && !isGraded && (
+          <div className="px-4 py-2 bg-gray-50 border-b border-gray-100 shrink-0">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[11px] font-semibold text-gray-700">
+                {videosSubmitted} of {requiredVideoCount} videos submitted
+              </span>
+              {!isSubmitted && videosSubmitted > 0 && (
+                <span className="text-[10px] text-orange-600 font-medium">Draft saved — {videosRemaining} more to finish</span>
+              )}
+              {isSubmitted && (
+                <span className="text-[10px] text-green-600 font-medium">✓ All videos submitted</span>
+              )}
+            </div>
+            <div className="flex gap-1.5">
+              {Array.from({ length: requiredVideoCount }).map((_, i) => {
+                const sub = allSubmissions.filter(s => s.status === 'submitted' || s.status === 'graded')[i];
+                const filled = !!sub;
+                return (
+                  <div
+                    key={i}
+                    className={`flex-1 h-1.5 rounded-full ${filled ? 'bg-green-500' : 'bg-gray-200'}`}
+                    title={filled ? `Video ${i + 1} submitted` : `Video ${i + 1} not yet submitted`}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Info Row */}
         <div className="flex items-center gap-2 px-4 py-2 bg-gray-50 shrink-0">
           {dueBadge && (
