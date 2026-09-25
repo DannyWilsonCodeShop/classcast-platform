@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, ScanCommand, QueryCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, ScanCommand, QueryCommand, UpdateCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { reportError } from '@/lib/errorReporter';
 
 const dynamoClient = new DynamoDBClient({
@@ -179,6 +179,37 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    const isDraft = submissionStatus === 'draft';
+
+    // Enforce ONE draft per student per assignment per choice slot.
+    // The student must delete an existing draft before saving a new one.
+    if (isDraft) {
+      try {
+        const existing = await docClient.send(new QueryCommand({
+          TableName: 'classcast-submissions',
+          IndexName: 'assignmentId-index',
+          KeyConditionExpression: 'assignmentId = :aid',
+          ExpressionAttributeValues: { ':aid': assignmentId },
+        }));
+        const dupDraft = (existing.Items || []).find(
+          (s: any) =>
+            s.studentId === studentId &&
+            s.status === 'draft' &&
+            (choiceId ? s.choiceId === choiceId : !s.choiceId)
+        );
+        if (dupDraft) {
+          return NextResponse.json({
+            success: false,
+            error: 'DRAFT_EXISTS',
+            message: 'You already have a saved draft for this video. Delete it before recording another.',
+            existingDraftId: dupDraft.submissionId,
+          }, { status: 409 });
+        }
+      } catch (draftCheckErr) {
+        console.warn('Draft-limit check failed (continuing):', draftCheckErr);
+      }
+    }
+
     const submissionId = `submission_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const now = new Date().toISOString();
 
@@ -239,6 +270,17 @@ export async function POST(request: NextRequest) {
     });
 
     await docClient.send(putCommand);
+
+    // Drafts are saved but NOT posted: skip the assignment status flip, admin email,
+    // and public community-video creation. The video is safely stored until the
+    // student posts it (promote via PUT) or deletes it.
+    if (isDraft) {
+      return NextResponse.json({
+        success: true,
+        submission,
+        message: 'Draft saved'
+      });
+    }
 
     // Skip email notification and community video creation for invalidated submissions
     if (submissionStatus === 'invalidated') {
@@ -516,20 +558,32 @@ export async function PUT(request: NextRequest) {
     }
 
     const now = new Date().toISOString();
+    const isPromoteToSubmitted = status === 'submitted';
 
     const updateCommand: any = {
       TableName: 'classcast-submissions',
       Key: { submissionId },
-      UpdateExpression: 'SET #status = :status, updatedAt = :updatedAt, gradedAt = :gradedAt',
+      UpdateExpression: 'SET #status = :status, updatedAt = :updatedAt',
       ExpressionAttributeNames: {
         '#status': 'status'
       },
       ExpressionAttributeValues: {
         ':status': status,
-        ':updatedAt': now,
-        ':gradedAt': now
+        ':updatedAt': now
       }
     };
+
+    // Only stamp gradedAt when actually grading (not when promoting a draft to submitted)
+    if (status === 'graded') {
+      updateCommand.UpdateExpression += ', gradedAt = :gradedAt';
+      updateCommand.ExpressionAttributeValues[':gradedAt'] = now;
+    }
+
+    // When promoting a draft → submitted, refresh submittedAt so it reads as "just posted"
+    if (isPromoteToSubmitted) {
+      updateCommand.UpdateExpression += ', submittedAt = :submittedAt';
+      updateCommand.ExpressionAttributeValues[':submittedAt'] = now;
+    }
 
     // Add grade and feedback if provided
     if (grade !== undefined) {
@@ -543,6 +597,54 @@ export async function PUT(request: NextRequest) {
     }
 
     await docClient.send(new UpdateCommand(updateCommand));
+
+    // If we just promoted a draft to a real submission, create the community video
+    // entry that a normal POST would have created (so it shows up like any posted video).
+    if (isPromoteToSubmitted) {
+      try {
+        const subResult = await docClient.send(new GetCommand({
+          TableName: 'classcast-submissions',
+          Key: { submissionId },
+        }));
+        const sub = subResult.Item;
+        if (sub) {
+          // Avoid duplicate community entries
+          const existingVideo = await docClient.send(new ScanCommand({
+            TableName: 'classcast-videos',
+            FilterExpression: 'submissionId = :sid',
+            ExpressionAttributeValues: { ':sid': submissionId },
+            Limit: 1,
+          }));
+          if (!existingVideo.Items || existingVideo.Items.length === 0) {
+            const videoId = `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            await docClient.send(new PutCommand({
+              TableName: 'classcast-videos',
+              Item: {
+                id: videoId,
+                title: sub.videoTitle || 'Video Submission',
+                description: sub.videoDescription || '',
+                videoUrl: sub.videoUrl,
+                youtubeUrl: sub.youtubeUrl || null,
+                googleDriveUrl: sub.googleDriveUrl || null,
+                isYouTube: sub.isYouTube || false,
+                isGoogleDrive: sub.isGoogleDrive || false,
+                thumbnail: sub.thumbnailUrl || '/api/placeholder/300/200',
+                duration: sub.duration || 0,
+                courseId: sub.courseId,
+                userId: sub.studentId,
+                createdAt: now,
+                updatedAt: now,
+                submissionId,
+                isSubmission: true,
+              },
+            }));
+          }
+        }
+      } catch (promoteErr) {
+        console.warn('Could not create community video on draft promotion:', promoteErr);
+        // Don't fail the promotion if the community entry fails
+      }
+    }
 
     return NextResponse.json({
       success: true,

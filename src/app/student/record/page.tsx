@@ -57,6 +57,7 @@ function RecordPageInner() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [success, setSuccess] = useState(false);
+  const [savedAsDraft, setSavedAsDraft] = useState(false);
   const [error, setError] = useState('');
   const [showEditor, setShowEditor] = useState(false);
   const [showPiP, setShowPiP] = useState(false);
@@ -311,9 +312,9 @@ function RecordPageInner() {
     }
   };
 
-  // Submit
-  const handleSubmit = async () => {
-    console.log('🚀 handleSubmit called', { hasFile: !!videoFile, hasLink: !!linkUrl.trim(), userId: user?.id });
+  // Submit. asDraft=true saves the video as a draft (uploaded + stored, but not posted).
+  const handleSubmit = async (asDraft: boolean = false) => {
+    console.log('🚀 handleSubmit called', { hasFile: !!videoFile, hasLink: !!linkUrl.trim(), userId: user?.id, asDraft });
     if (!user?.id) { setError('Not logged in'); return; }
     if (!videoFile && !linkUrl.trim()) { setError('No video or link to submit'); return; }
     if (assignmentId && assignmentLoading) { setError('Still loading assignment data...'); return; }
@@ -536,6 +537,7 @@ function RecordPageInner() {
         isUploaded: submissionMethod === 'upload',
         choiceId: choiceId || undefined,
         sectionId: sectionId || undefined,
+        status: asDraft ? 'draft' : undefined,
       };
       if (isYouTube) body.youtubeUrl = finalVideoUrl;
       if (isGoogleDrive) body.googleDriveUrl = finalVideoUrl;
@@ -546,17 +548,24 @@ function RecordPageInner() {
         body: JSON.stringify(body),
       });
       const submitData = await submitRes.json().catch(() => null);
+      // A 409 with DRAFT_EXISTS means they already have a saved draft for this video slot
+      if (submitRes.status === 409 && submitData?.error === 'DRAFT_EXISTS') {
+        setError(submitData.message || 'You already have a saved draft for this video. Delete it first, then record again.');
+        setIsSubmitting(false);
+        return;
+      }
       if (!submitRes.ok || !submitData?.success) {
         reportClientError({
-          step: 'submission-save',
+          step: asDraft ? 'draft-save' : 'submission-save',
           error: `${submitRes.status}: ${JSON.stringify(submitData)}`,
           severity: 'error',
-          context: { studentId: user.id, assignmentId, courseId: assignment?.courseId, submissionMethod, isYouTube, isGoogleDrive },
+          context: { studentId: user.id, assignmentId, courseId: assignment?.courseId, submissionMethod, isYouTube, isGoogleDrive, asDraft },
         });
-        throw new Error(`Submission save failed (${submitRes.status}): ${JSON.stringify(submitData)}`);
+        throw new Error(`${asDraft ? 'Draft save' : 'Submission save'} failed (${submitRes.status}): ${JSON.stringify(submitData)}`);
       }
 
       setUploadProgress(100);
+      setSavedAsDraft(asDraft);
       setSuccess(true);
       // Give students a clear, readable confirmation before redirecting
       setTimeout(() => router.push(assignmentId ? `/student/assignments/${assignmentId}` : '/student/dashboard'), 3500);
@@ -911,13 +920,19 @@ function RecordPageInner() {
             </div>
           )}
 
-          {/* SUBMIT BUTTON — sticky at the bottom so it's always visible on any screen size */}
+          {/* SUBMIT BUTTONS — sticky at the bottom so they're always visible on any screen size */}
           {hasVideo && !showThumbnailStep && !isSubmitting && !success && (
-            <div className="sticky bottom-0 -mx-4 px-4 pt-3 pb-4 bg-gradient-to-t from-black via-black/95 to-transparent z-20">
-              <button onClick={handleSubmit} disabled={assignmentLoading} className="w-full py-4 bg-gradient-to-r from-[#005587] to-[#0088cc] rounded-xl font-bold text-lg active:scale-[0.98] transition-transform disabled:opacity-50 shadow-lg">
+            <div className="sticky bottom-0 -mx-4 px-4 pt-3 pb-4 bg-gradient-to-t from-black via-black/95 to-transparent z-20 space-y-2">
+              <button onClick={() => handleSubmit(false)} disabled={assignmentLoading} className="w-full py-4 bg-gradient-to-r from-[#005587] to-[#0088cc] rounded-xl font-bold text-lg active:scale-[0.98] transition-transform disabled:opacity-50 shadow-lg">
                 {assignmentLoading ? '⏳ Loading assignment...' : '🚀 Post Video'}
               </button>
-              <p className="text-center text-[11px] text-gray-400 mt-1.5">Tap to submit your video to this assignment</p>
+              {/* Save draft only makes sense for uploaded/recorded files, not external links */}
+              {!linkUrl.trim() && (
+                <button onClick={() => handleSubmit(true)} disabled={assignmentLoading} className="w-full py-2.5 bg-white/10 border border-white/25 rounded-xl font-medium text-sm text-white active:scale-[0.98] transition-transform disabled:opacity-50">
+                  💾 Save as draft (finish later)
+                </button>
+              )}
+              <p className="text-center text-[11px] text-gray-400">Post submits it to your teacher. Save as draft keeps it safe until you post.</p>
             </div>
           )}
 
@@ -938,13 +953,28 @@ function RecordPageInner() {
           {/* SUCCESS */}
           {success && (
             <div className="flex flex-col items-center gap-4 py-12">
-              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center ${savedAsDraft ? 'bg-[#FFC72C]' : 'bg-green-500'}`}>
+                {savedAsDraft ? (
+                  <svg className="w-10 h-10 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 8a2 2 0 012-2h6l4 4v6a2 2 0 01-2 2H7a2 2 0 01-2-2V8z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 6v4h4" /></svg>
+                ) : (
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                )}
               </div>
-              <h2 className="text-2xl font-bold text-green-400">✓ Video Posted!</h2>
-              <p className="text-gray-200 text-sm text-center max-w-xs">
-                Your video was submitted successfully{assignment?.title ? ` to "${assignment.title}"` : ''}. Your teacher can now see it.
-              </p>
+              {savedAsDraft ? (
+                <>
+                  <h2 className="text-2xl font-bold text-[#FFC72C]">💾 Draft Saved!</h2>
+                  <p className="text-gray-200 text-sm text-center max-w-xs">
+                    Your video is safely saved{assignment?.title ? ` for "${assignment.title}"` : ''}. It has NOT been posted yet — come back anytime to post it. Your teacher can&apos;t see it until you post.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold text-green-400">✓ Video Posted!</h2>
+                  <p className="text-gray-200 text-sm text-center max-w-xs">
+                    Your video was submitted successfully{assignment?.title ? ` to "${assignment.title}"` : ''}. Your teacher can now see it.
+                  </p>
+                </>
+              )}
               <button
                 onClick={() => router.push(assignmentId ? `/student/assignments/${assignmentId}` : '/student/dashboard')}
                 className="mt-2 px-6 py-2.5 bg-white/10 border border-white/20 rounded-full text-white text-sm font-medium"

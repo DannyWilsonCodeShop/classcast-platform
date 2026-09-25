@@ -66,6 +66,8 @@ export async function GET(
     // Create a map of submissions by student and assignment
     const submissionMap = new Map<string, Map<string, any>>();
     submissions.forEach(submission => {
+      // Skip unposted drafts and deleted submissions so they never overwrite a real one
+      if (submission.status === 'draft' || submission.status === 'deleted' || submission.isDeleted || submission.hidden) return;
       const studentId = submission.studentId;
       const assignmentId = submission.assignmentId;
       

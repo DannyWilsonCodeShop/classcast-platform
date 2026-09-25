@@ -410,6 +410,38 @@ export default function StudentAssignmentDetailPage() {
   // "Submitted" (complete) only once the required number of videos is met.
   const isSubmitted = hasAnySubmission && videosSubmitted >= requiredVideoCount;
 
+  // A saved-but-not-posted draft (student's own; never shown to the teacher)
+  const draftSub = allSubmissions.find(s => s.status === 'draft');
+  const [promotingDraft, setPromotingDraft] = useState(false);
+
+  const handlePostDraft = async () => {
+    if (!draftSub?.submissionId) return;
+    setPromotingDraft(true);
+    try {
+      const res = await fetch('/api/video-submissions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ submissionId: draftSub.submissionId, status: 'submitted' }),
+      });
+      if (res.ok) { await fetchData(); }
+      else alert('Could not post your draft. Please try again.');
+    } catch { alert('Error posting your draft.'); }
+    finally { setPromotingDraft(false); }
+  };
+
+  const handleDeleteDraft = async () => {
+    if (!draftSub?.submissionId || !confirm('Delete this saved draft? You can then record a new one.')) return;
+    try {
+      const res = await fetch('/api/delete-submission', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', body: JSON.stringify({ submissionId: draftSub.submissionId }),
+      });
+      if (res.ok) { await fetchData(); }
+      else alert('Failed to delete draft.');
+    } catch { alert('Error deleting draft.'); }
+  };
+
   if (loading) {
     return (
       <StudentRoute>
@@ -586,6 +618,35 @@ export default function StudentAssignmentDetailPage() {
                   />
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Saved draft — student's own, not posted yet */}
+        {draftSub && !isGraded && (
+          <div className="mx-4 my-2 rounded-xl border border-[#FFC72C]/60 bg-[#FFF8E6] p-3 shrink-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm">💾</span>
+              <span className="text-xs font-bold text-[#8a6d00]">Draft saved — not posted yet</span>
+            </div>
+            <p className="text-[11px] text-[#8a6d00]/80 mb-2">
+              This video is safely saved. Your teacher can&apos;t see it until you post it.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handlePostDraft}
+                disabled={promotingDraft}
+                className="flex-1 py-2 bg-[#005587] text-white rounded-lg text-xs font-bold active:scale-95 disabled:opacity-50"
+              >
+                {promotingDraft ? 'Posting…' : '🚀 Post this video'}
+              </button>
+              <button
+                onClick={handleDeleteDraft}
+                disabled={promotingDraft}
+                className="px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-medium active:scale-95 disabled:opacity-50"
+              >
+                Delete
+              </button>
             </div>
           </div>
         )}

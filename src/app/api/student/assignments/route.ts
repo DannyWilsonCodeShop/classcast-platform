@@ -99,15 +99,21 @@ export async function GET(request: NextRequest) {
       assignments = (allAssignments.Items || []).filter(a => courseIds.has(a.courseId));
     }
 
-    // Build lookup maps
-    const submissionMap = new Map<string, any>();
-    userSubmissions.forEach(sub => submissionMap.set(sub.assignmentId, sub));
+    // Build lookup maps (ignore drafts + deleted — a draft is not a real submission)
+    const isRealSubmission = (sub: any) =>
+      sub.status !== 'deleted' && sub.status !== 'draft' && !sub.isHidden && !sub.isDeleted;
 
-    // Count valid (non-deleted) submissions per assignment for this student,
+    const submissionMap = new Map<string, any>();
+    userSubmissions.forEach(sub => {
+      if (!isRealSubmission(sub)) return;
+      submissionMap.set(sub.assignmentId, sub);
+    });
+
+    // Count valid submissions per assignment for this student,
     // so assignments that require multiple videos complete only when the count is met.
     const submissionCountMap = new Map<string, number>();
     userSubmissions.forEach(sub => {
-      if (sub.status === 'deleted' || sub.isHidden || sub.isDeleted) return;
+      if (!isRealSubmission(sub)) return;
       submissionCountMap.set(sub.assignmentId, (submissionCountMap.get(sub.assignmentId) || 0) + 1);
     });
 

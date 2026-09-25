@@ -31,6 +31,8 @@ export async function GET(
     const slotCounts: Record<string, number> = {};
     for (const sub of submissions) {
       if (!sub.choiceId) continue;
+      // Drafts and deleted submissions don't consume a slot
+      if (sub.status === 'draft' || sub.status === 'deleted' || sub.isDeleted || sub.hidden) continue;
       // If sectionId filter provided, only count submissions from that section
       if (sectionId && sub.sectionId !== sectionId) continue;
       slotCounts[sub.choiceId] = (slotCounts[sub.choiceId] || 0) + 1;

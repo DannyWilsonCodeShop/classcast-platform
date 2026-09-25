@@ -213,9 +213,9 @@ export async function GET(request: NextRequest) {
       console.log('Found all submissions:', submissions.length);
     }
 
-    // Filter out deleted submissions
+    // Filter out deleted submissions and unposted drafts (drafts are private to the student)
     const activeSubmissions = submissions.filter(sub => 
-      sub.status !== 'deleted' && !sub.hidden
+      sub.status !== 'deleted' && sub.status !== 'draft' && !sub.hidden
     );
     
     console.log(`Filtered submissions: ${submissions.length} total, ${activeSubmissions.length} active`);
