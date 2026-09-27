@@ -401,19 +401,41 @@ function RecordPageInner() {
             }
             const { data: partData } = await partUrlRes.json();
 
-            // Upload the chunk
-            const partRes = await fetch(partData.presignedUrl, {
-              method: 'PUT',
-              body: chunk,
-            });
-            if (!partRes.ok) {
-              const errBody = await partRes.text().catch(() => '');
-              console.error(`❌ Part ${partNum} PUT failed:`, partRes.status, errBody.substring(0, 200));
-              reportClientError({ step: 's3-part-put', error: `${partRes.status}: ${errBody.substring(0, 200)}`, context: { studentId: user.id, assignmentId, partNum, totalParts, fileSizeMB: Math.round(videoFile.size / (1024*1024)) } });
-              throw new Error(`Part ${partNum}/${totalParts} upload failed (${partRes.status})`);
+            // Upload the chunk, retrying transient failures up to 3 times.
+            // We REQUIRE a real ETag back from S3 — a fake fallback ETag makes the
+            // final "complete" call fail (e.g. "proposed upload smaller than minimum").
+            let etag: string | null = null;
+            let lastErr = '';
+            for (let attempt = 1; attempt <= 3; attempt++) {
+              try {
+                const partRes = await fetch(partData.presignedUrl, { method: 'PUT', body: chunk });
+                if (!partRes.ok) {
+                  lastErr = `${partRes.status}: ${(await partRes.text().catch(() => '')).substring(0, 150)}`;
+                  await new Promise(r => setTimeout(r, attempt * 800)); // backoff then retry
+                  continue;
+                }
+                const gotEtag = partRes.headers.get('ETag');
+                if (!gotEtag) {
+                  // S3 accepted the part but the browser couldn't read the ETag header
+                  // (CORS must expose ETag). Without it we can't safely complete.
+                  lastErr = 'missing ETag header (S3 CORS must expose ETag)';
+                  await new Promise(r => setTimeout(r, attempt * 800));
+                  continue;
+                }
+                etag = gotEtag;
+                break;
+              } catch (netErr: any) {
+                lastErr = netErr?.message || 'network error';
+                await new Promise(r => setTimeout(r, attempt * 800));
+              }
             }
 
-            const etag = partRes.headers.get('ETag') || `"part${partNum}"`;
+            if (!etag) {
+              console.error(`❌ Part ${partNum} PUT failed after retries:`, lastErr);
+              reportClientError({ step: 's3-part-put', error: lastErr, context: { studentId: user.id, assignmentId, partNum, totalParts, chunkBytes: chunk.size, fileSizeMB: Math.round(videoFile.size / (1024*1024)) } });
+              throw new Error(`Part ${partNum}/${totalParts} upload failed after 3 attempts: ${lastErr}`);
+            }
+
             uploadedParts.push({ ETag: etag, PartNumber: partNum });
 
             // Update progress (8% to 88%)

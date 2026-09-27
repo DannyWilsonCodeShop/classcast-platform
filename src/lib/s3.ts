@@ -332,11 +332,13 @@ export class S3Service {
 
   // Multipart Upload: Complete
   async completeMultipartUpload(key: string, uploadId: string, parts: { ETag: string; PartNumber: number }[]): Promise<string> {
+    // S3 requires parts in ascending PartNumber order; sort defensively.
+    const sortedParts = [...parts].sort((a, b) => a.PartNumber - b.PartNumber);
     const command = new CompleteMultipartUploadCommand({
       Bucket: this.bucketName,
       Key: key,
       UploadId: uploadId,
-      MultipartUpload: { Parts: parts },
+      MultipartUpload: { Parts: sortedParts },
     });
     await this.client.send(command);
     return this.getFileUrl(key);
