@@ -752,7 +752,7 @@ const BulkGradingContent: React.FC = () => {
   if (filteredSubmissions.length === 0) {
     return (
       <InstructorRoute>
-        <div className="min-h-full overflow-y-auto pb-24 bg-[#faf9f7]">
+        <div className="min-h-full overflow-y-auto pb-24 bg-[#f4f7fb]">
           {/* Collapsed course title */}
           <div className="px-4 py-3 border-b border-gray-100">
             <button

@@ -115,7 +115,7 @@ const StudentCoursesPage: React.FC = () => {
   if (loading) {
     return (
       <StudentRoute>
-        <div className="h-full flex flex-col bg-[#faf9f7] overflow-hidden">
+        <div className="h-full flex flex-col bg-[#f4f7fb] overflow-hidden">
           <div className="px-4 pt-3 pb-2 shrink-0">
             <div className="h-5 w-24 bg-gray-200 rounded animate-pulse mb-3" />
             <div className="h-9 w-full bg-gray-100 rounded-xl animate-pulse" />
@@ -138,7 +138,7 @@ const StudentCoursesPage: React.FC = () => {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
-      <div className="h-full overflow-hidden flex flex-col bg-[#faf9f7]">
+      <div className="h-full overflow-hidden flex flex-col bg-[#f4f7fb]">
         {/* Search / Join unified input */}
         <div className="px-4 pt-3 pb-2 shrink-0">
           <h1 className="text-lg font-semibold text-stone-900 mb-2" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>My Courses</h1>

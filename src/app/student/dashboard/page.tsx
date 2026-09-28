@@ -143,7 +143,7 @@ export default function StudentDashboardPage() {
 
       {/* ===== WIDE SCREEN LAYOUT (iPad/Desktop) ===== */}
       {isWide ? (
-        <div className="h-full flex flex-col overflow-hidden bg-[#faf9f7]">
+        <div className="h-full flex flex-col overflow-hidden bg-[#f4f7fb]">
           {/* Quick Stats Row */}
           <div className="flex items-center gap-4 px-6 py-4 shrink-0 border-b border-stone-200/60">
             <h1 className="text-xl font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Dashboard</h1>
@@ -219,9 +219,9 @@ export default function StudentDashboardPage() {
         </div>
       ) : (
       /* ===== MOBILE LAYOUT (existing) ===== */
-      <div className="h-full flex flex-col overflow-hidden bg-[#faf9f7]" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
+      <div className="h-full flex flex-col overflow-hidden bg-[#f4f7fb]" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
         {loading ? (
-          <div className="flex-1 bg-[#faf9f7]" />
+          <div className="flex-1 bg-[#f4f7fb]" />
         ) : (
         <>
         {/* Quick Stats Row - replaces greeting */}

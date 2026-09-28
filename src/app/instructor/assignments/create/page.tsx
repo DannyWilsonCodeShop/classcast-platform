@@ -302,7 +302,7 @@ const CreateAssignmentPage: React.FC = () => {
   return (
     <InstructorRoute>
       <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/30 backdrop-blur-sm">
-        <div className="bg-[#faf9f7] w-full max-w-[480px] rounded-2xl p-5 max-h-[92vh] overflow-y-auto border border-stone-200/60 shadow-xl">
+        <div className="bg-[#f4f7fb] w-full max-w-[480px] rounded-2xl p-5 max-h-[92vh] overflow-y-auto border border-stone-200/60 shadow-xl">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Create Assignment</h2>

@@ -79,7 +79,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{ background: '#faf9f7' }}
+        style={{ background: '#f4f7fb' }}
       >
         <QueryProvider>
           <OIDCAuthProvider>

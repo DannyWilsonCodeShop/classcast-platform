@@ -145,7 +145,7 @@ export default function StudentAssignmentsPage() {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700&display=swap" rel="stylesheet" />
-      <div className="h-full flex flex-col bg-[#faf9f7] overflow-hidden">
+      <div className="h-full flex flex-col bg-[#f4f7fb] overflow-hidden">
         {/* Calendar section */}
         <div className="px-4 pt-1 pb-2 flex-shrink-0">
           <div className="flex items-center justify-between mb-3">
