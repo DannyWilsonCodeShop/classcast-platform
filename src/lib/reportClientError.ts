@@ -21,12 +21,18 @@ export function reportClientError({ step, error, severity = 'error', context = {
       error instanceof Error ? error.message : typeof error === 'string' ? error : JSON.stringify(error);
     const stack = error instanceof Error ? error.stack : undefined;
 
+    // Promote a studentId/userId from context to the top level so the error log's
+    // userId column identifies who hit the error (instead of "unknown").
+    const resolvedUserId =
+      (context as any)?.userId || (context as any)?.studentId || undefined;
+
     const payload = {
       error: `[record:${step}] ${message}`,
       stack: stack || '',
       severity,
       url: typeof window !== 'undefined' ? window.location.href : '',
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+      userId: resolvedUserId,
       context: { step, ...context },
     };
 

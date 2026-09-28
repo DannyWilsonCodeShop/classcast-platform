@@ -25,6 +25,27 @@ class ErrorBoundaryClass extends Component<Props & { user?: any }, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Stale-deploy chunk errors: reload once to pull the new build instead of
+    // showing the error screen or logging noise.
+    const msg = error?.message || String(error || '');
+    const isChunk =
+      error?.name === 'ChunkLoadError' ||
+      /Loading chunk [\w-]+ failed/i.test(msg) ||
+      /Loading CSS chunk/i.test(msg) ||
+      /failed to fetch dynamically imported module/i.test(msg) ||
+      /importing a module script failed/i.test(msg);
+    if (isChunk && typeof window !== 'undefined') {
+      try {
+        const KEY = 'classcast_chunk_reloaded_at';
+        const last = Number(sessionStorage.getItem(KEY) || '0');
+        if (Date.now() - last > 60000) {
+          sessionStorage.setItem(KEY, String(Date.now()));
+          window.location.reload();
+          return;
+        }
+      } catch { /* fall through to normal error UI */ }
+    }
+
     // Report the error
     ErrorReporter.reportReactError(
       error,

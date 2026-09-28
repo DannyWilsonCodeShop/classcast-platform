@@ -102,9 +102,44 @@ export class ErrorReporter {
   }
 }
 
+// Detects the "stale deploy" error: after we ship a new build, a page still running
+// the old build tries to fetch JS chunks that no longer exist. A one-time reload
+// pulls the new build and fixes it. Guarded so it can never loop.
+function isChunkLoadError(err: any): boolean {
+  const msg = (err && (err.message || err.toString?.())) || String(err || '');
+  const name = err?.name || '';
+  return (
+    name === 'ChunkLoadError' ||
+    /Loading chunk [\w-]+ failed/i.test(msg) ||
+    /Loading CSS chunk/i.test(msg) ||
+    /failed to fetch dynamically imported module/i.test(msg) ||
+    /importing a module script failed/i.test(msg)
+  );
+}
+
+const CHUNK_RELOAD_KEY = 'classcast_chunk_reloaded_at';
+
+function handleStaleChunk(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || '0');
+    // Only auto-reload once per 60s window to avoid reload loops if it's not actually stale.
+    if (Date.now() - last < 60000) return false;
+    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+    window.location.reload();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Global error handler for unhandled errors
 if (typeof window !== 'undefined') {
   window.addEventListener('error', (event) => {
+    if (isChunkLoadError(event.error || event.message)) {
+      handleStaleChunk(); // reload to get the new build; don't log as an error
+      return;
+    }
     ErrorReporter.getInstance().reportError({
       error: event.error || event.message,
       additionalContext: {
@@ -118,6 +153,10 @@ if (typeof window !== 'undefined') {
 
   // Handle unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
+    if (isChunkLoadError(event.reason)) {
+      handleStaleChunk();
+      return;
+    }
     ErrorReporter.getInstance().reportError({
       error: event.reason,
       additionalContext: {
