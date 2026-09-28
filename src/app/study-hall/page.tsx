@@ -67,6 +67,8 @@ export default function PublicStudyHallPage() {
   const [success, setSuccess] = useState(false);
   const [bulkAdding, setBulkAdding] = useState(false);
   const [bulkCount, setBulkCount] = useState(0);
+  // Multi-select "chips": students queued to be added together (like an email To: field)
+  const [selectedStudents, setSelectedStudents] = useState<StudentResult[]>([]);
   const [bumpedMessage, setBumpedMessage] = useState('');
   const [myRequests, setMyRequests] = useState<Array<{ studentName: string; pulloutDate: string }>>([]);
 
@@ -129,6 +131,22 @@ export default function PublicStudyHallPage() {
 
   const getEffectiveTeacher = () => teacherName === 'Other' ? customTeacher.trim() : teacherName;
   const getEffectiveStudent = () => selectedStudent?.name || customStudentName.trim();
+
+  // Add a student to the chip list (dedupe by name), then clear the search box
+  const addStudentChip = (student: StudentResult) => {
+    setSelectedStudents(prev => {
+      if (prev.some(s => s.name.toLowerCase() === student.name.toLowerCase())) return prev;
+      return [...prev, student];
+    });
+    setSearchQuery('');
+    setSearchResults([]);
+    setSelectedStudent(null);
+    setCustomStudentName('');
+  };
+
+  const removeStudentChip = (name: string) => {
+    setSelectedStudents(prev => prev.filter(s => s.name !== name));
+  };
 
   const submitSingleStudent = useCallback(async (studentName: string): Promise<{ success: boolean; bumped?: boolean; message?: string; effectiveDate?: string }> => {
     const teacher = getEffectiveTeacher();
@@ -196,31 +214,70 @@ export default function PublicStudyHallPage() {
   }, [pulloutDate, teacherName, customTeacher, reason, submitSingleStudent]);
 
   const handleSubmit = async () => {
+    // Comma-paste fallback still supported
     if (searchQuery.includes(',')) {
       await handleBulkPaste(searchQuery);
       return;
     }
 
-    const studentName = getEffectiveStudent();
     const teacher = getEffectiveTeacher();
-    if (!studentName || !pulloutDate || !teacher) return;
-    setSubmitting(true);
-    setBumpedMessage('');
-    try {
-      const result = await submitSingleStudent(studentName);
-      if (result.success) {
-        setMyRequests(prev => [...prev, { studentName, pulloutDate: result.effectiveDate || pulloutDate }]);
-        setSelectedStudent(null);
-        setSearchQuery('');
-        setCustomStudentName('');
-        setSuccess(true);
-        if (result.bumped && result.message) {
-          setBumpedMessage(result.message);
+    if (!teacher || !pulloutDate) return;
+
+    // Build the list of names to add: all chips, plus a typed name still in the box.
+    const names: string[] = selectedStudents.map(s => s.name);
+    const typed = getEffectiveStudent();
+    if (typed && !names.some(n => n.toLowerCase() === typed.toLowerCase())) {
+      names.push(typed);
+    }
+    if (names.length === 0) return;
+
+    // Single name → keep the simple path
+    if (names.length === 1) {
+      setSubmitting(true);
+      setBumpedMessage('');
+      try {
+        const result = await submitSingleStudent(names[0]);
+        if (result.success) {
+          setMyRequests(prev => [...prev, { studentName: names[0], pulloutDate: result.effectiveDate || pulloutDate }]);
+          setSelectedStudent(null);
+          setSelectedStudents([]);
+          setSearchQuery('');
+          setCustomStudentName('');
+          setSuccess(true);
+          if (result.bumped && result.message) setBumpedMessage(result.message);
+          setTimeout(() => setSuccess(false), 2000);
+          setTodayRefreshKey(k => k + 1);
         }
-        setTimeout(() => setSuccess(false), 2000);
-        setTodayRefreshKey(k => k + 1);
+      } finally { setSubmitting(false); }
+      return;
+    }
+
+    // Multiple chips → add them all
+    setBulkAdding(true);
+    setBulkCount(0);
+    setBumpedMessage('');
+    let added = 0;
+    const bumpedNames: string[] = [];
+    for (const name of names) {
+      const result = await submitSingleStudent(name);
+      if (result.success) {
+        added++;
+        setBulkCount(added);
+        setMyRequests(prev => [...prev, { studentName: name, pulloutDate: result.effectiveDate || pulloutDate }]);
+        if (result.bumped && result.message) bumpedNames.push(name);
       }
-    } finally { setSubmitting(false); }
+    }
+    setBulkAdding(false);
+    setSelectedStudents([]);
+    setSelectedStudent(null);
+    setSearchQuery('');
+    setCustomStudentName('');
+    setSuccess(true);
+    if (bumpedNames.length > 0) {
+      setBumpedMessage(`${bumpedNames.join(', ')} already requested — moved to next school day.`);
+    }
+    setTimeout(() => setSuccess(false), 3000);
+    setTodayRefreshKey(k => k + 1);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -355,11 +412,27 @@ export default function PublicStudyHallPage() {
               {/* Student Search */}
               <div className="relative mb-3">
                 <label className="block text-[10px] font-medium text-gray-600 mb-1">Student Name(s)</label>
+                {/* Selected students as removable chips (add several before submitting) */}
+                {selectedStudents.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {selectedStudents.map((s) => (
+                      <span key={s.name} className="inline-flex items-center gap-1 bg-[#005587]/10 text-[#005587] rounded-full pl-2.5 pr-1.5 py-1 text-xs font-medium">
+                        {s.name}
+                        <button
+                          type="button"
+                          onClick={() => removeStudentChip(s.name)}
+                          className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-[#005587]/20 text-[#005587]"
+                          aria-label={`Remove ${s.name}`}
+                        >✕</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={handleInputChange}
-                  placeholder="Search name or paste comma-separated list..."
+                  placeholder={selectedStudents.length > 0 ? 'Add another student…' : 'Search a student by name…'}
                   className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
                 />
                 {searching && (
@@ -367,12 +440,14 @@ export default function PublicStudyHallPage() {
                     <div className="w-4 h-4 border-2 border-[#005587] border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
-                {searchResults.length > 0 && !selectedStudent && (
+                {searchResults.length > 0 && (
                   <div className="absolute z-10 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                    {searchResults.map((student, i) => (
+                    {searchResults
+                      .filter(s => !selectedStudents.some(sel => sel.name.toLowerCase() === s.name.toLowerCase()))
+                      .map((student, i) => (
                       <button
                         key={i}
-                        onClick={() => { setSelectedStudent(student); setSearchQuery(student.name); setCustomStudentName(''); setSearchResults([]); }}
+                        onClick={() => addStudentChip(student)}
                         className="w-full text-left px-3 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 active:bg-gray-100"
                       >
                         <p className="text-sm font-medium text-gray-800">{student.name}</p>
@@ -381,23 +456,18 @@ export default function PublicStudyHallPage() {
                     ))}
                   </div>
                 )}
-                {searchQuery.length >= 2 && !searchQuery.includes(',') && searchResults.length === 0 && !searching && !selectedStudent && (
-                  <p className="text-[9px] text-gray-400 mt-1">Not found? Type the full name and submit, or paste multiple names separated by commas.</p>
+                {searchQuery.length >= 2 && !searchQuery.includes(',') && searchResults.length === 0 && !searching && (
+                  <p className="text-[9px] text-gray-400 mt-1">Not found? Type the full name — it&apos;ll be added when you submit.</p>
+                )}
+                {selectedStudents.length === 0 && searchQuery.length < 2 && (
+                  <p className="text-[9px] text-gray-400 mt-1">Search and tap a name to add it. Add as many as you need, then submit them all at once.</p>
                 )}
                 {searchQuery.includes(',') && (
                   <p className="text-[9px] text-[#005587] mt-1 font-medium">
-                    Bulk mode: {searchQuery.split(',').map(n => n.trim()).filter(n => n.length >= 2).length} names detected
+                    Bulk paste: {searchQuery.split(',').map(n => n.trim()).filter(n => n.length >= 2).length} names detected
                   </p>
                 )}
               </div>
-
-              {selectedStudent && (
-                <div className="flex items-center gap-2 mb-3 p-2.5 bg-[#005587]/10 rounded-xl">
-                  <span className="text-xs font-medium text-[#005587]">{selectedStudent.name}</span>
-                  {selectedStudent.homeroom && <span className="text-[10px] text-gray-500">({selectedStudent.homeroom})</span>}
-                  <button onClick={() => { setSelectedStudent(null); setSearchQuery(''); }} className="ml-auto text-gray-400 text-sm">✕</button>
-                </div>
-              )}
 
               <div className="space-y-3 mb-3">
                 <div>
@@ -412,10 +482,20 @@ export default function PublicStudyHallPage() {
                 </div>
               </div>
 
-              <button onClick={handleSubmit} disabled={!getEffectiveStudent() || !getEffectiveTeacher() || submitting || bulkAdding}
-                className="w-full py-3 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50 active:scale-[0.98] transition-transform">
-                {bulkAdding ? `Adding... (${bulkCount})` : submitting ? 'Adding...' : searchQuery.includes(',') ? `Add ${searchQuery.split(',').map(n => n.trim()).filter(n => n.length >= 2).length} Students` : 'Add to Pullout List'}
-              </button>
+              {(() => {
+                const chipCount = selectedStudents.length;
+                const typed = getEffectiveStudent();
+                const typedCounts = typed && !selectedStudents.some(s => s.name.toLowerCase() === typed.toLowerCase()) ? 1 : 0;
+                const commaCount = searchQuery.includes(',') ? searchQuery.split(',').map(n => n.trim()).filter(n => n.length >= 2).length : 0;
+                const total = commaCount || (chipCount + typedCounts);
+                const hasTeacher = !!getEffectiveTeacher();
+                return (
+                  <button onClick={handleSubmit} disabled={total === 0 || !hasTeacher || submitting || bulkAdding}
+                    className="w-full py-3 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50 active:scale-[0.98] transition-transform">
+                    {bulkAdding ? `Adding... (${bulkCount})` : submitting ? 'Adding...' : total > 1 ? `Add ${total} Students to Pullout List` : 'Add to Pullout List'}
+                  </button>
+                );
+              })()}
             </div>
 
             {/* Session list */}
