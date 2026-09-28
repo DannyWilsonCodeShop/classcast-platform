@@ -11,6 +11,11 @@ interface InteractionBarProps {
   initialIsLiked?: boolean;
   initialUserRating?: number;
   onCountsChange?: (counts: { likes?: number; comments?: number; userRating?: number; averageRating?: number }) => void;
+  /** 'inline' (default) = classic stacked layout used in dashboards.
+   *  'overlay' = Instagram-style: a vertical icon rail with slide-up sheets, for the full-screen feed. */
+  layout?: 'inline' | 'overlay';
+  /** Fired in overlay mode whenever a bottom sheet opens/closes so the parent can shrink the video. */
+  onPanelChange?: (open: boolean) => void;
 }
 
 const InteractionBar: React.FC<InteractionBarProps> = ({
@@ -22,11 +27,16 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
   initialIsLiked = false,
   initialUserRating = 0,
   onCountsChange,
+  layout = 'inline',
+  onPanelChange,
 }) => {
   const [likes, setLikes] = React.useState<number>(initialLikes);
   const [isLiked, setIsLiked] = React.useState<boolean>(initialIsLiked);
   const [comments, setComments] = React.useState<number>(initialComments);
-  const [showComments, setShowComments] = React.useState<boolean>(true);
+  // In overlay (Instagram) mode, comments start hidden and open as a bottom sheet on tap.
+  const [showComments, setShowComments] = React.useState<boolean>(layout !== 'overlay');
+  // Overlay-only: which bottom sheet is open ('comments' | 'respond' | 'responses' | null)
+  const [activeSheet, setActiveSheet] = React.useState<null | 'comments' | 'respond' | 'responses'>(null);
   const [commentText, setCommentText] = React.useState<string>('');
   const [responseText, setResponseText] = React.useState<string>('');
   const [postingComment, setPostingComment] = React.useState<boolean>(false);
@@ -305,6 +315,253 @@ const InteractionBar: React.FC<InteractionBarProps> = ({
     setLoadingRating(false);
   };
 
+  // Overlay-only: open/close bottom sheets and let the parent shrink the video.
+  const openSheet = (sheet: 'comments' | 'respond' | 'responses') => {
+    setActiveSheet((cur) => {
+      const next = cur === sheet ? null : sheet;
+      onPanelChange?.(next !== null);
+      if (next === 'responses') loadResponses();
+      return next;
+    });
+  };
+  const closeSheet = () => {
+    setActiveSheet(null);
+    onPanelChange?.(false);
+  };
+
+  /* ============================ OVERLAY (Instagram) LAYOUT ============================ */
+  if (layout === 'overlay') {
+    const railBtn = 'flex flex-col items-center gap-0.5 text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.6)]';
+    return (
+      <>
+        {/* Right-side vertical action rail */}
+        <div className="flex flex-col items-center gap-5 select-none">
+          {/* Star rating (tap to reveal a small popover of 5 stars) */}
+          {!isOwnVideo ? (
+            <div className="flex flex-col items-center gap-1">
+              <div className="flex flex-col-reverse items-center gap-0.5 bg-black/25 rounded-full px-1.5 py-2 backdrop-blur-sm">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    onClick={() => handleRating(star)}
+                    className="focus:outline-none active:scale-125 transition-transform"
+                    type="button"
+                    title={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                    disabled={loadingRating}
+                  >
+                    <svg className={`w-6 h-6 transition-all ${star <= userRating ? 'text-[#FFC72C] fill-[#FFC72C] drop-shadow' : 'text-white/70'}`} fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+              <span className={`text-[11px] font-bold ${railBtn}`}>{userRating > 0 ? `${userRating}★` : 'Rate'}</span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-0.5">
+              <div className="flex items-center gap-0.5 bg-black/25 rounded-full px-2 py-1 backdrop-blur-sm">
+                <svg className="w-5 h-5 text-[#FFC72C] fill-[#FFC72C]" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                <span className="text-white text-xs font-bold">{averageRating > 0 ? averageRating.toFixed(1) : '–'}</span>
+              </div>
+              <span className={`text-[11px] font-bold ${railBtn}`}>Rating</span>
+            </div>
+          )}
+
+          {/* Comments */}
+          <button onClick={() => openSheet('comments')} className={railBtn} type="button">
+            <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 3C6.5 3 2 6.8 2 11.5c0 2.3 1.1 4.4 2.9 5.9-.1 1-.6 2.4-1.6 3.4-.2.2-.1.6.2.6 1.9-.1 3.7-.8 5-1.9 1.1.3 2.3.5 3.5.5 5.5 0 10-3.8 10-8.5S17.5 3 12 3z" />
+            </svg>
+            <span className="text-[11px] font-bold">{comments}</span>
+          </button>
+
+          {/* Respond (for grade) — hidden on own video */}
+          {!isOwnVideo && (
+            <button onClick={() => openSheet('respond')} className={railBtn} type="button">
+              <svg className="w-8 h-8" fill={responsePosted ? '#4ade80' : 'currentColor'} viewBox="0 0 24 24">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-9 12H9v-2h2v2zm0-4H9V6h2v4zm4 4h-2v-2h2v2zm0-4h-2V6h2v4z" />
+              </svg>
+              <span className="text-[11px] font-bold">{responsePosted ? '✓' : 'Grade'}</span>
+            </button>
+          )}
+
+          {/* View responses */}
+          <button onClick={() => openSheet('responses')} className={railBtn} type="button">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="text-[11px] font-bold">{responsesList.length}</span>
+          </button>
+        </div>
+
+        {/* ===== Bottom sheet ===== */}
+        {activeSheet && (
+          <div className="fixed inset-0 z-50 flex flex-col justify-end" onClick={closeSheet}>
+            <div className="absolute inset-0 bg-black/30" />
+            <div
+              className="relative bg-white rounded-t-2xl max-h-[55vh] flex flex-col shadow-2xl animate-[slideUp_0.2s_ease-out]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* grabber + header */}
+              <div className="pt-2 pb-1 flex flex-col items-center shrink-0">
+                <div className="w-10 h-1 rounded-full bg-gray-300" />
+              </div>
+              <div className="flex items-center justify-between px-4 pb-2 shrink-0 border-b border-gray-100">
+                <h3 className="text-sm font-bold text-gray-900">
+                  {activeSheet === 'comments' && `Comments${comments ? ` (${comments})` : ''}`}
+                  {activeSheet === 'respond' && '📝 Respond for a grade'}
+                  {activeSheet === 'responses' && `Responses (${responsesList.length})`}
+                </h3>
+                <button onClick={closeSheet} className="p-1 text-gray-400" type="button">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+
+              <div className="overflow-y-auto px-4 py-3 flex-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+                {/* COMMENTS SHEET */}
+                {activeSheet === 'comments' && (
+                  <>
+                    <p className="text-[11px] text-gray-400 mb-2">Comments are casual — they do not count toward your grade.</p>
+                    {commentsList.length > 0 ? (
+                      <div className="space-y-2">
+                        {commentsList.map((comment, index) => (
+                          <div key={comment.id || index} className="bg-gray-50 rounded-lg p-3 border-l-4 border-blue-400">
+                            <div className="flex items-start space-x-2">
+                              <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                <span className="text-white text-xs font-bold">{comment.userName?.charAt(0) || 'U'}</span>
+                              </div>
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-2 mb-1">
+                                  <span className="text-sm font-medium text-gray-900">{comment.userName}</span>
+                                  <span className="text-xs text-gray-500">{comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : 'Recently'}</span>
+                                </div>
+                                <p className="text-sm text-gray-700">{comment.content}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-400 py-4 text-center">No comments yet. Be the first!</p>
+                    )}
+                  </>
+                )}
+
+                {/* RESPOND SHEET */}
+                {activeSheet === 'respond' && !isOwnVideo && (
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span className="text-[10px] font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">FOR GRADING</span>
+                      <span className="text-[10px] text-green-600">Counts toward your peer review requirement</span>
+                    </div>
+                    {responsePosted && (
+                      <div className="mb-3 p-3 bg-green-100 border border-green-300 rounded-lg flex items-center gap-2">
+                        <svg className="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        <span className="text-sm text-green-700 font-medium">Response submitted successfully!</span>
+                      </div>
+                    )}
+                    <textarea
+                      className="w-full px-3 py-2 border border-green-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                      placeholder="Write a thoughtful response to this video..."
+                      rows={4}
+                      ref={responseInputRef}
+                      onChange={(e) => setResponseText(e.target.value)}
+                      value={responseText}
+                    />
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        onClick={handlePostResponse}
+                        disabled={!responseText.trim() || postingResponse}
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        type="button"
+                      >
+                        {postingResponse ? 'Submitting...' : '✓ Submit Response'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* RESPONSES SHEET */}
+                {activeSheet === 'responses' && (
+                  <div>
+                    {loadingResponses ? (
+                      <p className="text-sm text-gray-500 py-4 text-center">Loading responses...</p>
+                    ) : responsesList.length > 0 ? (
+                      <div className="space-y-2">
+                        {responsesList.map((response, index) => {
+                          const isMyResponse = currentUser?.id && response.userId === currentUser.id;
+                          return (
+                            <div key={response.id || index} className={`bg-white rounded-lg p-3 border ${isMyResponse ? 'border-blue-300 bg-blue-50/50' : 'border-green-300'}`}>
+                              <div className="flex items-start space-x-2">
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${isMyResponse ? 'bg-blue-500' : 'bg-green-500'}`}>
+                                  <span className="text-white text-xs font-bold">{response.userName?.charAt(0) || 'U'}</span>
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <span className="text-sm font-medium text-gray-900">{response.userName}{isMyResponse ? ' (You)' : ''}</span>
+                                    <span className="text-xs text-gray-500">{response.createdAt ? new Date(response.createdAt).toLocaleDateString() : 'Recently'}</span>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${isMyResponse ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>For Grading</span>
+                                  </div>
+                                  <p className="text-sm text-gray-700">{response.content}</p>
+                                  {isMyResponse && (
+                                    <button
+                                      onClick={async () => {
+                                        if (!confirm('Delete your response? This cannot be undone.')) return;
+                                        try {
+                                          const res = await fetch(`/api/videos/${videoId}/interactions/${response.id}`, { method: 'DELETE' });
+                                          if (res.ok) { await loadResponses(); } else { alert('Failed to delete response'); }
+                                        } catch { alert('Error deleting response'); }
+                                      }}
+                                      className="mt-2 text-xs text-red-500 hover:text-red-700 font-medium"
+                                      type="button"
+                                    >
+                                      🗑 Delete my response
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-400 py-4 text-center">No responses yet.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Sticky comment composer at bottom of comments sheet */}
+              {activeSheet === 'comments' && (
+                <div className="shrink-0 border-t border-gray-100 p-3 flex space-x-2" style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}>
+                  <input
+                    type="text"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder="Add a comment..."
+                    ref={commentInputRef}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onKeyDown={(e) => e.key === 'Enter' && handlePostComment()}
+                  />
+                  <button
+                    onClick={handlePostComment}
+                    disabled={!commentText.trim() || postingComment}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    type="button"
+                  >
+                    {postingComment ? '...' : commentPosted ? '✓' : 'Post'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        <style jsx global>{`@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }`}</style>
+      </>
+    );
+  }
+
+  /* ============================ INLINE (classic) LAYOUT ============================ */
   return (
     <div className="flex items-center flex-wrap gap-4 text-gray-600">
       {/* Star Rating - primary interaction */}
