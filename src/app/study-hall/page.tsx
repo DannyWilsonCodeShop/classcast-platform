@@ -35,6 +35,8 @@ const TEACHERS = [
   'Dean Stevens',
   'Mr. Johnson (CWS)',
   'IT Service Desk',
+  'Cafeteria',
+  'Commons',
   'Other',
 ];
 
