@@ -345,13 +345,16 @@ function RecordPageInner() {
         setUploadProgress(5);
         console.log('📤 Starting upload:', { name: videoFile.name, size: `${(videoFile.size / (1024*1024)).toFixed(1)} MB`, type: videoFile.type });
 
-        const MULTIPART_THRESHOLD = 100 * 1024 * 1024; // 100MB
+        // Use parallel multipart for anything over 20MB; smaller files use a single PUT.
+        const MULTIPART_THRESHOLD = 20 * 1024 * 1024; // 20MB
 
         if (videoFile.size > MULTIPART_THRESHOLD) {
           // --- MULTIPART UPLOAD for large files ---
-          const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB per part
+          // Larger chunks = fewer round-trips; parts uploaded in parallel for speed.
+          const CHUNK_SIZE = 20 * 1024 * 1024; // 20MB per part
+          const UPLOAD_CONCURRENCY = 4;         // upload 4 parts at once
           const totalParts = Math.ceil(videoFile.size / CHUNK_SIZE);
-          console.log(`📤 Using multipart upload: ${totalParts} parts of 10MB`);
+          console.log(`📤 Using multipart upload: ${totalParts} parts of 20MB, ${UPLOAD_CONCURRENCY} at a time`);
 
           // 1. Initialize multipart upload
           console.log('📤 Step 1: Initializing multipart upload...');
@@ -379,15 +382,17 @@ function RecordPageInner() {
           finalVideoUrl = fileUrl;
           setUploadProgress(8);
 
-          // 2. Upload each part
-          console.log('📤 Step 2: Uploading parts...');
+          // 2. Upload parts IN PARALLEL (a pool of UPLOAD_CONCURRENCY workers).
+          console.log('📤 Step 2: Uploading parts (parallel)...');
           const uploadedParts: { ETag: string; PartNumber: number }[] = [];
-          for (let partNum = 1; partNum <= totalParts; partNum++) {
+          let completedParts = 0;
+
+          // Uploads a single part (fetch its presigned URL, PUT the chunk, retry 3x).
+          const uploadOnePart = async (partNum: number) => {
             const start = (partNum - 1) * CHUNK_SIZE;
             const end = Math.min(start + CHUNK_SIZE, videoFile.size);
             const chunk = videoFile.slice(start, end);
 
-            // Get presigned URL for this part
             const partUrlRes = await fetch('/api/upload/multipart/part-url', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -395,15 +400,12 @@ function RecordPageInner() {
             });
             if (!partUrlRes.ok) {
               const errBody = await partUrlRes.text().catch(() => '');
-              console.error(`❌ Part URL failed for part ${partNum}:`, partUrlRes.status, errBody);
               reportClientError({ step: 'multipart-part-url', error: `${partUrlRes.status}: ${errBody}`, context: { studentId: user.id, assignmentId, partNum, totalParts } });
               throw new Error(`Failed to get URL for part ${partNum} (${partUrlRes.status})`);
             }
             const { data: partData } = await partUrlRes.json();
 
-            // Upload the chunk, retrying transient failures up to 3 times.
-            // We REQUIRE a real ETag back from S3 — a fake fallback ETag makes the
-            // final "complete" call fail (e.g. "proposed upload smaller than minimum").
+            // Require a real ETag; retry transient failures with backoff.
             let etag: string | null = null;
             let lastErr = '';
             for (let attempt = 1; attempt <= 3; attempt++) {
@@ -411,13 +413,11 @@ function RecordPageInner() {
                 const partRes = await fetch(partData.presignedUrl, { method: 'PUT', body: chunk });
                 if (!partRes.ok) {
                   lastErr = `${partRes.status}: ${(await partRes.text().catch(() => '')).substring(0, 150)}`;
-                  await new Promise(r => setTimeout(r, attempt * 800)); // backoff then retry
+                  await new Promise(r => setTimeout(r, attempt * 800));
                   continue;
                 }
                 const gotEtag = partRes.headers.get('ETag');
                 if (!gotEtag) {
-                  // S3 accepted the part but the browser couldn't read the ETag header
-                  // (CORS must expose ETag). Without it we can't safely complete.
                   lastErr = 'missing ETag header (S3 CORS must expose ETag)';
                   await new Promise(r => setTimeout(r, attempt * 800));
                   continue;
@@ -429,22 +429,29 @@ function RecordPageInner() {
                 await new Promise(r => setTimeout(r, attempt * 800));
               }
             }
-
             if (!etag) {
-              console.error(`❌ Part ${partNum} PUT failed after retries:`, lastErr);
               reportClientError({ step: 's3-part-put', error: lastErr, context: { studentId: user.id, assignmentId, partNum, totalParts, chunkBytes: chunk.size, fileSizeMB: Math.round(videoFile.size / (1024*1024)) } });
               throw new Error(`Part ${partNum}/${totalParts} upload failed after 3 attempts: ${lastErr}`);
             }
 
             uploadedParts.push({ ETag: etag, PartNumber: partNum });
+            completedParts++;
+            // Progress 8% → 88% based on parts finished
+            setUploadProgress(8 + Math.round((completedParts / totalParts) * 80));
+          };
 
-            // Update progress (8% to 88%)
-            const pct = 8 + Math.round((partNum / totalParts) * 80);
-            setUploadProgress(pct);
-            if (partNum % 10 === 0 || partNum === totalParts) {
-              console.log(`📤 Part ${partNum}/${totalParts} done (${pct}%)`);
+          // Worker pool: pull the next part number until all are done.
+          let nextPart = 1;
+          const runWorker = async () => {
+            while (true) {
+              const partNum = nextPart++;
+              if (partNum > totalParts) return;
+              await uploadOnePart(partNum);
             }
-          }
+          };
+          await Promise.all(
+            Array.from({ length: Math.min(UPLOAD_CONCURRENCY, totalParts) }, () => runWorker())
+          );
 
           // 3. Complete multipart upload
           console.log('📤 Step 3: Completing multipart upload...');
