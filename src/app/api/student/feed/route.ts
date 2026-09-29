@@ -1,11 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { extractYouTubeVideoId as getYouTubeVideoId } from '@/lib/youtube';
 import { isRequestFromDemoUser, getDemoTargetFromRequest } from '@/lib/demo-mode-middleware';
 
 const dynamoClient = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
+
+const s3Client = new S3Client({ region: process.env.REGION || process.env.AWS_REGION || 'us-east-1' });
+const VIDEO_BUCKET = process.env.VIDEO_BUCKET || 'classcast-videos-463470937777-us-east-1';
+const SIGNED_URL_EXPIRY = 60 * 60 * 6; // 6 hours
+
+function extractS3KeyFromUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    let key = decodeURIComponent(urlObj.pathname.substring(1));
+    if (key.startsWith(`${VIDEO_BUCKET}/`)) {
+      key = key.substring(VIDEO_BUCKET.length + 1);
+    }
+    return key || null;
+  } catch {
+    return null;
+  }
+}
+
+function isExternalOrPublicUrl(url: string): boolean {
+  if (!url) return true;
+  return (
+    url.includes('youtube.com') ||
+    url.includes('youtu.be') ||
+    url.includes('drive.google.com') ||
+    url.includes('img.youtube.com') ||
+    url.startsWith('/api/placeholder') ||
+    url.startsWith('data:')
+  );
+}
+
+// Sign S3-hosted objects; leave YouTube/Drive/placeholder/data URLs untouched. Never throws.
+async function signIfS3(url: string | null | undefined): Promise<string | null | undefined> {
+  if (!url || isExternalOrPublicUrl(url)) return url;
+  const isS3 = url.includes('amazonaws.com') || url.startsWith('s3://');
+  if (!isS3) return url;
+  try {
+    const key = url.startsWith('s3://')
+      ? url.replace(/^s3:\/\/[^/]+\//, '')
+      : extractS3KeyFromUrl(url);
+    if (!key) return url;
+    return await getSignedUrl(s3Client, new GetObjectCommand({ Bucket: VIDEO_BUCKET, Key: key }), { expiresIn: SIGNED_URL_EXPIRY });
+  } catch (err) {
+    console.warn('signIfS3 (student feed) failed, using original URL:', err);
+    return url;
+  }
+}
 
 export interface FeedItem {
   id: string;
@@ -303,6 +351,18 @@ export async function GET(request: NextRequest) {
       // Finally sort by timestamp (newest first)
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
+
+    // Sign S3 video/thumbnail URLs on the video items so dashboard tiles load reliably
+    // (S3 objects are private; unsigned URLs 403). Only the selected video items are signed.
+    await Promise.all(feedItems.map(async (item) => {
+      if (item.type !== 'video') return;
+      const [signedVideo, signedThumb] = await Promise.all([
+        signIfS3(item.videoUrl),
+        signIfS3(item.thumbnailUrl),
+      ]);
+      item.videoUrl = signedVideo || item.videoUrl;
+      item.thumbnailUrl = signedThumb ?? item.thumbnailUrl;
+    }));
 
     return NextResponse.json({
       success: true,
