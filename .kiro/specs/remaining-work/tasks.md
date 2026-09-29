@@ -109,8 +109,9 @@ Flags surfaced from student reports and session work. Keep updated as they're re
   - [x] 17.1 Peer feed + instructor query: fixed wrong GSI names (were full-scanning); now use assignmentId-index / studentId-index
   - [x] 17.2 Peer feed + dashboard feed: sign S3 video/thumbnail URLs so tiles load reliably (was 403-ing on unsigned URLs)
   - [x] 17.3 /api/student/feed: parallelized the independent table scans and removed a duplicate assignments scan
-  - [ ] 17.4 DEEPER FIX: /api/student/feed still Scans the ENTIRE classcast-submissions table on every dashboard load (it's a cross-course peer feed, so it can't use studentId-index). Add a `courseId` GSI to classcast-submissions (+ backfill courseId on existing items if missing) so the feed can Query per enrolled course instead of scanning all platform submissions. Needs an index change + data backfill, hence deferred.
-  - [ ] 17.5 Verify dashboard startup latency improvement after 17.1–17.3 deploy
+  - [~] 17.4 DEFERRED (not worth it yet): considered adding a `courseId` GSI to classcast-submissions so /api/student/feed could Query per enrolled course instead of scanning the whole table. Checked live data (2026-09): table sizes are tiny — courses 8, assignments 28, submissions 404, users 251 — so the scans are only a few ms and are NOT the bottleneck. All 404 submissions already have courseId (no backfill needed) IF/WHEN we do this. Revisit at ~10k+ submissions. A GSI now is premature optimization with added write/maintenance cost.
+  - [ ] 17.5 Real startup levers to investigate instead: (a) cold serverless/Lambda start latency on the API routes; (b) client bundle/render time; (c) useStudentAssignments uses refetchOnMount:'always' — harmless on warm cache (react-query shows cached data, refetches in background) but the cold first load still blocks on the API response. Measure cold-load timing (API vs render) before making further changes.
+  - [ ] 17.6 Verify dashboard startup latency improvement after 17.1–17.3 deploy (parallelized scans + signed URLs + removed community scan)
 
 - [x] 18. Retire community-posts / discussion feature (product decision)
   - [x] 18.1 Deleted /community + /student/community pages, /api/community/* routes, communityService.ts
