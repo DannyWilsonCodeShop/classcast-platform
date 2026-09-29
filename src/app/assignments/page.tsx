@@ -227,24 +227,6 @@ export default function AssignmentsPage() {
             </div>
           </Link>
 
-          <Link
-            href="/community"
-            className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 p-6 border border-gray-200 hover:border-green-300"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300">
-                💬
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">
-                  Community Help
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Get help from peers and instructors
-                </p>
-              </div>
-            </div>
-          </Link>
         </div>
 
         {/* Recent Assignments Preview */}

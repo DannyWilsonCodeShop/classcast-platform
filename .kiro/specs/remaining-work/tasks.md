@@ -83,9 +83,46 @@
   - [ ] 12.4 Verify splash screen on iOS (no blue, no shift)
   - [ ] 12.5 Verify dashboard doesn't scroll vertically
 
+## Priority 7: Field-Reported Issues & Follow-ups
+
+Flags surfaced from student reports and session work. Keep updated as they're resolved.
+
+- [x] 13. Peer video feed — delete button not reachable
+  - [x] 13.1 Student on the Dilations (multi-video) assignment couldn't delete their second video to re-record
+  - [x] 13.2 Root cause: delete control sat in the bottom overlay where the floating tab bar (z-40) could cover it on shorter screens
+  - [x] 13.3 Fix: moved a labeled Delete/Report button into the top overlay header (never occluded, shows on all screen sizes); added "YOU" badge on own videos; raised action rail + bottom overlay above the tab bar (commit d73f3a39)
+  - [ ] 13.4 VERIFY on a real device that the affected student can now delete the second video
+
+- [ ] 14. Peer video feed — Instagram-style redesign follow-ups
+  - [ ] 14.1 Star rating rail: the vertical 5-star popover can get tall on small phones — consider a compact single-star trigger that opens a small picker
+  - [ ] 14.2 Consider an explicit "Replace / swap video" action (delete + re-record in one flow) since students hit friction doing it manually
+
+- [ ] 15. Email deliverability (SES)
+  - [ ] 15.1 Account is in production but on PROBATION; ~326 suppressed recipients (mostly a bad Hotmail blast)
+  - [ ] 15.2 Monitor so legitimate reset/notification emails aren't silently dropped; prune suppression list where appropriate
+
+- [ ] 16. Local dev environment — git hangs on Xcode license
+  - [ ] 16.1 Default `git` hangs on an unaccepted Xcode license prompt; current workaround is the CLT git binary with --no-verify
+  - [ ] 16.2 Permanent fix: run `sudo xcodebuild -license accept` in a terminal (user action)
+
+- [ ] 17. Dashboard/feed performance — replace full-table submission scan
+  - [x] 17.1 Peer feed + instructor query: fixed wrong GSI names (were full-scanning); now use assignmentId-index / studentId-index
+  - [x] 17.2 Peer feed + dashboard feed: sign S3 video/thumbnail URLs so tiles load reliably (was 403-ing on unsigned URLs)
+  - [x] 17.3 /api/student/feed: parallelized the independent table scans and removed a duplicate assignments scan
+  - [ ] 17.4 DEEPER FIX: /api/student/feed still Scans the ENTIRE classcast-submissions table on every dashboard load (it's a cross-course peer feed, so it can't use studentId-index). Add a `courseId` GSI to classcast-submissions (+ backfill courseId on existing items if missing) so the feed can Query per enrolled course instead of scanning all platform submissions. Needs an index change + data backfill, hence deferred.
+  - [ ] 17.5 Verify dashboard startup latency improvement after 17.1–17.3 deploy
+
+- [x] 18. Retire community-posts / discussion feature (product decision)
+  - [x] 18.1 Deleted /community + /student/community pages, /api/community/* routes, communityService.ts
+  - [x] 18.2 Removed the community-posts block from /api/student/feed and the 'community' FeedItem type; removed the "Community Help" link on the marketing assignments page; dropped the 'community-post' branch in instructor moderation
+  - [x] 18.3 KEPT (different features that share the name): peer-video reels (StudentCommunityFeed/PeerSubmissionCard/CommunityInteractions/VideoReels + /api/student/community/submissions) and InstructorCommunityFeed (grading/submissions view)
+  - [ ] 18.4 Inactive dashboard variants (dashboard-new, dashboard-hybrid, page-old) still contain dead /api/community references but are not in active nav and don't break the build — remove them if/when those variants are deleted
+  - [ ] 18.5 OPTIONAL data teardown: classcast-community-posts / classcast-community-comments / classcast-post-likes tables still hold old rows; delete the tables once we're sure the feature won't return
+
 ## Notes
 
 - Tasks in Priority 1-2 should be done before next App Store submission
 - Priority 3-4 are feature completions that round out the platform
 - Priority 5 adds value for schools evaluating the product
 - Priority 6 is housekeeping that prevents tech debt
+- Priority 7 tracks field-reported issues; verify 13.4 on-device before considering the delete fix closed

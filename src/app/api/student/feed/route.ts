@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, ScanCommand, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { extractYouTubeVideoId as getYouTubeVideoId } from '@/lib/youtube';
@@ -57,7 +57,7 @@ async function signIfS3(url: string | null | undefined): Promise<string | null |
 
 export interface FeedItem {
   id: string;
-  type: 'video' | 'community' | 'assignment';
+  type: 'video' | 'assignment';
   timestamp: string;
   courseId?: string;
   courseName?: string;
@@ -76,9 +76,6 @@ export interface FeedItem {
   comments?: number;
   isLiked?: boolean; // Track if current user has liked this video
   isFromEnrolledCourse?: boolean; // Track if video is from student's enrolled course
-  
-  // Community post-specific
-  content?: string;
   
   // Assignment-specific
   dueDate?: string;
@@ -117,10 +114,23 @@ export async function GET(request: NextRequest) {
 
     console.log(`📡 Fetching feed for user ${userId}, includeAllPublic: ${includeAllPublic}`);
 
-    // Get student's enrolled courses
-    const coursesResult = await docClient.send(new ScanCommand({
-      TableName: 'classcast-courses'
-    }));
+    // Fire all independent table reads in PARALLEL instead of one-after-another.
+    // These have no data dependency on each other; only the in-memory filtering below
+    // depends on their results. This collapses ~5 serial round-trips into 1.
+    const [
+      coursesResult,
+      submissionsResult,
+      allUsersResult,
+      allAssignmentsResult,
+    ] = await Promise.all([
+      docClient.send(new ScanCommand({ TableName: 'classcast-courses' })),
+      docClient.send(new ScanCommand({ TableName: 'classcast-submissions' })),
+      docClient.send(new ScanCommand({
+        TableName: 'classcast-users',
+        ProjectionExpression: 'userId, email, firstName, lastName, avatar, profilePicture',
+      })),
+      docClient.send(new ScanCommand({ TableName: 'classcast-assignments' })),
+    ]);
 
     const allCourses = coursesResult.Items || [];
     const studentCourses = allCourses.filter(course => 
@@ -139,15 +149,26 @@ export async function GET(request: NextRequest) {
       allowedCourseIds = [...new Set([...courseIds, ...publicCourses.map(c => c.courseId)])];
       console.log(`🌐 Including public videos from ${allowedCourseIds.length - courseIds.length} additional courses`);
     }
-    
+
+    // Build a single users map used by video authors.
+    const userMap = new Map<string, any>();
+    for (const u of (allUsersResult.Items || [])) {
+      userMap.set(u.userId, u);
+      if (u.email) userMap.set(u.email, u);
+    }
+
+    // Build the assignment title map ONCE from the assignments scan, reused below for
+    // both video titles and the assignment feed items (previously scanned twice).
+    const allAssignments = allAssignmentsResult.Items || [];
+    const assignmentMap = new Map<string, string>();
+    for (const a of allAssignments) {
+      if (a.assignmentId && a.title) assignmentMap.set(a.assignmentId, a.title);
+    }
+
     const feedItems: FeedItem[] = [];
 
     // Fetch video submissions from enrolled courses (with error handling)
     try {
-      const submissionsResult = await docClient.send(new ScanCommand({
-        TableName: 'classcast-submissions'
-      }));
-
       let submissions = submissionsResult.Items || [];
       
       console.log(`📹 Found ${submissions.length} total submissions`);
@@ -167,28 +188,6 @@ export async function GET(request: NextRequest) {
         .slice(0, 30); // Process up to 30 random submissions
       
       console.log(`📹 Processing ${submissions.length} random submissions (limited to 30)`);
-      
-      // Batch load all users at once instead of per-submission
-      const allUsersResult = await docClient.send(new ScanCommand({
-        TableName: 'classcast-users',
-        ProjectionExpression: 'userId, email, firstName, lastName, avatar, profilePicture'
-      }));
-      const allUsers = allUsersResult.Items || [];
-      const userMap = new Map<string, any>();
-      for (const u of allUsers) {
-        userMap.set(u.userId, u);
-        if (u.email) userMap.set(u.email, u);
-      }
-      
-      // Batch load assignments for title lookup
-      const allAssignmentsResult = await docClient.send(new ScanCommand({
-        TableName: 'classcast-assignments',
-        ProjectionExpression: 'assignmentId, title'
-      }));
-      const assignmentMap = new Map<string, string>();
-      for (const a of (allAssignmentsResult.Items || [])) {
-        if (a.assignmentId && a.title) assignmentMap.set(a.assignmentId, a.title);
-      }
       
       // For each submission, build feed item
       for (const sub of submissions) {
@@ -242,67 +241,11 @@ export async function GET(request: NextRequest) {
       console.error('Error stack:', videoError.stack);
     }
 
-    // Fetch community posts
-    const postsResult = await docClient.send(new ScanCommand({
-      TableName: 'classcast-community-posts'
-    }));
-
-    const posts = postsResult.Items || [];
-    
-    // Process community posts with user lookup
-    for (const post of posts.filter(p => p.status !== 'deleted' && !p.hidden)) {
-      let authorName = post.userName || '';
-      let authorAvatar = post.userAvatar;
-      
-      // If we don't have user info in the post, try to fetch it
-      if (!post.userName || !post.userAvatar) {
-        try {
-          const userResult = await docClient.send(new GetCommand({
-            TableName: 'classcast-users',
-            Key: { userId: post.userId }
-          }));
-          
-          if (userResult.Item) {
-            const user = userResult.Item;
-            authorName = user.firstName && user.lastName 
-              ? `${user.firstName} ${user.lastName}` 
-              : user.email || authorName;
-            authorAvatar = user.avatar || user.profilePicture || user.profile?.avatar || authorAvatar;
-          }
-        } catch (userError) {
-          console.warn(`Failed to fetch user data for community post author ${post.userId}:`, userError);
-          // Use email as fallback if available, otherwise use a generic name
-          if (!authorName) {
-            authorName = post.userId.includes('@') ? post.userId : 'User';
-          }
-        }
-      }
-      
-      feedItems.push({
-        id: post.postId,
-        type: 'community',
-        timestamp: post.createdAt,
-        content: post.content,
-        title: post.title,
-        author: {
-          id: post.userId,
-          name: authorName,
-          avatar: authorAvatar
-        },
-        likes: post.likeCount || 0,
-        comments: post.commentCount || 0
-      });
-    }
-
-    // Fetch assignments from enrolled courses
-    const assignmentsResult = await docClient.send(new ScanCommand({
-      TableName: 'classcast-assignments'
-    }));
-
-    const assignments = assignmentsResult.Items || [];
+    // Build assignment feed items from the SAME assignments scan used for the title map above
+    // (previously this table was scanned a second time).
     const now = new Date().toISOString();
-    
-    assignments
+
+    allAssignments
       .filter(assignment => courseIds.includes(assignment.courseId))
       .forEach(assignment => {
         const course = studentCourses.find(c => c.courseId === assignment.courseId);

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 interface ModerationFlag {
   flagId: string;
   contentId: string;
-  contentType: 'peer-response' | 'community-post' | 'submission';
+  contentType: 'peer-response' | 'submission';
   content: string;
   authorId: string;
   authorName: string;
