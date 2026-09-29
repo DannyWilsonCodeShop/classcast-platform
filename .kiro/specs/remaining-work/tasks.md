@@ -116,7 +116,7 @@ Flags surfaced from student reports and session work. Keep updated as they're re
   - [x] 18.1 Deleted /community + /student/community pages, /api/community/* routes, communityService.ts
   - [x] 18.2 Removed the community-posts block from /api/student/feed and the 'community' FeedItem type; removed the "Community Help" link on the marketing assignments page; dropped the 'community-post' branch in instructor moderation
   - [x] 18.3 KEPT (different features that share the name): peer-video reels (StudentCommunityFeed/PeerSubmissionCard/CommunityInteractions/VideoReels + /api/student/community/submissions) and InstructorCommunityFeed (grading/submissions view)
-  - [ ] 18.4 Inactive dashboard variants (dashboard-new, dashboard-hybrid, page-old) still contain dead /api/community references but are not in active nav and don't break the build — remove them if/when those variants are deleted
+  - [x] 18.4 Deleted the unused experimental dashboard variants (dashboard-new, dashboard-hybrid, dashboard-udemy, dashboard/page-old) and the unused DashboardSwitcher dev tool that referenced them — they held dead /api/community references and were not in active nav
   - [ ] 18.5 OPTIONAL data teardown: classcast-community-posts / classcast-community-comments / classcast-post-likes tables still hold old rows; delete the tables once we're sure the feature won't return
 
 ## Notes
