@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       try {
         const queryCommand = new QueryCommand({
           TableName: 'classcast-submissions',
-          IndexName: 'AssignmentIdIndex',
+          IndexName: 'assignmentId-index',
           KeyConditionExpression: 'assignmentId = :assignmentId',
           ExpressionAttributeValues: {
             ':assignmentId': assignmentId
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
       try {
         const queryCommand = new QueryCommand({
           TableName: 'classcast-submissions',
-          IndexName: 'StudentIdIndex',
+          IndexName: 'studentId-index',
           KeyConditionExpression: 'studentId = :studentId',
           ExpressionAttributeValues: {
             ':studentId': studentId
