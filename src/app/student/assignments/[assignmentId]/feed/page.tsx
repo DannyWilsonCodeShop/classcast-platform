@@ -544,8 +544,9 @@ const VideoSubmissionCard: React.FC<{
     }
   };
 
-  // On mobile use object-cover (fill screen, no black bars). On wide screens letterbox with contain.
-  const videoFit = isWide ? 'object-contain' : 'object-cover';
+  // Always contain the video so the student's full work is visible (never cropped).
+  // The reel still fills the screen; letterbox bars appear only where aspect ratios differ.
+  const videoFit = 'object-contain';
 
   return (
     <div className="relative h-[100dvh] w-full bg-black snap-start overflow-hidden">
