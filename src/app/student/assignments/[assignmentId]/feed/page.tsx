@@ -20,6 +20,7 @@ interface VideoSubmission {
   studentName?: string;
   studentAvatar?: string;
   videoUrl: string;
+  thumbnailUrl?: string;
   videoTitle: string;
   submittedAt: string;
   likes?: number;
@@ -91,9 +92,17 @@ const AssignmentFeedPage: React.FC = () => {
 
   const fetchAssignmentFeed = async () => {
     try {
-      // Fetch assignment details
-      const assignmentRes = await fetch(`/api/assignments/${assignmentId}`);
-      const assignmentData = await assignmentRes.json();
+      // Kick off assignment details and video submissions in PARALLEL.
+      // /api/video-submissions now returns signed URLs + student name/avatar already enriched,
+      // so we no longer need a per-student /api/profile fan-out or a second submissions call.
+      const [assignmentRes, videosRes] = await Promise.all([
+        fetch(`/api/assignments/${assignmentId}`),
+        fetch(`/api/video-submissions?assignmentId=${assignmentId}`),
+      ]);
+      const [assignmentData, videosData] = await Promise.all([
+        assignmentRes.json().catch(() => ({})),
+        videosRes.json().catch(() => ({})),
+      ]);
 
       let groupData: any = null;
 
@@ -111,22 +120,6 @@ const AssignmentFeedPage: React.FC = () => {
         }
       }
 
-      // Fetch video submissions for this assignment
-      const videosRes = await fetch(`/api/video-submissions?assignmentId=${assignmentId}`);
-      const videosData = await videosRes.json();
-
-      // Also fetch from the other submissions endpoint that has studentName
-      let nameMap = new Map<string, string>();
-      try {
-        const namesRes = await fetch(`/api/assignments/${assignmentId}/submissions`);
-        if (namesRes.ok) {
-          const namesData = await namesRes.json();
-          (namesData.submissions || []).forEach((s: any) => {
-            if (s.studentId && s.studentName) nameMap.set(s.studentId, s.studentName);
-          });
-        }
-      } catch {}
-
       if (videosData.success) {
         let submissions = videosData.submissions || [];
 
@@ -138,34 +131,11 @@ const AssignmentFeedPage: React.FC = () => {
           );
         }
 
-        // Enrich submissions with student profile data (name, avatar)
-        const uniqueStudentIds = [...new Set(submissions.map((s: any) => s.studentId).filter(Boolean))] as string[];
-        const profileMap = new Map<string, { firstName: string; lastName: string; avatar: string }>();
-
-        await Promise.all(uniqueStudentIds.map(async (sid) => {
-          try {
-            const pRes = await fetch(`/api/profile?userId=${sid}`, { credentials: 'include' });
-            if (pRes.ok) {
-              const pData = await pRes.json();
-              const profile = pData.data || pData;
-              if (profile) {
-                profileMap.set(sid, {
-                  firstName: profile.firstName || '',
-                  lastName: profile.lastName || '',
-                  avatar: profile.avatar || '',
-                });
-              }
-            }
-          } catch {}
-        }));
-
-        // Merge profile data into submissions
+        // Normalize name fields (server already enriches, this is a light fallback for older records).
         submissions = submissions.map((sub: any) => {
-          const profile = profileMap.get(sub.studentId);
-          const fallbackName = nameMap.get(sub.studentId) || sub.studentName || '';
-          // Split studentName if firstName/lastName are missing
-          let firstName = (sub.studentFirstName && sub.studentFirstName.trim()) || profile?.firstName || '';
-          let lastName = (sub.studentLastName && sub.studentLastName.trim()) || profile?.lastName || '';
+          let firstName = (sub.studentFirstName && sub.studentFirstName.trim()) || '';
+          let lastName = (sub.studentLastName && sub.studentLastName.trim()) || '';
+          const fallbackName = sub.studentName || '';
           if (!firstName && !lastName && fallbackName) {
             const parts = fallbackName.trim().split(' ');
             firstName = parts[0] || '';
@@ -176,7 +146,7 @@ const AssignmentFeedPage: React.FC = () => {
             studentName: fallbackName || `${firstName} ${lastName}`.trim(),
             studentFirstName: firstName,
             studentLastName: lastName,
-            studentAvatar: (sub.studentAvatar && sub.studentAvatar.trim()) || profile?.avatar || '',
+            studentAvatar: (sub.studentAvatar && sub.studentAvatar.trim()) || '',
           };
         });
 
@@ -585,10 +555,11 @@ const VideoSubmissionCard: React.FC<{
           <video
             ref={videoRef}
             src={getVideoUrl(video.videoUrl)}
+            poster={video.thumbnailUrl && !video.thumbnailUrl.startsWith('/api/placeholder') ? video.thumbnailUrl : undefined}
             controls
             className={`w-full h-full ${videoFit}`}
             playsInline
-            preload="metadata"
+            preload="none"
             onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 2; }}
           />
         )}

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, ScanCommand, QueryCommand, UpdateCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { reportError } from '@/lib/errorReporter';
 
 const dynamoClient = new DynamoDBClient({
@@ -8,6 +10,53 @@ const dynamoClient = new DynamoDBClient({
   // Remove explicit credentials to use IAM role
 });
 const docClient = DynamoDBDocumentClient.from(dynamoClient);
+
+const s3Client = new S3Client({ region: process.env.REGION || process.env.AWS_REGION || 'us-east-1' });
+const VIDEO_BUCKET = process.env.VIDEO_BUCKET || 'classcast-videos-463470937777-us-east-1';
+const SIGNED_URL_EXPIRY = 60 * 60 * 6; // 6 hours — long enough to browse the feed without re-signing
+
+// Extract the S3 object key from a stored S3 URL (handles bucket-in-host and bucket-in-path forms).
+function extractS3KeyFromUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    let key = decodeURIComponent(urlObj.pathname.substring(1));
+    if (key.startsWith(`${VIDEO_BUCKET}/`)) {
+      key = key.substring(VIDEO_BUCKET.length + 1);
+    }
+    return key || null;
+  } catch {
+    return null;
+  }
+}
+
+function isExternalOrPublicUrl(url: string): boolean {
+  if (!url) return true;
+  return (
+    url.includes('youtube.com') ||
+    url.includes('youtu.be') ||
+    url.includes('drive.google.com') ||
+    url.startsWith('/api/placeholder') ||
+    url.startsWith('data:')
+  );
+}
+
+// Only S3-hosted objects need signing. Return a presigned URL, or the original on any failure.
+async function signIfS3(url: string | null | undefined): Promise<string | null | undefined> {
+  if (!url || isExternalOrPublicUrl(url)) return url;
+  const isS3 = url.includes('amazonaws.com') || url.startsWith('s3://');
+  if (!isS3) return url;
+  try {
+    // Normalize s3:// to a key directly; otherwise parse the https URL.
+    const key = url.startsWith('s3://')
+      ? url.replace(/^s3:\/\/[^/]+\//, '')
+      : extractS3KeyFromUrl(url);
+    if (!key) return url;
+    return await getSignedUrl(s3Client, new GetObjectCommand({ Bucket: VIDEO_BUCKET, Key: key }), { expiresIn: SIGNED_URL_EXPIRY });
+  } catch (err) {
+    console.warn('signIfS3 failed, using original URL:', err);
+    return url;
+  }
+}
 
 // GET /api/video-submissions - Get video submissions for an assignment or student
 export async function GET(request: NextRequest) {
@@ -118,6 +167,45 @@ export async function GET(request: NextRequest) {
       
       // Filter out hidden/deleted submissions
       submissions = submissions.filter((s: any) => !s.isHidden && !s.isDeleted);
+    }
+
+    // Enrich for the assignment feed: sign S3 URLs and attach student name/avatar in ONE response,
+    // so the client doesn't need a per-student /api/profile fan-out or a second submissions call.
+    if (assignmentId && submissions.length > 0) {
+      // Batch-load users once into a map (avoids N+1 GetItem per submission).
+      const userMap = new Map<string, any>();
+      try {
+        const usersResult = await docClient.send(new ScanCommand({
+          TableName: 'classcast-users',
+          ProjectionExpression: 'userId, email, firstName, lastName, avatar, profilePicture',
+        }));
+        for (const u of (usersResult.Items || [])) {
+          if (u.userId) userMap.set(u.userId, u);
+          if (u.email) userMap.set(u.email, u);
+        }
+      } catch (usersErr) {
+        console.warn('Could not batch-load users for feed enrichment:', usersErr);
+      }
+
+      submissions = await Promise.all(submissions.map(async (sub: any) => {
+        const [signedVideoUrl, signedThumbnailUrl] = await Promise.all([
+          signIfS3(sub.videoUrl),
+          signIfS3(sub.thumbnailUrl),
+        ]);
+        const u = userMap.get(sub.studentId);
+        const firstName = (sub.studentFirstName && sub.studentFirstName.trim()) || u?.firstName || '';
+        const lastName = (sub.studentLastName && sub.studentLastName.trim()) || u?.lastName || '';
+        const fullName = `${firstName} ${lastName}`.trim() || u?.email || sub.studentName || '';
+        return {
+          ...sub,
+          videoUrl: signedVideoUrl,
+          thumbnailUrl: signedThumbnailUrl,
+          studentFirstName: firstName,
+          studentLastName: lastName,
+          studentName: fullName,
+          studentAvatar: (sub.studentAvatar && sub.studentAvatar.trim()) || u?.avatar || u?.profilePicture || '',
+        };
+      }));
     }
 
     return NextResponse.json({
