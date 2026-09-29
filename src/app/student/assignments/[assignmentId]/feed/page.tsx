@@ -468,7 +468,7 @@ const ReelShell: React.FC<{ isWide: boolean; onInfo: () => void; title?: string;
 );
 
 /* Top overlay header shown on every reel. */
-const OverlayHeader: React.FC<{ title?: string; onInfo: () => void }> = ({ title, onInfo }) => (
+const OverlayHeader: React.FC<{ title?: string; onInfo: () => void; action?: React.ReactNode }> = ({ title, onInfo, action }) => (
   <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
     <div className="bg-gradient-to-b from-black/60 via-black/25 to-transparent pt-[env(safe-area-inset-top)]">
       <div className="flex items-center justify-between px-4 pt-3 pb-6 pointer-events-auto">
@@ -476,14 +476,17 @@ const OverlayHeader: React.FC<{ title?: string; onInfo: () => void }> = ({ title
           <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-2xl text-white drop-shadow">ClassCast</span>
           <img src="/UpdatedCCLogo.png" alt="" className="w-5 h-5 object-contain" />
         </div>
-        <button
-          onClick={onInfo}
-          className="pointer-events-auto flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white rounded-full pl-3 pr-3 py-1.5 border border-white/25"
-          title="Assignment details & submit"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span className="text-xs font-semibold">Details</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onInfo}
+            className="pointer-events-auto flex items-center gap-1.5 bg-white/15 backdrop-blur-sm text-white rounded-full pl-3 pr-3 py-1.5 border border-white/25"
+            title="Assignment details & submit"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span className="text-xs font-semibold">Details</span>
+          </button>
+          {action}
+        </div>
       </div>
       {title && (
         <div className="px-4 -mt-4 pb-2 pointer-events-none">
@@ -590,11 +593,38 @@ const VideoSubmissionCard: React.FC<{
         )}
       </div>
 
-      {/* ===== Top overlay header ===== */}
-      <OverlayHeader title={assignmentTitle} onInfo={onInfo} />
+      {/* ===== Top overlay header (hosts the delete/report action so it's never hidden behind the tab bar) ===== */}
+      <OverlayHeader
+        title={assignmentTitle}
+        onInfo={onInfo}
+        action={
+          isMyVideo ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="pointer-events-auto flex items-center gap-1.5 bg-red-500/85 hover:bg-red-600 text-white rounded-full pl-3 pr-3 py-1.5 border border-white/25 backdrop-blur-sm"
+              title="Delete this video"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span className="text-xs font-semibold">Delete</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowReportModal(true)}
+              className="pointer-events-auto p-2 bg-white/15 hover:bg-orange-500/40 text-white rounded-full border border-white/25 backdrop-blur-sm"
+              title="Report content"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+              </svg>
+            </button>
+          )
+        }
+      />
 
-      {/* ===== Right-side action rail ===== */}
-      <div className="absolute right-2 z-30 bottom-28 flex flex-col items-center">
+      {/* ===== Right-side action rail (raised above the floating tab bar) ===== */}
+      <div className="absolute right-2 z-30 flex flex-col items-center" style={{ bottom: 'calc(7rem + env(safe-area-inset-bottom))' }}>
         {currentUserId && (
           <InteractionBar
             layout="overlay"
@@ -608,9 +638,9 @@ const VideoSubmissionCard: React.FC<{
         )}
       </div>
 
-      {/* ===== Bottom overlay: author + title + delete/report ===== */}
+      {/* ===== Bottom overlay: author + title (extra bottom clearance so the floating tab bar never covers it) ===== */}
       <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
-        <div className="bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-16 pb-24 px-4">
+        <div className="bg-gradient-to-t from-black/70 via-black/30 to-transparent pt-16 px-4" style={{ paddingBottom: 'calc(6.5rem + env(safe-area-inset-bottom))' }}>
           <div className="flex items-center justify-between pointer-events-auto">
             <div className="flex items-center space-x-3 min-w-0">
               <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-[#FFC72C] flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -634,31 +664,11 @@ const VideoSubmissionCard: React.FC<{
                   {video.studentFirstName && video.studentLastName
                     ? `${video.studentFirstName} ${video.studentLastName}`
                     : video.studentName || 'Student'}
+                  {isMyVideo && <span className="ml-2 text-[10px] font-bold text-[#005587] bg-white/90 px-1.5 py-0.5 rounded-full align-middle">YOU</span>}
                 </p>
                 <p className="text-xs text-white/70">{video.submittedAt ? formatTimestamp(video.submittedAt) : ''}</p>
               </div>
             </div>
-            {isMyVideo ? (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="p-2 bg-black/30 hover:bg-red-500/40 rounded-full transition-colors backdrop-blur-sm"
-                title="Delete video"
-              >
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            ) : (
-              <button
-                onClick={() => setShowReportModal(true)}
-                className="p-2 bg-black/30 hover:bg-orange-500/40 rounded-full transition-colors backdrop-blur-sm"
-                title="Report content"
-              >
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-                </svg>
-              </button>
-            )}
           </div>
           {video.videoTitle && (
             <p className="mt-2 text-sm text-white/95 drop-shadow pointer-events-auto line-clamp-2">{video.videoTitle}</p>
