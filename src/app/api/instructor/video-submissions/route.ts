@@ -301,9 +301,12 @@ export async function GET(request: NextRequest) {
                                 submission.youtubeUrl ||
                                 submission.videoUrl.includes('youtube.com') ||
                                 submission.videoUrl.includes('youtu.be');
-              const isGoogleDrive = submission.isGoogleDrive ||
-                                    submission.googleDriveUrl ||
-                                    submission.videoUrl.includes('drive.google.com');
+              // Google Drive only if a URL actually points at Drive — don't trust a
+              // non-empty googleDriveUrl field (older records copied the S3 URL into it).
+              const isGoogleDrive =
+                submission.videoUrl.includes('drive.google.com') ||
+                (submission.googleDriveUrl && submission.googleDriveUrl.includes('drive.google.com')) ||
+                (submission.isGoogleDrive && !submission.videoUrl.includes('amazonaws.com'));
 
               if (isYouTube) {
                 signedVideoUrl = submission.youtubeUrl || submission.videoUrl;

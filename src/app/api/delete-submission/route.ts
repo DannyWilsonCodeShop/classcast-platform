@@ -73,7 +73,9 @@ export async function POST(request: NextRequest) {
         if (s3Key) {
           console.log('🗑️ Deleting S3 object:', s3Key);
           const deleteS3Command = new DeleteObjectCommand({
-            Bucket: process.env.NEXT_PUBLIC_VIDEO_BUCKET || 'classcast-videos',
+            // Must match the real bucket used everywhere else. The old fallback
+            // 'classcast-videos' does not exist -> NoSuchBucket on every delete.
+            Bucket: process.env.VIDEO_BUCKET || process.env.NEXT_PUBLIC_VIDEO_BUCKET || 'classcast-videos-463470937777-us-east-1',
             Key: s3Key
           });
 

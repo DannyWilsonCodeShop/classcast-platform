@@ -102,10 +102,13 @@ export async function GET(
             submission.videoUrl.includes('youtube.com') ||
             submission.videoUrl.includes('youtu.be');
 
+          // A submission is Google Drive only if a URL actually points at Drive.
+          // (Older records wrongly copied the S3 URL into googleDriveUrl, so we can't
+          // trust a non-empty googleDriveUrl field alone — check the URL content.)
           const isGoogleDriveSubmission =
-            submission.isGoogleDrive ||
-            submission.googleDriveUrl ||
-            submission.videoUrl.includes('drive.google.com');
+            submission.videoUrl.includes('drive.google.com') ||
+            (submission.googleDriveUrl && submission.googleDriveUrl.includes('drive.google.com')) ||
+            (submission.isGoogleDrive && !submission.videoUrl.includes('amazonaws.com'));
 
           if (isYouTubeSubmission) {
             console.log('✅ YouTube submission detected:', {

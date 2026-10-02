@@ -321,12 +321,16 @@ export async function POST(request: NextRequest) {
       courseId,
       sectionId: sectionId || null, // Add sectionId to submission
       choiceId: choiceId || null, // Choice Board: track which choice was picked
-      // Store external video URLs for consistent playback
+      // Store external video URLs for consistent playback.
+      // IMPORTANT: only set googleDriveUrl for ACTUAL Google Drive submissions. Previously
+      // this fell back to finalVideoUrl, so a normal S3 upload got its S3 URL written into
+      // googleDriveUrl — and every read route treats a truthy googleDriveUrl as "this is a
+      // Google Drive video", skipping S3 presigning and serving an unsigned URL that won't play.
       videoUrl: finalVideoUrl,
       youtubeUrl: youtubeUrl || null, // Store YouTube URL separately
-      googleDriveUrl: googleDriveUrl || finalVideoUrl || null,
-      googleDriveOriginalUrl: googleDriveOriginalUrl || googleDriveUrl || null,
-      googleDriveFileId: googleDriveFileId || null,
+      googleDriveUrl: isGoogleDrive ? (googleDriveUrl || finalVideoUrl) : null,
+      googleDriveOriginalUrl: isGoogleDrive ? (googleDriveOriginalUrl || googleDriveUrl || null) : null,
+      googleDriveFileId: isGoogleDrive ? (googleDriveFileId || null) : null,
       videoId: videoId || null,
       videoTitle: videoTitle || 'Video Submission',
       videoDescription: videoDescription || '',
