@@ -345,16 +345,19 @@ function RecordPageInner() {
         setUploadProgress(5);
         console.log('📤 Starting upload:', { name: videoFile.name, size: `${(videoFile.size / (1024*1024)).toFixed(1)} MB`, type: videoFile.type });
 
-        // Use parallel multipart for anything over 20MB; smaller files use a single PUT.
-        const MULTIPART_THRESHOLD = 20 * 1024 * 1024; // 20MB
+        // Use parallel multipart only for genuinely large files. Threshold must stay
+        // comfortably above the S3 minimum part size (5MB) so a file just over the
+        // threshold never produces a non-last part under 5MB.
+        const CHUNK_SIZE = 10 * 1024 * 1024;              // 10MB per part (>= S3 5MB minimum)
+        const MULTIPART_THRESHOLD = 15 * 1024 * 1024;     // only go multipart above 15MB
 
         if (videoFile.size > MULTIPART_THRESHOLD) {
           // --- MULTIPART UPLOAD for large files ---
-          // Larger chunks = fewer round-trips; parts uploaded in parallel for speed.
-          const CHUNK_SIZE = 20 * 1024 * 1024; // 20MB per part
+          // 10MB parts uploaded in parallel. A file >15MB yields >=2 parts; every
+          // non-last part is a full 10MB, so S3's 5MB-minimum is always satisfied.
           const UPLOAD_CONCURRENCY = 4;         // upload 4 parts at once
           const totalParts = Math.ceil(videoFile.size / CHUNK_SIZE);
-          console.log(`📤 Using multipart upload: ${totalParts} parts of 20MB, ${UPLOAD_CONCURRENCY} at a time`);
+          console.log(`📤 Using multipart upload: ${totalParts} parts of 10MB, ${UPLOAD_CONCURRENCY} at a time`);
 
           // 1. Initialize multipart upload
           console.log('📤 Step 1: Initializing multipart upload...');
@@ -385,11 +388,47 @@ function RecordPageInner() {
           // 2. Upload parts IN PARALLEL (a pool of UPLOAD_CONCURRENCY workers).
           console.log('📤 Step 2: Uploading parts (parallel)...');
           const uploadedParts: { ETag: string; PartNumber: number }[] = [];
-          let completedParts = 0;
+
+          // Track bytes uploaded per part so the progress bar moves smoothly DURING a
+          // part (critical on phones/slow connections where one 10MB part can take a
+          // while — fetch() exposes no upload progress, which made it look stuck at 0%).
+          const partLoaded = new Array<number>(totalParts).fill(0);
+          const totalBytes = videoFile.size;
+          const refreshProgress = () => {
+            const loaded = partLoaded.reduce((a, b) => a + b, 0);
+            // Map byte progress into the 8% → 88% band.
+            setUploadProgress(8 + Math.round((loaded / totalBytes) * 80));
+          };
+
+          // PUT one chunk to S3 via XHR (real upload.onprogress + a stall timeout).
+          const putChunkWithProgress = (url: string, chunk: Blob, partIdx: number): Promise<string> =>
+            new Promise<string>((resolve, reject) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open('PUT', url);
+              // Fail a stalled upload instead of hanging forever (90s of no completion).
+              xhr.timeout = 90000;
+              xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) { partLoaded[partIdx] = e.loaded; refreshProgress(); }
+              };
+              xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  const gotEtag = xhr.getResponseHeader('ETag');
+                  if (!gotEtag) { reject(new Error('missing ETag header (S3 CORS must expose ETag)')); return; }
+                  partLoaded[partIdx] = chunk.size; refreshProgress();
+                  resolve(gotEtag);
+                } else {
+                  reject(new Error(`${xhr.status}: ${(xhr.responseText || '').substring(0, 150)}`));
+                }
+              };
+              xhr.ontimeout = () => reject(new Error('timeout: part upload stalled (slow connection)'));
+              xhr.onerror = () => reject(new Error('network error during part upload'));
+              xhr.send(chunk);
+            });
 
           // Uploads a single part (fetch its presigned URL, PUT the chunk, retry 3x).
           const uploadOnePart = async (partNum: number) => {
-            const start = (partNum - 1) * CHUNK_SIZE;
+            const partIdx = partNum - 1;
+            const start = partIdx * CHUNK_SIZE;
             const end = Math.min(start + CHUNK_SIZE, videoFile.size);
             const chunk = videoFile.slice(start, end);
 
@@ -410,22 +449,11 @@ function RecordPageInner() {
             let lastErr = '';
             for (let attempt = 1; attempt <= 3; attempt++) {
               try {
-                const partRes = await fetch(partData.presignedUrl, { method: 'PUT', body: chunk });
-                if (!partRes.ok) {
-                  lastErr = `${partRes.status}: ${(await partRes.text().catch(() => '')).substring(0, 150)}`;
-                  await new Promise(r => setTimeout(r, attempt * 800));
-                  continue;
-                }
-                const gotEtag = partRes.headers.get('ETag');
-                if (!gotEtag) {
-                  lastErr = 'missing ETag header (S3 CORS must expose ETag)';
-                  await new Promise(r => setTimeout(r, attempt * 800));
-                  continue;
-                }
-                etag = gotEtag;
+                etag = await putChunkWithProgress(partData.presignedUrl, chunk, partIdx);
                 break;
               } catch (netErr: any) {
                 lastErr = netErr?.message || 'network error';
+                partLoaded[partIdx] = 0; refreshProgress(); // reset this part's bytes before retry
                 await new Promise(r => setTimeout(r, attempt * 800));
               }
             }
@@ -434,10 +462,10 @@ function RecordPageInner() {
               throw new Error(`Part ${partNum}/${totalParts} upload failed after 3 attempts: ${lastErr}`);
             }
 
-            uploadedParts.push({ ETag: etag, PartNumber: partNum });
-            completedParts++;
-            // Progress 8% → 88% based on parts finished
-            setUploadProgress(8 + Math.round((completedParts / totalParts) * 80));
+            // Guard against a duplicate push if a part were ever retried at a higher level.
+            if (!uploadedParts.some(p => p.PartNumber === partNum)) {
+              uploadedParts.push({ ETag: etag, PartNumber: partNum });
+            }
           };
 
           // Worker pool: pull the next part number until all are done.
@@ -453,12 +481,21 @@ function RecordPageInner() {
             Array.from({ length: Math.min(UPLOAD_CONCURRENCY, totalParts) }, () => runWorker())
           );
 
-          // 3. Complete multipart upload
+          // Sanity check: never "complete" with a missing part — that assembles a
+          // corrupt/short object and triggers S3 "smaller than minimum"/invalid-part errors.
+          if (uploadedParts.length !== totalParts) {
+            const got = uploadedParts.map(p => p.PartNumber).sort((a, b) => a - b);
+            reportClientError({ step: 'multipart-partcount', error: `expected ${totalParts} parts, got ${uploadedParts.length}`, context: { studentId: user.id, assignmentId, totalParts, gotParts: got.join(',') } });
+            throw new Error(`Upload incomplete: ${uploadedParts.length}/${totalParts} parts. Please try again.`);
+          }
+
+          // 3. Complete multipart upload (parts sorted ascending — S3 requires it)
           console.log('📤 Step 3: Completing multipart upload...');
+          const orderedParts = [...uploadedParts].sort((a, b) => a.PartNumber - b.PartNumber);
           const completeRes = await fetch('/api/upload/multipart/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fileKey, uploadId, parts: uploadedParts }),
+            body: JSON.stringify({ fileKey, uploadId, parts: orderedParts }),
           });
           if (!completeRes.ok) {
             const errBody = await completeRes.text().catch(() => '');

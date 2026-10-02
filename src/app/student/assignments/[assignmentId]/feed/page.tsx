@@ -362,7 +362,7 @@ const AssignmentFeedPage: React.FC = () => {
                           alert('Please form or join a group first');
                           return;
                         }
-                        router.push(`/student/video-submission?assignmentId=${assignmentId}&mode=record${myGroup ? `&groupId=${myGroup.groupId}` : ''}`);
+                        router.push(`/student/record?assignmentId=${assignmentId}&mode=record${myGroup ? `&groupId=${myGroup.groupId}` : ''}`);
                       }}
                       className="flex flex-col items-center p-4 bg-white border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all"
                     >
@@ -380,7 +380,7 @@ const AssignmentFeedPage: React.FC = () => {
                           alert('Please form or join a group first');
                           return;
                         }
-                        router.push(`/student/video-submission?assignmentId=${assignmentId}&mode=upload${myGroup ? `&groupId=${myGroup.groupId}` : ''}`);
+                        router.push(`/student/record?assignmentId=${assignmentId}&mode=upload${myGroup ? `&groupId=${myGroup.groupId}` : ''}`);
                       }}
                       className="flex flex-col items-center p-4 bg-white border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all"
                     >
