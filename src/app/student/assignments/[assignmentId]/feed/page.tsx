@@ -11,6 +11,22 @@ import RichTextRenderer from '@/components/common/RichTextRenderer';
 import { getVideoUrl } from '@/lib/videoUtils';
 import { StudentTabBar } from '@/components/student/StudentTabBar';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
+import { reportClientError } from '@/lib/reportClientError';
+
+// Human-readable HTMLMediaElement error codes.
+const MEDIA_ERR: Record<number, string> = {
+  1: 'MEDIA_ERR_ABORTED',
+  2: 'MEDIA_ERR_NETWORK',
+  3: 'MEDIA_ERR_DECODE',
+  4: 'MEDIA_ERR_SRC_NOT_SUPPORTED', // typically a 403/expired signed URL or unplayable source
+};
+function urlKind(u?: string): string {
+  if (!u) return 'none';
+  if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
+  if (u.includes('drive.google.com')) return 'googledrive';
+  if (u.includes('amazonaws.com')) return 's3';
+  return 'other';
+}
 
 interface VideoSubmission {
   submissionId: string;
@@ -488,6 +504,7 @@ const VideoSubmissionCard: React.FC<{
   const videoId = getYouTubeVideoId(video.videoUrl);
   const isYouTube = !!videoId;
   const videoRef = useRef<HTMLVideoElement>(null);
+  const playbackErrorReported = useRef(false); // log a playback failure at most once per card
 
   // Check if avatar is emoji
   const isEmoji = video.studentAvatar && video.studentAvatar.length <= 4 && !video.studentAvatar.startsWith('http');
@@ -561,6 +578,29 @@ const VideoSubmissionCard: React.FC<{
             playsInline
             preload="none"
             onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 2; }}
+            onError={(e) => {
+              // A video that uploaded fine but won't PLAY throws nothing on the upload path,
+              // so it was previously invisible to our logging. Capture it here.
+              if (playbackErrorReported.current) return; // log once per card
+              playbackErrorReported.current = true;
+              const el = e.currentTarget as HTMLVideoElement;
+              const code = el.error?.code;
+              reportClientError({
+                step: 'video-playback',
+                error: `playback failed: ${code ? MEDIA_ERR[code] || `code ${code}` : 'unknown'}${el.error?.message ? ` — ${el.error.message}` : ''}`,
+                severity: 'error',
+                context: {
+                  studentId: currentUserId || null,
+                  submissionId: video.submissionId,
+                  videoOwnerId: video.studentId,
+                  assignmentTitle: assignmentTitle || null,
+                  urlKind: urlKind(video.videoUrl),
+                  mediaErrorCode: code ?? null,
+                  networkState: el.networkState,
+                  readyState: el.readyState,
+                },
+              });
+            }}
           />
         )}
       </div>

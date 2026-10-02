@@ -920,7 +920,32 @@ function RecordPageInner() {
                   <p className="text-xs">{videoFile ? `${(videoFile.size / (1024*1024)).toFixed(0)} MB video ready` : 'Video ready'}</p>
                 </div>
               ) : (
-                <video src={videoPreviewUrl} className="w-full h-full object-contain" controls playsInline />
+                <video
+                  src={videoPreviewUrl}
+                  className="w-full h-full object-contain"
+                  controls
+                  playsInline
+                  onError={(e) => {
+                    // The preview plays the just-recorded/selected file (a local blob URL).
+                    // A failure here means the device can't decode the chosen file (e.g.
+                    // an unsupported codec) — worth capturing before they even upload.
+                    const el = e.currentTarget as HTMLVideoElement;
+                    const codes: Record<number, string> = { 1: 'ABORTED', 2: 'NETWORK', 3: 'DECODE', 4: 'SRC_NOT_SUPPORTED' };
+                    reportClientError({
+                      step: 'record-preview-playback',
+                      error: `preview playback failed: ${el.error?.code ? codes[el.error.code] || `code ${el.error.code}` : 'unknown'}`,
+                      severity: 'warning',
+                      context: {
+                        studentId: user?.id || null,
+                        assignmentId: assignmentId || null,
+                        fileName: videoFile?.name || null,
+                        fileType: videoFile?.type || null,
+                        fileSizeMB: videoFile ? Math.round(videoFile.size / (1024 * 1024)) : null,
+                        mediaErrorCode: el.error?.code ?? null,
+                      },
+                    });
+                  }}
+                />
               )}
               <button onClick={deleteVideo} className="absolute top-3 right-3 bg-red-600 text-white p-2 rounded-full shadow-lg active:scale-95">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
