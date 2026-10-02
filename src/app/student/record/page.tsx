@@ -59,6 +59,15 @@ function RecordPageInner() {
   const [success, setSuccess] = useState(false);
   const [savedAsDraft, setSavedAsDraft] = useState(false);
   const [error, setError] = useState('');
+  const errorBannerRef = useRef<HTMLDivElement>(null);
+
+  // When an error appears (e.g. a failed upload), scroll it into view so the student
+  // actually sees it instead of being dropped back on the post screen as if nothing happened.
+  useEffect(() => {
+    if (error) {
+      setTimeout(() => errorBannerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    }
+  }, [error]);
   const [showEditor, setShowEditor] = useState(false);
   const [showPiP, setShowPiP] = useState(false);
   const [showGreenScreen, setShowGreenScreen] = useState(false);
@@ -355,7 +364,10 @@ function RecordPageInner() {
           // --- MULTIPART UPLOAD for large files ---
           // 10MB parts uploaded in parallel. A file >15MB yields >=2 parts; every
           // non-last part is a full 10MB, so S3's 5MB-minimum is always satisfied.
-          const UPLOAD_CONCURRENCY = 4;         // upload 4 parts at once
+          // 2 at a time (not 4): on marginal phone connections, fewer concurrent parts
+          // means each gets more of the limited bandwidth, so parts stall/time out far
+          // less — which is what caused the repeated retries and the dipping percentage.
+          const UPLOAD_CONCURRENCY = 2;
           const totalParts = Math.ceil(videoFile.size / CHUNK_SIZE);
           console.log(`📤 Using multipart upload: ${totalParts} parts of 10MB, ${UPLOAD_CONCURRENCY} at a time`);
 
@@ -394,10 +406,15 @@ function RecordPageInner() {
           // while — fetch() exposes no upload progress, which made it look stuck at 0%).
           const partLoaded = new Array<number>(totalParts).fill(0);
           const totalBytes = videoFile.size;
+          let maxShownProgress = 8; // monotonic floor so the bar never jumps backward
           const refreshProgress = () => {
             const loaded = partLoaded.reduce((a, b) => a + b, 0);
-            // Map byte progress into the 8% → 88% band.
-            setUploadProgress(8 + Math.round((loaded / totalBytes) * 80));
+            // Map byte progress into the 8% → 88% band, but never DECREASE the displayed
+            // value. A retry resets one part's bytes to 0; without this clamp the bar
+            // would dip (e.g. 63% → 8%), which is what the student saw.
+            const computed = 8 + Math.round((loaded / totalBytes) * 80);
+            maxShownProgress = Math.max(maxShownProgress, computed);
+            setUploadProgress(maxShownProgress);
           };
 
           // PUT one chunk to S3 via XHR (real upload.onprogress + a stall timeout).
@@ -405,8 +422,9 @@ function RecordPageInner() {
             new Promise<string>((resolve, reject) => {
               const xhr = new XMLHttpRequest();
               xhr.open('PUT', url);
-              // Fail a stalled upload instead of hanging forever (90s of no completion).
-              xhr.timeout = 90000;
+              // Allow a slow part up to 2.5 min before giving up — a slow phone part is
+              // not necessarily dead. (Was 90s, which killed parts that were just slow.)
+              xhr.timeout = 150000;
               xhr.upload.onprogress = (e) => {
                 if (e.lengthComputable) { partLoaded[partIdx] = e.loaded; refreshProgress(); }
               };
@@ -445,21 +463,34 @@ function RecordPageInner() {
             const { data: partData } = await partUrlRes.json();
 
             // Require a real ETag; retry transient failures with backoff.
+            // 5 attempts (was 3) with longer backoff — mobile parts commonly need a couple
+            // of tries. On each failure we re-fetch a FRESH presigned URL for the part, in
+            // case the previous one expired, then retry the PUT.
             let etag: string | null = null;
             let lastErr = '';
-            for (let attempt = 1; attempt <= 3; attempt++) {
+            let url = partData.presignedUrl;
+            const MAX_ATTEMPTS = 5;
+            for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
               try {
-                etag = await putChunkWithProgress(partData.presignedUrl, chunk, partIdx);
+                etag = await putChunkWithProgress(url, chunk, partIdx);
                 break;
               } catch (netErr: any) {
                 lastErr = netErr?.message || 'network error';
-                partLoaded[partIdx] = 0; refreshProgress(); // reset this part's bytes before retry
-                await new Promise(r => setTimeout(r, attempt * 800));
+                partLoaded[partIdx] = 0; // reset bytes (display is clamped monotonic, so no visible dip)
+                await new Promise(r => setTimeout(r, Math.min(attempt * 1200, 5000)));
+                // Re-sign the part URL for the next attempt (cheap; avoids expired-URL failures).
+                try {
+                  const retryUrlRes = await fetch('/api/upload/multipart/part-url', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fileKey, uploadId, partNumber: partNum }),
+                  });
+                  if (retryUrlRes.ok) { url = (await retryUrlRes.json()).data.presignedUrl; }
+                } catch { /* keep the old url if re-sign fails */ }
               }
             }
             if (!etag) {
               reportClientError({ step: 's3-part-put', error: lastErr, context: { studentId: user.id, assignmentId, partNum, totalParts, chunkBytes: chunk.size, fileSizeMB: Math.round(videoFile.size / (1024*1024)) } });
-              throw new Error(`Part ${partNum}/${totalParts} upload failed after 3 attempts: ${lastErr}`);
+              throw new Error(`Part ${partNum}/${totalParts} upload failed after ${MAX_ATTEMPTS} attempts: ${lastErr}`);
             }
 
             // Guard against a duplicate push if a part were ever retried at a higher level.
@@ -1082,9 +1113,10 @@ function RecordPageInner() {
 
           {/* ERROR DISPLAY - FULL DETAILS */}
           {error && (
-            <div className="bg-red-900/60 border border-red-500/50 rounded-xl p-4 mt-2">
-              <p className="text-red-300 text-sm font-bold mb-1">⚠️ Error</p>
-              <p className="text-red-200 text-xs break-all whitespace-pre-wrap font-mono">{error}</p>
+            <div ref={errorBannerRef} className="bg-red-900/70 border-2 border-red-500 rounded-xl p-4 mt-2 scroll-mt-4">
+              <p className="text-red-200 text-sm font-bold mb-1">⚠️ Upload didn't finish</p>
+              <p className="text-red-100 text-xs mb-2">Your video is still here — tap <span className="font-bold">Post Video</span> above to try again. If you're on a weak connection, try moving closer to Wi-Fi.</p>
+              <p className="text-red-300/80 text-[11px] break-all whitespace-pre-wrap font-mono">{error}</p>
               <button onClick={() => setError('')} className="mt-2 text-xs text-red-400 underline">Dismiss</button>
             </div>
           )}

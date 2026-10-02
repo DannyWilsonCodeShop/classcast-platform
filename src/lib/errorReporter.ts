@@ -9,7 +9,14 @@ const sns = new SNSClient({
 const dynamoClient = new DynamoDBClient({
   region: process.env.AWS_REGION || process.env.CLASSCAST_AWS_REGION || 'us-east-1',
 });
-const docClient = DynamoDBDocumentClient.from(dynamoClient);
+// removeUndefinedValues: error payloads routinely contain undefined context fields
+// (e.g. partNum on a non-part error). Without this, the PutCommand THROWS on every
+// write and the catch below silently swallows it — which is why the error-logs table
+// was stuck and never recorded upload/playback failures. convertClassInstanceToMap
+// lets us log Error objects / class instances without choking.
+const docClient = DynamoDBDocumentClient.from(dynamoClient, {
+  marshallOptions: { removeUndefinedValues: true, convertClassInstanceToMap: true },
+});
 
 const TOPIC_ARN = process.env.SNS_ERROR_TOPIC_ARN || '';
 const ERROR_LOGS_TABLE = 'classcast-error-logs';
