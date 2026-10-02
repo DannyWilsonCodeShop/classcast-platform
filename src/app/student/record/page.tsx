@@ -779,7 +779,11 @@ function RecordPageInner() {
 
   return (
     <StudentRoute>
-      <div className="h-full flex flex-col bg-gray-950 text-white overflow-hidden">
+      {/* Pin to the viewport height (h-dvh) rather than h-full, which depends on every
+          ancestor having an explicit height. On a laptop the sidebar layout wrapper broke
+          that chain, so flex-1 didn't become a real scroll area and the sticky submit
+          button scrolled off-screen. h-dvh makes the scroll container + sticky bar reliable. */}
+      <div className="h-dvh flex flex-col bg-gray-950 text-white overflow-hidden">
 
         {/* FULL SCREEN CAMERA MODE */}
         {cameraActive && !videoFile && (
