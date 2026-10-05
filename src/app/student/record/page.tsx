@@ -354,22 +354,25 @@ function RecordPageInner() {
         setUploadProgress(5);
         console.log('📤 Starting upload:', { name: videoFile.name, size: `${(videoFile.size / (1024*1024)).toFixed(1)} MB`, type: videoFile.type });
 
-        // Use parallel multipart only for genuinely large files. Threshold must stay
-        // comfortably above the S3 minimum part size (5MB) so a file just over the
-        // threshold never produces a non-last part under 5MB.
-        const CHUNK_SIZE = 10 * 1024 * 1024;              // 10MB per part (>= S3 5MB minimum)
+        // Use parallel multipart only for genuinely large files.
         const MULTIPART_THRESHOLD = 15 * 1024 * 1024;     // only go multipart above 15MB
 
         if (videoFile.size > MULTIPART_THRESHOLD) {
           // --- MULTIPART UPLOAD for large files ---
-          // 10MB parts uploaded in parallel. A file >15MB yields >=2 parts; every
-          // non-last part is a full 10MB, so S3's 5MB-minimum is always satisfied.
-          // 2 at a time (not 4): on marginal phone connections, fewer concurrent parts
-          // means each gets more of the limited bandwidth, so parts stall/time out far
-          // less — which is what caused the repeated retries and the dipping percentage.
-          const UPLOAD_CONCURRENCY = 2;
+          // ADAPTIVE chunk size: keep the part COUNT bounded instead of fixing a 10MB
+          // part. A 1.2GB phone video at 10MB/part = 128 parts, and on mobile a single
+          // part permanently failing (after retries) aborts the whole upload — which is
+          // exactly what the weekend logs showed (part 49/128, 18/128 died). Larger parts
+          // for larger files -> far fewer parts -> far fewer chances for a fatal failure.
+          // Minimum 10MB (>= S3's 5MB floor); grows to keep parts <= ~40.
+          const MIN_CHUNK = 10 * 1024 * 1024;              // 10MB
+          const TARGET_MAX_PARTS = 40;
+          const CHUNK_SIZE = Math.max(MIN_CHUNK, Math.ceil(videoFile.size / TARGET_MAX_PARTS / (1024 * 1024)) * 1024 * 1024);
+          // Smaller files keep 2-way concurrency; very large files use 3 to recoup some
+          // speed now that each part is bigger. Still gentle enough for phones.
+          const UPLOAD_CONCURRENCY = videoFile.size > 300 * 1024 * 1024 ? 3 : 2;
           const totalParts = Math.ceil(videoFile.size / CHUNK_SIZE);
-          console.log(`📤 Using multipart upload: ${totalParts} parts of 10MB, ${UPLOAD_CONCURRENCY} at a time`);
+          console.log(`📤 Using multipart upload: ${totalParts} parts of ${(CHUNK_SIZE/(1024*1024)).toFixed(0)}MB, ${UPLOAD_CONCURRENCY} at a time`);
 
           // 1. Initialize multipart upload
           console.log('📤 Step 1: Initializing multipart upload...');
@@ -422,9 +425,10 @@ function RecordPageInner() {
             new Promise<string>((resolve, reject) => {
               const xhr = new XMLHttpRequest();
               xhr.open('PUT', url);
-              // Allow a slow part up to 2.5 min before giving up — a slow phone part is
-              // not necessarily dead. (Was 90s, which killed parts that were just slow.)
-              xhr.timeout = 150000;
+              // Scale the timeout with chunk size so a bigger part on a slow phone isn't
+              // killed while it's still legitimately uploading. ~45s/MB floor of 2.5 min,
+              // capped at 10 min. (A 40MB part on a weak connection can take minutes.)
+              xhr.timeout = Math.min(10 * 60 * 1000, Math.max(150000, Math.round((chunk.size / (1024 * 1024)) * 20000)));
               xhr.upload.onprogress = (e) => {
                 if (e.lengthComputable) { partLoaded[partIdx] = e.loaded; refreshProgress(); }
               };
@@ -469,7 +473,7 @@ function RecordPageInner() {
             let etag: string | null = null;
             let lastErr = '';
             let url = partData.presignedUrl;
-            const MAX_ATTEMPTS = 5;
+            const MAX_ATTEMPTS = 6;
             for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
               try {
                 etag = await putChunkWithProgress(url, chunk, partIdx);
