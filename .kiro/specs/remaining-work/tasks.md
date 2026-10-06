@@ -120,6 +120,23 @@ Flags surfaced from student reports and session work. Keep updated as they're re
   - [x] 18.4 Deleted the unused experimental dashboard variants (dashboard-new, dashboard-hybrid, dashboard-udemy, dashboard/page-old) and the unused DashboardSwitcher dev tool that referenced them — they held dead /api/community references and were not in active nav
   - [ ] 18.5 OPTIONAL data teardown: classcast-community-posts / classcast-community-comments / classcast-post-likes tables still hold old rows; delete the tables once we're sure the feature won't return
 
+- [ ] 19. Student video upload reliability (phones) — ongoing incident
+  Students repeatedly failed to delete-and-reupload / upload new videos; worked across several passes.
+  - [x] 19.1 Mobile stuck at 0%: multipart part uploads used fetch() (no upload progress). Switched to XMLHttpRequest with per-part upload.onprogress aggregated into a global bar; added a per-part stall timeout.
+  - [x] 19.2 "Your proposed upload is smaller than the minimum allowed size": chunk/threshold produced a sub-5MB non-last part. Fixed part sizing (>= S3 5MB floor), dedupe part numbers, verify all parts present + sorted before complete.
+  - [x] 19.3 Feed Record/Upload buttons routed to /student/video-submission (single fetch() PUT, no progress, no chunking). Repointed to /student/record so everyone uses one hardened chunked path. (groupId query param was dead — submission API never read it.)
+  - [x] 19.4 Laptop: submit/Post button not visible/sticky. Root was h-full (broken ancestor height chain inside the wide-screen layout). Switched record page root to h-dvh so the scroll container + sticky bar work.
+  - [x] 19.5 Uploaded S3 videos mis-tagged as Google Drive: POST stored googleDriveUrl = finalVideoUrl fallback, so read routes treated them as Drive, skipped S3 signing, served unsigned URLs that wouldn't play. 265/407 submissions affected. Fixed the POST + made read routes detect Drive by URL content; ran scripts/fix-bad-googledrive-url.mjs to null the bogus fields (0 remain).
+  - [x] 19.6 Delete threw NoSuchBucket: /api/delete-submission used stale 'classcast-videos'. Fixed to classcast-videos-463470937777-us-east-1.
+  - [x] 19.7 Dipping % (63%→8%→66%): parallel-part progress dipped on retry resets. Made progress monotonic (never decreases).
+  - [x] 19.8 Silent failure (upload stops near end, returns to post screen): error banner was below the fold. Now scrolls into view + clearer "video still here, tap Post to retry" copy.
+  - [x] 19.9 CRITICAL — error logging was fully broken: errorReporter's DynamoDB client threw "removeUndefinedValues=true" on EVERY write (payloads contain undefined context fields), swallowed by the catch, so the error-logs table never recorded anything (stuck at 15). Added marshallOptions.removeUndefinedValues + convertClassInstanceToMap. VERIFIED in prod: table now records entries with full nested context.
+  - [x] 19.10 Added video playback-failure logging (feed <video> onError step:'video-playback' with media error code / url kind; record preview onError step:'record-preview-playback') — an uploaded-but-unplayable video threw nothing before and was invisible.
+  - [x] 19.11 Weekend logs (first real data after 19.9) showed large files are the dominant cause: a student failed 5x on 1.2GB phone videos (128 parts; individual parts died permanently — "Part 49/128 failed after 5 attempts: network error"); others failed at 130-171MB. Fixed with ADAPTIVE chunk sizing: scale chunk size with file size to cap part count at ~40 (1.2GB -> ~31 x 40MB parts instead of 128 x 10MB); timeout scales with chunk size (2.5-10min); retries 5->6; concurrency 3 for >300MB else 2. (commit 38b75a8c)
+  - [ ] 19.12 VERIFY on-device after 19.11 deploys: have the 1.2GB student retry; the error log will now show whether we get further (higher part numbers before any failure).
+  - [ ] 19.13 FOLLOW-UP if large-file failures persist: either a resumable-upload approach (resume from the failed part instead of restarting the whole upload) or guide students to record at lower resolution. 1.2GB from a phone is extreme; adaptive chunking helps but a truly unstable connection may still fail.
+  - [ ] 19.14 FOLLOW-UP: retire the now-unused /student/video-submission page (weak single-PUT uploader) once 19.3 is confirmed stable in the field.
+
 ## Notes
 
 - Tasks in Priority 1-2 should be done before next App Store submission
@@ -127,3 +144,4 @@ Flags surfaced from student reports and session work. Keep updated as they're re
 - Priority 5 adds value for schools evaluating the product
 - Priority 6 is housekeeping that prevents tech debt
 - Priority 7 tracks field-reported issues; verify 13.4 on-device before considering the delete fix closed
+- Item 19 is the active upload-reliability incident; error logging (19.9) now works, so new failures land in classcast-error-logs with full context (step, partNum/totalParts, fileSizeMB, media error code). Check that table first for any new report.
