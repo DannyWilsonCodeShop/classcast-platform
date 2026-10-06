@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { GRADES, gradeLabel, DEFAULT_GRADE, teachersForGrade, isValidTeacherForGrade } from '@/lib/studyHallTeachers';
 
 interface TestEntry {
   entryId: string;
@@ -9,12 +10,6 @@ interface TestEntry {
   testType: 'summative' | 'formative';
   testDate: string;
 }
-
-const TEACHERS = [
-  'Dr. Diaz', 'Ms. Marlar', 'Ms. Tate', 'Ms. Alvarado', 'Mr. Wilson',
-  'Mr. Barrow', 'Mr. Gordon', 'Ms. King', 'Ms. Brown', 'Ms. Pollitzer',
-  'Dean Stevens', 'Mr. Johnson (CWS)', 'IT Service Desk', 'Other',
-];
 
 export function TestTrackerCalendar() {
   const [currentMonth, setCurrentMonth] = useState(() => {
@@ -28,10 +23,28 @@ export function TestTrackerCalendar() {
   const [selectedDayTests, setSelectedDayTests] = useState<TestEntry[]>([]);
 
   // Add form state
+  const [grade, setGrade] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const g = localStorage.getItem('classcast_studyhall_grade');
+      if (g && GRADES.includes(g)) return g;
+    }
+    return DEFAULT_GRADE;
+  });
   const [teacherName, setTeacherName] = useState(() => {
-    if (typeof window !== 'undefined') return localStorage.getItem('classcast_studyhall_teacher') || '';
+    if (typeof window !== 'undefined') {
+      const g = localStorage.getItem('classcast_studyhall_grade') || DEFAULT_GRADE;
+      const t = localStorage.getItem('classcast_studyhall_teacher') || '';
+      // Only restore the saved teacher if it's valid for the saved grade.
+      if (t && isValidTeacherForGrade(t, g)) return t;
+    }
     return '';
   });
+
+  const handleGradeChange = (newGrade: string) => {
+    setGrade(newGrade);
+    if (typeof window !== 'undefined') localStorage.setItem('classcast_studyhall_grade', newGrade);
+    if (teacherName && !isValidTeacherForGrade(teacherName, newGrade)) setTeacherName('');
+  };
   const [subject, setSubject] = useState('');
   const [testType, setTestType] = useState<'summative' | 'formative'>('summative');
   const [submitting, setSubmitting] = useState(false);
@@ -310,11 +323,18 @@ export function TestTrackerCalendar() {
                 <div className="space-y-3">
                   {/* Teacher */}
                   <div>
+                    <label className="block text-[10px] font-medium text-gray-600 mb-1">Grade</label>
+                    <select value={grade} onChange={(e) => handleGradeChange(e.target.value)}
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#005587]">
+                      {GRADES.map(g => <option key={g} value={g}>{gradeLabel(g)}</option>)}
+                    </select>
+                  </div>
+                  <div>
                     <label className="block text-[10px] font-medium text-gray-600 mb-1">Your Name</label>
                     <select value={teacherName} onChange={(e) => setTeacherName(e.target.value)}
                       className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#005587]">
                       <option value="">Select...</option>
-                      {TEACHERS.map(t => <option key={t} value={t}>{t}</option>)}
+                      {teachersForGrade(grade).map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { TestTrackerCalendar } from '@/components/study-hall/TestTrackerCalendar';
+import { GRADES, gradeLabel, DEFAULT_GRADE, teachersForGrade, isValidTeacherForGrade } from '@/lib/studyHallTeachers';
 
 interface StudentResult {
   name: string;
@@ -20,25 +21,6 @@ interface PulloutEntry {
   studyHallTeacher?: string;
   status: string;
 }
-
-const TEACHERS = [
-  'Dr. Diaz',
-  'Ms. Marlar',
-  'Ms. Tate',
-  'Ms. Alvarado',
-  'Mr. Wilson',
-  'Mr. Barrow',
-  'Mr. Gordon',
-  'Ms. King',
-  'Ms. Brown',
-  'Ms. Pollitzer',
-  'Dean Stevens',
-  'Mr. Johnson (CWS)',
-  'IT Service Desk',
-  'Cafeteria',
-  'Commons',
-  'Other',
-];
 
 function getTodayStr() {
   return new Date().toISOString().split('T')[0];
@@ -60,6 +42,7 @@ export default function PublicStudyHallPage() {
     }
     return tomorrow.toISOString().split('T')[0];
   });
+  const [grade, setGrade] = useState<string>(DEFAULT_GRADE);
   const [teacherName, setTeacherName] = useState('');
   const [customTeacher, setCustomTeacher] = useState('');
   const [reason, setReason] = useState('');
@@ -77,13 +60,24 @@ export default function PublicStudyHallPage() {
   const [loadingToday, setLoadingToday] = useState(false);
   const [viewDate, setViewDate] = useState(getTodayStr());
 
-  // Load last selected teacher from localStorage
+  // Load last selected grade + teacher from localStorage (per device)
   useEffect(() => {
+    const savedGrade = localStorage.getItem('classcast_studyhall_grade');
+    const effectiveGrade = savedGrade && GRADES.includes(savedGrade) ? savedGrade : DEFAULT_GRADE;
+    setGrade(effectiveGrade);
+
     const saved = localStorage.getItem('classcast_studyhall_teacher');
-    if (saved) setTeacherName(saved);
+    // Only restore the saved teacher if it's valid for the restored grade.
+    if (saved && isValidTeacherForGrade(saved, effectiveGrade)) setTeacherName(saved);
+
     const savedReason = localStorage.getItem('classcast_studyhall_reason');
     if (savedReason) setReason(savedReason);
   }, []);
+
+  // Save grade selection to localStorage
+  useEffect(() => {
+    if (grade) localStorage.setItem('classcast_studyhall_grade', grade);
+  }, [grade]);
 
   // Save teacher selection to localStorage
   useEffect(() => {
@@ -91,6 +85,15 @@ export default function PublicStudyHallPage() {
       localStorage.setItem('classcast_studyhall_teacher', teacherName);
     }
   }, [teacherName]);
+
+  // When the grade changes, clear a teacher that isn't valid for the new grade.
+  // (Shared destinations like Cafeteria/Other stay valid for every grade.)
+  const handleGradeChange = (newGrade: string) => {
+    setGrade(newGrade);
+    if (teacherName && !isValidTeacherForGrade(teacherName, newGrade)) {
+      setTeacherName('');
+    }
+  };
 
   // Save reason to localStorage
   useEffect(() => {
@@ -384,7 +387,22 @@ export default function PublicStudyHallPage() {
             )}
 
             <div className="bg-white rounded-2xl p-4 mb-4 border border-stone-200/60 shadow-sm overflow-hidden">
-              {/* Teacher dropdown */}
+              {/* Grade dropdown — scopes the teacher list below */}
+              <div className="mb-3">
+                <label className="block text-[10px] font-medium text-gray-600 mb-1">Grade</label>
+                <select
+                  value={grade}
+                  onChange={(e) => handleGradeChange(e.target.value)}
+                  className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#005587] focus:border-[#005587] appearance-none"
+                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
+                >
+                  {GRADES.map(g => (
+                    <option key={g} value={g}>{gradeLabel(g)}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Teacher dropdown — scoped to the selected grade (+ shared destinations) */}
               <div className="mb-3">
                 <label className="block text-[10px] font-medium text-gray-600 mb-1">Your Name</label>
                 <select
@@ -394,7 +412,7 @@ export default function PublicStudyHallPage() {
                   style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
                 >
                   <option value="">Select your name...</option>
-                  {TEACHERS.map(t => (
+                  {teachersForGrade(grade).map(t => (
                     <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
