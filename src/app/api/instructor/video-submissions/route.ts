@@ -256,19 +256,24 @@ export async function GET(request: NextRequest) {
               });
               const enrollmentResult = await docClient.send(enrollmentScanCommand);
               const course = enrollmentResult.Items?.[0];
-              
-              if (course && course.students) {
-                const studentEnrollment = course.students.find((s: any) => s.userId === submission.studentId);
-                if (studentEnrollment && studentEnrollment.sectionId) {
-                  // Get section details
-                  const sectionScanCommand = new ScanCommand({
+
+              // Enrollment lives under course.enrollment.students (the old code looked at
+              // course.students, which doesn't exist — so section was always null, hiding
+              // it on the grading cards and leaving the section filter empty).
+              const enrolledStudents = course?.enrollment?.students || course?.students || [];
+              const studentEnrollment = enrolledStudents.find((s: any) => s.userId === submission.studentId);
+
+              if (studentEnrollment && studentEnrollment.sectionId) {
+                // The enrollment entry usually already carries sectionName — use it directly.
+                if (studentEnrollment.sectionName) {
+                  sectionInfo = { sectionId: studentEnrollment.sectionId, sectionName: studentEnrollment.sectionName };
+                } else {
+                  // Fallback: look the name up in the sections table.
+                  const sectionResult = await docClient.send(new ScanCommand({
                     TableName: 'classcast-sections',
                     FilterExpression: 'sectionId = :sectionId',
-                    ExpressionAttributeValues: {
-                      ':sectionId': studentEnrollment.sectionId
-                    }
-                  });
-                  const sectionResult = await docClient.send(sectionScanCommand);
+                    ExpressionAttributeValues: { ':sectionId': studentEnrollment.sectionId },
+                  }));
                   sectionInfo = sectionResult.Items?.[0] || null;
                 }
               }

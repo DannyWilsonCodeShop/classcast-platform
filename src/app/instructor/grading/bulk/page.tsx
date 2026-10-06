@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
-import { getVideoUrl } from '@/lib/videoUtils';
+import GradingVideo from '@/components/instructor/GradingVideo';
 import { parseVideoUrl, getEmbedUrl } from '@/lib/urlUtils';
 import { extractYouTubeVideoId, getYouTubeEmbedUrl, getYouTubeThumbnail } from '@/lib/youtube';
 import { RubricGradingPanel } from '@/components/instructor/RubricGradingPanel';
@@ -206,6 +206,13 @@ const BulkGradingContent: React.FC = () => {
       .map(sub => ({ id: sub.sectionId!, name: sub.sectionName! }))
       .map(section => JSON.stringify(section))
   )).map(str => JSON.parse(str)).sort((a, b) => a.name.localeCompare(b.name));
+
+  // Section dropdown options: prefer sections derived from the actual submissions (their
+  // ids are guaranteed to match the filter's sub.sectionId comparison), then union in any
+  // from /api/sections so empty sections still appear. Dedupe by id.
+  const sectionOptions = Array.from(
+    new Map([...uniqueSections, ...fetchedSections].map(s => [s.id, s])).values()
+  ).sort((a, b) => a.name.localeCompare(b.name));
   
   // Get unique students from submissions (include sectionId for filtering)
   const students = Array.from(new Map(allSubmissions.map(sub => [sub.studentId, {
@@ -874,7 +881,7 @@ const BulkGradingContent: React.FC = () => {
                 >
                   <option value="all">All Sections</option>
                   <option value="none">No Section</option>
-                  {fetchedSections.map(section => (
+                  {sectionOptions.map(section => (
                     <option key={section.id} value={section.id}>
                       {section.name}
                     </option>
@@ -984,8 +991,15 @@ const BulkGradingContent: React.FC = () => {
                           })()}
                         </div>
                         <div>
-                          <p className="font-semibold text-sm text-gray-900">{submission.studentName}</p>
-                          <p className="text-xs text-gray-500">{submission.assignmentTitle} {submission.sectionName && `• ${submission.sectionName}`}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-sm text-gray-900">{submission.studentName}</p>
+                            {submission.sectionName && (
+                              <span className="px-2 py-0.5 rounded-full bg-[#005587]/10 text-[#005587] text-[10px] font-semibold whitespace-nowrap">
+                                {submission.sectionName}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500">{submission.assignmentTitle}</p>
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -1009,24 +1023,16 @@ const BulkGradingContent: React.FC = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] gap-4 p-4">
                       {/* Video */}
                       <div>
-                        <div className="relative w-full bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', maxHeight: '280px' }}>
-                          {isYouTube && videoId && embedUrl ? (
-                            <iframe src={embedUrl} className="w-full h-full" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen title={`${submission.studentName}'s video`} />
-                          ) : isGoogleDrive && embedUrl ? (
-                            <iframe src={embedUrl} className="w-full h-full" allow="autoplay" allowFullScreen title={`${submission.studentName}'s video`} />
-                          ) : (
-                            <video
-                              key={submission.submissionId}
-                              src={getVideoUrl(submission.videoUrl)}
-                              poster={submission.thumbnailUrl && !submission.thumbnailUrl.includes('placeholder') ? submission.thumbnailUrl : undefined}
-                              className="w-full h-full object-contain"
-                              controls
-                              playsInline
-                              preload="metadata"
-                              crossOrigin="anonymous"
-                            />
-                          )}
-                        </div>
+                        <GradingVideo
+                          submissionId={submission.submissionId}
+                          videoUrl={submission.videoUrl}
+                          thumbnailUrl={submission.thumbnailUrl}
+                          studentName={submission.studentName}
+                          isYouTube={isYouTube}
+                          isGoogleDrive={isGoogleDrive}
+                          videoId={videoId}
+                          embedUrl={embedUrl}
+                        />
                         <div className="mt-2 text-xs text-gray-500 flex items-center gap-3">
                           <span>Submitted: {new Date(submission.submittedAt).toLocaleDateString()}</span>
                           {submission.courseCode && submission.courseCode !== 'N/A' && <span>{submission.courseCode}</span>}
