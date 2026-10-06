@@ -590,6 +590,32 @@ const BulkGradingContent: React.FC = () => {
     setSaveTimeouts(prev => ({ ...prev, [submissionId]: timeoutId }));
   };
 
+  // Save ONLY feedback — never touches grade/rubric. Entering feedback was previously
+  // routed through handleSaveGrade, which (for rubric submissions with no grade in local
+  // state) either bailed without saving the feedback, or re-sent a grade and flipped the
+  // grade section. The grade PUT does partial updates, so a feedback-only write is safe.
+  const handleSaveFeedback = async (submissionId: string) => {
+    const feedbackText = feedback[submissionId] ?? '';
+    setSavingGrades(prev => new Set([...prev, submissionId]));
+    try {
+      const response = await fetch(`/api/submissions/${submissionId}/grade`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ feedback: feedbackText }),
+      });
+      if (response.ok) {
+        setAllSubmissions(prev => prev.map(sub =>
+          sub.submissionId === submissionId ? { ...sub, feedback: feedbackText } : sub
+        ));
+      }
+    } catch (error) {
+      console.error('Error saving feedback:', error);
+    } finally {
+      setSavingGrades(prev => { const n = new Set(prev); n.delete(submissionId); return n; });
+    }
+  };
+
   const handleSaveGrade = async (submissionId: string) => {
     const grade = grades[submissionId];
     const feedbackText = feedback[submissionId] || '';
@@ -1169,10 +1195,12 @@ const BulkGradingContent: React.FC = () => {
                             data-feedback-input
                             value={feedback[submission.submissionId] ?? submission.feedback ?? ''}
                             onChange={(e) => setFeedback(prev => ({ ...prev, [submission.submissionId]: e.target.value }))}
+                            onBlur={() => handleSaveFeedback(submission.submissionId)}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
-                                handleSaveGrade(submission.submissionId);
+                                // Save ONLY feedback here — must not touch the grade.
+                                handleSaveFeedback(submission.submissionId);
                                 // Advance to next student's first rubric input
                                 const allCards = document.querySelectorAll('[data-grading-card]');
                                 const currentCard = (e.target as Element).closest('[data-grading-card]');
@@ -1191,7 +1219,7 @@ const BulkGradingContent: React.FC = () => {
                             className="w-full px-2 py-1.5 border border-gray-300 rounded text-sm resize-none mt-2"
                           />
                           <button
-                            onClick={() => handleSaveGrade(submission.submissionId)}
+                            onClick={() => { handleSaveGrade(submission.submissionId); handleSaveFeedback(submission.submissionId); }}
                             disabled={savingGrades.has(submission.submissionId)}
                             className="mt-2 px-3 py-1.5 bg-[#005587] text-white text-xs font-medium rounded hover:bg-[#004470] disabled:opacity-50"
                           >
