@@ -38,6 +38,7 @@ const GradingVideo: React.FC<GradingVideoProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [inView, setInView] = useState(true);
+  const [seekable, setSeekable] = useState(true); // false => webm with no duration; show a hint
 
   const poster = thumbnailUrl && !thumbnailUrl.includes('placeholder') ? thumbnailUrl : undefined;
   const isIframe = (isYouTube && videoId && embedUrl) || (isGoogleDrive && embedUrl);
@@ -94,17 +95,41 @@ const GradingVideo: React.FC<GradingVideoProps> = ({
           </div>
         )
       ) : (
-        <video
-          ref={videoRef}
-          key={submissionId}
-          src={getVideoUrl(videoUrl)}
-          poster={poster}
-          className="w-full h-full object-contain"
-          controls
-          playsInline
-          preload="metadata"
-          crossOrigin="anonymous"
-        />
+        <>
+          <video
+            ref={videoRef}
+            key={submissionId}
+            src={getVideoUrl(videoUrl)}
+            poster={poster}
+            className="w-full h-full object-contain"
+            controls
+            playsInline
+            // preload="auto" (not "metadata"): webm recordings from the browser often lack a
+            // duration index, so with only metadata the scrubber can't seek — the position
+            // indicator rushes to the end. Buffering more lets the browser build a seekable
+            // range so scrubbing works. crossOrigin removed: it forced stricter CORS on the
+            // signed S3 ranged requests and we don't read pixels here.
+            preload="auto"
+            onLoadedMetadata={(e) => {
+              const v = e.currentTarget;
+              // If no real thumbnail, nudge to ~0.1s so the card shows a frame instead of black.
+              if (!poster && v.currentTime === 0) { try { v.currentTime = 0.1; } catch {} }
+              // Detect unseekable videos (duration unknown/Infinity — common for webm).
+              setSeekable(Number.isFinite(v.duration) && v.duration > 0);
+            }}
+            onDurationChange={(e) => {
+              const v = e.currentTarget;
+              setSeekable(Number.isFinite(v.duration) && v.duration > 0);
+            }}
+          />
+          {!seekable && (
+            <div className="absolute bottom-10 left-2 right-2 text-center">
+              <span className="inline-block bg-black/70 text-white text-[10px] px-2 py-1 rounded">
+                Scrubbing may be limited for this recording — let it load fully to seek.
+              </span>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

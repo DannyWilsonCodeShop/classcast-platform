@@ -100,7 +100,8 @@ const BulkGradingContent: React.FC = () => {
   // Filter and search state
   const [filter, setFilter] = useState<FilterType>('ungraded');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<SortType>('section');
+  const [sortBy, setSortBy] = useState<SortType>('date');
+  const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc'); // date: desc = newest first
   const [selectedCourse, setSelectedCourse] = useState<string>('all');
   const [selectedAssignment, setSelectedAssignment] = useState<string>('all');
   const [selectedStudent, setSelectedStudent] = useState<string>('all');
@@ -497,15 +498,17 @@ const BulkGradingContent: React.FC = () => {
       );
     }
     
-    // Apply sort
+    // Apply sort. dir applies to the primary comparison (-1 flips asc/desc).
+    const dir = sortDir === 'asc' ? -1 : 1;
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'name':
-          return a.studentName.localeCompare(b.studentName);
+          return a.studentName.localeCompare(b.studentName) * dir;
         case 'date':
-          return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+          // desc (default) = newest first; asc = oldest first.
+          return (new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()) * dir;
         case 'assignment':
-          return a.assignmentTitle.localeCompare(b.assignmentTitle);
+          return a.assignmentTitle.localeCompare(b.assignmentTitle) * dir;
         case 'course':
           return a.courseName.localeCompare(b.courseName);
         case 'section':
@@ -528,7 +531,7 @@ const BulkGradingContent: React.FC = () => {
     setFilteredSubmissions(filtered);
     
     // Update current grade and feedback for the new current submission
-  }, [allSubmissions, selectedCourse, selectedAssignment, selectedStudent, selectedSection, filter, searchTerm, sortBy]);
+  }, [allSubmissions, selectedCourse, selectedAssignment, selectedStudent, selectedSection, filter, searchTerm, sortBy, sortDir]);
 
   // Remove peer responses fetch - not needed in continuous feed
 
@@ -926,16 +929,30 @@ const BulkGradingContent: React.FC = () => {
               
               <div>
                 <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Sort</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortType)}
-                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
-                >
-                  <option value="section">Section</option>
-                  <option value="name">Name</option>
-                  <option value="date">Date</option>
-                  <option value="assignment">Assignment</option>
-                </select>
+                <div className="flex gap-1">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as SortType)}
+                    className="flex-1 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-xs"
+                  >
+                    <option value="date">Date</option>
+                    <option value="section">Section</option>
+                    <option value="name">Name</option>
+                    <option value="assignment">Assignment</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setSortDir(d => (d === 'desc' ? 'asc' : 'desc'))}
+                    className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 whitespace-nowrap"
+                    title={sortBy === 'date'
+                      ? (sortDir === 'desc' ? 'Newest first (tap for oldest)' : 'Oldest first (tap for newest)')
+                      : (sortDir === 'desc' ? 'Descending (tap for ascending)' : 'Ascending (tap for descending)')}
+                  >
+                    {sortBy === 'date'
+                      ? (sortDir === 'desc' ? '↓ Newest' : '↑ Oldest')
+                      : (sortDir === 'desc' ? '↓' : '↑')}
+                  </button>
+                </div>
               </div>
               
               <div className="col-span-2">
