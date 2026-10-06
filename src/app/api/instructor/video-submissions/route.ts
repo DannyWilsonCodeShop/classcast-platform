@@ -392,7 +392,10 @@ export async function GET(request: NextRequest) {
               id: assignmentInfo.assignmentId,
               title: assignmentInfo.title || 'Unknown Assignment',
               description: assignmentInfo.description || '',
-              dueDate: assignmentInfo.dueDate || null
+              dueDate: assignmentInfo.dueDate || null,
+              // Carry the real max score so the grading UI shows e.g. 16/16, not 16/100.
+              // Fall back across the field names assignments have used over time.
+              maxScore: assignmentInfo.maxScore ?? assignmentInfo.maxPoints ?? assignmentInfo.totalPoints ?? assignmentInfo.points ?? null,
             } : {
               id: submission.assignmentId,
               title: 'Unknown Assignment',

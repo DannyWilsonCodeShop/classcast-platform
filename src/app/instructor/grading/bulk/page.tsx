@@ -304,7 +304,9 @@ const BulkGradingContent: React.FC = () => {
             courseId: sub.courseId || sub.assignment?.courseId || '',
             sectionId: sub.student?.sectionId || null,
             sectionName: sub.student?.sectionName || null,
-            maxScore: sub.maxScore || sub.assignment?.maxScore || 100,
+            // Assignment max is the source of truth (e.g. 16); the submission's own maxScore
+            // is often a stale 100 default, so only use it if the assignment has none.
+            maxScore: sub.assignment?.maxScore ?? sub.maxScore ?? 100,
             rubricScores: sub.rubricScores || undefined,
             peerResponses: sub.peerResponses || []
           }));
@@ -1313,7 +1315,7 @@ const BulkGradingContent: React.FC = () => {
                         courseId: sub.courseId || sub.assignment?.courseId || '',
                         sectionId: sub.student?.sectionId || null,
                         sectionName: sub.student?.sectionName || null,
-                        maxScore: sub.maxScore,
+                        maxScore: sub.assignment?.maxScore ?? sub.maxScore ?? 100,
                         rubricScores: sub.rubricScores,
                         peerResponses: sub.peerResponses,
                       }));
