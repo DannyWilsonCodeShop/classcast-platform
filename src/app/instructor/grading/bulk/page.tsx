@@ -200,19 +200,29 @@ const BulkGradingContent: React.FC = () => {
     fetchCourses();
   }, [user?.id]);
   
-  // Get unique sections from submissions
-  const uniqueSections = Array.from(new Set(
-    allSubmissions
-      .filter(sub => sub.sectionId && sub.sectionName)
-      .map(sub => ({ id: sub.sectionId!, name: sub.sectionName! }))
-      .map(section => JSON.stringify(section))
-  )).map(str => JSON.parse(str)).sort((a, b) => a.name.localeCompare(b.name));
-
-  // Section dropdown options: prefer sections derived from the actual submissions (their
-  // ids are guaranteed to match the filter's sub.sectionId comparison), then union in any
-  // from /api/sections so empty sections still appear. Dedupe by id.
+  // Section options are derived ONLY from the submissions currently in view, keyed by the
+  // real sectionId. Important: a section only means something within a course — the same
+  // name ("Section A") exists as DIFFERENT sections (different ids) across the instructor's
+  // courses. So we dedupe by id (never by name), and when more than one course is in view
+  // we disambiguate the label with the course so two "Section A"s don't look like dupes.
+  // Deriving from submissions guarantees the id matches the sub.sectionId the filter compares.
+  const sectionSourceSubs = selectedCourse === 'all'
+    ? allSubmissions
+    : allSubmissions.filter(s => s.courseId === selectedCourse);
+  const multipleCoursesInView = new Set(sectionSourceSubs.map(s => s.courseId)).size > 1;
   const sectionOptions = Array.from(
-    new Map([...uniqueSections, ...fetchedSections].map(s => [s.id, s])).values()
+    sectionSourceSubs
+      .filter(sub => sub.sectionId && sub.sectionName)
+      .reduce((map, sub) => {
+        if (!map.has(sub.sectionId!)) {
+          const label = multipleCoursesInView && sub.courseCode && sub.courseCode !== 'N/A'
+            ? `${sub.sectionName} — ${sub.courseCode}`
+            : sub.sectionName!;
+          map.set(sub.sectionId!, { id: sub.sectionId!, name: label });
+        }
+        return map;
+      }, new Map<string, { id: string; name: string }>())
+      .values()
   ).sort((a, b) => a.name.localeCompare(b.name));
   
   // Get unique students from submissions (include sectionId for filtering)
@@ -366,7 +376,12 @@ const BulkGradingContent: React.FC = () => {
           if (data.sections) {
             const mapped = data.sections
               .filter((s: any) => s.sectionName)
-              .map((s: any) => ({ id: s.sectionId, name: `Section ${s.sectionName}` }))
+              // Don't double-prefix: some rows already store "Section A", others store "A".
+              .map((s: any) => {
+                const raw = String(s.sectionName).trim();
+                const name = /^section\b/i.test(raw) ? raw : `Section ${raw}`;
+                return { id: s.sectionId, name };
+              })
               .sort((a: any, b: any) => a.name.localeCompare(b.name));
             setFetchedSections(mapped);
           }
@@ -972,6 +987,33 @@ const BulkGradingContent: React.FC = () => {
 
         {/* Main Content - Scrollable cards */}
         <div className="flex-1 overflow-y-auto px-4 py-2">
+          {/* Section quick-filter chips — one tap to grade just one section at a time */}
+          {sectionOptions.length > 0 && (
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-1 -mx-1 px-1">
+              <span className="text-[10px] font-medium text-gray-400 shrink-0">Section:</span>
+              <button
+                onClick={() => { setSelectedSection('all'); setSelectedStudent('all'); setSelectedStudentName(''); }}
+                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSection === 'all' ? 'bg-[#005587] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                All
+              </button>
+              {sectionOptions.map(section => (
+                <button
+                  key={section.id}
+                  onClick={() => { setSelectedSection(section.id); setSelectedStudent('all'); setSelectedStudentName(''); }}
+                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSection === section.id ? 'bg-[#005587] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                >
+                  {section.name}
+                </button>
+              ))}
+              <button
+                onClick={() => { setSelectedSection('none'); setSelectedStudent('all'); setSelectedStudentName(''); }}
+                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSection === 'none' ? 'bg-[#005587] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              >
+                No Section
+              </button>
+            </div>
+          )}
           {filteredSubmissions.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
