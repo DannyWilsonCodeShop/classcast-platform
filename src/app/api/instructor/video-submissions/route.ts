@@ -14,6 +14,12 @@ const s3Client = new S3Client({ region: 'us-east-1' });
 const VIDEO_BUCKET = process.env.VIDEO_BUCKET || 'classcast-videos-463470937777-us-east-1';
 const SIGNED_URL_EXPIRY = 3600; // 1 hour
 
+// This endpoint reflects grades that change constantly as the instructor works. It must
+// NEVER be cached — a stale CDN copy made freshly-saved grades look unsaved, so instructors
+// re-graded students who were already graded. Force dynamic + no-store.
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Helper function to extract S3 key from S3 URL
 function extractS3KeyFromUrl(url: string): string | null {
   try {
@@ -421,8 +427,8 @@ export async function GET(request: NextRequest) {
       count: enrichedSubmissions.length
     }, {
       headers: {
-        
-        
+        // Never cache: grades mutate constantly; a stale copy makes saved grades look unsaved.
+        'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
       }
     });
 
