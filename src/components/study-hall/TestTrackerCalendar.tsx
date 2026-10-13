@@ -169,6 +169,29 @@ export function TestTrackerCalendar() {
     setShowAddModal(true);
   };
 
+  // Open the Add Assessment modal directly (from the button) with a sensible default date:
+  // the next weekday that doesn't already have 2 assessments.
+  const handleOpenAdd = () => {
+    const date = new Date();
+    for (let i = 0; i < 21; i++) {
+      date.setDate(date.getDate() + (i === 0 ? 1 : 1)); // start from tomorrow
+      if (date.getDay() === 0 || date.getDay() === 6) continue;
+      const candidate = date.toISOString().split('T')[0];
+      if (tests.filter(t => t.testDate === candidate).length < 2) {
+        const dayTests = tests.filter(t => t.testDate === candidate);
+        setSelectedDate(candidate);
+        setSelectedDayTests(dayTests);
+        setAddError('');
+        setAddWarning(dayTests.length === 1
+          ? `There is already 1 assessment on this day. Adding yours will be the 2nd (maximum).`
+          : '');
+        setSuggestedDate('');
+        setShowAddModal(true);
+        return;
+      }
+    }
+  };
+
   const findNextAvailable = async (fromDate: string) => {
     const date = new Date(fromDate + 'T12:00:00');
     for (let i = 1; i <= 14; i++) {
@@ -249,11 +272,20 @@ export function TestTrackerCalendar() {
   return (
     <div className="max-w-md mx-auto px-4 py-5">
       {/* Month header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-3">
         <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:bg-gray-200">‹</button>
         <h2 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>{monthNames[currentMonth.month]} {currentMonth.year}</h2>
         <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:bg-gray-200">›</button>
       </div>
+
+      {/* Add button + hint — the primary way to add an assessment (tapping a day also works) */}
+      <button
+        onClick={handleOpenAdd}
+        className="w-full mb-2 py-3 bg-[#005587] text-white rounded-xl text-sm font-bold active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+      >
+        <span className="text-lg leading-none">+</span> Add Assessment
+      </button>
+      <p className="text-center text-[10px] text-gray-400 mb-4">or tap any weekday on the calendar</p>
 
       {/* Day headers */}
       <div className="grid grid-cols-7 gap-1 mb-1">
