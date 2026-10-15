@@ -39,6 +39,22 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Rebrand Tailwind's blue palette to the ClassCast brand blue (#0065a3).
+     This makes every blue utility (bg, text, border, ring, and hover variants) across the
+     app render in brand blue with correct darker hover shades — one place, no per-file edits.
+     500 and 600 sit on the brand color; 700/800/900 darken for hover and active states. */
+  --color-blue-50:  #e7f1f8;
+  --color-blue-100: #c3ddee;
+  --color-blue-200: #9bc6e2;
+  --color-blue-300: #6facd4;
+  --color-blue-400: #3d8bc1;
+  --color-blue-500: #0f72ac;
+  --color-blue-600: #0065a3;
+  --color-blue-700: #00557f;
+  --color-blue-800: #00456a;
+  --color-blue-900: #003552;
+  --color-blue-950: #002233;
 }
 
 @media (prefers-color-scheme: dark) {
