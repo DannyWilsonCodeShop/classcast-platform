@@ -631,8 +631,10 @@ const StudentCard: React.FC<{
       className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all duration-200 cursor-move hover:bg-gray-100"
     >
       <div className="flex items-center space-x-3 mb-3">
-        <div className="w-10 h-10 bg-[#0065a3] rounded-full flex items-center justify-center text-white font-bold text-sm">
-          {(() => { const str = student.name || student.email || '?'; const first = [...str][0] || '?'; return first.length > 1 ? first : first.toUpperCase(); })()}
+        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+          <svg className="w-3/4 h-3/4 text-gray-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v2h20v-2c0-3.33-6.67-5-10-5z" />
+          </svg>
         </div>
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-gray-900 truncate">{student.name || student.email || 'Unknown Student'}</h4>

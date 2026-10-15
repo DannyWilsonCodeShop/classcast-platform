@@ -354,10 +354,12 @@ const DiscussionContent: React.FC = () => {
         <div className="bg-white rounded-lg p-4 mb-4 shadow-sm border border-gray-200">
           <div className="flex items-start space-x-3">
             <div 
-              className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold cursor-pointer hover:ring-2 hover:ring-blue-300 transition-all"
+              className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-gray-300 transition-all"
               onClick={() => post.authorId && router.push(`/student/profile/${post.authorId}`)}
             >
-              {post.authorName.charAt(0)}
+              <svg className="w-3/4 h-3/4 text-gray-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v2h20v-2c0-3.33-6.67-5-10-5z" />
+              </svg>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2 mb-2">

@@ -1285,8 +1285,10 @@ const InstructorCourseDetailPage: React.FC = () => {
                       >
                         <div className="flex items-start space-x-4">
                           {/* Student Avatar */}
-                          <div className="w-12 h-12 bg-[#0065a3] rounded-full flex items-center justify-center text-white font-bold">
-                            {submission.student.name.charAt(0).toUpperCase()}
+                          <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
+                            <svg className="w-3/4 h-3/4 text-gray-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                              <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v2h20v-2c0-3.33-6.67-5-10-5z" />
+                            </svg>
                           </div>
                           
                           <div className="flex-1">

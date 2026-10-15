@@ -68,13 +68,18 @@ const Avatar: React.FC<AvatarProps> = ({
     return str.startsWith('http') || str.startsWith('data:') || str.startsWith('/');
   };
 
+  // Fallback when there's no uploaded picture: a grey person silhouette (not a blue circle).
+  const silhouette = (
+    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+      <svg className="w-3/4 h-3/4 text-gray-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v2h20v-2c0-3.33-6.67-5-10-5z" />
+      </svg>
+    </div>
+  );
+
   const renderAvatar = () => {
     if (!avatarUrl && !user) {
-      return (
-        <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-bold">
-          {getInitials()}
-        </div>
-      );
+      return silhouette;
     }
 
     // Check if we have a valid profile picture
@@ -107,12 +112,12 @@ const Avatar: React.FC<AvatarProps> = ({
             alt={displayName || 'User avatar'}
             className="w-full h-full object-cover"
             onError={(e) => {
-              // Fallback to initials if image fails to load
+              // Fallback to the grey silhouette if the image fails to load.
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
               const parent = target.parentElement;
               if (parent) {
-                parent.innerHTML = `<div class="w-full h-full bg-blue-500 flex items-center justify-center text-white font-bold">${getInitials()}</div>`;
+                parent.innerHTML = `<div class="w-full h-full bg-gray-200 flex items-center justify-center"><svg class="w-3/4 h-3/4" style="color:#9ca3af" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v2h20v-2c0-3.33-6.67-5-10-5z"/></svg></div>`;
               }
             }}
           />
@@ -120,12 +125,8 @@ const Avatar: React.FC<AvatarProps> = ({
       }
     }
 
-    // Show initials as primary option when no profile picture is set
-    return (
-      <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white font-bold">
-        {getInitials()}
-      </div>
-    );
+    // No profile picture set → grey silhouette.
+    return silhouette;
   };
 
   return (

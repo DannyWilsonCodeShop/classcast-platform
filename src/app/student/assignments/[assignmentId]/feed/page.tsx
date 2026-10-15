@@ -666,8 +666,10 @@ const VideoSubmissionCard: React.FC<{
                     onError={() => setImageError(true)}
                   />
                 ) : (
-                  <span className="w-full h-full bg-[#0065a3] flex items-center justify-center text-white font-bold text-sm">
-                    {(video.studentFirstName || video.studentName || 'S')[0]}
+                  <span className="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <svg className="w-3/4 h-3/4 text-gray-400" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v2h20v-2c0-3.33-6.67-5-10-5z" />
+                    </svg>
                   </span>
                 )}
               </div>
