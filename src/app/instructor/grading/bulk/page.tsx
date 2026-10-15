@@ -881,7 +881,10 @@ const BulkGradingContent: React.FC = () => {
           {showFilters && (
           <div className="bg-gray-50 rounded-xl p-3 mt-2">
             <p className="text-[10px] text-gray-400 mb-2">{filteredSubmissions.length} of {allSubmissions.length} submissions</p>
-            <div className="grid grid-cols-2 gap-2">
+            {/* Denser, responsive filter grid: more columns on wider screens so the short
+                dropdowns (Course/Section/Student/Status/Sort) don't stretch and waste space.
+                Assignment (long names) and Search get extra width. */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 items-end">
               <div>
                 <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Course</label>
                 <select
@@ -898,7 +901,7 @@ const BulkGradingContent: React.FC = () => {
                 </select>
               </div>
               
-              <div>
+              <div className="col-span-2 lg:col-span-2">
                 <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Assignment</label>
                 <select
                   value={selectedAssignment}
@@ -998,7 +1001,7 @@ const BulkGradingContent: React.FC = () => {
                 </div>
               </div>
               
-              <div className="col-span-2">
+              <div className="col-span-2 sm:col-span-2 lg:col-span-5">
                 <label className="block text-[10px] font-medium text-gray-500 mb-0.5">Search</label>
                 <input
                   type="text"
