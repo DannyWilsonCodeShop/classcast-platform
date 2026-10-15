@@ -506,7 +506,7 @@ export default function StudentDashboardPage() {
           <button
             onClick={handleWelcomeJoin}
             disabled={welcomeJoining || !welcomeCode.trim()}
-            className="w-full py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 mb-3"
+            className="w-full py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#00517f] transition-colors disabled:opacity-50 mb-3"
           >
             {welcomeJoining ? 'Joining...' : 'Join Course'}
           </button>

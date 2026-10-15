@@ -187,7 +187,7 @@ const AIGradingWizard: React.FC<AIGradingWizardProps> = ({
               <div className="space-y-2 w-full max-w-xs">
                 <a
                   href="mailto:support@class-cast.com?subject=AI%20Grading%20Assistant%20Upgrade%20Inquiry"
-                  className="block w-full px-4 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold text-center hover:bg-[#004470] transition-colors"
+                  className="block w-full px-4 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold text-center hover:bg-[#00517f] transition-colors"
                 >
                   ✉️ Contact ClassCast Sales
                 </a>
@@ -265,7 +265,7 @@ const AIGradingWizard: React.FC<AIGradingWizardProps> = ({
               <button
                 onClick={handleNext}
                 disabled={isNextDisabled}
-                className="flex items-center gap-1 px-5 py-2 text-sm font-medium text-white bg-[#0065a3] rounded-full hover:bg-[#004470] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-1 px-5 py-2 text-sm font-medium text-white bg-[#0065a3] rounded-full hover:bg-[#00517f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
@@ -721,7 +721,7 @@ const Step4ReviewApply: React.FC<Step4Props> = ({
         <button
           onClick={() => onApply('all_ungraded')}
           disabled={ungradedCount === 0}
-          className="w-full py-3 px-4 text-sm font-bold text-white bg-[#0065a3] rounded-full hover:bg-[#004470] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full py-3 px-4 text-sm font-bold text-white bg-[#0065a3] rounded-full hover:bg-[#00517f] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {ungradedCount > 0
             ? `Apply to All Ungraded (${ungradedCount})`

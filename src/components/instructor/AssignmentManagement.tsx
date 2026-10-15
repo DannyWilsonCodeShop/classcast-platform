@@ -251,7 +251,7 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
           <div className="flex items-center space-x-3">
             <button
               onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
-              className="px-3 py-1.5 bg-[#0065a3] text-white rounded-full text-xs font-bold hover:bg-[#004470] transition-colors"
+              className="px-3 py-1.5 bg-[#0065a3] text-white rounded-full text-xs font-bold hover:bg-[#00517f] transition-colors"
             >
               + Create Assignment
             </button>
@@ -381,7 +381,7 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
                       </button>
                       <button
                         onClick={() => router.push(`/instructor/courses/${courseId}?tab=assignments&editAssignment=${assignment.assignmentId}`)}
-                        className="flex-1 px-3 py-2 bg-[#0065a3] text-white rounded-full text-xs font-medium hover:bg-[#004470] transition-colors"
+                        className="flex-1 px-3 py-2 bg-[#0065a3] text-white rounded-full text-xs font-medium hover:bg-[#00517f] transition-colors"
                       >
                         ✏️ Edit
                       </button>
@@ -419,7 +419,7 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
               {!searchQuery && (
                 <button 
                   onClick={() => router.push(`/instructor/courses/${courseId}/assignments/create`)}
-                  className="px-6 py-3 bg-[#0065a3] text-white rounded-xl font-bold hover:bg-[#004470] transition-colors"
+                  className="px-6 py-3 bg-[#0065a3] text-white rounded-xl font-bold hover:bg-[#00517f] transition-colors"
                 >
                   Create Your First Assignment
                 </button>

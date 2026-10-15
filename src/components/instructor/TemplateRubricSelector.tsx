@@ -63,7 +63,7 @@ export const TemplateRubricSelector: React.FC<TemplateRubricSelectorProps> = ({
             <button
               type="button"
               onClick={handleConfirm}
-              className="px-3 py-1.5 bg-[#0065a3] text-white text-sm font-medium rounded-lg hover:bg-[#004470] transition-colors"
+              className="px-3 py-1.5 bg-[#0065a3] text-white text-sm font-medium rounded-lg hover:bg-[#00517f] transition-colors"
             >
               Replace Rubric
             </button>

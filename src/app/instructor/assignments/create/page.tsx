@@ -796,7 +796,7 @@ const CreateAssignmentPage: React.FC = () => {
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => router.back()} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</button>
               <button type="submit" disabled={isSubmitting || !courseId || !title.trim() || !dueDate}
-                className="flex-1 px-4 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                className="flex-1 px-4 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#00517f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 {isSubmitting ? 'Creating...' : 'Create Assignment'}
               </button>
             </div>

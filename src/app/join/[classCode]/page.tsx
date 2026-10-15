@@ -74,7 +74,7 @@ export default function JoinClassPage() {
   };
 
   return (
-    <div className="min-h-screen min-h-dvh bg-gradient-to-b from-[#0065a3] to-[#003d5c] flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen min-h-dvh bg-gradient-to-b from-[#0065a3] to-[#00456a] flex flex-col items-center justify-center px-6">
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
 
@@ -141,7 +141,7 @@ export default function JoinClassPage() {
               {/* Regular sign-in */}
               <button
                 onClick={handleRegularSignIn}
-                className="w-full py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors"
+                className="w-full py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#00517f] transition-colors"
               >
                 Sign in with ClassCast account
               </button>

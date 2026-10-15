@@ -1222,7 +1222,7 @@ const BulkGradingPage: React.FC = () => {
               </button>
               <button
                 onClick={() => router.back()}
-                className="px-6 py-3 bg-[#0065a3] text-white rounded-xl font-bold hover:bg-[#003d5c] hover:shadow-lg transition-all duration-300"
+                className="px-6 py-3 bg-[#0065a3] text-white rounded-xl font-bold hover:bg-[#00456a] hover:shadow-lg transition-all duration-300"
               >
                 ← Back to Dashboard
               </button>
@@ -2389,7 +2389,7 @@ const BulkGradingPage: React.FC = () => {
               <button
                 onClick={handleBulkGrading}
                 disabled={isBulkGrading || (!bulkGrade && !bulkFeedback.trim())}
-                className="flex-1 px-4 py-2 bg-[#0065a3] text-white rounded-lg hover:bg-[#003d5c] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-[#0065a3] text-white rounded-lg hover:bg-[#00456a] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isBulkGrading ? 'Applying...' : 'Apply to All'}
               </button>

@@ -1243,7 +1243,7 @@ const BulkGradingContent: React.FC = () => {
                           <button
                             onClick={() => { handleSaveGrade(submission.submissionId); handleSaveFeedback(submission.submissionId); }}
                             disabled={savingGrades.has(submission.submissionId)}
-                            className="mt-2 px-3 py-1.5 bg-[#0065a3] text-white text-xs font-medium rounded hover:bg-[#004470] disabled:opacity-50"
+                            className="mt-2 px-3 py-1.5 bg-[#0065a3] text-white text-xs font-medium rounded hover:bg-[#00517f] disabled:opacity-50"
                           >
                             Save
                           </button>

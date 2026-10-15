@@ -100,7 +100,7 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ onClose }) => {
           <button
             onClick={handleSendResetEmail}
             disabled={isLoading}
-            className="flex-1 px-4 py-2.5 bg-[#0065a3] text-white rounded-lg hover:bg-[#004470] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 bg-[#0065a3] text-white rounded-lg hover:bg-[#00517f] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Sending...' : 'Send Reset Email'}
           </button>

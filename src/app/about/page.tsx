@@ -373,7 +373,7 @@ export default function AboutPage() {
                     placeholder="Anything else we should know?" rows={2}
                     className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] resize-none" />
                   <button type="submit" disabled={contactSubmitting}
-                    className="w-full py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50">
+                    className="w-full py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#00517f] transition-colors disabled:opacity-50">
                     {contactSubmitting ? 'Sending...' : 'Submit'}
                   </button>
                 </form>

@@ -3,17 +3,17 @@
 :root {
   /* Cristo Rey Brand Colors - Pantone 301 (Deep Blue) & Pantone 124 (Gold) */
   --cristo-rey-blue: #0065a3;        /* Pantone 301 - Primary brand blue */
-  --cristo-rey-blue-dark: #003d5c;   /* Darker shade for hover states */
-  --cristo-rey-blue-light: #007bb8;  /* Lighter shade */
+  --cristo-rey-blue-dark: #00456a;   /* Darker shade for hover states */
+  --cristo-rey-blue-light: #0f72ac;  /* Lighter shade */
   --cristo-rey-gold: #FFC72C;        /* Pantone 124 - Brand gold */
   --cristo-rey-gold-dark: #E5A900;   /* Darker gold for hover */
   --cristo-rey-gold-light: #FFD666;  /* Lighter gold */
 
   /* Primary Colors - Cristo Rey Blue Palette */
   --primary-900: #002840;  /* Deepest blue */
-  --primary-800: #003d5c;  /* Deep blue */
+  --primary-800: #00456a;  /* Deep blue */
   --primary-700: #0065a3;  /* Cristo Rey Blue (Pantone 301) */
-  --primary-600: #007bb8;  /* Medium blue */
+  --primary-600: #0f72ac;  /* Medium blue */
   --primary-500: #0099e6;  /* Light blue */
   --primary-400: #4db8ff;  /* Very light blue */
   --primary-300: #99d6ff;  /* Pale blue */

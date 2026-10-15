@@ -121,7 +121,7 @@ export default function StudentGradesPage() {
                 });
 
                 return (
-                  <div className="bg-gradient-to-br from-[#0065a3] to-[#003d5c] rounded-2xl p-4 text-white mb-1">
+                  <div className="bg-gradient-to-br from-[#0065a3] to-[#00456a] rounded-2xl p-4 text-white mb-1">
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <p className="text-xs text-white/60 uppercase tracking-wide">Overall Grade</p>

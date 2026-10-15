@@ -220,7 +220,7 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
           type="button"
           onClick={addCategory}
           disabled={disabled}
-          className="bg-[#0065a3] text-white rounded-full px-4 py-2 text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-[#0065a3] text-white rounded-full px-4 py-2 text-sm font-bold hover:bg-[#00517f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           + Add Category
         </button>

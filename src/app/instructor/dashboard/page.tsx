@@ -315,7 +315,7 @@ const InstructorDashboard: React.FC = () => {
                   </p>
                   <button
                     onClick={() => router.push('/instructor/classes/create')}
-                    className="px-6 py-3 bg-[#0065a3] text-white rounded-xl font-bold text-sm hover:bg-[#004470] transition-colors"
+                    className="px-6 py-3 bg-[#0065a3] text-white rounded-xl font-bold text-sm hover:bg-[#00517f] transition-colors"
                   >
                     + Create Your First Course
                   </button>
