@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { serverCache } from '@/lib/cache';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -12,6 +13,12 @@ const ASSIGNMENTS_TABLE = 'classcast-assignments';
 
 export async function GET(request: NextRequest) {
   try {
+    // Instant repeat loads during a demo; cleared on grade save via the 'instructor-' prefix.
+    const cached = serverCache.get<any>('instructor-recent-submissions');
+    if (cached) {
+      return NextResponse.json(cached, { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'HIT' } });
+    }
+
     // Get recent submissions from database
     let submissions = [];
     
@@ -100,7 +107,8 @@ export async function GET(request: NextRequest) {
       };
     }));
 
-    return NextResponse.json(enrichedSubmissions);
+    serverCache.set('instructor-recent-submissions', enrichedSubmissions, 30_000);
+    return NextResponse.json(enrichedSubmissions, { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MISS' } });
   } catch (error) {
     console.error('Error fetching recent submissions:', error);
     return NextResponse.json(

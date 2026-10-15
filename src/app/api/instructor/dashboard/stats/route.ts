@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { serverCache } from '@/lib/cache';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -22,73 +23,54 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get courses taught by this instructor
-    const coursesResult = await docClient.send(new ScanCommand({
-      TableName: COURSES_TABLE,
-      FilterExpression: 'instructorId = :instructorId',
-      ExpressionAttributeValues: {
-        ':instructorId': instructorId
-      }
-    }));
-    
+    // Instant repeat loads during a demo. Prefix 'instructor-' so the grade-save route's
+    // serverCache.invalidate('instructor-') clears this too (ungraded count can change).
+    const cacheKey = `instructor-dashboard-stats:${instructorId}`;
+    const cached = serverCache.get<any>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached, { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'HIT' } });
+    }
+
+    // Batch: scan courses + assignments + submissions ONCE each, then filter in memory.
+    // (Was an N+1: a scan per course for assignments, then a scan per assignment for
+    // submissions — dozens of full-table scans on the instructor landing page.)
+    const [coursesResult, assignmentsResult, submissionsResult] = await Promise.all([
+      docClient.send(new ScanCommand({
+        TableName: COURSES_TABLE,
+        FilterExpression: 'instructorId = :instructorId',
+        ExpressionAttributeValues: { ':instructorId': instructorId },
+      })),
+      docClient.send(new ScanCommand({ TableName: ASSIGNMENTS_TABLE, ProjectionExpression: 'assignmentId, courseId' })),
+      docClient.send(new ScanCommand({ TableName: SUBMISSIONS_TABLE, ProjectionExpression: 'assignmentId, courseId, grade, #s, hidden', ExpressionAttributeNames: { '#s': 'status' } })),
+    ]);
+
     const courses = coursesResult.Items || [];
-    const courseIds = courses.map(course => course.courseId);
-    
-    // Get assignments for these courses
-    let allAssignments = [];
-    if (courseIds.length > 0) {
-      // DynamoDB doesn't support IN with expression attribute values directly
-      const assignmentPromises = courseIds.map(courseId => 
-        docClient.send(new ScanCommand({
-          TableName: ASSIGNMENTS_TABLE,
-          FilterExpression: 'courseId = :courseId',
-          ExpressionAttributeValues: {
-            ':courseId': courseId
-          }
-        }))
-      );
-      
-      const assignmentResults = await Promise.all(assignmentPromises);
-      allAssignments = assignmentResults.flatMap(result => result.Items || []);
-    }
-    
-    // Get submissions for these assignments
-    const assignmentIds = allAssignments.map(assignment => assignment.assignmentId);
-    let allSubmissions = [];
-    if (assignmentIds.length > 0) {
-      // DynamoDB doesn't support IN with expression attribute values directly
-      const submissionPromises = assignmentIds.map(assignmentId => 
-        docClient.send(new ScanCommand({
-          TableName: SUBMISSIONS_TABLE,
-          FilterExpression: 'assignmentId = :assignmentId',
-          ExpressionAttributeValues: {
-            ':assignmentId': assignmentId
-          }
-        }))
-      );
-      
-      const submissionResults = await Promise.all(submissionPromises);
-      allSubmissions = submissionResults.flatMap(result => result.Items || []);
-    }
-    
-    // Count ungraded assignments (submissions without grades)
-    const ungradedAssignments = allSubmissions.filter(submission => 
-      (submission.grade === null || submission.grade === undefined) && 
-      submission.status !== 'draft' && 
-      submission.status !== 'deleted' && 
-      !submission.hidden
+    const courseIdSet = new Set(courses.map(c => c.courseId));
+
+    // Assignments belonging to this instructor's courses
+    const myAssignmentIds = new Set(
+      (assignmentsResult.Items || [])
+        .filter(a => courseIdSet.has(a.courseId))
+        .map(a => a.assignmentId)
+    );
+
+    // Ungraded submissions within this instructor's assignments
+    const ungradedAssignments = (submissionsResult.Items || []).filter(sub =>
+      myAssignmentIds.has(sub.assignmentId) &&
+      (sub.grade === null || sub.grade === undefined) &&
+      sub.status !== 'draft' &&
+      sub.status !== 'deleted' &&
+      !sub.hidden
     ).length;
-    
-    // Count total messages (for now, we'll use a placeholder since we don't have a messages table)
-    const messages = 0; // TODO: Implement when messages table is available
 
     const stats = {
       activeCourses: courses.length,
       ungradedAssignments,
-      messages,
+      messages: 0, // placeholder — no messages table yet
     };
 
-    return NextResponse.json(stats);
+    serverCache.set(cacheKey, stats, 30_000);
+    return NextResponse.json(stats, { headers: { 'Cache-Control': 'no-store', 'X-Cache': 'MISS' } });
   } catch (error) {
     console.error('Error fetching dashboard stats:', error);
     return NextResponse.json(

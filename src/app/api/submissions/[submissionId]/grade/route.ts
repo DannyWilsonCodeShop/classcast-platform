@@ -99,8 +99,9 @@ export async function PUT(
 
     console.log('Submission graded successfully:', updateResult.Attributes);
 
-    // Invalidate the instructor grading list cache so the new grade shows on the next load.
-    serverCache.invalidate('instructor-submissions');
+    // Invalidate instructor caches (grading list + dashboard ungraded count) so the new
+    // grade shows on the next load. The 'instructor-' prefix covers both.
+    serverCache.invalidate('instructor-');
 
     // Create notification for the student about their grade
     const submission = updateResult.Attributes;
