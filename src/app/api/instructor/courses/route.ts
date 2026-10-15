@@ -74,6 +74,17 @@ export async function GET(request: NextRequest) {
       updatedAt: course.updatedAt
     }));
 
+    // Most recently created course first, so the portal's default selection (courses[0])
+    // is the newest course rather than an arbitrary/oldest one. Fall back to courseId's
+    // embedded timestamp (course_<ms>_...) when createdAt is missing on older records.
+    const createdTime = (c: any): number => {
+      const t = Date.parse(c.createdAt || '');
+      if (!Number.isNaN(t)) return t;
+      const m = /^course_(\d+)_/.exec(c.courseId || '');
+      return m ? Number(m[1]) : 0;
+    };
+    courses.sort((a, b) => createdTime(b) - createdTime(a));
+
     return NextResponse.json({
       success: true,
       data: {
