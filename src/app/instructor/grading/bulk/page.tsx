@@ -97,8 +97,8 @@ const BulkGradingContent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   // Remove playbackSpeed - not needed in continuous feed
   
-  // Filter and search state
-  const [filter, setFilter] = useState<FilterType>('ungraded');
+  // Filter and search state. Default to "all" (All Submissions) so everything shows at once.
+  const [filter, setFilter] = useState<FilterType>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortType>('date');
   const [sortDir, setSortDir] = useState<'desc' | 'asc'>('desc'); // date: desc = newest first
@@ -188,9 +188,18 @@ const BulkGradingContent: React.FC = () => {
             label: c.title || c.courseName || c.code || 'Course',
           }));
           setInstructorCourses(mapped);
-          // Auto-select the first (most recent) course if none selected
+          // Default course selection: prefer the instructor's last-selected course (persists
+          // across visits, so e.g. Integrated Math 2 stays the default once chosen), then
+          // fall back to the most recently created course. A ?course= URL param still wins.
           if (mapped.length > 0 && selectedCourse === 'all') {
-            setSelectedCourse(mapped[0].id);
+            const saved = typeof window !== 'undefined'
+              ? localStorage.getItem('classcast_instructor_selected_course')
+              : null;
+            if (saved && mapped.some((c: { id: string }) => c.id === saved)) {
+              setSelectedCourse(saved);
+            } else {
+              setSelectedCourse(mapped[0].id);
+            }
           }
         }
       } catch (e) {
@@ -199,6 +208,14 @@ const BulkGradingContent: React.FC = () => {
     };
     fetchCourses();
   }, [user?.id]);
+
+  // Remember the instructor's course pick so it's the default next visit (shared with the
+  // dashboard via the same key). Don't persist 'all'.
+  useEffect(() => {
+    if (selectedCourse && selectedCourse !== 'all' && typeof window !== 'undefined') {
+      localStorage.setItem('classcast_instructor_selected_course', selectedCourse);
+    }
+  }, [selectedCourse]);
   
   // Section options are derived ONLY from the submissions currently in view, keyed by the
   // real sectionId. Important: a section only means something within a course — the same
