@@ -16,7 +16,7 @@ export function StudentHeader() {
     <div className="flex items-center justify-between px-4 pt-2 pb-1 shrink-0">
       <div className="flex items-center gap-1">
         <span
-          style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }}
+          style={{ fontFamily: "'Grand Hotel', cursive", color: '#0065a3' }}
           className="text-3xl"
         >
           ClassCast

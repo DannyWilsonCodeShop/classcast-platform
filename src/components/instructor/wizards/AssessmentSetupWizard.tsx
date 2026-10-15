@@ -64,14 +64,14 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
       {/* Step indicator */}
       <div className="flex items-center justify-center gap-2 mb-4">
         {[1, 2].map((s) => (
-          <div key={s} className={`w-2 h-2 rounded-full ${s <= step ? 'bg-[#005587]' : 'bg-gray-200'}`} />
+          <div key={s} className={`w-2 h-2 rounded-full ${s <= step ? 'bg-[#0065a3]' : 'bg-gray-200'}`} />
         ))}
       </div>
 
       {/* Step 1: Directions & Delivery Mode */}
       {step === 1 && (
         <div className="space-y-4">
-          <h3 className="text-sm font-bold text-[#005587]">Assessment Settings</h3>
+          <h3 className="text-sm font-bold text-[#0065a3]">Assessment Settings</h3>
 
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-1">Student Directions</label>
@@ -80,7 +80,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
               value={directions}
               onChange={(e) => setDirections(e.target.value)}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs resize-none focus:ring-1 focus:ring-[#005587] focus:border-[#005587] focus:outline-none text-gray-600"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs resize-none focus:ring-1 focus:ring-[#0065a3] focus:border-[#0065a3] focus:outline-none text-gray-600"
             />
           </div>
 
@@ -90,7 +90,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
               <button
                 type="button"
                 onClick={() => setDeliveryMode('all-same')}
-                className={`w-full p-3 rounded-xl border text-left ${deliveryMode === 'all-same' ? 'border-[#005587] bg-[#005587]/5' : 'border-gray-200'}`}
+                className={`w-full p-3 rounded-xl border text-left ${deliveryMode === 'all-same' ? 'border-[#0065a3] bg-[#0065a3]/5' : 'border-gray-200'}`}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-base">📋</span>
@@ -103,7 +103,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
               <button
                 type="button"
                 onClick={() => setDeliveryMode('random-from-bank')}
-                className={`w-full p-3 rounded-xl border text-left ${deliveryMode === 'random-from-bank' ? 'border-[#005587] bg-[#005587]/5' : 'border-gray-200'}`}
+                className={`w-full p-3 rounded-xl border text-left ${deliveryMode === 'random-from-bank' ? 'border-[#0065a3] bg-[#0065a3]/5' : 'border-gray-200'}`}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-base">🎲</span>
@@ -127,7 +127,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
                 max={20}
                 value={randomCount}
                 onChange={(e) => setRandomCount(Number(e.target.value))}
-                className="w-full accent-[#005587]"
+                className="w-full accent-[#0065a3]"
               />
               <div className="flex justify-between text-[10px] text-gray-400"><span>1</span><span>20</span></div>
               <p className="text-[10px] text-gray-400 mt-1">
@@ -146,7 +146,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
               <select
                 value={maxAttempts}
                 onChange={(e) => setMaxAttempts(Number(e.target.value))}
-                className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                className="px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#0065a3] focus:outline-none"
               >
                 <option value={1}>1 attempt</option>
                 <option value={2}>2 attempts</option>
@@ -161,7 +161,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" checked={!releaseScores} onChange={(e) => setReleaseScores(!e.target.checked)} className="sr-only peer" />
-                <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#005587] transition-colors">
+                <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#0065a3] transition-colors">
                   <div className={`absolute top-[2px] left-[2px] w-4 h-4 rounded-full bg-white transition-transform ${!releaseScores ? 'translate-x-4' : ''}`} />
                 </div>
               </label>
@@ -174,7 +174,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
       {step === 2 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[#005587]">
+            <h3 className="text-sm font-bold text-[#0065a3]">
               {deliveryMode === 'random-from-bank' ? 'Question Bank' : 'Questions'}
             </h3>
             <span className="text-[10px] text-gray-500">
@@ -254,7 +254,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
                   onChange={(e) => updateQuestion(idx, 'questionText', e.target.value)}
                   placeholder="Enter question text... (Cmd+V to paste an image)"
                   rows={2}
-                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs resize-none focus:ring-1 focus:ring-[#005587] focus:outline-none"
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs resize-none focus:ring-1 focus:ring-[#0065a3] focus:outline-none"
                 />
                 {/* Image preview / upload */}
                 {q.imageUrl ? (
@@ -267,7 +267,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
                     >✕</button>
                   </div>
                 ) : (
-                  <label className="flex items-center gap-1.5 text-[10px] text-[#005587] font-medium cursor-pointer">
+                  <label className="flex items-center gap-1.5 text-[10px] text-[#0065a3] font-medium cursor-pointer">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                     <span>Add image</span>
                     <input
@@ -294,7 +294,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
                     max={300}
                     value={q.timeLimitSeconds}
                     onChange={(e) => updateQuestion(idx, 'timeLimitSeconds', Number(e.target.value))}
-                    className="w-16 px-2 py-1 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587] focus:outline-none"
+                    className="w-16 px-2 py-1 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#0065a3] focus:outline-none"
                   />
                   <span className="text-[10px] text-gray-400">seconds</span>
                 </div>
@@ -302,7 +302,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
             ))}
           </div>
 
-          <button type="button" onClick={addQuestion} className="w-full py-2 bg-gray-100 rounded-xl text-xs font-medium text-[#005587]">
+          <button type="button" onClick={addQuestion} className="w-full py-2 bg-gray-100 rounded-xl text-xs font-medium text-[#0065a3]">
             + Add Question
           </button>
 
@@ -323,7 +323,7 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
                     <p className="text-xs font-medium text-gray-700">Need individualized problems?</p>
                     <p className="text-[10px] text-gray-400">Assign each student unique questions from a bank</p>
                   </div>
-                  <span className="text-xs text-[#005587] font-medium">Add →</span>
+                  <span className="text-xs text-[#0065a3] font-medium">Add →</span>
                 </button>
               )}
             </div>
@@ -335,9 +335,9 @@ export function AssessmentSetupWizard({ onComplete, onBack, initialQuestions, in
       <div className="flex justify-between pt-2">
         <button onClick={step === 1 ? onBack : () => setStep(step - 1)} className="px-4 py-2 text-xs text-gray-600 font-medium">Back</button>
         {step === 1 ? (
-          <button onClick={() => setStep(2)} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium">Next</button>
+          <button onClick={() => setStep(2)} className="px-4 py-2 bg-[#0065a3] text-white rounded-xl text-xs font-medium">Next</button>
         ) : (
-          <button onClick={() => onComplete(questions, directions, { maxAttempts, releaseScores })} disabled={!canProceed()} className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold disabled:opacity-50">Done</button>
+          <button onClick={() => onComplete(questions, directions, { maxAttempts, releaseScores })} disabled={!canProceed()} className="px-4 py-2 bg-[#FFC72C] text-[#0065a3] rounded-xl text-xs font-bold disabled:opacity-50">Done</button>
         )}
       </div>
     </div>

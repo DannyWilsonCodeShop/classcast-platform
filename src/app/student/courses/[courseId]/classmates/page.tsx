@@ -150,7 +150,7 @@ export default function ClassmatesPage() {
               placeholder="Search classmates..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#005587]/30 focus:border-[#005587]"
+              className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0065a3]/30 focus:border-[#0065a3]"
             />
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function ClassmatesPage() {
                         onClick={() => router.push(`/student/profile/${c.userId}`)}
                         className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 active:bg-gray-100 cursor-pointer transition-colors"
                       >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#005587] to-[#0088cc] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#0065a3] to-[#0088cc] flex items-center justify-center text-white text-sm font-bold shrink-0">
                           {c.avatar && c.avatar.length <= 4 && !c.avatar.startsWith('http') ? (
                             <span className="text-lg">{c.avatar}</span>
                           ) : c.avatar && c.avatar.startsWith('http') ? (
@@ -232,8 +232,8 @@ export default function ClassmatesPage() {
               <span className="text-[9px] text-gray-500">Course</span>
             </button>
             <button className="flex flex-col items-center w-1/3 py-1">
-              <svg className="w-6 h-6 text-[#005587]" fill="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-              <span className="text-[9px] text-[#005587] font-medium">Peers</span>
+              <svg className="w-6 h-6 text-[#0065a3]" fill="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+              <span className="text-[9px] text-[#0065a3] font-medium">Peers</span>
             </button>
           </div>
         </nav>

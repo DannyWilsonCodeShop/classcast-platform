@@ -328,10 +328,10 @@ export default function PublicStudyHallPage() {
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
 
       {/* Header */}
-      <div className="bg-[#e9eff5] text-[#005587] px-4 py-3 flex items-center justify-between safe-top shrink-0 border-b border-[#d8e2ec]">
+      <div className="bg-[#e9eff5] text-[#0065a3] px-4 py-3 flex items-center justify-between safe-top shrink-0 border-b border-[#d8e2ec]">
         <button onClick={() => router.push('/about')} className="flex items-center gap-2">
           <img src="/MyClassCast36.png" alt="" className="w-4 h-4 object-contain" />
-          <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-xl text-[#005587]">ClassCast</span>
+          <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-xl text-[#0065a3]">ClassCast</span>
         </button>
         <img src="/CristoReyLogo.png" alt="Cristo Rey" className="h-8 object-contain" />
       </div>
@@ -340,19 +340,19 @@ export default function PublicStudyHallPage() {
       <div className="flex border-b border-[#d8e2ec] shrink-0 bg-[#e9eff5]">
         <button
           onClick={() => setActiveTab('request')}
-          className={`flex-1 py-3 text-xs font-bold text-center transition-colors ${activeTab === 'request' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+          className={`flex-1 py-3 text-xs font-bold text-center transition-colors ${activeTab === 'request' ? 'text-[#0065a3] border-b-2 border-[#0065a3]' : 'text-gray-400'}`}
         >
           Request Pullout
         </button>
         <button
           onClick={() => { setActiveTab('today'); setTodayRefreshKey(k => k + 1); }}
-          className={`flex-1 py-3 text-xs font-bold text-center transition-colors relative ${activeTab === 'today' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+          className={`flex-1 py-3 text-xs font-bold text-center transition-colors relative ${activeTab === 'today' ? 'text-[#0065a3] border-b-2 border-[#0065a3]' : 'text-gray-400'}`}
         >
-          Today&apos;s List{todayList.length > 0 && <span className="ml-1 bg-[#005587] text-white text-[9px] px-1.5 py-0.5 rounded-full">{todayList.length}</span>}
+          Today&apos;s List{todayList.length > 0 && <span className="ml-1 bg-[#0065a3] text-white text-[9px] px-1.5 py-0.5 rounded-full">{todayList.length}</span>}
         </button>
         <button
           onClick={() => setActiveTab('tests')}
-          className={`flex-1 py-3 text-xs font-bold text-center transition-colors ${activeTab === 'tests' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+          className={`flex-1 py-3 text-xs font-bold text-center transition-colors ${activeTab === 'tests' ? 'text-[#0065a3] border-b-2 border-[#0065a3]' : 'text-gray-400'}`}
         >
           Test Tracker
         </button>
@@ -393,7 +393,7 @@ export default function PublicStudyHallPage() {
                 <select
                   value={grade}
                   onChange={(e) => handleGradeChange(e.target.value)}
-                  className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#005587] focus:border-[#005587] appearance-none"
+                  className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] appearance-none"
                   style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
                 >
                   {GRADES.map(g => (
@@ -408,7 +408,7 @@ export default function PublicStudyHallPage() {
                 <select
                   value={teacherName}
                   onChange={(e) => setTeacherName(e.target.value)}
-                  className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#005587] focus:border-[#005587] appearance-none"
+                  className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] appearance-none"
                   style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center' }}
                 >
                   <option value="">Select your name...</option>
@@ -422,7 +422,7 @@ export default function PublicStudyHallPage() {
                     value={customTeacher}
                     onChange={(e) => setCustomTeacher(e.target.value)}
                     placeholder="Enter your name..."
-                    className="w-full mt-2 px-3 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                    className="w-full mt-2 px-3 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                   />
                 )}
               </div>
@@ -434,12 +434,12 @@ export default function PublicStudyHallPage() {
                 {selectedStudents.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {selectedStudents.map((s) => (
-                      <span key={s.name} className="inline-flex items-center gap-1 bg-[#005587]/10 text-[#005587] rounded-full pl-2.5 pr-1.5 py-1 text-xs font-medium">
+                      <span key={s.name} className="inline-flex items-center gap-1 bg-[#0065a3]/10 text-[#0065a3] rounded-full pl-2.5 pr-1.5 py-1 text-xs font-medium">
                         {s.name}
                         <button
                           type="button"
                           onClick={() => removeStudentChip(s.name)}
-                          className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-[#005587]/20 text-[#005587]"
+                          className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-[#0065a3]/20 text-[#0065a3]"
                           aria-label={`Remove ${s.name}`}
                         >✕</button>
                       </span>
@@ -451,11 +451,11 @@ export default function PublicStudyHallPage() {
                   value={searchQuery}
                   onChange={handleInputChange}
                   placeholder={selectedStudents.length > 0 ? 'Add another student…' : 'Search a student by name…'}
-                  className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                  className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                 />
                 {searching && (
                   <div className="absolute right-3 top-9">
-                    <div className="w-4 h-4 border-2 border-[#005587] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-[#0065a3] border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
                 {searchResults.length > 0 && (
@@ -481,7 +481,7 @@ export default function PublicStudyHallPage() {
                   <p className="text-[9px] text-gray-400 mt-1">Search and tap a name to add it. Add as many as you need, then submit them all at once.</p>
                 )}
                 {searchQuery.includes(',') && (
-                  <p className="text-[9px] text-[#005587] mt-1 font-medium">
+                  <p className="text-[9px] text-[#0065a3] mt-1 font-medium">
                     Bulk paste: {searchQuery.split(',').map(n => n.trim()).filter(n => n.length >= 2).length} names detected
                   </p>
                 )}
@@ -491,12 +491,12 @@ export default function PublicStudyHallPage() {
                 <div>
                   <label className="block text-[10px] font-medium text-gray-600 mb-1">Date</label>
                   <input type="date" value={pulloutDate} onChange={(e) => setPulloutDate(e.target.value)}
-                    className="w-full max-w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587] bg-white box-border" />
+                    className="w-full max-w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3] bg-white box-border" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-medium text-gray-600 mb-1">Reason (optional)</label>
                   <input type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g., Tutoring"
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]" />
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3]" />
                 </div>
               </div>
 
@@ -509,7 +509,7 @@ export default function PublicStudyHallPage() {
                 const hasTeacher = !!getEffectiveTeacher();
                 return (
                   <button onClick={handleSubmit} disabled={total === 0 || !hasTeacher || submitting || bulkAdding}
-                    className="w-full py-3 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50 active:scale-[0.98] transition-transform">
+                    className="w-full py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold disabled:opacity-50 active:scale-[0.98] transition-transform">
                     {bulkAdding ? `Adding... (${bulkCount})` : submitting ? 'Adding...' : total > 1 ? `Add ${total} Students to Pullout List` : 'Add to Pullout List'}
                   </button>
                 );
@@ -520,14 +520,14 @@ export default function PublicStudyHallPage() {
             {myRequests.length > 0 && (
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-sm font-bold text-[#005587]">Added This Session</h2>
+                  <h2 className="text-sm font-bold text-[#0065a3]">Added This Session</h2>
                   <span className="text-[10px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{myRequests.length}</span>
                 </div>
                 <div className="space-y-1.5 max-h-40 overflow-y-auto scroll-area">
                   {myRequests.map((req, i) => (
                     <div key={i} className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-xl">
-                      <div className="w-6 h-6 bg-[#005587]/10 rounded-full flex items-center justify-center shrink-0">
-                        <span className="text-[9px] text-[#005587] font-bold">{req.studentName.charAt(0)}</span>
+                      <div className="w-6 h-6 bg-[#0065a3]/10 rounded-full flex items-center justify-center shrink-0">
+                        <span className="text-[9px] text-[#0065a3] font-bold">{req.studentName.charAt(0)}</span>
                       </div>
                       <span className="text-xs text-gray-700 flex-1 truncate">{req.studentName}</span>
                       <span className="text-[10px] text-gray-400">{new Date(req.pulloutDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
@@ -563,7 +563,7 @@ export default function PublicStudyHallPage() {
                     {viewDate === getTodayStr() ? 'Today' : new Date(viewDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                   </p>
                   {viewDate !== getTodayStr() && (
-                    <button onClick={() => setViewDate(getTodayStr())} className="text-[9px] text-[#005587] font-medium mt-0.5">
+                    <button onClick={() => setViewDate(getTodayStr())} className="text-[9px] text-[#0065a3] font-medium mt-0.5">
                       Back to Today
                     </button>
                   )}
@@ -585,7 +585,7 @@ export default function PublicStudyHallPage() {
 
             {loadingToday ? (
               <div className="flex justify-center py-10">
-                <div className="w-6 h-6 border-2 border-[#005587] border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-[#0065a3] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : todayList.length === 0 ? (
               <div className="text-center py-10">
@@ -593,16 +593,16 @@ export default function PublicStudyHallPage() {
                   <span className="text-xl">📋</span>
                 </div>
                 <p className="text-sm text-gray-500">No students on the pullout list for {viewDate === getTodayStr() ? 'today' : new Date(viewDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</p>
-                <button onClick={() => setActiveTab('request')} className="mt-3 text-xs text-[#005587] font-medium">
+                <button onClick={() => setActiveTab('request')} className="mt-3 text-xs text-[#0065a3] font-medium">
                   + Add a student
                 </button>
               </div>
             ) : (
               <>
                 {/* Summary */}
-                <div className="flex items-center justify-between mb-4 p-3 bg-[#005587]/5 rounded-xl">
-                  <span className="text-xs font-medium text-[#005587]">Total Students</span>
-                  <span className="text-sm font-bold text-[#005587]">{todayList.length}</span>
+                <div className="flex items-center justify-between mb-4 p-3 bg-[#0065a3]/5 rounded-xl">
+                  <span className="text-xs font-medium text-[#0065a3]">Total Students</span>
+                  <span className="text-sm font-bold text-[#0065a3]">{todayList.length}</span>
                 </div>
 
                 {/* Grouped by Study Hall */}
@@ -610,7 +610,7 @@ export default function PublicStudyHallPage() {
                   {sortedStudyHalls.map(studyHall => (
                     <div key={studyHall}>
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-5 h-5 bg-[#005587] rounded-full flex items-center justify-center shrink-0">
+                        <div className="w-5 h-5 bg-[#0065a3] rounded-full flex items-center justify-center shrink-0">
                           <span className="text-[8px] text-white font-bold">{groupedByStudyHall[studyHall].length}</span>
                         </div>
                         <h3 className="text-xs font-bold text-gray-700">{studyHall} Study Hall</h3>

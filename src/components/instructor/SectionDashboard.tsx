@@ -236,7 +236,7 @@ const SectionDashboard: React.FC<SectionDashboardProps> = ({
                             btn.textContent = '✓ Copied!';
                             setTimeout(() => { btn.textContent = '🔗 Copy Link'; }, 2000);
                           }}
-                          className="px-2 py-1 bg-[#005587]/10 text-[#005587] text-[10px] rounded font-medium hover:bg-[#005587]/20 transition-colors"
+                          className="px-2 py-1 bg-[#0065a3]/10 text-[#0065a3] text-[10px] rounded font-medium hover:bg-[#0065a3]/20 transition-colors"
                         >
                           🔗 Copy Link
                         </button>

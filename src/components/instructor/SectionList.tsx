@@ -45,9 +45,9 @@ const SectionList: React.FC<SectionListProps> = ({ courseId, sections }) => {
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-sm font-bold text-[#005587]">{section.sectionName}</h3>
+                    <h3 className="text-sm font-bold text-[#0065a3]">{section.sectionName}</h3>
                     {section.classCode && (
-                      <span className="px-2 py-0.5 bg-[#005587]/10 text-[#005587] text-[10px] font-mono font-bold rounded-full">
+                      <span className="px-2 py-0.5 bg-[#0065a3]/10 text-[#0065a3] text-[10px] font-mono font-bold rounded-full">
                         {section.classCode}
                       </span>
                     )}

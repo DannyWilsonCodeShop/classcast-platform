@@ -91,13 +91,13 @@ export default function LoginPage() {
           <div className="absolute top-16 left-4 bg-white/95 backdrop-blur-md rounded-xl shadow-xl p-4 z-50 min-w-[180px]">
             <button
               onClick={() => { router.push('/about'); setMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-[#005587] font-medium hover:bg-gray-100 rounded-lg"
+              className="block w-full text-left px-3 py-2 text-[#0065a3] font-medium hover:bg-gray-100 rounded-lg"
             >
               About Us
             </button>
             <button
               onClick={() => { router.push('/auth/signup'); setMenuOpen(false); }}
-              className="block w-full text-left px-3 py-2 text-[#005587] font-medium hover:bg-gray-100 rounded-lg"
+              className="block w-full text-left px-3 py-2 text-[#0065a3] font-medium hover:bg-gray-100 rounded-lg"
             >
               Sign Up
             </button>
@@ -112,7 +112,7 @@ export default function LoginPage() {
               style={{
                 fontFamily: "'Grand Hotel', cursive",
                 fontSize: '5.8rem',
-                color: '#005587',
+                color: '#0065a3',
                 fontWeight: 400,
                 textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
                 lineHeight: 1,
@@ -155,7 +155,7 @@ export default function LoginPage() {
               onChange={(e) => { setEmail(e.target.value); setError(''); }}
               placeholder="Username"
               disabled={isLoading}
-              className="w-full px-6 py-3 rounded-full border-2 border-gray-300 bg-white/90 backdrop-blur-sm text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:border-[#005587] focus:ring-2 focus:ring-[#005587]/20 transition-all duration-200 shadow-sm"
+              className="w-full px-6 py-3 rounded-full border-2 border-gray-300 bg-white/90 backdrop-blur-sm text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:border-[#0065a3] focus:ring-2 focus:ring-[#0065a3]/20 transition-all duration-200 shadow-sm"
               autoComplete="email"
               aria-label="Username or email"
             />
@@ -169,7 +169,7 @@ export default function LoginPage() {
               onChange={(e) => { setPassword(e.target.value); setError(''); }}
               placeholder="Password"
               disabled={isLoading}
-              className="w-full px-6 py-3 rounded-full border-2 border-gray-300 bg-white/90 backdrop-blur-sm text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:border-[#005587] focus:ring-2 focus:ring-[#005587]/20 transition-all duration-200 shadow-sm"
+              className="w-full px-6 py-3 rounded-full border-2 border-gray-300 bg-white/90 backdrop-blur-sm text-gray-800 placeholder-gray-400 text-base focus:outline-none focus:border-[#0065a3] focus:ring-2 focus:ring-[#0065a3]/20 transition-all duration-200 shadow-sm"
               autoComplete="current-password"
               aria-label="Password"
             />
@@ -240,7 +240,7 @@ export default function LoginPage() {
       {showLoadingModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="bg-white rounded-2xl p-8 shadow-xl flex flex-col items-center">
-            <div className="w-12 h-12 border-4 border-[#005587] border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div className="w-12 h-12 border-4 border-[#0065a3] border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-gray-700 font-medium">Loading...</p>
           </div>
         </div>

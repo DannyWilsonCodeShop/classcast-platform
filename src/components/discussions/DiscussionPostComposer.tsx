@@ -64,7 +64,7 @@ export function DiscussionPostComposer({
             onChange={(e) => { setContent(e.target.value); setError(''); }}
             placeholder={parentPostId ? 'Write a reply...' : 'Share your thoughts...'}
             rows={3}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:ring-1 focus:ring-[#005587] focus:border-[#005587] focus:outline-none"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:ring-1 focus:ring-[#0065a3] focus:border-[#0065a3] focus:outline-none"
           />
           <div className="flex items-center justify-between mt-2">
             <span className={`text-[10px] ${wordCount < minWordCount && minWordCount > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
@@ -73,7 +73,7 @@ export function DiscussionPostComposer({
             <button
               onClick={handleSubmit}
               disabled={!canSubmit || posting}
-              className="px-4 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-medium disabled:opacity-50"
+              className="px-4 py-1.5 bg-[#0065a3] text-white rounded-lg text-xs font-medium disabled:opacity-50"
             >
               {posting ? '...' : 'Post'}
             </button>

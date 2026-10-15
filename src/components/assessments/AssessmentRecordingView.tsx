@@ -243,7 +243,7 @@ export function AssessmentRecordingView({
 
   if (isUploading) {
     return (
-      <div className="h-full flex flex-col items-center justify-center bg-[#005587] px-6 text-center">
+      <div className="h-full flex flex-col items-center justify-center bg-[#0065a3] px-6 text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mb-4" />
         <p className="text-white font-medium">{uploadProgress}</p>
       </div>
@@ -285,7 +285,7 @@ export function AssessmentRecordingView({
                 integrityEventsRef.current.push({ type: 'room-scan-complete', timestampSeconds: ts, description: 'Student completed room scan' });
                 setPhase('affirmation');
               }}
-              className="w-full mt-2 py-3 bg-[#005587] text-white rounded-xl text-sm font-bold active:scale-[0.98] transition-transform"
+              className="w-full mt-2 py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold active:scale-[0.98] transition-transform"
             >
               ✓ Room Scan Complete
             </button>
@@ -309,7 +309,7 @@ export function AssessmentRecordingView({
                 timestampsRef.current.push({ questionId: questions[0].questionId, timestampSeconds: ts });
                 setPhase('questions');
               }}
-              className="w-full mt-2 py-3 bg-[#FFC72C] text-[#005587] rounded-xl text-sm font-bold active:scale-[0.98] transition-transform"
+              className="w-full mt-2 py-3 bg-[#FFC72C] text-[#0065a3] rounded-xl text-sm font-bold active:scale-[0.98] transition-transform"
             >
               I Understand — Begin Assessment
             </button>

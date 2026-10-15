@@ -65,7 +65,7 @@ export default function DemoScreenshotDashboard() {
         {/* Header */}
         <div className="flex items-center justify-between px-4 pt-2 pb-1 shrink-0">
           <div className="flex items-center gap-1">
-            <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-2xl">ClassCast</span>
+            <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#0065a3' }} className="text-2xl">ClassCast</span>
             <img src="/MyClassCast36.png" alt="" className="w-9 h-9 object-contain" />
           </div>
           <div className="flex items-center gap-2">
@@ -77,7 +77,7 @@ export default function DemoScreenshotDashboard() {
         {/* Quick Stats Row */}
         <div className="flex items-center gap-3 px-4 py-1.5 shrink-0">
           <div className="flex-1 flex items-center gap-2 text-[11px]">
-            <span className="bg-blue-50 text-[#005587] px-2 py-0.5 rounded-full font-medium">📋 {dueThisWeek} due this week</span>
+            <span className="bg-blue-50 text-[#0065a3] px-2 py-0.5 rounded-full font-medium">📋 {dueThisWeek} due this week</span>
             <span className="bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-medium">✅ {submitted} submitted</span>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function DemoScreenshotDashboard() {
           <div className="h-px bg-gray-200 mx-4 shrink-0" />
           <div className="mx-3 mt-2 flex-1 flex flex-col min-h-0 bg-gray-100 rounded-2xl overflow-hidden">
             <div className="px-3 pt-2.5 pb-1 shrink-0">
-              <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Assignments</h2>
+              <h2 className="text-base font-bold uppercase text-[#0065a3] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Assignments</h2>
             </div>
             <div className="flex-1 overflow-y-auto px-3 space-y-1.5 min-h-0 pb-1.5">
               {displayAssignments.map((a) => (
@@ -103,7 +103,7 @@ export default function DemoScreenshotDashboard() {
               ))}
             </div>
             <div className="px-3 py-1.5 shrink-0">
-              <button className="w-full text-center text-[11px] text-[#005587] font-medium py-1">View All →</button>
+              <button className="w-full text-center text-[11px] text-[#0065a3] font-medium py-1">View All →</button>
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default function DemoScreenshotDashboard() {
         {/* BOTTOM HALF - Recent Videos (with stock avatars) */}
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <div className="px-4 pt-2 pb-1 shrink-0">
-            <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Recent Videos</h2>
+            <h2 className="text-base font-bold uppercase text-[#0065a3] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Recent Videos</h2>
           </div>
           <div className="flex-1 overflow-hidden px-4 pb-1 min-h-0">
             <div className="flex gap-3.5 overflow-x-auto h-full items-start pt-1 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
@@ -129,7 +129,7 @@ export default function DemoScreenshotDashboard() {
                   </div>
                   {/* Video thumbnail - gradient placeholder */}
                   <div className="relative rounded-xl overflow-hidden flex-1 bg-gray-800 min-h-[140px]">
-                    <div className="w-full h-full bg-gradient-to-br from-[#005587] to-[#0077aa] flex items-center justify-center">
+                    <div className="w-full h-full bg-gradient-to-br from-[#0065a3] to-[#0077aa] flex items-center justify-center">
                       <svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                     </div>
                     <div className="absolute inset-0 flex items-center justify-center"><div className="w-11 h-11 bg-white/80 rounded-full flex items-center justify-center shadow-lg"><svg className="w-5 h-5 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
@@ -152,7 +152,7 @@ export default function DemoScreenshotDashboard() {
         <nav className="shrink-0 bg-white border-t border-gray-200 px-2 py-2 native-bottom-nav">
           <div className="flex items-center justify-around">
             <button className="flex flex-col items-center"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg><span className="text-[10px] text-gray-400">Courses</span></button>
-            <button onClick={() => setShowAssignmentPicker(true)} className="-mt-6"><div className="w-14 h-14 bg-gradient-to-br from-[#005587] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]"><svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg></div></button>
+            <button onClick={() => setShowAssignmentPicker(true)} className="-mt-6"><div className="w-14 h-14 bg-gradient-to-br from-[#0065a3] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]"><svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg></div></button>
             <button className="flex flex-col items-center"><div className="w-7 h-7 rounded-full border-2 border-[#FFC72C] overflow-hidden"><img src={DEMO_STUDENT.avatar} alt="" className="w-full h-full object-cover" /></div><span className="text-[10px] text-gray-400 mt-0.5">Profile</span></button>
           </div>
         </nav>

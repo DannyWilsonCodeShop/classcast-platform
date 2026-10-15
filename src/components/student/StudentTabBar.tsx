@@ -85,7 +85,7 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
     return false;
   };
 
-  const activeColor = 'text-[#005587]';
+  const activeColor = 'text-[#0065a3]';
   const inactiveColor = 'text-gray-400';
   const avatarUrl = user?.avatar || user?.profileImage || null;
   const userInitial = (user?.firstName || user?.email || '?')[0]?.toUpperCase();
@@ -172,7 +172,7 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
             <span className={`text-[9px] ${isActive('/student/courses') ? activeColor + ' font-medium' : inactiveColor}`}>Courses</span>
           </button>
           <button className="relative flex flex-col items-center w-1/5 py-1 z-10" onClick={() => { animateToTab(4); router.push('/student/profile'); }}>
-            <div className={`w-6 h-6 rounded-full overflow-hidden bg-[#005587] flex items-center justify-center`}>
+            <div className={`w-6 h-6 rounded-full overflow-hidden bg-[#0065a3] flex items-center justify-center`}>
               {avatarUrl && avatarUrl.startsWith('http') ? (
                 <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
               ) : avatarUrl && avatarUrl.length <= 4 ? (
@@ -217,7 +217,7 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
             {/* Step 2: Choose method */}
             {selectedAssignment && !postMode && (
               <div className="space-y-3">
-                <button onClick={() => { closeModal(); router.push(`/student/record?assignmentId=${selectedAssignment}&mode=record`); }} className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-[#005587] to-[#0088cc] text-white rounded-xl active:scale-[0.98] transition-transform">
+                <button onClick={() => { closeModal(); router.push(`/student/record?assignmentId=${selectedAssignment}&mode=record`); }} className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-[#0065a3] to-[#0088cc] text-white rounded-xl active:scale-[0.98] transition-transform">
                   <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>
                   <div className="text-left"><p className="font-semibold text-sm">Record Live</p><p className="text-xs text-white/70">Open camera and record</p></div>
                 </button>
@@ -229,14 +229,14 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
                   <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center"><svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg></div>
                   <div className="text-left"><p className="font-semibold text-sm">Paste a Link</p><p className="text-xs text-gray-500">YouTube or Google Drive</p></div>
                 </button>
-                {!assignmentId && <button onClick={() => setSelectedAssignment(null)} className="w-full text-center text-xs text-[#005587] font-medium py-2 mt-1">← Back</button>}
+                {!assignmentId && <button onClick={() => setSelectedAssignment(null)} className="w-full text-center text-xs text-[#0065a3] font-medium py-2 mt-1">← Back</button>}
               </div>
             )}
 
             {/* Step 3: Link input */}
             {selectedAssignment && postMode === 'link' && (
               <div className="space-y-3">
-                <input type="url" autoFocus placeholder="Paste YouTube or Google Drive link..." value={postLinkUrl} onChange={(e) => { setPostLinkUrl(e.target.value); setPostLinkError(''); }} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-[#005587] focus:ring-1 focus:ring-[#005587]" />
+                <input type="url" autoFocus placeholder="Paste YouTube or Google Drive link..." value={postLinkUrl} onChange={(e) => { setPostLinkUrl(e.target.value); setPostLinkError(''); }} className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-[#0065a3] focus:ring-1 focus:ring-[#0065a3]" />
                 {postLinkError && <p className="text-red-500 text-xs">{postLinkError}</p>}
                 <button
                   onClick={async () => {
@@ -264,9 +264,9 @@ export function StudentTabBar({ assignmentId, onPostClick }: StudentTabBarProps)
                     setPostLinkSubmitting(false);
                   }}
                   disabled={postLinkSubmitting || !postLinkUrl.trim()}
-                  className="w-full py-3 bg-[#005587] text-white rounded-xl font-bold disabled:opacity-50"
+                  className="w-full py-3 bg-[#0065a3] text-white rounded-xl font-bold disabled:opacity-50"
                 >{postLinkSubmitting ? 'Submitting...' : 'Submit Link'}</button>
-                <button onClick={() => { setPostMode(null); setPostLinkUrl(''); setPostLinkError(''); }} className="w-full text-center text-xs text-[#005587] font-medium py-2">← Back</button>
+                <button onClick={() => { setPostMode(null); setPostLinkUrl(''); setPostLinkError(''); }} className="w-full text-center text-xs text-[#0065a3] font-medium py-2">← Back</button>
               </div>
             )}
           </div>

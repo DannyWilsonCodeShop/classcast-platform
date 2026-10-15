@@ -146,7 +146,7 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
                 onChange={(e) => updateCategoryName(category.id, e.target.value)}
                 placeholder="Category name"
                 disabled={disabled}
-                className="text-base font-bold text-gray-900 border-b border-gray-200 focus:border-[#005587] focus:outline-none pb-1 flex-1 min-w-0 mr-2"
+                className="text-base font-bold text-gray-900 border-b border-gray-200 focus:border-[#0065a3] focus:outline-none pb-1 flex-1 min-w-0 mr-2"
                 style={{ fontFamily: "'Oswald', sans-serif" }}
               />
               <button
@@ -173,7 +173,7 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
                     }
                     min={0}
                     disabled={disabled}
-                    className="w-11 px-1.5 py-1.5 border border-gray-200 rounded-lg text-center text-xs focus:border-[#005587] focus:outline-none shrink-0"
+                    className="w-11 px-1.5 py-1.5 border border-gray-200 rounded-lg text-center text-xs focus:border-[#0065a3] focus:outline-none shrink-0"
                     placeholder="0"
                   />
                   <input
@@ -186,7 +186,7 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
                     }
                     placeholder="Level description"
                     disabled={disabled}
-                    className="flex-1 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                    className="flex-1 min-w-0 px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#0065a3] focus:outline-none"
                   />
                   <button
                     type="button"
@@ -206,7 +206,7 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
               type="button"
               onClick={() => addLevel(category.id)}
               disabled={disabled}
-              className="mt-3 text-[#005587] text-sm font-medium hover:underline"
+              className="mt-3 text-[#0065a3] text-sm font-medium hover:underline"
             >
               + Add Level
             </button>
@@ -220,7 +220,7 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
           type="button"
           onClick={addCategory}
           disabled={disabled}
-          className="bg-[#005587] text-white rounded-full px-4 py-2 text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-[#0065a3] text-white rounded-full px-4 py-2 text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           + Add Category
         </button>
@@ -228,7 +228,7 @@ export const RubricBuilder: React.FC<RubricBuilderProps> = ({
           <button
             type="button"
             onClick={saveAsDefault}
-            className="text-xs text-[#005587] font-medium hover:underline"
+            className="text-xs text-[#0065a3] font-medium hover:underline"
           >
             Save as my default
           </button>

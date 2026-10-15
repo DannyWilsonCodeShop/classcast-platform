@@ -241,7 +241,7 @@ const SectionColumn: React.FC<{
           </span>
         </div>
         {isDragOver && (
-          <div className="mt-2 text-sm text-[#005587] font-medium">
+          <div className="mt-2 text-sm text-[#0065a3] font-medium">
             Drop here to move student to {title}
           </div>
         )}
@@ -347,7 +347,7 @@ const SectionColumn: React.FC<{
             <div className="text-4xl mb-2">👤</div>
             <p className="text-sm">No students in this section</p>
             {isDragOver && (
-              <p className="text-xs text-[#005587] mt-1">Drop a student here</p>
+              <p className="text-xs text-[#0065a3] mt-1">Drop a student here</p>
             )}
           </div>
         )}
@@ -1052,7 +1052,7 @@ const InstructorCourseDetailPage: React.FC = () => {
             <p className="text-gray-600 mb-6">{error || 'The course you are looking for does not exist.'}</p>
             <button
               onClick={() => router.push('/instructor/courses')}
-              className="px-6 py-3 bg-[#005587] text-white rounded-xl font-bold hover:bg-[#004060] transition-colors"
+              className="px-6 py-3 bg-[#0065a3] text-white rounded-xl font-bold hover:bg-[#004060] transition-colors"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -1073,7 +1073,7 @@ const InstructorCourseDetailPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <img src="/ClassCastLogo.png" alt="" className="w-7 h-7 object-contain" />
-              <span className="text-base font-bold text-[#005587]">Course Detail</span>
+              <span className="text-base font-bold text-[#0065a3]">Course Detail</span>
             </div>
             <img src="/CristoReyLogo.png" alt="" className="w-10 h-10 object-contain" />
           </div>
@@ -1083,7 +1083,7 @@ const InstructorCourseDetailPage: React.FC = () => {
           {/* Course title + status */}
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <h2 className="text-sm font-bold text-[#005587] truncate">{course.courseName}</h2>
+              <h2 className="text-sm font-bold text-[#0065a3] truncate">{course.courseName}</h2>
               <p className="text-xs text-gray-500">{course.courseCode}</p>
             </div>
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0 ${
@@ -1098,21 +1098,21 @@ const InstructorCourseDetailPage: React.FC = () => {
           <div className="bg-gray-50 rounded-2xl p-3">
             <div className="grid grid-cols-4 gap-2">
               <div className="text-center">
-                <div className="text-lg font-bold text-[#005587]">{assignments.length}</div>
+                <div className="text-lg font-bold text-[#0065a3]">{assignments.length}</div>
                 <div className="text-[10px] text-gray-500">Assignments</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-[#005587]">{course.enrollmentCount}</div>
+                <div className="text-lg font-bold text-[#0065a3]">{course.enrollmentCount}</div>
                 <div className="text-[10px] text-gray-500">Students</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-[#005587]">
+                <div className="text-lg font-bold text-[#0065a3]">
                   {assignments.reduce((sum, assignment) => sum + assignment.submissionsCount, 0)}
                 </div>
                 <div className="text-[10px] text-gray-500">Submitted</div>
               </div>
               <div className="text-center">
-                <div className="text-lg font-bold text-[#005587]">
+                <div className="text-lg font-bold text-[#0065a3]">
                   {assignments.reduce((sum, assignment) => sum + assignment.gradedCount, 0)}
                 </div>
                 <div className="text-[10px] text-gray-500">Graded</div>
@@ -1157,9 +1157,9 @@ const InstructorCourseDetailPage: React.FC = () => {
                       className="text-left active:scale-[0.98] transition-transform"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#005587]">{section.sectionName}</span>
+                        <span className="text-xs font-bold text-[#0065a3]">{section.sectionName}</span>
                         {section.classCode && (
-                          <span className="text-[9px] font-mono bg-[#005587]/10 text-[#005587] px-1.5 py-0.5 rounded-full">{section.classCode}</span>
+                          <span className="text-[9px] font-mono bg-[#0065a3]/10 text-[#0065a3] px-1.5 py-0.5 rounded-full">{section.classCode}</span>
                         )}
                       </div>
                       <p className="text-[10px] text-gray-500 mt-0.5">{sectionStudentCount || section.currentEnrollment || 0} students</p>
@@ -1175,7 +1175,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                           btn.innerHTML = '<span class="text-green-600">✓ Copied</span>';
                           setTimeout(() => { btn.innerHTML = original; }, 2000);
                         }}
-                        className="mt-1 text-[9px] text-[#005587] font-medium hover:underline"
+                        className="mt-1 text-[9px] text-[#0065a3] font-medium hover:underline"
                       >
                         🔗 Copy Join Link
                       </button>
@@ -1193,7 +1193,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 onClick={() => setActiveTab('students')}
                 className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
                   activeTab === 'students'
-                    ? 'bg-[#005587] text-white'
+                    ? 'bg-[#0065a3] text-white'
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
@@ -1203,7 +1203,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 onClick={() => setActiveTab('assignments')}
                 className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${
                   activeTab === 'assignments'
-                    ? 'bg-[#005587] text-white'
+                    ? 'bg-[#0065a3] text-white'
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
@@ -1224,7 +1224,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                   >
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="text-sm font-bold text-gray-900 flex-1">{assignment.title}</h3>
-                      <span className="text-xs font-medium text-[#005587] ml-2">{assignment.points} pts</span>
+                      <span className="text-xs font-medium text-[#0065a3] ml-2">{assignment.points} pts</span>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
                       <span>Due {new Date(assignment.dueDate).toLocaleDateString()}</span>
@@ -1245,7 +1245,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                       </button>
                       <button
                         onClick={() => router.push(`/instructor/grading/bulk?course=${courseId}&assignment=${assignment.assignmentId}`)}
-                        className="px-3 py-1 bg-[#005587] rounded-full text-[10px] font-medium text-white active:scale-95 transition-transform"
+                        className="px-3 py-1 bg-[#0065a3] rounded-full text-[10px] font-medium text-white active:scale-95 transition-transform"
                       >
                         Grade
                       </button>
@@ -1285,7 +1285,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                       >
                         <div className="flex items-start space-x-4">
                           {/* Student Avatar */}
-                          <div className="w-12 h-12 bg-[#005587] rounded-full flex items-center justify-center text-white font-bold">
+                          <div className="w-12 h-12 bg-[#0065a3] rounded-full flex items-center justify-center text-white font-bold">
                             {submission.student.name.charAt(0).toUpperCase()}
                           </div>
                           
@@ -1452,7 +1452,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                                       }
                                     }));
                                   }}
-                                  className="mt-3 w-full px-4 py-2 bg-[#005587] text-white rounded-xl text-sm font-medium hover:bg-[#004060] transition-colors"
+                                  className="mt-3 w-full px-4 py-2 bg-[#0065a3] text-white rounded-xl text-sm font-medium hover:bg-[#004060] transition-colors"
                                 >
                                   Edit Grade
                                 </button>
@@ -1503,7 +1503,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                                   <div className="flex space-x-2">
                                     <button
                                       onClick={() => handleGradeSubmission(submission.submissionId)}
-                                      className="flex-1 px-4 py-2 bg-[#005587] text-white rounded-xl text-sm font-medium hover:bg-[#004060] transition-colors"
+                                      className="flex-1 px-4 py-2 bg-[#0065a3] text-white rounded-xl text-sm font-medium hover:bg-[#004060] transition-colors"
                                     >
                                       Submit Grade
                                     </button>
@@ -1528,7 +1528,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                                     }
                                   }));
                                 }}
-                                className="w-full px-4 py-2 bg-[#005587] text-white rounded-xl text-sm font-medium hover:bg-[#004060] transition-colors"
+                                className="w-full px-4 py-2 bg-[#0065a3] text-white rounded-xl text-sm font-medium hover:bg-[#004060] transition-colors"
                               >
                                 📝 Grade This Submission
                               </button>
@@ -1565,13 +1565,13 @@ const InstructorCourseDetailPage: React.FC = () => {
                       return (
                         <div key={sectionName}>
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-bold text-[#005587]">{sectionName}</span>
+                            <span className="text-xs font-bold text-[#0065a3]">{sectionName}</span>
                             <span className="text-[10px] text-gray-400">({sectionStudents.length})</span>
                           </div>
                           <div className="space-y-1">
                             {sectionStudents.map(student => (
                               <div key={student.studentId} className="flex items-center gap-2 bg-gray-50 rounded-xl px-3 py-2">
-                                <div className="w-7 h-7 rounded-full bg-[#005587] flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                                <div className="w-7 h-7 rounded-full bg-[#0065a3] flex items-center justify-center text-white text-[10px] font-bold shrink-0">
                                   {student.avatar && student.avatar.length <= 4 && !student.avatar.startsWith('http') ? (
                                     <span className="text-sm">{student.avatar}</span>
                                   ) : student.avatar?.startsWith('http') ? (
@@ -1642,7 +1642,7 @@ const InstructorCourseDetailPage: React.FC = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40" onClick={() => setLinkingBankAssignmentId(null)}>
             <div className="bg-white w-full max-w-[360px] rounded-2xl p-5 max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-[#005587]">Link Question Bank</h3>
+                <h3 className="text-sm font-bold text-[#0065a3]">Link Question Bank</h3>
                 <button onClick={() => setLinkingBankAssignmentId(null)} className="text-gray-400 p-1">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1654,7 +1654,7 @@ const InstructorCourseDetailPage: React.FC = () => {
               {/* Option to create new inline */}
               <button
                 onClick={() => { setLinkingBankAssignmentId(null); router.push('/instructor/problem-banks'); }}
-                className="w-full mb-3 py-2.5 border-2 border-dashed border-[#005587]/30 rounded-lg text-xs font-medium text-[#005587] hover:border-[#005587] hover:bg-[#005587]/5 transition-colors"
+                className="w-full mb-3 py-2.5 border-2 border-dashed border-[#0065a3]/30 rounded-lg text-xs font-medium text-[#0065a3] hover:border-[#0065a3] hover:bg-[#0065a3]/5 transition-colors"
               >
                 + Create New Question Bank
               </button>
@@ -1671,7 +1671,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                     <button
                       key={bank.bankId}
                       onClick={() => handleLinkBank(linkingBankAssignmentId, bank.bankId, bank.title)}
-                      className="w-full text-left p-3 bg-gray-50 rounded-xl hover:bg-[#005587]/5 hover:border-[#005587] border border-gray-200 transition-colors"
+                      className="w-full text-left p-3 bg-gray-50 rounded-xl hover:bg-[#0065a3]/5 hover:border-[#0065a3] border border-gray-200 transition-colors"
                     >
                       <p className="text-xs font-medium text-gray-800">{bank.title}</p>
                       <p className="text-[9px] text-gray-500">{bank.problemCount} question{bank.problemCount !== 1 ? 's' : ''}</p>

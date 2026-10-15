@@ -172,14 +172,14 @@ export function ProblemBankBuilder({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Question Bank Title"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-bold text-[#005587] focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm font-bold text-[#0065a3] focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]"
         />
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Description (optional)"
           rows={2}
-          className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587] resize-none"
+          className="w-full px-4 py-2 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3] resize-none"
         />
       </div>
 
@@ -199,7 +199,7 @@ export function ProblemBankBuilder({
             onClick={() => setActiveTab(tab.key)}
             className={`flex-1 py-2 text-xs font-medium text-center transition-colors border-b-2 ${
               activeTab === tab.key
-                ? 'border-[#005587] text-[#005587]'
+                ? 'border-[#0065a3] text-[#0065a3]'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -229,7 +229,7 @@ export function ProblemBankBuilder({
                   }}
                   placeholder={`Problem ${idx + 1}...`}
                   rows={2}
-                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#005587] focus:outline-none resize-none"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:border-[#0065a3] focus:outline-none resize-none"
                 />
                 <button
                   onClick={() => removeProblemRow(problem.id)}
@@ -242,7 +242,7 @@ export function ProblemBankBuilder({
             ))}
             <button
               onClick={addProblemRow}
-              className="w-full py-2 border-2 border-dashed border-gray-200 rounded-lg text-sm text-gray-500 hover:border-[#005587] hover:text-[#005587] transition-colors"
+              className="w-full py-2 border-2 border-dashed border-gray-200 rounded-lg text-sm text-gray-500 hover:border-[#0065a3] hover:text-[#0065a3] transition-colors"
             >
               + Add Problem
             </button>
@@ -255,7 +255,7 @@ export function ProblemBankBuilder({
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl text-center hover:border-[#005587] transition-colors"
+              className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl text-center hover:border-[#0065a3] transition-colors"
             >
               {uploading ? (
                 <span className="text-sm text-gray-500">Uploading...</span>
@@ -299,7 +299,7 @@ export function ProblemBankBuilder({
             <button
               onClick={() => cameraInputRef.current?.click()}
               disabled={uploading}
-              className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl text-center hover:border-[#005587] transition-colors"
+              className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl text-center hover:border-[#0065a3] transition-colors"
             >
               {uploading ? (
                 <span className="text-sm text-gray-500">Uploading...</span>
@@ -344,7 +344,7 @@ export function ProblemBankBuilder({
               <>
                 <button
                   onClick={() => spreadsheetInputRef.current?.click()}
-                  className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl text-center hover:border-[#005587] transition-colors"
+                  className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl text-center hover:border-[#0065a3] transition-colors"
                 >
                   <span className="block text-2xl mb-1">📊</span>
                   <span className="text-sm text-gray-600">Upload CSV, XLS, or XLSX file</span>
@@ -394,7 +394,7 @@ export function ProblemBankBuilder({
                 <div className="flex gap-2">
                   <button
                     onClick={confirmSpreadsheet}
-                    className="flex-1 py-2 bg-[#005587] text-white rounded-lg text-sm font-medium"
+                    className="flex-1 py-2 bg-[#0065a3] text-white rounded-lg text-sm font-medium"
                   >
                     Import {spreadsheetPreview.totalRows} Problems
                   </button>
@@ -422,7 +422,7 @@ export function ProblemBankBuilder({
         <button
           onClick={handleSave}
           disabled={!title.trim() || problemCount === 0}
-          className="flex-1 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex-1 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {bankId ? 'Update Bank' : 'Save Bank'}
         </button>

@@ -61,7 +61,7 @@ const AIToolsPage: React.FC = () => {
           {/* Page Header */}
           <div className="mb-10">
             <h1
-              className="text-3xl md:text-4xl font-bold uppercase text-[#005587]"
+              className="text-3xl md:text-4xl font-bold uppercase text-[#0065a3]"
               style={{ fontFamily: "'Oswald', sans-serif" }}
             >
               AI TOOLS
@@ -97,7 +97,7 @@ const AIToolsPage: React.FC = () => {
                     Available
                   </span>
                 ) : (
-                  <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#FFC72C]/20 text-[#005587]">
+                  <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-[#FFC72C]/20 text-[#0065a3]">
                     Coming Soon
                   </span>
                 )}

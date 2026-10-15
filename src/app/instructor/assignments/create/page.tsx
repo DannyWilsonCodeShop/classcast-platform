@@ -335,7 +335,7 @@ const CreateAssignmentPage: React.FC = () => {
               {loadingCourses ? (
                 <div className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-400">Loading...</div>
               ) : (
-                <select value={courseId} onChange={(e) => setCourseId(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]">
+                <select value={courseId} onChange={(e) => setCourseId(e.target.value)} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]">
                   <option value="">Select a course</option>
                   {courses.map((c) => <option key={c.courseId} value={c.courseId}>{c.title || c.courseName}</option>)}
                 </select>
@@ -354,7 +354,7 @@ const CreateAssignmentPage: React.FC = () => {
                       onMouseEnter={() => setHoveredType(t.id)}
                       onMouseLeave={() => setHoveredType(null)}
                       className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                        assignmentType === t.id ? 'bg-[#005587] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        assignmentType === t.id ? 'bg-[#0065a3] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
                       <span>{t.icon}</span>
@@ -370,7 +370,7 @@ const CreateAssignmentPage: React.FC = () => {
                 ))}
               </div>
               {/* Selected type description */}
-              <p className="mt-2 text-[11px] text-gray-500 leading-relaxed bg-[#005587]/5 rounded-lg px-3 py-2">
+              <p className="mt-2 text-[11px] text-gray-500 leading-relaxed bg-[#0065a3]/5 rounded-lg px-3 py-2">
                 {selectedTypeInfo.description}
               </p>
             </div>
@@ -379,7 +379,7 @@ const CreateAssignmentPage: React.FC = () => {
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Title *</label>
               <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                 placeholder="e.g., Persuasive Speech Video" />
             </div>
 
@@ -390,7 +390,7 @@ const CreateAssignmentPage: React.FC = () => {
                   {assignmentType === 'discussion' ? 'Discussion Prompt' : assignmentType === 'assessment' ? 'Exam Directions' : 'Instructions'}
                 </label>
                 <button type="button" onClick={handleAIFill} disabled={isGenerating || !title.trim()}
-                  className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-[#005587] bg-[#005587]/8 border border-[#005587]/20 rounded-lg hover:bg-[#005587]/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  className="flex items-center gap-1 px-2 py-1 text-[10px] font-bold text-[#0065a3] bg-[#0065a3]/8 border border-[#0065a3]/20 rounded-lg hover:bg-[#0065a3]/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   {isGenerating ? (<><svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>Generating...</>) : (<>✨ AI Fill</>)}
                 </button>
               </div>
@@ -591,7 +591,7 @@ const CreateAssignmentPage: React.FC = () => {
                   let val = e.target.value;
                   if (val && !dueDate && val.includes('T')) val = val.split('T')[0] + 'T23:59';
                   setDueDate(val);
-                }} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]" />
+                }} className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-600 mb-1">Points ({getRubricMaxScore(rubric)})</label>
@@ -602,8 +602,8 @@ const CreateAssignmentPage: React.FC = () => {
             {/* Rubric */}
             <div className="bg-gray-50 rounded-xl p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-[#005587]">Rubric ({rubric.length} categories, {getRubricMaxScore(rubric)} pts)</span>
-                <button type="button" onClick={() => setShowRubricDetails(!showRubricDetails)} className="text-[10px] text-[#005587] font-medium">
+                <span className="text-xs font-bold text-[#0065a3]">Rubric ({rubric.length} categories, {getRubricMaxScore(rubric)} pts)</span>
+                <button type="button" onClick={() => setShowRubricDetails(!showRubricDetails)} className="text-[10px] text-[#0065a3] font-medium">
                   {showRubricDetails ? 'Collapse' : 'Edit'}
                 </button>
               </div>
@@ -616,14 +616,14 @@ const CreateAssignmentPage: React.FC = () => {
                   {rubric.map((cat) => (
                     <div key={cat.id} className="flex items-center gap-2">
                       <input type="text" value={cat.name} onChange={(e) => handleRubricNameChange(cat.id, e.target.value)}
-                        className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:ring-1 focus:ring-[#005587]" placeholder="Category name" />
+                        className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:ring-1 focus:ring-[#0065a3]" placeholder="Category name" />
                       <span className="text-[10px] text-gray-400">{cat.levels[0]?.score} pts</span>
                       <button type="button" onClick={() => handleRemoveRubricCategory(cat.id)} className="text-gray-300 hover:text-red-500 p-0.5">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
                     </div>
                   ))}
-                  <button type="button" onClick={handleAddRubricCategory} className="text-[10px] text-[#005587] font-medium">+ Add category</button>
+                  <button type="button" onClick={handleAddRubricCategory} className="text-[10px] text-[#0065a3] font-medium">+ Add category</button>
                 </div>
               )}
             </div>
@@ -642,9 +642,9 @@ const CreateAssignmentPage: React.FC = () => {
             {/* Peer Responses */}
             <div className="bg-gray-50 rounded-xl p-3">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-[#005587]">Peer Responses</span>
+                <span className="text-xs font-bold text-[#0065a3]">Peer Responses</span>
                 <button type="button" onClick={() => setPeerResponsesEnabled(!peerResponsesEnabled)}
-                  className={`relative w-9 h-5 rounded-full transition-colors ${peerResponsesEnabled ? 'bg-[#005587]' : 'bg-gray-300'}`}>
+                  className={`relative w-9 h-5 rounded-full transition-colors ${peerResponsesEnabled ? 'bg-[#0065a3]' : 'bg-gray-300'}`}>
                   <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${peerResponsesEnabled ? 'left-[18px]' : 'left-0.5'}`} />
                 </button>
               </div>
@@ -652,13 +652,13 @@ const CreateAssignmentPage: React.FC = () => {
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[10px] text-gray-500 mb-0.5">Required responses</label>
-                    <select value={responsesRequired} onChange={(e) => setResponsesRequired(parseInt(e.target.value))} className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]">
+                    <select value={responsesRequired} onChange={(e) => setResponsesRequired(parseInt(e.target.value))} className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#0065a3]">
                       <option value={1}>1</option><option value={2}>2</option><option value={3}>3</option><option value={4}>4</option><option value={5}>5</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-[10px] text-gray-500 mb-0.5">Due after assignment</label>
-                    <select value={responseDueDays} onChange={(e) => setResponseDueDays(parseInt(e.target.value))} className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]">
+                    <select value={responseDueDays} onChange={(e) => setResponseDueDays(parseInt(e.target.value))} className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#0065a3]">
                       <option value={1}>+1 day</option><option value={2}>+2 days</option><option value={3}>+3 days</option><option value={5}>+5 days</option><option value={7}>+7 days</option>
                     </select>
                   </div>
@@ -668,17 +668,17 @@ const CreateAssignmentPage: React.FC = () => {
 
             {/* Visibility */}
             <div className="bg-gray-50 rounded-xl p-3">
-              <span className="block text-xs font-bold text-[#005587] mb-2">Visibility</span>
+              <span className="block text-xs font-bold text-[#0065a3] mb-2">Visibility</span>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-0.5">Who sees videos</label>
-                  <select value={visibility} onChange={(e) => setVisibility(e.target.value as 'section' | 'all' | 'teacher-only')} className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]">
+                  <select value={visibility} onChange={(e) => setVisibility(e.target.value as 'section' | 'all' | 'teacher-only')} className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#0065a3]">
                     <option value="section">Their section only</option><option value="all">All sections</option><option value="teacher-only">Teacher only</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-[10px] text-gray-500 mb-0.5">When visible</label>
-                  <select value={videoVisibility} onChange={(e) => setVideoVisibility(e.target.value as 'after-submit' | 'immediately')} className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]">
+                  <select value={videoVisibility} onChange={(e) => setVideoVisibility(e.target.value as 'after-submit' | 'immediately')} className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#0065a3]">
                     <option value="after-submit">After they submit</option><option value="immediately">Immediately</option>
                   </select>
                 </div>
@@ -689,13 +689,13 @@ const CreateAssignmentPage: React.FC = () => {
             <div className="bg-gray-50 rounded-xl p-3">
               <div className="flex items-center justify-between mb-1">
                 <div>
-                  <span className="text-xs font-bold text-[#005587]">Individual Questions</span>
+                  <span className="text-xs font-bold text-[#0065a3]">Individual Questions</span>
                   <p className="text-[9px] text-gray-500">Each student gets a unique problem from a question bank</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIndividualQuestionsEnabled(!individualQuestionsEnabled)}
-                  className={`relative w-9 h-5 rounded-full transition-colors ${individualQuestionsEnabled ? 'bg-[#005587]' : 'bg-gray-300'}`}
+                  className={`relative w-9 h-5 rounded-full transition-colors ${individualQuestionsEnabled ? 'bg-[#0065a3]' : 'bg-gray-300'}`}
                 >
                   <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${individualQuestionsEnabled ? 'left-[18px]' : 'left-0.5'}`} />
                 </button>
@@ -758,7 +758,7 @@ const CreateAssignmentPage: React.FC = () => {
                               key={bank.bankId}
                               type="button"
                               onClick={() => { setLinkedBankId(bank.bankId); setLinkedBankTitle(bank.title); setShowExistingBanks(false); }}
-                              className="w-full text-left p-2.5 bg-white border border-gray-200 rounded-lg hover:border-[#005587] transition-colors"
+                              className="w-full text-left p-2.5 bg-white border border-gray-200 rounded-lg hover:border-[#0065a3] transition-colors"
                             >
                               <p className="text-xs font-medium text-gray-800">{bank.title}</p>
                               <p className="text-[9px] text-gray-500">{bank.problemCount} question{bank.problemCount !== 1 ? 's' : ''}</p>
@@ -772,7 +772,7 @@ const CreateAssignmentPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setShowQuestionBuilder(true)}
-                        className="w-full py-2.5 border-2 border-dashed border-[#005587]/30 rounded-lg text-xs font-medium text-[#005587] hover:border-[#005587] hover:bg-[#005587]/5 transition-colors"
+                        className="w-full py-2.5 border-2 border-dashed border-[#0065a3]/30 rounded-lg text-xs font-medium text-[#0065a3] hover:border-[#0065a3] hover:bg-[#0065a3]/5 transition-colors"
                       >
                         + Create New Questions
                       </button>
@@ -796,7 +796,7 @@ const CreateAssignmentPage: React.FC = () => {
             <div className="flex gap-3 pt-2">
               <button type="button" onClick={() => router.back()} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">Cancel</button>
               <button type="submit" disabled={isSubmitting || !courseId || !title.trim() || !dueDate}
-                className="flex-1 px-4 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                className="flex-1 px-4 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 {isSubmitting ? 'Creating...' : 'Create Assignment'}
               </button>
             </div>

@@ -287,12 +287,12 @@ export default function StudyHallAdminPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold text-[#005587]">Study Hall Admin</h1>
+              <h1 className="text-xl font-bold text-[#0065a3]">Study Hall Admin</h1>
               <p className="text-xs text-gray-500">Manage pullout lists and rosters</p>
             </div>
             <button
               onClick={() => router.push('/instructor/study-hall')}
-              className="text-xs text-[#005587] font-medium"
+              className="text-xs text-[#0065a3] font-medium"
             >
               ← Back
             </button>
@@ -303,7 +303,7 @@ export default function StudyHallAdminPage() {
             <button
               onClick={() => setActiveTab('pullouts')}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
-                activeTab === 'pullouts' ? 'bg-[#005587] text-white' : 'text-gray-600'
+                activeTab === 'pullouts' ? 'bg-[#0065a3] text-white' : 'text-gray-600'
               }`}
             >
               Pullout List
@@ -311,7 +311,7 @@ export default function StudyHallAdminPage() {
             <button
               onClick={() => setActiveTab('roster')}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
-                activeTab === 'roster' ? 'bg-[#005587] text-white' : 'text-gray-600'
+                activeTab === 'roster' ? 'bg-[#0065a3] text-white' : 'text-gray-600'
               }`}
             >
               Roster
@@ -319,7 +319,7 @@ export default function StudyHallAdminPage() {
             <button
               onClick={() => setActiveTab('team')}
               className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
-                activeTab === 'team' ? 'bg-[#005587] text-white' : 'text-gray-600'
+                activeTab === 'team' ? 'bg-[#0065a3] text-white' : 'text-gray-600'
               }`}
             >
               My Team
@@ -336,7 +336,7 @@ export default function StudyHallAdminPage() {
                   type="date"
                   value={filterDate}
                   onChange={(e) => setFilterDate(e.target.value)}
-                  className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
+                  className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3]"
                 />
                 <span className="text-xs text-gray-400">
                   {pullouts.length} student{pullouts.length !== 1 ? 's' : ''}
@@ -355,7 +355,7 @@ export default function StudyHallAdminPage() {
                   {sortedHomerooms.map(homeroom => (
                     <div key={homeroom} className="bg-gray-50 rounded-2xl p-4">
                       <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xs font-bold text-[#005587] uppercase">{homeroom}</h3>
+                        <h3 className="text-xs font-bold text-[#0065a3] uppercase">{homeroom}</h3>
                         <span className="text-[10px] text-gray-400">{pulloutsByHomeroom[homeroom].length} student{pulloutsByHomeroom[homeroom].length !== 1 ? 's' : ''}</span>
                       </div>
                       <div className="space-y-1.5">
@@ -385,7 +385,7 @@ export default function StudyHallAdminPage() {
             <div>
               {/* Upload section */}
               <div className="bg-gray-50 rounded-2xl p-4 mb-4">
-                <h3 className="text-sm font-bold text-[#005587] mb-2">Add a Homeroom Class</h3>
+                <h3 className="text-sm font-bold text-[#0065a3] mb-2">Add a Homeroom Class</h3>
                 <p className="text-[10px] text-gray-500 mb-3">
                   Upload one teacher's spreadsheet at a time. Student names are pulled from the first column.
                 </p>
@@ -396,13 +396,13 @@ export default function StudyHallAdminPage() {
                   value={homeroomTeacher}
                   onChange={(e) => setHomeroomTeacher(e.target.value)}
                   placeholder="Homeroom teacher name (e.g., Ms. Johnson)"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587] mb-3"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3] mb-3"
                 />
 
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploading || !homeroomTeacher.trim()}
-                  className="w-full py-3 border-2 border-dashed border-[#005587]/30 rounded-xl text-xs font-medium text-[#005587] hover:border-[#005587] hover:bg-[#005587]/5 transition-colors disabled:opacity-50"
+                  className="w-full py-3 border-2 border-dashed border-[#0065a3]/30 rounded-xl text-xs font-medium text-[#0065a3] hover:border-[#0065a3] hover:bg-[#0065a3]/5 transition-colors disabled:opacity-50"
                 >
                   {uploading ? 'Uploading...' : '📄 Upload Class Roster (CSV or Excel)'}
                 </button>
@@ -444,7 +444,7 @@ export default function StudyHallAdminPage() {
               {/* Current roster */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold text-[#005587]">Current Roster</h3>
+                  <h3 className="text-sm font-bold text-[#0065a3]">Current Roster</h3>
                   <span className="text-[10px] text-gray-400">{roster.length} students</span>
                 </div>
 
@@ -474,7 +474,7 @@ export default function StudyHallAdminPage() {
             <div>
               {!myTeam ? (
                 <div className="bg-gray-50 rounded-2xl p-4">
-                  <h3 className="text-sm font-bold text-[#005587] mb-2">Create Your Team</h3>
+                  <h3 className="text-sm font-bold text-[#0065a3] mb-2">Create Your Team</h3>
                   <p className="text-[10px] text-gray-500 mb-3">Teachers on your team will have their pullout requests routed to you.</p>
                   <div className="flex gap-2">
                     <input
@@ -482,9 +482,9 @@ export default function StudyHallAdminPage() {
                       value={teamName}
                       onChange={(e) => setTeamName(e.target.value)}
                       placeholder="Team name (e.g., 9th Grade Team)"
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3]"
                     />
-                    <button onClick={handleCreateTeam} disabled={!teamName.trim()} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-bold disabled:opacity-50">
+                    <button onClick={handleCreateTeam} disabled={!teamName.trim()} className="px-4 py-2 bg-[#0065a3] text-white rounded-xl text-xs font-bold disabled:opacity-50">
                       Create
                     </button>
                   </div>
@@ -493,7 +493,7 @@ export default function StudyHallAdminPage() {
                 <div className="space-y-4">
                   <div className="bg-gray-50 rounded-2xl p-4">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-sm font-bold text-[#005587]">{myTeam.name}</h3>
+                      <h3 className="text-sm font-bold text-[#0065a3]">{myTeam.name}</h3>
                       <span className="text-[10px] text-gray-400">{(myTeam.members || []).length} members</span>
                     </div>
                     <p className="text-[10px] text-gray-500">Lead: {myTeam.leadName || 'You'}</p>
@@ -529,14 +529,14 @@ export default function StudyHallAdminPage() {
                           value={newMemberFirst}
                           onChange={(e) => setNewMemberFirst(e.target.value)}
                           placeholder="First name"
-                          className="px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#005587]"
+                          className="px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#0065a3]"
                         />
                         <input
                           type="text"
                           value={newMemberLast}
                           onChange={(e) => setNewMemberLast(e.target.value)}
                           placeholder="Last name"
-                          className="px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#005587]"
+                          className="px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#0065a3]"
                         />
                       </div>
                       <input
@@ -544,7 +544,7 @@ export default function StudyHallAdminPage() {
                         value={newMemberEmail}
                         onChange={(e) => setNewMemberEmail(e.target.value)}
                         placeholder="Email address *"
-                        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#005587]"
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#0065a3]"
                         onKeyDown={(e) => e.key === 'Enter' && handleAddMember()}
                       />
                       <div className="flex gap-2">
@@ -553,9 +553,9 @@ export default function StudyHallAdminPage() {
                           value={newMemberPassword}
                           onChange={(e) => setNewMemberPassword(e.target.value)}
                           placeholder="Initial password"
-                          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#005587]"
+                          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-xs focus:ring-1 focus:ring-[#0065a3]"
                         />
-                        <button onClick={handleAddMember} disabled={!newMemberEmail.trim() || addingMember} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-bold disabled:opacity-50">
+                        <button onClick={handleAddMember} disabled={!newMemberEmail.trim() || addingMember} className="px-4 py-2 bg-[#0065a3] text-white rounded-xl text-xs font-bold disabled:opacity-50">
                           {addingMember ? '...' : 'Add'}
                         </button>
                       </div>

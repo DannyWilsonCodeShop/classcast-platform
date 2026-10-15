@@ -30,13 +30,13 @@ export default function Error({
     <div className="min-h-screen flex items-center justify-center bg-white px-6">
       <div className="text-center max-w-sm">
         <div className="text-4xl mb-3">😞</div>
-        <h2 className="text-lg font-bold text-[#005587] mb-2">Something went wrong</h2>
+        <h2 className="text-lg font-bold text-[#0065a3] mb-2">Something went wrong</h2>
         <p className="text-sm text-gray-600 mb-4">
           An unexpected error occurred. Our team has been notified.
         </p>
         <button
           onClick={reset}
-          className="px-5 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold"
+          className="px-5 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold"
         >
           Try Again
         </button>

@@ -231,7 +231,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
       <div className="relative bg-white rounded-2xl w-[92%] max-w-lg max-h-[85vh] overflow-hidden shadow-xl flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 shrink-0">
-          <h2 className="text-base font-bold text-[#005587]">Assignment Settings</h2>
+          <h2 className="text-base font-bold text-[#0065a3]">Assignment Settings</h2>
           <button onClick={onClose} className="text-gray-400 p-1">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -245,7 +245,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
             <button
               key={tab.id}
               onClick={() => setActiveSection(tab.id)}
-              className={`flex-1 py-2.5 text-[10px] font-bold text-center transition-colors ${activeSection === tab.id ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+              className={`flex-1 py-2.5 text-[10px] font-bold text-center transition-colors ${activeSection === tab.id ? 'text-[#0065a3] border-b-2 border-[#0065a3]' : 'text-gray-400'}`}
             >
               {tab.icon} {tab.label}
             </button>
@@ -260,7 +260,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Title</label>
                 <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -273,12 +273,12 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Due Date</label>
                   <input type="datetime-local" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Max Score</label>
                   <input type="number" value={maxScore} onChange={(e) => setMaxScore(Number(e.target.value))} min={1}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
                 </div>
               </div>
 
@@ -312,7 +312,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                                 [sec.sectionId]: e.target.value ? new Date(e.target.value).toISOString() : '',
                               }));
                             }}
-                            className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                            className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]"
                           />
                           {formattedSecDate && (
                             <button
@@ -345,7 +345,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                         value={choice.title}
                         onChange={(e) => { const u = [...choices]; u[index] = { ...u[index], title: e.target.value }; setChoices(u); }}
                         placeholder={`Choice ${index + 1} title`}
-                        className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                        className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]"
                       />
                       <div className="flex items-center gap-1 shrink-0">
                         <input
@@ -353,7 +353,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                           value={choice.maxSlotsPerSection ?? 10}
                           onChange={(e) => { const u = [...choices]; u[index] = { ...u[index], maxSlotsPerSection: Number(e.target.value) }; setChoices(u); }}
                           min={1}
-                          className="w-12 px-1 py-1.5 border border-gray-200 rounded-lg text-xs text-center focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                          className="w-12 px-1 py-1.5 border border-gray-200 rounded-lg text-xs text-center focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]"
                           title="Max students per section"
                         />
                         {choices.length > 2 && (
@@ -374,7 +374,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                 <button
                   type="button"
                   onClick={() => setChoices(prev => [...prev, { choiceId: `c${prev.length + 1}_${Date.now()}`, title: '', description: '', color: choiceColors[prev.length] || '#4A90E2', maxSlotsPerSection: 10 }])}
-                  className="w-full py-2 border border-dashed border-[#005587]/40 rounded-xl text-xs text-[#005587] hover:bg-[#005587]/5"
+                  className="w-full py-2 border border-dashed border-[#0065a3]/40 rounded-xl text-xs text-[#0065a3] hover:bg-[#0065a3]/5"
                 >
                   + Add Choice
                 </button>
@@ -386,7 +386,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                     { choiceId: `c1_${Date.now()}`, title: '', description: '', color: '#4A90E2', maxSlotsPerSection: 10 },
                     { choiceId: `c2_${Date.now()}`, title: '', description: '', color: '#7B61FF', maxSlotsPerSection: 10 },
                   ])}
-                  className="w-full py-2 border border-dashed border-[#005587]/40 rounded-xl text-xs text-[#005587] hover:bg-[#005587]/5"
+                  className="w-full py-2 border border-dashed border-[#0065a3]/40 rounded-xl text-xs text-[#0065a3] hover:bg-[#0065a3]/5"
                 >
                   + Add Choices
                 </button>
@@ -403,7 +403,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                   <p className="text-[10px] text-gray-500">Students can submit after the due date</p>
                 </div>
                 <button onClick={() => setAllowLateSubmission(!allowLateSubmission)}
-                  className={`w-10 h-6 rounded-full transition-colors ${allowLateSubmission ? 'bg-[#005587]' : 'bg-gray-300'}`}>
+                  className={`w-10 h-6 rounded-full transition-colors ${allowLateSubmission ? 'bg-[#0065a3]' : 'bg-gray-300'}`}>
                   <div className={`w-4 h-4 bg-white rounded-full shadow transform transition-transform ${allowLateSubmission ? 'translate-x-5' : 'translate-x-1'}`} />
                 </button>
               </div>
@@ -411,13 +411,13 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Late Penalty (% per day)</label>
                   <input type="number" value={latePenalty} onChange={(e) => setLatePenalty(Number(e.target.value))} min={0} max={100}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
                 </div>
               )}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Max Submissions Allowed</label>
                 <input type="number" value={maxSubmissions} onChange={(e) => setMaxSubmissions(Number(e.target.value))} min={1} max={10}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
                 <p className="text-[10px] text-gray-400 mt-1">How many times a student can resubmit</p>
               </div>
               <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
@@ -426,7 +426,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                   <p className="text-[10px] text-gray-500">Students work in teams</p>
                 </div>
                 <button onClick={() => setGroupAssignment(!groupAssignment)}
-                  className={`w-10 h-6 rounded-full transition-colors ${groupAssignment ? 'bg-[#005587]' : 'bg-gray-300'}`}>
+                  className={`w-10 h-6 rounded-full transition-colors ${groupAssignment ? 'bg-[#0065a3]' : 'bg-gray-300'}`}>
                   <div className={`w-4 h-4 bg-white rounded-full shadow transform transition-transform ${groupAssignment ? 'translate-x-5' : 'translate-x-1'}`} />
                 </button>
               </div>
@@ -434,7 +434,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">Max Group Size</label>
                   <input type="number" value={maxGroupSize} onChange={(e) => setMaxGroupSize(Number(e.target.value))} min={2} max={10}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
                 </div>
               )}
             </>
@@ -462,7 +462,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                   <p className="text-[10px] text-gray-500">Students respond to each other&apos;s videos</p>
                 </div>
                 <button onClick={() => setEnablePeerResponses(!enablePeerResponses)}
-                  className={`w-10 h-6 rounded-full transition-colors ${enablePeerResponses ? 'bg-[#005587]' : 'bg-gray-300'}`}>
+                  className={`w-10 h-6 rounded-full transition-colors ${enablePeerResponses ? 'bg-[#0065a3]' : 'bg-gray-300'}`}>
                   <div className={`w-4 h-4 bg-white rounded-full shadow transform transition-transform ${enablePeerResponses ? 'translate-x-5' : 'translate-x-1'}`} />
                 </button>
               </div>
@@ -471,31 +471,31 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Response Due Date</label>
                     <input type="datetime-local" value={responseDueDate} onChange={(e) => setResponseDueDate(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
                     <p className="text-[10px] text-gray-400 mt-1">When peer responses are due (can differ from assignment due date)</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">Min Responses Required</label>
                       <input type="number" value={minResponsesRequired} onChange={(e) => setMinResponsesRequired(Number(e.target.value))} min={0} max={10}
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">Max Per Video</label>
                       <input type="number" value={maxResponsesPerVideo} onChange={(e) => setMaxResponsesPerVideo(Number(e.target.value))} min={1} max={20}
-                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                        className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Min Word Count</label>
                     <input type="number" value={responseWordLimit} onChange={(e) => setResponseWordLimit(Number(e.target.value))} min={0}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
                     <p className="text-[10px] text-gray-400 mt-1">Minimum words per response (0 = no minimum)</p>
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Review Scope</label>
                     <select value={peerReviewScope} onChange={(e) => setPeerReviewScope(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]">
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]">
                       <option value="section">Within same section only</option>
                       <option value="course">Entire course (all sections)</option>
                     </select>
@@ -514,7 +514,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                   <p className="text-[10px] text-gray-500">Students must record in-app (no file uploads)</p>
                 </div>
                 <button onClick={() => setRequireLiveRecording(!requireLiveRecording)}
-                  className={`w-10 h-6 rounded-full transition-colors ${requireLiveRecording ? 'bg-[#005587]' : 'bg-gray-300'}`}>
+                  className={`w-10 h-6 rounded-full transition-colors ${requireLiveRecording ? 'bg-[#0065a3]' : 'bg-gray-300'}`}>
                   <div className={`w-4 h-4 bg-white rounded-full shadow transform transition-transform ${requireLiveRecording ? 'translate-x-5' : 'translate-x-1'}`} />
                 </button>
               </div>
@@ -524,7 +524,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
                   <p className="text-[10px] text-gray-500">YouTube &amp; Google Drive links accepted</p>
                 </div>
                 <button onClick={() => setAllowYouTubeUrl(!allowYouTubeUrl)}
-                  className={`w-10 h-6 rounded-full transition-colors ${allowYouTubeUrl ? 'bg-[#005587]' : 'bg-gray-300'}`}>
+                  className={`w-10 h-6 rounded-full transition-colors ${allowYouTubeUrl ? 'bg-[#0065a3]' : 'bg-gray-300'}`}>
                   <div className={`w-4 h-4 bg-white rounded-full shadow transform transition-transform ${allowYouTubeUrl ? 'translate-x-5' : 'translate-x-1'}`} />
                 </button>
               </div>
@@ -539,7 +539,7 @@ export function AssignmentEditModal({ isOpen, onClose, onSave, courseId, assignm
             <button onClick={onClose} className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium">
               Cancel
             </button>
-            <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50">
+            <button onClick={handleSave} disabled={saving} className="flex-1 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold disabled:opacity-50">
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>

@@ -67,7 +67,7 @@ export function WideScreenSidebar({ onRecordClick }: WideScreenSidebarProps) {
           <div className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-page-custom-font */}
             <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
-            <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-xl">ClassCast</span>
+            <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#0065a3' }} className="text-xl">ClassCast</span>
             <img src="/MyClassCast36.png" alt="" className="w-7 h-7 object-contain" />
           </div>
         ) : (
@@ -87,14 +87,14 @@ export function WideScreenSidebar({ onRecordClick }: WideScreenSidebarProps) {
                 isDesktop ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'
               } ${
                 active
-                  ? 'bg-[#005587]/10 text-[#005587] border-l-3 border-[#005587]'
+                  ? 'bg-[#0065a3]/10 text-[#0065a3] border-l-3 border-[#0065a3]'
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
               title={!isDesktop ? item.label : undefined}
             >
-              <span className={active ? 'text-[#005587]' : 'text-gray-400'}>{item.icon}</span>
+              <span className={active ? 'text-[#0065a3]' : 'text-gray-400'}>{item.icon}</span>
               {isDesktop && (
-                <span className={`text-sm font-medium ${active ? 'text-[#005587]' : 'text-gray-700'}`}>
+                <span className={`text-sm font-medium ${active ? 'text-[#0065a3]' : 'text-gray-700'}`}>
                   {item.label}
                 </span>
               )}
@@ -115,7 +115,7 @@ export function WideScreenSidebar({ onRecordClick }: WideScreenSidebarProps) {
               }
               if (onRecordClick) onRecordClick();
             }}
-            className={`w-full flex items-center gap-2 bg-[#FFC72C] hover:bg-[#e6b225] text-[#005587] font-bold rounded-xl transition-colors min-h-[44px] ${
+            className={`w-full flex items-center gap-2 bg-[#FFC72C] hover:bg-[#e6b225] text-[#0065a3] font-bold rounded-xl transition-colors min-h-[44px] ${
               isDesktop ? 'px-3 py-3 justify-start' : 'justify-center py-3'
             }`}
             title={!isDesktop ? 'Record' : undefined}
@@ -136,7 +136,7 @@ export function WideScreenSidebar({ onRecordClick }: WideScreenSidebarProps) {
               {user?.avatar ? (
                 <img src={user.avatar} alt="" className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full bg-[#005587] flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-full h-full bg-[#0065a3] flex items-center justify-center text-white text-xs font-bold">
                   {(user?.firstName || '?')[0]}
                 </div>
               )}
@@ -148,7 +148,7 @@ export function WideScreenSidebar({ onRecordClick }: WideScreenSidebarProps) {
             {user?.avatar ? (
               <img src={user.avatar} alt="" className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-[#005587] flex items-center justify-center text-white text-xs font-bold">
+              <div className="w-full h-full bg-[#0065a3] flex items-center justify-center text-white text-xs font-bold">
                 {(user?.firstName || '?')[0]}
               </div>
             )}

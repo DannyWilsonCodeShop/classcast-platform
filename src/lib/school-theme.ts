@@ -22,11 +22,11 @@ const THEMES: Record<string, SchoolTheme> = {
   },
   // Default ClassCast / Cristo Rey / Demo — blue/gold
   default: {
-    primary: '#005587',
+    primary: '#0065a3',
     primaryHover: '#004470',
     accent: '#FFC72C',
-    accentText: '#005587',
-    primaryLight: '#005587/10',
+    accentText: '#0065a3',
+    primaryLight: '#0065a3/10',
   },
 };
 

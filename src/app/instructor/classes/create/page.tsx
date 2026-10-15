@@ -184,7 +184,7 @@ const CreateClassPage: React.FC = () => {
         <div className="bg-white w-full max-w-[420px] rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-bold text-[#005587]">Create New Course</h2>
+            <h2 className="text-base font-bold text-[#0065a3]">Create New Course</h2>
             <button
               onClick={() => router.back()}
               className="text-gray-400 hover:text-gray-600 p-1"
@@ -223,7 +223,7 @@ const CreateClassPage: React.FC = () => {
                 type="text"
                 value={formData.title}
                 onChange={(e) => handleInputChange('title', e.target.value)}
-                className={`w-full px-3 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${
+                className={`w-full px-3 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] ${
                   errors.title ? 'border-red-400' : 'border-gray-200'
                 }`}
                 placeholder="e.g., Introduction to Computer Science"
@@ -242,7 +242,7 @@ const CreateClassPage: React.FC = () => {
                 type="text"
                 value={formData.department}
                 onChange={(e) => handleInputChange('department', e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                 placeholder="e.g., Computer Science"
               />
             </div>
@@ -256,7 +256,7 @@ const CreateClassPage: React.FC = () => {
                 <select
                   value={formData.gradeLevel}
                   onChange={(e) => handleInputChange('gradeLevel', e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                 >
                   <option value="K-2">K-2</option>
                   <option value="3-5">3-5</option>
@@ -274,7 +274,7 @@ const CreateClassPage: React.FC = () => {
                 <select
                   value={formData.semester}
                   onChange={(e) => handleInputChange('semester', e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                 >
                   <option value="Spring">Spring</option>
                   <option value="Summer">Summer</option>
@@ -304,7 +304,7 @@ const CreateClassPage: React.FC = () => {
                     onChange={(e) => handleSectionCountChange(parseInt(e.target.value) || 1)}
                     min={1}
                     max={10}
-                    className="w-10 text-center text-sm font-bold border border-gray-200 rounded-md py-0.5 focus:ring-1 focus:ring-[#005587] focus:border-[#005587]"
+                    className="w-10 text-center text-sm font-bold border border-gray-200 rounded-md py-0.5 focus:ring-1 focus:ring-[#0065a3] focus:border-[#0065a3]"
                   />
                   <button
                     type="button"
@@ -324,17 +324,17 @@ const CreateClassPage: React.FC = () => {
                       type="text"
                       value={section.name}
                       onChange={(e) => handleSectionNameChange(index, e.target.value)}
-                      className="flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587] focus:border-[#005587] bg-white"
+                      className="flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#0065a3] focus:border-[#0065a3] bg-white"
                       placeholder={`Section ${index + 1}`}
                     />
                     <div className="flex items-center gap-1">
-                      <span className="px-2 py-1 bg-[#005587]/10 text-[#005587] text-[10px] font-mono font-bold rounded-md">
+                      <span className="px-2 py-1 bg-[#0065a3]/10 text-[#0065a3] text-[10px] font-mono font-bold rounded-md">
                         {section.classCode}
                       </span>
                       <button
                         type="button"
                         onClick={() => regenerateCode(index)}
-                        className="p-1 text-gray-400 hover:text-[#005587] transition-colors"
+                        className="p-1 text-gray-400 hover:text-[#0065a3] transition-colors"
                         title="Regenerate code"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -356,7 +356,7 @@ const CreateClassPage: React.FC = () => {
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 rows={2}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] resize-none"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] resize-none"
                 placeholder="Brief description of your course..."
               />
             </div>
@@ -373,7 +373,7 @@ const CreateClassPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 px-4 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? 'Creating...' : 'Create Course'}
               </button>

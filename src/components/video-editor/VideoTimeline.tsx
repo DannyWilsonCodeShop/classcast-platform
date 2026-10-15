@@ -90,7 +90,7 @@ export function VideoTimeline({
       >
         {/* Active (trimmed) region */}
         <div
-          className="absolute top-0 bottom-0 bg-[#005587]/40"
+          className="absolute top-0 bottom-0 bg-[#0065a3]/40"
           style={{ left: `${getPercentage(trimStart)}%`, width: `${getPercentage(trimEnd - trimStart)}%` }}
         />
 

@@ -35,14 +35,14 @@ export function AssessmentReviewPlayer({ session, questions }: AssessmentReviewP
 
       {/* Question Timeline */}
       <div className="bg-gray-50 rounded-xl p-3">
-        <p className="text-xs font-bold text-[#005587] mb-2">Questions</p>
+        <p className="text-xs font-bold text-[#0065a3] mb-2">Questions</p>
         <div className="space-y-1">
           {questions.map((q, idx) => (
             <button
               key={q.questionId}
               onClick={() => seekToQuestion(idx)}
               className={`w-full text-left p-2 rounded-lg text-xs transition-colors ${
-                idx === currentQuestionIdx ? 'bg-[#005587]/10 border border-[#005587]/20' : 'hover:bg-gray-100'
+                idx === currentQuestionIdx ? 'bg-[#0065a3]/10 border border-[#0065a3]/20' : 'hover:bg-gray-100'
               }`}
             >
               <div className="flex items-center justify-between">

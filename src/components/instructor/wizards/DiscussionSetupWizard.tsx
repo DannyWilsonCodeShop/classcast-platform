@@ -130,14 +130,14 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
       {/* Step indicator */}
       <div className="flex items-center justify-center gap-2 mb-4">
         {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
-          <div key={s} className={`w-2 h-2 rounded-full ${s <= step ? 'bg-[#005587]' : 'bg-gray-200'}`} />
+          <div key={s} className={`w-2 h-2 rounded-full ${s <= step ? 'bg-[#0065a3]' : 'bg-gray-200'}`} />
         ))}
       </div>
 
       {/* Step 1: Prompt & Format */}
       {step === 1 && (
         <div className="space-y-4">
-          <h3 className="text-sm font-bold text-[#005587]">What should students discuss?</h3>
+          <h3 className="text-sm font-bold text-[#0065a3]">What should students discuss?</h3>
           
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-1">Discussion Prompt (text)</label>
@@ -146,7 +146,7 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
               onChange={(e) => setConfig({ ...config, prompt: e.target.value })}
               placeholder="e.g., What are the key differences between mitosis and meiosis?"
               rows={3}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:ring-1 focus:ring-[#005587] focus:border-[#005587] focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:ring-1 focus:ring-[#0065a3] focus:border-[#0065a3] focus:outline-none"
             />
           </div>
 
@@ -189,10 +189,10 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
               </div>
             ) : (
               <div className="flex gap-2">
-                <button type="button" onClick={openPromptCamera} className="flex items-center gap-1.5 px-3 py-2 border-2 border-dashed border-gray-300 rounded-xl text-xs text-gray-600 hover:border-[#005587] hover:text-[#005587] transition-colors">
+                <button type="button" onClick={openPromptCamera} className="flex items-center gap-1.5 px-3 py-2 border-2 border-dashed border-gray-300 rounded-xl text-xs text-gray-600 hover:border-[#0065a3] hover:text-[#0065a3] transition-colors">
                   🎥 Record
                 </button>
-                <button type="button" onClick={() => promptFileRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 border-2 border-dashed border-gray-300 rounded-xl text-xs text-gray-600 hover:border-[#005587] hover:text-[#005587] transition-colors">
+                <button type="button" onClick={() => promptFileRef.current?.click()} className="flex items-center gap-1.5 px-3 py-2 border-2 border-dashed border-gray-300 rounded-xl text-xs text-gray-600 hover:border-[#0065a3] hover:text-[#0065a3] transition-colors">
                   📁 Upload
                 </button>
                 <input ref={promptFileRef} type="file" accept="video/*" className="hidden" onChange={handlePromptFileUpload} />
@@ -206,17 +206,17 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
               value={directions}
               onChange={(e) => setDirections(e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs resize-none focus:ring-1 focus:ring-[#005587] focus:border-[#005587] focus:outline-none text-gray-600"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs resize-none focus:ring-1 focus:ring-[#0065a3] focus:border-[#0065a3] focus:outline-none text-gray-600"
             />
           </div>
 
           <div>
             <label className="text-xs font-medium text-gray-600 block mb-2">Format</label>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setConfig({ ...config, format: 'whole-class' })} className={`flex-1 py-2 rounded-lg text-xs font-medium ${config.format === 'whole-class' ? 'bg-[#005587] text-white' : 'bg-gray-100 text-gray-600'}`}>
+              <button type="button" onClick={() => setConfig({ ...config, format: 'whole-class' })} className={`flex-1 py-2 rounded-lg text-xs font-medium ${config.format === 'whole-class' ? 'bg-[#0065a3] text-white' : 'bg-gray-100 text-gray-600'}`}>
                 Whole Class
               </button>
-              <button type="button" onClick={() => setConfig({ ...config, format: 'small-groups' })} className={`flex-1 py-2 rounded-lg text-xs font-medium ${config.format === 'small-groups' ? 'bg-[#005587] text-white' : 'bg-gray-100 text-gray-600'}`}>
+              <button type="button" onClick={() => setConfig({ ...config, format: 'small-groups' })} className={`flex-1 py-2 rounded-lg text-xs font-medium ${config.format === 'small-groups' ? 'bg-[#0065a3] text-white' : 'bg-gray-100 text-gray-600'}`}>
                 Small Groups
               </button>
             </div>
@@ -229,11 +229,11 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
         <div className="space-y-4">
           {config.format === 'small-groups' ? (
             <>
-              <h3 className="text-sm font-bold text-[#005587]">Small Group Setup</h3>
+              <h3 className="text-sm font-bold text-[#0065a3]">Small Group Setup</h3>
               <p className="text-xs text-gray-500">How should groups be formed?</p>
               
               <div className="space-y-2">
-                <button type="button" onClick={() => setGroupFormation('random')} className={`w-full p-3 rounded-xl border text-left ${groupFormation === 'random' ? 'border-[#005587] bg-[#005587]/5' : 'border-gray-200'}`}>
+                <button type="button" onClick={() => setGroupFormation('random')} className={`w-full p-3 rounded-xl border text-left ${groupFormation === 'random' ? 'border-[#0065a3] bg-[#0065a3]/5' : 'border-gray-200'}`}>
                   <div className="flex items-center gap-2">
                     <span className="text-base">🎲</span>
                     <div>
@@ -242,7 +242,7 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
                     </div>
                   </div>
                 </button>
-                <button type="button" onClick={() => setGroupFormation('teacher-assigned')} className={`w-full p-3 rounded-xl border text-left ${groupFormation === 'teacher-assigned' ? 'border-[#005587] bg-[#005587]/5' : 'border-gray-200'}`}>
+                <button type="button" onClick={() => setGroupFormation('teacher-assigned')} className={`w-full p-3 rounded-xl border text-left ${groupFormation === 'teacher-assigned' ? 'border-[#0065a3] bg-[#0065a3]/5' : 'border-gray-200'}`}>
                   <div className="flex items-center gap-2">
                     <span className="text-base">✋</span>
                     <div>
@@ -251,7 +251,7 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
                     </div>
                   </div>
                 </button>
-                <button type="button" onClick={() => setGroupFormation('student-chosen')} className={`w-full p-3 rounded-xl border text-left ${groupFormation === 'student-chosen' ? 'border-[#005587] bg-[#005587]/5' : 'border-gray-200'}`}>
+                <button type="button" onClick={() => setGroupFormation('student-chosen')} className={`w-full p-3 rounded-xl border text-left ${groupFormation === 'student-chosen' ? 'border-[#0065a3] bg-[#0065a3]/5' : 'border-gray-200'}`}>
                   <div className="flex items-center gap-2">
                     <span className="text-base">👋</span>
                     <div>
@@ -264,7 +264,7 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
 
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Group Size: {config.groupSize} students</label>
-                <input type="range" min={3} max={10} value={config.groupSize} onChange={(e) => setConfig({ ...config, groupSize: Number(e.target.value) })} className="w-full accent-[#005587]" />
+                <input type="range" min={3} max={10} value={config.groupSize} onChange={(e) => setConfig({ ...config, groupSize: Number(e.target.value) })} className="w-full accent-[#0065a3]" />
                 <div className="flex justify-between text-[10px] text-gray-400"><span>3</span><span>10</span></div>
               </div>
 
@@ -278,11 +278,11 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
             </>
           ) : (
             <>
-              <h3 className="text-sm font-bold text-[#005587]">Response Type</h3>
+              <h3 className="text-sm font-bold text-[#0065a3]">Response Type</h3>
               <p className="text-xs text-gray-500">How can students respond?</p>
               <div className="space-y-2">
                 {(['both', 'text', 'video'] as const).map((type) => (
-                  <button key={type} type="button" onClick={() => setConfig({ ...config, allowedResponseTypes: type })} className={`w-full p-3 rounded-xl border text-left text-sm ${config.allowedResponseTypes === type ? 'border-[#005587] bg-[#005587]/5 font-medium' : 'border-gray-200'}`}>
+                  <button key={type} type="button" onClick={() => setConfig({ ...config, allowedResponseTypes: type })} className={`w-full p-3 rounded-xl border text-left text-sm ${config.allowedResponseTypes === type ? 'border-[#0065a3] bg-[#0065a3]/5 font-medium' : 'border-gray-200'}`}>
                     {type === 'both' ? '💬🎥 Text & Video responses' : type === 'text' ? '💬 Text responses only' : '🎥 Video responses only'}
                   </button>
                 ))}
@@ -297,11 +297,11 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
         <div className="space-y-4">
           {config.format === 'small-groups' ? (
             <>
-              <h3 className="text-sm font-bold text-[#005587]">Response Type</h3>
+              <h3 className="text-sm font-bold text-[#0065a3]">Response Type</h3>
               <p className="text-xs text-gray-500">How can students respond?</p>
               <div className="space-y-2">
                 {(['both', 'text', 'video'] as const).map((type) => (
-                  <button key={type} type="button" onClick={() => setConfig({ ...config, allowedResponseTypes: type })} className={`w-full p-3 rounded-xl border text-left text-sm ${config.allowedResponseTypes === type ? 'border-[#005587] bg-[#005587]/5 font-medium' : 'border-gray-200'}`}>
+                  <button key={type} type="button" onClick={() => setConfig({ ...config, allowedResponseTypes: type })} className={`w-full p-3 rounded-xl border text-left text-sm ${config.allowedResponseTypes === type ? 'border-[#0065a3] bg-[#0065a3]/5 font-medium' : 'border-gray-200'}`}>
                     {type === 'both' ? '💬🎥 Text & Video responses' : type === 'text' ? '💬 Text responses only' : '🎥 Video responses only'}
                   </button>
                 ))}
@@ -309,14 +309,14 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
             </>
           ) : (
             <>
-              <h3 className="text-sm font-bold text-[#005587]">Participation Rules</h3>
+              <h3 className="text-sm font-bold text-[#0065a3]">Participation Rules</h3>
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Minimum Posts Required</label>
-                <input type="number" min={1} max={50} value={config.minPosts} onChange={(e) => setConfig({ ...config, minPosts: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587] focus:outline-none" />
+                <input type="number" min={1} max={50} value={config.minPosts} onChange={(e) => setConfig({ ...config, minPosts: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3] focus:outline-none" />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 block mb-1">Minimum Word Count per Post</label>
-                <input type="number" min={0} max={1000} value={config.minWordCount} onChange={(e) => setConfig({ ...config, minWordCount: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587] focus:outline-none" />
+                <input type="number" min={0} max={1000} value={config.minWordCount} onChange={(e) => setConfig({ ...config, minWordCount: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3] focus:outline-none" />
               </div>
             </>
           )}
@@ -327,7 +327,7 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
       {step === 4 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-[#005587]">Rubric</h3>
+            <h3 className="text-sm font-bold text-[#0065a3]">Rubric</h3>
             <button type="button" onClick={() => setStep(5)} className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-[10px] font-medium">Skip →</button>
           </div>
           <RubricBuilder value={rubric} onChange={setRubric} autoLoadDefault={rubric.length === 0} />
@@ -337,7 +337,7 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
       {/* Step 5: Review */}
       {step === 5 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-bold text-[#005587]">Review</h3>
+          <h3 className="text-sm font-bold text-[#0065a3]">Review</h3>
           <div className="bg-gray-50 rounded-xl p-3 space-y-2 text-xs">
             <div><span className="text-gray-500">Prompt:</span> <span className="font-medium">{config.prompt.substring(0, 60)}{config.prompt.length > 60 ? '...' : ''}</span></div>
             <div><span className="text-gray-500">Format:</span> <span className="font-medium">{config.format === 'whole-class' ? 'Whole Class' : `Small Groups (${config.groupSize}, ${groupFormation})`}</span></div>
@@ -352,9 +352,9 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
       <div className="flex justify-between pt-2">
         <button onClick={step === 1 ? onBack : () => setStep(step - 1)} className="px-4 py-2 text-xs text-gray-600 font-medium">Back</button>
         {step < totalSteps ? (
-          <button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="px-4 py-2 bg-[#005587] text-white rounded-xl text-xs font-medium disabled:opacity-50">Next</button>
+          <button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="px-4 py-2 bg-[#0065a3] text-white rounded-xl text-xs font-medium disabled:opacity-50">Next</button>
         ) : (
-          <button onClick={handleComplete} className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-xs font-bold">Create Discussion</button>
+          <button onClick={handleComplete} className="px-4 py-2 bg-[#FFC72C] text-[#0065a3] rounded-xl text-xs font-bold">Create Discussion</button>
         )}
       </div>
     </div>

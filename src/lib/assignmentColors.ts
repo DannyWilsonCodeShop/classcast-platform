@@ -6,9 +6,9 @@
  */
 const CARD_STYLES = [
   { bg: '#6cc3d3', text: '#ffffff' },           // teal + white
-  { bg: '#005587', text: '#FFC72C' },           // navy + gold
+  { bg: '#0065a3', text: '#FFC72C' },           // navy + gold
   { bg: '#4db8c7', text: '#ffffff' },           // deeper teal + white
-  { bg: '#FFC72C', text: '#005587' },           // gold + navy
+  { bg: '#FFC72C', text: '#0065a3' },           // gold + navy
   { bg: '#8dd4df', text: '#003d5c' },           // light teal + dark navy
   { bg: '#003d5c', text: '#6cc3d3' },           // dark navy + teal
 ];

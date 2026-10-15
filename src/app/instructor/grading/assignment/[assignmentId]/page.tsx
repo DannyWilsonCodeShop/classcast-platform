@@ -881,13 +881,13 @@ const NewAssignmentGradingPage: React.FC = () => {
         {/* Focused-submission banner (from a deep-link "Grade" click) */}
         {(focusSubmissionId || focusStudentId) && filteredSubmissions.length > 0 && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
-            <div className="flex items-center justify-between bg-[#005587]/5 border border-[#005587]/20 rounded-xl px-4 py-2">
-              <span className="text-sm text-[#005587] font-medium">
+            <div className="flex items-center justify-between bg-[#0065a3]/5 border border-[#0065a3]/20 rounded-xl px-4 py-2">
+              <span className="text-sm text-[#0065a3] font-medium">
                 Showing {filteredSubmissions[0]?.studentName || 'one student'}&apos;s submission
               </span>
               <button
                 onClick={() => { setFocusSubmissionId(null); setFocusStudentId(null); }}
-                className="text-xs font-bold text-[#005587] bg-white border border-[#005587]/30 rounded-full px-3 py-1 hover:bg-[#005587]/10"
+                className="text-xs font-bold text-[#0065a3] bg-white border border-[#0065a3]/30 rounded-full px-3 py-1 hover:bg-[#0065a3]/10"
               >
                 Show all submissions
               </button>

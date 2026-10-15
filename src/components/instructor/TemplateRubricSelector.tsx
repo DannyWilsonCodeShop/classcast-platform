@@ -50,7 +50,7 @@ export const TemplateRubricSelector: React.FC<TemplateRubricSelectorProps> = ({
     const template = TEMPLATE_RUBRICS[pendingTemplateKey];
     return (
       <div className="mb-6">
-        <h3 className="text-sm font-semibold text-[#005587] uppercase tracking-wide mb-1" style={{ fontFamily: "'Oswald', sans-serif" }}>
+        <h3 className="text-sm font-semibold text-[#0065a3] uppercase tracking-wide mb-1" style={{ fontFamily: "'Oswald', sans-serif" }}>
           Start from Template
         </h3>
         <p className="text-xs text-gray-500 mb-3">Select a pre-built rubric to customize</p>
@@ -63,7 +63,7 @@ export const TemplateRubricSelector: React.FC<TemplateRubricSelectorProps> = ({
             <button
               type="button"
               onClick={handleConfirm}
-              className="px-3 py-1.5 bg-[#005587] text-white text-sm font-medium rounded-lg hover:bg-[#004470] transition-colors"
+              className="px-3 py-1.5 bg-[#0065a3] text-white text-sm font-medium rounded-lg hover:bg-[#004470] transition-colors"
             >
               Replace Rubric
             </button>
@@ -98,7 +98,7 @@ export const TemplateRubricSelector: React.FC<TemplateRubricSelectorProps> = ({
               onClick={() => handleTemplateClick(key)}
               className={`rounded-xl p-2.5 text-left transition-all border ${
                 isActive
-                  ? 'border-[#005587] bg-[#005587]/5'
+                  ? 'border-[#0065a3] bg-[#0065a3]/5'
                   : 'border-transparent bg-gray-50 hover:bg-gray-100 hover:border-gray-200'
               }`}
             >

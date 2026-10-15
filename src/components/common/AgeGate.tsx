@@ -53,7 +53,7 @@ export function AgeGate({ children }: { children: React.ReactNode }) {
         </p>
         <button
           onClick={() => setShowDeclined(false)}
-          className="px-6 py-2.5 text-sm font-medium text-[#005587] border border-[#005587] rounded-full"
+          className="px-6 py-2.5 text-sm font-medium text-[#0065a3] border border-[#0065a3] rounded-full"
         >
           Go Back
         </button>
@@ -65,7 +65,7 @@ export function AgeGate({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-screen flex flex-col items-center justify-center px-8 bg-gradient-to-b from-white to-[#f0f9fc]">
       <img src="/MyClassCast36.png" alt="ClassCast" className="w-24 h-24 mb-6" />
-      <h1 className="text-2xl font-bold text-[#005587] mb-2 text-center" style={{ fontFamily: "'Oswald', sans-serif" }}>
+      <h1 className="text-2xl font-bold text-[#0065a3] mb-2 text-center" style={{ fontFamily: "'Oswald', sans-serif" }}>
         Welcome to ClassCast
       </h1>
       <p className="text-sm text-gray-600 text-center mb-8 max-w-[280px]">
@@ -76,7 +76,7 @@ export function AgeGate({ children }: { children: React.ReactNode }) {
       <div className="w-full max-w-[300px] space-y-3">
         <button
           onClick={handleConfirm}
-          className="w-full py-3 bg-[#005587] text-white font-semibold rounded-full text-sm shadow-lg active:scale-[0.97] transition-transform"
+          className="w-full py-3 bg-[#0065a3] text-white font-semibold rounded-full text-sm shadow-lg active:scale-[0.97] transition-transform"
         >
           I am 14 years or older
         </button>

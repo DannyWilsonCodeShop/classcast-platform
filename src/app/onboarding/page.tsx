@@ -57,7 +57,7 @@ export default function OnboardingPage() {
   const isLast = current === slides.length - 1;
 
   return (
-    <div className="fixed inset-0 bg-[#005587] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-[#0065a3] flex flex-col overflow-hidden">
       {/* Animated background circles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/5 rounded-full animate-pulse" style={{ animationDuration: '4s' }} />
@@ -125,7 +125,7 @@ export default function OnboardingPage() {
         {/* Button */}
         <button
           onClick={goNext}
-          className="w-full py-3 bg-[#FFC72C] text-[#005587] rounded-full font-bold text-sm shadow-lg active:scale-95 transition-transform"
+          className="w-full py-3 bg-[#FFC72C] text-[#0065a3] rounded-full font-bold text-sm shadow-lg active:scale-95 transition-transform"
         >
           {isLast ? 'Get Started →' : 'Next'}
         </button>

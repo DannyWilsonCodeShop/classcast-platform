@@ -136,7 +136,7 @@ export default function GenerateThumbnailsPage() {
           <button
             onClick={fetchMissing}
             disabled={loading}
-            className="px-4 py-2 bg-[#005587] text-white rounded-lg text-sm font-medium disabled:opacity-50"
+            className="px-4 py-2 bg-[#0065a3] text-white rounded-lg text-sm font-medium disabled:opacity-50"
           >
             {loading ? 'Scanning...' : 'Scan Submissions'}
           </button>

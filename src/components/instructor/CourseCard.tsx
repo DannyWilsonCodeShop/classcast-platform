@@ -29,7 +29,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({
       className="w-full bg-gray-50 rounded-lg p-3 text-left active:scale-[0.98] transition-transform"
     >
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-bold text-[#005587] line-clamp-1 flex-1">
+        <h3 className="text-xs font-bold text-[#0065a3] line-clamp-1 flex-1">
           {course.title}
         </h3>
         <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-medium ml-2 shrink-0 ${

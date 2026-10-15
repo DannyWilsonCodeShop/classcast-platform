@@ -200,7 +200,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
       <div className="bg-white w-full max-w-[440px] rounded-2xl p-5 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-bold text-[#005587]">Course Settings</h2>
+          <h2 className="text-base font-bold text-[#0065a3]">Course Settings</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -222,7 +222,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
             />
           </div>
 
@@ -234,7 +234,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
               />
             </div>
             <div>
@@ -242,7 +242,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
               <select
                 value={semester}
                 onChange={(e) => setSemester(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
               >
                 {SEMESTER_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -260,7 +260,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
               onChange={(e) => setYear(parseInt(e.target.value) || 2025)}
               min={2020}
               max={2030}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
             />
           </div>
 
@@ -271,14 +271,14 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={2}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] resize-none"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] resize-none"
             />
           </div>
 
           {/* Enrollment Toggle */}
           <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
             <div>
-              <span className="text-xs font-bold text-[#005587]">Enrollment</span>
+              <span className="text-xs font-bold text-[#0065a3]">Enrollment</span>
               <p className="text-[10px] text-gray-500 mt-0.5">
                 {enrollmentOpen ? 'Students can join with the class code' : 'New students cannot join this course'}
               </p>
@@ -308,7 +308,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                   <div key={section.sectionId} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
                     <span className="flex-1 text-xs font-medium text-gray-700 truncate">{section.sectionName}</span>
                     {(section.sectionCode || section.classCode) && (
-                      <span className="px-1.5 py-0.5 bg-[#005587]/10 text-[#005587] text-[10px] font-mono font-bold rounded">
+                      <span className="px-1.5 py-0.5 bg-[#0065a3]/10 text-[#0065a3] text-[10px] font-mono font-bold rounded">
                         {section.classCode || section.sectionCode}
                       </span>
                     )}
@@ -332,14 +332,14 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
                     value={addingSectionName}
                     onChange={(e) => setAddingSectionName(e.target.value)}
                     placeholder="New section name..."
-                    className="flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587] focus:border-[#005587]"
+                    className="flex-1 px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#0065a3] focus:border-[#0065a3]"
                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSection())}
                   />
                   <button
                     type="button"
                     onClick={handleAddSection}
                     disabled={!addingSectionName.trim() || isAddingSection}
-                    className="px-2.5 py-1.5 bg-[#005587] text-white text-xs font-bold rounded-lg disabled:opacity-40"
+                    className="px-2.5 py-1.5 bg-[#0065a3] text-white text-xs font-bold rounded-lg disabled:opacity-40"
                   >
                     +
                   </button>
@@ -360,7 +360,7 @@ const CourseSettingsModal: React.FC<CourseSettingsModalProps> = ({
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 px-4 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50"
             >
               {isLoading ? 'Saving...' : 'Save Changes'}
             </button>

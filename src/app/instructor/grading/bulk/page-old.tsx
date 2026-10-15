@@ -1186,7 +1186,7 @@ const BulkGradingPage: React.FC = () => {
       <InstructorRoute>
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005587] mx-auto"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0065a3] mx-auto"></div>
             <p className="text-gray-500 mt-4">Loading submissions...</p>
           </div>
         </div>
@@ -1222,7 +1222,7 @@ const BulkGradingPage: React.FC = () => {
               </button>
               <button
                 onClick={() => router.back()}
-                className="px-6 py-3 bg-[#005587] text-white rounded-xl font-bold hover:bg-[#003d5c] hover:shadow-lg transition-all duration-300"
+                className="px-6 py-3 bg-[#0065a3] text-white rounded-xl font-bold hover:bg-[#003d5c] hover:shadow-lg transition-all duration-300"
               >
                 ← Back to Dashboard
               </button>
@@ -1405,7 +1405,7 @@ const BulkGradingPage: React.FC = () => {
                             clearAllSelections();
                           }
                         }}
-                        className="w-4 h-4 text-[#005587] bg-gray-100 border-gray-300 rounded focus:ring-[#005587] focus:ring-2"
+                        className="w-4 h-4 text-[#0065a3] bg-gray-100 border-gray-300 rounded focus:ring-[#0065a3] focus:ring-2"
                       />
                       <span className="text-xs font-medium text-gray-700">
                         Select All ({filteredSubmissions.length})
@@ -1422,7 +1422,7 @@ const BulkGradingPage: React.FC = () => {
 
               {/* Bulk Actions Toolbar */}
               {selectedSubmissions.size > 0 && (
-                <div className="bg-[#005587] text-white p-2 rounded-lg mb-2 shadow-lg">
+                <div className="bg-[#0065a3] text-white p-2 rounded-lg mb-2 shadow-lg">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <span className="text-sm font-medium">
@@ -1460,11 +1460,11 @@ const BulkGradingPage: React.FC = () => {
                     key={submission.id}
                     className={`p-4 rounded-lg border transition-all duration-300 ${
                       index === currentSubmissionIndex
-                        ? 'border-[#005587] bg-blue-50 shadow-lg ring-2 ring-[#005587]/20'
+                        ? 'border-[#0065a3] bg-blue-50 shadow-lg ring-2 ring-[#0065a3]/20'
                         : submission.isPinned && submission.isHighlighted
                         ? 'border-[#FFC72C] bg-amber-50/40 shadow-lg'
                         : submission.isPinned
-                        ? 'border-[#005587]/40 bg-blue-50/50 shadow-md'
+                        ? 'border-[#0065a3]/40 bg-blue-50/50 shadow-md'
                         : submission.isHighlighted
                         ? 'border-[#FFC72C]/60 bg-amber-50/30 shadow-md'
                         : (() => {
@@ -1487,7 +1487,7 @@ const BulkGradingPage: React.FC = () => {
                             type="checkbox"
                             checked={selectedSubmissions.has(submission.id)}
                             onChange={() => toggleSubmissionSelection(submission.id)}
-                            className="w-4 h-4 text-[#005587] bg-gray-100 border-gray-300 rounded focus:ring-[#005587] focus:ring-2"
+                            className="w-4 h-4 text-[#0065a3] bg-gray-100 border-gray-300 rounded focus:ring-[#0065a3] focus:ring-2"
                           />
                           <span className="text-xs text-gray-600">Select</span>
                         </label>
@@ -1496,7 +1496,7 @@ const BulkGradingPage: React.FC = () => {
                         {(submission.isPinned || submission.isHighlighted) && (
                           <div className="flex items-center space-x-1">
                             {submission.isPinned && (
-                              <div className="flex items-center space-x-1 px-2 py-1 bg-[#005587]/10 text-[#005587] rounded text-xs font-semibold border border-[#005587]/20">
+                              <div className="flex items-center space-x-1 px-2 py-1 bg-[#0065a3]/10 text-[#0065a3] rounded text-xs font-semibold border border-[#0065a3]/20">
                                 <span>📌</span>
                                 <span>Pinned</span>
                               </div>
@@ -2350,7 +2350,7 @@ const BulkGradingPage: React.FC = () => {
                   max="100"
                   value={bulkGrade}
                   onChange={(e) => setBulkGrade(e.target.value ? Number(e.target.value) : '')}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-transparent"
                   placeholder="Enter grade (optional)"
                 />
               </div>
@@ -2364,7 +2364,7 @@ const BulkGradingPage: React.FC = () => {
                   value={bulkFeedback}
                   onChange={(e) => setBulkFeedback(e.target.value)}
                   rows={8}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent resize-y"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-transparent resize-y"
                   placeholder="Enter feedback to apply to all selected submissions (optional)"
                 />
               </div>
@@ -2389,7 +2389,7 @@ const BulkGradingPage: React.FC = () => {
               <button
                 onClick={handleBulkGrading}
                 disabled={isBulkGrading || (!bulkGrade && !bulkFeedback.trim())}
-                className="flex-1 px-4 py-2 bg-[#005587] text-white rounded-lg hover:bg-[#003d5c] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 px-4 py-2 bg-[#0065a3] text-white rounded-lg hover:bg-[#003d5c] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isBulkGrading ? 'Applying...' : 'Apply to All'}
               </button>

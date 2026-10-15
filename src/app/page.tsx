@@ -26,7 +26,7 @@ export default function HomePage() {
   // White loading screen while checking auth / redirecting
   return (
     <div className="min-h-screen h-dvh bg-white flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#005587] border-t-transparent"></div>
+      <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#0065a3] border-t-transparent"></div>
     </div>
   );
 }

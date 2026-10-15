@@ -73,7 +73,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         <div className="flex items-center justify-around h-14 px-2">
           <a
             href="/student/assignments"
-            className="flex flex-col items-center justify-center flex-1 py-1 text-[#005587] font-medium"
+            className="flex flex-col items-center justify-center flex-1 py-1 text-[#0065a3] font-medium"
           >
             <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -82,7 +82,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </a>
           <a
             href="/student/grades"
-            className="flex flex-col items-center justify-center flex-1 py-1 text-gray-600 hover:text-[#005587]"
+            className="flex flex-col items-center justify-center flex-1 py-1 text-gray-600 hover:text-[#0065a3]"
           >
             <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -94,7 +94,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             href="/student/record"
             className="flex items-center justify-center -mt-5"
           >
-            <div className="w-14 h-14 bg-[#005587] rounded-full flex items-center justify-center shadow-xl border-4 border-white">
+            <div className="w-14 h-14 bg-[#0065a3] rounded-full flex items-center justify-center shadow-xl border-4 border-white">
               <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
               </svg>
@@ -102,7 +102,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </a>
           <a
             href="/student/courses"
-            className="flex flex-col items-center justify-center flex-1 py-1 text-gray-600 hover:text-[#005587]"
+            className="flex flex-col items-center justify-center flex-1 py-1 text-gray-600 hover:text-[#0065a3]"
           >
             <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -111,7 +111,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </a>
           <a
             href="/student/notifications"
-            className="flex flex-col items-center justify-center flex-1 py-1 text-gray-600 hover:text-[#005587] relative"
+            className="flex flex-col items-center justify-center flex-1 py-1 text-gray-600 hover:text-[#0065a3] relative"
           >
             <svg className="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />

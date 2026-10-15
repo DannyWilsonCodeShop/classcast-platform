@@ -281,7 +281,7 @@ export function TestTrackerCalendar() {
       {/* Add button + hint — the primary way to add an assessment (tapping a day also works) */}
       <button
         onClick={handleOpenAdd}
-        className="w-full mb-2 py-3 bg-[#005587] text-white rounded-xl text-sm font-bold active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
+        className="w-full mb-2 py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold active:scale-[0.98] transition-transform flex items-center justify-center gap-2"
       >
         <span className="text-lg leading-none">+</span> Add Assessment
       </button>
@@ -318,11 +318,11 @@ export function TestTrackerCalendar() {
               disabled={isWeekend}
               className={`aspect-square rounded-lg flex flex-col items-center justify-center relative transition-colors
                 ${isWeekend ? 'bg-gray-50 text-gray-300 cursor-default' : 'hover:bg-gray-100 active:scale-95 cursor-pointer'}
-                ${isToday ? 'ring-2 ring-[#005587]' : ''}
+                ${isToday ? 'ring-2 ring-[#0065a3]' : ''}
                 ${count === 0 ? '' : count === 1 ? 'bg-amber-50' : 'bg-red-50'}
               `}
             >
-              <span className={`text-xs font-medium ${isToday ? 'text-[#005587] font-bold' : isWeekend ? 'text-gray-300' : 'text-gray-700'}`}>{day}</span>
+              <span className={`text-xs font-medium ${isToday ? 'text-[#0065a3] font-bold' : isWeekend ? 'text-gray-300' : 'text-gray-700'}`}>{day}</span>
               {/* Indicators */}
               {count > 0 && (
                 <div className="flex gap-0.5 mt-0.5">
@@ -369,7 +369,7 @@ export function TestTrackerCalendar() {
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/40" onClick={() => setShowAddModal(false)}>
           <div className="bg-white w-full max-w-sm rounded-2xl p-5" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold text-[#005587]">Add Assessment</h3>
+              <h3 className="text-base font-bold text-[#0065a3]">Add Assessment</h3>
               <button onClick={() => setShowAddModal(false)} className="text-gray-400">✕</button>
             </div>
 
@@ -385,7 +385,7 @@ export function TestTrackerCalendar() {
               <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
                 <p className="text-xs text-red-700 font-medium">{addError}</p>
                 {suggestedDate && (
-                  <button onClick={handleUseSuggested} className="mt-2 text-xs text-[#005587] font-bold underline">
+                  <button onClick={handleUseSuggested} className="mt-2 text-xs text-[#0065a3] font-bold underline">
                     Use {new Date(suggestedDate + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })} instead →
                   </button>
                 )}
@@ -417,14 +417,14 @@ export function TestTrackerCalendar() {
                   <div>
                     <label className="block text-[10px] font-medium text-gray-600 mb-1">Grade</label>
                     <select value={grade} onChange={(e) => handleGradeChange(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#005587]">
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#0065a3]">
                       {GRADES.map(g => <option key={g} value={g}>{gradeLabel(g)}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-[10px] font-medium text-gray-600 mb-1">Your Name</label>
                     <select value={teacherName} onChange={(e) => setTeacherName(e.target.value)}
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#005587]">
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-[#0065a3]">
                       <option value="">Select...</option>
                       {teachersForGrade(grade).map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
@@ -435,7 +435,7 @@ export function TestTrackerCalendar() {
                     <label className="block text-[10px] font-medium text-gray-600 mb-1">Subject / Test Name</label>
                     <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)}
                       placeholder="e.g., Unit 3 Test, Midterm Exam"
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587]" />
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3]" />
                   </div>
 
                   {/* Type */}
@@ -455,7 +455,7 @@ export function TestTrackerCalendar() {
                 </div>
 
                 <button onClick={handleSubmit} disabled={!teacherName || !subject || submitting || !!addError}
-                  className="w-full mt-4 py-3 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50 active:scale-[0.98] transition-transform">
+                  className="w-full mt-4 py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold disabled:opacity-50 active:scale-[0.98] transition-transform">
                   {submitting ? 'Adding...' : 'Add to Calendar'}
                 </button>
               </>
@@ -478,20 +478,20 @@ export function TestTrackerCalendar() {
 
         {showMore && (
           <div className="mt-3 bg-white rounded-2xl p-4 border border-stone-200/60 shadow-sm">
-            <h3 className="text-sm font-bold text-[#005587] mb-1">🎲 Random Name Selector</h3>
+            <h3 className="text-sm font-bold text-[#0065a3] mb-1">🎲 Random Name Selector</h3>
             <p className="text-[11px] text-gray-500 mb-3">Pick a random {pickMode} from {gradeLabel(grade)}.</p>
 
             {/* Student / Teacher toggle */}
             <div className="flex gap-2 mb-3">
               <button
                 onClick={() => { setPickMode('student'); setPickedName(''); }}
-                className={`flex-1 py-2 rounded-xl text-xs font-medium transition-colors ${pickMode === 'student' ? 'bg-[#005587] text-white' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}
+                className={`flex-1 py-2 rounded-xl text-xs font-medium transition-colors ${pickMode === 'student' ? 'bg-[#0065a3] text-white' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}
               >
                 Student
               </button>
               <button
                 onClick={() => { setPickMode('teacher'); setPickedName(''); }}
-                className={`flex-1 py-2 rounded-xl text-xs font-medium transition-colors ${pickMode === 'teacher' ? 'bg-[#005587] text-white' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}
+                className={`flex-1 py-2 rounded-xl text-xs font-medium transition-colors ${pickMode === 'teacher' ? 'bg-[#0065a3] text-white' : 'bg-gray-50 text-gray-500 border border-gray-200'}`}
               >
                 Teacher
               </button>
@@ -500,7 +500,7 @@ export function TestTrackerCalendar() {
             {/* Result */}
             <div className="min-h-[64px] flex items-center justify-center bg-gradient-to-b from-amber-50 to-white rounded-xl border border-amber-100 mb-3 px-3">
               {pickedName ? (
-                <span className={`text-center font-bold ${picking ? 'text-gray-400 text-base' : 'text-[#005587] text-xl'} transition-all`}>
+                <span className={`text-center font-bold ${picking ? 'text-gray-400 text-base' : 'text-[#0065a3] text-xl'} transition-all`}>
                   {pickedName}
                 </span>
               ) : (
@@ -511,7 +511,7 @@ export function TestTrackerCalendar() {
             <button
               onClick={pickRandom}
               disabled={picking}
-              className="w-full py-3 bg-[#FFC72C] text-[#005587] rounded-xl text-sm font-bold active:scale-[0.98] transition-transform disabled:opacity-60"
+              className="w-full py-3 bg-[#FFC72C] text-[#0065a3] rounded-xl text-sm font-bold active:scale-[0.98] transition-transform disabled:opacity-60"
             >
               {picking ? 'Picking…' : '🎲 Pick Random'}
             </button>

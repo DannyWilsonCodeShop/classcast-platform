@@ -118,7 +118,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, title, subtitle }) => {
           />
           <div className="fixed top-0 right-0 z-50 w-72 h-full bg-white shadow-xl lg:hidden" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <span className="text-lg font-bold text-[#005587]">Menu</span>
+              <span className="text-lg font-bold text-[#0065a3]">Menu</span>
               <button
                 onClick={() => setShowMobileMenu(false)}
                 className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
@@ -129,28 +129,28 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick, title, subtitle }) => {
             <nav className="p-4 space-y-1">
               <button
                 onClick={() => { router.push('/student/dashboard'); setShowMobileMenu(false); }}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-[#005587] rounded-lg transition-colors"
+                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-[#0065a3] rounded-lg transition-colors"
               >
                 <MagnifyingGlassIcon className="w-5 h-5" />
                 <span className="font-medium">Search</span>
               </button>
               <button
                 onClick={() => { router.push('/student/dashboard'); setShowMobileMenu(false); }}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-[#005587] rounded-lg transition-colors"
+                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-[#0065a3] rounded-lg transition-colors"
               >
                 <AcademicCapIcon className="w-5 h-5" />
                 <span className="font-medium">Courses</span>
               </button>
               <button
                 onClick={() => { router.push('/student/profile'); setShowMobileMenu(false); }}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-[#005587] rounded-lg transition-colors"
+                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-[#0065a3] rounded-lg transition-colors"
               >
                 <UserCircleIcon className="w-5 h-5" />
                 <span className="font-medium">Profile</span>
               </button>
               <button
                 onClick={() => { router.push('/student/settings'); setShowMobileMenu(false); }}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-[#005587] rounded-lg transition-colors"
+                className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-[#0065a3] rounded-lg transition-colors"
               >
                 <Cog6ToothIcon className="w-5 h-5" />
                 <span className="font-medium">Settings</span>

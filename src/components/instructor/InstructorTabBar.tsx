@@ -232,7 +232,7 @@ export function InstructorTabBar() {
               className="relative flex flex-col items-center w-1/5 py-1 z-10"
               onClick={() => { animateToTab(4); router.push('/instructor/profile'); }}
             >
-              <div className="w-6 h-6 rounded-full overflow-hidden bg-[#005587] flex items-center justify-center">
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-[#0065a3] flex items-center justify-center">
                 {avatarUrl && avatarUrl.startsWith('http') ? (
                   <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                 ) : avatarUrl && avatarUrl.length <= 4 ? (

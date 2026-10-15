@@ -147,7 +147,7 @@ const AIGradingWizard: React.FC<AIGradingWizardProps> = ({
       <div className="relative w-full max-w-lg mx-4 bg-white rounded-2xl shadow-xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 className="text-lg font-bold text-[#005587] font-['Oswald',sans-serif]">
+          <h2 className="text-lg font-bold text-[#0065a3] font-['Oswald',sans-serif]">
             AI Grading Wizard
           </h2>
           <button
@@ -173,7 +173,7 @@ const AIGradingWizard: React.FC<AIGradingWizardProps> = ({
               <div className="w-16 h-16 bg-[#FFC72C]/20 rounded-full flex items-center justify-center mb-4">
                 <span className="text-3xl">🔒</span>
               </div>
-              <h3 className="text-lg font-bold text-[#005587] mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>
+              <h3 className="text-lg font-bold text-[#0065a3] mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>
                 AI GRADING ASSISTANT
               </h3>
               <p className="text-sm text-gray-600 mb-4 max-w-sm">
@@ -187,7 +187,7 @@ const AIGradingWizard: React.FC<AIGradingWizardProps> = ({
               <div className="space-y-2 w-full max-w-xs">
                 <a
                   href="mailto:support@class-cast.com?subject=AI%20Grading%20Assistant%20Upgrade%20Inquiry"
-                  className="block w-full px-4 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold text-center hover:bg-[#004470] transition-colors"
+                  className="block w-full px-4 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold text-center hover:bg-[#004470] transition-colors"
                 >
                   ✉️ Contact ClassCast Sales
                 </a>
@@ -265,7 +265,7 @@ const AIGradingWizard: React.FC<AIGradingWizardProps> = ({
               <button
                 onClick={handleNext}
                 disabled={isNextDisabled}
-                className="flex items-center gap-1 px-5 py-2 text-sm font-medium text-white bg-[#005587] rounded-full hover:bg-[#004470] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                className="flex items-center gap-1 px-5 py-2 text-sm font-medium text-white bg-[#0065a3] rounded-full hover:bg-[#004470] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
@@ -303,15 +303,15 @@ const WizardStepIndicator: React.FC<WizardStepIndicatorProps> = ({
               <div
                 className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold transition-colors ${
                   isActive
-                    ? 'bg-[#005587] text-white'
+                    ? 'bg-[#0065a3] text-white'
                     : isCompleted
-                    ? 'bg-[#FFC72C] text-[#005587]'
+                    ? 'bg-[#FFC72C] text-[#0065a3]'
                     : 'bg-gray-200 text-gray-500'
                 }`}
               >
                 {isCompleted ? '✓' : step}
               </div>
-              <span className={`text-[10px] font-medium ${isActive ? 'text-[#005587]' : 'text-gray-400'}`}>
+              <span className={`text-[10px] font-medium ${isActive ? 'text-[#0065a3]' : 'text-gray-400'}`}>
                 {stepLabels[i]}
               </span>
             </div>
@@ -360,7 +360,7 @@ const Step1GradingMode: React.FC<Step1Props> = ({ gradingMode, onSelect }) => {
 
   return (
     <div>
-      <h3 className="text-base font-bold text-[#005587] font-['Oswald',sans-serif] mb-1">
+      <h3 className="text-base font-bold text-[#0065a3] font-['Oswald',sans-serif] mb-1">
         Select Grading Mode
       </h3>
       <p className="text-sm text-gray-500 mb-4">Choose how the AI should grade submissions.</p>
@@ -377,7 +377,7 @@ const Step1GradingMode: React.FC<Step1Props> = ({ gradingMode, onSelect }) => {
           >
             <span className="text-2xl mt-0.5">{mode.icon}</span>
             <div>
-              <p className="font-semibold text-[#005587] text-sm">{mode.title}</p>
+              <p className="font-semibold text-[#0065a3] text-sm">{mode.title}</p>
               <p className="text-xs text-gray-500 mt-0.5">{mode.description}</p>
             </div>
           </button>
@@ -414,7 +414,7 @@ const Step2StrictnessCriteria: React.FC<Step2Props> = ({
 
   return (
     <div>
-      <h3 className="text-base font-bold text-[#005587] font-['Oswald',sans-serif] mb-1">
+      <h3 className="text-base font-bold text-[#0065a3] font-['Oswald',sans-serif] mb-1">
         Strictness & Criteria
       </h3>
       <p className="text-sm text-gray-500 mb-4">Configure how strictly the AI grades.</p>
@@ -429,7 +429,7 @@ const Step2StrictnessCriteria: React.FC<Step2Props> = ({
               onClick={() => onStrictnessChange(level.value)}
               className={`flex-1 py-2 px-3 text-xs font-medium rounded-full transition-all ${
                 strictness === level.value
-                  ? 'bg-[#005587] text-white shadow-sm'
+                  ? 'bg-[#0065a3] text-white shadow-sm'
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
@@ -449,7 +449,7 @@ const Step2StrictnessCriteria: React.FC<Step2Props> = ({
           value={keywords}
           onChange={(e) => onKeywordsChange(e.target.value)}
           placeholder="e.g. thesis, argument, evidence"
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005587]/20 focus:border-[#005587]"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0065a3]/20 focus:border-[#0065a3]"
         />
       </div>
 
@@ -463,7 +463,7 @@ const Step2StrictnessCriteria: React.FC<Step2Props> = ({
           value={concepts}
           onChange={(e) => onConceptsChange(e.target.value)}
           placeholder="e.g. critical thinking, methodology"
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005587]/20 focus:border-[#005587]"
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0065a3]/20 focus:border-[#0065a3]"
         />
       </div>
     </div>
@@ -491,7 +491,7 @@ const Step3FeedbackPreferences: React.FC<Step3Props> = ({
 }) => {
   return (
     <div>
-      <h3 className="text-base font-bold text-[#005587] font-['Oswald',sans-serif] mb-1">
+      <h3 className="text-base font-bold text-[#0065a3] font-['Oswald',sans-serif] mb-1">
         Feedback Preferences
       </h3>
       <p className="text-sm text-gray-500 mb-4">Customize how AI writes feedback.</p>
@@ -510,7 +510,7 @@ const Step3FeedbackPreferences: React.FC<Step3Props> = ({
               onClick={() => onFormalityChange(opt.value)}
               className={`flex-1 py-2 px-2 text-xs font-medium rounded-full border transition-all ${
                 formality === opt.value
-                  ? 'border-[#FFC72C] bg-[#FFC72C]/10 text-[#005587]'
+                  ? 'border-[#FFC72C] bg-[#FFC72C]/10 text-[#0065a3]'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300'
               }`}
             >
@@ -534,7 +534,7 @@ const Step3FeedbackPreferences: React.FC<Step3Props> = ({
               onClick={() => onFeedbackLengthChange(opt.value)}
               className={`flex-1 py-2 px-2 text-xs font-medium rounded-full border transition-all ${
                 feedbackLength === opt.value
-                  ? 'border-[#FFC72C] bg-[#FFC72C]/10 text-[#005587]'
+                  ? 'border-[#FFC72C] bg-[#FFC72C]/10 text-[#0065a3]'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300'
               }`}
             >
@@ -558,7 +558,7 @@ const Step3FeedbackPreferences: React.FC<Step3Props> = ({
               onClick={() => onToneChange(opt.value)}
               className={`flex-1 py-2 px-2 text-xs font-medium rounded-full border transition-all ${
                 tone === opt.value
-                  ? 'border-[#FFC72C] bg-[#FFC72C]/10 text-[#005587]'
+                  ? 'border-[#FFC72C] bg-[#FFC72C]/10 text-[#0065a3]'
                   : 'border-gray-200 text-gray-600 hover:border-gray-300'
               }`}
             >
@@ -619,7 +619,7 @@ const Step4ReviewApply: React.FC<Step4Props> = ({
     return (
       <div className="text-center py-6">
         <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
-        <h3 className="text-base font-bold text-[#005587] font-['Oswald',sans-serif] mb-2">
+        <h3 className="text-base font-bold text-[#0065a3] font-['Oswald',sans-serif] mb-2">
           Grading Complete
         </h3>
         <p className="text-sm text-gray-600">
@@ -636,7 +636,7 @@ const Step4ReviewApply: React.FC<Step4Props> = ({
   if (isProcessing) {
     return (
       <div className="flex flex-col items-center justify-center py-10">
-        <Loader2 className="w-10 h-10 text-[#005587] animate-spin mb-3" />
+        <Loader2 className="w-10 h-10 text-[#0065a3] animate-spin mb-3" />
         <p className="text-sm text-gray-600 font-medium">Processing submissions...</p>
         <p className="text-xs text-gray-400 mt-1">This may take a moment</p>
       </div>
@@ -651,7 +651,7 @@ const Step4ReviewApply: React.FC<Step4Props> = ({
         <p className="text-sm text-red-600 font-medium mb-3">{error}</p>
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#005587] border border-[#005587] rounded-full hover:bg-[#005587]/5 transition-colors"
+          className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#0065a3] border border-[#0065a3] rounded-full hover:bg-[#0065a3]/5 transition-colors"
         >
           <RefreshCw className="w-4 h-4" />
           Retry
@@ -666,7 +666,7 @@ const Step4ReviewApply: React.FC<Step4Props> = ({
 
   return (
     <div>
-      <h3 className="text-base font-bold text-[#005587] font-['Oswald',sans-serif] mb-1">
+      <h3 className="text-base font-bold text-[#0065a3] font-['Oswald',sans-serif] mb-1">
         Review & Apply
       </h3>
       <p className="text-sm text-gray-500 mb-4">Confirm your settings and apply grading.</p>
@@ -675,16 +675,16 @@ const Step4ReviewApply: React.FC<Step4Props> = ({
       <div className="bg-gray-50 rounded-xl p-4 mb-5 space-y-2 text-sm">
         <div className="flex justify-between">
           <span className="text-gray-500">Mode</span>
-          <span className="font-medium text-[#005587]">{modeLabels[gradingMode]}</span>
+          <span className="font-medium text-[#0065a3]">{modeLabels[gradingMode]}</span>
         </div>
         <div className="flex justify-between">
           <span className="text-gray-500">Strictness</span>
-          <span className="font-medium text-[#005587] capitalize">{strictness}</span>
+          <span className="font-medium text-[#0065a3] capitalize">{strictness}</span>
         </div>
         {keywordList.length > 0 && (
           <div className="flex justify-between">
             <span className="text-gray-500">Keywords</span>
-            <span className="font-medium text-[#005587] text-right max-w-[200px] truncate">
+            <span className="font-medium text-[#0065a3] text-right max-w-[200px] truncate">
               {keywordList.join(', ')}
             </span>
           </div>
@@ -692,7 +692,7 @@ const Step4ReviewApply: React.FC<Step4Props> = ({
         {conceptList.length > 0 && (
           <div className="flex justify-between">
             <span className="text-gray-500">Concepts</span>
-            <span className="font-medium text-[#005587] text-right max-w-[200px] truncate">
+            <span className="font-medium text-[#0065a3] text-right max-w-[200px] truncate">
               {conceptList.join(', ')}
             </span>
           </div>
@@ -702,15 +702,15 @@ const Step4ReviewApply: React.FC<Step4Props> = ({
             <div className="border-t border-gray-200 pt-2 mt-2" />
             <div className="flex justify-between">
               <span className="text-gray-500">Formality</span>
-              <span className="font-medium text-[#005587] capitalize">{formality}</span>
+              <span className="font-medium text-[#0065a3] capitalize">{formality}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Length</span>
-              <span className="font-medium text-[#005587] capitalize">{feedbackLength}</span>
+              <span className="font-medium text-[#0065a3] capitalize">{feedbackLength}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Tone</span>
-              <span className="font-medium text-[#005587] capitalize">{tone}</span>
+              <span className="font-medium text-[#0065a3] capitalize">{tone}</span>
             </div>
           </>
         )}
@@ -721,7 +721,7 @@ const Step4ReviewApply: React.FC<Step4Props> = ({
         <button
           onClick={() => onApply('all_ungraded')}
           disabled={ungradedCount === 0}
-          className="w-full py-3 px-4 text-sm font-bold text-white bg-[#005587] rounded-full hover:bg-[#004470] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="w-full py-3 px-4 text-sm font-bold text-white bg-[#0065a3] rounded-full hover:bg-[#004470] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {ungradedCount > 0
             ? `Apply to All Ungraded (${ungradedCount})`
@@ -730,7 +730,7 @@ const Step4ReviewApply: React.FC<Step4Props> = ({
         {currentSubmissionId && (
           <button
             onClick={() => onApply('single')}
-            className="w-full py-3 px-4 text-sm font-medium text-[#005587] border-2 border-[#005587] rounded-full hover:bg-[#005587]/5 transition-colors"
+            className="w-full py-3 px-4 text-sm font-medium text-[#0065a3] border-2 border-[#0065a3] rounded-full hover:bg-[#0065a3]/5 transition-colors"
           >
             Apply to This Submission
           </button>

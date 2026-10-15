@@ -54,7 +54,7 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ onClose }) => {
             </p>
             <button
               onClick={onClose}
-              className="px-6 py-2 bg-[#005587] text-white rounded-full text-sm font-medium"
+              className="px-6 py-2 bg-[#0065a3] text-white rounded-full text-sm font-medium"
             >
               Done
             </button>
@@ -100,7 +100,7 @@ export const PasswordReset: React.FC<PasswordResetProps> = ({ onClose }) => {
           <button
             onClick={handleSendResetEmail}
             disabled={isLoading}
-            className="flex-1 px-4 py-2.5 bg-[#005587] text-white rounded-lg hover:bg-[#004470] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 bg-[#0065a3] text-white rounded-lg hover:bg-[#004470] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? 'Sending...' : 'Send Reset Email'}
           </button>

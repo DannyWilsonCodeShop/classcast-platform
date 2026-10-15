@@ -204,7 +204,7 @@ export default function GroupBuilderPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
               <div className="min-w-0">
-                <h1 className="text-sm font-bold text-[#005587] truncate">Group Builder</h1>
+                <h1 className="text-sm font-bold text-[#0065a3] truncate">Group Builder</h1>
                 <p className="text-[10px] text-gray-500 truncate">{assignmentTitle}</p>
               </div>
             </div>
@@ -218,7 +218,7 @@ export default function GroupBuilderPage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-3 py-1.5 bg-[#005587] text-white rounded-full text-[10px] font-bold disabled:opacity-50"
+                className="px-3 py-1.5 bg-[#0065a3] text-white rounded-full text-[10px] font-bold disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
@@ -229,8 +229,8 @@ export default function GroupBuilderPage() {
         <div className="px-4 py-3 space-y-4">
           {/* Groups */}
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-[#005587]">Groups ({groups.length})</h2>
-            <button onClick={addGroup} className="px-3 py-1 bg-[#FFC72C] text-[#005587] rounded-full text-[10px] font-bold">
+            <h2 className="text-sm font-bold text-[#0065a3]">Groups ({groups.length})</h2>
+            <button onClick={addGroup} className="px-3 py-1 bg-[#FFC72C] text-[#0065a3] rounded-full text-[10px] font-bold">
               + Add Group
             </button>
           </div>
@@ -242,7 +242,7 @@ export default function GroupBuilderPage() {
                   type="text"
                   value={group.groupName}
                   onChange={(e) => setGroups(prev => prev.map(g => g.groupId === group.groupId ? { ...g, groupName: e.target.value } : g))}
-                  className="text-sm font-bold text-[#005587] bg-transparent border-none focus:outline-none"
+                  className="text-sm font-bold text-[#0065a3] bg-transparent border-none focus:outline-none"
                 />
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-gray-500">{group.members.length}/{maxGroupSize}</span>

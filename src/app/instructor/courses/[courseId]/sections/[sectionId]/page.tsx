@@ -351,7 +351,7 @@ const InstructorSectionDetailPage: React.FC = () => {
             </button>
             <img src="/ClassCastLogo.png" alt="" className="w-7 h-7 object-contain" />
             <div>
-              <span className="text-sm font-bold text-[#005587]">{section.sectionName}</span>
+              <span className="text-sm font-bold text-[#0065a3]">{section.sectionName}</span>
               <p className="text-[10px] text-gray-500">{course.courseName}</p>
             </div>
           </div>
@@ -362,7 +362,7 @@ const InstructorSectionDetailPage: React.FC = () => {
           {/* Section Info */}
           <div className="bg-gray-50 rounded-2xl p-3">
             <div className="grid grid-cols-2 gap-2 text-xs">
-              {section.classCode && <div><span className="text-gray-500">Class Code:</span> <span className="font-mono font-bold text-[#005587]">{section.classCode}</span></div>}
+              {section.classCode && <div><span className="text-gray-500">Class Code:</span> <span className="font-mono font-bold text-[#0065a3]">{section.classCode}</span></div>}
               <div><span className="text-gray-500">Students:</span> <span className="font-medium">{section.currentEnrollment}/{section.maxEnrollment}</span></div>
               {section.schedule && <div><span className="text-gray-500">Schedule:</span> <span className="font-medium">{section.schedule.days.join(', ')} {section.schedule.time}</span></div>}
               {section.location && <div><span className="text-gray-500">Location:</span> <span className="font-medium">{section.location}</span></div>}
@@ -371,10 +371,10 @@ const InstructorSectionDetailPage: React.FC = () => {
 
           {/* Tab Navigation */}
           <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-            <button onClick={() => setActiveTab('students')} className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${activeTab === 'students' ? 'bg-[#005587] text-white' : 'text-gray-600'}`}>
+            <button onClick={() => setActiveTab('students')} className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${activeTab === 'students' ? 'bg-[#0065a3] text-white' : 'text-gray-600'}`}>
               👥 Students ({students.length})
             </button>
-            <button onClick={() => setActiveTab('assignments')} className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${activeTab === 'assignments' ? 'bg-[#005587] text-white' : 'text-gray-600'}`}>
+            <button onClick={() => setActiveTab('assignments')} className={`flex-1 py-1.5 px-2 rounded-md text-xs font-medium transition-colors ${activeTab === 'assignments' ? 'bg-[#0065a3] text-white' : 'text-gray-600'}`}>
               📝 Assignments ({assignments.length})
             </button>
           </div>
@@ -390,7 +390,7 @@ const InstructorSectionDetailPage: React.FC = () => {
               ) : (
                 students.map((student) => (
                   <div key={student.userId} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
-                    <div className="w-9 h-9 rounded-full bg-[#005587] flex items-center justify-center text-white text-xs font-bold shrink-0">
+                    <div className="w-9 h-9 rounded-full bg-[#0065a3] flex items-center justify-center text-white text-xs font-bold shrink-0">
                       {student.avatar && student.avatar.length <= 4 && !student.avatar?.startsWith('http') ? (
                         <span className="text-base">{student.avatar}</span>
                       ) : student.avatar?.startsWith('http') ? (
@@ -422,7 +422,7 @@ const InstructorSectionDetailPage: React.FC = () => {
                 assignments.map((assignment) => (
                   <div key={assignment.assignmentId} className="bg-gray-50 rounded-xl p-3">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-xs font-bold text-[#005587]">{assignment.title}</h3>
+                      <h3 className="text-xs font-bold text-[#0065a3]">{assignment.title}</h3>
                       <span className="text-[10px] text-gray-500">{assignment.points} pts</span>
                     </div>
                     <div className="flex items-center gap-2 text-[10px] text-gray-500">

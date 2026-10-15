@@ -236,7 +236,7 @@ const InstructorDashboard: React.FC = () => {
               <select
                 value={selectedCourseId}
                 onChange={(e) => handleCourseChange(e.target.value)}
-                className={`px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-semibold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#005587] ${isWide ? 'max-w-[300px]' : 'flex-1'}`}
+                className={`px-3 py-2.5 bg-white border border-stone-200 rounded-xl text-sm font-semibold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#0065a3] ${isWide ? 'max-w-[300px]' : 'flex-1'}`}
               >
                 <option value="" className="font-normal text-gray-500">Select a course...</option>
                 {courses.map((course) => (
@@ -252,7 +252,7 @@ const InstructorDashboard: React.FC = () => {
                   <button
                     onClick={() => setShowCourseMenu(!showCourseMenu)}
                     disabled={courseActionLoading}
-                    className="p-2 text-gray-400 hover:text-[#005587] hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                    className="p-2 text-gray-400 hover:text-[#0065a3] hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
                     aria-label="Course actions"
                   >
                     {courseActionLoading ? (
@@ -304,8 +304,8 @@ const InstructorDashboard: React.FC = () => {
             <div className="flex flex-col items-center justify-center py-16 px-6">
               {courses.length === 0 ? (
                 <>
-                  <div className="w-20 h-20 bg-[#005587]/10 rounded-full flex items-center justify-center mb-5">
-                    <svg className="w-10 h-10 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-20 h-20 bg-[#0065a3]/10 rounded-full flex items-center justify-center mb-5">
+                    <svg className="w-10 h-10 text-[#0065a3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                   </div>
@@ -315,7 +315,7 @@ const InstructorDashboard: React.FC = () => {
                   </p>
                   <button
                     onClick={() => router.push('/instructor/classes/create')}
-                    className="px-6 py-3 bg-[#005587] text-white rounded-xl font-bold text-sm hover:bg-[#004470] transition-colors"
+                    className="px-6 py-3 bg-[#0065a3] text-white rounded-xl font-bold text-sm hover:bg-[#004470] transition-colors"
                   >
                     + Create Your First Course
                   </button>
@@ -341,7 +341,7 @@ const InstructorDashboard: React.FC = () => {
               <p className="text-sm text-gray-600 mb-4">No assignments yet</p>
               <button
                 onClick={() => router.push('/instructor/assignments/create')}
-                className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl font-bold text-sm"
+                className="px-4 py-2 bg-[#FFC72C] text-[#0065a3] rounded-xl font-bold text-sm"
               >
                 + Create Assignment
               </button>
@@ -354,7 +354,7 @@ const InstructorDashboard: React.FC = () => {
                 <div
                   key={assignment.assignmentId}
                   className="bg-white rounded-2xl p-5 border border-stone-200/60 shadow-sm"
-                  style={{ borderLeft: '3px solid #005587' }}
+                  style={{ borderLeft: '3px solid #0065a3' }}
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -376,7 +376,7 @@ const InstructorDashboard: React.FC = () => {
                     </button>
                     <button
                       onClick={() => router.push(`/instructor/grading/bulk?course=${selectedCourseId}&assignment=${assignment.assignmentId}`)}
-                      className="px-3 py-1.5 bg-[#005587] rounded-full text-[11px] font-medium text-white active:scale-95 transition-transform"
+                      className="px-3 py-1.5 bg-[#0065a3] rounded-full text-[11px] font-medium text-white active:scale-95 transition-transform"
                     >
                       Grade
                     </button>

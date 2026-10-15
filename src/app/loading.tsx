@@ -9,7 +9,7 @@ import React from 'react';
  */
 export default function RootLoading() {
   return (
-    <div className="h-screen h-dvh bg-[#005587] flex flex-col animate-loading-fade-in">
+    <div className="h-screen h-dvh bg-[#0065a3] flex flex-col animate-loading-fade-in">
       {/* ClassCast branding centered */}
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <img

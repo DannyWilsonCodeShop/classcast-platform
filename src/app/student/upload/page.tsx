@@ -253,7 +253,7 @@ function UploadPageInner() {
 
 export default function VideoUploadPage() {
   return (
-    <Suspense fallback={<StudentRoute><div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-2 border-[#005587] border-t-transparent" /></div></StudentRoute>}>
+    <Suspense fallback={<StudentRoute><div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-10 w-10 border-2 border-[#0065a3] border-t-transparent" /></div></StudentRoute>}>
       <UploadPageInner />
     </Suspense>
   );

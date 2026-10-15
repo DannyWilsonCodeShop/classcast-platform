@@ -829,7 +829,7 @@ const BulkGradingContent: React.FC = () => {
               onClick={() => setShowFilters(prev => !prev)}
               className="flex items-center gap-1.5"
             >
-              <span className="text-sm font-bold text-[#005587]">
+              <span className="text-sm font-bold text-[#0065a3]">
                 {instructorCourses.find(c => c.id === selectedCourse)?.label || 'All Courses'}
               </span>
               <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -877,7 +877,7 @@ const BulkGradingContent: React.FC = () => {
               onClick={() => setShowFilters(prev => !prev)}
               className="flex items-center gap-1.5 min-w-0 flex-1"
             >
-              <span className="text-sm font-bold text-[#005587] truncate">
+              <span className="text-sm font-bold text-[#0065a3] truncate">
                 {instructorCourses.find(c => c.id === selectedCourse)?.label || 'All Courses'}
               </span>
               <svg className={`w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform ${showFilters ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -888,7 +888,7 @@ const BulkGradingContent: React.FC = () => {
               onClick={() => setSpeedLock(prev => !prev)}
               className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors shrink-0 ${
                 speedLock 
-                  ? 'bg-[#FFC72C] text-[#005587] font-bold' 
+                  ? 'bg-[#FFC72C] text-[#0065a3] font-bold' 
                   : 'bg-gray-100 text-gray-600'
               }`}
             >
@@ -1041,7 +1041,7 @@ const BulkGradingContent: React.FC = () => {
               <span className="text-[10px] font-medium text-gray-400 shrink-0">Section:</span>
               <button
                 onClick={() => { setSelectedSection('all'); setSelectedStudent('all'); setSelectedStudentName(''); }}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSection === 'all' ? 'bg-[#005587] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSection === 'all' ? 'bg-[#0065a3] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 All
               </button>
@@ -1049,14 +1049,14 @@ const BulkGradingContent: React.FC = () => {
                 <button
                   key={section.id}
                   onClick={() => { setSelectedSection(section.id); setSelectedStudent('all'); setSelectedStudentName(''); }}
-                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSection === section.id ? 'bg-[#005587] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                  className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSection === section.id ? 'bg-[#0065a3] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
                 >
                   {section.name}
                 </button>
               ))}
               <button
                 onClick={() => { setSelectedSection('none'); setSelectedStudent('all'); setSelectedStudentName(''); }}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSection === 'none' ? 'bg-[#005587] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedSection === 'none' ? 'bg-[#0065a3] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
               >
                 No Section
               </button>
@@ -1084,7 +1084,7 @@ const BulkGradingContent: React.FC = () => {
                     {/* Student Header */}
                     <div className="px-4 py-3 flex items-center justify-between bg-gray-50 border-b border-gray-100">
                       <div className="flex items-center space-x-3">
-                        <div className="w-9 h-9 rounded-full overflow-hidden bg-[#005587] flex items-center justify-center text-white font-semibold text-sm shrink-0">
+                        <div className="w-9 h-9 rounded-full overflow-hidden bg-[#0065a3] flex items-center justify-center text-white font-semibold text-sm shrink-0">
                           {(() => {
                             const avatar = submission.studentAvatar;
                             if (avatar && avatar.startsWith('http')) {
@@ -1101,7 +1101,7 @@ const BulkGradingContent: React.FC = () => {
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold text-sm text-gray-900">{submission.studentName}</p>
                             {submission.sectionName && (
-                              <span className="px-2 py-0.5 rounded-full bg-[#005587]/10 text-[#005587] text-[10px] font-semibold whitespace-nowrap">
+                              <span className="px-2 py-0.5 rounded-full bg-[#0065a3]/10 text-[#0065a3] text-[10px] font-semibold whitespace-nowrap">
                                 {submission.sectionName}
                               </span>
                             )}
@@ -1113,7 +1113,7 @@ const BulkGradingContent: React.FC = () => {
                         {assignmentDetails[submission.assignmentId]?.problemBankId && (
                           <button
                             onClick={() => handleShowProblem(submission)}
-                            className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-[#005587]/10 hover:text-[#005587] transition-colors"
+                            className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-[#0065a3]/10 hover:text-[#0065a3] transition-colors"
                             title="View this student's individually assigned problem"
                           >
                             📎
@@ -1243,7 +1243,7 @@ const BulkGradingContent: React.FC = () => {
                           <button
                             onClick={() => { handleSaveGrade(submission.submissionId); handleSaveFeedback(submission.submissionId); }}
                             disabled={savingGrades.has(submission.submissionId)}
-                            className="mt-2 px-3 py-1.5 bg-[#005587] text-white text-xs font-medium rounded hover:bg-[#004470] disabled:opacity-50"
+                            className="mt-2 px-3 py-1.5 bg-[#0065a3] text-white text-xs font-medium rounded hover:bg-[#004470] disabled:opacity-50"
                           >
                             Save
                           </button>

@@ -38,7 +38,7 @@ export function ProblemReferenceModal({ isOpen, onClose, problem, studentName }:
         <div className="px-4 pb-3 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-sm text-[#005587]">📎 Assigned Problem</h3>
+              <h3 className="font-bold text-sm text-[#0065a3]">📎 Assigned Problem</h3>
               <p className="text-xs text-gray-500 mt-0.5">{studentName}</p>
             </div>
             <button

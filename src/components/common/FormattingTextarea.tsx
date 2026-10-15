@@ -101,7 +101,7 @@ export function FormattingTextarea({ value, onChange, placeholder, rows = 5, cla
   const handleRule = () => insertAtCursor('\n\n---\n\n');
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#005587] focus-within:border-[#005587]">
+    <div className="border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#0065a3] focus-within:border-[#0065a3]">
       {/* Toolbar */}
       <div className="flex items-center gap-0.5 px-2 py-1.5 bg-gray-50 border-b border-gray-200">
         <button type="button" onClick={handleBold} title="Bold" className="px-2 py-1 rounded text-xs font-bold text-gray-700 hover:bg-gray-200 transition-colors">B</button>

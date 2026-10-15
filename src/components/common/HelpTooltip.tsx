@@ -19,7 +19,7 @@ export function HelpTooltip({ text, className = '' }: HelpTooltipProps) {
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}
-        className="w-4 h-4 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-400 hover:bg-[#005587]/10 hover:text-[#005587] hover:border-[#005587]/30 transition-colors"
+        className="w-4 h-4 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-400 hover:bg-[#0065a3]/10 hover:text-[#0065a3] hover:border-[#0065a3]/30 transition-colors"
         aria-label="Help"
       >
         ?

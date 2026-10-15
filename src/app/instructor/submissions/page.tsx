@@ -151,7 +151,7 @@ const SubmissionsListContent: React.FC = () => {
       <InstructorRoute>
         <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005587] mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0065a3] mx-auto mb-4"></div>
             <p className="text-gray-600">Loading submissions...</p>
           </div>
         </div>
@@ -182,7 +182,7 @@ const SubmissionsListContent: React.FC = () => {
                     className="h-8 w-auto"
                   />
                   <div>
-                    <h1 className="text-2xl font-bold text-[#005587] uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>Video Submissions</h1>
+                    <h1 className="text-2xl font-bold text-[#0065a3] uppercase" style={{ fontFamily: "'Oswald', sans-serif" }}>Video Submissions</h1>
                     <p className="text-gray-600">Review and manage student video submissions</p>
                   </div>
                 </div>
@@ -201,14 +201,14 @@ const SubmissionsListContent: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search submissions..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005587]"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0065a3]"
                 />
               </div>
               
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#005587]"
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0065a3]"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -221,11 +221,11 @@ const SubmissionsListContent: React.FC = () => {
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-[#005587]">{filteredSubmissions.length}</div>
+              <div className="text-2xl font-bold text-[#0065a3]">{filteredSubmissions.length}</div>
               <div className="text-sm text-gray-600">Total Submissions</div>
             </div>
             <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-[#005587]">
+              <div className="text-2xl font-bold text-[#0065a3]">
                 {filteredSubmissions.filter(s => s.status === 'pending').length}
               </div>
               <div className="text-sm text-gray-600">Pending</div>
@@ -237,7 +237,7 @@ const SubmissionsListContent: React.FC = () => {
               <div className="text-sm text-gray-600">Graded</div>
             </div>
             <div className="bg-gray-50 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-[#005587]">
+              <div className="text-2xl font-bold text-[#0065a3]">
                 {(filteredSubmissions.filter(s => s.status === 'graded').reduce((sum, s) => sum + (s.grade || 0), 0) / 
                  Math.max(filteredSubmissions.filter(s => s.status === 'graded').length, 1)).toFixed(1)}
               </div>
@@ -299,7 +299,7 @@ const SubmissionsListContent: React.FC = () => {
                     <div className="flex-shrink-0">
                       <button
                         onClick={() => router.push(`/instructor/grading/bulk?assignment=${submission.assignmentId}&course=${submission.courseCode.toLowerCase()}&submission=${submission.id}`)}
-                        className="px-4 py-2 bg-[#005587] text-white rounded-full text-xs font-medium hover:bg-[#005587]/90 transition-colors"
+                        className="px-4 py-2 bg-[#0065a3] text-white rounded-full text-xs font-medium hover:bg-[#0065a3]/90 transition-colors"
                       >
                         Grade
                       </button>
@@ -321,7 +321,7 @@ const SubmissionsListPage: React.FC = () => {
       <InstructorRoute>
         <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005587] mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0065a3] mx-auto mb-4"></div>
             <p className="text-gray-600">Loading...</p>
           </div>
         </div>

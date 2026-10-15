@@ -190,13 +190,13 @@ export default function LessonBuilderPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
               <div className="min-w-0">
-                <h1 className="text-sm font-bold text-[#005587] truncate">Lesson Builder</h1>
+                <h1 className="text-sm font-bold text-[#0065a3] truncate">Lesson Builder</h1>
                 <p className="text-[10px] text-gray-500 truncate">{assignmentTitle}</p>
               </div>
             </div>
             <button
               onClick={() => setShowAddLesson(true)}
-              className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-full text-xs font-bold shrink-0"
+              className="px-3 py-1.5 bg-[#FFC72C] text-[#0065a3] rounded-full text-xs font-bold shrink-0"
             >
               + Add Lesson
             </button>
@@ -212,7 +212,7 @@ export default function LessonBuilderPage() {
               <p className="text-xs text-gray-500 mb-4">Add video, reading, or quiz lessons for students to complete.</p>
               <button
                 onClick={() => setShowAddLesson(true)}
-                className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-xl text-sm font-bold"
+                className="px-4 py-2 bg-[#FFC72C] text-[#0065a3] rounded-xl text-sm font-bold"
               >
                 + Add First Lesson
               </button>
@@ -225,7 +225,7 @@ export default function LessonBuilderPage() {
                   <button onClick={() => handleReorder(index, 'up')} disabled={index === 0} className="text-gray-300 disabled:opacity-30">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
                   </button>
-                  <span className="text-[10px] font-bold text-[#005587] w-5 h-5 bg-white rounded-full flex items-center justify-center">{index + 1}</span>
+                  <span className="text-[10px] font-bold text-[#0065a3] w-5 h-5 bg-white rounded-full flex items-center justify-center">{index + 1}</span>
                   <button onClick={() => handleReorder(index, 'down')} disabled={index === lessons.length - 1} className="text-gray-300 disabled:opacity-30">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                   </button>
@@ -266,7 +266,7 @@ export default function LessonBuilderPage() {
             <div className="absolute inset-0 bg-black/40" onClick={() => { setShowAddLesson(false); resetForm(); }} />
             <div className="relative bg-white rounded-t-2xl w-full max-h-[85vh] overflow-y-auto p-5 pb-8 shadow-xl animate-[modalSlideUp_280ms_ease-out_both]">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base font-bold text-[#005587]">Add Lesson</h2>
+                <h2 className="text-base font-bold text-[#0065a3]">Add Lesson</h2>
                 <button onClick={() => { setShowAddLesson(false); resetForm(); }} className="text-gray-400">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
@@ -281,7 +281,7 @@ export default function LessonBuilderPage() {
                       <button
                         key={type}
                         onClick={() => setNewType(type)}
-                        className={`p-2 rounded-xl border text-center transition-colors ${newType === type ? 'border-[#005587] bg-[#005587]/5' : 'border-gray-200'}`}
+                        className={`p-2 rounded-xl border text-center transition-colors ${newType === type ? 'border-[#0065a3] bg-[#0065a3]/5' : 'border-gray-200'}`}
                       >
                         <span className="text-lg">{type === 'video' ? '🎥' : type === 'quiz' ? '📝' : '📖'}</span>
                         <p className="text-[10px] font-medium text-gray-700 capitalize mt-0.5">{type}</p>
@@ -298,7 +298,7 @@ export default function LessonBuilderPage() {
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
                     placeholder="Lesson title..."
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none"
                   />
                 </div>
 
@@ -310,7 +310,7 @@ export default function LessonBuilderPage() {
                     onChange={(e) => setNewDescription(e.target.value)}
                     placeholder="Brief description..."
                     rows={2}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:border-[#005587] focus:outline-none"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:border-[#0065a3] focus:outline-none"
                   />
                 </div>
 
@@ -323,7 +323,7 @@ export default function LessonBuilderPage() {
                       value={newVideoUrl}
                       onChange={(e) => setNewVideoUrl(e.target.value)}
                       placeholder="YouTube or direct video URL..."
-                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none"
+                      className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none"
                     />
                   </div>
                 )}
@@ -337,7 +337,7 @@ export default function LessonBuilderPage() {
                       onChange={(e) => setNewContent(e.target.value)}
                       placeholder="Write lesson content here..."
                       rows={6}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:border-[#005587] focus:outline-none"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:border-[#0065a3] focus:outline-none"
                     />
                   </div>
                 )}
@@ -347,7 +347,7 @@ export default function LessonBuilderPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="text-xs font-medium text-gray-700">Questions</label>
-                      <button onClick={addQuizQuestion} className="text-[10px] text-[#005587] font-bold">+ Add Question</button>
+                      <button onClick={addQuizQuestion} className="text-[10px] text-[#0065a3] font-bold">+ Add Question</button>
                     </div>
                     {newQuiz.map((q, i) => (
                       <div key={q.id} className="bg-gray-50 rounded-xl p-3 space-y-2">
@@ -370,7 +370,7 @@ export default function LessonBuilderPage() {
                           value={q.question}
                           onChange={(e) => updateQuizQuestion(i, { question: e.target.value })}
                           placeholder="Enter question..."
-                          className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                          className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs focus:border-[#0065a3] focus:outline-none"
                         />
                         {/* Options */}
                         <div className="space-y-1.5">
@@ -393,7 +393,7 @@ export default function LessonBuilderPage() {
                                 }}
                                 placeholder={q.type === 'true-false' ? (oi === 0 ? 'True' : 'False') : `Option ${oi + 1}`}
                                 disabled={q.type === 'true-false'}
-                                className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-[11px] focus:border-[#005587] focus:outline-none disabled:bg-gray-100"
+                                className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-[11px] focus:border-[#0065a3] focus:outline-none disabled:bg-gray-100"
                               />
                             </div>
                           ))}
@@ -410,7 +410,7 @@ export default function LessonBuilderPage() {
                 <button
                   onClick={handleAddLesson}
                   disabled={saving || !newTitle.trim() || (newType === 'video' && !newVideoUrl.trim())}
-                  className="w-full py-3 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50 mt-2"
+                  className="w-full py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold disabled:opacity-50 mt-2"
                 >
                   {saving ? 'Adding...' : 'Add Lesson'}
                 </button>

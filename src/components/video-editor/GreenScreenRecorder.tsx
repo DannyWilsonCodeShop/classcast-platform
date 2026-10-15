@@ -195,13 +195,13 @@ export function GreenScreenRecorder({ onRecordingComplete, onCancel }: GreenScre
           <>
             {/* Background type selector */}
             <div className="flex gap-2 justify-center">
-              <button onClick={() => setBgType('blur')} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${bgType === 'blur' ? 'bg-[#FFC72C] text-[#005587]' : 'bg-white/10 text-white/70'}`}>
+              <button onClick={() => setBgType('blur')} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${bgType === 'blur' ? 'bg-[#FFC72C] text-[#0065a3]' : 'bg-white/10 text-white/70'}`}>
                 Blur
               </button>
-              <button onClick={() => setBgType('color')} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${bgType === 'color' ? 'bg-[#FFC72C] text-[#005587]' : 'bg-white/10 text-white/70'}`}>
+              <button onClick={() => setBgType('color')} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${bgType === 'color' ? 'bg-[#FFC72C] text-[#0065a3]' : 'bg-white/10 text-white/70'}`}>
                 Solid Color
               </button>
-              <button onClick={() => setBgType('image')} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${bgType === 'image' ? 'bg-[#FFC72C] text-[#005587]' : 'bg-white/10 text-white/70'}`}>
+              <button onClick={() => setBgType('image')} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${bgType === 'image' ? 'bg-[#FFC72C] text-[#0065a3]' : 'bg-white/10 text-white/70'}`}>
                 Image
               </button>
             </div>

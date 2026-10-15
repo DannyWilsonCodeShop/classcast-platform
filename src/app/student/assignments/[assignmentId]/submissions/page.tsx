@@ -460,7 +460,7 @@ const AssignmentSubmissionsPage: React.FC = () => {
 
 function AssignmentSubmissionsPageWrapper() {
   return (
-    <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#005587]" /></div>}>
+    <Suspense fallback={<div className="h-full flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0065a3]" /></div>}>
       <AssignmentSubmissionsPage />
     </Suspense>
   );

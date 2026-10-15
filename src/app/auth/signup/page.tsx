@@ -100,7 +100,7 @@ export default function SignupPage() {
         <div className="w-full flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <img src="/MyClassCast36.png" alt="" className="w-8 h-8 object-contain" />
-            <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-2xl text-[#005587]">
+            <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-2xl text-[#0065a3]">
               ClassCast
             </span>
           </div>
@@ -114,7 +114,7 @@ export default function SignupPage() {
 
         {/* Form card */}
         <div className="w-full bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-xl">
-          <h2 className="text-lg font-bold text-[#005587] mb-1">Create Account</h2>
+          <h2 className="text-lg font-bold text-[#0065a3] mb-1">Create Account</h2>
           <p className="text-xs text-gray-500 mb-4">Join ClassCast as a student or instructor</p>
 
           {error && (
@@ -130,7 +130,7 @@ export default function SignupPage() {
                 type="button"
                 onClick={() => setRole('student')}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
-                  role === 'student' ? 'bg-[#005587] text-white' : 'text-gray-600'
+                  role === 'student' ? 'bg-[#0065a3] text-white' : 'text-gray-600'
                 }`}
               >
                 Student
@@ -139,7 +139,7 @@ export default function SignupPage() {
                 type="button"
                 onClick={() => setRole('instructor')}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-colors ${
-                  role === 'instructor' ? 'bg-[#005587] text-white' : 'text-gray-600'
+                  role === 'instructor' ? 'bg-[#0065a3] text-white' : 'text-gray-600'
                 }`}
               >
                 Instructor
@@ -153,7 +153,7 @@ export default function SignupPage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="First name"
-                className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                 disabled={isLoading}
               />
               <input
@@ -161,7 +161,7 @@ export default function SignupPage() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Last name"
-                className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                className="px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                 disabled={isLoading}
               />
             </div>
@@ -172,7 +172,7 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
               disabled={isLoading}
             />
 
@@ -182,7 +182,7 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password (8+ characters)"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
               disabled={isLoading}
             />
 
@@ -192,7 +192,7 @@ export default function SignupPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm password"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
               disabled={isLoading}
             />
 
@@ -204,7 +204,7 @@ export default function SignupPage() {
                   value={instructorCode}
                   onChange={(e) => setInstructorCode(e.target.value)}
                   placeholder="School instructor code"
-                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                   disabled={isLoading}
                 />
 
@@ -231,7 +231,7 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </button>
@@ -240,7 +240,7 @@ export default function SignupPage() {
           {/* Footer */}
           <p className="text-center text-xs text-gray-500 mt-4">
             Already have an account?{' '}
-            <button onClick={() => router.push('/auth/login')} className="text-[#005587] font-medium">
+            <button onClick={() => router.push('/auth/login')} className="text-[#0065a3] font-medium">
               Sign In
             </button>
           </p>

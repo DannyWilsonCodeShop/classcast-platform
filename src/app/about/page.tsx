@@ -31,12 +31,12 @@ export default function AboutPage() {
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
       {/* Header */}
-      <div className="bg-[#005587] text-white px-6 py-4 flex items-center justify-between">
+      <div className="bg-[#0065a3] text-white px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <img src="/MyClassCast36.png" alt="" className="w-8 h-8 object-contain brightness-200" />
           <span className="text-xl" style={{ fontFamily: "'Grand Hotel', cursive" }}>ClassCast</span>
         </div>
-        <Link href="/auth/login" className="px-4 py-2 bg-[#FFC72C] text-[#005587] rounded-full text-sm font-bold">
+        <Link href="/auth/login" className="px-4 py-2 bg-[#FFC72C] text-[#0065a3] rounded-full text-sm font-bold">
           Sign In
         </Link>
       </div>
@@ -56,7 +56,7 @@ export default function AboutPage() {
             alt="Students collaborating"
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-[#005587]/75" />
+          <div className="absolute inset-0 bg-[#0065a3]/75" />
         </div>
         <div className="relative z-10 px-6 py-16 text-center max-w-3xl mx-auto text-white">
           <h1 className="text-4xl font-bold mb-4">Learning by Teaching</h1>
@@ -70,7 +70,7 @@ export default function AboutPage() {
       {/* Bloom's Taxonomy Section */}
       <div className="px-6 py-14 max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-[#005587] mb-3">Rooted in Proven Pedagogy</h2>
+          <h2 className="text-3xl font-bold text-[#0065a3] mb-3">Rooted in Proven Pedagogy</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
             ClassCast is built on Bloom&apos;s Taxonomy — the gold standard framework for deeper learning. 
             Video assignments naturally push students to the highest cognitive levels.
@@ -80,22 +80,22 @@ export default function AboutPage() {
         {/* Bloom's pyramid visualization */}
         <div className="max-w-lg mx-auto mb-10">
           <div className="space-y-2">
-            <div className="bg-[#005587] text-white text-center py-3 px-4 rounded-xl font-bold text-sm">
+            <div className="bg-[#0065a3] text-white text-center py-3 px-4 rounded-xl font-bold text-sm">
               CREATE — Students produce original video explanations
             </div>
-            <div className="bg-[#005587]/85 text-white text-center py-3 px-6 rounded-xl font-bold text-sm">
+            <div className="bg-[#0065a3]/85 text-white text-center py-3 px-6 rounded-xl font-bold text-sm">
               EVALUATE — Peer responses require critical analysis
             </div>
-            <div className="bg-[#005587]/70 text-white text-center py-3 px-8 rounded-xl font-bold text-sm">
+            <div className="bg-[#0065a3]/70 text-white text-center py-3 px-8 rounded-xl font-bold text-sm">
               ANALYZE — Breaking down concepts to explain clearly
             </div>
-            <div className="bg-[#005587]/55 text-white text-center py-3 px-10 rounded-xl font-bold text-sm">
+            <div className="bg-[#0065a3]/55 text-white text-center py-3 px-10 rounded-xl font-bold text-sm">
               APPLY — Demonstrating understanding through examples
             </div>
-            <div className="bg-[#005587]/40 text-white text-center py-3 px-12 rounded-xl font-bold text-sm">
+            <div className="bg-[#0065a3]/40 text-white text-center py-3 px-12 rounded-xl font-bold text-sm">
               UNDERSTAND — Grasping material deeply enough to teach it
             </div>
-            <div className="bg-[#005587]/25 text-[#005587] text-center py-3 px-14 rounded-xl font-bold text-sm">
+            <div className="bg-[#0065a3]/25 text-[#0065a3] text-center py-3 px-14 rounded-xl font-bold text-sm">
               REMEMBER — Recalling information (traditional tests stop here)
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function AboutPage() {
 
         {/* The Science */}
         <div className="bg-gray-50 rounded-2xl p-8 mb-10">
-          <h3 className="text-xl font-bold text-[#005587] mb-4 text-center">The Protege Effect</h3>
+          <h3 className="text-xl font-bold text-[#0065a3] mb-4 text-center">The Protege Effect</h3>
           <p className="text-gray-700 leading-relaxed text-center max-w-2xl mx-auto mb-6">
             Students who teach others work harder to understand material, recall it more accurately, 
             and apply it more effectively. This is known as the &ldquo;Protege Effect&rdquo; — preparing to 
@@ -115,17 +115,17 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-xl p-5 text-center shadow-sm">
               <div className="text-3xl mb-2">📈</div>
-              <div className="text-2xl font-bold text-[#005587]">2.5x</div>
+              <div className="text-2xl font-bold text-[#0065a3]">2.5x</div>
               <p className="text-xs text-gray-600 mt-1">Better retention when students explain vs. listen</p>
             </div>
             <div className="bg-white rounded-xl p-5 text-center shadow-sm">
               <div className="text-3xl mb-2">🧠</div>
-              <div className="text-2xl font-bold text-[#005587]">87%</div>
+              <div className="text-2xl font-bold text-[#0065a3]">87%</div>
               <p className="text-xs text-gray-600 mt-1">Of students report deeper understanding through video creation</p>
             </div>
             <div className="bg-white rounded-xl p-5 text-center shadow-sm">
               <div className="text-3xl mb-2">🎯</div>
-              <div className="text-2xl font-bold text-[#005587]">94%</div>
+              <div className="text-2xl font-bold text-[#0065a3]">94%</div>
               <p className="text-xs text-gray-600 mt-1">Of teachers say peer teaching improves class engagement</p>
             </div>
           </div>
@@ -144,7 +144,7 @@ export default function AboutPage() {
               />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-[#005587] mb-4">Why Students Teach Better</h2>
+              <h2 className="text-2xl font-bold text-[#0065a3] mb-4">Why Students Teach Better</h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <span className="text-xl">🎥</span>
@@ -185,7 +185,7 @@ export default function AboutPage() {
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
             <div className="order-2 md:order-1">
-              <h2 className="text-2xl font-bold text-[#005587] mb-4">Effortless for Teachers</h2>
+              <h2 className="text-2xl font-bold text-[#0065a3] mb-4">Effortless for Teachers</h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <span className="text-xl">✨</span>
@@ -231,7 +231,7 @@ export default function AboutPage() {
       {/* Assignment Types */}
       <div className="bg-gray-50 px-6 py-14">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-[#005587] text-center mb-8">5 Assignment Types, One Platform</h2>
+          <h2 className="text-2xl font-bold text-[#0065a3] text-center mb-8">5 Assignment Types, One Platform</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-2xl p-5 shadow-sm">
               <div className="text-2xl mb-2">🎥</div>
@@ -269,36 +269,36 @@ export default function AboutPage() {
 
       {/* Platforms */}
       <div className="px-6 py-12 max-w-3xl mx-auto text-center">
-        <h2 className="text-2xl font-bold text-[#005587] mb-4">Available Everywhere</h2>
+        <h2 className="text-2xl font-bold text-[#0065a3] mb-4">Available Everywhere</h2>
         <p className="text-gray-600 mb-6 text-sm">
           Students and teachers can access ClassCast from any device — phone, tablet, or computer.
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
           <div className="bg-gray-50 rounded-xl p-4">
-            <div className="text-2xl font-bold text-[#005587]">iOS</div>
+            <div className="text-2xl font-bold text-[#0065a3]">iOS</div>
             <div className="text-xs text-gray-500">App Store</div>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
-            <div className="text-2xl font-bold text-[#005587]">Android</div>
+            <div className="text-2xl font-bold text-[#0065a3]">Android</div>
             <div className="text-xs text-gray-500">Play Store</div>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
-            <div className="text-2xl font-bold text-[#005587]">Web</div>
+            <div className="text-2xl font-bold text-[#0065a3]">Web</div>
             <div className="text-xs text-gray-500">Any Browser</div>
           </div>
           <div className="bg-gray-50 rounded-xl p-4">
-            <div className="text-2xl font-bold text-[#005587]">AWS</div>
+            <div className="text-2xl font-bold text-[#0065a3]">AWS</div>
             <div className="text-xs text-gray-500">Cloud Hosted</div>
           </div>
         </div>
       </div>
 
       {/* CTA */}
-      <div className="bg-[#005587] text-white px-6 py-10 text-center">
+      <div className="bg-[#0065a3] text-white px-6 py-10 text-center">
         <h3 className="text-xl font-bold mb-2">Ready to transform your classroom?</h3>
         <p className="text-white/70 text-sm mb-6">Start for free. No credit card required.</p>
         <div className="flex gap-4 justify-center flex-wrap">
-          <Link href="/auth/signup" className="px-6 py-3 bg-[#FFC72C] text-[#005587] rounded-xl font-bold">
+          <Link href="/auth/signup" className="px-6 py-3 bg-[#FFC72C] text-[#0065a3] rounded-xl font-bold">
             Get Started Free
           </Link>
           <button
@@ -313,11 +313,11 @@ export default function AboutPage() {
       {/* About the Creator */}
       <div className="px-6 py-10 max-w-3xl mx-auto text-center">
         <Link href="/about/creator" className="inline-flex items-center gap-3 group">
-          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#005587]/20 shadow-sm">
+          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#0065a3]/20 shadow-sm">
             <img src="/headshot.jpeg" alt="Danny Wilson" className="w-full h-full object-cover" />
           </div>
           <div className="text-left">
-            <p className="text-sm font-bold text-[#005587] group-hover:underline">About the Creator</p>
+            <p className="text-sm font-bold text-[#0065a3] group-hover:underline">About the Creator</p>
             <p className="text-xs text-gray-500">Meet the educator behind ClassCast</p>
           </div>
         </Link>
@@ -337,14 +337,14 @@ export default function AboutPage() {
                 <h3 className="text-sm font-bold text-gray-900 mb-1">Thank you!</h3>
                 <p className="text-xs text-gray-500 mb-4">A sales agent will reach out to you shortly.</p>
                 <button onClick={() => { setShowContactModal(false); setContactSuccess(false); setContactForm({ name: '', email: '', phone: '', school: '', role: '', message: '' }); }}
-                  className="px-4 py-2 bg-[#005587] text-white rounded-xl text-sm font-bold">
+                  className="px-4 py-2 bg-[#0065a3] text-white rounded-xl text-sm font-bold">
                   Close
                 </button>
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold text-[#005587]">Contact Sales</h3>
+                  <h3 className="text-base font-bold text-[#0065a3]">Contact Sales</h3>
                   <button onClick={() => setShowContactModal(false)} className="text-gray-400 p-1">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -354,15 +354,15 @@ export default function AboutPage() {
                 <p className="text-xs text-gray-500 mb-4">Tell us about your school and we&apos;ll be in touch.</p>
                 <form onSubmit={handleContactSubmit} className="space-y-3">
                   <input type="text" required value={contactForm.name} onChange={e => setContactForm(p => ({...p, name: e.target.value}))}
-                    placeholder="Your name *" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]" />
+                    placeholder="Your name *" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]" />
                   <input type="email" required value={contactForm.email} onChange={e => setContactForm(p => ({...p, email: e.target.value}))}
-                    placeholder="Email address *" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]" />
+                    placeholder="Email address *" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]" />
                   <input type="tel" value={contactForm.phone} onChange={e => setContactForm(p => ({...p, phone: e.target.value}))}
-                    placeholder="Phone number (optional)" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]" />
+                    placeholder="Phone number (optional)" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]" />
                   <input type="text" value={contactForm.school} onChange={e => setContactForm(p => ({...p, school: e.target.value}))}
-                    placeholder="School or district" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]" />
+                    placeholder="School or district" className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]" />
                   <select value={contactForm.role} onChange={e => setContactForm(p => ({...p, role: e.target.value}))}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] text-gray-600">
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] text-gray-600">
                     <option value="">Your role</option>
                     <option value="Teacher">Teacher</option>
                     <option value="Administrator">Administrator</option>
@@ -371,9 +371,9 @@ export default function AboutPage() {
                   </select>
                   <textarea value={contactForm.message} onChange={e => setContactForm(p => ({...p, message: e.target.value}))}
                     placeholder="Anything else we should know?" rows={2}
-                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] resize-none" />
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] resize-none" />
                   <button type="submit" disabled={contactSubmitting}
-                    className="w-full py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50">
+                    className="w-full py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50">
                     {contactSubmitting ? 'Sending...' : 'Submit'}
                   </button>
                 </form>

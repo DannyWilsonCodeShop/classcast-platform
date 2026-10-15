@@ -229,7 +229,7 @@ const InstructorProfilePage: React.FC = () => {
       <InstructorRoute>
         <div className="min-h-screen flex items-center justify-center bg-white">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#005587] mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0065a3] mx-auto mb-4"></div>
             <p className="text-gray-600">Loading profile...</p>
           </div>
         </div>
@@ -251,17 +251,17 @@ const InstructorProfilePage: React.FC = () => {
               />
             ) : (
               <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center border-4 border-[#FFC72C]">
-                <UserIcon className="w-12 h-12 text-[#005587]" />
+                <UserIcon className="w-12 h-12 text-[#0065a3]" />
               </div>
             )}
           </div>
           <h1
-            className="text-2xl font-bold text-[#005587]"
+            className="text-2xl font-bold text-[#0065a3]"
           >
             {profile.firstName} {profile.lastName}
           </h1>
           <p className="text-gray-600 text-sm">{profile.email}</p>
-          <span className="mt-2 px-3 py-1 bg-[#FFC72C]/20 text-[#005587] text-xs font-semibold rounded-full uppercase">
+          <span className="mt-2 px-3 py-1 bg-[#FFC72C]/20 text-[#0065a3] text-xs font-semibold rounded-full uppercase">
             Instructor
           </span>
         </div>
@@ -279,7 +279,7 @@ const InstructorProfilePage: React.FC = () => {
         {/* Profile Info Card */}
         <div className="bg-gray-50 rounded-2xl p-4 mb-4">
           <h2
-            className="text-lg font-bold text-[#005587] mb-3"
+            className="text-lg font-bold text-[#0065a3] mb-3"
           >
             Basic Information
           </h2>
@@ -310,7 +310,7 @@ const InstructorProfilePage: React.FC = () => {
         {/* Professional Info Card */}
         <div className="bg-gray-50 rounded-2xl p-4 mb-4">
           <h2
-            className="text-lg font-bold text-[#005587] mb-3"
+            className="text-lg font-bold text-[#0065a3] mb-3"
           >
             Professional
           </h2>
@@ -340,7 +340,7 @@ const InstructorProfilePage: React.FC = () => {
         {(profile.bio || profile.hobbies || profile.funFact) && (
           <div className="bg-gray-50 rounded-2xl p-4 mb-4">
             <h2
-              className="text-lg font-bold text-[#005587] mb-3"
+              className="text-lg font-bold text-[#0065a3] mb-3"
             >
               Personal
             </h2>
@@ -370,16 +370,16 @@ const InstructorProfilePage: React.FC = () => {
         {/* Admin Tools - only visible to admin users */}
         {(user as any).isAdmin && (
           <div className="bg-gray-50 rounded-2xl p-4 mb-4">
-            <h2 className="text-lg font-bold text-[#005587] mb-3">Admin Tools</h2>
+            <h2 className="text-lg font-bold text-[#0065a3] mb-3">Admin Tools</h2>
             <button
               onClick={() => router.push('/instructor/admin/analytics')}
               className="w-full flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-200 active:scale-[0.98] transition-transform"
             >
-              <div className="w-9 h-9 bg-[#005587]/10 rounded-full flex items-center justify-center">
+              <div className="w-9 h-9 bg-[#0065a3]/10 rounded-full flex items-center justify-center">
                 <span className="text-lg">📊</span>
               </div>
               <div className="text-left">
-                <p className="text-sm font-bold text-[#005587]">Platform Analytics</p>
+                <p className="text-sm font-bold text-[#0065a3]">Platform Analytics</p>
                 <p className="text-[10px] text-gray-500">Submissions, engagement, grades</p>
               </div>
             </button>
@@ -390,19 +390,19 @@ const InstructorProfilePage: React.FC = () => {
         <div className="flex gap-2 mt-6">
           <button
             onClick={() => setIsEditing(true)}
-            className="flex-1 py-2.5 bg-[#005587] text-white font-semibold rounded-xl text-xs"
+            className="flex-1 py-2.5 bg-[#0065a3] text-white font-semibold rounded-xl text-xs"
           >
             Edit Profile
           </button>
           <button
             onClick={() => setShowPasswordReset(true)}
-            className="flex-1 py-2.5 bg-gray-50 text-[#005587] font-semibold rounded-xl text-xs border border-gray-200"
+            className="flex-1 py-2.5 bg-gray-50 text-[#0065a3] font-semibold rounded-xl text-xs border border-gray-200"
           >
             Change Password
           </button>
           <button
             onClick={handleSignOut}
-            className="flex-1 py-2.5 bg-[#FFC72C] text-[#005587] font-bold rounded-xl text-xs"
+            className="flex-1 py-2.5 bg-[#FFC72C] text-[#0065a3] font-bold rounded-xl text-xs"
           >
             Sign Out
           </button>
@@ -422,7 +422,7 @@ const InstructorProfilePage: React.FC = () => {
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white rounded-t-2xl z-10">
                 <h2
-                  className="text-xl font-bold text-[#005587]"
+                  className="text-xl font-bold text-[#0065a3]"
                 >
                   Edit Profile
                 </h2>
@@ -448,14 +448,14 @@ const InstructorProfilePage: React.FC = () => {
                         />
                       ) : (
                         <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                          <UserIcon className="w-10 h-10 text-[#005587]" />
+                          <UserIcon className="w-10 h-10 text-[#0065a3]" />
                         </div>
                       )}
                     </div>
                     <button
                       onClick={() => document.getElementById('avatar-upload')?.click()}
                       disabled={isUploading}
-                      className="absolute -bottom-2 -right-2 bg-[#FFC72C] text-[#005587] p-2 rounded-full hover:bg-[#e6b326] transition-colors disabled:opacity-50"
+                      className="absolute -bottom-2 -right-2 bg-[#FFC72C] text-[#0065a3] p-2 rounded-full hover:bg-[#e6b326] transition-colors disabled:opacity-50"
                       title="Change photo"
                     >
                       <CameraIcon className="h-4 w-4" />
@@ -491,7 +491,7 @@ const InstructorProfilePage: React.FC = () => {
                       type="text"
                       value={editedProfile.firstName}
                       onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
                       placeholder="Enter your first name"
                     />
                     {errors.firstName && <p className="text-sm text-red-600 mt-1">{errors.firstName}</p>}
@@ -503,7 +503,7 @@ const InstructorProfilePage: React.FC = () => {
                       type="text"
                       value={editedProfile.lastName}
                       onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
                       placeholder="Enter your last name"
                     />
                     {errors.lastName && <p className="text-sm text-red-600 mt-1">{errors.lastName}</p>}
@@ -515,7 +515,7 @@ const InstructorProfilePage: React.FC = () => {
                       type="email"
                       value={editedProfile.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
                       placeholder="Enter your email"
                     />
                     {errors.email && <p className="text-sm text-red-600 mt-1">{errors.email}</p>}
@@ -527,7 +527,7 @@ const InstructorProfilePage: React.FC = () => {
                       type="text"
                       value={editedProfile.department || ''}
                       onChange={(e) => handleInputChange('department', e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${errors.department ? 'border-red-500' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] ${errors.department ? 'border-red-500' : 'border-gray-300'}`}
                       placeholder="e.g., Mathematics, Science, English"
                     />
                     {errors.department && <p className="text-sm text-red-600 mt-1">{errors.department}</p>}
@@ -539,7 +539,7 @@ const InstructorProfilePage: React.FC = () => {
                       type="text"
                       value={editedProfile.schoolName || ''}
                       onChange={(e) => handleInputChange('schoolName', e.target.value)}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587] ${errors.schoolName ? 'border-red-500' : 'border-gray-300'}`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] ${errors.schoolName ? 'border-red-500' : 'border-gray-300'}`}
                       placeholder="Enter your school name"
                     />
                     {errors.schoolName && <p className="text-sm text-red-600 mt-1">{errors.schoolName}</p>}
@@ -553,7 +553,7 @@ const InstructorProfilePage: React.FC = () => {
                       max="50"
                       value={editedProfile.yearsExperience || 0}
                       onChange={(e) => handleInputChange('yearsExperience', parseInt(e.target.value) || 0)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                       placeholder="0"
                     />
                   </div>
@@ -564,7 +564,7 @@ const InstructorProfilePage: React.FC = () => {
                       type="text"
                       value={editedProfile.favoriteSubject || ''}
                       onChange={(e) => handleInputChange('favoriteSubject', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                       placeholder="e.g., Mathematics, Science, English"
                     />
                   </div>
@@ -575,7 +575,7 @@ const InstructorProfilePage: React.FC = () => {
                       value={editedProfile.careerGoals || ''}
                       onChange={(e) => handleInputChange('careerGoals', e.target.value)}
                       onFocus={(e) => { setTimeout(() => { e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                       placeholder="Describe your teaching approach and philosophy"
                       rows={3}
                     />
@@ -587,7 +587,7 @@ const InstructorProfilePage: React.FC = () => {
                       type="text"
                       value={editedProfile.hobbies || ''}
                       onChange={(e) => handleInputChange('hobbies', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                       placeholder="e.g., Reading, Hiking, Music"
                     />
                   </div>
@@ -598,7 +598,7 @@ const InstructorProfilePage: React.FC = () => {
                       value={editedProfile.funFact || ''}
                       onChange={(e) => handleInputChange('funFact', e.target.value)}
                       onFocus={(e) => { setTimeout(() => { e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                       placeholder="Tell us something interesting about yourself!"
                       rows={2}
                     />
@@ -611,7 +611,7 @@ const InstructorProfilePage: React.FC = () => {
                       onChange={(e) => handleInputChange('bio', e.target.value)}
                       onFocus={(e) => { setTimeout(() => { e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
                       placeholder="Tell us about yourself..."
                     />
                   </div>
@@ -628,7 +628,7 @@ const InstructorProfilePage: React.FC = () => {
                   <button
                     onClick={handleSaveProfile}
                     disabled={isLoading}
-                    className="px-4 py-2 bg-[#005587] text-white rounded-lg hover:bg-[#004470] transition-colors flex items-center space-x-2 disabled:opacity-50"
+                    className="px-4 py-2 bg-[#0065a3] text-white rounded-lg hover:bg-[#004470] transition-colors flex items-center space-x-2 disabled:opacity-50"
                   >
                     {isLoading ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

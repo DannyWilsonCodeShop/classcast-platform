@@ -50,7 +50,7 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#005587]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0065a3]" />
       </div>
     );
   }
@@ -58,8 +58,8 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
   return (
     <div className="space-y-4">
       {/* Prompt */}
-      <div className="bg-[#005587]/5 rounded-xl p-4 border border-[#005587]/10">
-        <p className="text-sm font-medium text-[#005587]">Discussion Prompt</p>
+      <div className="bg-[#0065a3]/5 rounded-xl p-4 border border-[#0065a3]/10">
+        <p className="text-sm font-medium text-[#0065a3]">Discussion Prompt</p>
         <p className="text-sm text-gray-800 mt-1">{discussionConfig.prompt}</p>
       </div>
 
@@ -67,7 +67,7 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
       {participation && (
         <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
           <span className="text-xs text-gray-600">
-            Posts: <span className="font-bold text-[#005587]">{participation.postCount}</span>/{discussionConfig.minPosts} required
+            Posts: <span className="font-bold text-[#0065a3]">{participation.postCount}</span>/{discussionConfig.minPosts} required
           </span>
           {participation.requirementsMet ? (
             <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ Complete</span>
@@ -107,7 +107,7 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
             <div key={post.postId} className="bg-gray-50 rounded-xl p-3">
               {/* Post Header */}
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-7 h-7 rounded-full bg-[#005587] flex items-center justify-center text-white text-xs font-bold overflow-hidden">
+                <div className="w-7 h-7 rounded-full bg-[#0065a3] flex items-center justify-center text-white text-xs font-bold overflow-hidden">
                   {post.authorAvatar && post.authorAvatar.startsWith('http') ? (
                     <img src={post.authorAvatar} alt="" className="w-full h-full object-cover" />
                   ) : post.authorAvatar && post.authorAvatar.length <= 4 ? (
@@ -128,7 +128,7 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
               )}
               {/* Reply Button */}
               {!isPastDue && (
-                <button onClick={() => setReplyingTo(post.postId)} className="text-[10px] text-[#005587] font-medium">
+                <button onClick={() => setReplyingTo(post.postId)} className="text-[10px] text-[#0065a3] font-medium">
                   Reply
                 </button>
               )}

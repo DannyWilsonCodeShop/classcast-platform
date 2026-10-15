@@ -242,7 +242,7 @@ const AssignmentFeedPage: React.FC = () => {
                 <p className="text-white/80 font-medium mb-4">No videos yet. Be the first to submit!</p>
                 <button
                   onClick={() => setShowInfo(true)}
-                  className="px-5 py-2.5 bg-white text-[#005587] rounded-full font-bold text-sm"
+                  className="px-5 py-2.5 bg-white text-[#0065a3] rounded-full font-bold text-sm"
                 >
                   Submit a video
                 </button>
@@ -278,7 +278,7 @@ const AssignmentFeedPage: React.FC = () => {
               </div>
               <div className="flex items-center justify-between px-4 pb-2 border-b border-gray-100 shrink-0">
                 <div className="flex items-center gap-1">
-                  <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#005587' }} className="text-2xl">ClassCast</span>
+                  <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#0065a3' }} className="text-2xl">ClassCast</span>
                   <img src="/MyClassCast36.png" alt="" className="w-5 h-5 object-contain" />
                 </div>
                 <button onClick={() => setShowInfo(false)} className="p-1 text-gray-400">
@@ -666,7 +666,7 @@ const VideoSubmissionCard: React.FC<{
                     onError={() => setImageError(true)}
                   />
                 ) : (
-                  <span className="w-full h-full bg-[#005587] flex items-center justify-center text-white font-bold text-sm">
+                  <span className="w-full h-full bg-[#0065a3] flex items-center justify-center text-white font-bold text-sm">
                     {(video.studentFirstName || video.studentName || 'S')[0]}
                   </span>
                 )}
@@ -676,7 +676,7 @@ const VideoSubmissionCard: React.FC<{
                   {video.studentFirstName && video.studentLastName
                     ? `${video.studentFirstName} ${video.studentLastName}`
                     : video.studentName || 'Student'}
-                  {isMyVideo && <span className="ml-2 text-[10px] font-bold text-[#005587] bg-white/90 px-1.5 py-0.5 rounded-full align-middle">YOU</span>}
+                  {isMyVideo && <span className="ml-2 text-[10px] font-bold text-[#0065a3] bg-white/90 px-1.5 py-0.5 rounded-full align-middle">YOU</span>}
                 </p>
                 <p className="text-xs text-white/70">{video.submittedAt ? formatTimestamp(video.submittedAt) : ''}</p>
               </div>
@@ -735,7 +735,7 @@ const VideoSubmissionCard: React.FC<{
                   onClick={() => setReportReason(reason)}
                   className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors ${
                     reportReason === reason
-                      ? 'bg-[#005587] text-white'
+                      ? 'bg-[#0065a3] text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -780,7 +780,7 @@ const VideoSubmissionCard: React.FC<{
                   setReportSubmitting(false);
                 }}
                 disabled={!reportReason || reportSubmitting}
-                className="flex-1 py-2 bg-[#005587] text-white rounded-full text-sm font-bold disabled:opacity-50"
+                className="flex-1 py-2 bg-[#0065a3] text-white rounded-full text-sm font-bold disabled:opacity-50"
               >
                 {reportSubmitting ? 'Sending...' : 'Submit Report'}
               </button>

@@ -482,7 +482,7 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
           {activeTab === 'speed' && (
             <div className="flex items-center justify-center gap-2">
               {[0.5, 0.75, 1, 1.25, 1.5, 2].map(s => (
-                <button key={s} onClick={() => setSpeed(s)} className={`px-2.5 py-1 rounded-lg text-xs font-bold ${speed === s ? 'bg-[#FFC72C] text-[#005587]' : 'bg-white/10 text-white/70'}`}>
+                <button key={s} onClick={() => setSpeed(s)} className={`px-2.5 py-1 rounded-lg text-xs font-bold ${speed === s ? 'bg-[#FFC72C] text-[#0065a3]' : 'bg-white/10 text-white/70'}`}>
                   {s}x
                 </button>
               ))}
@@ -492,7 +492,7 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
           {activeTab === 'filter' && (
             <div className="flex items-center justify-center gap-2 flex-wrap">
               {FILTERS.map(f => (
-                <button key={f.id} onClick={() => setActiveFilter(f.id)} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${activeFilter === f.id ? 'bg-[#FFC72C] text-[#005587]' : 'bg-white/10 text-white/70'}`}>
+                <button key={f.id} onClick={() => setActiveFilter(f.id)} className={`px-3 py-1.5 rounded-lg text-xs font-medium ${activeFilter === f.id ? 'bg-[#FFC72C] text-[#0065a3]' : 'bg-white/10 text-white/70'}`}>
                   {f.label}
                 </button>
               ))}
@@ -515,7 +515,7 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
                   <option value="center">Center</option>
                   <option value="bottom">Bottom</option>
                 </select>
-                <button onClick={handleAddText} disabled={!newText.trim()} className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-lg text-xs font-bold disabled:opacity-40">Add</button>
+                <button onClick={handleAddText} disabled={!newText.trim()} className="px-3 py-1.5 bg-[#FFC72C] text-[#0065a3] rounded-lg text-xs font-bold disabled:opacity-40">Add</button>
               </div>
               {textOverlays.length > 0 && (
                 <div className="flex gap-1.5 flex-wrap">
@@ -538,7 +538,7 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
                   <button
                     onClick={handleGenerateCaptions}
                     disabled={captionsLoading}
-                    className="px-3 py-1.5 bg-[#FFC72C] text-[#005587] rounded-lg text-xs font-bold disabled:opacity-50"
+                    className="px-3 py-1.5 bg-[#FFC72C] text-[#0065a3] rounded-lg text-xs font-bold disabled:opacity-50"
                   >
                     {captionsLoading ? 'Generating...' : '✨ Generate'}
                   </button>
@@ -560,7 +560,7 @@ export function VideoEditor({ videoUrl, onSave, onCancel }: VideoEditorProps) {
                   <button
                     key={track.id}
                     onClick={() => handleSelectMusic(track.file)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium ${selectedMusic === track.file ? 'bg-[#FFC72C] text-[#005587]' : 'bg-white/10 text-white/70'}`}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium ${selectedMusic === track.file ? 'bg-[#FFC72C] text-[#0065a3]' : 'bg-white/10 text-white/70'}`}
                   >
                     🎵 {track.label}
                   </button>

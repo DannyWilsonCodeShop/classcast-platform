@@ -117,7 +117,7 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-lg">✨</span>
-          <h2 className="text-lg font-bold text-[#005587]">AI Assignment Generator</h2>
+          <h2 className="text-lg font-bold text-[#0065a3]">AI Assignment Generator</h2>
         </div>
         <button onClick={onCancel} className="text-xs text-gray-500">Cancel</button>
       </div>
@@ -132,7 +132,7 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           placeholder="e.g., Pythagorean Theorem, Photosynthesis, Civil War Causes..."
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]"
         />
       </div>
 
@@ -142,7 +142,7 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
         <select
           value={gradeLevel}
           onChange={(e) => setGradeLevel(e.target.value)}
-          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#005587] focus:outline-none"
+          className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:border-[#0065a3] focus:outline-none"
         >
           {GRADE_LEVELS.map(g => <option key={g} value={g}>{g}</option>)}
         </select>
@@ -159,7 +159,7 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
               type="button"
               onClick={() => setAssignmentType(t.value)}
               className={`p-2 rounded-xl border text-left transition-colors ${
-                assignmentType === t.value ? 'border-[#005587] bg-[#005587]/5' : 'border-gray-200'
+                assignmentType === t.value ? 'border-[#0065a3] bg-[#0065a3]/5' : 'border-gray-200'
               }`}
             >
               <span className="text-xs font-medium text-gray-900">{t.label}</span>
@@ -178,7 +178,7 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
           onChange={(e) => setAdditionalContext(e.target.value)}
           placeholder="Any specific requirements, state standards, focus areas..."
           rows={2}
-          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs resize-none focus:border-[#005587] focus:outline-none"
+          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs resize-none focus:border-[#0065a3] focus:outline-none"
         />
       </div>
 
@@ -196,7 +196,7 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
               onChange={(e) => setGenerateQuestionBank(e.target.checked)}
               className="sr-only peer"
             />
-            <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#005587] transition-colors">
+            <div className="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-[#0065a3] transition-colors">
               <div className={`absolute top-[2px] left-[2px] w-4 h-4 rounded-full bg-white transition-transform ${generateQuestionBank ? 'translate-x-4' : ''}`} />
             </div>
           </label>
@@ -210,7 +210,7 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
                 <select
                   value={questionCount}
                   onChange={(e) => setQuestionCount(Number(e.target.value))}
-                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#0065a3] focus:outline-none"
                 >
                   <option value={5}>5 questions</option>
                   <option value={10}>10 questions</option>
@@ -223,7 +223,7 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
                 <select
                   value={questionType}
                   onChange={(e) => setQuestionType(e.target.value as any)}
-                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#005587] focus:outline-none"
+                  className="w-full px-2 py-1.5 border border-gray-200 rounded-lg text-xs focus:border-[#0065a3] focus:outline-none"
                 >
                   <option value="mixed">Mixed</option>
                   <option value="multiple-choice">Multiple Choice</option>
@@ -241,15 +241,15 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
 
       {/* Subscription Gate */}
       {!isSubscribed ? (
-        <div className="bg-gradient-to-r from-[#005587]/5 to-[#FFC72C]/10 border border-[#005587]/20 rounded-2xl p-4">
+        <div className="bg-gradient-to-r from-[#0065a3]/5 to-[#FFC72C]/10 border border-[#0065a3]/20 rounded-2xl p-4">
           <div className="flex items-start gap-3">
             <span className="text-2xl">🔒</span>
             <div>
-              <h3 className="text-sm font-bold text-[#005587]">Premium Feature</h3>
+              <h3 className="text-sm font-bold text-[#0065a3]">Premium Feature</h3>
               <p className="text-xs text-gray-600 mt-1">
                 AI Assignment Generation requires a ClassCast Pro subscription. Contact your school administrator to upgrade.
               </p>
-              <button className="mt-2 px-4 py-1.5 bg-[#FFC72C] text-[#005587] rounded-full text-xs font-bold">
+              <button className="mt-2 px-4 py-1.5 bg-[#FFC72C] text-[#0065a3] rounded-full text-xs font-bold">
                 Contact Sales
               </button>
             </div>
@@ -259,7 +259,7 @@ export function AIAssignmentGenerator({ onGenerated, onCancel, userSubscription,
         <button
           onClick={handleGenerate}
           disabled={isGenerating || !topic.trim()}
-          className="w-full py-3 bg-gradient-to-r from-[#005587] to-[#0077aa] text-white rounded-xl text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-3 bg-gradient-to-r from-[#0065a3] to-[#0077aa] text-white rounded-xl text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isGenerating ? (
             <>

@@ -153,14 +153,14 @@ const StudentCoursesPage: React.FC = () => {
               placeholder="Search courses or enter class code..."
               value={searchQuery}
               onChange={(e) => { setSearchQuery(e.target.value); setJoinError(''); setJoinSuccess(''); }}
-              className="w-full pl-9 pr-16 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#005587] focus:border-[#005587] text-sm bg-white"
+              className="w-full pl-9 pr-16 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] text-sm bg-white"
             />
             {/* Show Join button when input looks like a class code (4-8 chars, no spaces) */}
             {searchQuery.trim().length >= 4 && !searchQuery.includes(' ') && (
               <button
                 onClick={() => { setJoinCode(searchQuery.trim().toUpperCase()); handleJoinCourse(); }}
                 disabled={joining}
-                className="absolute top-1/2 -translate-y-1/2 right-2 px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-bold disabled:opacity-50"
+                className="absolute top-1/2 -translate-y-1/2 right-2 px-3 py-1.5 bg-[#0065a3] text-white rounded-lg text-xs font-bold disabled:opacity-50"
               >
                 {joining ? '...' : 'Join'}
               </button>
@@ -198,7 +198,7 @@ const StudentCoursesPage: React.FC = () => {
             <div className="text-center py-8">
               <p className="text-xs text-gray-500">No enrolled courses match "{searchQuery}"</p>
               {searchQuery.trim().length >= 4 && !searchQuery.includes(' ') && (
-                <p className="text-xs text-[#005587] font-medium mt-2">Use the Join button to enroll with this code →</p>
+                <p className="text-xs text-[#0065a3] font-medium mt-2">Use the Join button to enroll with this code →</p>
               )}
             </div>
           ) : (
@@ -208,14 +208,14 @@ const StudentCoursesPage: React.FC = () => {
                   key={course.id}
                   onClick={() => router.push(`/student/courses/${course.id}`)}
                   className="bg-white rounded-2xl border border-stone-200/60 shadow-sm p-5 hover:shadow-md cursor-pointer transition-all duration-200 active:scale-[0.98]"
-                  style={{ borderLeftColor: course.backgroundColor || '#005587', borderLeftWidth: '3px' }}
+                  style={{ borderLeftColor: course.backgroundColor || '#0065a3', borderLeftWidth: '3px' }}
                 >
                   {/* Course Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-semibold text-stone-900 truncate">{course.name}</h3>
                       <p className="text-xs text-stone-400 mt-0.5">{course.code}</p>
-                      <p className="text-xs text-[#005587] font-medium mt-0.5">{course.instructor.name}</p>
+                      <p className="text-xs text-[#0065a3] font-medium mt-0.5">{course.instructor.name}</p>
                     </div>
                   </div>
 

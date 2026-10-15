@@ -98,7 +98,7 @@ const VideoThumbnail: React.FC<VideoThumbnailProps> = ({
       {/* Play button overlay */}
       <div className="absolute inset-0 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
         <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl">
-          <PlayIcon className="w-6 h-6 text-[#005587] ml-0.5" />
+          <PlayIcon className="w-6 h-6 text-[#0065a3] ml-0.5" />
         </div>
       </div>
 

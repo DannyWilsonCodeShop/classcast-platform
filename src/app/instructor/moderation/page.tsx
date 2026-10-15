@@ -170,7 +170,7 @@ const ModerationDashboard: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#005587] mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0065a3] mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading moderation dashboard...</p>
         </div>
       </div>
@@ -229,7 +229,7 @@ const ModerationDashboard: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#005587] uppercase mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>Content Moderation</h1>
+          <h1 className="text-3xl font-bold text-[#0065a3] uppercase mb-2" style={{ fontFamily: "'Oswald', sans-serif" }}>Content Moderation</h1>
           <p className="text-gray-600">Review flagged content and take appropriate action</p>
         </div>
 
@@ -286,7 +286,7 @@ const ModerationDashboard: React.FC = () => {
               <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-transparent"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -300,7 +300,7 @@ const ModerationDashboard: React.FC = () => {
               <select
                 value={selectedSeverity}
                 onChange={(e) => setSelectedSeverity(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-transparent"
               >
                 <option value="all">All Severities</option>
                 <option value="high">High</option>
@@ -355,7 +355,7 @@ const ModerationDashboard: React.FC = () => {
                     {flag.status === 'pending' && (
                       <button
                         onClick={() => setSelectedFlag(flag)}
-                        className="px-4 py-2 bg-[#005587] text-white rounded-full text-xs hover:bg-[#005587]/90 transition-colors font-medium"
+                        className="px-4 py-2 bg-[#0065a3] text-white rounded-full text-xs hover:bg-[#0065a3]/90 transition-colors font-medium"
                       >
                         Review
                       </button>
@@ -374,7 +374,7 @@ const ModerationDashboard: React.FC = () => {
                       {flag.categories.map((category, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-[#005587]/10 text-[#005587] rounded text-xs font-medium"
+                          className="px-2 py-1 bg-[#0065a3]/10 text-[#0065a3] rounded text-xs font-medium"
                         >
                           {category}
                         </span>
@@ -442,7 +442,7 @@ const ModerationDashboard: React.FC = () => {
                     {selectedFlag.categories.map((category, index) => (
                       <span
                         key={index}
-                        className="px-2 py-1 bg-[#005587]/10 text-[#005587] rounded text-xs font-medium"
+                        className="px-2 py-1 bg-[#0065a3]/10 text-[#0065a3] rounded text-xs font-medium"
                       >
                         {category}
                       </span>
@@ -464,7 +464,7 @@ const ModerationDashboard: React.FC = () => {
                   <textarea
                     value={reviewNotes}
                     onChange={(e) => setReviewNotes(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#005587] focus:border-transparent resize-none"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0065a3] focus:border-transparent resize-none"
                     rows={3}
                     placeholder="Add any notes about your decision..."
                   />

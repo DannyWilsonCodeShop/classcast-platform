@@ -286,7 +286,7 @@ export default function StudyHallPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl font-bold text-[#005587]">Study Hall Pullouts</h1>
+              <h1 className="text-xl font-bold text-[#0065a3]">Study Hall Pullouts</h1>
               <p className="text-xs text-gray-500">
                 {myTeam ? `Team: ${myTeam.name}` : 'Request students for study hall'}
               </p>
@@ -295,7 +295,7 @@ export default function StudyHallPage() {
               {myTeam?.leadId === user?.id && (
                 <button
                   onClick={() => router.push('/instructor/study-hall/admin')}
-                  className="px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-bold"
+                  className="px-3 py-1.5 bg-[#0065a3] text-white rounded-lg text-xs font-bold"
                 >
                   Admin View
                 </button>
@@ -307,24 +307,24 @@ export default function StudyHallPage() {
           <div className="flex border-b border-gray-200 mb-4">
             <button
               onClick={() => setActiveTab('request')}
-              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors ${activeTab === 'request' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors ${activeTab === 'request' ? 'text-[#0065a3] border-b-2 border-[#0065a3]' : 'text-gray-400'}`}
             >
               Request Pullout
             </button>
             <button
               onClick={() => setActiveTab('pickup')}
-              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors relative ${activeTab === 'pickup' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors relative ${activeTab === 'pickup' ? 'text-[#0065a3] border-b-2 border-[#0065a3]' : 'text-gray-400'}`}
             >
               Today&apos;s List
               {pickupPullouts.length > 0 && (
-                <span className="absolute top-1.5 right-[calc(50%-45px)] bg-[#005587] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="absolute top-1.5 right-[calc(50%-45px)] bg-[#0065a3] text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center">
                   {pickupPullouts.length}
                 </span>
               )}
             </button>
             <button
               onClick={() => setActiveTab('tests')}
-              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors ${activeTab === 'tests' ? 'text-[#005587] border-b-2 border-[#005587]' : 'text-gray-400'}`}
+              className={`flex-1 py-2.5 text-xs font-bold text-center transition-colors ${activeTab === 'tests' ? 'text-[#0065a3] border-b-2 border-[#0065a3]' : 'text-gray-400'}`}
             >
               Test Tracker
             </button>
@@ -336,7 +336,7 @@ export default function StudyHallPage() {
             <>
               {/* Add Pullout Request */}
               <div className="bg-gray-50 rounded-2xl p-4 mb-6">
-            <h2 className="text-sm font-bold text-[#005587] mb-3">Request a Student</h2>
+            <h2 className="text-sm font-bold text-[#0065a3] mb-3">Request a Student</h2>
 
             {/* Student Search */}
             <div className="relative mb-3">
@@ -345,11 +345,11 @@ export default function StudyHallPage() {
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setSelectedStudent(null); }}
                 placeholder="Search student name..."
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
               />
               {searching && (
                 <div className="absolute right-3 top-3">
-                  <div className="w-4 h-4 border-2 border-[#005587] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[#0065a3] border-t-transparent rounded-full animate-spin" />
                 </div>
               )}
 
@@ -374,8 +374,8 @@ export default function StudyHallPage() {
 
             {/* Selected student badge */}
             {selectedStudent && (
-              <div className="flex items-center gap-2 mb-3 p-2 bg-[#005587]/10 rounded-lg">
-                <span className="text-xs font-medium text-[#005587]">{selectedStudent.name}</span>
+              <div className="flex items-center gap-2 mb-3 p-2 bg-[#0065a3]/10 rounded-lg">
+                <span className="text-xs font-medium text-[#0065a3]">{selectedStudent.name}</span>
                 {selectedStudent.homeroom && (
                   <span className="text-[10px] text-gray-500">({selectedStudent.homeroom})</span>
                 )}
@@ -391,7 +391,7 @@ export default function StudyHallPage() {
                   type="date"
                   value={pulloutDate}
                   onChange={(e) => setPulloutDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3]"
                 />
               </div>
               <div>
@@ -401,7 +401,7 @@ export default function StudyHallPage() {
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="e.g., Math tutoring"
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3]"
                 />
               </div>
             </div>
@@ -410,7 +410,7 @@ export default function StudyHallPage() {
             <button
               onClick={handleSubmit}
               disabled={!selectedStudent || submitting}
-              className="w-full py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Adding...' : 'Add to Pullout List'}
             </button>
@@ -418,7 +418,7 @@ export default function StudyHallPage() {
 
           {/* My Requests */}
           <div>
-            <h2 className="text-sm font-bold text-[#005587] mb-3">My Requests</h2>
+            <h2 className="text-sm font-bold text-[#0065a3] mb-3">My Requests</h2>
 
             {loadingRequests ? (
               <p className="text-xs text-gray-400 text-center py-4">Loading...</p>
@@ -461,7 +461,7 @@ export default function StudyHallPage() {
             /* ===== TODAY'S LIST TAB ===== */
             <div>
               <div className="text-center mb-4">
-                <h2 className="text-lg font-bold text-[#005587]">Today&apos;s Pickup List</h2>
+                <h2 className="text-lg font-bold text-[#0065a3]">Today&apos;s Pickup List</h2>
                 <p className="text-[11px] text-gray-500 mt-0.5">
                   {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
                 </p>
@@ -474,7 +474,7 @@ export default function StudyHallPage() {
                   type="date"
                   value={pickupDate}
                   onChange={(e) => setPickupDate(e.target.value)}
-                  className="px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#005587]"
+                  className="px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#0065a3]"
                 />
                 <span className="text-[10px] text-gray-400">{pickupPullouts.length} students</span>
               </div>
@@ -487,7 +487,7 @@ export default function StudyHallPage() {
                     <span className="text-xl">📋</span>
                   </div>
                   <p className="text-sm text-gray-500">No students on the pullout list for this date</p>
-                  <button onClick={() => setShowPickupRoster(false)} className="mt-3 text-xs text-[#005587] font-medium">
+                  <button onClick={() => setShowPickupRoster(false)} className="mt-3 text-xs text-[#0065a3] font-medium">
                     + Add a student
                   </button>
                 </div>
@@ -505,7 +505,7 @@ export default function StudyHallPage() {
                     <div key={studyHall} className="bg-gray-50 border border-gray-200 rounded-xl p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 bg-[#005587] rounded-full flex items-center justify-center">
+                          <div className="w-5 h-5 bg-[#0065a3] rounded-full flex items-center justify-center">
                             <span className="text-[8px] text-white font-bold">{(students as any[]).length}</span>
                           </div>
                           <h4 className="text-xs font-bold text-gray-700">{studyHall} Study Hall</h4>
@@ -543,7 +543,7 @@ export default function StudyHallPage() {
           <div className="bg-white w-full max-w-[400px] rounded-2xl p-5 max-h-[85vh] overflow-y-auto">
             {/* Wizard Header */}
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-[#005587]">Set Up Your Team</h2>
+              <h2 className="text-base font-bold text-[#0065a3]">Set Up Your Team</h2>
               <button onClick={() => { setShowWizard(false); setWizardStep(1); }} className="text-gray-400 p-1">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -554,7 +554,7 @@ export default function StudyHallPage() {
             {/* Progress */}
             <div className="flex gap-1 mb-5">
               {[1, 2, 3].map(s => (
-                <div key={s} className={`flex-1 h-1 rounded-full ${wizardStep >= s ? 'bg-[#005587]' : 'bg-gray-200'}`} />
+                <div key={s} className={`flex-1 h-1 rounded-full ${wizardStep >= s ? 'bg-[#0065a3]' : 'bg-gray-200'}`} />
               ))}
             </div>
 
@@ -571,13 +571,13 @@ export default function StudyHallPage() {
                   value={wizardTeamName}
                   onChange={(e) => setWizardTeamName(e.target.value)}
                   placeholder="e.g., 9th Grade Team, Wilson Pod"
-                  className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#005587] focus:border-[#005587] text-center"
+                  className="w-full px-3 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3] text-center"
                   autoFocus
                 />
                 <button
                   onClick={() => setWizardStep(2)}
                   disabled={!wizardTeamName.trim()}
-                  className="w-full py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50"
+                  className="w-full py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold disabled:opacity-50"
                 >
                   Next
                 </button>
@@ -599,10 +599,10 @@ export default function StudyHallPage() {
                     value={wizardMemberEmail}
                     onChange={(e) => setWizardMemberEmail(e.target.value)}
                     placeholder="teacher@school.edu"
-                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#005587]"
+                    className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3]"
                     onKeyDown={(e) => e.key === 'Enter' && handleWizardAddMember()}
                   />
-                  <button onClick={handleWizardAddMember} disabled={!wizardMemberEmail.trim()} className="px-3 py-2.5 bg-[#005587] text-white rounded-xl text-xs font-bold disabled:opacity-50">
+                  <button onClick={handleWizardAddMember} disabled={!wizardMemberEmail.trim()} className="px-3 py-2.5 bg-[#0065a3] text-white rounded-xl text-xs font-bold disabled:opacity-50">
                     Add
                   </button>
                 </div>
@@ -622,7 +622,7 @@ export default function StudyHallPage() {
 
                 <div className="flex gap-2 pt-2">
                   <button onClick={() => setWizardStep(1)} className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-sm font-medium">Back</button>
-                  <button onClick={() => setWizardStep(3)} className="flex-1 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold">
+                  <button onClick={() => setWizardStep(3)} className="flex-1 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold">
                     {wizardMembers.length === 0 ? 'Skip' : 'Next'}
                   </button>
                 </div>
@@ -641,7 +641,7 @@ export default function StudyHallPage() {
                 <button
                   onClick={() => wizardFileRef.current?.click()}
                   disabled={wizardUploading}
-                  className="w-full py-3 border-2 border-dashed border-[#005587]/30 rounded-xl text-xs font-medium text-[#005587] hover:border-[#005587] hover:bg-[#005587]/5"
+                  className="w-full py-3 border-2 border-dashed border-[#0065a3]/30 rounded-xl text-xs font-medium text-[#0065a3] hover:border-[#0065a3] hover:bg-[#0065a3]/5"
                 >
                   {wizardUploading ? 'Uploading...' : wizardRosterCount > 0 ? `✓ ${wizardRosterCount} students uploaded` : '📄 Choose CSV File'}
                 </button>
@@ -659,7 +659,7 @@ export default function StudyHallPage() {
                   <button
                     onClick={handleWizardFinish}
                     disabled={wizardCreating}
-                    className="flex-1 py-2.5 bg-[#005587] text-white rounded-xl text-sm font-bold disabled:opacity-50"
+                    className="flex-1 py-2.5 bg-[#0065a3] text-white rounded-xl text-sm font-bold disabled:opacity-50"
                   >
                     {wizardCreating ? 'Creating...' : wizardRosterCount > 0 ? 'Finish' : 'Skip & Finish'}
                   </button>

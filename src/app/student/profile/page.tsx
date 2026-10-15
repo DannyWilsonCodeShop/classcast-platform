@@ -67,7 +67,7 @@ const StudentProfilePage: React.FC = () => {
   };
 
   if (!user) {
-    return <StudentRoute><div className="h-full flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#005587]" /></div></StudentRoute>;
+    return <StudentRoute><div className="h-full flex items-center justify-center bg-white"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0065a3]" /></div></StudentRoute>;
   }
 
   return (
@@ -87,8 +87,8 @@ const StudentProfilePage: React.FC = () => {
                 <div className="absolute -bottom-1 -right-1 flex gap-1">
                   <label className="w-7 h-7 bg-[#FFC72C] rounded-full flex items-center justify-center cursor-pointer shadow">
                     <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" disabled={isUploading} />
-                    {isUploading ? <div className="w-3.5 h-3.5 border-2 border-[#005587] border-t-transparent rounded-full animate-spin" /> :
-                      <svg className="w-3.5 h-3.5 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    {isUploading ? <div className="w-3.5 h-3.5 border-2 border-[#0065a3] border-t-transparent rounded-full animate-spin" /> :
+                      <svg className="w-3.5 h-3.5 text-[#0065a3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     }
                   </label>
                   <button onClick={() => setShowEmojiPicker(true)} className="w-7 h-7 bg-white rounded-full flex items-center justify-center shadow text-sm border border-gray-200">😊</button>
@@ -98,26 +98,26 @@ const StudentProfilePage: React.FC = () => {
             {isEditing ? (
               <div className="flex gap-2 w-full max-w-[240px]">
                 <input value={editFields.firstName} onChange={e => setEditFields(p => ({ ...p, firstName: e.target.value }))}
-                  className="flex-1 text-sm font-bold text-center border border-gray-200 rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-[#005587] focus:outline-none" placeholder="First" />
+                  className="flex-1 text-sm font-bold text-center border border-gray-200 rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-[#0065a3] focus:outline-none" placeholder="First" />
                 <input value={editFields.lastName} onChange={e => setEditFields(p => ({ ...p, lastName: e.target.value }))}
-                  className="flex-1 text-sm font-bold text-center border border-gray-200 rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-[#005587] focus:outline-none" placeholder="Last" />
+                  className="flex-1 text-sm font-bold text-center border border-gray-200 rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-[#0065a3] focus:outline-none" placeholder="Last" />
               </div>
             ) : (
               <>
-                <h2 className="text-lg font-bold text-[#005587]">{user.firstName} {user.lastName}</h2>
+                <h2 className="text-lg font-bold text-[#0065a3]">{user.firstName} {user.lastName}</h2>
                 <p className="text-xs text-gray-500">{user.email}</p>
                 {user.schoolName && <p className="text-[10px] text-gray-400 mt-0.5">{user.schoolName}</p>}
               </>
             )}
             {!isEditing && (
-              <button onClick={() => setIsEditing(true)} className="mt-3 px-4 py-1.5 border border-[#005587] text-[#005587] rounded-full text-xs font-medium">
+              <button onClick={() => setIsEditing(true)} className="mt-3 px-4 py-1.5 border border-[#0065a3] text-[#0065a3] rounded-full text-xs font-medium">
                 Edit Profile
               </button>
             )}
             {isEditing && (
               <div className="flex gap-2 mt-3">
                 <button onClick={() => setIsEditing(false)} className="px-4 py-1.5 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">Cancel</button>
-                <button onClick={handleSave} disabled={isLoading} className="px-4 py-1.5 bg-[#005587] text-white rounded-full text-xs font-bold disabled:opacity-50">
+                <button onClick={handleSave} disabled={isLoading} className="px-4 py-1.5 bg-[#0065a3] text-white rounded-full text-xs font-bold disabled:opacity-50">
                   {isLoading ? 'Saving...' : 'Save'}
                 </button>
               </div>
@@ -195,7 +195,7 @@ function EditableField({ label, value, isEditing, onChange, placeholder }: {
       <div>
         <label className="text-[10px] font-bold text-gray-400 uppercase">{label}</label>
         <input value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-          className="w-full mt-0.5 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#005587]" />
+          className="w-full mt-0.5 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#0065a3]" />
       </div>
     );
   }

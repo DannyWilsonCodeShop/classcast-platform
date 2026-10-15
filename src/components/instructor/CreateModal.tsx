@@ -48,7 +48,7 @@ export function CreateModal({ isOpen, onClose }: CreateModalProps) {
     <ModalTransition isOpen={isOpen} onClose={onClose}>
       <div className="bg-white w-full rounded-2xl p-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-[#005587]">
+          <h2 className="text-base font-bold text-[#0065a3]">
             What do you want to create?
           </h2>
           <button onClick={onClose} className="text-gray-400 p-1">
@@ -72,7 +72,7 @@ export function CreateModal({ isOpen, onClose }: CreateModalProps) {
                 {option.icon}
               </span>
               <div>
-                <span className="block text-sm font-bold text-[#005587]">
+                <span className="block text-sm font-bold text-[#0065a3]">
                   {option.label}
                 </span>
                 <span className="block text-xs text-gray-500 mt-0.5">

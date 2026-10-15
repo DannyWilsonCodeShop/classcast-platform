@@ -571,12 +571,12 @@ const AssignmentGradesPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               <img src="/ClassCastLogo.png" alt="" className="w-7 h-7 object-contain shrink-0" />
-              <span className="text-sm font-bold text-[#005587] shrink-0">Assignment Details</span>
+              <span className="text-sm font-bold text-[#0065a3] shrink-0">Assignment Details</span>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => setShowEditModal(true)}
-                className="px-3 py-1 bg-gray-50 rounded-full text-[10px] font-bold text-[#005587]"
+                className="px-3 py-1 bg-gray-50 rounded-full text-[10px] font-bold text-[#0065a3]"
               >
                 Edit
               </button>
@@ -612,7 +612,7 @@ const AssignmentGradesPage: React.FC = () => {
         <div className="px-4 py-3 space-y-3">
           {/* Assignment Info Section */}
           <div className="bg-gray-50 rounded-2xl p-3 space-y-2">
-            <h2 className="text-sm font-bold text-[#005587]">{assignment.title}</h2>
+            <h2 className="text-sm font-bold text-[#0065a3]">{assignment.title}</h2>
             <p className="text-xs text-gray-500">{assignment.courseName} · {assignment.courseCode}</p>
             {assignment.description && (
               <div className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap [&_strong]:font-semibold [&_em]:italic" dangerouslySetInnerHTML={{ __html: assignment.description.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^## (.+)$/gm, '<h3 class="font-bold text-sm text-gray-900 mt-2 mb-1">$1</h3>').replace(/^---$/gm, '<hr class="my-2 border-gray-200">') }} />
@@ -625,7 +625,7 @@ const AssignmentGradesPage: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-gray-600">🎯 Max Score: {assignment.maxScore}</span>
               {assignment.assignmentType && (
-                <span className="px-2 py-0.5 bg-white border border-gray-200 rounded-full text-[10px] font-medium text-[#005587]">
+                <span className="px-2 py-0.5 bg-white border border-gray-200 rounded-full text-[10px] font-medium text-[#0065a3]">
                   {assignment.assignmentType}
                 </span>
               )}
@@ -650,11 +650,11 @@ const AssignmentGradesPage: React.FC = () => {
           {assignment.assignmentType === 'choice-board' && (
             <div className="bg-gray-50 rounded-2xl p-3 space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-bold text-[#005587]">Choice Board Options</p>
+                <p className="text-sm font-bold text-[#0065a3]">Choice Board Options</p>
                 {!editingChoices ? (
                   <button
                     onClick={startEditingChoices}
-                    className="text-xs font-medium text-[#005587] bg-white border border-[#005587]/30 rounded-full px-3 py-1 hover:bg-[#005587]/5"
+                    className="text-xs font-medium text-[#0065a3] bg-white border border-[#0065a3]/30 rounded-full px-3 py-1 hover:bg-[#0065a3]/5"
                   >
                     Edit Choices
                   </button>
@@ -669,7 +669,7 @@ const AssignmentGradesPage: React.FC = () => {
                     <button
                       onClick={saveChoices}
                       disabled={savingChoices}
-                      className="text-xs font-bold text-white bg-[#005587] rounded-full px-3 py-1 disabled:opacity-50"
+                      className="text-xs font-bold text-white bg-[#0065a3] rounded-full px-3 py-1 disabled:opacity-50"
                     >
                       {savingChoices ? 'Saving...' : 'Save'}
                     </button>
@@ -685,7 +685,7 @@ const AssignmentGradesPage: React.FC = () => {
                       <div
                         key={choice.choiceId || idx}
                         className="bg-white border rounded-xl p-3"
-                        style={{ borderColor: (choice.color || '#e5e7eb') + '55', borderLeftWidth: 4, borderLeftColor: choice.color || '#005587' }}
+                        style={{ borderColor: (choice.color || '#e5e7eb') + '55', borderLeftWidth: 4, borderLeftColor: choice.color || '#0065a3' }}
                       >
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <h3 className="text-sm font-bold text-gray-900">{choice.title || `Choice ${idx + 1}`}</h3>
@@ -738,7 +738,7 @@ const AssignmentGradesPage: React.FC = () => {
                           value={choice.title}
                           onChange={(e) => setChoicesDraft(prev => prev.map((c, i) => i === index ? { ...c, title: e.target.value } : c))}
                           placeholder={`Choice ${index + 1} title`}
-                          className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                          className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-sm focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]"
                         />
                         {choicesDraft.length > 2 && (
                           <button onClick={() => setChoicesDraft(prev => prev.filter((_, i) => i !== index))} className="text-gray-300 hover:text-red-400 text-sm px-1 shrink-0">✕</button>
@@ -774,7 +774,7 @@ const AssignmentGradesPage: React.FC = () => {
                                       return { ...c, slotsBySection: sbs };
                                     }));
                                   }}
-                                  className="w-10 px-1 py-0.5 border border-gray-200 rounded text-[11px] text-center focus:border-[#005587] focus:outline-none"
+                                  className="w-10 px-1 py-0.5 border border-gray-200 rounded text-[11px] text-center focus:border-[#0065a3] focus:outline-none"
                                 />
                               </div>
                             ))}
@@ -788,7 +788,7 @@ const AssignmentGradesPage: React.FC = () => {
                             value={choice.maxSlotsPerSection ?? 10}
                             onChange={(e) => setChoicesDraft(prev => prev.map((c, i) => i === index ? { ...c, maxSlotsPerSection: Number(e.target.value) } : c))}
                             min={1}
-                            className="w-14 px-1 py-1 border border-gray-200 rounded-lg text-xs text-center focus:border-[#005587] focus:outline-none focus:ring-1 focus:ring-[#005587]"
+                            className="w-14 px-1 py-1 border border-gray-200 rounded-lg text-xs text-center focus:border-[#0065a3] focus:outline-none focus:ring-1 focus:ring-[#0065a3]"
                           />
                         </div>
                       )}
@@ -803,7 +803,7 @@ const AssignmentGradesPage: React.FC = () => {
                         for (const sec of sectionEnrollment) sbs[sec.sectionId] = Math.max(1, Math.ceil((sec.enrolledCount || 0) / n)) || 5;
                         return [...prev, { choiceId: `c${prev.length + 1}_${Date.now()}`, title: '', description: '', color: choiceColors[prev.length] || '#4A90E2', maxSlotsPerSection: 10, slotsBySection: sbs }];
                       })}
-                      className="w-full py-2 border border-dashed border-[#005587]/40 rounded-xl text-xs text-[#005587] hover:bg-[#005587]/5"
+                      className="w-full py-2 border border-dashed border-[#0065a3]/40 rounded-xl text-xs text-[#0065a3] hover:bg-[#0065a3]/5"
                     >
                       + Add Choice
                     </button>
@@ -819,7 +819,7 @@ const AssignmentGradesPage: React.FC = () => {
                         };
                         setChoicesDraft([mk('c1', '#4A90E2'), mk('c2', '#7B61FF'), mk('c3', '#38A169')]);
                       }}
-                      className="w-full py-2 border border-dashed border-[#005587]/40 rounded-xl text-xs text-[#005587] hover:bg-[#005587]/5"
+                      className="w-full py-2 border border-dashed border-[#0065a3]/40 rounded-xl text-xs text-[#0065a3] hover:bg-[#0065a3]/5"
                     >
                       + Add Choices
                     </button>
@@ -835,7 +835,7 @@ const AssignmentGradesPage: React.FC = () => {
           {/* Video Submissions Grid — one tile per video (students may submit multiple) */}
           {studentGrades.some(g => (g.submissions?.length || 0) > 0) && (
             <div>
-              <p className="text-sm font-bold text-[#005587] mb-2">Video Submissions</p>
+              <p className="text-sm font-bold text-[#0065a3] mb-2">Video Submissions</p>
               <div className="flex overflow-x-auto gap-2 pb-2 -mx-1 px-1">
                 {studentGrades
                   .filter(g => (g.submissions?.length || 0) > 0)
@@ -889,23 +889,23 @@ const AssignmentGradesPage: React.FC = () => {
           {/* Stats Row - compact */}
           <div className="grid grid-cols-5 gap-2">
             <div className="bg-gray-50 rounded-xl p-2 text-center">
-              <div className="text-lg font-bold text-[#005587]">{stats.total}</div>
+              <div className="text-lg font-bold text-[#0065a3]">{stats.total}</div>
               <div className="text-[9px] text-gray-500">Total</div>
             </div>
             <div className="bg-gray-50 rounded-xl p-2 text-center">
-              <div className="text-lg font-bold text-[#005587]">{stats.submitted}</div>
+              <div className="text-lg font-bold text-[#0065a3]">{stats.submitted}</div>
               <div className="text-[9px] text-gray-500">Submitted</div>
             </div>
             <div className="bg-gray-50 rounded-xl p-2 text-center">
-              <div className="text-lg font-bold text-[#005587]">{stats.graded}</div>
+              <div className="text-lg font-bold text-[#0065a3]">{stats.graded}</div>
               <div className="text-[9px] text-gray-500">Graded</div>
             </div>
             <div className="bg-gray-50 rounded-xl p-2 text-center">
-              <div className="text-lg font-bold text-[#005587]">{stats.notSubmitted}</div>
+              <div className="text-lg font-bold text-[#0065a3]">{stats.notSubmitted}</div>
               <div className="text-[9px] text-gray-500">Missing</div>
             </div>
             <div className="bg-gray-50 rounded-xl p-2 text-center">
-              <div className="text-lg font-bold text-[#005587]">
+              <div className="text-lg font-bold text-[#0065a3]">
                 {stats.averageGrade > 0 && assignment?.maxScore ? `${Math.round((stats.averageGrade / assignment.maxScore) * 100)}%` : '—'}
               </div>
               <div className="text-[9px] text-gray-500">Avg</div>
@@ -984,7 +984,7 @@ const AssignmentGradesPage: React.FC = () => {
                   {grade.submissionId && (
                     <button
                       onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}?submissionId=${grade.submissionId}&student=${grade.studentId}`)}
-                      className="text-[10px] text-[#005587] font-bold"
+                      className="text-[10px] text-[#0065a3] font-bold"
                     >
                       Grade
                     </button>

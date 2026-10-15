@@ -99,7 +99,7 @@ export default function StudentAssignmentsPage() {
   const AssignmentCard = ({ assignment }: { assignment: Assignment }) => (
     <div
       className="bg-white rounded-xl p-4 mb-3 border border-stone-200/60 shadow-sm cursor-pointer active:scale-[0.98] transition-transform"
-      style={{ borderLeft: '3px solid #005587' }}
+      style={{ borderLeft: '3px solid #0065a3' }}
       onClick={() => router.push(`/student/assignments/${assignment.assignmentId}`)}
     >
       <div className="flex items-start justify-between">
@@ -179,8 +179,8 @@ export default function StudentAssignmentsPage() {
                   >
                     <span className="text-[10px] text-gray-500 mb-0.5">{dayNames[i]}</span>
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
-                      isSelected ? 'bg-[#FFC72C] text-[#005587] shadow-md' :
-                      isToday ? 'bg-[#005587] text-white shadow-md shadow-blue-300' : 'text-gray-700'
+                      isSelected ? 'bg-[#FFC72C] text-[#0065a3] shadow-md' :
+                      isToday ? 'bg-[#0065a3] text-white shadow-md shadow-blue-300' : 'text-gray-700'
                     }`}>
                       {day.getDate()}
                     </div>
@@ -213,10 +213,10 @@ export default function StudentAssignmentsPage() {
           ) : filterDate ? (
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>
+                <h2 className="text-base font-bold uppercase text-[#0065a3] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>
                   Due {filterDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                 </h2>
-                <button onClick={() => setFilterDate(null)} className="text-xs text-[#005587] font-medium">Show All</button>
+                <button onClick={() => setFilterDate(null)} className="text-xs text-[#0065a3] font-medium">Show All</button>
               </div>
               {assignments.filter(a => new Date(a.dueDate).toDateString() === filterDate.toDateString()).length > 0 ? (
                 assignments

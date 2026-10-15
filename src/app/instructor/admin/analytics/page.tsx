@@ -100,12 +100,12 @@ export default function AdminAnalyticsPage() {
               <button onClick={() => router.back()} className="text-gray-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               </button>
-              <h1 className="text-sm font-bold text-[#005587]">Platform Analytics</h1>
+              <h1 className="text-sm font-bold text-[#0065a3]">Platform Analytics</h1>
             </div>
             <button
               onClick={handleExportCSV}
               disabled={exporting}
-              className="px-3 py-1.5 bg-gray-100 rounded-full text-[10px] font-bold text-[#005587] disabled:opacity-50"
+              className="px-3 py-1.5 bg-gray-100 rounded-full text-[10px] font-bold text-[#0065a3] disabled:opacity-50"
             >
               {exporting ? '...' : '📊 Export CSV'}
             </button>
@@ -125,7 +125,7 @@ export default function AdminAnalyticsPage() {
 
           {/* Grading Summary */}
           <div className="bg-gray-50 rounded-2xl p-4">
-            <h2 className="text-sm font-bold text-[#005587] mb-3">Grading</h2>
+            <h2 className="text-sm font-bold text-[#0065a3] mb-3">Grading</h2>
             <div className="grid grid-cols-3 gap-3">
               <div className="text-center">
                 <div className="text-xl font-bold text-green-600">{stats?.gradedCount || 0}</div>
@@ -136,7 +136,7 @@ export default function AdminAnalyticsPage() {
                 <div className="text-[10px] text-gray-500">Ungraded</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold text-[#005587]">{stats?.averageGrade ? `${Math.round(stats.averageGrade)}%` : '—'}</div>
+                <div className="text-xl font-bold text-[#0065a3]">{stats?.averageGrade ? `${Math.round(stats.averageGrade)}%` : '—'}</div>
                 <div className="text-[10px] text-gray-500">Avg Grade</div>
               </div>
             </div>
@@ -144,16 +144,16 @@ export default function AdminAnalyticsPage() {
 
           {/* This Week */}
           <div className="bg-gray-50 rounded-2xl p-4">
-            <h2 className="text-sm font-bold text-[#005587] mb-2">This Week</h2>
+            <h2 className="text-sm font-bold text-[#0065a3] mb-2">This Week</h2>
             <div className="flex items-center justify-between">
               <span className="text-xs text-gray-600">Submissions received</span>
-              <span className="text-sm font-bold text-[#005587]">{stats?.submissionsThisWeek || 0}</span>
+              <span className="text-sm font-bold text-[#0065a3]">{stats?.submissionsThisWeek || 0}</span>
             </div>
           </div>
 
           {/* Per-Course Breakdown */}
           <div>
-            <h2 className="text-sm font-bold text-[#005587] mb-2">By Course</h2>
+            <h2 className="text-sm font-bold text-[#0065a3] mb-2">By Course</h2>
             <div className="space-y-2">
               {courseStats.length > 0 ? courseStats.map(course => (
                 <div key={course.courseId} className="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
@@ -164,7 +164,7 @@ export default function AdminAnalyticsPage() {
                     </p>
                   </div>
                   <div className="text-right shrink-0 ml-2">
-                    <div className="text-sm font-bold text-[#005587]">{course.submissionCount}</div>
+                    <div className="text-sm font-bold text-[#0065a3]">{course.submissionCount}</div>
                     <div className="text-[9px] text-gray-400">submissions</div>
                   </div>
                 </div>
@@ -183,7 +183,7 @@ function StatCard({ label, value, icon }: { label: string; value: number; icon: 
   return (
     <div className="bg-gray-50 rounded-2xl p-3 text-center">
       <div className="text-lg mb-0.5">{icon}</div>
-      <div className="text-xl font-bold text-[#005587]">{value}</div>
+      <div className="text-xl font-bold text-[#0065a3]">{value}</div>
       <div className="text-[10px] text-gray-500">{label}</div>
     </div>
   );

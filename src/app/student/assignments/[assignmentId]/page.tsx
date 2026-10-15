@@ -506,7 +506,7 @@ export default function StudentAssignmentDetailPage() {
           <div className="text-5xl mb-4">📋</div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">Assignment Not Found</h2>
           <p className="text-gray-500 text-sm mb-6">This assignment may have been removed or you don&apos;t have access.</p>
-          <button onClick={() => router.push('/student/assignments')} className="px-5 py-2 bg-[#005587] text-white rounded-full text-sm font-medium">
+          <button onClick={() => router.push('/student/assignments')} className="px-5 py-2 bg-[#0065a3] text-white rounded-full text-sm font-medium">
             Back to Assignments
           </button>
         </div>
@@ -636,7 +636,7 @@ export default function StudentAssignmentDetailPage() {
               <button
                 onClick={handlePostDraft}
                 disabled={promotingDraft}
-                className="flex-1 py-2 bg-[#005587] text-white rounded-lg text-xs font-bold active:scale-95 disabled:opacity-50"
+                className="flex-1 py-2 bg-[#0065a3] text-white rounded-lg text-xs font-bold active:scale-95 disabled:opacity-50"
               >
                 {promotingDraft ? 'Posting…' : '🚀 Post this video'}
               </button>
@@ -665,7 +665,7 @@ export default function StudentAssignmentDetailPage() {
             </span>
           )}
           {isSubmitted && !isGraded && (
-            <span className="ml-auto text-xs text-[#005587] font-medium">✓ Submitted</span>
+            <span className="ml-auto text-xs text-[#0065a3] font-medium">✓ Submitted</span>
           )}
           {!isSubmitted && requiredVideoCount > 1 && hasAnySubmission && (
             <span className="ml-auto text-xs text-orange-600 font-medium">{videosSubmitted} of {requiredVideoCount} videos</span>
@@ -687,7 +687,7 @@ export default function StudentAssignmentDetailPage() {
               {peerResponseCount >= ((assignment as any).minResponsesRequired || 0) ? (
                 <span className="text-[10px] font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">✓ Complete</span>
               ) : (
-                <button onClick={() => router.push(`/student/assignments/${currentAssignmentId}/feed`)} className="text-[10px] font-bold text-[#005587] bg-blue-100 px-2 py-0.5 rounded-full active:scale-95">
+                <button onClick={() => router.push(`/student/assignments/${currentAssignmentId}/feed`)} className="text-[10px] font-bold text-[#0065a3] bg-blue-100 px-2 py-0.5 rounded-full active:scale-95">
                   Review Peers →
                 </button>
               )}
@@ -763,7 +763,7 @@ export default function StudentAssignmentDetailPage() {
                 <span className="text-[9px] text-gray-400">{assignment?.assignmentType === 'assessment' ? 'Take Test' : (requiredVideoCount > 1 && hasAnySubmission ? 'Add video' : 'Post')}</span>
               </button>
               <button onClick={() => { animateToTab(3); setTimeout(() => setShowRubricModal(true), 450); }} className="flex flex-col items-center w-1/5 py-1 z-10"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[9px] text-gray-400">Rubric</span></button>
-              <button className="flex flex-col items-center w-1/5 py-1 relative z-10" onClick={() => { if (resourceCount > 0) { animateToTab(4); setTimeout(() => setShowResourcesModal(true), 450); } }}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[9px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
+              <button className="flex flex-col items-center w-1/5 py-1 relative z-10" onClick={() => { if (resourceCount > 0) { animateToTab(4); setTimeout(() => setShowResourcesModal(true), 450); } }}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#0065a3] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[9px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
             </div>
           )}
 
@@ -773,11 +773,11 @@ export default function StudentAssignmentDetailPage() {
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center w-1/5 py-1 z-10"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[9px] text-gray-400">Home</span></button>
               <div className="flex flex-col items-center w-1/5 py-1 z-10"><span className="text-[9px] font-bold text-green-600">✓ Submitted!</span></div>
               <button onClick={() => router.push(`/student/assignments/${currentAssignmentId}/feed`)} className="flex flex-col items-center w-1/5 py-1 z-10">
-                <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <span className="text-[9px] text-[#005587]">Peers</span>
+                <svg className="w-6 h-6 text-[#0065a3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span className="text-[9px] text-[#0065a3]">Peers</span>
               </button>
               <button onClick={() => { animateToTab(3); setTimeout(() => setShowRubricModal(true), 450); }} className="flex flex-col items-center w-1/5 py-1 z-10"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[9px] text-gray-400">Rubric</span></button>
-              <button className="flex flex-col items-center w-1/5 py-1 relative z-10" onClick={() => { if (resourceCount > 0) { animateToTab(4); setTimeout(() => setShowResourcesModal(true), 450); } }}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[9px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
+              <button className="flex flex-col items-center w-1/5 py-1 relative z-10" onClick={() => { if (resourceCount > 0) { animateToTab(4); setTimeout(() => setShowResourcesModal(true), 450); } }}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#0065a3] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[9px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
             </div>
           )}
 
@@ -787,11 +787,11 @@ export default function StudentAssignmentDetailPage() {
               <button onClick={() => router.push('/student/dashboard')} className="flex flex-col items-center w-1/5 py-1 z-10"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg><span className="text-[9px] text-gray-400">Home</span></button>
               <div className="flex flex-col items-center w-1/5 py-1 z-10"><span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">{submission!.grade}/{assignment.points || assignment.maxScore || 100}</span><span className="text-[8px] text-gray-400 mt-0.5">Grade</span></div>
               <button onClick={() => router.push(`/student/assignments/${currentAssignmentId}/feed`)} className="flex flex-col items-center w-1/5 py-1 z-10">
-                <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                <span className="text-[9px] text-[#005587]">Peers</span>
+                <svg className="w-6 h-6 text-[#0065a3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <span className="text-[9px] text-[#0065a3]">Peers</span>
               </button>
               <button onClick={() => { animateToTab(3); setTimeout(() => setShowRubricModal(true), 450); }} className="flex flex-col items-center w-1/5 py-1 z-10"><svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg><span className="text-[9px] text-gray-400">Rubric</span></button>
-              <button className="flex flex-col items-center w-1/5 py-1 relative z-10" onClick={() => { if (resourceCount > 0) { animateToTab(4); setTimeout(() => setShowResourcesModal(true), 450); } }}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#005587] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[9px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
+              <button className="flex flex-col items-center w-1/5 py-1 relative z-10" onClick={() => { if (resourceCount > 0) { animateToTab(4); setTimeout(() => setShowResourcesModal(true), 450); } }}><svg className={`w-6 h-6 ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>{resourceCount > 0 && <span className="absolute -top-1 right-0 w-4 h-4 bg-[#0065a3] rounded-full text-[8px] text-white flex items-center justify-center font-bold">{resourceCount}</span>}<span className={`text-[9px] ${resourceCount > 0 ? 'text-gray-400' : 'text-gray-200'}`}>Resources</span></button>
             </div>
           )}
         </nav>,
@@ -860,7 +860,7 @@ export default function StudentAssignmentDetailPage() {
                         <div key={item.id || idx} className="bg-gray-50 rounded-xl p-3">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-sm font-semibold text-gray-900">{item.name}</span>
-                            <span className="text-sm font-bold text-[#005587]">{item.maxPoints} pts</span>
+                            <span className="text-sm font-bold text-[#0065a3]">{item.maxPoints} pts</span>
                           </div>
                           <p className="text-xs text-gray-500">{item.description}</p>
                         </div>
@@ -868,7 +868,7 @@ export default function StudentAssignmentDetailPage() {
                     )}
                     <div className="border-t border-gray-200 pt-2 mt-2 flex items-center justify-between">
                       <span className="text-sm font-bold text-gray-700">Max Score</span>
-                      <span className="text-sm font-bold text-[#005587]">
+                      <span className="text-sm font-bold text-[#0065a3]">
                         {isNewFormat ? `${rubricData.reduce((sum: number, cat: any) => sum + Math.max(...cat.levels.map((l: any) => l.score)), 0)} pts` : `${rubricData.reduce((sum: number, r: any) => sum + (r.maxPoints || 0), 0)} pts`}
                       </span>
                     </div>
@@ -897,11 +897,11 @@ export default function StudentAssignmentDetailPage() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 active:bg-gray-100 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-[#005587]/10 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-[#0065a3]/10 flex items-center justify-center shrink-0">
                     {resource.type === 'link' ? (
-                      <svg className="w-5 h-5 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                      <svg className="w-5 h-5 text-[#0065a3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                     ) : (
-                      <svg className="w-5 h-5 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                      <svg className="w-5 h-5 text-[#0065a3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -928,7 +928,7 @@ export default function StudentAssignmentDetailPage() {
               <>
                 <button
                   onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${currentAssignmentId}&mode=record`); }}
-                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-[#005587] to-[#0088cc] active:scale-[0.98] transition-transform"
+                  className="w-full flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-[#0065a3] to-[#0088cc] active:scale-[0.98] transition-transform"
                 >
                   <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center shrink-0">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
@@ -942,8 +942,8 @@ export default function StudentAssignmentDetailPage() {
                   onClick={() => { setShowPostModal(false); router.push(`/student/record?assignmentId=${currentAssignmentId}&mode=upload`); }}
                   className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
                 >
-                  <div className="w-11 h-11 rounded-full bg-[#005587]/10 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                  <div className="w-11 h-11 rounded-full bg-[#0065a3]/10 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-[#0065a3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                   </div>
                   <div className="text-left">
                     <span className="text-gray-900 font-bold text-sm block">Upload a File</span>
@@ -954,8 +954,8 @@ export default function StudentAssignmentDetailPage() {
                   onClick={() => setShowLinkInput(true)}
                   className="w-full flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-200 active:scale-[0.98] transition-transform"
                 >
-                  <div className="w-11 h-11 rounded-full bg-[#005587]/10 flex items-center justify-center shrink-0">
-                    <svg className="w-6 h-6 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                  <div className="w-11 h-11 rounded-full bg-[#0065a3]/10 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 text-[#0065a3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                   </div>
                   <div className="text-left">
                     <span className="text-gray-900 font-bold text-sm block">Paste a Link</span>
@@ -972,7 +972,7 @@ export default function StudentAssignmentDetailPage() {
                   placeholder="Paste YouTube or Google Drive link..."
                   value={postLinkUrl}
                   onChange={(e) => { setPostLinkUrl(e.target.value); setPostError(''); }}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-[#005587] focus:ring-1 focus:ring-[#005587]"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-[#0065a3] focus:ring-1 focus:ring-[#0065a3]"
                 />
                 {postError && <p className="text-red-500 text-xs break-all">{postError}</p>}
                 <button
@@ -1015,7 +1015,7 @@ export default function StudentAssignmentDetailPage() {
                     setPostLinkSubmitting(false);
                   }}
                   disabled={postLinkSubmitting || !postLinkUrl.trim()}
-                  className="w-full py-3 bg-[#005587] text-white rounded-xl font-bold disabled:opacity-50"
+                  className="w-full py-3 bg-[#0065a3] text-white rounded-xl font-bold disabled:opacity-50"
                 >
                   {postLinkSubmitting ? 'Submitting...' : 'Submit Link'}
                 </button>
@@ -1047,7 +1047,7 @@ export default function StudentAssignmentDetailPage() {
             {/* File upload */}
             <button
               onClick={() => uploadFileRef.current?.click()}
-              className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center gap-2 hover:border-[#005587] transition-colors mb-3"
+              className="w-full py-4 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center gap-2 hover:border-[#0065a3] transition-colors mb-3"
             >
               <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
               <span className="text-sm text-gray-600 font-medium">Choose a video file</span>
@@ -1070,7 +1070,7 @@ export default function StudentAssignmentDetailPage() {
               placeholder="Paste YouTube or Google Drive link..."
               value={uploadUrl}
               onChange={(e) => setUploadUrl(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm mt-2 focus:ring-2 focus:ring-[#005587] focus:border-[#005587]"
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm mt-2 focus:ring-2 focus:ring-[#0065a3] focus:border-[#0065a3]"
             />
 
             {/* Submit */}
@@ -1102,7 +1102,7 @@ export default function StudentAssignmentDetailPage() {
                 finally { setUploading(false); }
               }}
               disabled={uploading || (!uploadUrl && !uploadFile)}
-              className="w-full mt-4 py-3 bg-[#005587] text-white rounded-full font-bold text-sm disabled:opacity-50 active:scale-95 transition-transform"
+              className="w-full mt-4 py-3 bg-[#0065a3] text-white rounded-full font-bold text-sm disabled:opacity-50 active:scale-95 transition-transform"
             >
               {uploading ? 'Submitting...' : 'Submit'}
             </button>

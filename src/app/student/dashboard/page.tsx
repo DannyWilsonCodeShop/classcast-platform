@@ -148,7 +148,7 @@ export default function StudentDashboardPage() {
           <div className="flex items-center gap-4 px-6 py-4 shrink-0 border-b border-stone-200/60">
             <h1 className="text-xl font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Dashboard</h1>
             <div className="flex items-center gap-3 text-sm">
-              <span className="bg-white text-[#005587] px-3 py-1 rounded-full font-medium border border-stone-200/60">📋 {dueThisWeek} due this week</span>
+              <span className="bg-white text-[#0065a3] px-3 py-1 rounded-full font-medium border border-stone-200/60">📋 {dueThisWeek} due this week</span>
               <span className="bg-white text-green-700 px-3 py-1 rounded-full font-medium border border-stone-200/60">✅ {submitted} submitted</span>
             </div>
           </div>
@@ -159,11 +159,11 @@ export default function StudentDashboardPage() {
             <div className="flex flex-col min-h-0 bg-white rounded-2xl overflow-hidden border border-stone-200/60 shadow-sm">
               <div className="px-6 pt-5 pb-3 shrink-0 flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Assignments</h2>
-                <button onClick={() => router.push('/student/assignments')} className="text-xs text-[#005587] font-medium hover:underline">View All →</button>
+                <button onClick={() => router.push('/student/assignments')} className="text-xs text-[#0065a3] font-medium hover:underline">View All →</button>
               </div>
               <div className="flex-1 overflow-y-auto px-6 pb-4 space-y-3">
                 {displayAssignments.length > 0 ? displayAssignments.map((a) => (
-                  <div key={a.assignmentId} onClick={() => router.push(`/student/assignments/${a.assignmentId}`)} className="bg-white rounded-xl p-4 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform border border-stone-200/60 shadow-sm" style={{ borderLeft: `3px solid #005587` }}>
+                  <div key={a.assignmentId} onClick={() => router.push(`/student/assignments/${a.assignmentId}`)} className="bg-white rounded-xl p-4 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform border border-stone-200/60 shadow-sm" style={{ borderLeft: `3px solid #0065a3` }}>
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-base font-semibold text-stone-900 truncate">{a.title}</h3>
@@ -192,14 +192,14 @@ export default function StudentDashboardPage() {
                             {item.author?.avatar && item.author.avatar.startsWith('http') ? (
                               <img src={item.author.avatar} alt="" className="w-full h-full object-cover" />
                             ) : (
-                              <div className="w-full h-full bg-[#005587] flex items-center justify-center text-white text-[10px] font-bold">{(item.author?.name || '?')[0]}</div>
+                              <div className="w-full h-full bg-[#0065a3] flex items-center justify-center text-white text-[10px] font-bold">{(item.author?.name || '?')[0]}</div>
                             )}
                           </div>
                           <span className="text-xs font-semibold text-gray-900 truncate">{item.author?.name || 'Student'}</span>
                         </div>
                         {/* Thumbnail */}
                         <div className="relative rounded-xl overflow-hidden bg-gray-800 aspect-[4/5]">
-                          {(() => { const ytThumb = getVideoThumbnail(item.videoUrl, item.thumbnailUrl); return ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 2; }} /> : <div className="w-full h-full bg-gradient-to-br from-[#005587] to-[#0077aa] flex items-center justify-center"><svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>; })()}
+                          {(() => { const ytThumb = getVideoThumbnail(item.videoUrl, item.thumbnailUrl); return ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 2; }} /> : <div className="w-full h-full bg-gradient-to-br from-[#0065a3] to-[#0077aa] flex items-center justify-center"><svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>; })()}
                           <div className="absolute inset-0 flex items-center justify-center"><div className="w-9 h-9 bg-white/80 rounded-full flex items-center justify-center shadow"><svg className="w-4 h-4 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
                         </div>
                         {/* Title */}
@@ -227,7 +227,7 @@ export default function StudentDashboardPage() {
         {/* Quick Stats Row - replaces greeting */}
         <div className="flex items-center gap-3 px-4 py-3 shrink-0">
           <div className="flex-1 flex items-center gap-2 text-[11px]">
-            <span className="bg-white text-[#005587] px-2.5 py-1 rounded-full font-medium border border-stone-200/60">📋 {dueThisWeek} due this week</span>
+            <span className="bg-white text-[#0065a3] px-2.5 py-1 rounded-full font-medium border border-stone-200/60">📋 {dueThisWeek} due this week</span>
             <span className="bg-white text-green-700 px-2.5 py-1 rounded-full font-medium border border-stone-200/60">✅ {submitted} submitted</span>
           </div>
         </div>
@@ -241,7 +241,7 @@ export default function StudentDashboardPage() {
             </div>
             <div className="flex-1 overflow-y-auto px-4 space-y-2.5 min-h-0 pb-3">
               {displayAssignments.length > 0 ? displayAssignments.map((a, i) => (
-                <div key={a.assignmentId} onClick={() => { const id = a.assignmentId || (a as any).id; if (id) router.push(`/student/assignments/${id}`); }} className="bg-white rounded-xl p-3.5 cursor-pointer active:scale-[0.98] transition-transform border border-stone-200/60 shadow-sm" style={{ borderLeft: `3px solid #005587` }}>
+                <div key={a.assignmentId} onClick={() => { const id = a.assignmentId || (a as any).id; if (id) router.push(`/student/assignments/${id}`); }} className="bg-white rounded-xl p-3.5 cursor-pointer active:scale-[0.98] transition-transform border border-stone-200/60 shadow-sm" style={{ borderLeft: `3px solid #0065a3` }}>
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
                       <h3 className="text-base font-semibold text-stone-900 truncate">{a.title}</h3>
@@ -253,7 +253,7 @@ export default function StudentDashboardPage() {
               )) : <div className="flex items-center justify-center h-full text-stone-400 text-xs">No assignments yet</div>}
             </div>
             <div className="px-4 py-1.5 shrink-0 border-t border-stone-100">
-              <button onClick={() => router.push('/student/assignments')} className="w-full text-center text-[11px] text-[#005587] font-medium py-1">View All →</button>
+              <button onClick={() => router.push('/student/assignments')} className="w-full text-center text-[11px] text-[#0065a3] font-medium py-1">View All →</button>
             </div>
           </div>
         </div>
@@ -277,14 +277,14 @@ export default function StudentDashboardPage() {
                     <div key={item.id} className="shrink-0 w-44 h-full flex flex-col cursor-pointer" onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed?videoId=${item.id}`)}>
                       {/* Video thumbnail with overlay info */}
                       <div className="relative rounded-xl overflow-hidden flex-1 bg-gray-800">
-                        {ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 2; }} /> : <div className="w-full h-full bg-gradient-to-br from-[#005587] to-[#0077aa] flex items-center justify-center"><svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>}
+                        {ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="metadata" onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 2; }} /> : <div className="w-full h-full bg-gradient-to-br from-[#0065a3] to-[#0077aa] flex items-center justify-center"><svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>}
                         {/* Play button */}
                         <div className="absolute inset-0 flex items-center justify-center"><div className="w-11 h-11 bg-white/80 rounded-full flex items-center justify-center shadow-lg"><svg className="w-5 h-5 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
                         {/* Overlay info at bottom of thumbnail */}
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2.5 pt-8">
                           {/* Author */}
                           <div className="flex items-center gap-1.5">
-                            <div className="w-6 h-6 rounded-full bg-[#005587] border-[1.5px] border-[#FFC72C] flex items-center justify-center shrink-0 overflow-hidden">
+                            <div className="w-6 h-6 rounded-full bg-[#0065a3] border-[1.5px] border-[#FFC72C] flex items-center justify-center shrink-0 overflow-hidden">
                               {isEmojiAvatar ? (
                                 <span className="text-sm">{item.author!.avatar}</span>
                               ) : hasImageAvatar ? (
@@ -357,7 +357,7 @@ export default function StudentDashboardPage() {
               <div className="space-y-3">
                 <button
                   onClick={() => { setShowAssignmentPicker(false); setSelectedPostAssignment(null); router.push(`/student/record?assignmentId=${selectedPostAssignment}&mode=record`); }}
-                  className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-[#005587] to-[#0088cc] text-white rounded-xl active:scale-[0.98] transition-transform"
+                  className="w-full flex items-center gap-3 p-4 bg-gradient-to-r from-[#0065a3] to-[#0088cc] text-white rounded-xl active:scale-[0.98] transition-transform"
                 >
                   <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
@@ -391,7 +391,7 @@ export default function StudentDashboardPage() {
                     <p className="text-xs text-gray-500">YouTube or Google Drive</p>
                   </div>
                 </button>
-                <button onClick={() => setSelectedPostAssignment(null)} className="w-full text-center text-xs text-[#005587] font-medium py-2 mt-1">← Back to assignments</button>
+                <button onClick={() => setSelectedPostAssignment(null)} className="w-full text-center text-xs text-[#0065a3] font-medium py-2 mt-1">← Back to assignments</button>
               </div>
             )}
 
@@ -404,7 +404,7 @@ export default function StudentDashboardPage() {
                   placeholder="Paste YouTube or Google Drive link..."
                   value={postLinkUrl}
                   onChange={(e) => { setPostLinkUrl(e.target.value); setPostLinkError(''); }}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-[#005587] focus:ring-1 focus:ring-[#005587]"
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:border-[#0065a3] focus:ring-1 focus:ring-[#0065a3]"
                 />
                 {postLinkError && <p className="text-red-500 text-xs">{postLinkError}</p>}
                 <button
@@ -454,11 +454,11 @@ export default function StudentDashboardPage() {
                     setPostLinkSubmitting(false);
                   }}
                   disabled={postLinkSubmitting || !postLinkUrl.trim()}
-                  className="w-full py-3 bg-[#005587] text-white rounded-xl font-bold disabled:opacity-50"
+                  className="w-full py-3 bg-[#0065a3] text-white rounded-xl font-bold disabled:opacity-50"
                 >
                   {postLinkSubmitting ? 'Submitting...' : 'Submit Link'}
                 </button>
-                <button onClick={() => { setPostMode(null); setPostLinkUrl(''); setPostLinkError(''); }} className="w-full text-center text-xs text-[#005587] font-medium py-2">← Back</button>
+                <button onClick={() => { setPostMode(null); setPostLinkUrl(''); setPostLinkError(''); }} className="w-full text-center text-xs text-[#0065a3] font-medium py-2">← Back</button>
               </div>
             )}
           </div>
@@ -483,10 +483,10 @@ export default function StudentDashboardPage() {
     {showWelcome && (
       <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/50">
         <div className="bg-white w-full max-w-[380px] rounded-2xl p-6 text-center">
-          <div className="w-16 h-16 bg-[#005587]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-[#0065a3]/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-3xl">🎉</span>
           </div>
-          <h2 className="text-lg font-bold text-[#005587] mb-1">Welcome to ClassCast!</h2>
+          <h2 className="text-lg font-bold text-[#0065a3] mb-1">Welcome to ClassCast!</h2>
           <p className="text-xs text-gray-500 mb-5">Enter your class code to join your first course.</p>
 
           {welcomeError && (
@@ -498,7 +498,7 @@ export default function StudentDashboardPage() {
             value={welcomeCode}
             onChange={(e) => { setWelcomeCode(e.target.value.toUpperCase()); setWelcomeError(''); }}
             placeholder="Class code (e.g., ABC1234)"
-            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm text-center font-mono font-bold tracking-wider focus:border-[#005587] focus:outline-none focus:ring-2 focus:ring-[#005587]/20 mb-4"
+            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-sm text-center font-mono font-bold tracking-wider focus:border-[#0065a3] focus:outline-none focus:ring-2 focus:ring-[#0065a3]/20 mb-4"
             autoFocus
             onKeyDown={(e) => e.key === 'Enter' && handleWelcomeJoin()}
           />
@@ -506,7 +506,7 @@ export default function StudentDashboardPage() {
           <button
             onClick={handleWelcomeJoin}
             disabled={welcomeJoining || !welcomeCode.trim()}
-            className="w-full py-3 bg-[#005587] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 mb-3"
+            className="w-full py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors disabled:opacity-50 mb-3"
           >
             {welcomeJoining ? 'Joining...' : 'Join Course'}
           </button>

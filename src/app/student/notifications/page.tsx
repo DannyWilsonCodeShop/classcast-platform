@@ -66,7 +66,7 @@ const NotificationsPage: React.FC = () => {
   const getIconBg = (type: string) => {
     switch (type) {
       case 'like': return 'bg-red-400';
-      case 'comment': return 'bg-[#005587]';
+      case 'comment': return 'bg-[#0065a3]';
       case 'assignment': return 'bg-purple-500';
       case 'grade': return 'bg-[#FFC72C]';
       default: return 'bg-gray-400';
@@ -88,10 +88,10 @@ const NotificationsPage: React.FC = () => {
             </svg>
           </button>
           <div className="flex-1 mx-2">
-            <h1 className="text-base font-bold uppercase text-[#005587] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Notifications</h1>
+            <h1 className="text-base font-bold uppercase text-[#0065a3] tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Notifications</h1>
           </div>
           {unreadCount > 0 && (
-            <span className="text-[10px] bg-[#005587] text-white px-2 py-0.5 rounded-full font-medium">{unreadCount} new</span>
+            <span className="text-[10px] bg-[#0065a3] text-white px-2 py-0.5 rounded-full font-medium">{unreadCount} new</span>
           )}
         </div>
 
@@ -139,7 +139,7 @@ const NotificationsPage: React.FC = () => {
                     <p className="text-[10px] text-gray-300 mt-1">{formatTimestamp(notification.timestamp)}</p>
                   </div>
                   {!notification.read && (
-                    <div className="w-2 h-2 bg-[#005587] rounded-full shrink-0 mt-1.5" />
+                    <div className="w-2 h-2 bg-[#0065a3] rounded-full shrink-0 mt-1.5" />
                   )}
                 </div>
               ))}
@@ -159,13 +159,13 @@ const NotificationsPage: React.FC = () => {
               <span className="text-[10px] text-gray-400 mt-0.5">Assignments</span>
             </button>
             <button className="-mt-6" onClick={() => router.push('/student/record')}>
-              <div className="w-14 h-14 bg-gradient-to-br from-[#005587] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]">
+              <div className="w-14 h-14 bg-gradient-to-br from-[#0065a3] to-[#0088cc] rounded-full flex items-center justify-center shadow-xl border-4 border-white ring-2 ring-[#FFC72C]">
                 <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
               </div>
             </button>
             <button className="flex flex-col items-center">
-              <svg className="w-6 h-6 text-[#005587]" fill="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-              <span className="text-[10px] text-[#005587] font-medium mt-0.5">Alerts</span>
+              <svg className="w-6 h-6 text-[#0065a3]" fill="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+              <span className="text-[10px] text-[#0065a3] font-medium mt-0.5">Alerts</span>
             </button>
             <button className="flex flex-col items-center" onClick={() => router.push('/student/profile')}>
               <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>

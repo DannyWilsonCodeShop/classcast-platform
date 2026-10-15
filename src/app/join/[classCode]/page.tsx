@@ -74,7 +74,7 @@ export default function JoinClassPage() {
   };
 
   return (
-    <div className="min-h-screen min-h-dvh bg-gradient-to-b from-[#005587] to-[#003d5c] flex flex-col items-center justify-center px-6">
+    <div className="min-h-screen min-h-dvh bg-gradient-to-b from-[#0065a3] to-[#003d5c] flex flex-col items-center justify-center px-6">
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
 
@@ -98,7 +98,7 @@ export default function JoinClassPage() {
             </div>
           ) : enrolling ? (
             <div className="text-center py-4">
-              <div className="w-10 h-10 border-3 border-[#005587] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <div className="w-10 h-10 border-3 border-[#0065a3] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               <p className="text-sm text-gray-600">Enrolling you in the class...</p>
             </div>
           ) : (
@@ -106,8 +106,8 @@ export default function JoinClassPage() {
               {/* Class code badge */}
               <div className="text-center mb-5">
                 <span className="text-[10px] text-gray-400 uppercase tracking-wider">Class Code</span>
-                <div className="mt-1 inline-block px-4 py-2 bg-[#005587]/10 rounded-xl">
-                  <span className="text-lg font-mono font-bold text-[#005587] tracking-wider">{classCode}</span>
+                <div className="mt-1 inline-block px-4 py-2 bg-[#0065a3]/10 rounded-xl">
+                  <span className="text-lg font-mono font-bold text-[#0065a3] tracking-wider">{classCode}</span>
                 </div>
               </div>
 
@@ -141,7 +141,7 @@ export default function JoinClassPage() {
               {/* Regular sign-in */}
               <button
                 onClick={handleRegularSignIn}
-                className="w-full py-3 bg-[#005587] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors"
+                className="w-full py-3 bg-[#0065a3] text-white rounded-xl text-sm font-bold hover:bg-[#004470] transition-colors"
               >
                 Sign in with ClassCast account
               </button>

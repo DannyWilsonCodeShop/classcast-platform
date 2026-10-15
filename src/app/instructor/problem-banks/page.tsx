@@ -108,7 +108,7 @@ export default function ProblemBanksPage() {
       <InstructorRoute>
         <div className="min-h-full overflow-y-auto pb-24">
           <div className="max-w-2xl mx-auto px-4 py-6">
-            <h1 className="text-xl font-bold text-[#005587] mb-4">
+            <h1 className="text-xl font-bold text-[#0065a3] mb-4">
               {editingBank ? 'Edit Question Bank' : 'Create Question Bank'}
             </h1>
             <ProblemBankBuilder
@@ -132,12 +132,12 @@ export default function ProblemBanksPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-1.5">
-              <h1 className="text-xl font-bold text-[#005587]">Question Banks</h1>
+              <h1 className="text-xl font-bold text-[#0065a3]">Question Banks</h1>
               <HelpTooltip text="Problem banks let you create sets of unique questions. Link a bank to an assignment and each student gets a different problem — great for individualized homework and preventing cheating." />
             </div>
             <button
               onClick={() => setShowBuilder(true)}
-              className="px-4 py-2 bg-[#005587] text-white rounded-xl text-sm font-medium"
+              className="px-4 py-2 bg-[#0065a3] text-white rounded-xl text-sm font-medium"
             >
               + New Bank
             </button>
@@ -162,7 +162,7 @@ export default function ProblemBanksPage() {
                 <div key={bank.bankId} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-sm text-[#005587] truncate">{bank.title}</h3>
+                      <h3 className="font-bold text-sm text-[#0065a3] truncate">{bank.title}</h3>
                       {bank.description && (
                         <p className="text-xs text-gray-500 mt-0.5 truncate">{bank.description}</p>
                       )}
@@ -180,7 +180,7 @@ export default function ProblemBanksPage() {
                   <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200">
                     <button
                       onClick={() => handleViewBank(bank.bankId)}
-                      className="px-3 py-1.5 bg-[#005587] text-white rounded-lg text-xs font-medium"
+                      className="px-3 py-1.5 bg-[#0065a3] text-white rounded-lg text-xs font-medium"
                     >
                       View
                     </button>
@@ -246,7 +246,7 @@ export default function ProblemBanksPage() {
             <div className="absolute inset-0 bg-black/40" />
             <div className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md sm:mx-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-4 pt-4 pb-2 border-b border-gray-100 shrink-0">
-                <h3 className="font-bold text-sm text-[#005587]">
+                <h3 className="font-bold text-sm text-[#0065a3]">
                   {banks.find(b => b.bankId === viewingBank)?.title || 'Questions'}
                 </h3>
                 <button onClick={() => { setViewingBank(null); setViewingProblems([]); }} className="text-gray-400 p-1">
@@ -256,7 +256,7 @@ export default function ProblemBanksPage() {
               <div className="flex-1 overflow-y-auto px-4 py-3">
                 {viewingLoading ? (
                   <div className="flex justify-center py-8">
-                    <div className="w-6 h-6 border-2 border-[#005587] border-t-transparent rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-[#0065a3] border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : viewingProblems.length === 0 ? (
                   <p className="text-center text-gray-400 text-sm py-8">No questions in this bank</p>

@@ -181,7 +181,7 @@ export default function StudentCourseDetailPage() {
 
         {/* Course Info Card - Detailed */}
         {course ? (
-          <div className="px-4 py-3 bg-gradient-to-r from-[#005587] to-[#0077aa] shrink-0">
+          <div className="px-4 py-3 bg-gradient-to-r from-[#0065a3] to-[#0077aa] shrink-0">
             <h2 className="text-white text-lg font-bold">{course.courseName}</h2>
             {course.instructor && (
               <div className="flex items-center gap-2 mt-1">
@@ -211,7 +211,7 @@ export default function StudentCourseDetailPage() {
             </div>
           </div>
         ) : loading ? (
-          <div className="px-4 py-3 bg-gradient-to-r from-[#005587] to-[#0077aa] shrink-0">
+          <div className="px-4 py-3 bg-gradient-to-r from-[#0065a3] to-[#0077aa] shrink-0">
             <div className="h-5 w-48 bg-white/20 rounded animate-pulse" />
             <div className="h-3 w-32 bg-white/10 rounded animate-pulse mt-2" />
             <div className="h-3 w-40 bg-white/10 rounded animate-pulse mt-1.5" />
@@ -279,13 +279,13 @@ export default function StudentCourseDetailPage() {
               <span className="text-[9px] text-gray-500">Home</span>
             </button>
             <button className="flex flex-col items-center w-1/3 py-1 relative" onClick={() => { if (courseFiles.length > 0) setShowResourcesModal(true); }}>
-              <svg className={`w-6 h-6 ${courseFiles.length > 0 ? 'text-[#005587]' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`w-6 h-6 ${courseFiles.length > 0 ? 'text-[#0065a3]' : 'text-gray-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
               </svg>
               {courseFiles.length > 0 && (
-                <span className="absolute top-0 right-1/4 w-3.5 h-3.5 bg-[#005587] rounded-full text-[7px] text-white flex items-center justify-center font-bold">{courseFiles.length}</span>
+                <span className="absolute top-0 right-1/4 w-3.5 h-3.5 bg-[#0065a3] rounded-full text-[7px] text-white flex items-center justify-center font-bold">{courseFiles.length}</span>
               )}
-              <span className={`text-[9px] ${courseFiles.length > 0 ? 'text-[#005587] font-medium' : 'text-gray-300'}`}>Resources</span>
+              <span className={`text-[9px] ${courseFiles.length > 0 ? 'text-[#0065a3] font-medium' : 'text-gray-300'}`}>Resources</span>
             </button>
             <button className="flex flex-col items-center w-1/3 py-1" onClick={() => router.push(`/student/courses/${courseId}/classmates`)}>
               <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -345,13 +345,13 @@ export default function StudentCourseDetailPage() {
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 active:bg-gray-100 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-[#005587]/10 flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-lg bg-[#0065a3]/10 flex items-center justify-center shrink-0">
                     <FileIcon fileType={file.fileType || file.fileName} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{file.originalName || file.fileName}</p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      {file.category && <span className="text-[10px] text-[#005587] bg-[#005587]/10 px-1.5 py-0.5 rounded font-medium capitalize">{file.category}</span>}
+                      {file.category && <span className="text-[10px] text-[#0065a3] bg-[#0065a3]/10 px-1.5 py-0.5 rounded font-medium capitalize">{file.category}</span>}
                       {file.fileSize && <span className="text-[10px] text-gray-400">{formatFileSize(file.fileSize)}</span>}
                     </div>
                   </div>

@@ -45,7 +45,7 @@ function CategoryScoreRow({ category, value, maxValue, onChange }: CategoryScore
         max={maxValue}
         value={value}
         onChange={handleSliderChange}
-        className="w-full accent-[#005587]"
+        className="w-full accent-[#0065a3]"
         aria-label={`Score for ${category.name}`}
       />
       <input
@@ -209,7 +209,7 @@ export function RubricGradingPanel({
           <button
             type="button"
             onClick={handleSetAllToMax}
-            className="text-xs text-[#005587] font-medium hover:underline"
+            className="text-xs text-[#0065a3] font-medium hover:underline"
           >
             Set All to Maximum
           </button>
@@ -233,8 +233,8 @@ export function RubricGradingPanel({
       </div>
 
       <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-200">
-        <span className="text-base font-bold text-[#005587]">Total</span>
-        <span className="text-base font-bold text-[#005587]">
+        <span className="text-base font-bold text-[#0065a3]">Total</span>
+        <span className="text-base font-bold text-[#0065a3]">
           {total} / {maxPossible}
         </span>
       </div>

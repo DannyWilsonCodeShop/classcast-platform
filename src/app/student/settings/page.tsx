@@ -82,7 +82,7 @@ export default function StudentSettingsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="flex-1 text-base font-bold uppercase text-[#005587] mx-2 tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Settings</h1>
+          <h1 className="flex-1 text-base font-bold uppercase text-[#0065a3] mx-2 tracking-normal" style={{ fontFamily: "'Oswald', sans-serif" }}>Settings</h1>
         </div>
 
         {/* Scrollable content */}
@@ -104,7 +104,7 @@ export default function StudentSettingsPage() {
                     onChange={(e) => handleNotificationChange('emailNotifications', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#005587]" style={{ width: 40, height: 22 }}>
+                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#0065a3]" style={{ width: 40, height: 22 }}>
                     <div className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] rounded-full bg-white border border-gray-300 transition-transform ${notifications.emailNotifications ? 'translate-x-[18px]' : ''}`} />
                   </div>
                 </label>
@@ -123,7 +123,7 @@ export default function StudentSettingsPage() {
                     onChange={(e) => handleNotificationChange('pushNotifications', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#005587]" style={{ width: 40, height: 22 }}>
+                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#0065a3]" style={{ width: 40, height: 22 }}>
                     <div className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] rounded-full bg-white border border-gray-300 transition-transform ${notifications.pushNotifications ? 'translate-x-[18px]' : ''}`} />
                   </div>
                 </label>
@@ -142,7 +142,7 @@ export default function StudentSettingsPage() {
                     onChange={(e) => handleNotificationChange('assignmentReminders', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#005587]" style={{ width: 40, height: 22 }}>
+                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#0065a3]" style={{ width: 40, height: 22 }}>
                     <div className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] rounded-full bg-white border border-gray-300 transition-transform ${notifications.assignmentReminders ? 'translate-x-[18px]' : ''}`} />
                   </div>
                 </label>
@@ -161,7 +161,7 @@ export default function StudentSettingsPage() {
                     onChange={(e) => handleNotificationChange('gradeNotifications', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#005587]" style={{ width: 40, height: 22 }}>
+                  <div className="w-10 h-5.5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-[#0065a3]" style={{ width: 40, height: 22 }}>
                     <div className={`absolute top-[2px] left-[2px] w-[18px] h-[18px] rounded-full bg-white border border-gray-300 transition-transform ${notifications.gradeNotifications ? 'translate-x-[18px]' : ''}`} />
                   </div>
                 </label>
@@ -180,7 +180,7 @@ export default function StudentSettingsPage() {
                 <select
                   value={privacy.profileVisibility}
                   onChange={(e) => handlePrivacyChange('profileVisibility', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#005587] focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0065a3] focus:border-transparent"
                 >
                   <option value="everyone">Everyone</option>
                   <option value="classmates">Classmates Only</option>
@@ -195,7 +195,7 @@ export default function StudentSettingsPage() {
                 <select
                   value={privacy.videoVisibility}
                   onChange={(e) => handlePrivacyChange('videoVisibility', e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#005587] focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0065a3] focus:border-transparent"
                 >
                   <option value="public">Public</option>
                   <option value="course">Course Members Only</option>

@@ -90,7 +90,7 @@ const UnsubscribeSuccessContent: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
               onClick={handleResubscribe}
-              className="px-6 py-3 bg-[#005587] text-white rounded-lg font-medium hover:bg-[#004466] transition-colors"
+              className="px-6 py-3 bg-[#0065a3] text-white rounded-lg font-medium hover:bg-[#004466] transition-colors"
             >
               Resubscribe to Emails
             </button>

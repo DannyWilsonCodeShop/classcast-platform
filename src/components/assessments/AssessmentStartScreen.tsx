@@ -73,7 +73,7 @@ export function AssessmentStartScreen({
     return (
       <div className="text-center py-12 px-4">
         <div className="text-4xl mb-3">✅</div>
-        <h2 className="text-lg font-bold text-[#005587] mb-2">Assessment Submitted</h2>
+        <h2 className="text-lg font-bold text-[#0065a3] mb-2">Assessment Submitted</h2>
         <p className="text-sm text-gray-600">You have already completed this assessment. Only one attempt is allowed.</p>
       </div>
     );
@@ -81,18 +81,18 @@ export function AssessmentStartScreen({
 
   return (
     <div className="space-y-4 px-4 py-4">
-      <h2 className="text-lg font-bold text-[#005587]">{title}</h2>
+      <h2 className="text-lg font-bold text-[#0065a3]">{title}</h2>
       {description && <p className="text-sm text-gray-600">{description}</p>}
 
       {/* Assessment Info */}
       <div className="bg-gray-50 rounded-xl p-4 space-y-2">
         <div className="flex justify-between text-xs">
           <span className="text-gray-600">Questions</span>
-          <span className="font-bold text-[#005587]">{questionCount}</span>
+          <span className="font-bold text-[#0065a3]">{questionCount}</span>
         </div>
         <div className="flex justify-between text-xs">
           <span className="text-gray-600">Total Duration</span>
-          <span className="font-bold text-[#005587]">{formatDuration(totalDurationSeconds)}</span>
+          <span className="font-bold text-[#0065a3]">{formatDuration(totalDurationSeconds)}</span>
         </div>
         <div className="flex justify-between text-xs">
           <span className="text-gray-600">Attempts</span>
@@ -131,7 +131,7 @@ export function AssessmentStartScreen({
       <button
         onClick={handleStart}
         disabled={!cameraReady || starting}
-        className="w-full py-3 bg-[#005587] text-white rounded-xl font-bold text-sm disabled:opacity-50"
+        className="w-full py-3 bg-[#0065a3] text-white rounded-xl font-bold text-sm disabled:opacity-50"
       >
         {starting ? 'Starting...' : 'Start Assessment'}
       </button>

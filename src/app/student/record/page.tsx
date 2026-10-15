@@ -705,7 +705,7 @@ function RecordPageInner() {
   if (isAssessment && !assignmentLoading && assignment?.assessmentQuestions?.length > 0 && user?.id && assignmentId && !assessmentStarted) {
     return (
       <StudentRoute>
-        <div className="h-full h-dvh bg-[#005587] flex flex-col overflow-y-auto">
+        <div className="h-full h-dvh bg-[#0065a3] flex flex-col overflow-y-auto">
           <div className="flex-1 px-5 py-8 flex flex-col">
             {/* Header */}
             <div className="text-center mb-6">
@@ -745,7 +745,7 @@ function RecordPageInner() {
             <div className="mt-auto">
               <button
                 onClick={() => setAssessmentStarted(true)}
-                className="w-full py-4 bg-[#FFC72C] text-[#005587] rounded-xl text-base font-bold active:scale-[0.98] transition-transform"
+                className="w-full py-4 bg-[#FFC72C] text-[#0065a3] rounded-xl text-base font-bold active:scale-[0.98] transition-transform"
               >
                 I'm Ready — Start Recording
               </button>
@@ -805,7 +805,7 @@ function RecordPageInner() {
             <div className="text-4xl mb-3">📋</div>
             <h2 className="text-white text-lg font-bold mb-2">No Questions Available</h2>
             <p className="text-gray-400 text-sm mb-4">This assessment doesn't have questions set up yet.</p>
-            <button onClick={() => router.back()} className="px-5 py-2 bg-[#005587] text-white rounded-xl text-sm font-bold">Go Back</button>
+            <button onClick={() => router.back()} className="px-5 py-2 bg-[#0065a3] text-white rounded-xl text-sm font-bold">Go Back</button>
           </div>
         </div>
       </StudentRoute>
@@ -874,7 +874,7 @@ function RecordPageInner() {
           {showThumbnailStep && !isSubmitting && !success && (
             <div className="flex flex-col items-center gap-4 py-8">
               <div className="w-20 h-20 bg-[#FFC72C] rounded-full flex items-center justify-center">
-                <svg className="w-10 h-10 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-10 h-10 text-[#0065a3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -891,7 +891,7 @@ function RecordPageInner() {
               <div className="w-full max-w-xs space-y-3">
                 <button
                   onClick={() => thumbnailCameraRef.current?.click()}
-                  className="w-full py-3 bg-[#FFC72C] text-[#005587] rounded-full font-bold text-lg"
+                  className="w-full py-3 bg-[#FFC72C] text-[#0065a3] rounded-full font-bold text-lg"
                 >
                   📸 {thumbnailUrl ? 'Retake Photo' : 'Take Photo'}
                 </button>
@@ -986,7 +986,7 @@ function RecordPageInner() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
               </button>
               {videoPreviewUrl && videoPreviewUrl !== 'large-file' && (
-                <button onClick={() => setShowEditor(true)} className="absolute top-3 right-14 bg-[#005587] text-white p-2 rounded-full shadow-lg active:scale-95">
+                <button onClick={() => setShowEditor(true)} className="absolute top-3 right-14 bg-[#0065a3] text-white p-2 rounded-full shadow-lg active:scale-95">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                 </button>
               )}
@@ -999,7 +999,7 @@ function RecordPageInner() {
           {/* Recording mode buttons (when camera not active and no video yet) */}
           {!videoFile && !linkUrl && !isSubmitting && !success && !cameraActive && mode !== 'upload' && (
             <div className="py-4 space-y-2 max-w-xs mx-auto w-full">
-              <button onClick={startCamera} className="w-full py-3 bg-[#005587] rounded-full font-bold text-center">📹 Record Video</button>
+              <button onClick={startCamera} className="w-full py-3 bg-[#0065a3] rounded-full font-bold text-center">📹 Record Video</button>
               <button onClick={() => setShowPiP(true)} className="w-full py-2.5 bg-gray-800 border border-gray-600 rounded-full font-medium text-center text-sm">🖥️ Screen + Camera <span className="text-[9px] text-yellow-400 ml-1">BETA</span></button>
               <button onClick={() => setShowGreenScreen(true)} className="w-full py-2.5 bg-gray-800 border border-gray-600 rounded-full font-medium text-center text-sm">🎭 Virtual Background <span className="text-[9px] text-yellow-400 ml-1">BETA</span></button>
             </div>
@@ -1009,7 +1009,7 @@ function RecordPageInner() {
           {!videoFile && !linkUrl && !isSubmitting && !success && !cameraActive && (
             <div className="space-y-3">
               {/* Upload button - prominent when mode=upload */}
-              <button onClick={() => { console.log('🖱️ Upload button clicked, opening file picker'); fileInputRef.current?.click(); }} className={`w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${mode === 'upload' ? 'bg-[#005587] text-white' : 'bg-gray-800 border border-gray-600'}`}>
+              <button onClick={() => { console.log('🖱️ Upload button clicked, opening file picker'); fileInputRef.current?.click(); }} className={`w-full py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${mode === 'upload' ? 'bg-[#0065a3] text-white' : 'bg-gray-800 border border-gray-600'}`}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                 {mode === 'upload' ? 'Choose Video File (up to 5 GB)' : 'Upload from Device (up to 5 GB)'}
               </button>
@@ -1024,7 +1024,7 @@ function RecordPageInner() {
                 placeholder="Paste YouTube or Google Drive link..."
                 value={linkUrl}
                 onChange={(e) => { setLinkUrl(e.target.value); setLinkType(detectLinkType(e.target.value)); setError(''); }}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-[#005587] focus:ring-1 focus:ring-[#005587]"
+                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-500 focus:border-[#0065a3] focus:ring-1 focus:ring-[#0065a3]"
               />
               {linkType && (
                 <div className="flex items-center gap-2 text-sm text-green-400">
@@ -1053,7 +1053,7 @@ function RecordPageInner() {
           {/* SUBMIT BUTTONS — sticky at the bottom so they're always visible on any screen size */}
           {hasVideo && !showThumbnailStep && !isSubmitting && !success && (
             <div className="sticky bottom-0 -mx-4 px-4 pt-3 pb-4 bg-gradient-to-t from-black via-black/95 to-transparent z-20 space-y-2">
-              <button onClick={() => handleSubmit(false)} disabled={assignmentLoading} className="w-full py-4 bg-gradient-to-r from-[#005587] to-[#0088cc] rounded-xl font-bold text-lg active:scale-[0.98] transition-transform disabled:opacity-50 shadow-lg">
+              <button onClick={() => handleSubmit(false)} disabled={assignmentLoading} className="w-full py-4 bg-gradient-to-r from-[#0065a3] to-[#0088cc] rounded-xl font-bold text-lg active:scale-[0.98] transition-transform disabled:opacity-50 shadow-lg">
                 {assignmentLoading ? '⏳ Loading assignment...' : '🚀 Post Video'}
               </button>
               {/* Save draft only makes sense for uploaded/recorded files, not external links */}
@@ -1072,7 +1072,7 @@ function RecordPageInner() {
               <div className="w-20 h-20 relative">
                 <svg className="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
                   <circle cx="40" cy="40" r="35" fill="none" stroke="#333" strokeWidth="6" />
-                  <circle cx="40" cy="40" r="35" fill="none" stroke="#005587" strokeWidth="6" strokeDasharray={`${2 * Math.PI * 35}`} strokeDashoffset={`${2 * Math.PI * 35 * (1 - uploadProgress / 100)}`} strokeLinecap="round" />
+                  <circle cx="40" cy="40" r="35" fill="none" stroke="#0065a3" strokeWidth="6" strokeDasharray={`${2 * Math.PI * 35}`} strokeDashoffset={`${2 * Math.PI * 35 * (1 - uploadProgress / 100)}`} strokeLinecap="round" />
                 </svg>
                 <span className="absolute inset-0 flex items-center justify-center text-sm font-bold">{uploadProgress}%</span>
               </div>
@@ -1085,7 +1085,7 @@ function RecordPageInner() {
             <div className="flex flex-col items-center gap-4 py-12">
               <div className={`w-20 h-20 rounded-full flex items-center justify-center ${savedAsDraft ? 'bg-[#FFC72C]' : 'bg-green-500'}`}>
                 {savedAsDraft ? (
-                  <svg className="w-10 h-10 text-[#005587]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 8a2 2 0 012-2h6l4 4v6a2 2 0 01-2 2H7a2 2 0 01-2-2V8z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 6v4h4" /></svg>
+                  <svg className="w-10 h-10 text-[#0065a3]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 8a2 2 0 012-2h6l4 4v6a2 2 0 01-2 2H7a2 2 0 01-2-2V8z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 6v4h4" /></svg>
                 ) : (
                   <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                 )}

@@ -190,7 +190,7 @@ export function PictureInPictureRecorder({ onRecordingComplete, onCancel }: PiPR
               <button
                 key={pos}
                 onClick={() => setWebcamPosition(pos)}
-                className={`px-2.5 py-1.5 rounded-lg text-[10px] font-medium ${webcamPosition === pos ? 'bg-[#FFC72C] text-[#005587]' : 'bg-white/10 text-white/60'}`}
+                className={`px-2.5 py-1.5 rounded-lg text-[10px] font-medium ${webcamPosition === pos ? 'bg-[#FFC72C] text-[#0065a3]' : 'bg-white/10 text-white/60'}`}
               >
                 {pos.replace('-', ' ')}
               </button>

@@ -36,7 +36,7 @@ export function ProblemDisplay({ problem }: ProblemDisplayProps) {
       <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-lg">📋</span>
-          <span className="text-sm font-bold text-[#005587]">Your Assigned Problem</span>
+          <span className="text-sm font-bold text-[#0065a3]">Your Assigned Problem</span>
         </div>
 
         {/* Text content */}

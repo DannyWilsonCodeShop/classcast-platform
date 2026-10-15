@@ -41,19 +41,19 @@ export function DiscussionModeratorView({ assignmentId, discussionConfig }: Disc
 
   const topLevelPosts = posts.filter(p => !p.parentPostId);
 
-  if (loading) return <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#005587]" /></div>;
+  if (loading) return <div className="flex justify-center py-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0065a3]" /></div>;
 
   return (
     <div className="space-y-4">
       {/* Prompt */}
-      <div className="bg-[#005587]/5 rounded-xl p-3 border border-[#005587]/10">
-        <p className="text-xs text-[#005587] font-medium">Prompt</p>
+      <div className="bg-[#0065a3]/5 rounded-xl p-3 border border-[#0065a3]/10">
+        <p className="text-xs text-[#0065a3] font-medium">Prompt</p>
         <p className="text-sm text-gray-800">{discussionConfig.prompt}</p>
       </div>
 
       {/* Participation Summary */}
       <div className="bg-gray-50 rounded-xl p-3">
-        <p className="text-xs font-bold text-[#005587] mb-2">Participation ({participationMap.size} students)</p>
+        <p className="text-xs font-bold text-[#0065a3] mb-2">Participation ({participationMap.size} students)</p>
         <div className="space-y-1 max-h-[150px] overflow-y-auto">
           {Array.from(participationMap.entries()).map(([id, data]) => (
             <div key={id} className="flex items-center justify-between text-[10px]">
