@@ -3,6 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { serverCache } from '@/lib/cache';
 
 const dynamoClient = new DynamoDBClient({
   region: process.env.REGION || process.env.AWS_REGION || 'us-east-1',
@@ -53,6 +54,18 @@ export async function GET(request: NextRequest) {
     const studentId = searchParams.get('studentId');
 
     console.log('Video submissions API called with:', { courseId, sectionId, assignmentId, instructorId, studentId });
+
+    // Short-lived response cache so repeat loads (e.g. navigating back to grading during a
+    // demo) are INSTANT instead of re-running dozens of DynamoDB scans + S3 signings.
+    // Invalidated immediately when a grade is saved (see /api/submissions/[id]/grade), so a
+    // cached list never hides a freshly-entered grade.
+    const cacheKey = `instructor-submissions:${instructorId || ''}:${courseId || ''}:${sectionId || ''}:${assignmentId || ''}:${studentId || ''}`;
+    const cached = serverCache.get<any>(cacheKey);
+    if (cached) {
+      return NextResponse.json(cached, {
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0', 'X-Cache': 'HIT' },
+      });
+    }
 
     let submissions: any[] = [];
 
@@ -226,83 +239,48 @@ export async function GET(request: NextRequest) {
     
     console.log(`Filtered submissions: ${submissions.length} total, ${activeSubmissions.length} active`);
 
-    // Enrich submissions with student, assignment data, and signed video URLs
+    // BATCH-LOAD lookups ONCE instead of per-submission (the old code ran a users scan +
+    // courses scan + assignments scan for EACH submission — an N+1 that meant ~hundreds of
+    // full-table scans per request). Load each table once and build maps.
+    const [usersResult, coursesLookupResult, assignmentsResult] = await Promise.all([
+      docClient.send(new ScanCommand({
+        TableName: 'classcast-users',
+        ProjectionExpression: 'userId, firstName, lastName, email, avatar',
+      })),
+      docClient.send(new ScanCommand({ TableName: 'classcast-courses' })),
+      docClient.send(new ScanCommand({
+        TableName: 'classcast-assignments',
+        ProjectionExpression: 'assignmentId, title, description, dueDate, maxScore, maxPoints, totalPoints, points',
+      })),
+    ]);
+    const usersById = new Map<string, any>((usersResult.Items || []).map((u: any) => [u.userId, u]));
+    const assignmentsById = new Map<string, any>((assignmentsResult.Items || []).map((a: any) => [a.assignmentId, a]));
+    // Build studentId -> {sectionId, sectionName} per course from enrollment, once.
+    const sectionByCourseStudent = new Map<string, { sectionId: string; sectionName: string }>();
+    for (const course of (coursesLookupResult.Items || [])) {
+      const enrolled = course?.enrollment?.students || course?.students || [];
+      for (const s of enrolled) {
+        if (s?.userId && s?.sectionId) {
+          sectionByCourseStudent.set(`${course.courseId}:${s.userId}`, {
+            sectionId: s.sectionId,
+            sectionName: s.sectionName || '',
+          });
+        }
+      }
+    }
+
+    // Enrich submissions from the in-memory maps (only S3 signing is async per submission).
     const enrichedSubmissions = await Promise.all(
       activeSubmissions.map(async (submission) => {
         try {
-          console.log('Enriching submission:', submission.submissionId);
-          
-          // Get student info from users table
-          let studentInfo = null;
-          try {
-            const studentScanCommand = new ScanCommand({
-              TableName: 'classcast-users',
-              FilterExpression: 'userId = :userId',
-              ExpressionAttributeValues: {
-                ':userId': submission.studentId
-              }
-            });
-            const studentResult = await docClient.send(studentScanCommand);
-            studentInfo = studentResult.Items?.[0] || null;
-          } catch (error) {
-            console.error('Error fetching student info:', error);
-          }
+          // Student from map
+          const studentInfo = usersById.get(submission.studentId) || null;
 
-          // Get student's section information from course enrollment
-          let sectionInfo = null;
-          if (studentInfo && submission.courseId) {
-            try {
-              // Get the student's enrollment record to find their section
-              const enrollmentScanCommand = new ScanCommand({
-                TableName: 'classcast-courses',
-                FilterExpression: 'courseId = :courseId',
-                ExpressionAttributeValues: {
-                  ':courseId': submission.courseId
-                }
-              });
-              const enrollmentResult = await docClient.send(enrollmentScanCommand);
-              const course = enrollmentResult.Items?.[0];
+          // Section from the prebuilt enrollment map
+          const sectionInfo = sectionByCourseStudent.get(`${submission.courseId}:${submission.studentId}`) || null;
 
-              // Enrollment lives under course.enrollment.students (the old code looked at
-              // course.students, which doesn't exist — so section was always null, hiding
-              // it on the grading cards and leaving the section filter empty).
-              const enrolledStudents = course?.enrollment?.students || course?.students || [];
-              const studentEnrollment = enrolledStudents.find((s: any) => s.userId === submission.studentId);
-
-              if (studentEnrollment && studentEnrollment.sectionId) {
-                // The enrollment entry usually already carries sectionName — use it directly.
-                if (studentEnrollment.sectionName) {
-                  sectionInfo = { sectionId: studentEnrollment.sectionId, sectionName: studentEnrollment.sectionName };
-                } else {
-                  // Fallback: look the name up in the sections table.
-                  const sectionResult = await docClient.send(new ScanCommand({
-                    TableName: 'classcast-sections',
-                    FilterExpression: 'sectionId = :sectionId',
-                    ExpressionAttributeValues: { ':sectionId': studentEnrollment.sectionId },
-                  }));
-                  sectionInfo = sectionResult.Items?.[0] || null;
-                }
-              }
-            } catch (error) {
-              console.error('Error fetching section info:', error);
-            }
-          }
-
-          // Get assignment info from assignments table
-          let assignmentInfo = null;
-          try {
-            const assignmentScanCommand = new ScanCommand({
-              TableName: 'classcast-assignments',
-              FilterExpression: 'assignmentId = :assignmentId',
-              ExpressionAttributeValues: {
-                ':assignmentId': submission.assignmentId
-              }
-            });
-            const assignmentResult = await docClient.send(assignmentScanCommand);
-            assignmentInfo = assignmentResult.Items?.[0] || null;
-          } catch (error) {
-            console.error('Error fetching assignment info:', error);
-          }
+          // Assignment from map
+          const assignmentInfo = assignmentsById.get(submission.assignmentId) || null;
 
           // Generate signed URL for video if it exists
           let signedVideoUrl = submission.videoUrl;
@@ -424,14 +402,23 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    return NextResponse.json({
+    const payload = {
       success: true,
       submissions: enrichedSubmissions,
-      count: enrichedSubmissions.length
-    }, {
+      count: enrichedSubmissions.length,
+    };
+
+    // Cache the enriched result briefly so the next load is instant. 30s is short enough
+    // that it never masks real changes for long, and the grade-save route invalidates it
+    // immediately on any grade write.
+    serverCache.set(cacheKey, payload, 30_000);
+
+    return NextResponse.json(payload, {
       headers: {
-        // Never cache: grades mutate constantly; a stale copy makes saved grades look unsaved.
+        // CDN must not cache (grades mutate); the instant repeat-load comes from the
+        // in-memory serverCache above, which we control + invalidate.
         'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+        'X-Cache': 'MISS',
       }
     });
 

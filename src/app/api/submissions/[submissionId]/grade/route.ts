@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, UpdateCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { serverCache } from '@/lib/cache';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -97,6 +98,9 @@ export async function PUT(
     }));
 
     console.log('Submission graded successfully:', updateResult.Attributes);
+
+    // Invalidate the instructor grading list cache so the new grade shows on the next load.
+    serverCache.invalidate('instructor-submissions');
 
     // Create notification for the student about their grade
     const submission = updateResult.Attributes;
