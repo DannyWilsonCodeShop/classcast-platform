@@ -13,7 +13,7 @@ export default function RootLoading() {
       {/* ClassCast branding centered */}
       <div className="flex-1 flex flex-col items-center justify-center gap-4">
         <img
-          src="/UpdatedCCLogo.png"
+          src="/MyClassCast36.png"
           alt="ClassCast"
           className="w-20 h-20 object-contain animate-pulse"
         />

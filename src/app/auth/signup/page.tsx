@@ -9,7 +9,7 @@ const SCHOOL_CODES: Record<string, { name: string; logo: string; bgColor?: strin
   'CRAJ1': { name: 'Cristo Rey Atlanta Jesuit', logo: '/CristoReyLogo.png' },
   'DEMO1': { name: 'Demo School', logo: '/Demo1Logo.png' },
   'DREW1': { name: 'Drew Charter School', logo: '/DrewCharterLogo.png', bgColor: '#005741' },
-  '5555': { name: 'ClassCast', logo: '/UpdatedCCLogo.png' },
+  '5555': { name: 'ClassCast', logo: '/MyClassCast36.png' },
 };
 
 const VALID_CODES = Object.keys(SCHOOL_CODES);
@@ -99,7 +99,7 @@ export default function SignupPage() {
         {/* Header */}
         <div className="w-full flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <img src="/UpdatedCCLogo.png" alt="" className="w-8 h-8 object-contain" />
+            <img src="/MyClassCast36.png" alt="" className="w-8 h-8 object-contain" />
             <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-2xl text-[#005587]">
               ClassCast
             </span>

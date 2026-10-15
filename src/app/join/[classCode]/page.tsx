@@ -81,7 +81,7 @@ export default function JoinClassPage() {
       <div className="w-full max-w-sm">
         {/* Logo + branding */}
         <div className="text-center mb-8">
-          <img src="/UpdatedCCLogo.png" alt="ClassCast" className="w-16 h-16 mx-auto mb-3 drop-shadow-lg" />
+          <img src="/MyClassCast36.png" alt="ClassCast" className="w-16 h-16 mx-auto mb-3 drop-shadow-lg" />
           <h1 style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-4xl text-white mb-2">ClassCast</h1>
           <p className="text-white/70 text-sm">You&apos;ve been invited to join a class</p>
         </div>

@@ -21,7 +21,7 @@ export function StudentHeader() {
         >
           ClassCast
         </span>
-        <img src="/UpdatedCCLogo.png" alt="" className="w-6 h-6 object-contain" />
+        <img src="/MyClassCast36.png" alt="" className="w-6 h-6 object-contain" />
       </div>
       {schoolLogo && (
         <img
