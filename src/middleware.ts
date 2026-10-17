@@ -48,15 +48,22 @@ export function middleware(request: NextRequest) {
     response.headers.set('Pragma', 'no-cache');
   }
 
-  // Page routes — cache HTML at CDN edge for instant navigation
+  // Page routes — HTML.
+  // IMPORTANT: do NOT CDN-cache the authed app HTML. The HTML references build-hashed JS/CSS
+  // chunk filenames; if the edge serves HTML from an older deploy than the assets being
+  // fetched, the browser requests a chunk path that resolves to the wrong file and fails with
+  // "Refused to execute script ... MIME type ('text/css') is not executable" — which breaks
+  // chunk loads (e.g. a video not rendering). Serving HTML fresh keeps it in lockstep with its
+  // own deploy's chunks. (These pages are per-user/dynamic anyway, so edge-caching them is
+  // low value.)
   if (!pathname.startsWith('/api') && !pathname.startsWith('/_next') && !pathname.includes('.')) {
-    // Student/instructor pages — short CDN cache, long stale window
     if (pathname.startsWith('/student') || pathname.startsWith('/instructor')) {
-      response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=300');
+      response.headers.set('Cache-Control', 'no-store, must-revalidate');
     }
-    // Public pages (about, study-hall, join) — longer cache
+    // Public marketing pages can still be briefly edge-cached (static, not deploy-coupled
+    // to per-user chunks in a way that users hit mid-deploy often), but keep it short.
     else if (pathname.startsWith('/about') || pathname.startsWith('/study-hall') || pathname.startsWith('/join')) {
-      response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+      response.headers.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=120');
     }
   }
   

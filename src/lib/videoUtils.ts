@@ -14,9 +14,7 @@ export function getVideoUrl(videoUrl: string | undefined | null): string {
 
   // Convert s3:// URLs to https:// format
   if (videoUrl.startsWith('s3://')) {
-    const httpsUrl = convertS3UrlToHttps(videoUrl);
-    console.log('🎬 Converted s3:// URL to https://', { original: videoUrl, converted: httpsUrl });
-    return httpsUrl;
+    return convertS3UrlToHttps(videoUrl);
   }
 
   // If it's a YouTube URL, return as-is
@@ -33,7 +31,6 @@ export function getVideoUrl(videoUrl: string | undefined | null): string {
   // If it's an S3 presigned URL, use it directly (they already have auth tokens)
   // This avoids 413 errors from proxy trying to handle long URLs
   if (isS3VideoUrl(videoUrl)) {
-    console.log('🎬 Using direct S3 URL (no proxy)');
     return videoUrl;
   }
 
