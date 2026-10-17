@@ -60,13 +60,33 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
 
   const [rowHeight, setRowHeight] = useState<number>(0);
 
+  // Read a face's TRUE natural content height. The faces are `absolute inset-0`, so
+  // `top:0; bottom:0` forces their height to equal the card's current rowHeight. With a
+  // flex-1 spacer inside, that spacer absorbs the slack and the face's scrollHeight just
+  // reports the clamped height — it can never reveal that the content (e.g. after the
+  // taller Fredoka glyphs load) actually needs more room, so the Record button overflows.
+  // To get the honest height we briefly release the bottom/height constraint, read the
+  // content-driven scrollHeight, then restore the inline styles exactly as they were.
+  const measureFace = (el: HTMLDivElement | null): number => {
+    if (!el) return 0;
+    const prevBottom = el.style.bottom;
+    const prevHeight = el.style.height;
+    el.style.bottom = 'auto';
+    el.style.height = 'auto';
+    // scrollHeight now reflects the natural content height (incl. padding + Record button).
+    const h = el.scrollHeight;
+    el.style.bottom = prevBottom;
+    el.style.height = prevHeight;
+    return h;
+  };
+
   const measureHeights = useCallback(() => {
     // Find the tallest content across all faces so every card in the row is uniform
     // and the tallest card's directions + Record button always fit.
     let tallest = 200;
     for (const choice of choices) {
-      const f = frontRefs.current[choice.choiceId]?.scrollHeight || 0;
-      const b = backRefs.current[choice.choiceId]?.scrollHeight || 0;
+      const f = measureFace(frontRefs.current[choice.choiceId]);
+      const b = measureFace(backRefs.current[choice.choiceId]);
       tallest = Math.max(tallest, f, b);
     }
     setRowHeight(prev => (prev !== tallest ? tallest : prev));
@@ -94,7 +114,16 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
     // A couple of delayed passes catch late layout (web fonts, markdown render)
     const t1 = setTimeout(measureHeights, 100);
     const t2 = setTimeout(measureHeights, 500);
+    // Fredoka loads async via next/font; re-measure once the web fonts have swapped in
+    // so the taller glyphs are reflected in the measured content height.
+    let fontsCancelled = false;
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      document.fonts.ready.then(() => {
+        if (!fontsCancelled) measureHeights();
+      }).catch(() => {});
+    }
     return () => {
+      fontsCancelled = true;
       window.removeEventListener('resize', onResize);
       observers.forEach(o => o.disconnect());
       clearTimeout(t1);
