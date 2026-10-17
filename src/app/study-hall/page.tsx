@@ -364,7 +364,7 @@ export default function PublicStudyHallPage() {
           /* ===== REQUEST TAB ===== */
           <div className="max-w-md mx-auto px-4 py-5">
             <div className="text-center mb-5">
-              <h1 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Study Hall Pullout</h1>
+              <h1 className="text-lg font-bold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Study Hall Pullout</h1>
               <p className="text-[11px] text-stone-500 mt-0.5">Add students to the pullout list</p>
             </div>
 
@@ -543,7 +543,7 @@ export default function PublicStudyHallPage() {
           /* ===== TODAY'S LIST TAB ===== */
           <div className="max-w-md mx-auto px-4 py-5">
             <div className="text-center mb-4">
-              <h1 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Today&apos;s List</h1>
+              <h1 className="text-lg font-bold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Today&apos;s List</h1>
               {/* Date navigation */}
               <div className="flex items-center justify-center gap-3 mt-2">
                 <button

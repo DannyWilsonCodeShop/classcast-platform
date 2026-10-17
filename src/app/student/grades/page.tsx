@@ -77,7 +77,7 @@ export default function StudentGradesPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h1 className="flex-1 text-lg font-semibold text-stone-900 mx-2" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Grades</h1>
+          <h1 className="flex-1 text-lg font-semibold text-stone-900 mx-2" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Grades</h1>
           <img src="/CristoReyLogo.png" alt="" className="w-14 h-14 object-contain" />
         </div>
 

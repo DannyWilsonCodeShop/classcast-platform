@@ -274,7 +274,7 @@ export function TestTrackerCalendar() {
       {/* Month header */}
       <div className="flex items-center justify-between mb-3">
         <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:bg-gray-200">‹</button>
-        <h2 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>{monthNames[currentMonth.month]} {currentMonth.year}</h2>
+        <h2 className="text-lg font-bold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>{monthNames[currentMonth.month]} {currentMonth.year}</h2>
         <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 active:bg-gray-200">›</button>
       </div>
 

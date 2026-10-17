@@ -587,7 +587,7 @@ export const CourseForm: React.FC<CourseFormProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-[#003366] text-white rounded-md hover:bg-[#003366]/90 disabled:opacity-50"
+              className="px-4 py-2 bg-[#0065a3] text-white rounded-md hover:bg-[#00517f] disabled:opacity-50"
             >
               {loading ? 'Saving...' : (course ? 'Update Course' : 'Create Course')}
             </button>

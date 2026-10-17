@@ -141,7 +141,7 @@ const StudentCoursesPage: React.FC = () => {
       <div className="h-full overflow-hidden flex flex-col bg-[#f4f7fb]">
         {/* Search / Join unified input */}
         <div className="px-4 pt-3 pb-2 shrink-0">
-          <h1 className="text-lg font-semibold text-stone-900 mb-2" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>My Courses</h1>
+          <h1 className="text-lg font-semibold text-stone-900 mb-2" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>My Courses</h1>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

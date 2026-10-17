@@ -146,7 +146,7 @@ export default function StudentDashboardPage() {
         <div className="h-full flex flex-col overflow-hidden bg-[#f4f7fb]">
           {/* Quick Stats Row */}
           <div className="flex items-center gap-4 px-6 py-4 shrink-0 border-b border-stone-200/60">
-            <h1 className="text-xl font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Dashboard</h1>
+            <h1 className="text-xl font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Dashboard</h1>
             <div className="flex items-center gap-3 text-sm">
               <span className="bg-white text-[#0065a3] px-3 py-1 rounded-full font-medium border border-stone-200/60">📋 {dueThisWeek} due this week</span>
               <span className="bg-white text-green-700 px-3 py-1 rounded-full font-medium border border-stone-200/60">✅ {submitted} submitted</span>
@@ -158,7 +158,7 @@ export default function StudentDashboardPage() {
             {/* Left Column — Assignments */}
             <div className="flex flex-col min-h-0 bg-white rounded-2xl overflow-hidden border border-stone-200/60 shadow-sm">
               <div className="px-6 pt-5 pb-3 shrink-0 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Assignments</h2>
+                <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Assignments</h2>
                 <button onClick={() => router.push('/student/assignments')} className="text-xs text-[#0065a3] font-medium hover:underline">View All →</button>
               </div>
               <div className="flex-1 overflow-y-auto px-6 pb-4 space-y-3">
@@ -179,7 +179,7 @@ export default function StudentDashboardPage() {
             {/* Right Column — Recent Videos */}
             <div className="flex flex-col min-h-0 bg-white rounded-2xl overflow-hidden border border-stone-200/60 shadow-sm">
               <div className="px-6 pt-5 pb-3 shrink-0">
-                <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Recent Videos</h2>
+                <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Recent Videos</h2>
               </div>
               <div className="flex-1 overflow-y-auto px-6 pb-4">
                 {feed.length > 0 ? (
@@ -237,7 +237,7 @@ export default function StudentDashboardPage() {
           {/* Grey rounded container */}
           <div className="mx-3 mt-2 flex-1 flex flex-col min-h-0 bg-white rounded-2xl overflow-hidden border border-stone-200/60 shadow-sm">
             <div className="px-4 pt-4 pb-2 shrink-0">
-              <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Assignments</h2>
+              <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Assignments</h2>
             </div>
             <div className="flex-1 overflow-y-auto px-4 space-y-2.5 min-h-0 pb-3">
               {displayAssignments.length > 0 ? displayAssignments.map((a, i) => (
@@ -264,7 +264,7 @@ export default function StudentDashboardPage() {
         {/* BOTTOM HALF - Recent Videos */}
         <div className="flex-[3] flex flex-col min-h-0 overflow-hidden">
           <div className="px-4 pt-4 pb-2 shrink-0">
-            <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Recent Videos</h2>
+            <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Recent Videos</h2>
           </div>
           <div className="flex-1 overflow-hidden px-4 min-h-0">
             {feed.length > 0 ? (

@@ -136,7 +136,7 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
     <div className="px-4 py-6">
       {/* Header */}
       <div className="text-center mb-6">
-        <h2 className="text-lg font-bold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>
+        <h2 className="text-lg font-bold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>
           Choose Your Topic
         </h2>
         <p className="text-xs text-stone-500 mt-1">Pick one option below to record your video about</p>
@@ -176,7 +176,7 @@ export function ChoiceBoard({ assignmentId, choices, sectionId, assignmentDescri
 
                   {/* Title only on the cover */}
                   <div className="flex-1 flex items-center justify-center text-center px-2 py-8 min-h-[120px]">
-                    <h3 className="text-lg sm:text-xl font-bold text-stone-900 leading-snug" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>
+                    <h3 className="text-lg sm:text-xl font-bold text-stone-900 leading-snug" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>
                       {choice.title}
                     </h3>
                   </div>

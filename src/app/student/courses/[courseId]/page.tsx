@@ -220,7 +220,7 @@ export default function StudentCourseDetailPage() {
 
         {/* Assignments Label */}
         <div className="px-4 pt-3 pb-1 flex items-center justify-between shrink-0">
-          <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: "'Source Serif 4', Georgia, serif" }}>Assignments</h2>
+          <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Assignments</h2>
           <span className="text-xs text-gray-400">{assignments.length} total</span>
         </div>
 

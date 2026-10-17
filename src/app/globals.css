@@ -30,7 +30,9 @@
   --chart-4: #FFC72C;
   --chart-5: #38a169;
   --radius: 0.75rem;
-  --font-geist-sans: "Inter", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  /* Body / general text — Nunito (clean, friendly, readable). Headings use Fredoka (see below). */
+  --font-geist-sans: var(--font-nunito), "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  --font-heading: var(--font-fredoka), "Fredoka", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
   --font-geist-mono: "Geist Mono", "SF Mono", Monaco, Inconsolata, "Roboto Mono", monospace;
 }
 
@@ -64,7 +66,7 @@
   }
 }
 
-/* Background — warm off-white for professional feel */
+/* Background — warm off-white, body text in friendly Nunito */
 body {
   background: var(--background);
   color: var(--foreground);
@@ -73,6 +75,18 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings & titles — playful rounded Fredoka (kid-friendly, IXL-style).
+   Applies globally across both portals since they share this root layout. */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Explicit title utility for card titles / page titles that aren't heading tags */
+.font-heading,
+.font-display-style {
+  font-family: var(--font-heading) !important;
 }
 
 /* Mobile touch improvements */
@@ -200,7 +214,7 @@ button, [role="button"] {
 .btn-gradient-cristo-rey:hover {
   background: linear-gradient(135deg, var(--cristo-rey-blue-dark), var(--cristo-rey-gold-dark));
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(0, 51, 102, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 101, 163, 0.3);
 }
 
 /* Cristo Rey specific gradients */
@@ -412,7 +426,7 @@ select:focus {
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.4);
   box-shadow: 
-    0 2px 12px rgba(0, 85, 135, 0.1),
+    0 2px 12px rgba(0, 101, 163, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.5);
   will-change: transform;
   transform: translateZ(0);
@@ -590,7 +604,7 @@ html[data-native] .native-bottom-nav {
 
 /* Make tab bar visible (navy background) when modals are open */
 body:has([data-modal-open]) nav.native-bottom-nav {
-  background: rgba(0, 85, 135, 0.95) !important;
+  background: rgba(0, 101, 163, 0.95) !important;
   border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
