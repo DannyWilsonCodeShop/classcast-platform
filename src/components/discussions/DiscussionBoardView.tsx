@@ -78,7 +78,7 @@ function PostBody({ post }: { post: DiscussionPost }) {
       )}
 
       {post.videoUrl && (
-        <video src={post.videoUrl} controls playsInline className="w-full rounded-lg mt-2" style={{ maxHeight: '200px' }} />
+        <video src={post.videoUrl} controls playsInline preload="none" className="w-full rounded-lg mt-2" style={{ maxHeight: '200px' }} />
       )}
     </>
   );

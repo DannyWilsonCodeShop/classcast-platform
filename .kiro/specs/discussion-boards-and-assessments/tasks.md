@@ -60,7 +60,7 @@ This plan implements three new assignment types for ClassCast: Discussion Boards
     - _Requirements: 2.8, 2.9, 3.5_
 
 - [ ] 3. Discussion Boards — Student UI
-  - [ ] 3.1 Implement DiscussionBoardView component
+  - [x] 3.1 Implement DiscussionBoardView component
     - Create `src/components/discussions/DiscussionBoardView.tsx`
     - Display instructor prompt at top, fetch and render threaded posts (flat list with indentation for replies)
     - Filter posts by student's group for small-group format
@@ -69,7 +69,7 @@ This plan implements three new assignment types for ClassCast: Discussion Boards
     - Display video posts with inline `<video>` player
     - _Requirements: 2.1, 2.6, 2.7, 2.10, 9.2_
 
-  - [ ] 3.2 Implement DiscussionPostComposer component
+  - [x] 3.2 Implement DiscussionPostComposer component
     - Create `src/components/discussions/DiscussionPostComposer.tsx`
     - Text mode: textarea with live word count indicator, validate against minimum before submission
     - Video mode: trigger Capacitor camera recording (reuse existing camera utilities), enforce 120s max duration
@@ -94,7 +94,7 @@ This plan implements three new assignment types for ClassCast: Discussion Boards
     - Validate all required fields on submission, show specific error messages
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 10.1, 10.2, 10.3, 10.4, 10.5, 10.6, 10.7, 10.8_
 
-  - [ ] 4.2 Implement DiscussionModeratorView component
+  - [x] 4.2 Implement DiscussionModeratorView component
     - Create `src/components/instructor/DiscussionModeratorView.tsx`
     - Display all threads across all groups with group filter controls
     - Allow instructor to delete any post for moderation

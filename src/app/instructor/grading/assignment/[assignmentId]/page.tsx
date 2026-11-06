@@ -13,6 +13,8 @@ import { LazyVideoPlayer } from '@/components/instructor/LazyVideoPlayer';
 import { VirtualizedGradingFeed } from '@/components/instructor/VirtualizedGradingFeed';
 import { GradingFilters } from '@/components/instructor/GradingFilters';
 import { extractSections, filterBySection, sortSubmissions, searchSubmissions, getSectionStats } from '@/lib/sectionUtils';
+import { DiscussionModeratorView } from '@/components/instructor/DiscussionModeratorView';
+import { DiscussionConfig } from '@/types/discussion';
 
 interface Assignment {
   assignmentId: string;
@@ -82,6 +84,9 @@ const NewAssignmentGradingPage: React.FC = () => {
   const [focusStudentId, setFocusStudentId] = useState<string | null>(focusStudentIdParam);
   
   const [assignment, setAssignment] = useState<Assignment | null>(null);
+  // Discussion assignments are moderated, not graded through the video feed.
+  // Capture the type + config so we can branch to the moderator view.
+  const [discussionConfig, setDiscussionConfig] = useState<DiscussionConfig | null>(null);
   const [allSubmissions, setAllSubmissions] = useState<VideoSubmission[]>([]);
   const [filteredSubmissions, setFilteredSubmissions] = useState<VideoSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,6 +146,9 @@ const NewAssignmentGradingPage: React.FC = () => {
         let assignmentInfo = null;
         if (assignmentData.success && assignmentData.assignment) {
           assignmentInfo = assignmentData.assignment;
+        } else if (assignmentData.data?.assignment) {
+          // GET /api/assignments/[assignmentId] wraps the record as { data: { assignment } }.
+          assignmentInfo = assignmentData.data.assignment;
         } else if (assignmentData.data) {
           assignmentInfo = assignmentData.data;
         } else if (assignmentData.assignmentId || assignmentData.title) {
@@ -149,6 +157,10 @@ const NewAssignmentGradingPage: React.FC = () => {
         
         if (assignmentInfo) {
           console.log('🎯 NEW GRADING PAGE: Using assignment info:', assignmentInfo);
+          // Discussion assignments branch to the moderator view instead of the grading feed.
+          if (assignmentInfo.assignmentType === 'discussion' && assignmentInfo.discussionConfig) {
+            setDiscussionConfig(assignmentInfo.discussionConfig as DiscussionConfig);
+          }
           setAssignment({
             assignmentId: assignmentInfo.assignmentId || assignmentId,
             title: assignmentInfo.title || 'Assignment',
@@ -554,6 +566,59 @@ const NewAssignmentGradingPage: React.FC = () => {
             >
               Go Back
             </button>
+          </div>
+        </div>
+      </InstructorRoute>
+    );
+  }
+
+  // Discussion assignment: moderate posts/replies instead of grading a video feed.
+  // Mounted the same way the student detail page branches to the discussion board,
+  // using the assignmentId as the discussionId (matching DiscussionBoardView).
+  if (discussionConfig) {
+    return (
+      <InstructorRoute>
+        <div className="min-h-screen bg-gray-50">
+          {/* Header with Logo and Home Button */}
+          <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-50 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => router.push('/instructor/dashboard')}
+                  className="flex-shrink-0 hover:opacity-80 transition-opacity"
+                  title="Go to Dashboard"
+                >
+                  <img src="/MyClassCast36.png" alt="ClassCast Logo" className="h-10 w-10 object-contain" />
+                </button>
+                <button
+                  onClick={() => router.back()}
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
+                  title="Go Back"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800">{assignment.title}</h1>
+                  <p className="text-sm text-gray-600">{assignment.courseName} • Discussion moderation</p>
+                </div>
+              </div>
+              <button
+                onClick={() => router.push('/instructor/dashboard')}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+                title="Go to Dashboard"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span className="font-medium">Home</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <DiscussionModeratorView assignmentId={assignmentId} discussionConfig={discussionConfig} />
           </div>
         </div>
       </InstructorRoute>

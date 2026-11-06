@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { extractUrls } from '@/lib/discussionRender';
 
 interface DiscussionPostComposerProps {
@@ -19,7 +19,7 @@ interface DiscussionPostComposerProps {
 
 export function DiscussionPostComposer({
   discussionId, authorId, authorName, authorAvatar, parentPostId,
-  allowedTypes, minWordCount, onPostCreated, compact, placeholder,
+  allowedTypes, minWordCount, maxVideoDuration, onPostCreated, compact, placeholder,
 }: DiscussionPostComposerProps) {
   const [content, setContent] = useState('');
   const [posting, setPosting] = useState(false);
@@ -31,10 +31,34 @@ export function DiscussionPostComposer({
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // --- Video attachment state (video posts reuse the same presigned S3 flow as images) ---
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [recording, setRecording] = useState(false);
+  const [recordTime, setRecordTime] = useState(0);
+  const videoFileRef = useRef<HTMLInputElement>(null);
+  const liveVideoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const recordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const allowsVideo = allowedTypes === 'video' || allowedTypes === 'both';
+  const videoOnly = allowedTypes === 'video';
+
+  // Stop camera + timer if the composer unmounts mid-recording (e.g. reply form closed).
+  useEffect(() => {
+    return () => {
+      if (recordTimerRef.current) clearInterval(recordTimerRef.current);
+      if (streamRef.current) streamRef.current.getTracks().forEach(t => t.stop());
+    };
+  }, []);
+
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
-  const hasAttachment = links.length > 0 || !!imageUrl;
+  const hasAttachment = links.length > 0 || !!imageUrl || !!videoUrl;
   const canSubmit =
-    (allowedTypes === 'video') ||
+    (videoOnly ? !!videoUrl : false) ||
     (content.trim().length > 0 && wordCount >= minWordCount) ||
     hasAttachment;
 
@@ -73,6 +97,101 @@ export function DiscussionPostComposer({
     }
   };
 
+  // Upload a video File to S3 via the existing presigned flow (same as images, folder 'discussion-videos').
+  const uploadVideoFile = async (file: File) => {
+    setUploadingVideo(true);
+    setVideoProgress(0);
+    setError('');
+    try {
+      const res = await fetch('/api/upload/presigned', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name, contentType: file.type, userId: authorId, folder: 'discussion-videos' }),
+      });
+      const data = await res.json();
+      if (!data.success) { setError('Video upload failed'); return; }
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', data.data.presignedUrl);
+        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.upload.onprogress = (e) => { if (e.lengthComputable) setVideoProgress(Math.round((e.loaded / e.total) * 100)); };
+        xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error(`${xhr.status}`));
+        xhr.onerror = () => reject(new Error('network'));
+        xhr.send(file);
+      });
+      setVideoUrl(data.data.fileUrl);
+    } catch {
+      setError('Video upload failed');
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
+  const handleVideoPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await uploadVideoFile(file);
+    if (videoFileRef.current) videoFileRef.current.value = '';
+  };
+
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+  };
+
+  const startRecording = async () => {
+    setError('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: true,
+      });
+      streamRef.current = stream;
+      if (liveVideoRef.current) liveVideoRef.current.srcObject = stream;
+      chunksRef.current = [];
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+        ? 'video/webm;codecs=vp9,opus'
+        : MediaRecorder.isTypeSupported('video/webm') ? 'video/webm' : 'video/mp4';
+      const recorder = new MediaRecorder(stream, { mimeType });
+      recorder.ondataavailable = (ev) => { if (ev.data.size > 0) chunksRef.current.push(ev.data); };
+      recorder.onstop = async () => {
+        if (recordTimerRef.current) { clearInterval(recordTimerRef.current); recordTimerRef.current = null; }
+        const blob = new Blob(chunksRef.current, { type: mimeType });
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const file = new File([blob], `discussion-recording-${Date.now()}.${ext}`, { type: mimeType });
+        stopCamera();
+        setRecording(false);
+        await uploadVideoFile(file);
+      };
+      recorderRef.current = recorder;
+      recorder.start(1000);
+      setRecording(true);
+      setRecordTime(0);
+      recordTimerRef.current = setInterval(() => {
+        setRecordTime(t => {
+          const next = t + 1;
+          // Auto-stop at the discussion's max video duration.
+          if (maxVideoDuration > 0 && next >= maxVideoDuration && recorderRef.current?.state !== 'inactive') {
+            recorderRef.current?.stop();
+          }
+          return next;
+        });
+      }, 1000);
+    } catch (err: unknown) {
+      setError(`Camera access denied: ${err instanceof Error ? err.message : 'unknown error'}`);
+      stopCamera();
+      setRecording(false);
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+      recorderRef.current.stop();
+    }
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit || posting) return;
     setPosting(true);
@@ -89,7 +208,7 @@ export function DiscussionPostComposer({
           authorAvatar: authorAvatar || '',
           parentPostId,
           content: content.trim(),
-          videoUrl: null,
+          videoUrl,
           links: allLinks,
           imageUrl,
         }),
@@ -99,6 +218,7 @@ export function DiscussionPostComposer({
         setContent('');
         setLinks([]);
         setImageUrl(null);
+        setVideoUrl(null);
         onPostCreated();
       } else {
         setError(data.error || 'Failed to post');
@@ -110,6 +230,73 @@ export function DiscussionPostComposer({
   };
 
   const showText = allowedTypes === 'text' || allowedTypes === 'both';
+
+  const fmtTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+  // Shared video capture/attachment UI (file picker + in-composer recorder + preview).
+  const videoSection = allowsVideo ? (
+    <div className="mt-2">
+      {/* Live recording preview */}
+      {recording && (
+        <div className="relative mb-2">
+          <video ref={liveVideoRef} autoPlay muted playsInline className="w-full rounded-lg bg-black max-h-48" />
+          <div className="absolute top-2 left-2 flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse" /> REC {fmtTime(recordTime)}
+            {maxVideoDuration > 0 && <span className="opacity-80">/ {fmtTime(maxVideoDuration)}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* Uploaded/recorded video preview */}
+      {videoUrl && !recording && (
+        <div className="relative mb-2 inline-block w-full">
+          <video src={videoUrl} controls preload="none" className="w-full rounded-lg border border-gray-200 max-h-48" />
+          <button
+            type="button"
+            onClick={() => setVideoUrl(null)}
+            className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center"
+          >✕</button>
+        </div>
+      )}
+
+      {/* Upload progress */}
+      {uploadingVideo && (
+        <div className="mb-2">
+          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-[#0065a3] transition-all" style={{ width: `${videoProgress}%` }} />
+          </div>
+          <span className="text-[10px] text-gray-400">Uploading video… {videoProgress}%</span>
+        </div>
+      )}
+
+      {/* Capture controls */}
+      {!videoUrl && !uploadingVideo && (
+        <div className="flex items-center gap-2">
+          {!recording ? (
+            <>
+              <button
+                type="button"
+                onClick={startRecording}
+                className="px-3 py-1.5 bg-[#0065a3] text-white rounded-lg text-xs font-medium flex items-center gap-1.5"
+              >🎥 Record video</button>
+              <button
+                type="button"
+                onClick={() => videoFileRef.current?.click()}
+                className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-xs font-medium flex items-center gap-1.5"
+              >⬆️ Upload video</button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={stopRecording}
+              className="px-3 py-1.5 bg-red-500 text-white rounded-lg text-xs font-medium"
+            >⏹ Stop recording</button>
+          )}
+          <input ref={videoFileRef} type="file" accept="video/*" className="hidden" onChange={handleVideoPick} />
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <div className={`bg-white rounded-xl border border-gray-200 ${compact ? 'p-2.5' : 'p-3'}`}>
@@ -141,6 +328,9 @@ export function DiscussionPostComposer({
               <button type="button" onClick={() => setImageUrl(null)} className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] flex items-center justify-center">✕</button>
             </div>
           )}
+
+          {/* Video capture (when text+video is allowed) */}
+          {videoSection}
 
           {showLinkInput && (
             <div className="flex items-center gap-2 mt-2">
@@ -179,7 +369,7 @@ export function DiscussionPostComposer({
             </div>
             <button
               onClick={handleSubmit}
-              disabled={!canSubmit || posting}
+              disabled={!canSubmit || posting || uploadingVideo || recording}
               className="px-4 py-1.5 bg-[#0065a3] text-white rounded-lg text-xs font-medium disabled:opacity-50"
             >
               {posting ? '...' : parentPostId ? 'Reply' : 'Post'}
@@ -187,6 +377,23 @@ export function DiscussionPostComposer({
           </div>
         </>
       )}
+
+      {/* Video-only mode: capture UI + its own submit button (no text body). */}
+      {videoOnly && (
+        <>
+          {videoSection}
+          <div className="flex items-center justify-end mt-2">
+            <button
+              onClick={handleSubmit}
+              disabled={!canSubmit || posting || uploadingVideo || recording}
+              className="px-4 py-1.5 bg-[#0065a3] text-white rounded-lg text-xs font-medium disabled:opacity-50"
+            >
+              {posting ? '...' : parentPostId ? 'Reply' : 'Post video'}
+            </button>
+          </div>
+        </>
+      )}
+
       {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
     </div>
   );

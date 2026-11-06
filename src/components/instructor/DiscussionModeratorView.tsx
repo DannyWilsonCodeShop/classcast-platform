@@ -116,7 +116,7 @@ export function DiscussionModeratorView({ assignmentId, discussionConfig }: Disc
               // eslint-disable-next-line @next/next/no-img-element
               <img src={post.imageUrl} alt="attachment" className="w-full rounded-lg mt-1 max-h-[120px] object-contain" />
             )}
-            {post.videoUrl && <video src={post.videoUrl} controls playsInline className="w-full rounded-lg mt-1 max-h-[120px]" />}
+            {post.videoUrl && <video src={post.videoUrl} controls playsInline preload="none" className="w-full rounded-lg mt-1 max-h-[120px]" />}
           </div>
         ))}
       </div>
