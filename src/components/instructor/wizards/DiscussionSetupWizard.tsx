@@ -325,6 +325,11 @@ export function DiscussionSetupWizard({ onComplete, onBack, initialConfig, submi
             </>
           )}
           <h3 className="text-sm font-bold text-[#0065a3]">Participation Rules</h3>
+          {initialConfig && initialConfig.minReplies === undefined && (
+            <p role="note" className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+              This assignment used to count posts and replies together. Saving will count original posts and replies separately.
+            </p>
+          )}
           <div>
             <label htmlFor="discussion-min-posts" className="text-xs font-medium text-gray-600 block mb-1">Original posts required</label>
             <p className="text-[10px] text-gray-400 mb-1">Each student starts this many new threads of their own.</p>

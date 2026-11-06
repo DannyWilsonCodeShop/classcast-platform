@@ -200,23 +200,38 @@ export async function GET(request: NextRequest) {
     // Discussion completion is derived from posts/replies, not submissions.
     const discussionAssignments = assignments.filter(a => a.assignmentType === 'discussion');
     const discussionPostsEntries = await Promise.all(
-      discussionAssignments.map(async (a): Promise<[string, any[]]> => {
-        const res = await docClient.send(new QueryCommand({
-          TableName: DISCUSSION_POSTS_TABLE,
-          IndexName: 'DiscussionIdIndex',
-          KeyConditionExpression: 'discussionId = :d',
-          ExpressionAttributeValues: { ':d': a.assignmentId },
-        }));
-        return [a.assignmentId, res.Items || []];
+      discussionAssignments.map(async (a): Promise<[string, any[] | null]> => {
+        try {
+          const items: any[] = [];
+          let lastKey: Record<string, any> | undefined;
+          do {
+            const res = await docClient.send(new QueryCommand({
+              TableName: DISCUSSION_POSTS_TABLE,
+              IndexName: 'DiscussionIdIndex',
+              KeyConditionExpression: 'discussionId = :d',
+              ExpressionAttributeValues: { ':d': a.assignmentId },
+              ExclusiveStartKey: lastKey,
+            }));
+            items.push(...(res.Items || []));
+            lastKey = res.LastEvaluatedKey;
+          } while (lastKey);
+          return [a.assignmentId, items];
+        } catch (err) {
+          console.error(`Failed to load discussion posts for ${a.assignmentId}:`, err);
+          return [a.assignmentId, null];
+        }
       })
     );
-    const discussionPostsMap = new Map<string, any[]>(discussionPostsEntries);
+    // null = query failed for that discussion; fall back to previous status logic
+    const discussionPostsMap = new Map<string, any[] | null>(discussionPostsEntries);
 
     const enrichedAssignments = assignments.map(assignment => {
       const course = courseMap.get(assignment.courseId);
       const isDiscussion = assignment.assignmentType === 'discussion';
-      const participation = isDiscussion
-        ? computeParticipation(discussionPostsMap.get(assignment.assignmentId) || [], userId, assignment.discussionConfig)
+      const discussionPosts = isDiscussion ? discussionPostsMap.get(assignment.assignmentId) : null;
+      // No posts data (query failed) => no participation, previous submission-based status applies
+      const participation = discussionPosts
+        ? computeParticipation(discussionPosts, userId, assignment.discussionConfig)
         : null;
       const submission = submissionMap.get(assignment.assignmentId);
 

@@ -55,7 +55,8 @@ export function computeParticipation(
 ): Participation {
   const req = getRequirements(config);
   const visible = posts.filter(p => !p.hidden);
-  const byId = new Map(visible.map(p => [p.postId, p]));
+  // Parents are looked up in the unfiltered set so replies to a later-hidden post still count
+  const byId = new Map(posts.map(p => [p.postId, p]));
   const mine = visible.filter(p => p.authorId === authorId);
 
   let postCount: number;

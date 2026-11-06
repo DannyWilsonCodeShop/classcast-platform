@@ -51,6 +51,15 @@ describe('discussionRequirements', () => {
     expect(r.postsMet).toBe(false);
   });
 
+  it('still counts a reply whose parent was later hidden, but not the hidden post itself', () => {
+    const posts = [post('b', 's2', null, true), post('r1', 's1', 'b'), post('a', 's1')];
+    const r = computeParticipation(posts, 's1', cfg);
+    expect(r.replyCount).toBe(1);
+    expect(r.postCount).toBe(1);
+    // the hidden author's own counts exclude their hidden post
+    expect(computeParticipation(posts, 's2', cfg).postCount).toBe(0);
+  });
+
   it('excludes hidden posts', () => {
     const posts = [post('a', 's1', null, true)];
     const r = computeParticipation(posts, 's1', cfg);

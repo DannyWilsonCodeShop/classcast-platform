@@ -89,7 +89,6 @@ function buildRow(id: string, name: string, email: string, countable: CountableP
   return {
     studentId: id,
     name,
-    email,
     postCount: p.postCount,
     replyCount: p.replyCount,
     totalWordCount: p.totalWordCount,
