@@ -259,6 +259,11 @@ export async function GET(request: NextRequest) {
         maxScore: assignment.maxScore ?? 100,
         sectionId: studentSectionId || null,
         choices: assignment.choices || [],
+        // New assignment-type configs — must pass through so the student
+        // detail page can render the dedicated thread/assessment/module layouts.
+        discussionConfig: assignment.discussionConfig || null,
+        assessmentQuestions: assignment.assessmentQuestions || null,
+        moduleConfig: assignment.moduleConfig || null,
       };
     });
 
