@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, QueryCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { DiscussionPost } from '@/types/discussion';
+import { computeParticipation, CountablePost, RequirementsConfig } from '@/lib/discussionRequirements';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -54,22 +55,17 @@ export async function GET(
     // Compute participation summary for the requesting student
     let participationSummary = null;
     if (studentId) {
-      const studentPosts = posts.filter((p: Record<string, unknown>) => p.authorId === studentId);
-
       // Get assignment to check requirements
       const assignmentResult = await docClient.send(new GetCommand({
         TableName: ASSIGNMENTS_TABLE,
         Key: { assignmentId: discussionId },
       }));
       const assignment = assignmentResult.Item;
-      const minPosts = (assignment?.discussionConfig as Record<string, unknown>)?.minPosts as number || 2;
-
-      participationSummary = {
+      participationSummary = computeParticipation(
+        posts as unknown as CountablePost[],
         studentId,
-        postCount: studentPosts.length,
-        totalWordCount: studentPosts.reduce((sum: number, p: Record<string, unknown>) => sum + ((p.wordCount as number) || 0), 0),
-        requirementsMet: studentPosts.length >= minPosts,
-      };
+        assignment?.discussionConfig as RequirementsConfig | undefined
+      );
     }
 
     return NextResponse.json({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, QueryCommand, BatchGetCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { serverCache, CACHE_TTL } from '@/lib/cache';
+import { computeParticipation } from '@/lib/discussionRequirements';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -10,6 +11,7 @@ const COURSES_TABLE = 'classcast-courses';
 const ASSIGNMENTS_TABLE = 'classcast-assignments';
 const SUBMISSIONS_TABLE = 'classcast-submissions';
 const USERS_TABLE = 'classcast-users';
+const DISCUSSION_POSTS_TABLE = 'classcast-discussion-posts';
 
 export async function GET(request: NextRequest) {
   try {
@@ -195,8 +197,27 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Discussion completion is derived from posts/replies, not submissions.
+    const discussionAssignments = assignments.filter(a => a.assignmentType === 'discussion');
+    const discussionPostsEntries = await Promise.all(
+      discussionAssignments.map(async (a): Promise<[string, any[]]> => {
+        const res = await docClient.send(new QueryCommand({
+          TableName: DISCUSSION_POSTS_TABLE,
+          IndexName: 'DiscussionIdIndex',
+          KeyConditionExpression: 'discussionId = :d',
+          ExpressionAttributeValues: { ':d': a.assignmentId },
+        }));
+        return [a.assignmentId, res.Items || []];
+      })
+    );
+    const discussionPostsMap = new Map<string, any[]>(discussionPostsEntries);
+
     const enrichedAssignments = assignments.map(assignment => {
       const course = courseMap.get(assignment.courseId);
+      const isDiscussion = assignment.assignmentType === 'discussion';
+      const participation = isDiscussion
+        ? computeParticipation(discussionPostsMap.get(assignment.assignmentId) || [], userId, assignment.discussionConfig)
+        : null;
       const submission = submissionMap.get(assignment.assignmentId);
 
       // Resolve section-specific due date
@@ -218,6 +239,12 @@ export async function GET(request: NextRequest) {
       if (submission && meetsRequirement) status = 'completed';
       else if (submission) status = 'in_progress'; // some but not all required videos submitted
       else if (dueDate < now) status = 'past_due';
+
+      if (participation) {
+        if (participation.requirementsMet) status = 'completed';
+        else if (participation.postCount + participation.replyCount > 0) status = 'in_progress';
+        else status = dueDate < now ? 'past_due' : 'upcoming';
+      }
 
       // Instructor name from batch-fetched map
       let instructorName = course?.instructorName || 'Unknown Instructor';
@@ -244,7 +271,17 @@ export async function GET(request: NextRequest) {
         assignmentType: assignment.assignmentType || 'Assignment',
         requiredVideoCount,
         submittedVideoCount: submittedCount,
-        isSubmitted: !!submission && meetsRequirement,
+        isSubmitted: participation ? participation.requirementsMet : !!submission && meetsRequirement,
+        discussionProgress: participation
+          ? {
+              postCount: participation.postCount,
+              replyCount: participation.replyCount,
+              postsRequired: participation.postsRequired,
+              repliesRequired: participation.repliesRequired,
+              requirementsMet: participation.requirementsMet,
+              legacy: participation.legacy,
+            }
+          : null,
         submittedAt: submission?.submittedAt || null,
         grade: submission?.grade || null,
         feedback: submission?.feedback || null,

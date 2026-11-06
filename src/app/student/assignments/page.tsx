@@ -62,11 +62,17 @@ export default function StudentAssignmentsPage() {
     const due = new Date(a.dueDate);
     return due.toDateString() === now.toDateString() && !a.isSubmitted;
   });
+  const endOfWeek = new Date(now);
+  endOfWeek.setDate(now.getDate() + (6 - now.getDay()));
+  endOfWeek.setHours(23, 59, 59, 999);
   const thisWeek = assignments.filter(a => {
     const due = new Date(a.dueDate);
-    const endOfWeek = new Date(now);
-    endOfWeek.setDate(now.getDate() + (6 - now.getDay()));
     return due > now && due <= endOfWeek && due.toDateString() !== now.toDateString() && !a.isSubmitted;
+  });
+  // Anything unsubmitted that is due after this week, so nothing is hidden
+  const upcoming = assignments.filter(a => {
+    const due = new Date(a.dueDate);
+    return due > endOfWeek && !a.isSubmitted;
   });
 
   const getDaysUntilDue = (dueDate: string) => {
@@ -121,6 +127,18 @@ export default function StudentAssignmentsPage() {
               hour: 'numeric', minute: '2-digit'
             })}
           </p>
+          {/* Discussion status */}
+          {assignment.assignmentType === 'discussion' && assignment.discussionProgress && (
+            assignment.discussionProgress.requirementsMet ? (
+              <span className="inline-block mt-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">✓ Done</span>
+            ) : assignment.status === 'in_progress' ? (
+              <span className="inline-block mt-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                In progress · {assignment.discussionProgress.legacy
+                  ? `Posts and replies ${assignment.discussionProgress.postCount}/${assignment.discussionProgress.postsRequired}`
+                  : `Posts ${assignment.discussionProgress.postCount}/${assignment.discussionProgress.postsRequired}${assignment.discussionProgress.repliesRequired > 0 ? `, Replies ${assignment.discussionProgress.replyCount}/${assignment.discussionProgress.repliesRequired}` : ''}`}
+              </span>
+            ) : null
+          )}
           {/* Points + Course */}
           <div className="flex items-center gap-3 mt-1.5">
             {assignment.maxScore && (
@@ -249,6 +267,14 @@ export default function StudentAssignmentsPage() {
                 <div className="mb-5">
                   <h2 className="text-xs font-semibold uppercase text-stone-500 tracking-wider mb-2">This Week</h2>
                   {thisWeek.map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)}
+                </div>
+              )}
+
+              {/* Upcoming (due after this week) */}
+              {upcoming.length > 0 && (
+                <div className="mb-5">
+                  <h2 className="text-xs font-semibold uppercase text-stone-500 tracking-wider mb-2">Upcoming</h2>
+                  {upcoming.map(a => <AssignmentCard key={a.assignmentId} assignment={a} />)}
                 </div>
               )}
 

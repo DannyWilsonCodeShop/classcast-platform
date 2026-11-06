@@ -500,7 +500,7 @@ const CreateAssignmentPage: React.FC = () => {
                         {' · '}
                         {discussionConfig.allowedResponseTypes === 'both' ? 'Text & Video' : discussionConfig.allowedResponseTypes}
                         {' · '}
-                        min {discussionConfig.minPosts} posts
+                        {discussionConfig.minPosts} {discussionConfig.minPosts === 1 ? 'post' : 'posts'} + {discussionConfig.minReplies ?? 0} {(discussionConfig.minReplies ?? 0) === 1 ? 'reply' : 'replies'}
                       </p>
                     </div>
                     <button type="button" onClick={() => setShowDiscussionWizard(true)} className="text-[11px] font-medium text-[#0065a3]">

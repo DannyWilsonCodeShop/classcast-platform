@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { DiscussionPost, DiscussionConfig, ParticipationSummary } from '@/types/discussion';
+import { getRequirements } from '@/lib/discussionRequirements';
 import { DiscussionPostComposer } from './DiscussionPostComposer';
 import { linkifyText, postCardUrls, personColor, BRAND_PERSON_COLOR, LinkCard, type PersonColor } from '@/lib/discussionRender';
 
@@ -79,6 +80,7 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const isPastDue = new Date(dueDate) < new Date();
+  const requirements = getRequirements(discussionConfig);
 
   const fetchPosts = async () => {
     try {
@@ -145,14 +147,30 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
 
       {/* Participation progress */}
       {participation && (
-        <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
-          <span className="text-xs text-gray-600">
-            Posts: <span className="font-bold text-[#0065a3]">{participation.postCount}</span>/{discussionConfig.minPosts} required
-          </span>
-          {participation.requirementsMet ? (
-            <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ Complete</span>
-          ) : (
-            <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{discussionConfig.minPosts - participation.postCount} more needed</span>
+        <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between gap-2">
+          <div className="text-xs text-gray-600 space-y-0.5">
+            {requirements.legacy ? (
+              <p>
+                Posts and replies: <span className="font-bold text-[#0065a3]">{participation.postCount}</span> of {requirements.postsRequired}
+                {participation.postCount >= requirements.postsRequired && ' ✓ done'}
+              </p>
+            ) : (
+              <>
+                <p>
+                  Posts: <span className="font-bold text-[#0065a3]">{participation.postCount}</span> of {requirements.postsRequired}
+                  {participation.postCount >= requirements.postsRequired && ' ✓ done'}
+                </p>
+                {requirements.repliesRequired > 0 && (
+                  <p>
+                    Replies: <span className="font-bold text-[#0065a3]">{participation.replyCount ?? 0}</span> of {requirements.repliesRequired}
+                    {(participation.replyCount ?? 0) >= requirements.repliesRequired ? ' ✓ done' : ' - reply to a classmate'}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+          {participation.requirementsMet && (
+            <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full shrink-0">✓ Complete</span>
           )}
         </div>
       )}

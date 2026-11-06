@@ -36,7 +36,8 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
     format: 'whole-class',
     groupSize: 5,
     allowedResponseTypes: 'both',
-    minPosts: 2,
+    minPosts: 1,
+    minReplies: 2,
     minWordCount: 50,
     maxVideoDurationSeconds: 120,
   });
@@ -292,10 +293,10 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
         </div>
       )}
 
-      {/* Step 3: Response Type (for small groups) or Participation Rules */}
+      {/* Step 3: Response Type (small groups only) + Participation Rules */}
       {step === 3 && (
         <div className="space-y-4">
-          {config.format === 'small-groups' ? (
+          {config.format === 'small-groups' && (
             <>
               <h3 className="text-sm font-bold text-[#0065a3]">Response Type</h3>
               <p className="text-xs text-gray-500">How can students respond?</p>
@@ -307,19 +308,22 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
                 ))}
               </div>
             </>
-          ) : (
-            <>
-              <h3 className="text-sm font-bold text-[#0065a3]">Participation Rules</h3>
-              <div>
-                <label className="text-xs font-medium text-gray-600 block mb-1">Minimum Posts Required</label>
-                <input type="number" min={1} max={50} value={config.minPosts} onChange={(e) => setConfig({ ...config, minPosts: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3] focus:outline-none" />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-600 block mb-1">Minimum Word Count per Post</label>
-                <input type="number" min={0} max={1000} value={config.minWordCount} onChange={(e) => setConfig({ ...config, minWordCount: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3] focus:outline-none" />
-              </div>
-            </>
           )}
+          <h3 className="text-sm font-bold text-[#0065a3]">Participation Rules</h3>
+          <div>
+            <label htmlFor="discussion-min-posts" className="text-xs font-medium text-gray-600 block mb-1">Original posts required</label>
+            <p className="text-[10px] text-gray-400 mb-1">Each student starts this many new threads of their own.</p>
+            <input id="discussion-min-posts" type="number" min={1} max={50} value={config.minPosts} onChange={(e) => setConfig({ ...config, minPosts: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3] focus:outline-none" />
+          </div>
+          <div>
+            <label htmlFor="discussion-min-replies" className="text-xs font-medium text-gray-600 block mb-1">Replies to classmates required</label>
+            <p className="text-[10px] text-gray-400 mb-1">Each student also replies to this many classmates. Replies do not count as original posts.</p>
+            <input id="discussion-min-replies" type="number" min={0} max={50} value={config.minReplies ?? 0} onChange={(e) => setConfig({ ...config, minReplies: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3] focus:outline-none" />
+          </div>
+          <div>
+            <label htmlFor="discussion-min-words" className="text-xs font-medium text-gray-600 block mb-1">Minimum words per post</label>
+            <input id="discussion-min-words" type="number" min={0} max={1000} value={config.minWordCount} onChange={(e) => setConfig({ ...config, minWordCount: Number(e.target.value) })} className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-1 focus:ring-[#0065a3] focus:outline-none" />
+          </div>
         </div>
       )}
 
@@ -342,7 +346,7 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
             <div><span className="text-gray-500">Prompt:</span> <span className="font-medium">{config.prompt.substring(0, 60)}{config.prompt.length > 60 ? '...' : ''}</span></div>
             <div><span className="text-gray-500">Format:</span> <span className="font-medium">{config.format === 'whole-class' ? 'Whole Class' : `Small Groups (${config.groupSize}, ${groupFormation})`}</span></div>
             <div><span className="text-gray-500">Responses:</span> <span className="font-medium">{config.allowedResponseTypes === 'both' ? 'Text & Video' : config.allowedResponseTypes}</span></div>
-            <div><span className="text-gray-500">Min Posts:</span> <span className="font-medium">{config.minPosts}</span></div>
+            <div><span className="text-gray-500">Required:</span> <span className="font-medium">{config.minPosts} {config.minPosts === 1 ? 'post' : 'posts'} + {config.minReplies ?? 0} {(config.minReplies ?? 0) === 1 ? 'reply' : 'replies'}</span></div>
             <div><span className="text-gray-500">Rubric:</span> <span className="font-medium">{rubric.length > 0 ? `${rubric.length} categories` : 'None'}</span></div>
           </div>
         </div>

@@ -13,6 +13,16 @@ export interface Assignment {
   maxScore?: number;
   isSubmitted?: boolean;
   createdAt?: string;
+  status?: string;
+  assignmentType?: string;
+  discussionProgress?: {
+    postCount: number;
+    replyCount: number;
+    postsRequired: number;
+    repliesRequired: number;
+    requirementsMet: boolean;
+    legacy: boolean;
+  } | null;
 }
 
 export interface FeedItem {
