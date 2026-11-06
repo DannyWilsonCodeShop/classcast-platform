@@ -1,7 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { extractUrls } from '@/lib/discussionRender';
+import { extractUrls, hostnameOf } from '@/lib/discussionRender';
+
+// The board renders up to 2 link preview cards per post, so the composer caps
+// explicitly-attached links at the same number to stay consistent.
+const LINK_CAP = 2;
+const FREDOKA_FONT = 'var(--font-fredoka), Fredoka, sans-serif';
 
 interface DiscussionPostComposerProps {
   discussionId: string;
@@ -26,6 +31,7 @@ export function DiscussionPostComposer({
   const [error, setError] = useState('');
   const [showLinkInput, setShowLinkInput] = useState(false);
   const [linkValue, setLinkValue] = useState('');
+  const [linkHint, setLinkHint] = useState('');
   const [links, setLinks] = useState<string[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -62,12 +68,33 @@ export function DiscussionPostComposer({
     (content.trim().length > 0 && wordCount >= minWordCount) ||
     hasAttachment;
 
+  const linksAtCap = links.length >= LINK_CAP;
+
   const addLink = () => {
-    const url = linkValue.trim();
-    if (!url) return;
-    const normalized = /^https?:\/\//i.test(url) ? url : `https://${url}`;
-    setLinks(prev => Array.from(new Set([...prev, normalized])));
+    const raw = linkValue.trim();
+    if (!raw) return;
+    if (linksAtCap) {
+      setLinkHint(`You can attach up to ${LINK_CAP} links.`);
+      return;
+    }
+    // Friendly, non-blocking validation: auto-prefix a bare domain with https://,
+    // then confirm it's a real http(s) URL before accepting it.
+    const normalized = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+    try {
+      const parsed = new URL(normalized);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error('scheme');
+    } catch {
+      setLinkHint('That doesn’t look like a web link. Try something like https://example.com');
+      return;
+    }
+    if (links.includes(normalized)) {
+      setLinkHint('That link is already attached.');
+      setLinkValue('');
+      return;
+    }
+    setLinks(prev => [...prev, normalized]);
     setLinkValue('');
+    setLinkHint('');
     setShowLinkInput(false);
   };
 
@@ -310,13 +337,23 @@ export function DiscussionPostComposer({
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:ring-1 focus:ring-[#0065a3] focus:border-[#0065a3] focus:outline-none"
           />
 
-          {/* Pending attachments */}
+          {/* Pending links — shown as chips so the student sees what's attached before posting */}
           {links.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
               {links.map((l) => (
-                <span key={l} className="inline-flex items-center gap-1 text-[10px] bg-[#0065a3]/10 text-[#0065a3] px-2 py-0.5 rounded-full max-w-[200px]">
-                  <span className="truncate">🔗 {l}</span>
-                  <button type="button" onClick={() => setLinks(prev => prev.filter(x => x !== l))} className="font-bold">✕</button>
+                <span
+                  key={l}
+                  title={l}
+                  className="inline-flex items-center gap-1.5 text-[11px] bg-[#0065a3]/10 text-[#0065a3] font-medium pl-2 pr-1 py-1 rounded-full max-w-[220px]"
+                >
+                  <span aria-hidden>🔗</span>
+                  <span className="truncate">{hostnameOf(l).toLowerCase()}</span>
+                  <button
+                    type="button"
+                    onClick={() => { setLinks(prev => prev.filter(x => x !== l)); setLinkHint(''); }}
+                    aria-label={`Remove link ${l}`}
+                    className="w-4 h-4 flex items-center justify-center rounded-full bg-[#0065a3]/20 hover:bg-[#0065a3]/30 text-[#0065a3] text-[10px] font-bold leading-none"
+                  >✕</button>
                 </span>
               ))}
             </div>
@@ -332,36 +369,59 @@ export function DiscussionPostComposer({
           {/* Video capture (when text+video is allowed) */}
           {videoSection}
 
+          {/* Dedicated link input, revealed by the labeled "Add link" button */}
           {showLinkInput && (
-            <div className="flex items-center gap-2 mt-2">
-              <input
-                value={linkValue}
-                onChange={(e) => setLinkValue(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addLink(); } }}
-                placeholder="Paste a link (https://...)"
-                className="flex-1 px-2 py-1 border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-[#0065a3] focus:outline-none"
-              />
-              <button type="button" onClick={addLink} className="text-xs text-[#0065a3] font-medium">Add</button>
+            <div className="mt-2 rounded-xl border border-[#0065a3]/30 bg-[#0065a3]/5 p-2.5">
+              <div className="flex items-center gap-2">
+                <input
+                  autoFocus
+                  value={linkValue}
+                  onChange={(e) => { setLinkValue(e.target.value); setLinkHint(''); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addLink(); } }}
+                  placeholder="Paste a link (https://…)"
+                  inputMode="url"
+                  className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-1 focus:ring-[#0065a3] focus:border-[#0065a3] focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={addLink}
+                  disabled={!linkValue.trim() || linksAtCap}
+                  className="px-3 py-2 bg-[#0065a3] text-white rounded-lg text-xs font-semibold disabled:opacity-50"
+                >Add</button>
+                <button
+                  type="button"
+                  onClick={() => { setShowLinkInput(false); setLinkValue(''); setLinkHint(''); }}
+                  aria-label="Cancel adding link"
+                  className="px-2 py-2 text-gray-400 hover:text-gray-600 text-xs"
+                >Cancel</button>
+              </div>
+              <p className={`text-[11px] mt-1.5 ${linkHint ? 'text-amber-600' : 'text-gray-500'}`}>
+                {linkHint || 'Share an article or video — it’ll show a preview.'}
+              </p>
             </div>
           )}
 
-          <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mt-2 gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
-                onClick={() => setShowLinkInput(v => !v)}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 text-sm"
-                title="Add link"
-                aria-label="Add link"
-              >🔗</button>
+                onClick={() => { if (linksAtCap) { setLinkHint(`You can attach up to ${LINK_CAP} links.`); setShowLinkInput(true); return; } setShowLinkInput(v => !v); setLinkHint(''); }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#0065a3]/40 text-[#0065a3] bg-[#0065a3]/5 hover:bg-[#0065a3]/10 text-xs font-semibold"
+                style={{ fontFamily: FREDOKA_FONT }}
+                aria-expanded={showLinkInput}
+              >
+                <span aria-hidden>🔗</span> Add link
+              </button>
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploadingImage}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 text-sm disabled:opacity-50"
-                title="Add image"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 text-xs font-semibold disabled:opacity-50"
+                style={{ fontFamily: FREDOKA_FONT }}
                 aria-label="Add image"
-              >{uploadingImage ? '…' : '🖼️'}</button>
+              >
+                <span aria-hidden>🖼️</span> {uploadingImage ? 'Uploading…' : 'Add image'}
+              </button>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImagePick} />
               <span className={`text-[10px] ${wordCount < minWordCount && minWordCount > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
                 {wordCount} words {minWordCount > 0 && `(min ${minWordCount})`}

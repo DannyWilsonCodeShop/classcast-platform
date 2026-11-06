@@ -128,7 +128,10 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
   }
 
   return (
-    <div className="space-y-4">
+    // pb-28 keeps the bottom new-post composer (and its Post button) clear of the
+    // floating bottom nav, which is `position: fixed` to the viewport and otherwise
+    // overlaps the end of this scroll area on the shorter desktop phone-frame height.
+    <div className="space-y-4 pb-28">
       {/* Instructor prompt — pinned brand-blue banner */}
       <div
         className="rounded-2xl p-4 text-white shadow-sm"
