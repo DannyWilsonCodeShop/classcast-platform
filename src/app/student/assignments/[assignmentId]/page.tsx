@@ -515,6 +515,99 @@ export default function StudentAssignmentDetailPage() {
     );
   }
 
+  // ── Discussion assignments get a dedicated, full-page thread layout ──
+  // When the assignment is a discussion, we FULLY REPLACE the standard
+  // assignment-detail chrome (video-submission framing, instructions block,
+  // submission-status/peer panels, bottom nav) with a discussion-specific
+  // feed layout. The student lands straight on the thread: a slim discussion
+  // header (title / due / points), the instructor prompt banner + feed +
+  // composer (all inside DiscussionBoardView). The app's StudentHeader and a
+  // back button keep navigation available so students aren't trapped.
+  if ((assignment as any).assignmentType === 'discussion' && (assignment as any).discussionConfig) {
+    const points = assignment.points || assignment.maxScore || 100;
+    const due = new Date(assignment.dueDate);
+    const dueLabel = isNaN(due.getTime())
+      ? null
+      : due.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    const pastDue = !isNaN(due.getTime()) && due < new Date();
+    return (
+      <StudentRoute>
+        <div className="h-full flex flex-col bg-[#eef3f8] overflow-hidden">
+          {/* ClassCast branded header — keeps app nav available */}
+          <StudentHeader />
+
+          {/* Slim discussion-styled header: title / due / points.
+              Fredoka title + brand-blue accents, rounded, mobile-friendly.
+              This reads as a discussion thread header — NOT the standard
+              assignment panel. The instructor PROMPT lives in the board below. */}
+          <div className="shrink-0 px-3 pt-3 pb-2">
+            <div
+              className="rounded-2xl bg-white border border-[#0065a3]/15 shadow-sm px-4 py-3"
+              style={{ borderLeft: '4px solid #0065a3' }}
+            >
+              <div className="flex items-start gap-2">
+                <button
+                  onClick={() => router.push('/student/assignments')}
+                  aria-label="Back to assignments"
+                  className="mt-0.5 -ml-1 p-1 text-[#0065a3] active:scale-95 shrink-0"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span
+                      className="text-[10px] font-bold uppercase tracking-wide text-[#0065a3]"
+                      style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}
+                    >
+                      💬 Discussion
+                    </span>
+                  </div>
+                  <h1
+                    className="text-lg font-bold text-gray-900 leading-tight break-words"
+                    style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}
+                  >
+                    {assignment.title}
+                  </h1>
+                  <div className="flex items-center flex-wrap gap-1.5 mt-1.5">
+                    {dueLabel && (
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
+                          pastDue ? 'bg-red-100 text-red-600' : 'bg-[#0065a3]/10 text-[#0065a3]'
+                        }`}
+                      >
+                        {pastDue ? 'Closed' : 'Due'} {dueLabel}
+                      </span>
+                    )}
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700">
+                      {points} pts
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Thread feed — comfortable reading width on desktop, full-bleed on
+              mobile. The board carries the prompt banner, feed and composer. */}
+          <div className="flex-1 overflow-y-auto min-h-0 px-3">
+            <div className="mx-auto w-full max-w-2xl">
+              <DiscussionBoardView
+                assignmentId={currentAssignmentId}
+                studentId={user?.id || ''}
+                studentName={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() || 'Student'}
+                studentAvatar={(user as any)?.avatar}
+                discussionConfig={(assignment as any).discussionConfig}
+                dueDate={assignment.dueDate}
+              />
+            </div>
+          </div>
+        </div>
+      </StudentRoute>
+    );
+  }
+
   return (
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
@@ -698,16 +791,9 @@ export default function StudentAssignmentDetailPage() {
 
         {/* Scrollable Instructions or Choice Board */}
         <div className="flex-1 overflow-y-auto px-4 py-3 bg-white min-h-0">
-          {(assignment as any).assignmentType === 'discussion' && (assignment as any).discussionConfig ? (
-            <DiscussionBoardView
-              assignmentId={currentAssignmentId}
-              studentId={user?.id || ''}
-              studentName={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() || 'Student'}
-              studentAvatar={(user as any)?.avatar}
-              discussionConfig={(assignment as any).discussionConfig}
-              dueDate={assignment.dueDate}
-            />
-          ) : (assignment as any).assignmentType === 'choice-board' && (assignment as any).choices?.length > 0 ? (
+          {/* NOTE: discussion assignments never reach here — they early-return
+              above into a dedicated full-page thread layout. */}
+          {(assignment as any).assignmentType === 'choice-board' && (assignment as any).choices?.length > 0 ? (
             <ChoiceBoard
               assignmentId={currentAssignmentId}
               choices={(assignment as any).choices}

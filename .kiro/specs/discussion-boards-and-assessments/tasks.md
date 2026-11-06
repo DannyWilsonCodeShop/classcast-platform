@@ -306,6 +306,7 @@ This plan implements three new assignment types for ClassCast: Discussion Boards
       - `'assessment'` → `AssessmentStartScreen` (or completed view)
       - `'module'` → `ModuleWorkspace`
     - Preserve existing `'video'` → `VideoSubmissionView` routing
+    - Discussion assignments now early-return into a dedicated full-page thread layout in `/student/assignments/[assignmentId]`: the standard assignment chrome (video-submission framing, instructions block, submission-status/peer panels, detail bottom nav) is fully replaced by a slim discussion-styled header (title/due/points) + the instructor prompt banner, feed and composer from `DiscussionBoardView`, so students land straight on the thread and post/reply inline. Non-discussion types render exactly as before.
     - _Requirements: 2.1, 5.1, 13.1_
 
   - [ ] 14.4 Add deadline indicators and status badges to assignment cards
