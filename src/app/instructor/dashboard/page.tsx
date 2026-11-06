@@ -375,7 +375,9 @@ const InstructorDashboard: React.FC = () => {
                       View
                     </button>
                     <button
-                      onClick={() => router.push(`/instructor/grading/bulk?course=${selectedCourseId}&assignment=${assignment.assignmentId}`)}
+                      onClick={() => router.push((assignment as any).assignmentType === 'discussion'
+                        ? `/instructor/grading/assignment/${assignment.assignmentId}`
+                        : `/instructor/grading/bulk?course=${selectedCourseId}&assignment=${assignment.assignmentId}`)}
                       className="px-3 py-1.5 bg-[#0065a3] rounded-full text-[11px] font-medium text-white active:scale-95 transition-transform"
                     >
                       Grade

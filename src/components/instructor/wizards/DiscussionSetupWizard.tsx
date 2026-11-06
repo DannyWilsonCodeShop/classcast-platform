@@ -7,18 +7,26 @@ import { RubricCategory } from '@/types/rubric';
 interface DiscussionSetupWizardProps {
   onComplete: (config: DiscussionConfig) => void;
   onBack: () => void;
+  /** Prefill when editing an existing discussion. */
+  initialConfig?: Partial<DiscussionConfig> & {
+    directions?: string;
+    groupFormation?: 'random' | 'teacher-assigned' | 'student-chosen';
+    videoPromptUrl?: string;
+    rubric?: RubricCategory[];
+  };
+  submitLabel?: string;
 }
 
 const DEFAULT_DIRECTIONS = `Participate in this discussion by responding to the prompt below. Read your classmates' posts and respond thoughtfully to at least one other student.`;
 
-export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWizardProps) {
+export function DiscussionSetupWizard({ onComplete, onBack, initialConfig, submitLabel }: DiscussionSetupWizardProps) {
   const [step, setStep] = useState(1);
-  const [directions, setDirections] = useState(DEFAULT_DIRECTIONS);
-  const [rubric, setRubric] = useState<RubricCategory[]>([]);
-  const [groupFormation, setGroupFormation] = useState<'random' | 'teacher-assigned' | 'student-chosen'>('random');
-  const [videoPromptUrl, setVideoPromptUrl] = useState('');
+  const [directions, setDirections] = useState(initialConfig?.directions || DEFAULT_DIRECTIONS);
+  const [rubric, setRubric] = useState<RubricCategory[]>(initialConfig?.rubric || []);
+  const [groupFormation, setGroupFormation] = useState<'random' | 'teacher-assigned' | 'student-chosen'>(initialConfig?.groupFormation || 'random');
+  const [videoPromptUrl, setVideoPromptUrl] = useState(initialConfig?.videoPromptUrl || '');
   const [videoPromptFile, setVideoPromptFile] = useState<File | null>(null);
-  const [videoPromptPreview, setVideoPromptPreview] = useState('');
+  const [videoPromptPreview, setVideoPromptPreview] = useState(initialConfig?.videoPromptUrl || '');
   const [isRecordingPrompt, setIsRecordingPrompt] = useState(false);
   const [isUploadingPrompt, setIsUploadingPrompt] = useState(false);
   const [showPromptCamera, setShowPromptCamera] = useState(false);
@@ -31,15 +39,22 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
   const promptTimerRef = useRef<NodeJS.Timeout | null>(null);
   const promptFileRef = useRef<HTMLInputElement>(null);
 
-  const [config, setConfig] = useState<DiscussionConfig>({
-    prompt: '',
-    format: 'whole-class',
-    groupSize: 5,
-    allowedResponseTypes: 'both',
-    minPosts: 1,
-    minReplies: 2,
-    minWordCount: 50,
-    maxVideoDurationSeconds: 120,
+  const [config, setConfig] = useState<DiscussionConfig>(() => {
+    const base: DiscussionConfig = {
+      prompt: '',
+      format: 'whole-class',
+      groupSize: 5,
+      allowedResponseTypes: 'both',
+      minPosts: 1,
+      minReplies: 2,
+      minWordCount: 50,
+      maxVideoDurationSeconds: 120,
+    };
+    if (!initialConfig) return base;
+    const merged = { ...base, ...initialConfig } as DiscussionConfig;
+    // Legacy record (no minReplies): keep saved minPosts, require no replies
+    if (initialConfig.minReplies === undefined) merged.minReplies = 0;
+    return merged;
   });
 
   const canProceed = () => {
@@ -358,7 +373,7 @@ export function DiscussionSetupWizard({ onComplete, onBack }: DiscussionSetupWiz
         {step < totalSteps ? (
           <button onClick={() => setStep(step + 1)} disabled={!canProceed()} className="px-4 py-2 bg-[#0065a3] text-white rounded-xl text-xs font-medium disabled:opacity-50">Next</button>
         ) : (
-          <button onClick={handleComplete} className="px-4 py-2 bg-[#FFC72C] text-[#0065a3] rounded-xl text-xs font-bold">Create Discussion</button>
+          <button onClick={handleComplete} className="px-4 py-2 bg-[#FFC72C] text-[#0065a3] rounded-xl text-xs font-bold">{submitLabel || (initialConfig ? 'Save changes' : 'Create Discussion')}</button>
         )}
       </div>
     </div>

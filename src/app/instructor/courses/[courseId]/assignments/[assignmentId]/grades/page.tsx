@@ -101,6 +101,8 @@ const AssignmentGradesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [discussionRows, setDiscussionRows] = useState<any[]>([]);
+  const [discussionReq, setDiscussionReq] = useState<{ postsRequired: number; repliesRequired: number; legacy: boolean } | null>(null);
 
   // Choice board inline editing
   const [editingChoices, setEditingChoices] = useState(false);
@@ -268,6 +270,18 @@ const AssignmentGradesPage: React.FC = () => {
           requiredVideoCount: assignment.requiredVideoCount || 1,
           resources: assignment.resources || [],
         });
+        if ((assignment.assignmentType || assignment.type) === 'discussion') {
+          try {
+            const pRes = await fetch(`/api/discussions/${assignmentId}/participation`, { credentials: 'include' });
+            const pData = await pRes.json();
+            if (pData.success) {
+              setDiscussionRows(pData.data.students || []);
+              setDiscussionReq(pData.data.requirements || null);
+            }
+          } catch (e) {
+            console.error('Failed to load discussion participation:', e);
+          }
+        }
       }
       
       // Fetch enrolled students AND sections for filtering
@@ -575,7 +589,9 @@ const AssignmentGradesPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
-                onClick={() => setShowEditModal(true)}
+                onClick={() => assignment.assignmentType === 'discussion'
+                  ? router.push(`/instructor/courses/${courseId}?tab=assignments&editAssignment=${assignmentId}`)
+                  : setShowEditModal(true)}
                 className="px-3 py-1 bg-gray-50 rounded-full text-[10px] font-bold text-[#0065a3]"
               >
                 Edit
@@ -832,6 +848,62 @@ const AssignmentGradesPage: React.FC = () => {
             </div>
           )}
 
+          {/* Discussion participation (replaces the video-submission roster) */}
+          {assignment.assignmentType === 'discussion' && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-bold text-[#0065a3]">
+                  Participation ({discussionRows.length} students)
+                </p>
+                <button
+                  onClick={() => router.push(`/instructor/grading/assignment/${assignmentId}`)}
+                  className="px-3 py-1 bg-[#0065a3] rounded-full text-[10px] font-medium text-white"
+                >
+                  Open moderator view
+                </button>
+              </div>
+              {discussionReq && (
+                <p className="text-[10px] text-gray-500 mb-2">
+                  Required: {discussionReq.postsRequired} {discussionReq.postsRequired === 1 ? 'post' : 'posts'}
+                  {discussionReq.legacy ? ' (posts and replies combined)' : ` + ${discussionReq.repliesRequired} ${discussionReq.repliesRequired === 1 ? 'reply' : 'replies'}`}
+                </p>
+              )}
+              {discussionRows.length === 0 ? (
+                <p className="text-xs text-gray-400 py-4 text-center">No students enrolled yet</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="text-left text-gray-500 border-b border-gray-100">
+                        <th className="py-1.5 pr-2 font-medium">Student</th>
+                        <th className="py-1.5 pr-2 font-medium">Posts</th>
+                        {discussionReq && !discussionReq.legacy && <th className="py-1.5 pr-2 font-medium">Replies</th>}
+                        <th className="py-1.5 pr-2 font-medium">Words</th>
+                        <th className="py-1.5 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {discussionRows.map((r) => (
+                        <tr key={r.studentId} className="border-b border-gray-50">
+                          <td className="py-1.5 pr-2 text-gray-800">{r.name}</td>
+                          <td className="py-1.5 pr-2">{r.postCount}/{discussionReq?.postsRequired ?? 0}</td>
+                          {discussionReq && !discussionReq.legacy && <td className="py-1.5 pr-2">{r.replyCount}/{discussionReq.repliesRequired}</td>}
+                          <td className="py-1.5 pr-2">{r.totalWordCount}</td>
+                          <td className="py-1.5">
+                            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${r.requirementsMet ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {r.requirementsMet ? 'Met' : 'Not met'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {assignment.assignmentType !== 'discussion' && (<>
           {/* Video Submissions Grid — one tile per video (students may submit multiple) */}
           {studentGrades.some(g => (g.submissions?.length || 0) > 0) && (
             <div>
@@ -1002,10 +1074,11 @@ const AssignmentGradesPage: React.FC = () => {
               </p>
             </div>
           )}
+          </>)}
         </div>
 
         {/* Edit Modal */}
-        {assignment && (
+        {assignment && assignment.assignmentType !== 'discussion' && (
           <AssignmentEditModal
             isOpen={showEditModal}
             onClose={() => setShowEditModal(false)}

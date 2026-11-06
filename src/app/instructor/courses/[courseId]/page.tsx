@@ -10,6 +10,7 @@ import CourseSettingsModal from '@/components/instructor/CourseSettingsModal';
 import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
 import { AssignmentEditModal } from '@/components/instructor/AssignmentEditModal';
 import AssignmentDetailsModal from '@/components/instructor/AssignmentDetailsModal';
+import { DiscussionSetupWizard } from '@/components/instructor/wizards/DiscussionSetupWizard';
 import SectionList from '@/components/instructor/SectionList';
 import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
 import RichTextRenderer from '@/components/common/RichTextRenderer';
@@ -69,6 +70,8 @@ interface Assignment {
   resources?: any[];
   instructionalVideoUrl?: string; // NEW: Instructor's explanation video
   assignmentType?: string;
+  discussionConfig?: any;
+  rubric?: any[];
   choices?: Array<{ choiceId: string; title: string; description: string; color?: string; maxSlotsPerSection?: number }>;
   sectionDueDates?: Record<string, string>;
 }
@@ -558,6 +561,8 @@ const InstructorCourseDetailPage: React.FC = () => {
             assignmentType: assignment.assignmentType || assignment.type,
             choices: assignment.choices || [],
             sectionDueDates: assignment.sectionDueDates || {},
+            discussionConfig: assignment.discussionConfig || undefined,
+            rubric: assignment.rubric || undefined,
           }));
           
           // Sort assignments by creation date (most recent first)
@@ -1244,7 +1249,9 @@ const InstructorCourseDetailPage: React.FC = () => {
                         View
                       </button>
                       <button
-                        onClick={() => router.push(`/instructor/grading/bulk?course=${courseId}&assignment=${assignment.assignmentId}`)}
+                        onClick={() => router.push(assignment.assignmentType === 'discussion'
+                          ? `/instructor/grading/assignment/${assignment.assignmentId}`
+                          : `/instructor/grading/bulk?course=${courseId}&assignment=${assignment.assignmentId}`)}
                         className="px-3 py-1 bg-[#0065a3] rounded-full text-[10px] font-medium text-white active:scale-95 transition-transform"
                       >
                         Grade
@@ -1722,8 +1729,55 @@ const InstructorCourseDetailPage: React.FC = () => {
           />
         )}
 
+        {/* Discussion Editing Modal (saves discussionConfig only; never touches assignmentType) */}
+        {editingAssignment && editingAssignment.assignmentType === 'discussion' && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold text-gray-800">Edit Discussion</h2>
+                  <button
+                    onClick={() => setEditingAssignment(null)}
+                    aria-label="Close"
+                    className="text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <DiscussionSetupWizard
+                  initialConfig={{ ...(editingAssignment.discussionConfig || {}), rubric: editingAssignment.discussionConfig?.rubric || editingAssignment.rubric }}
+                  submitLabel="Save changes"
+                  onBack={() => setEditingAssignment(null)}
+                  onComplete={async (cfg) => {
+                    try {
+                      const response = await fetch(`/api/assignments/${editingAssignment.assignmentId}?t=${Date.now()}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        cache: 'no-store',
+                        body: JSON.stringify({ discussionConfig: cfg }),
+                      });
+                      if (!response.ok) {
+                        alert('Failed to save discussion changes. Please try again.');
+                        return;
+                      }
+                      setEditingAssignment(null);
+                      await fetchCourseDetails();
+                    } catch (err) {
+                      console.error('Error saving discussion:', err);
+                      alert('Failed to save discussion changes. Please try again.');
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Assignment Editing Modal */}
-        {editingAssignment && editingAssignment.assignmentType !== 'choice-board' && (
+        {editingAssignment && editingAssignment.assignmentType !== 'choice-board' && editingAssignment.assignmentType !== 'discussion' && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="p-6">

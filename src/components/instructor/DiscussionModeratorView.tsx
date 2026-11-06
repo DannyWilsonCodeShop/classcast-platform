@@ -12,6 +12,23 @@ interface DiscussionModeratorViewProps {
 export function DiscussionModeratorView({ assignmentId, discussionConfig }: DiscussionModeratorViewProps) {
   const [posts, setPosts] = useState<DiscussionPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [participation, setParticipation] = useState<any[]>([]);
+  const [requirements, setRequirements] = useState<{ postsRequired: number; repliesRequired: number; legacy: boolean } | null>(null);
+
+  const fetchParticipation = async () => {
+    try {
+      const res = await fetch(`/api/discussions/${assignmentId}/participation`);
+      const data = await res.json();
+      if (data.success) {
+        setParticipation(data.data.students || []);
+        setRequirements(data.data.requirements || null);
+      }
+    } catch (err) { console.error(err); }
+  };
+
+  useEffect(() => {
+    fetchParticipation();
+  }, [assignmentId]);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -36,6 +53,7 @@ export function DiscussionModeratorView({ assignmentId, discussionConfig }: Disc
       const data = await res.json();
       if (data.success) {
         setPosts(prev => prev.map(p => p.postId === postId ? { ...p, hidden: true } : p));
+        fetchParticipation();
       } else {
         alert(data.error || 'Failed to hide post');
       }
@@ -54,18 +72,11 @@ export function DiscussionModeratorView({ assignmentId, discussionConfig }: Disc
       const data = await res.json();
       if (data.success) {
         setPosts(prev => prev.map(p => p.postId === postId ? { ...p, hidden: false } : p));
+        fetchParticipation();
       }
     } catch { /* ignore */ }
   };
 
-  // Compute participation per author
-  const participationMap = new Map<string, { name: string; count: number; words: number }>();
-  posts.forEach(p => {
-    const existing = participationMap.get(p.authorId) || { name: p.authorName || 'Student', count: 0, words: 0 };
-    existing.count++;
-    existing.words += p.wordCount || 0;
-    participationMap.set(p.authorId, existing);
-  });
 
   const topLevelPosts = posts.filter(p => !p.parentPostId);
 
@@ -81,13 +92,20 @@ export function DiscussionModeratorView({ assignmentId, discussionConfig }: Disc
 
       {/* Participation Summary */}
       <div className="bg-gray-50 rounded-xl p-3">
-        <p className="text-xs font-bold text-[#0065a3] mb-2">Participation ({participationMap.size} students)</p>
-        <div className="space-y-1 max-h-[150px] overflow-y-auto">
-          {Array.from(participationMap.entries()).map(([id, data]) => (
-            <div key={id} className="flex items-center justify-between text-[10px]">
-              <span className="text-gray-700">{data.name}</span>
-              <span className={`font-medium ${data.count >= discussionConfig.minPosts ? 'text-green-600' : 'text-amber-600'}`}>
-                {data.count}/{discussionConfig.minPosts} posts • {data.words} words
+        <p className="text-xs font-bold text-[#0065a3] mb-2">Participation ({participation.length} students)</p>
+        <div className="space-y-1 max-h-[200px] overflow-y-auto">
+          {participation.map((s) => (
+            <div key={s.studentId} className="flex items-center justify-between gap-2 text-[10px]">
+              <span className="text-gray-700 truncate">{s.name}</span>
+              <span className="flex items-center gap-2 shrink-0">
+                <span className="text-gray-600">
+                  Posts {s.postCount}/{requirements?.postsRequired ?? discussionConfig.minPosts}
+                  {requirements && !requirements.legacy ? `, Replies ${s.replyCount}/${requirements.repliesRequired}` : ''}
+                  {` • ${s.totalWordCount} words`}
+                </span>
+                <span className={`px-1.5 py-0.5 rounded-full font-medium ${s.requirementsMet ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {s.requirementsMet ? 'Met' : 'Not met'}
+                </span>
               </span>
             </div>
           ))}
