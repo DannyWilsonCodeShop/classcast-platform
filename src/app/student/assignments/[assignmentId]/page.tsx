@@ -536,11 +536,15 @@ export default function StudentAssignmentDetailPage() {
           {/* ClassCast branded header — keeps app nav available */}
           <StudentHeader />
 
+          {/* Thread feed — comfortable reading width on desktop, full-bleed on
+              mobile. The board carries the prompt banner, feed and composer. */}
+          <div className="flex-1 overflow-y-auto min-h-0 px-3 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
+            <div className="mx-auto w-full max-w-2xl">
           {/* Slim discussion-styled header: title / due / points.
               Fredoka title + brand-blue accents, rounded, mobile-friendly.
               This reads as a discussion thread header — NOT the standard
               assignment panel. The instructor PROMPT lives in the board below. */}
-          <div className="shrink-0 px-3 pt-3 pb-2">
+          <div className="pt-3 pb-2">
             <div
               className="rounded-2xl bg-white border border-[#0065a3]/15 shadow-sm px-4 py-3"
               style={{ borderLeft: '4px solid #0065a3' }}
@@ -588,11 +592,6 @@ export default function StudentAssignmentDetailPage() {
               </div>
             </div>
           </div>
-
-          {/* Thread feed — comfortable reading width on desktop, full-bleed on
-              mobile. The board carries the prompt banner, feed and composer. */}
-          <div className="flex-1 overflow-y-auto min-h-0 px-3">
-            <div className="mx-auto w-full max-w-2xl">
               <DiscussionBoardView
                 assignmentId={currentAssignmentId}
                 studentId={user?.id || ''}
