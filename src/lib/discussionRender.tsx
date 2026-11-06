@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 
 export const BRAND_BLUE = '#0065a3';
@@ -103,4 +105,149 @@ export function personColor(seed: string): PersonColor {
   }
   const idx = Math.abs(hash) % PALETTE.length;
   return PALETTE[idx];
+}
+
+// ---------------------------------------------------------------------------
+// Rich link preview card
+// ---------------------------------------------------------------------------
+
+const FREDOKA_FONT = 'var(--font-fredoka), Fredoka, sans-serif';
+
+export interface LinkPreviewData {
+  url: string;
+  title: string;
+  description: string;
+  siteName: string;
+  image: string | null;
+  favicon: string | null;
+  failed?: boolean;
+}
+
+// Client-side preview cache keyed by URL, so re-renders / multiple posts linking
+// the same URL don't refetch. Complements the server's in-memory TTL cache.
+const previewCache = new Map<string, LinkPreviewData>();
+const inflight = new Map<string, Promise<LinkPreviewData | null>>();
+
+function isHttpUrl(value: string | null | undefined): value is string {
+  if (!value) return false;
+  return /^https?:\/\//i.test(value);
+}
+
+async function loadPreview(url: string): Promise<LinkPreviewData | null> {
+  if (previewCache.has(url)) return previewCache.get(url)!;
+  if (inflight.has(url)) return inflight.get(url)!;
+
+  const p = (async () => {
+    try {
+      const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+      if (!res.ok) return null;
+      const json = await res.json();
+      if (json?.success && json.data) {
+        previewCache.set(url, json.data as LinkPreviewData);
+        return json.data as LinkPreviewData;
+      }
+      return null;
+    } catch {
+      return null;
+    } finally {
+      inflight.delete(url);
+    }
+  })();
+
+  inflight.set(url, p);
+  return p;
+}
+
+/**
+ * Collect the link-card URLs for a post: explicit `links` plus any http(s) URL
+ * found inline in the content, de-duped and capped so a link-heavy post stays
+ * compact. Shared by both the student and instructor render paths.
+ */
+export function postCardUrls(links: string[] | undefined, content: string | undefined, cap = 2): string[] {
+  const inline = extractUrls(content || '');
+  return Array.from(new Set([...(links || []), ...inline])).slice(0, cap);
+}
+
+/**
+ * Link card that lazily fetches rich preview metadata and renders a thumbnail +
+ * title + description + favicon/site-name header. While loading (or on failure)
+ * it degrades to the original domain-only header card, so a post never blanks or
+ * jumps waiting on a preview. All preview strings are rendered as React text
+ * children (never dangerouslySetInnerHTML); the image URL is validated to
+ * http(s) before use.
+ */
+export function LinkCard({ url }: { url: string }): React.ReactElement {
+  const [preview, setPreview] = React.useState<LinkPreviewData | null>(
+    () => previewCache.get(url) || null
+  );
+
+  React.useEffect(() => {
+    let active = true;
+    // Already cached synchronously above; nothing to fetch.
+    if (previewCache.has(url)) {
+      setPreview(previewCache.get(url)!);
+      return;
+    }
+    loadPreview(url).then((data) => {
+      if (active && data) setPreview(data);
+    });
+    return () => {
+      active = false;
+    };
+  }, [url]);
+
+  const rich = preview && !preview.failed && (preview.title || preview.description || preview.image);
+  const image = rich && isHttpUrl(preview!.image) ? preview!.image : null;
+  const favicon = preview && isHttpUrl(preview.favicon) ? preview.favicon : null;
+  const siteName = (preview?.siteName || hostnameOf(url)).toString();
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      className="block rounded-xl overflow-hidden border border-gray-200 hover:border-[#0065a3] transition-colors"
+    >
+      {/* Header strip: favicon + site name (rich) or uppercased domain (fallback) */}
+      <div
+        className="bg-[#0065a3] text-white text-[10px] font-bold tracking-wide px-3 py-1 flex items-center gap-1.5"
+        style={{ fontFamily: FREDOKA_FONT }}
+      >
+        {favicon && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={favicon} alt="" width={14} height={14} loading="lazy" className="w-3.5 h-3.5 rounded-sm object-contain bg-white/20" />
+        )}
+        <span className="truncate">{rich ? siteName : hostnameOf(url)}</span>
+      </div>
+
+      {rich ? (
+        <div className="bg-white">
+          {image && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={image}
+              alt=""
+              loading="lazy"
+              className="w-full max-h-[160px] object-cover bg-gray-50"
+            />
+          )}
+          <div className="px-3 py-2">
+            {preview!.title && (
+              <p className="text-sm font-bold text-gray-900 line-clamp-2" style={{ fontFamily: FREDOKA_FONT }}>
+                {preview!.title}
+              </p>
+            )}
+            {preview!.description && (
+              <p className="text-xs text-gray-600 mt-0.5 line-clamp-2">{preview!.description}</p>
+            )}
+            <p className="text-[11px] text-[#0065a3] break-all mt-1">{url}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="px-3 py-2 bg-white">
+          <p className="text-xs text-[#0065a3] break-all">{url}</p>
+        </div>
+      )}
+    </a>
+  );
 }

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { DiscussionPost, DiscussionConfig } from '@/types/discussion';
+import { linkifyText, postCardUrls, LinkCard } from '@/lib/discussionRender';
 
 interface DiscussionModeratorViewProps {
   assignmentId: string;
@@ -111,7 +112,21 @@ export function DiscussionModeratorView({ assignmentId, discussionConfig }: Disc
                 )}
               </div>
             </div>
-            {post.content && <p className="text-xs text-gray-700">{post.content}</p>}
+            {post.content && (
+              <p className="text-xs text-gray-700 whitespace-pre-wrap break-words">{linkifyText(post.content)}</p>
+            )}
+            {(() => {
+              // Rich link previews via the shared render helper — same de-dupe/cap
+              // and LinkCard as the student view, so both surfaces match.
+              const cardUrls = postCardUrls(post.links, post.content);
+              return cardUrls.length > 0 ? (
+                <div className="mt-2 space-y-2">
+                  {cardUrls.map((url) => (
+                    <LinkCard key={url} url={url} />
+                  ))}
+                </div>
+              ) : null;
+            })()}
             {post.imageUrl && (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={post.imageUrl} alt="attachment" className="w-full rounded-lg mt-1 max-h-[120px] object-contain" />

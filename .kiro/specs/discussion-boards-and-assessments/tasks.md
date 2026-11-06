@@ -69,6 +69,11 @@ This plan implements three new assignment types for ClassCast: Discussion Boards
     - Display video posts with inline `<video>` player
     - _Requirements: 2.1, 2.6, 2.7, 2.10, 9.2_
 
+  - [x] 3.1a Rich link previews (OpenGraph metadata) for posted links
+    - Add SSRF-safe `GET /api/link-preview` endpoint (`src/app/api/link-preview/route.ts`): http/https only, blocks localhost/private/loopback/link-local/CGNAT ranges incl. 169.254.169.254, rejects non-standard ports, `redirect: 'manual'`, 5s timeout, ~200KB cap, text/html only; parses og:/twitter:/standard meta with fallbacks; 1h in-memory TTL cache
+    - Lazy client fetch + per-URL cache in `LinkCard` (`src/lib/discussionRender.tsx`); graceful degradation to the domain-only card; preview text rendered as React text (no HTML injection), image URL validated to http/https
+    - Wired into both `DiscussionBoardView` (student) and `DiscussionModeratorView` (instructor) via shared `postCardUrls`/`LinkCard`; posts GET stays a single index query (previews are client-fetched, no N+1)
+
   - [x] 3.2 Implement DiscussionPostComposer component
     - Create `src/components/discussions/DiscussionPostComposer.tsx`
     - Text mode: textarea with live word count indicator, validate against minimum before submission

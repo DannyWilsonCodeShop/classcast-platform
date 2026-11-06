@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { DiscussionPost, DiscussionConfig, ParticipationSummary } from '@/types/discussion';
 import { DiscussionPostComposer } from './DiscussionPostComposer';
-import { linkifyText, hostnameOf, extractUrls, personColor, BRAND_PERSON_COLOR, type PersonColor } from '@/lib/discussionRender';
+import { linkifyText, postCardUrls, personColor, BRAND_PERSON_COLOR, LinkCard, type PersonColor } from '@/lib/discussionRender';
 
 interface DiscussionBoardViewProps {
   assignmentId: string;
@@ -39,9 +39,9 @@ function Avatar({ post, color, size }: { post: DiscussionPost; color: PersonColo
 
 // Render the body text (linkified, XSS-safe) plus explicit link cards and an image.
 function PostBody({ post }: { post: DiscussionPost }) {
-  const inlineUrls = extractUrls(post.content || '');
-  // De-dupe: link cards come from explicit links + inline URLs.
-  const cardUrls = Array.from(new Set([...(post.links || []), ...inlineUrls]));
+  // Link cards come from explicit links + inline URLs, de-duped and capped (2)
+  // via the shared helper so the student and instructor views stay in sync.
+  const cardUrls = postCardUrls(post.links, post.content);
 
   return (
     <>
@@ -54,20 +54,7 @@ function PostBody({ post }: { post: DiscussionPost }) {
       {cardUrls.length > 0 && (
         <div className="mt-2 space-y-2">
           {cardUrls.map((url) => (
-            <a
-              key={url}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              className="block rounded-xl overflow-hidden border border-gray-200 hover:border-[#0065a3] transition-colors"
-            >
-              <div className="bg-[#0065a3] text-white text-[10px] font-bold tracking-wide px-3 py-1" style={{ fontFamily: FREDOKA }}>
-                {hostnameOf(url)}
-              </div>
-              <div className="px-3 py-2 bg-white">
-                <p className="text-xs text-[#0065a3] break-all">{url}</p>
-              </div>
-            </a>
+            <LinkCard key={url} url={url} />
           ))}
         </div>
       )}
