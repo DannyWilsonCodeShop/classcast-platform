@@ -58,7 +58,7 @@ export async function GET(
       const id = s.userId || s.studentId;
       rosterIds.add(id);
       const authored = posts.find(p => p.authorId === id);
-      const name = [s.firstName, s.lastName].filter(Boolean).join(' ') || s.name || authored?.authorName || s.email || 'Student';
+      const name = [s.firstName, s.lastName].filter(Boolean).join(' ') || s.name || authored?.authorName || 'Student';
       return buildRow(id, name, s.email || '', countable, posts, config);
     });
 
