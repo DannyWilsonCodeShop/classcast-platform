@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { AssignmentEditModal, AssignmentEditData } from '@/components/instructor/AssignmentEditModal';
 import { FormattingTextarea } from '@/components/common/FormattingTextarea';
+import { resolveStudentSection } from '@/lib/sectionMembership';
 
 interface Assignment {
   assignmentId: string;
@@ -390,12 +391,15 @@ const AssignmentGradesPage: React.FC = () => {
             if (matchedSection) resolvedSectionName = matchedSection.sectionName;
           }
           
+          // A course with a single section adopts students that have no section
+          const resolvedSection = resolveStudentSection(student, courseSections);
+
           return {
             studentId: student.userId,
             studentName: userName,
             studentEmail: student.email || '',
-            sectionId: student.sectionId,
-            sectionName: resolvedSectionName,
+            sectionId: resolvedSection?.sectionId ?? student.sectionId,
+            sectionName: resolvedSection?.sectionName ?? resolvedSectionName,
             submissionId: submission?.submissionId,
             thumbnailUrl: submission?.thumbnailUrl,
             videoUrl: submission?.videoUrl,

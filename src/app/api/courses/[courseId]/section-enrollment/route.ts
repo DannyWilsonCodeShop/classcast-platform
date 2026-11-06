@@ -41,7 +41,8 @@ export async function GET(
     for (const s of students) {
       if (typeof s !== 'object') continue;
       if (s.status && s.status !== 'active') continue;
-      const sid = s.sectionId;
+      // A course with exactly one section adopts students that have no sectionId
+      const sid = s.sectionId || (sections.length === 1 ? sections[0].sectionId : undefined);
       if (!sid) continue;
       countsBySection[sid] = (countsBySection[sid] || 0) + 1;
     }

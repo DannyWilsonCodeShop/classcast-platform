@@ -12,6 +12,7 @@ import { AssignmentEditModal } from '@/components/instructor/AssignmentEditModal
 import AssignmentDetailsModal from '@/components/instructor/AssignmentDetailsModal';
 import { DiscussionSetupWizard } from '@/components/instructor/wizards/DiscussionSetupWizard';
 import SectionList from '@/components/instructor/SectionList';
+import { resolveStudentSection } from '@/lib/sectionMembership';
 import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
 import RichTextRenderer from '@/components/common/RichTextRenderer';
 import { getApiUrl } from '@/lib/apiConfig';
@@ -88,6 +89,7 @@ interface Student {
   assignmentsTotal: number;
   lastActivity: string;
   sectionName?: string;
+  sectionId?: string;
 }
 
 interface Section {
@@ -413,8 +415,12 @@ const InstructorCourseDetailPage: React.FC = () => {
     const updatedStudents = students.map(student => {
       const submissionCount = counts[student.studentId] || 0;
       
+      // Resolve the section once sections have loaded (a lone section adopts unassigned students)
+      const section = resolveStudentSection(student, sections);
+
       return {
         ...student,
+        sectionName: section ? section.sectionName : student.sectionName,
         assignmentsSubmitted: submissionCount
       };
     });
@@ -429,7 +435,7 @@ const InstructorCourseDetailPage: React.FC = () => {
       }
       return (a.name || '').localeCompare(b.name || '');
     });
-  }, [students, videoSubmissions, courseId]);
+  }, [students, sections, videoSubmissions, courseId]);
 
   useEffect(() => {
     if (courseId) {
@@ -673,6 +679,7 @@ const InstructorCourseDetailPage: React.FC = () => {
                 assignmentsTotal: assignments.length,
                 lastActivity: student.enrolledAt, // TODO: Get actual last activity
                 sectionName: sectionName,
+                sectionId: student.sectionId,
               };
             })
           );
@@ -1010,7 +1017,8 @@ const InstructorCourseDetailPage: React.FC = () => {
           s.studentId === studentId 
             ? { 
                 ...s, 
-                sectionName: targetSectionName
+                sectionName: targetSectionName,
+                sectionId: targetSection?.sectionId
               }
             : s
         ));
@@ -1148,9 +1156,9 @@ const InstructorCourseDetailPage: React.FC = () => {
             <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
               {sections.map((section: any) => {
                 // Count students actually in this section
-                const sectionStudentCount = students.filter(s => 
-                  s.sectionName === section.sectionName || 
-                  (s as any).sectionId === section.sectionId
+                const sectionStudentCount = studentsWithSubmissionCounts.filter(s =>
+                  s.sectionName === section.sectionName ||
+                  s.sectionId === section.sectionId
                 ).length;
                 return (
                   <div
