@@ -13,6 +13,7 @@ import { useLiquidGlass } from '@/hooks/useLiquidGlass';
 import { computeCommitDecision, computeTranslation, checkDirectionLock, computeRubberBand } from '@/hooks/useSwipeNavigation';
 import { StudentHeader } from '@/components/student/StudentHeader';
 import { ChoiceBoard } from '@/components/student/ChoiceBoard';
+import { DiscussionBoardView } from '@/components/discussions/DiscussionBoardView';
 
 interface Assignment {
   assignmentId: string;
@@ -697,7 +698,16 @@ export default function StudentAssignmentDetailPage() {
 
         {/* Scrollable Instructions or Choice Board */}
         <div className="flex-1 overflow-y-auto px-4 py-3 bg-white min-h-0">
-          {(assignment as any).assignmentType === 'choice-board' && (assignment as any).choices?.length > 0 ? (
+          {(assignment as any).assignmentType === 'discussion' && (assignment as any).discussionConfig ? (
+            <DiscussionBoardView
+              assignmentId={currentAssignmentId}
+              studentId={user?.id || ''}
+              studentName={`${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() || 'Student'}
+              studentAvatar={(user as any)?.avatar}
+              discussionConfig={(assignment as any).discussionConfig}
+              dueDate={assignment.dueDate}
+            />
+          ) : (assignment as any).assignmentType === 'choice-board' && (assignment as any).choices?.length > 0 ? (
             <ChoiceBoard
               assignmentId={currentAssignmentId}
               choices={(assignment as any).choices}

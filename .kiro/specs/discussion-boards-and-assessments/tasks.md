@@ -283,19 +283,19 @@ This plan implements three new assignment types for ClassCast: Discussion Boards
   - Ensure all module assignment tests pass, ask the user if questions arise.
 
 - [ ] 14. Integration — Assignment wizard, routing, and grading
-  - [ ] 14.1 Update Assignment Wizard to support new types
+  - [x] 14.1 Update Assignment Wizard to support new types
     - Modify the existing assignment creation wizard at `/instructor/assignments/create`
     - Add type selection cards for "Discussion Board", "Assessment", and "Module"
     - Render `DiscussionSetupWizard`, `AssessmentSetupWizard`, or `ModuleSetupWizard` based on selected type
     - Pass configuration data to existing POST `/api/assignments` endpoint with type-specific fields
     - _Requirements: 1.1, 4.1, 12.1_
 
-  - [ ] 14.2 Update PUT /api/assignments/[assignmentId] field mapping
+  - [x] 14.2 Update PUT /api/assignments/[assignmentId] field mapping
     - Extend the existing `fieldMapping` object to include `discussionConfig`, `assessmentQuestions`, and `moduleConfig`
     - Ensure updates to type-specific fields persist correctly
     - _Requirements: 1.2, 4.5_
 
-  - [ ] 14.3 Add student detail view routing by assignment type
+  - [x] 14.3 Add student detail view routing by assignment type
     - Update `/student/assignments/[id]` to check `assignmentType` and render:
       - `'discussion'` → `DiscussionBoardView`
       - `'assessment'` → `AssessmentStartScreen` (or completed view)

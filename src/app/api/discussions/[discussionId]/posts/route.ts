@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, QueryCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, QueryCommand, GetCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import { DiscussionPost } from '@/types/discussion';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
@@ -96,11 +96,11 @@ export async function POST(
   try {
     const { discussionId } = await params;
     const body = await request.json();
-    const { authorId, authorName, authorAvatar, parentPostId, content, videoUrl } = body;
+    const { authorId, authorName, authorAvatar, parentPostId, content, videoUrl, links, imageUrl } = body;
 
-    if (!authorId || (!content && !videoUrl)) {
+    if (!authorId || (!content && !videoUrl && !imageUrl)) {
       return NextResponse.json(
-        { success: false, error: 'Author ID and content (text or video) are required' },
+        { success: false, error: 'Author ID and content (text, video, or image) are required' },
         { status: 400 }
       );
     }
@@ -152,6 +152,9 @@ export async function POST(
       parentPostId: parentPostId || null,
       content: content || '',
       videoUrl: videoUrl || null,
+      links: Array.isArray(links) ? links : [],
+      imageUrl: imageUrl || null,
+      hidden: false,
       wordCount,
       createdAt: now,
       updatedAt: now,
@@ -171,6 +174,46 @@ export async function POST(
     console.error('Error creating discussion post:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to create post' },
+      { status: 500 }
+    );
+  }
+}
+
+
+// Light moderation: soft-hide (or unhide) a post. `hidden` is a DynamoDB reserved word, so it is aliased as #h.
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ discussionId: string }> }
+) {
+  try {
+    await params; // discussionId is part of the route; the post is keyed by postId
+    const body = await request.json();
+    const { postId, hidden } = body;
+
+    if (!postId) {
+      return NextResponse.json(
+        { success: false, error: 'postId is required' },
+        { status: 400 }
+      );
+    }
+
+    await docClient.send(new UpdateCommand({
+      TableName: POSTS_TABLE,
+      Key: { postId },
+      UpdateExpression: 'SET #h = :hidden, updatedAt = :now',
+      ExpressionAttributeNames: { '#h': 'hidden' },
+      ExpressionAttributeValues: {
+        ':hidden': hidden !== false, // default to hiding
+        ':now': new Date().toISOString(),
+      },
+    }));
+
+    return NextResponse.json({ success: true, data: { postId, hidden: hidden !== false } });
+
+  } catch (error) {
+    console.error('Error moderating discussion post:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to update post' },
       { status: 500 }
     );
   }

@@ -24,10 +24,37 @@ export function DiscussionModeratorView({ assignmentId, discussionConfig }: Disc
     fetchPosts();
   }, [assignmentId]);
 
-  const handleDelete = async (postId: string) => {
-    if (!confirm('Delete this post?')) return;
-    // TODO: implement delete API
-    setPosts(prev => prev.filter(p => p.postId !== postId));
+  const handleHide = async (postId: string) => {
+    if (!confirm('Hide this post from students?')) return;
+    try {
+      const res = await fetch(`/api/discussions/${assignmentId}/posts`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId, hidden: true }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPosts(prev => prev.map(p => p.postId === postId ? { ...p, hidden: true } : p));
+      } else {
+        alert(data.error || 'Failed to hide post');
+      }
+    } catch {
+      alert('Network error');
+    }
+  };
+
+  const handleUnhide = async (postId: string) => {
+    try {
+      const res = await fetch(`/api/discussions/${assignmentId}/posts`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId, hidden: false }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPosts(prev => prev.map(p => p.postId === postId ? { ...p, hidden: false } : p));
+      }
+    } catch { /* ignore */ }
   };
 
   // Compute participation per author
@@ -69,15 +96,26 @@ export function DiscussionModeratorView({ assignmentId, discussionConfig }: Disc
       {/* Posts */}
       <div className="space-y-2">
         {topLevelPosts.map(post => (
-          <div key={post.postId} className="bg-gray-50 rounded-xl p-3">
+          <div key={post.postId} className={`rounded-xl p-3 ${post.hidden ? 'bg-red-50 opacity-70' : 'bg-gray-50'}`}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-gray-900">{post.authorName || 'Student'}</span>
+              <span className="text-xs font-medium text-gray-900">
+                {post.authorName || 'Student'}
+                {post.hidden && <span className="ml-2 text-[9px] text-red-500 font-bold">HIDDEN</span>}
+              </span>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] text-gray-400">{new Date(post.createdAt).toLocaleDateString()}</span>
-                <button onClick={() => handleDelete(post.postId)} className="text-[9px] text-red-400">Delete</button>
+                {post.hidden ? (
+                  <button onClick={() => handleUnhide(post.postId)} className="text-[9px] text-[#0065a3]">Unhide</button>
+                ) : (
+                  <button onClick={() => handleHide(post.postId)} className="text-[9px] text-red-400">Hide</button>
+                )}
               </div>
             </div>
             {post.content && <p className="text-xs text-gray-700">{post.content}</p>}
+            {post.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={post.imageUrl} alt="attachment" className="w-full rounded-lg mt-1 max-h-[120px] object-contain" />
+            )}
             {post.videoUrl && <video src={post.videoUrl} controls playsInline className="w-full rounded-lg mt-1 max-h-[120px]" />}
           </div>
         ))}

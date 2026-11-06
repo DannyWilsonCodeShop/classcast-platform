@@ -9,6 +9,8 @@ import { ProblemBankBuilder } from '@/components/instructor/ProblemBankBuilder';
 import { FormattingTextarea } from '@/components/common/FormattingTextarea';
 import AssignmentResourcesManager from '@/components/instructor/AssignmentResourcesManager';
 import { AssignmentResource } from '@/types/dynamodb';
+import { DiscussionSetupWizard } from '@/components/instructor/wizards/DiscussionSetupWizard';
+import { DiscussionConfig } from '@/types/discussion';
 
 interface CourseOption {
   courseId: string;
@@ -115,6 +117,8 @@ const CreateAssignmentPage: React.FC = () => {
   const [rubric, setRubric] = useState<RubricCategory[]>(DEFAULT_RUBRIC);
   const [resources, setResources] = useState<AssignmentResource[]>([]);
   const [showRubricDetails, setShowRubricDetails] = useState(false);
+  const [discussionConfig, setDiscussionConfig] = useState<DiscussionConfig | null>(null);
+  const [showDiscussionWizard, setShowDiscussionWizard] = useState(false);
   const [peerResponsesEnabled, setPeerResponsesEnabled] = useState(true);
   const [responsesRequired, setResponsesRequired] = useState(2);
   const [responseDueDays, setResponseDueDays] = useState(3);
@@ -262,6 +266,10 @@ const CreateAssignmentPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!courseId || !title.trim() || !dueDate) { setError('Please fill in title, due date, and select a course.'); return; }
+    if (assignmentType === 'discussion' && (!discussionConfig || !discussionConfig.prompt?.trim())) {
+      setError('Please configure the discussion prompt before creating.');
+      return;
+    }
     setIsSubmitting(true); setError(null);
     try {
       const res = await fetch('/api/assignments', {
@@ -284,6 +292,7 @@ const CreateAssignmentPage: React.FC = () => {
           ...(assignmentType === 'video' && requiredVideoCount > 1 && { requiredVideoCount }),
           ...(assignmentType === 'assessment' && { timePerQuestion, questionCount }),
           ...(assignmentType === 'choice-board' && { choices: choices.filter(c => c.title.trim()) }),
+          ...(assignmentType === 'discussion' && discussionConfig && { discussionConfig }),
           ...(resources.length > 0 && { resources }),
           ...(linkedBankId && { problemBankId: linkedBankId }),
         }),
@@ -482,9 +491,32 @@ const CreateAssignmentPage: React.FC = () => {
             {assignmentType === 'discussion' && (
               <div className="bg-blue-50 rounded-xl p-3">
                 <span className="block text-xs font-bold text-blue-800 mb-2">💬 Discussion Settings</span>
-                <p className="text-[10px] text-blue-700 leading-relaxed">
-                  Students will post their initial response, then respond to classmates. You can require a minimum number of replies and word count in the peer responses section below.
-                </p>
+                {discussionConfig ? (
+                  <div className="space-y-2">
+                    <div className="bg-white rounded-lg p-2.5 text-[11px] text-gray-700">
+                      <p className="font-medium text-gray-900 line-clamp-2">{discussionConfig.prompt}</p>
+                      <p className="text-[10px] text-gray-500 mt-1">
+                        {discussionConfig.format === 'whole-class' ? 'Whole Class' : `Small Groups of ${discussionConfig.groupSize}`}
+                        {' · '}
+                        {discussionConfig.allowedResponseTypes === 'both' ? 'Text & Video' : discussionConfig.allowedResponseTypes}
+                        {' · '}
+                        min {discussionConfig.minPosts} posts
+                      </p>
+                    </div>
+                    <button type="button" onClick={() => setShowDiscussionWizard(true)} className="text-[11px] font-medium text-[#0065a3]">
+                      Edit discussion settings
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-[10px] text-blue-700 leading-relaxed mb-2">
+                      Set up the prompt, format, response type, and participation rules for this discussion.
+                    </p>
+                    <button type="button" onClick={() => setShowDiscussionWizard(true)} className="px-3 py-1.5 bg-[#0065a3] text-white rounded-lg text-[11px] font-medium">
+                      Configure discussion
+                    </button>
+                  </>
+                )}
               </div>
             )}
 
@@ -804,6 +836,26 @@ const CreateAssignmentPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Discussion setup wizard (modal) */}
+      {showDiscussionWizard && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-[480px] rounded-2xl p-5 max-h-[92vh] overflow-y-auto border border-stone-200/60 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Set Up Discussion</h2>
+              <button type="button" onClick={() => setShowDiscussionWizard(false)} className="text-gray-400 hover:text-gray-600 p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <DiscussionSetupWizard
+              onComplete={(cfg) => { setDiscussionConfig(cfg); setShowDiscussionWizard(false); setError(null); }}
+              onBack={() => setShowDiscussionWizard(false)}
+            />
+          </div>
+        </div>
+      )}
     </InstructorRoute>
   );
 };

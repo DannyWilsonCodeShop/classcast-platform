@@ -21,6 +21,9 @@ export interface DiscussionPost {
   parentPostId: string | null;
   content: string;
   videoUrl: string | null;
+  links?: string[];            // explicit URLs attached to the post (also auto-linkified from content at render)
+  imageUrl?: string | null;    // optional inline image attachment
+  hidden?: boolean;            // moderation: soft-hide a post from the student view
   wordCount: number;
   createdAt: string;
   updatedAt: string;
