@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';

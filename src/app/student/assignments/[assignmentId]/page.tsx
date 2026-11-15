@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { getVideoUrl } from '@/lib/videoUtils';

@@ -6,7 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { VideoUploadZone } from '@/components/student/VideoUploadZone';
 import { VideoUploadProgress } from '@/components/student/VideoUploadProgress';
 import { ArrowLeftIcon, CloudArrowUpIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 
 function UploadPageInner() {
   const { user } = useAuth();

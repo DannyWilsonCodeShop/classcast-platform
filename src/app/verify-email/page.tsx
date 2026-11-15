@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import Link from 'next/link';
 
 function VerifyEmailContent() {

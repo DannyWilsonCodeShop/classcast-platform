@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { Assignment } from '@/types/assignment';
 
 interface CourseAssignmentsProps {

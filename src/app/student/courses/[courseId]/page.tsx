@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';

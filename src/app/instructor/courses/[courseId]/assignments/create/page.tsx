@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import AssignmentCreationForm from '@/components/instructor/AssignmentCreationForm';
 import { useAuth } from '@/contexts/AuthContext';

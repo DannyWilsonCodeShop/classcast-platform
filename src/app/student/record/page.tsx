@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import dynamic from 'next/dynamic';

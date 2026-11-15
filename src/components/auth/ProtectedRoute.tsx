@@ -2,7 +2,7 @@
 
 import React, { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { useEffect } from 'react';
 
 interface ProtectedRouteProps {

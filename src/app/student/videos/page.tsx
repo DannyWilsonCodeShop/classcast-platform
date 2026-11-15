@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import Link from 'next/link';
 import { PlayIcon, HeartIcon, ChatBubbleLeftIcon, ShareIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid';

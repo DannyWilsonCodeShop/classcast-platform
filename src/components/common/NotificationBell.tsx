@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell, X, CheckCircle, MessageCircle, FileText, Users } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 
 interface Notification {
   id: string;

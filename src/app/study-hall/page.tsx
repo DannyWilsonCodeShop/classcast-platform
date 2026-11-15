@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { TestTrackerCalendar } from '@/components/study-hall/TestTrackerCalendar';
 import { GRADES, gradeLabel, DEFAULT_GRADE, teachersForGrade, isValidTeacherForGrade } from '@/lib/studyHallTeachers';
 

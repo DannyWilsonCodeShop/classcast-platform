@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import Avatar from '@/components/common/Avatar';
 import NotificationBell from '@/components/common/NotificationBell';
 import LoadingSpinner from '@/components/common/LoadingSpinner';

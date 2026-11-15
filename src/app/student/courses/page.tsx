@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
@@ -138,7 +138,7 @@ const StudentCoursesPage: React.FC = () => {
     <StudentRoute>
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Oswald:wght@300;700;400&display=swap" rel="stylesheet" />
-      <div className="h-full overflow-hidden flex flex-col bg-[#f4f7fb]">
+      <div className="h-full overflow-hidden flex flex-col bg-[#f4f7fb] cc-fade-in">
         {/* Search / Join unified input */}
         <div className="px-4 pt-3 pb-2 shrink-0">
           <h1 className="text-lg font-semibold text-stone-900 mb-2" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>My Courses</h1>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 
@@ -295,7 +295,7 @@ const InstructorDashboard: React.FC = () => {
         </div>
 
         {/* Assignments List */}
-        <div className="px-4 pb-4">
+        <div key={loading ? 'loading' : 'ready'} className="px-4 pb-4 cc-fade-in">
           {loading ? (
             <div className="flex justify-center items-center py-12">
               <LoadingSpinner size="lg" />

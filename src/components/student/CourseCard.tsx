@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { BookOpenIcon, UsersIcon, CalendarIcon, ClockIcon } from '@heroicons/react/24/outline';
 import Avatar from '@/components/common/Avatar';
 

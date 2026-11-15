@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 

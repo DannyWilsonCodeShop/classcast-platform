@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import AutoGradingSystem from '@/components/instructor/AutoGradingSystem';
 

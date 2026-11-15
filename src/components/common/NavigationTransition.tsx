@@ -1,73 +1,48 @@
 'use client';
-
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import {
+  beginNavigationTransition,
+  cancelNavigationTransition,
+  settleNavigationTransition,
+  shouldAnimateNavigation,
+} from '@/lib/viewTransition';
 
 /**
- * Cross-fades in-app (client-routed) navigations with the View Transitions API.
- * A capture-phase click listener starts the transition (old page is snapshotted); the
- * transition's update callback stays pending until the pathname changes (or NAV_TIMEOUT_MS),
- * then the browser cross-fades to the new page. Next.js routing itself is untouched.
- * Without the API, a short CSS opacity fade is applied instead. Reduced motion: nothing.
+ * Cross-fades in-app navigations. A capture-phase click listener covers <a> clicks;
+ * useTransitionRouter covers router.push/replace/back. Both use src/lib/viewTransition.ts.
+ * Next.js routing itself is never intercepted or delayed.
  */
-const NAV_TIMEOUT_MS = 800;
-type VTDocument = Document & {
-  startViewTransition?: (cb: () => Promise<void> | void) => { finished: Promise<void>; ready: Promise<void> };
-};
-
 export function NavigationTransition() {
   const pathname = usePathname();
-  const pendingRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    pendingRef.current?.();
-    pendingRef.current = null;
+    settleNavigationTransition();
   }, [pathname]);
 
   useEffect(() => {
-    const reducedQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const onClick = (e: MouseEvent) => {
-      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-      if (reducedQuery.matches || pendingRef.current) return;
-      if (document.querySelector('.boot-curtain')) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.defaultPrevented) return;
       const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
       if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download')) return;
-      let url: URL;
-      try {
-        url = new URL(a.href, window.location.href);
-      } catch {
-        return;
-      }
-      if (url.origin !== window.location.origin || url.pathname === window.location.pathname) return;
-
-      const vt = document as VTDocument;
-      if (typeof vt.startViewTransition === 'function') {
-        let timer = 0;
-        const t = vt.startViewTransition(
-          () =>
-            new Promise<void>((resolve) => {
-              pendingRef.current = () => {
-                window.clearTimeout(timer);
-                resolve();
-              };
-              timer = window.setTimeout(() => {
-                pendingRef.current = null;
-                resolve();
-              }, NAV_TIMEOUT_MS);
-            }),
-        );
-        t.ready.catch(() => {});
-        t.finished.catch(() => {}).finally(() => {
-          pendingRef.current = null;
-        });
-      } else {
-        const root = document.documentElement;
-        root.setAttribute('data-nav-fade', '');
-        window.setTimeout(() => root.removeAttribute('data-nav-fade'), 260);
-      }
+      if (!shouldAnimateNavigation(a.href)) return;
+      beginNavigationTransition();
+    };
+    // bfcache restore or tab hidden: never leave a snapshot overlay stuck.
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) cancelNavigationTransition();
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') cancelNavigationTransition();
     };
     document.addEventListener('click', onClick, true);
-    return () => document.removeEventListener('click', onClick, true);
+    window.addEventListener('pageshow', onPageShow);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('click', onClick, true);
+      window.removeEventListener('pageshow', onPageShow);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, []);
 
   return null;

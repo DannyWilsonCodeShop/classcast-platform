@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { EmptyState } from '../common/EmptyState';
 import RichTextRenderer from '../common/RichTextRenderer';

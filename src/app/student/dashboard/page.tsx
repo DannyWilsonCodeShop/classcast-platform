@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
@@ -219,7 +219,7 @@ export default function StudentDashboardPage() {
         </div>
       ) : (
       /* ===== MOBILE LAYOUT (existing) ===== */
-      <div className="h-full flex flex-col overflow-hidden bg-[#f4f7fb]" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
+      <div key={loading ? 'loading' : 'ready'} className="h-full flex flex-col overflow-hidden bg-[#f4f7fb] cc-fade-in" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
         {loading ? (
           <div className="flex-1 bg-[#f4f7fb]" />
         ) : (

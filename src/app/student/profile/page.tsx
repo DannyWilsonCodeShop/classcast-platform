@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import Avatar from '@/components/common/Avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { api } from '@/lib/api';
 import { PasswordReset } from '@/components/PasswordReset';
 import { NotificationPreferences } from '@/components/NotificationPreferences';

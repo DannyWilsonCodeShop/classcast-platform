@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
@@ -221,7 +221,7 @@ export default function StudentAssignmentsPage() {
         <div className="h-px bg-stone-200/60 mx-4" />
 
         {/* Assignment sections - scrollable */}
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div key={loading ? 'loading' : 'ready'} className="flex-1 overflow-y-auto px-4 py-3 cc-fade-in">
           {loading ? (
             <div className="space-y-3">
               {[1,2,3].map(i => (

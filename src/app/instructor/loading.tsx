@@ -1,3 +1,3 @@
-export default function InstructorLoading() {
-  return <div className="h-full bg-white" />;
-}
+import RouteLoading from '@/components/common/RouteLoading';
+
+export default RouteLoading;

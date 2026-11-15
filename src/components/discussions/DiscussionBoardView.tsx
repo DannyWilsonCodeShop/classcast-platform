@@ -230,7 +230,7 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
                     </button>
                   )}
                   {replies.length > 0 && (
-                    <button onClick={() => toggleExpand(post.postId)} className="text-xs font-medium text-gray-500">
+                    <button onClick={() => toggleExpand(post.postId)} aria-expanded={isOpen} className="text-xs font-medium text-gray-500">
                       {isOpen ? 'Hide replies' : `View ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}`}
                     </button>
                   )}
@@ -238,7 +238,7 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
 
                 {/* Inline reply composer */}
                 {replyingTo === post.postId && !isPastDue && (
-                  <div className="px-3 pb-3 pl-6">
+                  <div className="px-3 pb-3 pl-6 cc-enter">
                     <DiscussionPostComposer
                       discussionId={assignmentId}
                       authorId={studentId}
@@ -258,7 +258,7 @@ export function DiscussionBoardView({ assignmentId, studentId, studentName, stud
 
                 {/* Replies (one level, indented with a connector rail) */}
                 {isOpen && replies.length > 0 && (
-                  <div className="pl-5 pr-3 pb-3 space-y-2 relative">
+                  <div className="pl-5 pr-3 pb-3 space-y-2 relative cc-enter">
                     <div className="absolute left-5 top-0 bottom-3 w-px bg-gray-200" aria-hidden />
                     {replies.map(reply => {
                       const rColor = colorFor(reply.authorId);

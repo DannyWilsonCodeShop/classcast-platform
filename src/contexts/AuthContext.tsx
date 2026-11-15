@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { api, apiClient, User, LoginRequest } from '@/lib/api';
 import { isDemoLoginCredentials, getDemoUserForAuth, enableScreenshotMode, isScreenshotMode } from '@/lib/demo-screenshot-data';
 

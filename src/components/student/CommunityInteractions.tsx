@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { PeerSubmissionData } from './StudentCommunityFeed';
 import Avatar from '../common/Avatar';
 

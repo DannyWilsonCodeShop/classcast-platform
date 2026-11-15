@@ -9,6 +9,7 @@ import { PreventNumberInputScroll } from "@/components/common/PreventNumberInput
 import { NativeAppInit } from "@/components/native/NativeAppInit";
 import { BootCurtain } from "@/components/common/BootCurtain";
 import { NavigationTransition } from "@/components/common/NavigationTransition";
+import { MediaFadeIn } from "@/components/common/MediaFadeIn";
 
 // Playful rounded display font for headings/titles and card titles (kid-friendly, IXL-style)
 const fredoka = Fredoka({
@@ -97,6 +98,7 @@ export default function RootLayout({
       >
         <BootCurtain />
         <NavigationTransition />
+        <MediaFadeIn />
         <QueryProvider>
           <OIDCAuthProvider>
             <AuthProvider>

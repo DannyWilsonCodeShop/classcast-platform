@@ -3,7 +3,8 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { extractYouTubeVideoId as getYouTubeVideoId, getYouTubeEmbedUrl } from '@/lib/youtube';
 import { GroupAssignmentModal } from '@/components/student/GroupAssignmentModal';
 import InteractionBar from '@/components/student/InteractionBar';

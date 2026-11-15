@@ -1,5 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { useEffect, useCallback } from 'react';
 import { isDemoUser, isActionBlockedInDemo } from '@/lib/demo-mode-utils';
 

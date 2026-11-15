@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 
 interface PulloutRequest {
   pulloutId: string;

@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 
 export default function CustomersPage() {
   const router = useRouter();

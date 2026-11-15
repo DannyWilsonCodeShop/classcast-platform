@@ -698,3 +698,58 @@ html[data-nav-fade] body {
   ::view-transition-new(*) { animation: none !important; }
   html[data-nav-fade] body { animation: none; }
 }
+
+/* ---- Smooth transitions: shared in-page treatments (opacity/transform only) ---- */
+/* Images fade in once loaded (see MediaFadeIn); box is reserved, so no layout shift. */
+img[data-cc-fade] {
+  transition: opacity 240ms ease-out;
+}
+img[data-cc-pending] {
+  opacity: 0;
+}
+
+/* Content that appears after load (fetched data, expanded replies, tab panels) */
+@keyframes ccEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ccFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.cc-enter,
+:where([role="tabpanel"]) {
+  animation: ccEnter 220ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+/* Skeleton-to-content swap on a container (keyed on loading state). Opacity only, so fixed
+   descendants (modals) keep their viewport positioning. */
+.cc-fade-in {
+  animation: ccFade 200ms ease-out both;
+}
+
+/* Route-level loading UI: invisible for 150 ms so quick navigations never flash it */
+.cc-delayed-fade {
+  opacity: 0;
+  animation: ccFade 200ms ease-out 150ms both;
+}
+
+/* Modal/dialog/drawer overlays and menus: fade in on mount. :where() keeps specificity at 0 so
+   components with their own animate-* classes (ModalTransition) win. Opacity only: panel
+   positioning transforms are untouched. */
+:where(.fixed.inset-0.z-50:not([data-modal-open])),
+:where(.fixed.inset-0[class*="z-[60]"]),
+:where([role="dialog"], [aria-modal="true"], [role="menu"], [role="listbox"]) {
+  animation: ccFade 180ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  img[data-cc-fade] { transition: none; }
+  .cc-enter,
+  :where([role="tabpanel"]),
+  :where(.fixed.inset-0.z-50:not([data-modal-open])),
+  :where(.fixed.inset-0[class*="z-[60]"]),
+  :where([role="dialog"], [aria-modal="true"], [role="menu"], [role="listbox"]) { animation: none; }
+  .cc-fade-in { animation: none; }
+  .cc-delayed-fade { animation: none; opacity: 1; }
+}

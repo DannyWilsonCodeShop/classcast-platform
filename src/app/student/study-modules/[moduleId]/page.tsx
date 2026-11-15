@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { StudyModule, StudyLesson } from '@/types/study-modules';
 import InteractiveVideoPlayer from '@/components/study-modules/InteractiveVideoPlayer';
 import QuizComponent from '@/components/study-modules/QuizComponent';

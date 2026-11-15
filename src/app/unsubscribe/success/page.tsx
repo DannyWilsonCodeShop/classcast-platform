@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 
 const UnsubscribeSuccessContent: React.FC = () => {
   const searchParams = useSearchParams();
