@@ -456,11 +456,28 @@ const ReelShell: React.FC<{ isWide: boolean; onInfo: () => void; title?: string;
 );
 
 /* Top overlay header shown on every reel. */
-const OverlayHeader: React.FC<{ title?: string; onInfo: () => void; action?: React.ReactNode }> = ({ title, onInfo, action }) => (
+const OverlayHeader: React.FC<{ title?: string; onInfo: () => void; action?: React.ReactNode }> = ({ title, onInfo, action }) => {
+  const router = useRouter();
+  const goBack = () => {
+    // In-app history: go back (cross-fade via the transition router). Direct landing: dashboard.
+    if (typeof window !== 'undefined' && window.history.length > 1) router.back();
+    else router.push('/student/dashboard');
+  };
+  return (
   <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
     <div className="bg-gradient-to-b from-black/60 via-black/25 to-transparent pt-[env(safe-area-inset-top)]">
       <div className="flex items-center justify-between px-4 pt-3 pb-6 pointer-events-auto">
         <div className="flex items-center gap-1 min-w-0">
+          <button
+            type="button"
+            onClick={goBack}
+            aria-label="Back"
+            className="pointer-events-auto flex items-center justify-center w-11 h-11 -ml-2 mr-1 shrink-0 rounded-full bg-black/35 text-white border border-white/25 backdrop-blur-sm"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
           <span style={{ fontFamily: "'Grand Hotel', cursive" }} className="text-2xl text-white drop-shadow">ClassCast</span>
           <img src="/MyClassCast36.png" alt="" className="w-5 h-5 object-contain" />
         </div>
@@ -485,7 +502,21 @@ const OverlayHeader: React.FC<{ title?: string; onInfo: () => void; action?: Rea
       )}
     </div>
   </div>
-);
+  );
+};
+
+// Remembered for the session once the student turns sound on (survives card swipes and new video pages).
+const SOUND_KEY = 'classcast.feed.soundOn';
+let soundPref: boolean | null = null;
+const getSoundPref = (): boolean => {
+  if (soundPref !== null) return soundPref;
+  try { soundPref = sessionStorage.getItem(SOUND_KEY) === '1'; } catch { soundPref = false; }
+  return soundPref;
+};
+const setSoundPref = (on: boolean) => {
+  soundPref = on;
+  try { sessionStorage.setItem(SOUND_KEY, on ? '1' : '0'); } catch { /* storage unavailable */ }
+};
 
 // Video Submission Card Component — full-screen Instagram-style reel
 const VideoSubmissionCard: React.FC<{
@@ -508,16 +539,37 @@ const VideoSubmissionCard: React.FC<{
   const isYouTube = !!videoId;
   const videoRef = useRef<HTMLVideoElement>(null);
   const playbackErrorReported = useRef(false); // log a playback failure at most once per card
+  const [muted, setMuted] = React.useState(true);
+  const autoStarted = useRef(false);
   // Start the arrived-at video (first card: the ?videoId= one is moved first) on mount.
-  // Muted because browsers block autoplay with sound; controls stay visible to unmute.
-  // A rejected play() is ignored so the controls remain usable.
+  // Starts with sound if the student already turned it on this session; if the browser
+  // rejects that, fall back to muted. Otherwise muted, because browsers block autoplay with sound.
+  // A rejected play() is ignored so the controls remain usable. Runs once, so it never
+  // re-applies muted after the student unmuted.
   useEffect(() => {
     if (!autoPlayOnMount || isYouTube) return;
     const el = videoRef.current;
     if (!el) return;
-    el.muted = true;
-    el.play()?.catch(() => {});
+    autoStarted.current = true;
+    el.muted = !getSoundPref();
+    const p = el.play();
+    if (p) {
+      p.catch(() => {
+        if (!el.muted) {
+          el.muted = true;
+          el.play()?.catch(() => {});
+        }
+      });
+    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggleSound = () => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = !el.muted;
+    setSoundPref(!el.muted);
+    if (!el.muted && el.paused) el.play()?.catch(() => {});
+  };
 
   // Check if avatar is emoji
   const isEmoji = video.studentAvatar && video.studentAvatar.length <= 4 && !video.studentAvatar.startsWith('http');
@@ -589,7 +641,17 @@ const VideoSubmissionCard: React.FC<{
             controls
             className={`w-full h-full ${videoFit}`}
             playsInline
-            muted={autoPlayOnMount}
+            onVolumeChange={(e) => {
+              const el = e.currentTarget;
+              setMuted(el.muted);
+              if (!el.muted) setSoundPref(true); // native control unmute is remembered too
+            }}
+            onPlay={(e) => {
+              // Started by the student's own tap (not the muted autoplay): honour the remembered choice.
+              const el = e.currentTarget;
+              if (!autoStarted.current && el.muted && getSoundPref()) el.muted = false;
+              autoStarted.current = false;
+            }}
             preload={autoPlayOnMount ? 'metadata' : 'none'}
             onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 2; }}
             onError={(e) => {
@@ -648,6 +710,28 @@ const VideoSubmissionCard: React.FC<{
           )
         }
       />
+
+      {/* ===== Sound toggle (above the bottom bar and tab bar, which cover the native control bar) ===== */}
+      {!isYouTube && (
+        <button
+          type="button"
+          onClick={toggleSound}
+          aria-label={muted ? 'Turn sound on' : 'Turn sound off'}
+          aria-pressed={!muted}
+          className={`absolute left-3 z-30 flex items-center justify-center gap-2 min-w-[44px] min-h-[44px] rounded-full px-3 text-white border border-white/30 backdrop-blur-sm ${muted ? 'bg-[#0065a3] animate-pulse' : 'bg-black/50'}`}
+          style={{ bottom: 'calc(10rem + env(safe-area-inset-bottom))' }}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5L6 9H2v6h4l5 4V5z" />
+            {muted ? (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M23 9l-6 6m0-6l6 6" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14" />
+            )}
+          </svg>
+          {muted && <span className="text-sm font-semibold">Tap for sound</span>}
+        </button>
+      )}
 
       {/* ===== Right-side action rail (raised above the floating tab bar) ===== */}
       <div className="absolute right-2 z-30 flex flex-col items-center" style={{ bottom: 'calc(7rem + env(safe-area-inset-bottom))' }}>
