@@ -7,6 +7,8 @@ import { RealtimeNotifications } from "@/components/common/RealtimeNotifications
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { PreventNumberInputScroll } from "@/components/common/PreventNumberInputScroll";
 import { NativeAppInit } from "@/components/native/NativeAppInit";
+import { BootCurtain } from "@/components/common/BootCurtain";
+import { NavigationTransition } from "@/components/common/NavigationTransition";
 
 // Playful rounded display font for headings/titles and card titles (kid-friendly, IXL-style)
 const fredoka = Fredoka({
@@ -79,6 +81,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* DNS prefetch and preconnect for external resources */}
+        <link rel="preload" as="image" href="/MyClassCast36.png" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <link rel="dns-prefetch" href="https://img.youtube.com" />
@@ -92,6 +95,8 @@ export default function RootLayout({
         className={`${nunito.variable} ${fredoka.variable} ${geistMono.variable} antialiased`}
         style={{ background: '#f4f7fb' }}
       >
+        <BootCurtain />
+        <NavigationTransition />
         <QueryProvider>
           <OIDCAuthProvider>
             <AuthProvider>
