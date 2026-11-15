@@ -114,12 +114,10 @@ function isChunkLoadError(err: any): boolean {
     /Loading CSS chunk/i.test(msg) ||
     /failed to fetch dynamically imported module/i.test(msg) ||
     /importing a module script failed/i.test(msg) ||
-    // Stale-deploy mismatch: old HTML asks for a chunk path that now resolves to a
-    // different file type, so the browser refuses it with a MIME-type error. Treat it
-    // as a stale chunk and reload into the fresh build.
-    /Refused to execute script/i.test(msg) ||
-    /MIME type \('text\/css'\)/i.test(msg) ||
-    /is not executable/i.test(msg)
+    // Stale-deploy mismatch: old HTML asks for a JS chunk path that now resolves to a
+    // different file type, so the browser refuses it. Only JS URLs count; an unrelated
+    // MIME error (e.g. a CSS file) must not trigger a reload.
+    /Refused to execute script from '[^']*\.js(\?[^']*)?'/i.test(msg)
   );
 }
 
