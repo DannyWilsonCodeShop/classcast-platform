@@ -250,9 +250,10 @@ const AssignmentFeedPage: React.FC = () => {
               </div>
             </ReelShell>
           ) : (
-            visibleVideos.map((video) => (
+            visibleVideos.map((video, index) => (
               <VideoSubmissionCard
                 key={video.submissionId}
+                autoPlayOnMount={index === 0}
                 video={video}
                 formatTimestamp={formatTimestamp}
                 currentUserId={user?.id}
@@ -495,7 +496,8 @@ const VideoSubmissionCard: React.FC<{
   isWide: boolean;
   assignmentTitle?: string;
   onInfo: () => void;
-}> = ({ video, formatTimestamp, currentUserId, onDelete, isWide, assignmentTitle, onInfo }) => {
+  autoPlayOnMount?: boolean;
+}> = ({ video, formatTimestamp, currentUserId, onDelete, isWide, assignmentTitle, onInfo, autoPlayOnMount = false }) => {
   const [imageError, setImageError] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [showReportModal, setShowReportModal] = React.useState(false);
@@ -506,6 +508,16 @@ const VideoSubmissionCard: React.FC<{
   const isYouTube = !!videoId;
   const videoRef = useRef<HTMLVideoElement>(null);
   const playbackErrorReported = useRef(false); // log a playback failure at most once per card
+  // Start the arrived-at video (first card: the ?videoId= one is moved first) on mount.
+  // Muted because browsers block autoplay with sound; controls stay visible to unmute.
+  // A rejected play() is ignored so the controls remain usable.
+  useEffect(() => {
+    if (!autoPlayOnMount || isYouTube) return;
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = true;
+    el.play()?.catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Check if avatar is emoji
   const isEmoji = video.studentAvatar && video.studentAvatar.length <= 4 && !video.studentAvatar.startsWith('http');
@@ -577,7 +589,8 @@ const VideoSubmissionCard: React.FC<{
             controls
             className={`w-full h-full ${videoFit}`}
             playsInline
-            preload="none"
+            muted={autoPlayOnMount}
+            preload={autoPlayOnMount ? 'metadata' : 'none'}
             onLoadedMetadata={(e) => { (e.target as HTMLVideoElement).currentTime = 2; }}
             onError={(e) => {
               // A video that uploaded fine but won't PLAY throws nothing on the upload path,
