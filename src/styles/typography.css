@@ -1,6 +1,6 @@
 /* Premium Typography System for ClassCast — v3 */
 /* Kid-friendly, IXL-inspired: playful rounded Fredoka headings, clean readable Nunito body.
-   Fonts are loaded via next/font/google in layout.tsx and exposed as --font-fredoka / --font-nunito. */
+   Fonts are loaded via next/font/local in layout.tsx and exposed as --font-fredoka / --font-nunito. */
 
 :root {
   /* Font Families — body = Nunito, display/headings = Fredoka */

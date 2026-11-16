@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Fredoka, Nunito } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OIDCAuthProvider } from "@/components/auth/OIDCAuthProvider";
@@ -12,26 +12,28 @@ import { NavigationTransition } from "@/components/common/NavigationTransition";
 import { MediaFadeIn } from "@/components/common/MediaFadeIn";
 
 // Playful rounded display font for headings/titles and card titles (kid-friendly, IXL-style)
-const fredoka = Fredoka({
+const fredoka = localFont({
+  src: "./fonts/fredoka-latin-wght-normal.woff2",
   variable: "--font-fredoka",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "300 700",
   display: "swap",
+  fallback: ["system-ui", "sans-serif"],
 });
-
 // Clean, friendly, highly readable sans for body / general text
-const nunito = Nunito({
+const nunito = localFont({
+  src: "./fonts/nunito-latin-wght-normal.woff2",
   variable: "--font-nunito",
-  subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
+  weight: "200 1000",
   display: "swap",
+  fallback: ["system-ui", "sans-serif"],
 });
-
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: "./fonts/geist-mono-latin-wght-normal.woff2",
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: "100 900",
+  display: "swap",
+  fallback: ["ui-monospace", "monospace"],
 });
-
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
