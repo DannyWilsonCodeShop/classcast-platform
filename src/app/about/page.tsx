@@ -26,302 +26,298 @@ export default function AboutPage() {
       setContactSubmitting(false);
     }
   };
+
+  const heading = 'font-[family-name:var(--font-fredoka)]';
+  const navLink = 'rounded text-[15px] font-semibold text-[#33475b] hover:text-[#0065a3] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0065a3]';
+  const cardBase = 'relative overflow-hidden rounded-2xl bg-white p-6 shadow-[0_6px_20px_rgba(11,37,64,0.08)]';
+
+  const studentCards = [
+    { icon: '🎥', color: '#0065a3', title: 'Recording forces clarity', text: "You can't explain something on camera if you don't truly understand it. The act of recording exposes gaps." },
+    { icon: '👀', color: '#14b8a6', title: 'Peer audiences motivate effort', text: 'Students put in more effort when classmates will see their work — not just the teacher.' },
+    { icon: '💬', color: '#f59e0b', title: 'Responses build community', text: 'Watching and responding to peers creates connections and surfaces diverse perspectives.' },
+    { icon: '🔄', color: '#8b5cf6', title: 'Metacognition through review', text: 'Students can watch their own recordings and self-assess — a powerful metacognitive practice.' },
+  ];
+
+  const teacherItems = [
+    { title: 'AI does the heavy lifting', text: 'Type an assignment title, click AI Fill, and get complete instructions, rubric, and due date generated instantly.' },
+    { title: 'Create assignments in seconds', text: 'Our streamlined creation flow means no more 20-minute setup. Title, type, done.' },
+    { title: 'AI-assisted grading', text: 'Rubric-based grading with AI feedback suggestions. Grade faster without sacrificing quality.' },
+    { title: 'Multi-section management', text: 'Teach 5 periods? One course, multiple sections, individual class codes. Students self-enroll.' },
+  ];
+
+  const assignmentTypes = [
+    { icon: '🎥', color: '#0065a3', title: 'Video Submissions', text: 'Record on camera or upload. Live recording with anti-cheat safeguards for assessments.' },
+    { icon: '💬', color: '#14b8a6', title: 'Discussion Boards', text: 'Whole-class or small-group conversations with minimum participation and word count rules.' },
+    { icon: '📋', color: '#f59e0b', title: 'Timed Assessments', text: 'On-camera timed exams. Questions appear on screen. Full body visible. Auto-advances.' },
+    { icon: '🎬', color: '#8b5cf6', title: 'Group Projects', text: 'Collaborative video production. Flexible group formation and grading options.' },
+    { icon: '📖', color: '#0065a3', title: 'Study Modules', text: 'Self-paced lessons with embedded videos, quizzes, and progress tracking.' },
+    { icon: '🤖', color: '#14b8a6', title: 'AI-Powered', text: 'Generate assignments, rubrics, and feedback with one click. Built-in AI grading assistance.' },
+  ];
+
+  const bloom = [
+    ['CREATE', 'Students produce original video explanations', 'bg-[#0065a3] text-white', 'sm:mx-0'],
+    ['EVALUATE', 'Peer responses require critical analysis', 'bg-[#0065a3]/85 text-white', 'sm:mx-4'],
+    ['ANALYZE', 'Breaking down concepts to explain clearly', 'bg-[#0065a3]/70 text-white', 'sm:mx-8'],
+    ['APPLY', 'Demonstrating understanding through examples', 'bg-[#0065a3]/55 text-white', 'sm:mx-12'],
+    ['UNDERSTAND', 'Grasping material deeply enough to teach it', 'bg-[#0065a3]/40 text-[#0b2540]', 'sm:mx-16'],
+    ['REMEMBER', 'Recalling information (traditional tests stop here)', 'bg-[#0065a3]/25 text-[#0b2540]', 'sm:mx-20'],
+  ];
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
-      {/* Header */}
-      <div className="bg-[#0065a3] text-white px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <img src="/MyClassCast36.png" alt="" className="w-8 h-8 object-contain brightness-200" />
-          <span className="text-xl" style={{ fontFamily: "'Grand Hotel', cursive" }}>ClassCast</span>
-        </div>
-        <Link href="/auth/login" className="px-4 py-2 bg-[#FFC72C] text-[#0065a3] rounded-full text-sm font-bold">
-          Sign In
+    <div className="min-h-screen bg-white overflow-x-clip font-[family-name:var(--font-nunito)] text-[#33475b] scroll-smooth">
+      {/* Nav */}
+      <header className="bg-white border-b border-[#e3ebf2] px-5 sm:px-8 py-3 flex items-center justify-between gap-4">
+        <Link href="/about" className="flex items-center gap-2 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0065a3]">
+          <img src="/MyClassCast36.png" alt="ClassCast logo" width={40} height={40} className="w-10 h-10 object-contain" />
+          <span className={`${heading} text-[26px] font-bold leading-none text-[#0065a3]`}>ClassCast</span>
         </Link>
-      </div>
+        <nav aria-label="Page sections" className="hidden md:flex items-center gap-7">
+          <a href="#how-it-works" className={navLink}>How it works</a>
+          <a href="#for-teachers" className={navLink}>For teachers</a>
+          <a href="#assignment-types" className={navLink}>Assignment types</a>
+          <Link href="/about/creator" className={navLink}>Meet the Creator</Link>
+        </nav>
+        <Link href="/auth/login" className="px-5 py-2.5 bg-[#0065a3] hover:bg-[#00517f] text-white rounded-full text-[15px] font-bold focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/40">
+          Sign in
+        </Link>
+      </header>
+
+      {/* Hero */}
+      <section className="bg-gradient-to-b from-[#e6f2fb] to-white px-5 sm:px-8 pt-12 pb-16 md:pt-16 md:pb-20">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-1.5 text-[13px] font-bold text-[#0065a3] shadow-sm border border-[#cfe3f2]">
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-[#14b8a6]" />
+              Video-first learning
+            </span>
+            <h1 className={`${heading} mt-5 text-5xl sm:text-6xl font-bold leading-[1.05] text-[#0b2540]`}>
+              Learning by{' '}
+              <span className="relative inline-block text-[#0065a3]">
+                Teaching
+                <svg aria-hidden="true" viewBox="0 0 200 12" preserveAspectRatio="none" className="absolute left-0 -bottom-2 h-3 w-full">
+                  <path d="M3 8 Q 50 1 100 6 T 197 5" fill="none" stroke="#FFC72C" strokeWidth="5" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h1>
+            <p className="mt-7 text-lg leading-relaxed text-[#46596c] max-w-xl">
+              Research shows that when students explain concepts to others, they achieve the highest
+              levels of understanding. ClassCast makes this effortless for teachers and transformative for students.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link href="/auth/signup" className="px-8 py-3.5 rounded-full bg-gradient-to-br from-[#0065a3] to-[#0088cc] text-white text-[17px] font-extrabold shadow-md hover:shadow-lg focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/40">
+                Get started
+              </Link>
+              <a href="#how-it-works" className="px-8 py-3.5 rounded-full border-2 border-[#0065a3] text-[#0065a3] text-[17px] font-extrabold hover:bg-[#e6f2fb] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/40">
+                See how it works
+              </a>
+            </div>
+          </div>
+
+          <div className="relative pb-8 pt-4 px-2 sm:px-6">
+            <div className="rounded-[28px] overflow-hidden shadow-[0_16px_40px_rgba(11,37,64,0.18)] border-4 border-white aspect-[4/3] bg-[#cfe0ee]">
+              <img
+                src="/pexels-julia-m-cameron-8841615.jpg"
+                alt="Students collaborating"
+                width={800}
+                height={600}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* Decorative sample cards */}
+            <div aria-hidden="true" className="absolute left-0 sm:-left-4 bottom-0 flex items-center gap-3 rounded-2xl bg-white p-3 pr-5 shadow-xl">
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#0b2540]">
+                <span className="ml-0.5 border-y-[7px] border-l-[12px] border-y-transparent border-l-white" />
+              </span>
+              <span>
+                <span className={`${heading} block text-[15px] font-semibold text-[#0b2540]`}>Explaining slope</span>
+                <span className="block text-[13px] text-[#5b6b7b]">1:42 · posted today</span>
+              </span>
+            </div>
+            <div aria-hidden="true" className="absolute right-0 sm:-right-2 top-0 flex items-center gap-2 rounded-2xl bg-white px-4 py-3 shadow-xl">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#14b8a6] text-sm font-bold text-[#0b2540]">A</span>
+              <span className="text-sm font-bold text-[#0b2540]">Graded 18/20</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Mission Statement */}
-      <div className="px-6 py-6 bg-white border-b border-gray-100 text-center">
-        <p className="text-sm italic text-gray-600 max-w-2xl mx-auto leading-relaxed">
+      <div className="px-6 py-8 bg-white border-b border-[#e3ebf2] text-center">
+        <p className="text-base italic text-[#46596c] max-w-2xl mx-auto leading-relaxed">
           &ldquo;Bridging the gap between teaching and understanding so every student is seen, every educator is empowered, and every learning experience matters.&rdquo;
         </p>
       </div>
 
-      {/* Hero with stock image */}
-      <div className="relative">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="/pexels-julia-m-cameron-8841615.jpg"
-            alt="Students collaborating"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-[#0065a3]/75" />
-        </div>
-        <div className="relative z-10 px-6 py-16 text-center max-w-3xl mx-auto text-white">
-          <h1 className="text-4xl font-bold mb-4">Learning by Teaching</h1>
-          <p className="text-lg text-white/90 leading-relaxed">
-            Research shows that when students explain concepts to others, they achieve the highest 
-            levels of understanding. ClassCast makes this effortless for teachers and transformative for students.
-          </p>
-        </div>
-      </div>
-
       {/* Bloom's Taxonomy Section */}
-      <div className="px-6 py-14 max-w-4xl mx-auto">
+      <section id="how-it-works" className="scroll-mt-4 px-5 sm:px-8 py-16 max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-[#0065a3] mb-3">Rooted in Proven Pedagogy</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            ClassCast is built on Bloom&apos;s Taxonomy — the gold standard framework for deeper learning. 
+          <h2 className={`${heading} text-3xl sm:text-4xl font-bold text-[#0b2540] mb-3`}>Rooted in Proven Pedagogy</h2>
+          <p className="text-[#46596c] max-w-2xl mx-auto">
+            ClassCast is built on Bloom&apos;s Taxonomy — the gold standard framework for deeper learning.
             Video assignments naturally push students to the highest cognitive levels.
           </p>
         </div>
 
-        {/* Bloom's pyramid visualization */}
-        <div className="max-w-lg mx-auto mb-10">
+        <div className="max-w-lg mx-auto mb-12">
           <div className="space-y-2">
-            <div className="bg-[#0065a3] text-white text-center py-3 px-4 rounded-xl font-bold text-sm">
-              CREATE — Students produce original video explanations
-            </div>
-            <div className="bg-[#0065a3]/85 text-white text-center py-3 px-6 rounded-xl font-bold text-sm">
-              EVALUATE — Peer responses require critical analysis
-            </div>
-            <div className="bg-[#0065a3]/70 text-white text-center py-3 px-8 rounded-xl font-bold text-sm">
-              ANALYZE — Breaking down concepts to explain clearly
-            </div>
-            <div className="bg-[#0065a3]/55 text-white text-center py-3 px-10 rounded-xl font-bold text-sm">
-              APPLY — Demonstrating understanding through examples
-            </div>
-            <div className="bg-[#0065a3]/40 text-white text-center py-3 px-12 rounded-xl font-bold text-sm">
-              UNDERSTAND — Grasping material deeply enough to teach it
-            </div>
-            <div className="bg-[#0065a3]/25 text-[#0065a3] text-center py-3 px-14 rounded-xl font-bold text-sm">
-              REMEMBER — Recalling information (traditional tests stop here)
-            </div>
+            {bloom.map(([level, text, tone, inset]) => (
+              <div key={level} className={`${tone} ${inset} text-center py-3 px-4 rounded-xl font-bold text-sm`}>
+                {level} — {text}
+              </div>
+            ))}
           </div>
-          <p className="text-center text-xs text-gray-500 mt-3">
+          <p className="text-center text-xs text-[#5b6b7b] mt-3">
             Bloom&apos;s Taxonomy — ClassCast engages the top 4 levels
           </p>
         </div>
 
         {/* The Science */}
-        <div className="bg-gray-50 rounded-2xl p-8 mb-10">
-          <h3 className="text-xl font-bold text-[#0065a3] mb-4 text-center">The Protege Effect</h3>
-          <p className="text-gray-700 leading-relaxed text-center max-w-2xl mx-auto mb-6">
-            Students who teach others work harder to understand material, recall it more accurately, 
-            and apply it more effectively. This is known as the &ldquo;Protege Effect&rdquo; — preparing to 
+        <div className="relative rounded-3xl bg-gradient-to-br from-[#0065a3] to-[#0088cc] p-8 sm:p-10 text-white shadow-[0_12px_30px_rgba(0,101,163,0.25)]">
+          <span aria-hidden="true" className={`${heading} absolute left-6 top-2 text-7xl leading-none text-[#FFC72C]`}>&ldquo;</span>
+          <h3 className={`${heading} text-2xl font-bold mb-4 text-center pt-4`}>The Protege Effect</h3>
+          <p className="leading-relaxed text-center max-w-2xl mx-auto mb-8 text-white">
+            Students who teach others work harder to understand material, recall it more accurately,
+            and apply it more effectively. This is known as the &ldquo;Protege Effect&rdquo; — preparing to
             teach creates deeper encoding than preparing for a test.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl p-5 text-center shadow-sm">
-              <div className="text-3xl mb-2">📈</div>
-              <div className="text-2xl font-bold text-[#0065a3]">2.5x</div>
-              <p className="text-xs text-gray-600 mt-1">Better retention when students explain vs. listen</p>
-            </div>
-            <div className="bg-white rounded-xl p-5 text-center shadow-sm">
-              <div className="text-3xl mb-2">🧠</div>
-              <div className="text-2xl font-bold text-[#0065a3]">87%</div>
-              <p className="text-xs text-gray-600 mt-1">Of students report deeper understanding through video creation</p>
-            </div>
-            <div className="bg-white rounded-xl p-5 text-center shadow-sm">
-              <div className="text-3xl mb-2">🎯</div>
-              <div className="text-2xl font-bold text-[#0065a3]">94%</div>
-              <p className="text-xs text-gray-600 mt-1">Of teachers say peer teaching improves class engagement</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Benefits for Students section with image */}
-      <div className="bg-gray-50 px-6 py-14">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-            <div>
-              <img
-                src="/pexels-yankrukov-8197532.jpg"
-                alt="Students recording video"
-                className="rounded-2xl shadow-lg w-full object-cover aspect-[4/3]"
-              />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-[#0065a3] mb-4">Why Students Teach Better</h2>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">🎥</span>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">Recording forces clarity</h4>
-                    <p className="text-sm text-gray-600">You can&apos;t explain something on camera if you don&apos;t truly understand it. The act of recording exposes gaps.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">👀</span>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">Peer audiences motivate effort</h4>
-                    <p className="text-sm text-gray-600">Students put in more effort when classmates will see their work — not just the teacher.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">💬</span>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">Responses build community</h4>
-                    <p className="text-sm text-gray-600">Watching and responding to peers creates connections and surfaces diverse perspectives.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">🔄</span>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">Metacognition through review</h4>
-                    <p className="text-sm text-gray-600">Students can watch their own recordings and self-assess — a powerful metacognitive practice.</p>
-                  </div>
-                </div>
+            {[
+              ['📈', '2.5x', 'Better retention when students explain vs. listen'],
+              ['🧠', '87%', 'Of students report deeper understanding through video creation'],
+              ['🎯', '94%', 'Of teachers say peer teaching improves class engagement'],
+            ].map(([icon, stat, text]) => (
+              <div key={stat} className="bg-white rounded-2xl p-5 text-center shadow-sm">
+                <div aria-hidden="true" className="text-3xl mb-2">{icon}</div>
+                <div className={`${heading} text-3xl font-bold text-[#0065a3]`}>{stat}</div>
+                <p className="text-sm text-[#46596c] mt-1">{text}</p>
               </div>
-            </div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Easy for Teachers section with image */}
-      <div className="px-6 py-14">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-            <div className="order-2 md:order-1">
-              <h2 className="text-2xl font-bold text-[#0065a3] mb-4">Effortless for Teachers</h2>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">✨</span>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">AI does the heavy lifting</h4>
-                    <p className="text-sm text-gray-600">Type an assignment title, click AI Fill, and get complete instructions, rubric, and due date generated instantly.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">⚡</span>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">Create assignments in seconds</h4>
-                    <p className="text-sm text-gray-600">Our streamlined creation flow means no more 20-minute setup. Title, type, done.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">📊</span>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">AI-assisted grading</h4>
-                    <p className="text-sm text-gray-600">Rubric-based grading with AI feedback suggestions. Grade faster without sacrificing quality.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">🏫</span>
-                  <div>
-                    <h4 className="font-bold text-gray-900 text-sm">Multi-section management</h4>
-                    <p className="text-sm text-gray-600">Teach 5 periods? One course, multiple sections, individual class codes. Students self-enroll.</p>
-                  </div>
-                </div>
+      {/* Benefits for Students */}
+      <section className="bg-[#f5f9fc] px-5 sm:px-8 py-16">
+        <div className="max-w-6xl mx-auto">
+          <h2 className={`${heading} text-3xl sm:text-4xl font-bold text-[#0b2540] text-center mb-10`}>Why Students Teach Better</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {studentCards.map((c) => (
+              <div key={c.title} className={cardBase}>
+                <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1.5" style={{ backgroundColor: c.color }} />
+                <div aria-hidden="true" className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl text-2xl" style={{ backgroundColor: `${c.color}1f` }}>{c.icon}</div>
+                <h3 className={`${heading} text-lg font-semibold text-[#0b2540] mb-2`}>{c.title}</h3>
+                <p className="text-sm leading-relaxed text-[#46596c]">{c.text}</p>
               </div>
-            </div>
-            <div className="order-1 md:order-2">
-              <img
-                src="/pexels-eduardo-barrientos-140939364-17664360.jpg"
-                alt="Teacher using technology"
-                className="rounded-2xl shadow-lg w-full object-cover aspect-[4/3]"
-              />
-            </div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Easy for Teachers */}
+      <section id="for-teachers" className="scroll-mt-4 bg-gradient-to-br from-[#0065a3] to-[#0088cc] text-white px-5 sm:px-8 py-16">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 className={`${heading} text-3xl sm:text-4xl font-bold mb-8`}>Effortless for Teachers</h2>
+            <ul className="space-y-5">
+              {teacherItems.map((t) => (
+                <li key={t.title} className="flex items-start gap-3">
+                  <span aria-hidden="true" className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#FFC72C]">
+                    <svg className="h-3.5 w-3.5 text-[#0b2540]" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                  </span>
+                  <div>
+                    <h3 className={`${heading} text-lg font-semibold`}>{t.title}</h3>
+                    <p className="text-[15px] leading-relaxed text-white">{t.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          {/* Decorative grading preview */}
+          <div aria-hidden="true" className="rounded-2xl bg-white p-5 text-[#0b2540] shadow-2xl md:rotate-2">
+            <div className={`${heading} mb-3 text-[17px] font-semibold`}>Grading</div>
+            {[['Student A', 'Submitted', '18/20'], ['Student B', 'Submitted', '17/20'], ['Student C', 'Submitted', 'Met']].map(([n, s, g]) => (
+              <div key={n} className="flex items-center justify-between border-t border-[#e3ebf2] py-3 text-sm">
+                <span><span className="block font-bold">{n}</span><span className="text-[#5b6b7b]">{s}</span></span>
+                <span className="rounded-full bg-[#e6f2fb] px-3 py-1 font-extrabold text-[#0065a3]">{g}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Assignment Types */}
-      <div className="bg-gray-50 px-6 py-14">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-[#0065a3] text-center mb-8">5 Assignment Types, One Platform</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <div className="text-2xl mb-2">🎥</div>
-              <h3 className="font-bold text-gray-900 text-sm mb-1">Video Submissions</h3>
-              <p className="text-xs text-gray-600">Record on camera or upload. Live recording with anti-cheat safeguards for assessments.</p>
-            </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <div className="text-2xl mb-2">💬</div>
-              <h3 className="font-bold text-gray-900 text-sm mb-1">Discussion Boards</h3>
-              <p className="text-xs text-gray-600">Whole-class or small-group conversations with minimum participation and word count rules.</p>
-            </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <div className="text-2xl mb-2">📋</div>
-              <h3 className="font-bold text-gray-900 text-sm mb-1">Timed Assessments</h3>
-              <p className="text-xs text-gray-600">On-camera timed exams. Questions appear on screen. Full body visible. Auto-advances.</p>
-            </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <div className="text-2xl mb-2">🎬</div>
-              <h3 className="font-bold text-gray-900 text-sm mb-1">Group Projects</h3>
-              <p className="text-xs text-gray-600">Collaborative video production. Flexible group formation and grading options.</p>
-            </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <div className="text-2xl mb-2">📖</div>
-              <h3 className="font-bold text-gray-900 text-sm mb-1">Study Modules</h3>
-              <p className="text-xs text-gray-600">Self-paced lessons with embedded videos, quizzes, and progress tracking.</p>
-            </div>
-            <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <div className="text-2xl mb-2">🤖</div>
-              <h3 className="font-bold text-gray-900 text-sm mb-1">AI-Powered</h3>
-              <p className="text-xs text-gray-600">Generate assignments, rubrics, and feedback with one click. Built-in AI grading assistance.</p>
-            </div>
+      <section id="assignment-types" className="scroll-mt-4 px-5 sm:px-8 py-16">
+        <div className="max-w-6xl mx-auto">
+          <h2 className={`${heading} text-3xl sm:text-4xl font-bold text-[#0b2540] text-center mb-10`}>5 Assignment Types, One Platform</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {assignmentTypes.map((a) => (
+              <div key={a.title} className={`${cardBase} border border-[#e3ebf2]`}>
+                <div aria-hidden="true" className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl text-2xl" style={{ backgroundColor: `${a.color}1f` }}>{a.icon}</div>
+                <h3 className={`${heading} text-lg font-semibold text-[#0b2540] mb-2`}>{a.title}</h3>
+                <p className="text-sm leading-relaxed text-[#46596c]">{a.text}</p>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Platforms */}
-      <div className="px-6 py-12 max-w-3xl mx-auto text-center">
-        <h2 className="text-2xl font-bold text-[#0065a3] mb-4">Available Everywhere</h2>
-        <p className="text-gray-600 mb-6 text-sm">
+      <section className="px-5 sm:px-8 pb-16 max-w-4xl mx-auto text-center">
+        <h2 className={`${heading} text-3xl font-bold text-[#0b2540] mb-4`}>Available Everywhere</h2>
+        <p className="text-[#46596c] mb-8">
           Students and teachers can access ClassCast from any device — phone, tablet, or computer.
         </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div className="bg-gray-50 rounded-xl p-4">
-            <div className="text-2xl font-bold text-[#0065a3]">iOS</div>
-            <div className="text-xs text-gray-500">App Store</div>
-          </div>
-          <div className="bg-gray-50 rounded-xl p-4">
-            <div className="text-2xl font-bold text-[#0065a3]">Android</div>
-            <div className="text-xs text-gray-500">Play Store</div>
-          </div>
-          <div className="bg-gray-50 rounded-xl p-4">
-            <div className="text-2xl font-bold text-[#0065a3]">Web</div>
-            <div className="text-xs text-gray-500">Any Browser</div>
-          </div>
-          <div className="bg-gray-50 rounded-xl p-4">
-            <div className="text-2xl font-bold text-[#0065a3]">AWS</div>
-            <div className="text-xs text-gray-500">Cloud Hosted</div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[['iOS', 'App Store'], ['Android', 'Play Store'], ['Web', 'Any Browser'], ['AWS', 'Cloud Hosted']].map(([name, sub]) => (
+            <div key={name} className="bg-[#f5f9fc] border border-[#e3ebf2] rounded-2xl p-5">
+              <div className={`${heading} text-2xl font-bold text-[#0065a3]`}>{name}</div>
+              <div className="text-sm text-[#5b6b7b]">{sub}</div>
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
+
+      {/* Meet the Creator teaser */}
+      <section className="px-5 sm:px-8 pb-16">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center gap-6 rounded-3xl bg-[#f5f9fc] border border-[#e3ebf2] p-6 sm:p-8 text-center sm:text-left">
+          <img
+            src="/headshot.jpeg"
+            alt="Danny Wilson"
+            width={112}
+            height={112}
+            className="h-28 w-28 shrink-0 rounded-full object-cover border-4 border-white shadow-md"
+          />
+          <div className="flex-1">
+            <p className="text-[13px] font-extrabold tracking-[0.15em] text-[#0065a3]">MEET THE CREATOR</p>
+            <h2 className={`${heading} text-3xl font-bold text-[#0b2540]`}>Danny Wilson</h2>
+            <p className="mt-1 text-[#46596c]">Software developer · Enterprise staff development · Classroom teacher</p>
+          </div>
+          <Link href="/about/creator" className="px-6 py-3 rounded-full border-2 border-[#0065a3] text-[#0065a3] font-extrabold hover:bg-[#e6f2fb] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/40">
+            Read the story →
+          </Link>
+        </div>
+      </section>
 
       {/* CTA */}
-      <div className="bg-[#0065a3] text-white px-6 py-10 text-center">
-        <h3 className="text-xl font-bold mb-2">Ready to transform your classroom?</h3>
-        <p className="text-white/70 text-sm mb-6">Start for free. No credit card required.</p>
-        <div className="flex gap-4 justify-center flex-wrap">
-          <Link href="/auth/signup" className="px-6 py-3 bg-[#FFC72C] text-[#0065a3] rounded-xl font-bold">
-            Get Started Free
-          </Link>
-          <button
-            onClick={() => setShowContactModal(true)}
-            className="px-6 py-3 border-2 border-white text-white rounded-xl font-bold"
-          >
-            Contact Sales
-          </button>
+      <section className="px-5 sm:px-8 pb-16">
+        <div className="max-w-5xl mx-auto rounded-3xl bg-gradient-to-br from-[#0065a3] to-[#0088cc] text-white px-6 sm:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+          <div>
+            <h2 className={`${heading} text-2xl sm:text-3xl font-bold mb-2`}>Ready to transform your classroom?</h2>
+            <p className="text-white">Start for free. No credit card required.</p>
+          </div>
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link href="/auth/signup" className="px-6 py-3 bg-[#FFC72C] text-[#0b2540] rounded-full font-extrabold hover:bg-[#ffd04d] focus:outline-none focus-visible:ring-4 focus-visible:ring-white/60">
+              Get Started Free
+            </Link>
+            <button
+              onClick={() => setShowContactModal(true)}
+              className="px-6 py-3 border-2 border-white text-white rounded-full font-extrabold hover:bg-white/10 focus:outline-none focus-visible:ring-4 focus-visible:ring-white/60"
+            >
+              Contact Sales
+            </button>
+          </div>
         </div>
-      </div>
-
-      {/* About the Creator */}
-      <div className="px-6 py-10 max-w-3xl mx-auto text-center">
-        <Link href="/about/creator" className="inline-flex items-center gap-3 group">
-          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-[#0065a3]/20 shadow-sm">
-            <img src="/headshot.jpeg" alt="Danny Wilson" className="w-full h-full object-cover" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-bold text-[#0065a3] group-hover:underline">About the Creator</p>
-            <p className="text-xs text-gray-500">Meet the educator behind ClassCast</p>
-          </div>
-        </Link>
-      </div>
+      </section>
 
       {/* Contact Sales Modal */}
       {showContactModal && (
