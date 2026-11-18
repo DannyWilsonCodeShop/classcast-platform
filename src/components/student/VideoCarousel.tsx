@@ -6,6 +6,8 @@ interface VideoCarouselProps {
   /** Pre-rendered cards; each child is one slide. */
   children: React.ReactNode[];
   label?: string;
+  /** Width classes for each slide. */
+  itemClassName?: string;
 }
 
 const arrowBtn =
@@ -16,7 +18,7 @@ const arrowBtn =
  * shift-wheel). Arrow buttons and arrow keys page by whole cards and wrap around at the ends.
  * Never auto-advances. Remount with a new `key` to reset to the start.
  */
-export function VideoCarousel({ children, label = 'Class videos' }: VideoCarouselProps) {
+export function VideoCarousel({ children, label = 'Class videos', itemClassName = 'w-[min(78vw,330px)] md:w-[330px]' }: VideoCarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [overflowing, setOverflowing] = useState(false);
 
@@ -78,7 +80,7 @@ export function VideoCarousel({ children, label = 'Class videos' }: VideoCarouse
         style={{ scrollbarWidth: 'none', overscrollBehaviorX: 'contain', touchAction: 'pan-x pan-y' }}
       >
         {children.map((child, i) => (
-          <div key={i} className="snap-start shrink-0 w-[min(78vw,330px)] md:w-[330px]">
+          <div key={i} className={`snap-start shrink-0 ${itemClassName}`}>
             {child}
           </div>
         ))}

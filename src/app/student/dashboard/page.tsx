@@ -16,6 +16,8 @@ import { FramedVideoCard } from '@/components/student/FramedVideoCard';
 import { VideoCarousel } from '@/components/student/VideoCarousel';
 import { getCardColor } from '@/lib/cardColors';
 
+// Three small cards across on desktop with a peek of the next one.
+const SMALL_SLIDE = 'w-[min(78vw,330px)] md:w-[calc((100%-2.5rem)/3-1rem)]';
 const heading = 'font-[family-name:var(--font-fredoka)]';
 
 const getVideoThumbnail = (url?: string, thumbnailUrl?: string) => {
@@ -172,7 +174,7 @@ export default function StudentDashboardPage() {
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 4);
 
-  const renderCard = (item: FeedItem) => {
+  const renderCard = (item: FeedItem, large: boolean) => {
     const own = isOwn(item);
     const a = own ? assignments.find(x => x.assignmentId === item.assignmentId) : undefined;
     const gradeLabel = a && typeof a.grade === 'number' ? `Graded ${a.grade}/${a.maxScore ?? 100}` : null;
@@ -183,7 +185,7 @@ export default function StudentDashboardPage() {
         thumbnail={getVideoThumbnail(item.videoUrl, item.thumbnailUrl)}
         isOwn={own}
         gradeLabel={gradeLabel}
-        large
+        large={large}
         onOpen={openVideo}
       />
     );
@@ -332,11 +334,12 @@ export default function StudentDashboardPage() {
       {/* ===== WIDE SCREEN LAYOUT (iPad/Desktop): sidebar lives in the student layout ===== */}
       {isWide ? (
         <div className="h-full overflow-y-auto bg-[#f4f7fb] font-[family-name:var(--font-nunito)]">
-          <div className="max-w-[1400px] mx-auto px-6 xl:px-10 pt-5 pb-6">
+          <div className="max-w-[1400px] mx-auto px-6 xl:px-10 pt-5 pb-10">
             {/* Top bar */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mb-4">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mb-6">
               {renderCoursePicker()}
               {duePill}
+              <div className="ml-auto">{recordButton}</div>
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
               <section aria-labelledby="class-videos-h">
@@ -345,9 +348,16 @@ export default function StudentDashboardPage() {
                   {renderChips()}
                 </div>
                 {videos.length > 0 ? (
-                  <VideoCarousel key={`${activeCourse}-${chip}`}>
-                    {videos.map(renderCard)}
-                  </VideoCarousel>
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-6 gap-5">
+                      {videos.slice(0, 2).map(item => <div key={item.id} className="col-span-6 md:col-span-3">{renderCard(item, true)}</div>)}
+                    </div>
+                    {videos.length > 2 && (
+                      <VideoCarousel key={`${activeCourse}-${chip}`} itemClassName={SMALL_SLIDE}>
+                        {videos.slice(2).map(item => renderCard(item, false))}
+                      </VideoCarousel>
+                    )}
+                  </div>
                 ) : (
                   <div className="rounded-3xl bg-white border border-[#e3ebf2] py-20 text-center text-[#5b6b7b] text-sm">
                     {feed.length === 0 ? 'No videos yet' : 'No videos match this filter'}
@@ -383,9 +393,14 @@ export default function StudentDashboardPage() {
             </div>
             <div className="mb-3 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>{renderChips()}</div>
             {videos.length > 0 ? (
-              <VideoCarousel key={`${activeCourse}-${chip}`}>
-                {videos.map(renderCard)}
-              </VideoCarousel>
+              <div className="space-y-3">
+                {renderCard(videos[0], true)}
+                {videos.length > 1 && (
+                  <VideoCarousel key={`${activeCourse}-${chip}`}>
+                    {videos.slice(1).map(item => renderCard(item, false))}
+                  </VideoCarousel>
+                )}
+              </div>
             ) : (
               <div className="rounded-2xl bg-white border border-[#e3ebf2] py-12 text-center text-[#5b6b7b] text-sm">
                 {feed.length === 0 ? 'No videos yet' : 'No videos match this filter'}

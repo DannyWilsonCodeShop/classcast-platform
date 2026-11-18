@@ -57,26 +57,6 @@ export function StudentSidebar() {
         {isDesktop && <span className="font-[family-name:var(--font-fredoka)] text-[23px] font-bold leading-none text-[#0065a3]">ClassCast</span>}
       </button>
 
-      <div className="px-3.5 mb-4">
-        <button
-          onClick={() => {
-            // Same flow as the dashboard's Record video button: the dashboard opens its assignment picker.
-            if (pathname === '/student/dashboard') {
-              window.dispatchEvent(new CustomEvent('classcast-record-click'));
-            } else {
-              router.push('/student/dashboard?openRecord=true');
-            }
-          }}
-          aria-label="Record video"
-          title={!isDesktop ? 'Record video' : undefined}
-          className={`bg-[#FFC72C] hover:bg-[#e6b225] text-[#0b2540] font-[family-name:var(--font-nunito)] font-bold text-[15px] transition-colors flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0065a3] focus-visible:ring-offset-2 ${
-            isDesktop ? 'w-full min-h-[44px] rounded-full gap-2.5 px-4' : 'w-11 h-11 mx-auto rounded-full'
-          }`}
-        >
-          <span className="w-2.5 h-2.5 rounded-full bg-[#E5231B] shrink-0" aria-hidden="true" />
-          {isDesktop && <span className="whitespace-nowrap">Record video</span>}
-        </button>
-      </div>
       <nav className="flex-1 min-h-0 overflow-y-auto px-3.5 space-y-1.5">
         {NAV.map((item) => {
           const active = isActive(item.path);
