@@ -116,8 +116,8 @@ export default function AboutPage() {
           <div className="relative pb-8 pt-4 px-2 sm:px-6">
             <div className="rounded-[28px] overflow-hidden shadow-[0_16px_40px_rgba(11,37,64,0.18)] border-4 border-white aspect-[4/3] bg-[#cfe0ee]">
               <img
-                src="/pexels-julia-m-cameron-8841615.jpg"
-                alt="Students collaborating"
+                src="/pexels-yankrukov-8197532.jpg"
+                alt="Students learning together in class"
                 width={800}
                 height={600}
                 className="w-full h-full object-cover"
