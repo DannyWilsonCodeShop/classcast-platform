@@ -508,6 +508,20 @@ select:focus {
   display: none;  /* Chrome, Safari, Opera */
 }
 
+/* Wide (sidebar) layout: always bound the page to its h-screen parent so inner
+   columns scroll. This must not depend on viewport height; below 640px of height
+   (e.g. Chromebooks at 100% zoom) the page otherwise grows past the overflow-hidden
+   shell and is clipped with nothing to scroll. */
+[data-wide-layout] [data-student-page] {
+  height: 100%;
+  min-height: 0;
+}
+
+[data-wide-layout] [data-student-page] > * {
+  height: 100%;
+  min-height: 0;
+}
+
 /* Mobile app containment - phone frame only on desktop browsers viewing mobile pages */
 /* When data-wide-layout is present (wide sidebar layout active), skip all phone framing */
 @media (min-width: 640px) and (min-height: 640px) {
