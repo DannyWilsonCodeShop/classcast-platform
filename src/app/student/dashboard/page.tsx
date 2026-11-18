@@ -13,6 +13,7 @@ import { DashboardSkeleton } from '@/components/student/DashboardSkeleton';
 import { useQueryClient } from '@tanstack/react-query';
 import ModalTransition from '@/components/transitions/ModalTransition';
 import { FramedVideoCard } from '@/components/student/FramedVideoCard';
+import { VideoCarousel } from '@/components/student/VideoCarousel';
 import { getCardColor } from '@/lib/cardColors';
 
 const heading = 'font-[family-name:var(--font-fredoka)]';
@@ -171,7 +172,7 @@ export default function StudentDashboardPage() {
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 4);
 
-  const renderCard = (item: FeedItem, large: boolean) => {
+  const renderCard = (item: FeedItem) => {
     const own = isOwn(item);
     const a = own ? assignments.find(x => x.assignmentId === item.assignmentId) : undefined;
     const gradeLabel = a && typeof a.grade === 'number' ? `Graded ${a.grade}/${a.maxScore ?? 100}` : null;
@@ -182,7 +183,7 @@ export default function StudentDashboardPage() {
         thumbnail={getVideoThumbnail(item.videoUrl, item.thumbnailUrl)}
         isOwn={own}
         gradeLabel={gradeLabel}
-        large={large}
+        large
         onOpen={openVideo}
       />
     );
@@ -331,12 +332,11 @@ export default function StudentDashboardPage() {
       {/* ===== WIDE SCREEN LAYOUT (iPad/Desktop): sidebar lives in the student layout ===== */}
       {isWide ? (
         <div className="h-full overflow-y-auto bg-[#f4f7fb] font-[family-name:var(--font-nunito)]">
-          <div className="max-w-[1400px] mx-auto px-6 xl:px-10 pt-5 pb-10">
+          <div className="max-w-[1400px] mx-auto px-6 xl:px-10 pt-5 pb-6">
             {/* Top bar */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mb-6">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mb-4">
               {renderCoursePicker()}
               {duePill}
-              <div className="ml-auto">{recordButton}</div>
             </div>
             <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
               <section aria-labelledby="class-videos-h">
@@ -345,10 +345,9 @@ export default function StudentDashboardPage() {
                   {renderChips()}
                 </div>
                 {videos.length > 0 ? (
-                  <div className="grid grid-cols-6 gap-5">
-                    {videos.slice(0, 2).map(item => <div key={item.id} className="col-span-6 md:col-span-3">{renderCard(item, true)}</div>)}
-                    {videos.slice(2).map(item => <div key={item.id} className="col-span-6 sm:col-span-3 md:col-span-2">{renderCard(item, false)}</div>)}
-                  </div>
+                  <VideoCarousel key={`${activeCourse}-${chip}`}>
+                    {videos.map(renderCard)}
+                  </VideoCarousel>
                 ) : (
                   <div className="rounded-3xl bg-white border border-[#e3ebf2] py-20 text-center text-[#5b6b7b] text-sm">
                     {feed.length === 0 ? 'No videos yet' : 'No videos match this filter'}
@@ -375,7 +374,7 @@ export default function StudentDashboardPage() {
           <h1 className={`${heading} text-lg font-bold text-[#0b2540] truncate`}>Hi, {firstName}!</h1>
           {duePill}
         </div>
-        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-4" style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}>
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-4" style={{ overscrollBehavior: 'contain' }}>
           {showCoursePicker && <div>{renderCoursePicker()}</div>}
           <section aria-labelledby="class-videos-m">
             <div className="flex items-center justify-between gap-2 mb-3">
@@ -384,10 +383,9 @@ export default function StudentDashboardPage() {
             </div>
             <div className="mb-3 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>{renderChips()}</div>
             {videos.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">{renderCard(videos[0], true)}</div>
-                {videos.slice(1).map(item => <div key={item.id}>{renderCard(item, false)}</div>)}
-              </div>
+              <VideoCarousel key={`${activeCourse}-${chip}`}>
+                {videos.map(renderCard)}
+              </VideoCarousel>
             ) : (
               <div className="rounded-2xl bg-white border border-[#e3ebf2] py-12 text-center text-[#5b6b7b] text-sm">
                 {feed.length === 0 ? 'No videos yet' : 'No videos match this filter'}
