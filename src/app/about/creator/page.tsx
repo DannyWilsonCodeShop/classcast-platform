@@ -31,23 +31,24 @@ export default function AboutCreatorPage() {
             />
           </div>
           <h1 className="text-3xl font-bold text-[#0065a3] mb-2">Danny Wilson</h1>
-          <p className="text-gray-600 text-lg">Founder & Creator of ClassCast</p>
+          <p className="text-gray-600 text-lg">Software Developer and Founder of ClassCast</p>
         </div>
 
         <div className="space-y-6 text-gray-700 leading-relaxed">
           <p>
-            Danny Wilson is an educator and technologist who built ClassCast to solve a problem he saw 
-            every day in the classroom: students passively consuming content instead of actively engaging with it.
+            Danny Wilson is a software developer with five years of experience building mission-based networks,
+            tactical operating bases and card processing systems. He is an AWS Cloud App Development graduate and
+            AWS Certified, and he leads staff development training, including AI.
           </p>
           <p>
-            After years of teaching and seeing the transformative power of having students explain concepts 
-            to each other on camera, Danny set out to build a platform that makes video-based peer learning 
-            effortless for teachers and engaging for students.
+            Danny also teaches in the classroom, and that is where he saw the problem ClassCast solves. Students were
+            watching and reading instead of engaging. When they explained concepts to each other on camera, their
+            understanding got deeper. He set out to build a platform that makes video-based peer learning simple for
+            teachers and worthwhile for students.
           </p>
           <p>
-            ClassCast combines Danny&apos;s background in education with modern AI and cloud technology to create 
-            a platform where creating assignments takes seconds, students learn by teaching, and grading 
-            is assisted by artificial intelligence — all without sacrificing pedagogical rigor.
+            ClassCast brings together his development background and his teaching experience. Creating an assignment
+            takes seconds, students learn by teaching, and AI assists with grading while the teacher stays in charge.
           </p>
 
           <div className="bg-gray-50 rounded-2xl p-6 mt-8">
