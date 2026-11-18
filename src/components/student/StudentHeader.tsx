@@ -14,14 +14,11 @@ export function StudentHeader() {
 
   return (
     <div className="flex items-center justify-between px-4 pt-2 pb-1 shrink-0">
-      <div className="flex items-center gap-1">
-        <span
-          style={{ fontFamily: "'Grand Hotel', cursive", color: '#0065a3' }}
-          className="text-3xl"
-        >
+      <div className="flex items-center gap-2">
+        <img src="/MyClassCast36.png" alt="" width={32} height={32} className="w-8 h-8 object-contain" />
+        <span className="font-[family-name:var(--font-fredoka)] text-2xl font-bold leading-none text-[#0065a3]">
           ClassCast
         </span>
-        <img src="/MyClassCast36.png" alt="" className="w-6 h-6 object-contain" />
       </div>
       {schoolLogo && (
         <img

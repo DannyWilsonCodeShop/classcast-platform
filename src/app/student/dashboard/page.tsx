@@ -10,9 +10,87 @@ import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import { StudentTabBar } from '@/components/student/StudentTabBar';
 import { useStudentAssignments, useStudentFeed, Assignment, FeedItem } from '@/hooks/useStudentData';
 import { DashboardSkeleton } from '@/components/student/DashboardSkeleton';
-import { AutoThumbnail } from '@/components/student/AutoThumbnail';
+import Avatar from '@/components/common/Avatar';
 import { useQueryClient } from '@tanstack/react-query';
 import ModalTransition from '@/components/transitions/ModalTransition';
+
+const heading = 'font-[family-name:var(--font-fredoka)]';
+
+const getVideoThumbnail = (url?: string, thumbnailUrl?: string) => {
+  // Don't return video URLs as image thumbnails
+  if (thumbnailUrl && !thumbnailUrl.includes('placeholder') && !thumbnailUrl.endsWith('.mp4') && !thumbnailUrl.endsWith('.webm') && !thumbnailUrl.endsWith('.mov') && !thumbnailUrl.includes('/videos/')) return thumbnailUrl;
+  if (!url) return null;
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/);
+  return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : null;
+};
+
+const PlayButton = ({ size }: { size: number }) => (
+  <span className="rounded-full bg-white/90 shadow-lg flex items-center justify-center" style={{ width: size, height: size }} aria-hidden="true">
+    <svg style={{ width: size * 0.45, height: size * 0.45, marginLeft: size * 0.05 }} className="text-[#0065a3]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+  </span>
+);
+
+interface VideoTileProps {
+  item: FeedItem;
+  onOpen: (item: FeedItem) => void;
+  className?: string;
+  featured?: boolean;
+  compact?: boolean;
+}
+
+/** Video card. Uses the thumbnail image when there is one; otherwise <video preload="none"> (never downloads). */
+function VideoTile({ item, onOpen, className = '', featured, compact }: VideoTileProps) {
+  const thumb = getVideoThumbnail(item.videoUrl, item.thumbnailUrl);
+  const authorName = item.author?.name || 'Student';
+  const title = item.title || 'Video';
+  const isNew = !!item.timestamp && Date.now() - new Date(item.timestamp).getTime() < 86400000 && Date.now() >= new Date(item.timestamp).getTime();
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(item)}
+      aria-label={`Watch ${title} by ${authorName}`}
+      className={`group relative block overflow-hidden bg-[#14507a] text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/50 ${featured ? 'rounded-3xl shadow-[0_6px_20px_rgba(11,37,64,0.12)]' : 'rounded-2xl'} ${className}`}
+    >
+      {thumb ? (
+        <img src={thumb} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      ) : item.videoUrl ? (
+        <video src={item.videoUrl} className="absolute inset-0 w-full h-full object-cover" muted playsInline preload="none" />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0b2540] via-[#14507a] to-[#2b8fd0]" />
+      )}
+      <span className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
+        <PlayButton size={featured ? 68 : compact ? 32 : 40} />
+      </span>
+      {featured && (
+        <>
+          <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/75 to-transparent" aria-hidden="true" />
+          {isNew && (
+            <span className="absolute top-4 left-4 rounded-full bg-[#FFC72C] px-3 py-1 text-xs font-extrabold text-[#0b2540]">NEW TODAY</span>
+          )}
+          <span className="absolute left-5 right-5 bottom-4 flex items-end gap-3">
+            <Avatar src={item.author?.avatar} name={authorName} size="md" className="!w-10 !h-10 ring-[3px] ring-[#FFC72C] shrink-0" />
+            <span className="min-w-0 flex-1">
+              <span className={`${heading} block text-xl md:text-[22px] font-bold text-white truncate`}>{title}</span>
+              <span className="block text-sm text-white/90 truncate">
+                {authorName}{item.courseName ? ` · ${item.courseName}` : ''}
+              </span>
+            </span>
+            <span className="shrink-0 flex items-center gap-4 text-sm font-extrabold text-white">
+              <span className="inline-flex items-center gap-1.5" aria-label={`${item.likes || 0} likes`}>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7-4.6-9.3-9.1C1.1 8.7 3 5 6.4 5c2 0 3.5 1.2 4.3 2.6h2.6C14.1 6.2 15.6 5 17.6 5 21 5 22.9 8.700 21.300 11.900 19 16.400 12 21 12 21z" /></svg>
+                {item.likes || 0}
+              </span>
+              <span className="inline-flex items-center gap-1.5" aria-label={`${item.comments || 0} comments`}>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16v12H8l-4 4V4z" /></svg>
+                {item.comments || 0}
+              </span>
+            </span>
+          </span>
+        </>
+      )}
+    </button>
+  );
+}
 
 export default function StudentDashboardPage() {
   const router = useRouter();
@@ -124,195 +202,144 @@ export default function StudentDashboardPage() {
   const getDueBadge = (d: string) => { const diff = Math.ceil((new Date(d).getTime() - now.getTime()) / 86400000); if (diff < 0) return `${Math.abs(diff)}d late`; if (diff === 0) return 'Today'; if (diff === 1) return 'Tomorrow'; return `${diff}d`; };
   const getBadgeStyle = (d: string) => { const diff = Math.ceil((new Date(d).getTime() - now.getTime()) / 86400000); if (diff < 0) return 'bg-red-100 text-red-700'; if (diff <= 1) return 'bg-orange-100 text-orange-700'; return 'bg-white/90 text-gray-700'; };
 
-  const getVideoThumbnail = (url?: string, thumbnailUrl?: string) => {
-    // Don't return video URLs as image thumbnails
-    if (thumbnailUrl && !thumbnailUrl.includes('placeholder') && !thumbnailUrl.endsWith('.mp4') && !thumbnailUrl.endsWith('.webm') && !thumbnailUrl.endsWith('.mov') && !thumbnailUrl.includes('/videos/')) return thumbnailUrl;
-    if (!url) return null;
-    const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/);
-    return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : null;
-  };
-
   // Quick stats
   const dueThisWeek = assignments.filter(a => { const d = new Date(a.dueDate); return d >= now && d <= new Date(now.getTime() + 7 * 86400000) && !a.isSubmitted; }).length;
   const submitted = assignments.filter(a => a.isSubmitted).length;
 
+  const firstName = user?.firstName || 'there';
+  const sortedFeed = [...feed].sort((a, b) => (b.timestamp ? new Date(b.timestamp).getTime() : 0) - (a.timestamp ? new Date(a.timestamp).getTime() : 0));
+  const featured = sortedFeed[0];
+  const thumbs = sortedFeed.slice(1, isWide ? 5 : 8);
+  const openVideo = (item: FeedItem) => router.push(`/student/assignments/${item.assignmentId}/feed?videoId=${item.id}`);
+  const railAssignments = [...displayAssignments]
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+    .slice(0, 4);
+
+  const edgeColor = (a: Assignment) => a.assignmentType === 'discussion' ? '#14b8a6' : a.assignmentType === 'assessment' ? '#f59e0b' : '#0065a3';
+  const dueTextClass = (d: string) => { const diff = Math.ceil((new Date(d).getTime() - now.getTime()) / 86400000); if (diff < 0) return 'text-red-700'; if (diff <= 1) return 'text-[#b45309]'; return 'text-[#46596c]'; };
+
+  const renderDueSoon = (compact?: boolean) => (
+    <div className={`bg-white rounded-[20px] shadow-[0_6px_20px_rgba(11,37,64,0.08)] ${compact ? 'h-full flex flex-col p-3' : 'p-5'}`}>
+      <div className="flex items-center justify-between gap-2 mb-3 shrink-0">
+        <h2 className={`${heading} text-lg font-bold text-[#0b2540]`}>Due soon</h2>
+        <span className="rounded-full bg-[#eaf3fb] px-3 py-1 text-xs font-extrabold text-[#0065a3]">{dueThisWeek} due this week</span>
+      </div>
+      <div className={`space-y-3 ${compact ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
+        {railAssignments.length > 0 ? railAssignments.map((a) => {
+          const dp = a.assignmentType === 'discussion' ? a.discussionProgress : null;
+          return (
+            <button
+              key={a.assignmentId}
+              type="button"
+              onClick={() => { const id = a.assignmentId || (a as any).id; if (id) router.push(`/student/assignments/${id}`); }}
+              className="w-full flex gap-3 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0065a3]"
+            >
+              <span className="w-1 rounded-full shrink-0" style={{ backgroundColor: edgeColor(a) }} aria-hidden="true" />
+              <span className="min-w-0">
+                <span className="block text-sm font-extrabold text-[#0b2540] truncate">{a.title}</span>
+                <span className={`block text-xs font-bold ${dueTextClass(a.dueDate)}`}>
+                  {getDueBadge(a.dueDate)}{dp && !dp.legacy && dp.repliesRequired > 0 ? ` · Replies ${Math.min(dp.replyCount, dp.repliesRequired)}/${dp.repliesRequired}` : ''}
+                </span>
+              </span>
+            </button>
+          );
+        }) : <p className="text-sm text-[#6b7c8c]">No assignments yet</p>}
+      </div>
+      <div className="mt-4 shrink-0">
+        <button
+          type="button"
+          onClick={() => router.push('/student/assignments')}
+          className="w-full h-10 rounded-full border-2 border-[#0065a3] text-sm font-extrabold text-[#0065a3] hover:bg-[#eaf3fb] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/30"
+        >
+          All assignments →
+        </button>
+        <p className="mt-3 text-[13px] font-extrabold text-[#15803d]">{submitted} submitted so far</p>
+      </div>
+    </div>
+  );
+
   return (
     <StudentRoute>
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet" />
-
       {/* ===== WIDE SCREEN LAYOUT (iPad/Desktop) ===== */}
       {isWide ? (
-        <div className="h-full flex flex-col overflow-hidden bg-[#f4f7fb]">
-          {/* Quick Stats Row */}
-          <div className="flex items-center gap-4 px-6 py-4 shrink-0 border-b border-stone-200/60">
-            <h1 className="text-xl font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Dashboard</h1>
-            <div className="flex items-center gap-3 text-sm">
-              <span className="bg-white text-[#0065a3] px-3 py-1 rounded-full font-medium border border-stone-200/60">📋 {dueThisWeek} due this week</span>
-              <span className="bg-white text-green-700 px-3 py-1 rounded-full font-medium border border-stone-200/60">✅ {submitted} submitted</span>
-            </div>
-          </div>
-
-          {/* Two Column Grid */}
-          <div className="flex-1 grid grid-cols-[55fr_45fr] gap-6 p-6 min-h-0 overflow-hidden">
-            {/* Left Column — Assignments */}
-            <div className="flex flex-col min-h-0 bg-white rounded-2xl overflow-hidden border border-stone-200/60 shadow-sm">
-              <div className="px-6 pt-5 pb-3 shrink-0 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Assignments</h2>
-                <button onClick={() => router.push('/student/assignments')} className="text-xs text-[#0065a3] font-medium hover:underline">View All →</button>
-              </div>
-              <div className="flex-1 overflow-y-auto px-6 pb-4 space-y-3">
-                {displayAssignments.length > 0 ? displayAssignments.map((a) => (
-                  <div key={a.assignmentId} onClick={() => router.push(`/student/assignments/${a.assignmentId}`)} className="bg-white rounded-xl p-4 cursor-pointer hover:scale-[1.01] active:scale-[0.99] transition-transform border border-stone-200/60 shadow-sm" style={{ borderLeft: `3px solid #0065a3` }}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-semibold text-stone-900 truncate">{a.title}</h3>
-                        <p className="text-xs mt-0.5 text-stone-500">{a.courseName || ''} {a.maxScore ? `• ${a.maxScore} pts` : ''}</p>
-                      </div>
-                      <span className={`text-[11px] font-semibold px-3 py-1 rounded-full ml-3 shrink-0 ${getBadgeStyle(a.dueDate)}`}>{getDueBadge(a.dueDate)}</span>
-                    </div>
-                  </div>
-                )) : <div className="flex items-center justify-center h-full text-stone-400 text-sm">No assignments yet</div>}
-              </div>
-            </div>
-
-            {/* Right Column — Recent Videos */}
-            <div className="flex flex-col min-h-0 bg-white rounded-2xl overflow-hidden border border-stone-200/60 shadow-sm">
-              <div className="px-6 pt-5 pb-3 shrink-0">
-                <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Recent Videos</h2>
-              </div>
-              <div className="flex-1 overflow-y-auto px-6 pb-4">
-                {feed.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    {feed.slice(0, 8).map(item => (
-                      <div key={item.id} className="flex flex-col cursor-pointer hover:scale-[1.01] transition-transform" onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed?videoId=${item.id}`)}>
-                        {/* Author */}
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <div className="w-8 h-8 rounded-full border-2 border-[#FFC72C] overflow-hidden bg-gray-300 shrink-0">
-                            {item.author?.avatar && item.author.avatar.startsWith('http') ? (
-                              <img src={item.author.avatar} alt="" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full bg-[#0065a3] flex items-center justify-center text-white text-[10px] font-bold">{(item.author?.name || '?')[0]}</div>
-                            )}
+        <div className="h-full overflow-y-auto bg-[#f4f7fb] font-[family-name:var(--font-nunito)]">
+          <div className="max-w-[1400px] mx-auto px-6 lg:px-10 pt-5 pb-10">
+            <h1 className={`${heading} text-[26px] font-bold text-[#0b2540] mb-4`}>
+              Hi, {firstName}! See what your class is posting.
+            </h1>
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_316px] gap-6 items-start">
+              {/* Video stage */}
+              <section aria-labelledby="recent-videos-h">
+                <h2 id="recent-videos-h" className={`${heading} text-[21px] font-bold text-[#0b2540] mb-3`}>Recent Videos</h2>
+                {featured ? (
+                  <>
+                    <VideoTile onOpen={openVideo} item={featured} featured className="w-full aspect-video max-h-[480px]" />
+                    {thumbs.length > 0 && (
+                      <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {thumbs.map(item => (
+                          <div key={item.id}>
+                            <VideoTile onOpen={openVideo} item={item} className="w-full aspect-[4/3]" />
+                            <div className="mt-2 flex items-center gap-2 min-w-0">
+                              <Avatar src={item.author?.avatar} name={item.author?.name} size="sm" className="ring-2 ring-[#FFC72C]" />
+                              <div className="min-w-0">
+                                <p className="text-[13px] font-extrabold text-[#0b2540] truncate">{item.author?.name || 'Student'}</p>
+                                <p className="text-xs text-[#6b7c8c] truncate">{item.title || 'Video'}</p>
+                              </div>
+                            </div>
                           </div>
-                          <span className="text-xs font-semibold text-gray-900 truncate">{item.author?.name || 'Student'}</span>
-                        </div>
-                        {/* Thumbnail */}
-                        <div className="relative rounded-xl overflow-hidden bg-gray-800 aspect-[4/5]">
-                          {(() => { const ytThumb = getVideoThumbnail(item.videoUrl, item.thumbnailUrl); return ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="none" /> : <div className="w-full h-full bg-gradient-to-br from-[#0065a3] to-[#0077aa] flex items-center justify-center"><svg className="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>; })()}
-                          <div className="absolute inset-0 flex items-center justify-center"><div className="w-9 h-9 bg-white/80 rounded-full flex items-center justify-center shadow"><svg className="w-4 h-4 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
-                        </div>
-                        {/* Title */}
-                        <p className="text-xs text-stone-800 truncate font-medium mt-1.5">{item.title || 'Video'}</p>
-                        <div className="flex items-center gap-2 text-[10px] text-gray-500 mt-0.5">
-                          <span>⭐ {item.likes || 0}</span>
-                          <span>👁 {item.viewCount || 0}</span>
-                          <div className="flex gap-0.5">{[1,2,3,4,5].map(s => <svg key={s} className={`w-2.5 h-2.5 ${s <= (item.rating || 0) ? 'text-[#FFC72C]' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>)}</div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                ) : <div className="flex items-center justify-center h-full text-stone-400 text-sm">No videos yet</div>}
-              </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="rounded-3xl bg-white border border-[#e3ebf2] py-20 text-center text-[#6b7c8c] text-sm">No videos yet</div>
+                )}
+              </section>
+
+              {/* Right rail */}
+              <aside aria-label="Assignments">
+                {renderDueSoon()}
+              </aside>
             </div>
           </div>
         </div>
       ) : (
-      /* ===== MOBILE LAYOUT (existing) ===== */
-      <div key={loading ? 'loading' : 'ready'} className="h-full flex flex-col overflow-hidden bg-[#f4f7fb] cc-fade-in" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
+      /* ===== MOBILE LAYOUT ===== */
+      <div key={loading ? 'loading' : 'ready'} className="h-full flex flex-col overflow-hidden bg-[#f4f7fb] cc-fade-in font-[family-name:var(--font-nunito)]" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
         {loading ? (
           <div className="flex-1 bg-[#f4f7fb]" />
         ) : (
         <>
-        {/* Quick Stats Row - replaces greeting */}
-        <div className="flex items-center gap-3 px-4 py-3 shrink-0">
-          <div className="flex-1 flex items-center gap-2 text-[11px]">
-            <span className="bg-white text-[#0065a3] px-2.5 py-1 rounded-full font-medium border border-stone-200/60">📋 {dueThisWeek} due this week</span>
-            <span className="bg-white text-green-700 px-2.5 py-1 rounded-full font-medium border border-stone-200/60">✅ {submitted} submitted</span>
-          </div>
+        <div className="px-4 pt-2 pb-2 shrink-0">
+          <h1 className={`${heading} text-lg font-bold text-[#0b2540] truncate`}>Hi, {firstName}!</h1>
         </div>
 
-        {/* TOP HALF - Assignments (40% of space) */}
-        <div className="flex-[2] flex flex-col min-h-0 overflow-hidden">
-          {/* Grey rounded container */}
-          <div className="mx-3 mt-2 flex-1 flex flex-col min-h-0 bg-white rounded-2xl overflow-hidden border border-stone-200/60 shadow-sm">
-            <div className="px-4 pt-4 pb-2 shrink-0">
-              <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Assignments</h2>
-            </div>
-            <div className="flex-1 overflow-y-auto px-4 space-y-2.5 min-h-0 pb-3">
-              {displayAssignments.length > 0 ? displayAssignments.map((a, i) => (
-                <div key={a.assignmentId} onClick={() => { const id = a.assignmentId || (a as any).id; if (id) router.push(`/student/assignments/${id}`); }} className="bg-white rounded-xl p-3.5 cursor-pointer active:scale-[0.98] transition-transform border border-stone-200/60 shadow-sm" style={{ borderLeft: `3px solid #0065a3` }}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-stone-900 truncate">{a.title}</h3>
-                      <p className="text-xs mt-0.5 text-stone-500">{a.courseName || ''} {a.maxScore ? `• ${a.maxScore} pts` : ''}</p>
+        {/* Videos first: most of the screen */}
+        <section aria-labelledby="recent-videos-m" className="flex-[3] flex flex-col min-h-0 px-4">
+          <h2 id="recent-videos-m" className={`${heading} text-base font-bold text-[#0b2540] mb-2 shrink-0`}>Recent Videos</h2>
+          {featured ? (
+            <>
+              <VideoTile onOpen={openVideo} item={featured} featured className="w-full flex-1 min-h-[120px]" />
+              {thumbs.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto mt-2 shrink-0 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
+                  {thumbs.map(item => (
+                    <div key={item.id} className="shrink-0 w-28">
+                      <VideoTile onOpen={openVideo} item={item} compact className="w-28 h-20" />
+                      <p className="text-[11px] font-extrabold text-[#0b2540] truncate mt-1">{item.author?.name || 'Student'}</p>
                     </div>
-                    <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ml-2 shrink-0 ${getBadgeStyle(a.dueDate)}`}>{getDueBadge(a.dueDate)}</span>
-                  </div>
+                  ))}
                 </div>
-              )) : <div className="flex items-center justify-center h-full text-stone-400 text-xs">No assignments yet</div>}
-            </div>
-            <div className="px-4 py-1.5 shrink-0 border-t border-stone-100">
-              <button onClick={() => router.push('/student/assignments')} className="w-full text-center text-[11px] text-[#0065a3] font-medium py-1">View All →</button>
-            </div>
-          </div>
+              )}
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center rounded-2xl bg-white border border-[#e3ebf2] text-[#6b7c8c] text-sm">No videos yet</div>
+          )}
+        </section>
+
+        {/* Compact Due soon */}
+        <div className="flex-[2] min-h-0 px-4 pt-3">
+          {renderDueSoon(true)}
         </div>
-
-        {/* Divider */}
-        <div className="h-px bg-stone-200/60 mx-4 shrink-0 mt-3" />
-
-        {/* BOTTOM HALF - Recent Videos */}
-        <div className="flex-[3] flex flex-col min-h-0 overflow-hidden">
-          <div className="px-4 pt-4 pb-2 shrink-0">
-            <h2 className="text-lg font-semibold text-stone-900" style={{ fontFamily: 'var(--font-fredoka), Fredoka, sans-serif' }}>Recent Videos</h2>
-          </div>
-          <div className="flex-1 overflow-hidden px-4 min-h-0">
-            {feed.length > 0 ? (
-              <div className="flex gap-2 overflow-x-auto h-full items-start pt-1 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-                {feed.slice(0, 10).map(item => {
-                  const ytThumb = getVideoThumbnail(item.videoUrl, item.thumbnailUrl);
-                  const isEmojiAvatar = item.author?.avatar && item.author.avatar.length <= 4 && !item.author.avatar.startsWith('http');
-                  const hasImageAvatar = item.author?.avatar && item.author.avatar.startsWith('http');
-                  return (
-                    <div key={item.id} className="shrink-0 w-44 h-full flex flex-col cursor-pointer" onClick={() => router.push(`/student/assignments/${item.assignmentId}/feed?videoId=${item.id}`)}>
-                      {/* Video thumbnail with overlay info */}
-                      <div className="relative rounded-xl overflow-hidden flex-1 bg-gray-800">
-                        {ytThumb ? <img src={ytThumb} alt="" className="w-full h-full object-cover" /> : item.videoUrl ? <video src={item.videoUrl} className="w-full h-full object-cover" muted playsInline preload="none" /> : <div className="w-full h-full bg-gradient-to-br from-[#0065a3] to-[#0077aa] flex items-center justify-center"><svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>}
-                        {/* Play button */}
-                        <div className="absolute inset-0 flex items-center justify-center"><div className="w-11 h-11 bg-white/80 rounded-full flex items-center justify-center shadow-lg"><svg className="w-5 h-5 text-gray-800 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg></div></div>
-                        {/* Overlay info at bottom of thumbnail */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-2.5 pt-8">
-                          {/* Author */}
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-6 h-6 rounded-full bg-[#0065a3] border-[1.5px] border-[#FFC72C] flex items-center justify-center shrink-0 overflow-hidden">
-                              {isEmojiAvatar ? (
-                                <span className="text-sm">{item.author!.avatar}</span>
-                              ) : hasImageAvatar ? (
-                                <img src={item.author!.avatar!} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                <span className="text-white text-[9px] font-bold">{(item.author?.name || 'S')[0].toUpperCase()}</span>
-                              )}
-                            </div>
-                            <span className="text-[11px] text-white font-medium truncate">{item.author?.name || 'Student'}</span>
-                          </div>
-                          {/* Title + stars */}
-                          <p className="text-xs text-white truncate font-medium mt-1">{item.title || 'Video'}</p>
-                          <div className="flex items-center gap-2 text-[10px] text-white/70 mt-0.5">
-                            <span>⭐ {item.likes || 0}</span>
-                            <span>👁 {item.viewCount || 0}</span>
-                            <div className="flex gap-0.5">{[1,2,3,4,5].map(s => <svg key={s} className={`w-2.5 h-2.5 ${s <= (item.rating || 0) ? 'text-[#FFC72C]' : 'text-white/30'}`} fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>)}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : <div className="flex items-center justify-center h-full text-stone-400 text-sm">No videos yet</div>}
-          </div>
-        </div>
-
-        {/* Bottom Nav */}
         </>
         )}
         {/* Spacer for fixed tab bar */}

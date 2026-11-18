@@ -8,6 +8,7 @@ import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import { CreateModal } from './CreateModal';
 import { useSchoolTheme } from '@/hooks/useSchoolTheme';
 import { GlobalStudentSearch } from './GlobalStudentSearch';
+import Avatar from '@/components/common/Avatar';
 
 interface NavItem {
   label: string;
@@ -58,6 +59,7 @@ export function InstructorSidebar() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [hasTeam, setHasTeam] = useState(false);
   const [hasCourses, setHasCourses] = useState(true); // default true to avoid flash
+  const [ungradedCount, setUngradedCount] = useState(0);
   const theme = useSchoolTheme();
 
   const studyHallOnly = (user as any)?.studyHallOnly === true;
@@ -92,6 +94,11 @@ export function InstructorSidebar() {
         .then(r => r.json())
         .then(data => { setHasCourses(data.success && data.data?.courses?.length > 0); })
         .catch(() => {});
+      // Ungraded count for the Grading badge (cached server-side, 30s)
+      fetch(`/api/instructor/dashboard/stats?instructorId=${user.id}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => { if (data && typeof data.ungradedAssignments === 'number') setUngradedCount(data.ungradedAssignments); })
+        .catch(() => {});
     }
   }, [user?.id]);
 
@@ -117,15 +124,13 @@ export function InstructorSidebar() {
   };
 
   return (
-    <aside className={`h-full bg-[#e9eff5] border-r border-[#d8e2ec] flex flex-col shrink-0 transition-all duration-200 ${isDesktop ? 'w-[220px]' : 'w-16'}`}>
+    <aside className={`h-full bg-white border-r border-[#e3ebf2] flex flex-col shrink-0 transition-all duration-200 ${isDesktop ? 'w-[220px]' : 'w-16'}`}>
       {/* Logo */}
-      <div className={`px-3 pt-4 pb-3 border-b border-gray-50 ${isDesktop ? '' : 'flex justify-center'}`}>
+      <div className={`px-4 pt-5 pb-3 ${isDesktop ? '' : 'flex justify-center'}`}>
         {isDesktop ? (
-          <div className="flex items-center gap-2">
-            {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-            <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap" rel="stylesheet" />
-            <span style={{ fontFamily: "'Grand Hotel', cursive", color: '#0065a3' }} className="text-xl">ClassCast</span>
-            <img src="/MyClassCast36.png" alt="" className="w-7 h-7 object-contain" />
+          <div className="flex items-center gap-2.5">
+            <img src="/MyClassCast36.png" alt="" width={38} height={38} className="w-[38px] h-[38px] object-contain" />
+            <span className="font-[family-name:var(--font-fredoka)] text-[23px] font-bold leading-none text-[#0065a3]">ClassCast</span>
           </div>
         ) : (
           <img src="/MyClassCast36.png" alt="" className="w-8 h-8 object-contain" />
@@ -147,20 +152,31 @@ export function InstructorSidebar() {
             <button
               key={item.path}
               onClick={() => router.push(item.path)}
-              className={`w-full flex items-center gap-3 rounded-lg transition-colors min-h-[44px] ${
+              aria-current={active ? 'page' : undefined}
+              className={`relative w-full flex items-center gap-3 rounded-xl transition-colors min-h-[44px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0065a3] ${
                 isDesktop ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'
               } ${
                 active
-                  ? 'bg-[#0065a3]/10 text-[#0065a3] border-l-3 border-[#0065a3]'
-                  : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-[#eaf3fb] text-[#0065a3]'
+                  : 'text-[#46596c] hover:bg-[#f4f7fb]'
               }`}
               title={!isDesktop ? item.label : undefined}
             >
-              <span className={active ? 'text-[#0065a3]' : 'text-gray-400'}>{item.icon}</span>
+              {active && <span className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-[#0065a3]" aria-hidden="true" />}
+              <span className={active ? 'text-[#0065a3]' : 'text-[#8496a8]'}>{item.icon}</span>
               {isDesktop && (
-                <span className={`text-sm font-medium ${active ? 'text-[#0065a3]' : 'text-gray-700'}`}>
+                <span className={`text-[15px] ${active ? 'font-extrabold text-[#0065a3]' : 'font-bold text-[#46596c]'}`}>
                   {item.label}
                 </span>
+              )}
+              {item.path === '/instructor/grading' && ungradedCount > 0 && (
+                isDesktop ? (
+                  <span className="ml-auto rounded-full bg-[#FFC72C] px-2 min-w-[24px] h-[18px] inline-flex items-center justify-center text-[11px] font-extrabold text-[#0b2540]" aria-label={`${ungradedCount} to grade`}>
+                    {ungradedCount > 99 ? '99+' : ungradedCount}
+                  </span>
+                ) : (
+                  <span className="absolute top-1.5 right-2 h-2.5 w-2.5 rounded-full bg-[#FFC72C]" aria-label={`${ungradedCount} to grade`} />
+                )
               )}
             </button>
           );
@@ -204,30 +220,17 @@ export function InstructorSidebar() {
       </nav>
 
       {/* User section */}
-      <div className={`border-t border-gray-50 p-3 ${isDesktop ? '' : 'flex justify-center'}`}>
+      <div className={`border-t border-[#e3ebf2] py-3 ${isDesktop ? 'mx-4' : 'flex justify-center'}`}>
         {isDesktop ? (
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full border-2 overflow-hidden bg-gray-200 shrink-0" style={{ borderColor: theme.accent }}>
-              {user?.avatar ? (
-                <img src={user.avatar} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: theme.primary }}>
-                  {(user?.firstName || '?')[0]}
-                </div>
-              )}
+            <Avatar user={user} size="md" className="shrink-0" />
+            <div className="min-w-0">
+              <p className="text-sm font-extrabold text-[#0b2540] truncate">{`${user?.firstName || ''} ${user?.lastName || ''}`.trim()}</p>
+              <p className="text-xs text-[#6b7c8c]">Instructor</p>
             </div>
-            <span className="text-sm font-medium text-gray-700 truncate">{user?.firstName}</span>
           </div>
         ) : (
-          <div className="w-8 h-8 rounded-full border-2 border-[#FFC72C] overflow-hidden bg-gray-200">
-            {user?.avatar ? (
-              <img src={user.avatar} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-[#0065a3] flex items-center justify-center text-white text-xs font-bold">
-                {(user?.firstName || '?')[0]}
-              </div>
-            )}
-          </div>
+          <Avatar user={user} size="md" />
         )}
       </div>
       <CreateModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />

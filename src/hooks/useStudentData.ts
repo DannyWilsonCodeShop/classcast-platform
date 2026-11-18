@@ -37,6 +37,8 @@ export interface FeedItem {
   comments?: number;
   viewCount?: number;
   assignmentId?: string;
+  courseName?: string;
+  timestamp?: string;
 }
 
 async function fetchAssignments(userId: string): Promise<Assignment[]> {
