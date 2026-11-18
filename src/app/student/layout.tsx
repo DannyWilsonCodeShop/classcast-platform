@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
-import { StudentTopNav } from '@/components/student/StudentTopNav';
+import { StudentSidebar } from '@/components/student/StudentSidebar';
 import { usePathname } from 'next/navigation';
 import { StudentHeader } from '@/components/student/StudentHeader';
 import TransitionContainer from '@/components/transitions/TransitionContainer';
@@ -29,9 +29,9 @@ export default function StudentLayout({
 
   if (isWide) {
     return (
-      <div className="flex flex-col h-screen h-dvh overflow-hidden" data-wide-layout="">
-        <StudentTopNav />
-        <main className="flex-1 min-h-0 overflow-hidden">
+      <div className="flex h-screen h-dvh overflow-hidden" data-wide-layout="">
+        <StudentSidebar />
+        <main className="flex-1 min-w-0 min-h-0 overflow-hidden">
           <div className="h-full">
             {children}
           </div>

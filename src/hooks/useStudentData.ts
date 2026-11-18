@@ -7,10 +7,12 @@ import { useCallback } from 'react';
 export interface Assignment {
   assignmentId: string;
   title: string;
+  courseId?: string;
   courseName?: string;
   courseInitials?: string;
   dueDate: string;
   maxScore?: number;
+  grade?: number | null;
   isSubmitted?: boolean;
   createdAt?: string;
   status?: string;
@@ -37,6 +39,7 @@ export interface FeedItem {
   comments?: number;
   viewCount?: number;
   assignmentId?: string;
+  courseId?: string;
   courseName?: string;
   timestamp?: string;
 }

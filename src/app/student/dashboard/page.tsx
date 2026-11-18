@@ -10,9 +10,10 @@ import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import { StudentTabBar } from '@/components/student/StudentTabBar';
 import { useStudentAssignments, useStudentFeed, Assignment, FeedItem } from '@/hooks/useStudentData';
 import { DashboardSkeleton } from '@/components/student/DashboardSkeleton';
-import Avatar from '@/components/common/Avatar';
 import { useQueryClient } from '@tanstack/react-query';
 import ModalTransition from '@/components/transitions/ModalTransition';
+import { FramedVideoCard } from '@/components/student/FramedVideoCard';
+import { getCardColor } from '@/lib/cardColors';
 
 const heading = 'font-[family-name:var(--font-fredoka)]';
 
@@ -23,74 +24,6 @@ const getVideoThumbnail = (url?: string, thumbnailUrl?: string) => {
   const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/);
   return m ? `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg` : null;
 };
-
-const PlayButton = ({ size }: { size: number }) => (
-  <span className="rounded-full bg-white/90 shadow-lg flex items-center justify-center" style={{ width: size, height: size }} aria-hidden="true">
-    <svg style={{ width: size * 0.45, height: size * 0.45, marginLeft: size * 0.05 }} className="text-[#0065a3]" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-  </span>
-);
-
-interface VideoTileProps {
-  item: FeedItem;
-  onOpen: (item: FeedItem) => void;
-  className?: string;
-  featured?: boolean;
-  compact?: boolean;
-}
-
-/** Video card. Uses the thumbnail image when there is one; otherwise <video preload="none"> (never downloads). */
-function VideoTile({ item, onOpen, className = '', featured, compact }: VideoTileProps) {
-  const thumb = getVideoThumbnail(item.videoUrl, item.thumbnailUrl);
-  const authorName = item.author?.name || 'Student';
-  const title = item.title || 'Video';
-  const isNew = !!item.timestamp && Date.now() - new Date(item.timestamp).getTime() < 86400000 && Date.now() >= new Date(item.timestamp).getTime();
-  return (
-    <button
-      type="button"
-      onClick={() => onOpen(item)}
-      aria-label={`Watch ${title} by ${authorName}`}
-      className={`group relative block overflow-hidden bg-[#14507a] text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/50 ${featured ? 'rounded-3xl shadow-[0_6px_20px_rgba(11,37,64,0.12)]' : 'rounded-2xl'} ${className}`}
-    >
-      {thumb ? (
-        <img src={thumb} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      ) : item.videoUrl ? (
-        <video src={item.videoUrl} className="absolute inset-0 w-full h-full object-cover" muted playsInline preload="none" />
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0b2540] via-[#14507a] to-[#2b8fd0]" />
-      )}
-      <span className="absolute inset-0 flex items-center justify-center transition-transform group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100">
-        <PlayButton size={featured ? 68 : compact ? 32 : 40} />
-      </span>
-      {featured && (
-        <>
-          <span className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/75 to-transparent" aria-hidden="true" />
-          {isNew && (
-            <span className="absolute top-4 left-4 rounded-full bg-[#FFC72C] px-3 py-1 text-xs font-extrabold text-[#0b2540]">NEW TODAY</span>
-          )}
-          <span className="absolute left-5 right-5 bottom-4 flex items-end gap-3">
-            <Avatar src={item.author?.avatar} name={authorName} size="md" className="!w-10 !h-10 ring-[3px] ring-[#FFC72C] shrink-0" />
-            <span className="min-w-0 flex-1">
-              <span className={`${heading} block text-xl md:text-[22px] font-bold text-white truncate`}>{title}</span>
-              <span className="block text-sm text-white/90 truncate">
-                {authorName}{item.courseName ? ` · ${item.courseName}` : ''}
-              </span>
-            </span>
-            <span className="shrink-0 flex items-center gap-4 text-sm font-extrabold text-white">
-              <span className="inline-flex items-center gap-1.5" aria-label={`${item.likes || 0} likes`}>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7-4.6-9.3-9.1C1.1 8.7 3 5 6.4 5c2 0 3.5 1.2 4.3 2.6h2.6C14.1 6.2 15.6 5 17.6 5 21 5 22.9 8.700 21.300 11.900 19 16.400 12 21 12 21z" /></svg>
-                {item.likes || 0}
-              </span>
-              <span className="inline-flex items-center gap-1.5" aria-label={`${item.comments || 0} comments`}>
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16v12H8l-4 4V4z" /></svg>
-                {item.comments || 0}
-              </span>
-            </span>
-          </span>
-        </>
-      )}
-    </button>
-  );
-}
 
 export default function StudentDashboardPage() {
   const router = useRouter();
@@ -189,44 +122,141 @@ export default function StudentDashboardPage() {
     return () => window.removeEventListener('classcast-record-click', handleRecordClick);
   }, []);
 
+  // ---- Course scope (courses come from the assignments the student already has) ----
+  const [courseFilter, setCourseFilter] = useState<string>('all');
+  const [chip, setChip] = useState<'all' | 'week' | 'mine'>('all');
+  const courseOptions = (() => {
+    const m = new Map<string, string>();
+    assignments.forEach(a => { if (a.courseId) m.set(a.courseId, a.courseName || 'Course'); });
+    return [...m].map(([id, name]) => ({ id, name }));
+  })();
+  const showCoursePicker = courseOptions.length >= 2;
+  const activeCourse = showCoursePicker && courseOptions.some(c => c.id === courseFilter) ? courseFilter : 'all';
+  const inCourse = (cid?: string) => activeCourse === 'all' || cid === activeCourse;
+  const scoped = assignments.filter(a => inCourse(a.courseId));
+
   const now = new Date();
-  const overdue = assignments.filter(a => new Date(a.dueDate) < now && !a.isSubmitted);
-  const upcoming = assignments.filter(a => new Date(a.dueDate) >= now && !a.isSubmitted).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-  const displayAssignments = [...assignments].sort((a, b) => {
+  const displayAssignments = [...scoped].sort((a, b) => {
     const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
     const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
     return bTime - aTime; // most recently created first
   }).filter(a => !a.isSubmitted).slice(0, isWide ? 6 : 3);
   const unsubmitted = assignments.filter(a => !a.isSubmitted);
 
-  const getDueBadge = (d: string) => { const diff = Math.ceil((new Date(d).getTime() - now.getTime()) / 86400000); if (diff < 0) return `${Math.abs(diff)}d late`; if (diff === 0) return 'Today'; if (diff === 1) return 'Tomorrow'; return `${diff}d`; };
-  const getBadgeStyle = (d: string) => { const diff = Math.ceil((new Date(d).getTime() - now.getTime()) / 86400000); if (diff < 0) return 'bg-red-100 text-red-700'; if (diff <= 1) return 'bg-orange-100 text-orange-700'; return 'bg-white/90 text-gray-700'; };
+  const diffDays = (d: string) => Math.ceil((new Date(d).getTime() - now.getTime()) / 86400000);
+  const getDueBadge = (d: string) => { const diff = diffDays(d); if (diff < 0) return `${Math.abs(diff)}d late`; if (diff === 0) return 'Today'; if (diff === 1) return 'Tomorrow'; return `${diff}d`; };
+  const dueLine = (d: string) => {
+    const diff = diffDays(d);
+    if (diff < 0 || diff <= 1) return getDueBadge(d);
+    return `Due ${new Date(d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}`;
+  };
+  const dueTextClass = (d: string) => { const diff = diffDays(d); if (diff < 0) return 'text-red-700'; if (diff <= 1) return 'text-[#b45309]'; return 'text-[#46596c]'; };
 
   // Quick stats
-  const dueThisWeek = assignments.filter(a => { const d = new Date(a.dueDate); return d >= now && d <= new Date(now.getTime() + 7 * 86400000) && !a.isSubmitted; }).length;
-  const submitted = assignments.filter(a => a.isSubmitted).length;
+  const dueThisWeek = scoped.filter(a => { const d = new Date(a.dueDate); return d >= now && d <= new Date(now.getTime() + 7 * 86400000) && !a.isSubmitted; }).length;
+  const submitted = scoped.filter(a => a.isSubmitted).length;
 
   const firstName = user?.firstName || 'there';
-  const sortedFeed = [...feed].sort((a, b) => (b.timestamp ? new Date(b.timestamp).getTime() : 0) - (a.timestamp ? new Date(a.timestamp).getTime() : 0));
-  const featured = sortedFeed[0];
-  const thumbs = sortedFeed.slice(1, isWide ? 5 : 8);
+  const sortedFeed = [...feed]
+    .filter(f => inCourse(f.courseId))
+    .sort((a, b) => (b.timestamp ? new Date(b.timestamp).getTime() : 0) - (a.timestamp ? new Date(a.timestamp).getTime() : 0));
+  const isOwn = (f: FeedItem) => !!user?.id && f.author?.id === user.id;
+  const videos = sortedFeed.filter(f => {
+    if (chip === 'week') return !!f.timestamp && now.getTime() - new Date(f.timestamp).getTime() < 7 * 86400000;
+    if (chip === 'mine') return isOwn(f);
+    return true;
+  });
   const openVideo = (item: FeedItem) => router.push(`/student/assignments/${item.assignmentId}/feed?videoId=${item.id}`);
   const railAssignments = [...displayAssignments]
     .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
     .slice(0, 4);
 
-  const edgeColor = (a: Assignment) => a.assignmentType === 'discussion' ? '#14b8a6' : a.assignmentType === 'assessment' ? '#f59e0b' : '#0065a3';
-  const dueTextClass = (d: string) => { const diff = Math.ceil((new Date(d).getTime() - now.getTime()) / 86400000); if (diff < 0) return 'text-red-700'; if (diff <= 1) return 'text-[#b45309]'; return 'text-[#46596c]'; };
+  const renderCard = (item: FeedItem, large: boolean) => {
+    const own = isOwn(item);
+    const a = own ? assignments.find(x => x.assignmentId === item.assignmentId) : undefined;
+    const gradeLabel = a && typeof a.grade === 'number' ? `Graded ${a.grade}/${a.maxScore ?? 100}` : null;
+    return (
+      <FramedVideoCard
+        key={item.id}
+        item={item}
+        thumbnail={getVideoThumbnail(item.videoUrl, item.thumbnailUrl)}
+        isOwn={own}
+        gradeLabel={gradeLabel}
+        large={large}
+        onOpen={openVideo}
+      />
+    );
+  };
 
-  const renderDueSoon = (compact?: boolean) => (
-    <div className={`bg-white rounded-[20px] shadow-[0_6px_20px_rgba(11,37,64,0.08)] ${compact ? 'h-full flex flex-col p-3' : 'p-5'}`}>
-      <div className="flex items-center justify-between gap-2 mb-3 shrink-0">
+  const chips: { id: 'all' | 'week' | 'mine'; label: string }[] = [
+    { id: 'all', label: 'All' },
+    { id: 'week', label: 'This week' },
+    { id: 'mine', label: 'My videos' },
+  ];
+  const renderChips = () => (
+    <div className="flex items-center gap-2" role="group" aria-label="Filter class videos">
+      {chips.map(c => (
+        <button
+          key={c.id}
+          type="button"
+          aria-pressed={chip === c.id}
+          onClick={() => setChip(c.id)}
+          className={`h-8 rounded-full px-4 text-[13px] font-extrabold focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/40 ${chip === c.id ? 'bg-[#0065a3] text-white' : 'bg-white text-[#46596c] border border-[#d8e3ec] hover:bg-[#eaf3fb]'}`}
+        >
+          {c.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const renderCoursePicker = () => showCoursePicker ? (
+    <label className="flex items-center gap-3 text-sm font-bold text-[#5b6b7b]">
+      Course:
+      <span className="relative">
+        <select
+          value={activeCourse}
+          onChange={e => setCourseFilter(e.target.value)}
+          className="appearance-none h-10 min-w-[200px] max-w-[320px] rounded-[14px] border border-[#d8e3ec] bg-white pl-4 pr-10 text-[15px] font-extrabold text-[#0b2540] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/40"
+        >
+          <option value="all">All my courses</option>
+          {courseOptions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+        <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#46596c]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" /></svg>
+      </span>
+    </label>
+  ) : null;
+
+  const recordButton = (
+    <button
+      type="button"
+      onClick={() => setShowAssignmentPicker(true)}
+      className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[#FFC72C] hover:bg-[#e6b225] text-[#0b2540] font-extrabold text-[15px] px-5 h-10 focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/40"
+    >
+      <span aria-hidden="true" className="h-3.5 w-3.5 rounded-full bg-[#e11d48]" />
+      Record video
+    </button>
+  );
+
+  const duePill = (
+    <span className="rounded-full bg-[#eaf3fb] px-3.5 py-1.5 text-[13px] font-extrabold text-[#0065a3]">{dueThisWeek} due this week</span>
+  );
+
+  const renderDueSoon = () => (
+    <div className="bg-white rounded-[20px] shadow-[0_6px_20px_rgba(11,37,64,0.08)] p-5">
+      <div className="flex items-center justify-between gap-2 mb-3">
         <h2 className={`${heading} text-lg font-bold text-[#0b2540]`}>Due soon</h2>
-        <span className="rounded-full bg-[#eaf3fb] px-3 py-1 text-xs font-extrabold text-[#0065a3]">{dueThisWeek} due this week</span>
+        <button
+          type="button"
+          onClick={() => router.push('/student/assignments')}
+          className="text-[13px] font-extrabold text-[#0065a3] rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0065a3]"
+        >
+          All →
+        </button>
       </div>
-      <div className={`space-y-3 ${compact ? 'flex-1 min-h-0 overflow-y-auto' : ''}`}>
+      <div className="space-y-3">
         {railAssignments.length > 0 ? railAssignments.map((a) => {
           const dp = a.assignmentType === 'discussion' ? a.discussionProgress : null;
+          const typeLabel = a.assignmentType === 'discussion' ? 'Discussion' : a.assignmentType === 'assessment' ? 'Assessment' : '';
           return (
             <button
               key={a.assignmentId}
@@ -234,111 +264,137 @@ export default function StudentDashboardPage() {
               onClick={() => { const id = a.assignmentId || (a as any).id; if (id) router.push(`/student/assignments/${id}`); }}
               className="w-full flex gap-3 text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0065a3]"
             >
-              <span className="w-1 rounded-full shrink-0" style={{ backgroundColor: edgeColor(a) }} aria-hidden="true" />
+              <span className="w-1 rounded-full shrink-0" style={{ backgroundColor: getCardColor(a.assignmentId).edge }} aria-hidden="true" />
               <span className="min-w-0">
                 <span className="block text-sm font-extrabold text-[#0b2540] truncate">{a.title}</span>
                 <span className={`block text-xs font-bold ${dueTextClass(a.dueDate)}`}>
-                  {getDueBadge(a.dueDate)}{dp && !dp.legacy && dp.repliesRequired > 0 ? ` · Replies ${Math.min(dp.replyCount, dp.repliesRequired)}/${dp.repliesRequired}` : ''}
+                  {dueLine(a.dueDate)}
+                  {dp && !dp.legacy && dp.repliesRequired > 0 ? ` · Replies ${Math.min(dp.replyCount, dp.repliesRequired)}/${dp.repliesRequired}` : typeLabel ? ` · ${typeLabel}` : ''}
                 </span>
               </span>
             </button>
           );
-        }) : <p className="text-sm text-[#6b7c8c]">No assignments yet</p>}
+        }) : <p className="text-sm text-[#5b6b7b]">No unsubmitted assignments</p>}
       </div>
-      <div className="mt-4 shrink-0">
-        <button
-          type="button"
-          onClick={() => router.push('/student/assignments')}
-          className="w-full h-10 rounded-full border-2 border-[#0065a3] text-sm font-extrabold text-[#0065a3] hover:bg-[#eaf3fb] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#0065a3]/30"
-        >
-          All assignments →
-        </button>
-        <p className="mt-3 text-[13px] font-extrabold text-[#15803d]">{submitted} submitted so far</p>
+      <p className="mt-4 text-[13px] font-extrabold text-[#15803d]">{submitted} submitted so far</p>
+    </div>
+  );
+
+  // This-week calendar (Monday start)
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const today0 = startOfDay(now);
+  const weekStart = new Date(today0);
+  weekStart.setDate(today0.getDate() - ((today0.getDay() + 6) % 7));
+  const weekDays = Array.from({ length: 7 }, (_, i) => { const d = new Date(weekStart); d.setDate(weekStart.getDate() + i); return d; });
+  const dueByDay = weekDays.map(d => scoped.filter(a => !a.isSubmitted && startOfDay(new Date(a.dueDate)).getTime() === d.getTime()));
+  const weekList = weekDays.flatMap((d, i) => dueByDay[i].map(a => ({ d, a }))).slice(0, 4);
+
+  const renderCalendar = () => (
+    <div className="bg-white rounded-[20px] shadow-[0_6px_20px_rgba(11,37,64,0.08)] p-5">
+      <h2 className={`${heading} text-lg font-bold text-[#0b2540] mb-3`}>This week</h2>
+      <div className="grid grid-cols-7 text-center" role="list" aria-label="This week">
+        {weekDays.map((d, i) => {
+          const isToday = d.getTime() === today0.getTime();
+          const due = dueByDay[i];
+          return (
+            <div
+              key={i}
+              role="listitem"
+              aria-label={`${d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}${isToday ? ', today' : ''}${due.length ? `, ${due.length} due` : ''}`}
+              className="flex flex-col items-center gap-1"
+            >
+              <span className="text-xs font-extrabold text-[#5b6b7b]" aria-hidden="true">{'MTWTFSS'[i]}</span>
+              <span
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-extrabold ${isToday ? 'bg-[#0065a3] text-white' : i > 4 ? 'text-[#6b7c8c]' : 'text-[#0b2540]'}`}
+                aria-hidden="true"
+              >
+                {d.getDate()}
+              </span>
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: due.length ? getCardColor(due[0].assignmentId).edge : 'transparent' }} aria-hidden="true" />
+            </div>
+          );
+        })}
       </div>
+      <ul className="mt-3 space-y-2">
+        {weekList.length > 0 ? weekList.map(({ d, a }) => (
+          <li key={a.assignmentId} className="flex items-center gap-2 text-[13px] text-[#33475b] min-w-0">
+            <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: getCardColor(a.assignmentId).edge }} aria-hidden="true" />
+            <span className="truncate"><span className="font-extrabold">{d.toLocaleDateString(undefined, { weekday: 'short' })}</span>  {a.title} due</span>
+          </li>
+        )) : <li className="text-[13px] text-[#5b6b7b]">Nothing due this week</li>}
+      </ul>
     </div>
   );
 
   return (
     <StudentRoute>
-      {/* ===== WIDE SCREEN LAYOUT (iPad/Desktop) ===== */}
+      {/* ===== WIDE SCREEN LAYOUT (iPad/Desktop): sidebar lives in the student layout ===== */}
       {isWide ? (
         <div className="h-full overflow-y-auto bg-[#f4f7fb] font-[family-name:var(--font-nunito)]">
-          <div className="max-w-[1400px] mx-auto px-6 lg:px-10 pt-5 pb-10">
-            <h1 className={`${heading} text-[26px] font-bold text-[#0b2540] mb-4`}>
-              Hi, {firstName}! See what your class is posting.
-            </h1>
-            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_316px] gap-6 items-start">
-              {/* Video stage */}
-              <section aria-labelledby="recent-videos-h">
-                <h2 id="recent-videos-h" className={`${heading} text-[21px] font-bold text-[#0b2540] mb-3`}>Recent Videos</h2>
-                {featured ? (
-                  <>
-                    <VideoTile onOpen={openVideo} item={featured} featured className="w-full aspect-video max-h-[480px]" />
-                    {thumbs.length > 0 && (
-                      <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {thumbs.map(item => (
-                          <div key={item.id}>
-                            <VideoTile onOpen={openVideo} item={item} className="w-full aspect-[4/3]" />
-                            <div className="mt-2 flex items-center gap-2 min-w-0">
-                              <Avatar src={item.author?.avatar} name={item.author?.name} size="sm" className="ring-2 ring-[#FFC72C]" />
-                              <div className="min-w-0">
-                                <p className="text-[13px] font-extrabold text-[#0b2540] truncate">{item.author?.name || 'Student'}</p>
-                                <p className="text-xs text-[#6b7c8c] truncate">{item.title || 'Video'}</p>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
+          <div className="max-w-[1400px] mx-auto px-6 xl:px-10 pt-5 pb-10">
+            {/* Top bar */}
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-3 mb-6">
+              {renderCoursePicker()}
+              {duePill}
+              <div className="ml-auto">{recordButton}</div>
+            </div>
+            <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_300px] gap-6 items-start">
+              <section aria-labelledby="class-videos-h">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
+                  <h1 id="class-videos-h" className={`${heading} text-2xl font-bold text-[#0b2540]`}>Class videos</h1>
+                  {renderChips()}
+                </div>
+                {videos.length > 0 ? (
+                  <div className="grid grid-cols-6 gap-5">
+                    {videos.slice(0, 2).map(item => <div key={item.id} className="col-span-6 md:col-span-3">{renderCard(item, true)}</div>)}
+                    {videos.slice(2).map(item => <div key={item.id} className="col-span-6 sm:col-span-3 md:col-span-2">{renderCard(item, false)}</div>)}
+                  </div>
                 ) : (
-                  <div className="rounded-3xl bg-white border border-[#e3ebf2] py-20 text-center text-[#6b7c8c] text-sm">No videos yet</div>
+                  <div className="rounded-3xl bg-white border border-[#e3ebf2] py-20 text-center text-[#5b6b7b] text-sm">
+                    {feed.length === 0 ? 'No videos yet' : 'No videos match this filter'}
+                  </div>
                 )}
               </section>
 
               {/* Right rail */}
-              <aside aria-label="Assignments">
+              <aside aria-label="Assignments and calendar" className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-5">
                 {renderDueSoon()}
+                {renderCalendar()}
               </aside>
             </div>
           </div>
         </div>
       ) : (
       /* ===== MOBILE LAYOUT ===== */
-      <div key={loading ? 'loading' : 'ready'} className="h-full flex flex-col overflow-hidden bg-[#f4f7fb] cc-fade-in font-[family-name:var(--font-nunito)]" style={{ maxHeight: '100%', overflowY: 'hidden', touchAction: 'pan-x', overscrollBehavior: 'none' }}>
+      <div key={loading ? 'loading' : 'ready'} className="h-full flex flex-col overflow-hidden bg-[#f4f7fb] cc-fade-in font-[family-name:var(--font-nunito)]">
         {loading ? (
           <div className="flex-1 bg-[#f4f7fb]" />
         ) : (
         <>
-        <div className="px-4 pt-2 pb-2 shrink-0">
+        <div className="px-4 pt-2 pb-2 shrink-0 flex items-center justify-between gap-3">
           <h1 className={`${heading} text-lg font-bold text-[#0b2540] truncate`}>Hi, {firstName}!</h1>
+          {duePill}
         </div>
-
-        {/* Videos first: most of the screen */}
-        <section aria-labelledby="recent-videos-m" className="flex-[3] flex flex-col min-h-0 px-4">
-          <h2 id="recent-videos-m" className={`${heading} text-base font-bold text-[#0b2540] mb-2 shrink-0`}>Recent Videos</h2>
-          {featured ? (
-            <>
-              <VideoTile onOpen={openVideo} item={featured} featured className="w-full flex-1 min-h-[120px]" />
-              {thumbs.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto mt-2 shrink-0 scrollbar-hide" style={{ scrollbarWidth: 'none' }}>
-                  {thumbs.map(item => (
-                    <div key={item.id} className="shrink-0 w-28">
-                      <VideoTile onOpen={openVideo} item={item} compact className="w-28 h-20" />
-                      <p className="text-[11px] font-extrabold text-[#0b2540] truncate mt-1">{item.author?.name || 'Student'}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center rounded-2xl bg-white border border-[#e3ebf2] text-[#6b7c8c] text-sm">No videos yet</div>
-          )}
-        </section>
-
-        {/* Compact Due soon */}
-        <div className="flex-[2] min-h-0 px-4 pt-3">
-          {renderDueSoon(true)}
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4 space-y-4" style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}>
+          {showCoursePicker && <div>{renderCoursePicker()}</div>}
+          <section aria-labelledby="class-videos-m">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <h2 id="class-videos-m" className={`${heading} text-base font-bold text-[#0b2540]`}>Class videos</h2>
+              {recordButton}
+            </div>
+            <div className="mb-3 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none' }}>{renderChips()}</div>
+            {videos.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">{renderCard(videos[0], true)}</div>
+                {videos.slice(1).map(item => <div key={item.id}>{renderCard(item, false)}</div>)}
+              </div>
+            ) : (
+              <div className="rounded-2xl bg-white border border-[#e3ebf2] py-12 text-center text-[#5b6b7b] text-sm">
+                {feed.length === 0 ? 'No videos yet' : 'No videos match this filter'}
+              </div>
+            )}
+          </section>
+          {renderDueSoon()}
         </div>
         </>
         )}
