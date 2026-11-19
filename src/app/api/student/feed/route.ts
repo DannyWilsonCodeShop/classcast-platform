@@ -12,6 +12,10 @@ const docClient = DynamoDBDocumentClient.from(dynamoClient);
 const s3Client = new S3Client({ region: process.env.REGION || process.env.AWS_REGION || 'us-east-1' });
 const VIDEO_BUCKET = process.env.VIDEO_BUCKET || 'classcast-videos-463470937777-us-east-1';
 const SIGNED_URL_EXPIRY = 60 * 60 * 6; // 6 hours
+// Sign with a time rounded down to the hour so the same object gets the same URL for the
+// whole hour (browser-cacheable on repeat visits); each URL stays valid 5-6 hours.
+const SIGN_WINDOW_MS = 60 * 60 * 1000;
+const THUMB_CACHE_CONTROL = 'private, max-age=3600';
 
 function extractS3KeyFromUrl(url: string): string | null {
   try {
@@ -39,7 +43,7 @@ function isExternalOrPublicUrl(url: string): boolean {
 }
 
 // Sign S3-hosted objects; leave YouTube/Drive/placeholder/data URLs untouched. Never throws.
-async function signIfS3(url: string | null | undefined): Promise<string | null | undefined> {
+async function signIfS3(url: string | null | undefined, cacheControl?: string): Promise<string | null | undefined> {
   if (!url || isExternalOrPublicUrl(url)) return url;
   const isS3 = url.includes('amazonaws.com') || url.startsWith('s3://');
   if (!isS3) return url;
@@ -48,7 +52,12 @@ async function signIfS3(url: string | null | undefined): Promise<string | null |
       ? url.replace(/^s3:\/\/[^/]+\//, '')
       : extractS3KeyFromUrl(url);
     if (!key) return url;
-    return await getSignedUrl(s3Client, new GetObjectCommand({ Bucket: VIDEO_BUCKET, Key: key }), { expiresIn: SIGNED_URL_EXPIRY });
+    const signingDate = new Date(Math.floor(Date.now() / SIGN_WINDOW_MS) * SIGN_WINDOW_MS);
+    return await getSignedUrl(
+      s3Client,
+      new GetObjectCommand({ Bucket: VIDEO_BUCKET, Key: key, ...(cacheControl ? { ResponseCacheControl: cacheControl } : {}) }),
+      { expiresIn: SIGNED_URL_EXPIRY, signingDate }
+    );
   } catch (err) {
     console.warn('signIfS3 (student feed) failed, using original URL:', err);
     return url;
@@ -304,7 +313,7 @@ export async function GET(request: NextRequest) {
       if (item.type !== 'video') return;
       const [signedVideo, signedThumb] = await Promise.all([
         signIfS3(item.videoUrl),
-        signIfS3(item.thumbnailUrl),
+        signIfS3(item.thumbnailUrl, THUMB_CACHE_CONTROL),
       ]);
       item.videoUrl = signedVideo || item.videoUrl;
       item.thumbnailUrl = signedThumb ?? item.thumbnailUrl;
