@@ -11,11 +11,11 @@ import { flushSync } from 'react-dom';
  */
 
 /** Hard upper bound before the curtain lifts, whatever the network is doing. */
-export const BOOT_CURTAIN_MAX_WAIT_MS = 4000;
+export const BOOT_CURTAIN_MAX_WAIT_MS = 2500;
 const TICK_MS = 100;
 /** DOM must be unchanged this long (and no images pending) before lifting. */
 const QUIET_NO_MEDIA_MS = 150;
-const QUIET_WITH_MEDIA_MS = 350;
+const QUIET_WITH_MEDIA_MS = 200;
 const FADE_MS = 400;
 
 type Phase = 'visible' | 'fading' | 'gone';
