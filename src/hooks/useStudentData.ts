@@ -52,7 +52,7 @@ async function fetchAssignments(userId: string): Promise<Assignment[]> {
 }
 
 async function fetchFeed(userId: string): Promise<FeedItem[]> {
-  const res = await fetch(`/api/student/feed?userId=${userId}`);
+  const res = await fetch(`/api/student/feed?userId=${userId}&videosOnly=true`);
   if (!res.ok) throw new Error('Failed to fetch feed');
   const data = await res.json();
   return (data.feed || []).filter((f: FeedItem) => f.type === 'video');

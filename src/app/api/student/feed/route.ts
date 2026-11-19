@@ -95,6 +95,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     let userId = searchParams.get('userId');
     const includeAllPublic = searchParams.get('includeAllPublic') === 'true'; // New parameter
+    // Opt-in: skip assignment items (same response shape; feed then holds only video items).
+    // Used by the student dashboard, which discards assignment items anyway.
+    const videosOnly = searchParams.get('videosOnly') === 'true';
     
     // Handle demo mode - redirect to target user
     if (isRequestFromDemoUser(request)) {
@@ -246,7 +249,7 @@ export async function GET(request: NextRequest) {
     const now = new Date().toISOString();
 
     allAssignments
-      .filter(assignment => courseIds.includes(assignment.courseId))
+      .filter(assignment => !videosOnly && courseIds.includes(assignment.courseId))
       .forEach(assignment => {
         const course = studentCourses.find(c => c.courseId === assignment.courseId);
         const dueDate = assignment.dueDate;
