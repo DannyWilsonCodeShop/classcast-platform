@@ -53,24 +53,8 @@ export const metadata: Metadata = {
     title: "ClassCast",
   },
   icons: {
-    icon: [
-      {
-        url: "/MyClassCast36.png",
-        sizes: "any",
-        type: "image/png",
-      },
-      {
-        url: "/MyClassCast36.png",
-        sizes: "16x16",
-        type: "image/png",
-      },
-      {
-        url: "/MyClassCast36.png",
-        sizes: "32x32",
-        type: "image/png",
-      },
-    ],
-    shortcut: "/MyClassCast36.png",
+    // One icon tag + apple-touch-icon; the extra same-URL size variants only added duplicate fetches.
+    icon: [{ url: "/MyClassCast36.png", sizes: "any", type: "image/png" }],
     apple: "/MyClassCast36.png",
   },
 };
@@ -84,7 +68,6 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* DNS prefetch and preconnect for external resources */}
-        <link rel="preload" as="image" href="/MyClassCast36.png" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <link rel="dns-prefetch" href="https://img.youtube.com" />
