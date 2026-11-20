@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -78,7 +79,7 @@ export async function GET(request: NextRequest) {
             courseName: course?.courseName || course?.title || 'Unknown Course',
             courseCode: course?.courseCode || course?.code || 'N/A',
             grade: submission.grade || 0,
-            maxPoints: assignment?.maxScore || 100,
+            maxPoints: getAssignmentMaxPoints(assignment),
             submittedAt: submission.submittedAt || submission.createdAt,
             gradedAt: submission.gradedAt || submission.updatedAt,
             feedback: submission.instructorFeedback || '',
@@ -163,7 +164,7 @@ export async function GET(request: NextRequest) {
             courseName: course?.courseName || course?.title || 'Unknown Course',
             courseCode: course?.courseCode || course?.code || 'N/A',
             grade: 0,
-            maxPoints: assignment?.maxScore || 100,
+            maxPoints: getAssignmentMaxPoints(assignment),
             submittedAt: submission.submittedAt || submission.createdAt,
             gradedAt: '',
             feedback: '',

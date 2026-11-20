@@ -10,6 +10,7 @@ import AIGradingInterface from '@/components/ai/AIGradingInterface';
 import PlagiarismChecker from '@/components/ai/PlagiarismChecker';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiHelpers } from '@/lib/apiConfig';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 interface InstructorDashboardProps {
   className?: string;
@@ -281,7 +282,7 @@ const InstructorDashboard: React.FC<InstructorDashboardProps> = ({ className = '
                 
                 <div className="space-y-2 text-sm text-gray-500">
                   <div>Due: {formatDate(assignment.dueDate)}</div>
-                  <div>Max Score: {assignment.maxScore || 100}</div>
+                  <div>Max Score: {getAssignmentMaxPoints(assignment)}</div>
                   <div>Type: {assignment.type || 'Assignment'}</div>
                   {assignment.submissionCount !== undefined && (
                     <div>Submissions: {assignment.submissionCount}</div>

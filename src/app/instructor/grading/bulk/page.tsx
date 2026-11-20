@@ -17,6 +17,7 @@ import { ProblemReferenceModal } from '@/components/instructor/ProblemReferenceM
 import { HelpTooltip } from '@/components/common/HelpTooltip';
 import { RubricCategory } from '@/types/rubric';
 import { GradingResult } from '@/types/aiGrading';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 const AIGradingWizard = dynamic(
   () => import('@/components/instructor/AIGradingWizard'),
@@ -324,7 +325,7 @@ const BulkGradingContent: React.FC = () => {
             sectionName: sub.student?.sectionName || null,
             // Assignment max is the source of truth (e.g. 16); the submission's own maxScore
             // is often a stale 100 default, so only use it if the assignment has none.
-            maxScore: sub.assignment?.maxScore ?? sub.maxScore ?? 100,
+            maxScore: getAssignmentMaxPoints(sub.assignment, sub),
             rubricScores: sub.rubricScores || undefined,
             peerResponses: sub.peerResponses || []
           }));
@@ -1175,7 +1176,7 @@ const BulkGradingContent: React.FC = () => {
                               <input
                                 type="number"
                                 min="0"
-                                max={submission.maxScore || 100}
+                                max={getAssignmentMaxPoints(null, submission)}
                                 value={grades[submission.submissionId] ?? submission.grade ?? ''}
                                 onChange={(e) => {
                                   const val = e.target.value === '' ? '' : Number(e.target.value);
@@ -1184,10 +1185,10 @@ const BulkGradingContent: React.FC = () => {
                                 className="w-16 px-2 py-1.5 border border-gray-300 rounded text-sm font-medium text-center"
                                 placeholder="0"
                               />
-                              <span className="text-xs text-gray-500">/ {submission.maxScore || 100}</span>
+                              <span className="text-xs text-gray-500">/ {getAssignmentMaxPoints(null, submission)}</span>
                               <button
                                 onClick={async () => {
-                                  const max = submission.maxScore || 100;
+                                  const max = getAssignmentMaxPoints(null, submission);
                                   setGrades(prev => ({ ...prev, [submission.submissionId]: max }));
                                   // Auto-save immediately with max value
                                   setSavingGrades(prev => new Set([...prev, submission.submissionId]));
@@ -1336,7 +1337,7 @@ const BulkGradingContent: React.FC = () => {
                         courseId: sub.courseId || sub.assignment?.courseId || '',
                         sectionId: sub.student?.sectionId || null,
                         sectionName: sub.student?.sectionName || null,
-                        maxScore: sub.assignment?.maxScore ?? sub.maxScore ?? 100,
+                        maxScore: getAssignmentMaxPoints(sub.assignment, sub),
                         rubricScores: sub.rubricScores,
                         peerResponses: sub.peerResponses,
                       }));

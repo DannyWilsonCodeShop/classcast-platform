@@ -9,6 +9,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { AssignmentEditModal, AssignmentEditData } from '@/components/instructor/AssignmentEditModal';
 import { FormattingTextarea } from '@/components/common/FormattingTextarea';
 import { resolveStudentSection } from '@/lib/sectionMembership';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 interface Assignment {
   assignmentId: string;
@@ -262,7 +263,7 @@ const AssignmentGradesPage: React.FC = () => {
           title: assignment.title,
           description: assignment.description,
           dueDate: assignment.dueDate,
-          maxScore: assignment.points || assignment.maxScore || 100,
+          maxScore: getAssignmentMaxPoints(assignment),
           courseId: assignment.courseId,
           courseName: assignment.courseName || assignment.course?.name || 'Course',
           courseCode: assignment.courseCode || assignment.course?.code || 'N/A',

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyInstructorAccess } from '@/lib/auth-utils';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 export async function POST(
   request: NextRequest,
@@ -149,14 +150,14 @@ export async function POST(
       data: {
         assignment: {
           title: assignment.title,
-          maxScore: assignment.maxScore || 100
+          maxScore: getAssignmentMaxPoints(assignment)
         },
         grades: gradesData.map(grade => ({
           studentName: grade.studentName,
           studentEmail: grade.studentEmail,
           sectionName: grade.sectionName,
           grade: grade.grade || '',
-          maxScore: assignment.maxScore || 100,
+          maxScore: getAssignmentMaxPoints(assignment),
           status: grade.status,
           submittedAt: grade.submittedAt ? new Date(grade.submittedAt).toLocaleString() : '',
           feedback: grade.feedback || ''

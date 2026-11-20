@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, ScanCommand, UpdateCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -79,7 +80,7 @@ export async function GET(
       description: assignment.description,
       instructions: assignment.description, // Use description as instructions
       dueDate: assignment.dueDate,
-      points: assignment.maxScore || 100,
+      points: getAssignmentMaxPoints(assignment),
       status: 'not-started', // Default status
       submissionType: assignment.assignmentType === 'video' ? 'video' : 'file',
       allowedFileTypes: assignment.allowedFileTypes || [],
@@ -109,7 +110,7 @@ export async function GET(
       assessmentQuestions: assignment.assessmentQuestions || null,
       moduleConfig: assignment.moduleConfig || null,
       assignmentType: assignment.assignmentType || 'video',
-      maxScore: assignment.maxScore || 100,
+      maxScore: getAssignmentMaxPoints(assignment),
       choices: assignment.choices || [],
       requiredVideoCount: assignment.requiredVideoCount || 1,
       sectionDueDates: assignment.sectionDueDates || {},

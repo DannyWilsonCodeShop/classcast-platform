@@ -252,7 +252,7 @@ const MemoizedVideoCard = memo<MemoizedVideoCardProps>(({
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Grade:</span>
               <span className="font-semibold text-green-600">
-                {item.grade}/{item.points || 100}
+                {item.points ? `${item.grade}/${item.points}` : item.grade}
               </span>
             </div>
           </div>

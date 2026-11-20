@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { getAssignmentColor, getAssignmentTitleColor } from '@/lib/assignmentColors';
 import ModalTransition from '@/components/transitions/ModalTransition';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 interface Course {
   courseId: string;
@@ -151,12 +152,12 @@ export default function StudentCourseDetailPage() {
   const getGradeForAssignment = (assignmentId: string, assignment: Assignment): string | null => {
     // Check from enriched assignment data first
     if (assignment.grade !== undefined && assignment.grade !== null) {
-      return `${assignment.grade}/${assignment.maxScore || 100}`;
+      return `${assignment.grade}/${getAssignmentMaxPoints(assignment)}`;
     }
     // Fallback to submissions map
     const sub = submissions.get(assignmentId);
     if (sub?.grade !== undefined && sub?.grade !== null) {
-      return `${sub.grade}/${assignment.maxScore || 100}`;
+      return `${sub.grade}/${getAssignmentMaxPoints(assignment)}`;
     }
     return null;
   };

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -96,12 +97,21 @@ export async function GET(request: NextRequest) {
       }));
 
       if (gradedSubmissionsResponse.Items) {
+        const gradedAssignments = new Map<string, any>();
+        await Promise.all(
+          Array.from(new Set(gradedSubmissionsResponse.Items.map((s: any) => s.assignmentId).filter(Boolean))).map(async (id: any) => {
+            try {
+              const r = await docClient.send(new GetCommand({ TableName: ASSIGNMENTS_TABLE, Key: { assignmentId: id } }));
+              if (r.Item) gradedAssignments.set(id, r.Item);
+            } catch {}
+          })
+        );
         gradedSubmissionsResponse.Items.forEach((submission: any) => {
           notifications.push({
             id: `grade_${submission.submissionId}`,
             type: 'graded',
             title: 'Grade Received',
-            message: `You received ${submission.grade}/${submission.maxScore || 100} for "${submission.videoTitle}"`,
+            message: `You received ${submission.grade}/${getAssignmentMaxPoints(gradedAssignments.get(submission.assignmentId), submission)} for "${submission.videoTitle}"`,
             url: `/student/submissions`,
             timestamp: submission.updatedAt,
             priority: 'high'

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, GetCommand, ScanCommand } from '@aws-sdk/lib-dynamodb';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -89,9 +90,18 @@ export async function GET(
         stats.completedAssignments = gradedSubmissions.length;
         
         if (gradedSubmissions.length > 0) {
+          const profileAssignments = new Map<string, any>();
+          await Promise.all(
+            Array.from(new Set(gradedSubmissions.map(s => s.assignmentId).filter(Boolean))).map(async (id: any) => {
+              try {
+                const r = await docClient.send(new GetCommand({ TableName: 'classcast-assignments', Key: { assignmentId: id } }));
+                if (r.Item) profileAssignments.set(id, r.Item);
+              } catch {}
+            })
+          );
           const totalGrade = gradedSubmissions.reduce((sum, sub) => {
             const grade = parseFloat(sub.grade) || 0;
-            const maxPoints = parseFloat(sub.maxPoints) || 100;
+            const maxPoints = getAssignmentMaxPoints(profileAssignments.get(sub.assignmentId), sub);
             return sum + (grade / maxPoints * 100);
           }, 0);
           stats.averageGrade = Math.round(totalGrade / gradedSubmissions.length);

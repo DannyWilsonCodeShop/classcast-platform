@@ -15,6 +15,7 @@ import ModalTransition from '@/components/transitions/ModalTransition';
 import { FramedVideoCard } from '@/components/student/FramedVideoCard';
 import { VideoCarousel } from '@/components/student/VideoCarousel';
 import { getCardColor } from '@/lib/cardColors';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 // Three small cards across on desktop with a peek of the next one.
 const SMALL_SLIDE = 'w-[min(78vw,330px)] md:w-[calc((100%-2.5rem)/3-1rem)]';
@@ -177,7 +178,7 @@ export default function StudentDashboardPage() {
   const renderCard = (item: FeedItem, large: boolean) => {
     const own = isOwn(item);
     const a = own ? assignments.find(x => x.assignmentId === item.assignmentId) : undefined;
-    const gradeLabel = a && typeof a.grade === 'number' ? `Graded ${a.grade}/${a.maxScore ?? 100}` : null;
+    const gradeLabel = a && typeof a.grade === 'number' ? `Graded ${a.grade}/${getAssignmentMaxPoints(a)}` : null;
     return (
       <FramedVideoCard
         key={item.id}

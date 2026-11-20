@@ -3,6 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, QueryCommand, BatchGetCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { serverCache, CACHE_TTL } from '@/lib/cache';
 import { computeParticipation } from '@/lib/discussionRequirements';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -281,7 +282,7 @@ export async function GET(request: NextRequest) {
         description: assignment.description || 'No description available',
         dueDate: effectiveDueDate,
         status,
-        points: assignment.maxScore ?? 100,
+        points: getAssignmentMaxPoints(assignment),
         submissionType: assignment.assignmentType === 'video' ? 'video' : 'file',
         assignmentType: assignment.assignmentType || 'Assignment',
         requiredVideoCount,
@@ -308,7 +309,7 @@ export async function GET(request: NextRequest) {
         minResponsesRequired: assignment.minResponsesRequired || 0,
         maxResponsesPerVideo: assignment.maxResponsesPerVideo || 0,
         hidePeerVideosUntilInstructorPosts: assignment.hidePeerVideosUntilInstructorPosts || false,
-        maxScore: assignment.maxScore ?? 100,
+        maxScore: getAssignmentMaxPoints(assignment),
         sectionId: studentSectionId || null,
         choices: assignment.choices || [],
         // New assignment-type configs — must pass through so the student

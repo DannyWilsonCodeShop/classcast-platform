@@ -7,6 +7,7 @@ import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { useIsWideScreen } from '@/hooks/useIsWideScreen';
 import Avatar from '@/components/common/Avatar';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 interface Course {
   courseId: string;
@@ -166,7 +167,7 @@ const InstructorDashboard: React.FC = () => {
               assignmentId: a.assignmentId || a.id,
               title: a.title,
               dueDate: a.dueDate,
-              points: a.maxScore || a.points || 100,
+              points: getAssignmentMaxPoints(a),
               status: a.status || 'published',
               submissionsCount: a.submissionsCount || 0,
               gradedCount: a.gradedCount || 0,

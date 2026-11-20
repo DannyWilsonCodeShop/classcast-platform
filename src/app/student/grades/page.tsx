@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import { StudentRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 interface Grade {
   id: string;
@@ -44,7 +45,7 @@ export default function StudentGradesPage() {
             courseName: a.courseName || '',
             courseCode: a.courseCode || '',
             grade: a.grade ?? a.score ?? 0,
-            maxPoints: a.maxScore || a.maxPoints || 100,
+            maxPoints: getAssignmentMaxPoints(a),
             submittedAt: a.submittedAt || '',
             gradedAt: a.gradedAt || '',
             dueDate: a.dueDate || '',

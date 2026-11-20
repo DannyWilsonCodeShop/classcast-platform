@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react';
 import { Assignment, Submission, SubmissionStatus } from '@/types/dynamodb';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 export interface GradingSubmission {
   submissionId: string;
@@ -66,7 +67,7 @@ const GradingInterface: React.FC<GradingInterfaceProps> = ({
   }, [assignment.rubric]);
 
   const validateGrade = useCallback((grade: number): boolean => {
-    if (grade < 0 || grade > (assignment.maxScore || 100)) {
+    if (grade < 0 || grade > (getAssignmentMaxPoints(assignment))) {
       return false;
     }
     return true;
@@ -76,7 +77,7 @@ const GradingInterface: React.FC<GradingInterfaceProps> = ({
     const newErrors: GradingErrors = {};
 
     if (!validateGrade(gradingData.grade)) {
-      newErrors.grade = `Grade must be between 0 and ${assignment.maxScore || 100}`;
+      newErrors.grade = `Grade must be between 0 and ${getAssignmentMaxPoints(assignment)}`;
     }
 
     if (gradingData.feedback.trim().length < 10) {
@@ -241,8 +242,8 @@ const GradingInterface: React.FC<GradingInterfaceProps> = ({
                   Submitted: {new Date(submission.submittedAt).toLocaleDateString()}
                 </div>
                 {submission.grade !== undefined && (
-                  <div className={`text-sm font-medium ${getGradeColor(submission.grade, assignment.maxScore || 100)}`}>
-                    Grade: {submission.grade}/{assignment.maxScore || 100}
+                  <div className={`text-sm font-medium ${getGradeColor(submission.grade, getAssignmentMaxPoints(assignment))}`}>
+                    Grade: {submission.grade}/{getAssignmentMaxPoints(assignment)}
                   </div>
                 )}
               </div>
@@ -259,7 +260,7 @@ const GradingInterface: React.FC<GradingInterfaceProps> = ({
                   Grading: {selectedSubmission.studentName}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Assignment: {assignment.title} | Max Score: {assignment.maxScore || 100}
+                  Assignment: {assignment.title} | Max Score: {getAssignmentMaxPoints(assignment)}
                 </p>
               </div>
 
@@ -284,7 +285,7 @@ const GradingInterface: React.FC<GradingInterfaceProps> = ({
                     type="number"
                     id="grade"
                     min="0"
-                    max={assignment.maxScore || 100}
+                    max={getAssignmentMaxPoints(assignment)}
                     value={gradingData.grade}
                     onChange={(e) => setGradingData(prev => ({ ...prev, grade: parseInt(e.target.value) || 0 }))}
                     className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
@@ -382,7 +383,7 @@ const GradingInterface: React.FC<GradingInterfaceProps> = ({
                 <input
                   type="number"
                   min="0"
-                  max={assignment.maxScore || 100}
+                  max={getAssignmentMaxPoints(assignment)}
                   value={batchGrades[submission.submissionId]?.grade || ''}
                   onChange={(e) => updateBatchGrade(submission.submissionId, 'grade', parseInt(e.target.value) || 0)}
                   className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"

@@ -16,6 +16,7 @@ import { GradingFilters } from '@/components/instructor/GradingFilters';
 import { extractSections, filterBySection, sortSubmissions, searchSubmissions, getSectionStats } from '@/lib/sectionUtils';
 import { DiscussionModeratorView } from '@/components/instructor/DiscussionModeratorView';
 import { DiscussionConfig } from '@/types/discussion';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 interface Assignment {
   assignmentId: string;
@@ -167,7 +168,7 @@ const NewAssignmentGradingPage: React.FC = () => {
             title: assignmentInfo.title || 'Assignment',
             description: assignmentInfo.description || '',
             dueDate: assignmentInfo.dueDate || '',
-            maxScore: assignmentInfo.maxScore || assignmentInfo.points || 100,
+            maxScore: getAssignmentMaxPoints(assignmentInfo),
             courseId: assignmentInfo.courseId || '',
             courseName: assignmentInfo.courseName || 'Unknown Course',
             courseCode: assignmentInfo.courseCode || 'N/A',
@@ -277,7 +278,7 @@ const NewAssignmentGradingPage: React.FC = () => {
                 title: firstSubmission.assignment.title || 'Assignment',
                 description: firstSubmission.assignment.description || '',
                 dueDate: firstSubmission.assignment.dueDate || '',
-                maxScore: firstSubmission.assignment.maxScore || 100,
+                maxScore: getAssignmentMaxPoints(firstSubmission.assignment),
                 courseId: firstSubmission.assignment.courseId || '',
                 courseName: firstSubmission.assignment.courseName || 'Unknown Course',
                 courseCode: firstSubmission.assignment.courseCode || 'N/A'

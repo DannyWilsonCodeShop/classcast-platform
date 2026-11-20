@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, ScanCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -78,6 +79,7 @@ export async function GET(request: NextRequest) {
       let studentEmail = 'unknown@example.com';
       let courseName = 'Unknown Course';
       let assignmentTitle = 'Untitled Assignment';
+      let assignmentItem: any = null;
       
       try {
         // Get student information
@@ -111,6 +113,7 @@ export async function GET(request: NextRequest) {
           }));
           if (assignmentResult.Item) {
             assignmentTitle = assignmentResult.Item.title || 'Untitled Assignment';
+            assignmentItem = assignmentResult.Item;
           }
         }
       } catch (error) {
@@ -137,7 +140,7 @@ export async function GET(request: NextRequest) {
         submittedAt: submission.submittedAt || submission.createdAt,
         status: submission.status || 'submitted',
         grade: submission.grade,
-        maxPoints: submission.maxPoints || 100,
+        maxPoints: getAssignmentMaxPoints(assignmentItem, submission),
         feedback: submission.instructorFeedback,
         likes: submission.likes || 0,
         comments: submission.comments || [],

@@ -8,6 +8,7 @@ import { InstructorRoute } from '@/components/auth/ProtectedRoute';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { EmptyState } from '@/components/common/EmptyState';
 import RichTextRenderer from '@/components/common/RichTextRenderer';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 interface Course {
   courseId: string;
@@ -231,7 +232,7 @@ const InstructorSectionDetailPage: React.FC = () => {
             title: assignment.title,
             description: assignment.description,
             dueDate: assignment.dueDate,
-            points: assignment.maxScore || assignment.points || 100,
+            points: getAssignmentMaxPoints(assignment),
             status: assignment.status || 'draft',
             submissionType: assignment.assignmentType === 'video' ? 'video' : 
                            assignment.assignmentType === 'text' ? 'text' : 'file',

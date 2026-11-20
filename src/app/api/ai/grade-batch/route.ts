@@ -8,6 +8,7 @@ import {
   AIGradingPreferences,
 } from '@/types/aiGrading';
 import { RubricCategory } from '@/types/rubric';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 const client = new DynamoDBClient({ region: 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(client);
@@ -198,7 +199,7 @@ export async function POST(request: NextRequest) {
           }
         } else {
           // No rubric — generate a simple score out of 100
-          const maxScore = assignment.maxScore || 100;
+          const maxScore = getAssignmentMaxPoints(assignment);
           totalGrade = generateStrictnessWeightedScore(maxScore, preferences.strictnessLevel);
           maxTotal = maxScore;
         }

@@ -5,6 +5,7 @@ import { useTransitionRouter as useRouter } from '@/hooks/useTransitionRouter';
 import LoadingSpinner from '../common/LoadingSpinner';
 import { EmptyState } from '../common/EmptyState';
 import RichTextRenderer from '../common/RichTextRenderer';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 interface Assignment {
   assignmentId: string;
@@ -69,7 +70,7 @@ export const AssignmentManagement: React.FC<AssignmentManagementProps> = ({ cour
             title: assignment.title,
             description: assignment.description,
             dueDate: assignment.dueDate,
-            points: assignment.maxScore || assignment.points || 100,
+            points: getAssignmentMaxPoints(assignment),
             status: assignment.status || 'draft',
             submissionType: assignment.assignmentType === 'video' ? 'video' : 
                            assignment.assignmentType === 'text' ? 'text' : 'file',

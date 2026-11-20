@@ -17,6 +17,7 @@ import { resolveStudentSection } from '@/lib/sectionMembership';
 import { AssignmentType, AssignmentStatus } from '@/types/dynamodb';
 import RichTextRenderer from '@/components/common/RichTextRenderer';
 import { getApiUrl } from '@/lib/apiConfig';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 interface Course {
   courseId: string;
@@ -536,7 +537,7 @@ const InstructorCourseDetailPage: React.FC = () => {
             title: assignment.title,
             description: assignment.description,
             dueDate: assignment.dueDate,
-            points: assignment.maxScore || assignment.points || 100,
+            points: getAssignmentMaxPoints(assignment),
             status: assignment.status || 'draft',
             submissionType: assignment.assignmentType === 'video' ? 'video' : 
                            assignment.assignmentType === 'text' ? 'text' : 'file',
