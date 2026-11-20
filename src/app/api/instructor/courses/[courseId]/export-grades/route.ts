@@ -134,7 +134,7 @@ export async function GET(
         totalPossiblePoints += assignmentPoints;
 
         if (submission && submission.grade !== null && submission.grade !== undefined) {
-          const earnedPoints = (submission.grade / 100) * assignmentPoints;
+          const earnedPoints = Math.min(submission.grade, assignmentPoints);
           totalEarnedPoints += earnedPoints;
           
           gradeRow.assignments[assignment.assignmentId] = {

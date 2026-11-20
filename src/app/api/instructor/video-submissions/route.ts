@@ -4,6 +4,7 @@ import { DynamoDBDocumentClient, ScanCommand, QueryCommand } from '@aws-sdk/lib-
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { serverCache } from '@/lib/cache';
+import { getAssignmentMaxPoints } from '@/lib/assignmentPoints';
 
 const dynamoClient = new DynamoDBClient({
   region: process.env.REGION || process.env.AWS_REGION || 'us-east-1',
@@ -372,8 +373,8 @@ export async function GET(request: NextRequest) {
               description: assignmentInfo.description || '',
               dueDate: assignmentInfo.dueDate || null,
               // Carry the real max score so the grading UI shows e.g. 16/16, not 16/100.
-              // Fall back across the field names assignments have used over time.
-              maxScore: assignmentInfo.maxScore ?? assignmentInfo.maxPoints ?? assignmentInfo.totalPoints ?? assignmentInfo.points ?? null,
+              // Resolved by the shared helper so every view agrees.
+              maxScore: getAssignmentMaxPoints(assignmentInfo),
             } : {
               id: submission.assignmentId,
               title: 'Unknown Assignment',

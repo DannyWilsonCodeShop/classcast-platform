@@ -41,4 +41,8 @@ describe('assignmentPoints', () => {
     expect(getGradePercentage(0, 15)).toBe(0);
     expect(getGradePercentage(null, 15)).toBeNull();
   });
+  it('treats a full-credit raw grade as 100% (16/16)', () => {
+    const max = getAssignmentMaxPoints({ maxScore: 16 });
+    expect(getGradePercentage(Math.min(16, max), max)).toBe(100);
+  });
 });
